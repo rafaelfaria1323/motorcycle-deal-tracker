@@ -1,12 +1,13 @@
 {
-    "name": "motorcycle_deal_tracker",
-    "short_name": "motorcycle_deal_tracker",
+    "name": "Motorcycle Deal Tracker",
+    "short_name": "Deal Tracker",
+    "description": "Acompanhe o mercado de motas usadas em Portugal e encontre as melhores ofertas.",
+    "lang": "pt-PT",
     "start_url": ".",
+    "scope": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#FFFFFF",
+    "theme_color": "#E4572E",
     "prefer_related_applications": false,
     "icons": [
         {
