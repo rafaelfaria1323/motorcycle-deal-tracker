@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/app_routes.dart';
 import '../../domain/entities/listing_filters.dart';
 import '../cubit/listings_cubit.dart';
 import '../cubit/listings_state.dart';
@@ -63,7 +65,10 @@ class DashboardPage extends StatelessWidget {
                   mainAxisSpacing: 16,
                 ),
                 itemCount: state.listings.length,
-                itemBuilder: (context, index) => ListingCard(listing: state.listings[index]),
+                itemBuilder: (context, index) {
+                  final listing = state.listings[index];
+                  return ListingCard(listing: listing, onTap: () => context.go(AppRoutes.listingDetail(listing.id)));
+                },
               );
           }
         },

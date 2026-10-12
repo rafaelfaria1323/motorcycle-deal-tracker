@@ -7,4 +7,15 @@ abstract final class Formatters {
   static String price(double? value) => value == null ? '—' : _price.format(value);
 
   static String mileage(int? value) => value == null ? '—' : '${_number.format(value)} km';
+
+  static final _date = DateFormat('dd/MM/yyyy');
+
+  static String date(DateTime value) => _date.format(value.toLocal());
+
+  static String daysAgo(DateTime value, {DateTime? now}) {
+    final days = (now ?? DateTime.now()).difference(value).inDays;
+    if (days <= 0) return 'hoje';
+    if (days == 1) return 'ontem';
+    return 'há $days dias';
+  }
 }

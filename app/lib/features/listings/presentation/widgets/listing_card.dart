@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/formatting/formatters.dart';
 import '../../domain/entities/listing.dart';
 import 'deal_score_badge.dart';
+import 'listing_photo.dart';
 
 class ListingCard extends StatelessWidget {
   const ListingCard({required this.listing, this.onTap, super.key});
@@ -29,7 +30,7 @@ class ListingCard extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  _Photo(url: listing.images.isEmpty ? null : listing.images.first),
+                  ListingPhoto(url: listing.images.isEmpty ? null : listing.images.first),
                   if (listing.dealScore != null)
                     Positioned(top: 8, right: 8, child: DealScoreBadge(score: listing.dealScore!)),
                 ],
@@ -61,23 +62,5 @@ class ListingCard extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _Photo extends StatelessWidget {
-  const _Photo({this.url});
-
-  final String? url;
-
-  @override
-  Widget build(BuildContext context) {
-    final placeholder = ColoredBox(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: const Center(child: Icon(Icons.two_wheeler, size: 48)),
-    );
-
-    if (url == null) return placeholder;
-
-    return Image.network(url!, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) => placeholder);
   }
 }
