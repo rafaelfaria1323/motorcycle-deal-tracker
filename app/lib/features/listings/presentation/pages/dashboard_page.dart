@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
+import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/listing_filters.dart';
 import '../cubit/listings_cubit.dart';
 import '../cubit/listings_state.dart';
@@ -51,11 +52,27 @@ class DashboardPage extends StatelessWidget {
             case ListingsStatus.loading:
               return const Center(child: CircularProgressIndicator());
             case ListingsStatus.failure:
-              return const Center(child: Text('Erro ao carregar ofertas'));
+              return StateMessage(
+                icon: Icons.cloud_off,
+                title: 'Não foi possível carregar as ofertas',
+                message: 'Verifique a ligação e tente novamente.',
+                actionLabel: 'Tentar novamente',
+                onAction: () => context.read<ListingsCubit>().load(),
+              );
             case ListingsStatus.success:
               if (state.listings.isEmpty) {
-                return const Center(child: Text('Nenhuma oferta encontrada'));
+                final hasFilters = state.filters.appliedCount > 0;
+                return StateMessage(
+                  icon: Icons.search_off,
+                  title: hasFilters ? 'Nenhuma oferta com estes filtros' : 'Ainda não há ofertas',
+                  message: hasFilters
+                      ? 'Experimente alargar os critérios de pesquisa.'
+                      : 'Volte mais tarde, estamos a acompanhar o mercado.',
+                  actionLabel: hasFilters ? 'Limpar filtros' : null,
+                  onAction: hasFilters ? () => context.read<ListingsCubit>().applyFilters(ListingFilters.empty) : null,
+                );
               }
+
               return GridView.builder(
                 padding: const EdgeInsets.all(16),
                 gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(

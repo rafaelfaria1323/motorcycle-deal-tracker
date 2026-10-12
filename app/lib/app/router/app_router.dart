@@ -25,10 +25,13 @@ final appRouter = GoRouter(
               routes: [
                 GoRoute(
                   path: ':id',
-                  builder: (context, state) => BlocProvider(
-                    create: (_) => getIt<ListingDetailCubit>()..load(state.pathParameters['id']!),
-                    child: const ListingDetailPage(),
-                  ),
+                  builder: (context, state) {
+                    final id = state.pathParameters['id']!;
+                    return BlocProvider(
+                      create: (_) => getIt<ListingDetailCubit>()..load(id),
+                      child: ListingDetailPage(listingId: id),
+                    );
+                  },
                 ),
               ],
             ),

@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/formatting/formatters.dart';
+import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/listing.dart';
 import '../cubit/listing_detail_cubit.dart';
 import '../cubit/listing_detail_state.dart';
@@ -13,13 +14,14 @@ import '../widgets/deal_score_badge.dart';
 import '../widgets/listing_photo.dart';
 
 class ListingDetailPage extends StatelessWidget {
-  const ListingDetailPage({super.key});
+  const ListingDetailPage({required this.listingId, super.key});
+
+  final String listingId;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // Falls back to the dashboard when opened directly from a URL.
         leading: BackButton(onPressed: () => context.canPop() ? context.pop() : context.go(AppRoutes.deals)),
         title: const Text('Detalhe'),
       ),
@@ -29,9 +31,21 @@ class ListingDetailPage extends StatelessWidget {
             case ListingDetailStatus.loading:
               return const Center(child: CircularProgressIndicator());
             case ListingDetailStatus.notFound:
-              return const Center(child: Text('Anúncio não encontrado'));
+              return StateMessage(
+                icon: Icons.search_off,
+                title: 'Anúncio não encontrado',
+                message: 'Pode ter sido removido ou o link está incorreto.',
+                actionLabel: 'Ver ofertas',
+                onAction: () => context.go(AppRoutes.deals),
+              );
             case ListingDetailStatus.failure:
-              return const Center(child: Text('Erro ao carregar anúncio'));
+              return StateMessage(
+                icon: Icons.cloud_off,
+                title: 'Não foi possível carregar o anúncio',
+                message: 'Verifique a ligação e tente novamente.',
+                actionLabel: 'Tentar novamente',
+                onAction: () => context.read<ListingDetailCubit>().load(listingId),
+              );
             case ListingDetailStatus.success:
               return _Content(listing: state.listing!);
           }

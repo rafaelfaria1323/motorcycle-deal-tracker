@@ -8,7 +8,17 @@ class ListingDetailCubit extends Cubit<ListingDetailState> {
 
   final ListingsRepository _repository;
 
+  static final _uuid = RegExp(
+    r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-'
+    r'[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+  );
+
   Future<void> load(String id) async {
+    if (!_uuid.hasMatch(id)) {
+      emit(const ListingDetailState(status: ListingDetailStatus.notFound));
+      return;
+    }
+
     emit(const ListingDetailState());
     try {
       final listing = await _repository.getListingById(id);
