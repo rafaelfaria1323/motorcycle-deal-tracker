@@ -19,6 +19,7 @@ class Listing extends Equatable {
     this.motorcycleId,
     this.year,
     this.mileage,
+    this.dealScore,
     this.price,
     this.sellerName,
     this.location,
@@ -33,6 +34,7 @@ class Listing extends Equatable {
   final String? motorcycleId;
   final int? year;
   final int? mileage;
+  final int? dealScore;
   final double? price;
   final SellerType sellerType;
   final String? sellerName;
@@ -44,5 +46,5 @@ class Listing extends Equatable {
   final DateTime lastSeenAt;
 
   @override
-  List<Object?> get props => [id, price, status, lastSeenAt];
+  List<Object?> get props => [id, price, dealScore, status, lastSeenAt];
 }

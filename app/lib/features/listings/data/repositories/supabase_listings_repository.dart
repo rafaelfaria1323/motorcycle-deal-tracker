@@ -22,6 +22,7 @@ class SupabaseListingsRepository implements ListingsRepository {
       ListingSort.newest => query.order('first_seen_at', ascending: false),
       ListingSort.priceAsc => query.order('price', ascending: true, nullsFirst: false),
       ListingSort.priceDesc => query.order('price', ascending: false, nullsFirst: false),
+      ListingSort.dealScoreDesc => query.order('deal_score', ascending: false, nullsFirst: false),
     };
 
     final rows = await ordered;

@@ -1,5 +1,1 @@
-enum ListingSort {
-  newest,
-  priceAsc,
-  priceDesc,
-}
+enum ListingSort { newest, priceAsc, priceDesc, dealScoreDesc }
