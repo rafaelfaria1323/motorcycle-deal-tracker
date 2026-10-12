@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../cubit/listings_cubit.dart';
 import '../cubit/listings_state.dart';
+import '../widgets/listing_card.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -20,21 +21,16 @@ class DashboardPage extends StatelessWidget {
             case ListingsStatus.failure:
               return const Center(child: Text('Erro ao carregar ofertas'));
             case ListingsStatus.success:
-              return ListView.separated(
+              return GridView.builder(
+                padding: const EdgeInsets.all(16),
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 420,
+                  mainAxisExtent: 290,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                ),
                 itemCount: state.listings.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
-                itemBuilder: (context, index) {
-                  final l = state.listings[index];
-                  return ListTile(
-                    title: Text('${l.brand} ${l.model} ${l.year ?? ''}'),
-                    subtitle: Text('${l.mileage ?? '?'} km · ${l.location ?? '-'}'),
-                    trailing: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [Text('€${l.price?.toStringAsFixed(0) ?? '-'}'), Text('Score ${l.dealScore ?? '-'}')],
-                    ),
-                  );
-                },
+                itemBuilder: (context, index) => ListingCard(listing: state.listings[index]),
               );
           }
         },
