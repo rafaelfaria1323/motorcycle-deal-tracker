@@ -8,8 +8,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   assert(
-  _supabaseUrl.isNotEmpty && _supabaseAnonKey.isNotEmpty,
-  'Missing Supabase config. Run with --dart-define-from-file=env/dev.json',
+    _supabaseUrl.isNotEmpty && _supabaseAnonKey.isNotEmpty,
+    'Missing Supabase config. Run with --dart-define-from-file=env/dev.json',
   );
 
   await Supabase.initialize(url: _supabaseUrl, anonKey: _supabaseAnonKey);
@@ -93,10 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
         // TRY THIS: Try changing the color here to a specific color (to
         // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
         // change color while the other colors stay the same.
-        backgroundColor: Theme
-            .of(context)
-            .colorScheme
-            .inversePrimary,
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
@@ -121,13 +118,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme
-                  .of(context)
-                  .textTheme
-                  .headlineMedium,
-            ),
+            Text('$_counter', style: Theme.of(context).textTheme.headlineMedium),
           ],
         ),
       ),
