@@ -1,0 +1,6 @@
+.DS_Store
+.env
+.env.*
+*.log
+app/env/*.json
+!app/env/*.example.json
