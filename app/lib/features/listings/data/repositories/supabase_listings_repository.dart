@@ -10,12 +10,21 @@ class SupabaseListingsRepository implements ListingsRepository {
   final SupabaseClient _client;
 
   @override
-  Future<List<Listing>> getListings() async {
-    final rows = await _client
-        .from('listings')
-        .select()
-        .order('first_seen_at', ascending: false);
+  Future<List<Listing>> getListings({String? motorcycleId}) async {
+    var query = _client.from('listings').select();
 
+    if (motorcycleId != null) {
+      query = query.eq('motorcycle_id', motorcycleId);
+    }
+
+    final rows = await query.order('first_seen_at', ascending: false);
     return rows.map(ListingModel.fromJson).toList();
+  }
+
+  @override
+  Future<Listing?> getListingById(String id) async {
+    final row = await _client.from('listings').select().eq('id', id).maybeSingle();
+
+    return row == null ? null : ListingModel.fromJson(row);
   }
 }
