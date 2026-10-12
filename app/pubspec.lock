@@ -168,6 +168,14 @@ packages:
       url: "https://packages.orbit.bmwgroup.net/artifactory/api/pub/mobile20-pub-virtual/"
     source: hosted
     version: "2.7.1"
+  go_router:
+    dependency: "direct main"
+    description:
+      name: go_router
+      sha256: "92d8cee7c57dff0a6c409c05597b460002434eccf7424a712283225b3962d03f"
+      url: "https://packages.orbit.bmwgroup.net/artifactory/api/pub/mobile20-pub-virtual/"
+    source: hosted
+    version: "17.2.3"
   gotrue:
     dependency: transitive
     description:
