@@ -1,7 +1,9 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/entities/listing.dart';
+import '../../domain/entities/listing_filters.dart';
 import '../../domain/entities/listing_sort.dart';
+import '../../domain/entities/motorcycle_option.dart';
 import '../../domain/repositories/listings_repository.dart';
 import '../models/listing_model.dart';
 
@@ -11,11 +13,32 @@ class SupabaseListingsRepository implements ListingsRepository {
   final SupabaseClient _client;
 
   @override
-  Future<List<Listing>> getListings({String? motorcycleId, ListingSort sort = ListingSort.newest}) async {
+  Future<List<Listing>> getListings({
+    ListingFilters filters = ListingFilters.empty,
+    ListingSort sort = ListingSort.newest,
+  }) async {
     var query = _client.from('listings').select();
 
-    if (motorcycleId != null) {
-      query = query.eq('motorcycle_id', motorcycleId);
+    if (filters.motorcycleId != null) {
+      query = query.eq('motorcycle_id', filters.motorcycleId!);
+    }
+    if (filters.minYear != null) {
+      query = query.gte('year', filters.minYear!);
+    }
+    if (filters.maxPrice != null) {
+      query = query.lte('price', filters.maxPrice!);
+    }
+    if (filters.maxMileage != null) {
+      query = query.lte('mileage', filters.maxMileage!);
+    }
+    if (filters.location != null) {
+      query = query.ilike('location', '%${filters.location}%');
+    }
+    if (filters.sellerType != null) {
+      query = query.eq('seller_type', filters.sellerType!.name);
+    }
+    if (filters.activeOnly) {
+      query = query.inFilter('status', ['active', 'price_changed']);
     }
 
     final ordered = switch (sort) {
@@ -34,5 +57,22 @@ class SupabaseListingsRepository implements ListingsRepository {
     final row = await _client.from('listings').select().eq('id', id).maybeSingle();
 
     return row == null ? null : ListingModel.fromJson(row);
+  }
+
+  @override
+  Future<List<MotorcycleOption>> getMotorcycleOptions() async {
+    final rows = await _client
+        .from('motorcycles')
+        .select('id, brand, model')
+        .eq('is_active', true)
+        .order('brand')
+        .order('model');
+
+    return rows
+        .map(
+          (row) =>
+              MotorcycleOption(id: row['id'] as String, brand: row['brand'] as String, model: row['model'] as String),
+        )
+        .toList();
   }
 }
