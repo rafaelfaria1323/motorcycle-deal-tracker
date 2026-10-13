@@ -55,13 +55,5 @@ where l.source = 'mock'
     select 1 from public.listing_price_history h where h.listing_id = l.id
   );
 
--- Placeholder scores until the deal engine exists (Sprint 4).
--- cbr650r-003 is left null on purpose, to test "unscored" sorting.
-update public.listings l
-set deal_score = s.score
-from (values
-  ('r7-001', 94), ('mt07-001', 91), ('cb650r-001', 87), ('mt07-002', 83),
-  ('cbr650r-001', 80), ('r7-003', 78), ('cb650r-002', 74), ('r7-002', 72),
-  ('cb650r-003', 69), ('mt07-003', 66), ('cbr650r-002', 58)
-) as s(source_listing_id, score)
-where l.source = 'mock' and l.source_listing_id = s.source_listing_id;
+-- Real scores from the deal engine.
+select public.recalculate_deal_scores();
