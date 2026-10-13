@@ -12,6 +12,7 @@ import '../cubit/listing_detail_state.dart';
 import '../listing_labels.dart';
 import '../widgets/deal_score_badge.dart';
 import '../widgets/listing_photo.dart';
+import '../widgets/score_explanation_card.dart';
 
 class ListingDetailPage extends StatelessWidget {
   const ListingDetailPage({required this.listingId, super.key});
@@ -103,6 +104,7 @@ class _Content extends StatelessWidget {
               style: textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
+            ScoreExplanationCard(listing: listing),
             Card(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
