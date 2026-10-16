@@ -19,7 +19,9 @@ class ManualRawListing {
   factory ManualRawListing.fromJson(Map<String, dynamic> json) {
     final url = _requiredString(json, 'url');
     final uri = Uri.tryParse(url);
-    if (uri == null || !(uri.scheme == 'http' || uri.scheme == 'https') || uri.host.isEmpty) {
+    if (uri == null ||
+        !(uri.scheme == 'http' || uri.scheme == 'https') ||
+        uri.host.isEmpty) {
       throw FormatException('"url" must be an http(s) link');
     }
 

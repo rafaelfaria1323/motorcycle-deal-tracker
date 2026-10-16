@@ -8,13 +8,16 @@ import 'manual_raw_listing.dart';
 class ManualAdapter implements SourceAdapter<ManualRawListing> {
   ManualAdapter(this.path);
 
+  static const sourceId = 'manual';
+
   final String path;
 
   @override
-  String get source => 'manual';
+  String get source => sourceId;
 
   @override
-  Future<ParseResult<ManualRawListing>> read() async => parse(await File(path).readAsString());
+  Future<ParseResult<ManualRawListing>> read() async =>
+      parse(await File(path).readAsString());
 
   /// Pure parsing step, separate from file access so it can be tested.
   /// Throws [FormatException] when the file is not a JSON array.

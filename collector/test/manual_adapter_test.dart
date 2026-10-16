@@ -41,7 +41,9 @@ void main() {
   });
 
   test('rejects links that are not http(s)', () {
-    final result = adapter.parse('[{"url": "ftp://x/y", "brand": "A", "model": "B", "price_eur": 1}]');
+    final result = adapter.parse(
+      '[{"url": "ftp://x/y", "brand": "A", "model": "B", "price_eur": 1}]',
+    );
 
     expect(result.records, isEmpty);
     expect(result.issues.single.message, contains('url'));
