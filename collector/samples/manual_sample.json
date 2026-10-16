@@ -1,0 +1,36 @@
+[
+  {
+    "url": "https://example.com/sample/r7-1",
+    "brand": "Yamaha",
+    "model": "R7",
+    "year": 2026,
+    "mileage_km": 3500,
+    "price_eur": 9300,
+    "seller_type": "dealer",
+    "seller_name": "Stand Exemplo",
+    "location": "Lisboa",
+    "description": "Exemplo de anúncio, apenas para testar a importação manual.",
+    "images": []
+  },
+  {
+    "url": "https://example.com/sample/cb650r-1",
+    "brand": "Honda",
+    "model": "CB650R",
+    "year": 2025,
+    "mileage_km": 4000,
+    "price_eur": 8250,
+    "seller_type": "private",
+    "location": "Porto"
+  },
+  {
+    "url": "https://example.com/sample/mt07-1",
+    "brand": "Yamaha",
+    "model": "MT-07",
+    "year": 2026,
+    "mileage_km": 1100,
+    "price_eur": 7850,
+    "seller_type": "dealer",
+    "seller_name": "Stand Exemplo",
+    "location": "Porto"
+  }
+]
