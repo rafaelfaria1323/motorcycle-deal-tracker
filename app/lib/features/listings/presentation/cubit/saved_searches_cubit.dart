@@ -16,19 +16,30 @@ class SavedSearchesCubit extends Cubit<SavedSearchesState> {
   Future<void> load() async {
     emit(state.copyWith(status: SavedSearchesStatus.loading));
     try {
-      final (searches, motorcycles) = await (
+      final (searches, motorcycles, counts) = await (
         _searches.getAll(),
         _listings.getMotorcycleOptions(),
+        // The counts are a nicety: if they fail, the list still shows.
+        _searches.getMatchCounts().catchError((_) => const <String, int>{}),
       ).wait;
       emit(
         state.copyWith(
           status: SavedSearchesStatus.success,
           searches: searches,
           motorcycles: motorcycles,
+          matchCounts: counts,
         ),
       );
     } catch (_) {
       emit(state.copyWith(status: SavedSearchesStatus.failure));
+    }
+  }
+
+  Future<void> _refreshCounts() async {
+    try {
+      emit(state.copyWith(matchCounts: await _searches.getMatchCounts()));
+    } catch (_) {
+      // Keep the old counts.
     }
   }
 
@@ -37,6 +48,7 @@ class SavedSearchesCubit extends Cubit<SavedSearchesState> {
     try {
       final created = await _searches.create(name: name, filters: filters);
       emit(state.copyWith(searches: [created, ...state.searches]));
+      await _refreshCounts();
       return true;
     } catch (_) {
       return false;
@@ -54,6 +66,7 @@ class SavedSearchesCubit extends Cubit<SavedSearchesState> {
           ],
         ),
       );
+      await _refreshCounts();
       return true;
     } catch (_) {
       return false;

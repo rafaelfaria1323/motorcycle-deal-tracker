@@ -18,6 +18,9 @@ import '../widgets/edit_saved_search_sheet.dart';
 class SavedSearchesPage extends StatelessWidget {
   const SavedSearchesPage({super.key});
 
+  static String _matchLabel(int count) =>
+      count == 1 ? '1 oferta' : '$count ofertas';
+
   Future<void> _apply(BuildContext context, SavedSearch search) async {
     final listings = getIt<ListingsCubit>();
     // Only matters when the app was opened directly on this tab.
@@ -75,6 +78,8 @@ class SavedSearchesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Pesquisas')),
       body: BlocBuilder<SavedSearchesCubit, SavedSearchesState>(
@@ -111,12 +116,29 @@ class SavedSearchesPage extends StatelessWidget {
                     itemCount: state.searches.length,
                     itemBuilder: (context, index) {
                       final search = state.searches[index];
+                      final matches = state.matchCounts[search.id] ?? 0;
                       return Card(
                         child: ListTile(
+                          isThreeLine: true,
                           leading: const Icon(Icons.bookmark_outline),
                           title: Text(search.displayName),
-                          subtitle: Text(
-                            summarizeFilters(search.filters, state.motorcycles),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                summarizeFilters(
+                                  search.filters,
+                                  state.motorcycles,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _matchLabel(matches),
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ),
+                            ],
                           ),
                           onTap: () => _apply(context, search),
                           trailing: Row(

@@ -16,4 +16,8 @@ abstract interface class SavedSearchesRepository {
 
   /// Deletes a search. Throws if nothing was deleted.
   Future<void> delete(String id);
+
+  /// How many live listings each search matches, by search id. Searches with
+  /// no matches are missing from the map.
+  Future<Map<String, int>> getMatchCounts();
 }

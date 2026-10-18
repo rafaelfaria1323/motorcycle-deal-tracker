@@ -5,15 +5,29 @@ import 'package:motorcycle_deal_tracker/features/listings/domain/entities/saved_
 import 'package:motorcycle_deal_tracker/features/listings/domain/repositories/listings_repository.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/repositories/saved_searches_repository.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/saved_searches_cubit.dart';
+import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/saved_searches_state.dart';
 
 class _FakeSearches implements SavedSearchesRepository {
-  _FakeSearches(this.items, {this.failDelete = false});
+  _FakeSearches(
+    this.items, {
+    this.failDelete = false,
+    this.counts = const {},
+    this.failCounts = false,
+  });
 
   List<SavedSearch> items;
   final bool failDelete;
+  final Map<String, int> counts;
+  final bool failCounts;
 
   @override
   Future<List<SavedSearch>> getAll() async => items;
+
+  @override
+  Future<Map<String, int>> getMatchCounts() async {
+    if (failCounts) throw StateError('counts failed');
+    return counts;
+  }
 
   @override
   Future<void> delete(String id) async {
@@ -75,5 +89,30 @@ void main() {
 
     expect(deleted, isFalse);
     expect(cubit.state.searches.map((s) => s.id), ['a']);
+  });
+
+  test('load brings the match counts', () async {
+    final cubit = SavedSearchesCubit(
+      _FakeSearches([_search('a'), _search('b')], counts: {'a': 3}),
+      _FakeListings(),
+    );
+
+    await cubit.load();
+
+    expect(cubit.state.matchCounts['a'], 3);
+    expect(cubit.state.matchCounts['b'], isNull); // no matches
+  });
+
+  test('a failure loading the counts does not fail the list', () async {
+    final cubit = SavedSearchesCubit(
+      _FakeSearches([_search('a')], failCounts: true),
+      _FakeListings(),
+    );
+
+    await cubit.load();
+
+    expect(cubit.state.status, SavedSearchesStatus.success);
+    expect(cubit.state.searches, hasLength(1));
+    expect(cubit.state.matchCounts, isEmpty);
   });
 }

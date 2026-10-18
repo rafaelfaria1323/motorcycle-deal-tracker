@@ -60,4 +60,13 @@ class SupabaseSavedSearchesRepository implements SavedSearchesRepository {
       throw StateError('Saved search $id was not deleted.');
     }
   }
+
+  @override
+  Future<Map<String, int>> getMatchCounts() async {
+    final rows = await _client.from('saved_search_match_counts').select();
+    return {
+      for (final row in rows)
+        row['saved_search_id'] as String: (row['match_count'] as num).toInt(),
+    };
+  }
 }
