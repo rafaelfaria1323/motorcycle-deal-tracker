@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/listing_filters.dart';
+import '../../domain/entities/saved_search.dart';
 import '../../domain/repositories/listings_repository.dart';
 import '../../domain/repositories/saved_searches_repository.dart';
 import 'saved_searches_state.dart';
@@ -36,6 +37,23 @@ class SavedSearchesCubit extends Cubit<SavedSearchesState> {
     try {
       final created = await _searches.create(name: name, filters: filters);
       emit(state.copyWith(searches: [created, ...state.searches]));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Returns true when the changes were saved.
+  Future<bool> update(SavedSearch search) async {
+    try {
+      final updated = await _searches.update(search);
+      emit(
+        state.copyWith(
+          searches: [
+            for (final s in state.searches) s.id == updated.id ? updated : s,
+          ],
+        ),
+      );
       return true;
     } catch (_) {
       return false;

@@ -10,4 +10,7 @@ abstract interface class SavedSearchesRepository {
 
   /// The current user's searches, newest first.
   Future<List<SavedSearch>> getAll();
+
+  /// Saves the name, criteria and notification choices of [search].
+  Future<SavedSearch> update(SavedSearch search);
 }

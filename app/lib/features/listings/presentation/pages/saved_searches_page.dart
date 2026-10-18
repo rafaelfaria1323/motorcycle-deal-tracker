@@ -4,12 +4,42 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/widgets/state_message.dart';
+import '../../domain/entities/motorcycle_option.dart';
+import '../../domain/entities/saved_search.dart';
 import '../cubit/saved_searches_cubit.dart';
 import '../cubit/saved_searches_state.dart';
 import '../saved_search_summary.dart';
+import '../widgets/edit_saved_search_sheet.dart';
 
 class SavedSearchesPage extends StatelessWidget {
   const SavedSearchesPage({super.key});
+
+  Future<void> _edit(
+    BuildContext context,
+    SavedSearch search,
+    List<MotorcycleOption> motorcycles,
+  ) async {
+    final cubit = context.read<SavedSearchesCubit>();
+    final messenger = ScaffoldMessenger.of(context);
+
+    final edited = await showEditSavedSearchSheet(
+      context,
+      search: search,
+      motorcycles: motorcycles,
+    );
+    if (edited == null) return;
+
+    final saved = await cubit.update(edited);
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          saved
+              ? 'Pesquisa atualizada'
+              : 'Não foi possível atualizar a pesquisa',
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +85,12 @@ class SavedSearchesPage extends StatelessWidget {
                           title: Text(search.displayName),
                           subtitle: Text(
                             summarizeFilters(search.filters, state.motorcycles),
+                          ),
+                          trailing: IconButton(
+                            tooltip: 'Editar',
+                            icon: const Icon(Icons.edit_outlined),
+                            onPressed: () =>
+                                _edit(context, search, state.motorcycles),
                           ),
                         ),
                       );

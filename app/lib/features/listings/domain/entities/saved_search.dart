@@ -28,6 +28,26 @@ class SavedSearch extends Equatable {
   String get displayName =>
       (name == null || name!.trim().isEmpty) ? 'Pesquisa sem nome' : name!;
 
+  SavedSearch copyWith({
+    String? name,
+    ListingFilters? filters,
+    bool? notifyNewListing,
+    bool? notifyPriceReduction,
+    bool? notifyExcellentDeal,
+    bool? notifyListingRemoved,
+  }) {
+    return SavedSearch(
+      id: id,
+      name: name ?? this.name,
+      filters: filters ?? this.filters,
+      createdAt: createdAt,
+      notifyNewListing: notifyNewListing ?? this.notifyNewListing,
+      notifyPriceReduction: notifyPriceReduction ?? this.notifyPriceReduction,
+      notifyExcellentDeal: notifyExcellentDeal ?? this.notifyExcellentDeal,
+      notifyListingRemoved: notifyListingRemoved ?? this.notifyListingRemoved,
+    );
+  }
+
   @override
   List<Object?> get props => [
     id,
@@ -51,4 +71,14 @@ extension ListingFiltersCriteria on ListingFilters {
       maxMileage != null ||
       location != null ||
       sellerType != null;
+
+  /// The same criteria without the live-only switch, which is not saved.
+  ListingFilters get criteriaOnly => ListingFilters(
+    motorcycleId: motorcycleId,
+    minYear: minYear,
+    maxPrice: maxPrice,
+    maxMileage: maxMileage,
+    location: location,
+    sellerType: sellerType,
+  );
 }

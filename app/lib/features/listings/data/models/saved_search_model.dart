@@ -25,17 +25,32 @@ class SavedSearchModel {
     );
   }
 
+  static Map<String, Object?> _criteria(ListingFilters filters) => {
+    'motorcycle_id': filters.motorcycleId,
+    'min_year': filters.minYear,
+    'max_price': filters.maxPrice,
+    'max_mileage': filters.maxMileage,
+    'location': filters.location,
+    'seller_type': filters.sellerType?.name,
+  };
+
   /// The row to insert. `user_id` is filled in by the database
   /// (`default auth.uid()`), so the app never sends it.
   static Map<String, Object?> toInsert(String name, ListingFilters filters) {
+    return {'name': name, ..._criteria(filters)};
+  }
+
+  /// The columns an edit may change. Cleared criteria are sent as explicit
+  /// nulls, which is how "any" is stored. `user_id` is never touched.
+  static Map<String, Object?> toUpdate(SavedSearch search) {
     return {
-      'name': name,
-      'motorcycle_id': filters.motorcycleId,
-      'min_year': filters.minYear,
-      'max_price': filters.maxPrice,
-      'max_mileage': filters.maxMileage,
-      'location': filters.location,
-      'seller_type': filters.sellerType?.name,
+      'name': search.name,
+      ..._criteria(search.filters),
+      'notify_new_listing': search.notifyNewListing,
+      'notify_price_reduction': search.notifyPriceReduction,
+      'notify_excellent_deal': search.notifyExcellentDeal,
+      'notify_listing_removed': search.notifyListingRemoved,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
     };
   }
 

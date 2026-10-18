@@ -32,4 +32,18 @@ class SupabaseSavedSearchesRepository implements SavedSearchesRepository {
         .order('created_at', ascending: false);
     return rows.map<SavedSearch>(SavedSearchModel.fromJson).toList();
   }
+
+  @override
+  Future<SavedSearch> update(SavedSearch search) async {
+    // `.single()` fails when no row was updated (for example, someone else's
+    // search), so a blocked edit surfaces as an error instead of silently
+    // doing nothing.
+    final row = await _client
+        .from('saved_searches')
+        .update(SavedSearchModel.toUpdate(search))
+        .eq('id', search.id)
+        .select()
+        .single();
+    return SavedSearchModel.fromJson(row);
+  }
 }

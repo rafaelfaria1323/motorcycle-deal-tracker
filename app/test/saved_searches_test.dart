@@ -62,4 +62,47 @@ void main() {
     expect(text, contains('Yamaha MT-07'));
     expect(text, contains('desde 2026'));
   });
+
+  test('copyWith changes only what it is given', () {
+    final search = SavedSearchModel.fromJson({
+      'id': 's1',
+      'name': 'Teste',
+      'motorcycle_id': 'm1',
+      'min_year': 2026,
+      'created_at': '2026-10-18T12:00:00Z',
+    });
+    final edited = search.copyWith(
+      name: 'Novo nome',
+      notifyExcellentDeal: true,
+    );
+
+    expect(edited.id, 's1');
+    expect(edited.name, 'Novo nome');
+    expect(edited.filters, search.filters);
+    expect(edited.notifyExcellentDeal, isTrue);
+    expect(edited.notifyNewListing, search.notifyNewListing);
+  });
+
+  test('the update row sends cleared criteria as explicit nulls', () {
+    final search = SavedSearchModel.fromJson({
+      'id': 's1',
+      'name': 'Teste',
+      'created_at': '2026-10-18T12:00:00Z',
+    }).copyWith(filters: const ListingFilters(location: 'Porto'));
+
+    final row = SavedSearchModel.toUpdate(search);
+
+    expect(row['location'], 'Porto');
+    expect(row.containsKey('min_year'), isTrue);
+    expect(row['min_year'], isNull);
+    expect(row['notify_price_reduction'], isTrue);
+    expect(row.containsKey('user_id'), isFalse);
+    expect(row.containsKey('id'), isFalse);
+  });
+
+  test('criteriaOnly drops the live-only switch', () {
+    const filters = ListingFilters(minYear: 2026, activeOnly: false);
+    expect(filters.criteriaOnly.activeOnly, isTrue);
+    expect(filters.criteriaOnly.minYear, 2026);
+  });
 }
