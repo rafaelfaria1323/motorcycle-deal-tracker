@@ -45,3 +45,26 @@ URL on every listing.
 - OLX Group API reference: https://developer.olxgroup.com/reference
 - OLX Portugal developer portal: https://developer.olx.pt/
 - Standvirtual robots.txt: https://www.standvirtual.com/robots.txt
+## Pipeline test (5.7)
+
+Tested the full path (manual JSON → adapter → mapper → store → duplicates → scoring) with a deliberately messy file (`collector/samples/manual_edge_cases.json`).
+
+### What worked
+- Records without a URL are rejected at read time with a clear message.
+- Tracking parameters (`utm_*`, `fbclid`), `www.` and trailing slashes are stripped, so the same listing gets one canonical `source_listing_id`.
+- Messy input normalizes to the catalog: `honda` / `cb 650 r` → `honda-cb650r`, `particular` → private, padded locations are trimmed.
+- In-file duplicates are dropped before writing; re-running the same file stores nothing new (idempotent).
+- Duplicate detection runs before scoring, so duplicates stay out of market stats and scores.
+
+### Findings
+- Models not in the catalog are accepted as `unmatched` (stored with no `motorcycle_id`). They used to get a score from year/mileage only, which ranked bikes with no market price misleadingly. Fixed in 5.7b: only listings matched to a catalog model are scored; unmatched ones are stored, shown, and unscored.
+- Cleanup SQL for test data must cover every fake domain used (`example.com` and `example.org`); a pattern for one domain left a stray row that skewed market stats.
+- Dry run does not show in-file duplicates or normalized seller type / location; those are only visible in the database after a real run.
+
+### Real listings (hand-copied, 3-5 samples)
+- Normalizer problems seen: _fill in_
+- Fields on the real pages that our format cannot hold (fuel, engine size, warranty, etc.): _fill in_
+- Scores that looked off for a real bike: _fill in_
+
+### Decisions
+- Automated collection from a marketplace stays blocked until the terms of use are reviewed and recorded here. Until then the manual import adapter is the only live source.
