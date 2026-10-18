@@ -1,0 +1,24 @@
+[
+  {
+    "url": "https://example.com/sample/mt07-edge-1",
+    "brand": "Yamaha",
+    "model": "MT-07",
+    "year": 2026,
+    "mileage_km": 2100,
+    "price_eur": 7600,
+    "seller_type": "dealer",
+    "seller_name": "Stand Exemplo",
+    "location": "Coimbra",
+    "description": "Yamaha MT-07 2026, 2100 km, garantia de fábrica, revisão feita, extras incluídos."
+  },
+  {
+    "url": "https://example.com/sample/cb650r-edge-5",
+    "brand": "Honda",
+    "model": "CB650R",
+    "year": 2025,
+    "mileage_km": 3000,
+    "price_eur": 7900,
+    "seller_type": "private",
+    "location": "Aveiro"
+  }
+]

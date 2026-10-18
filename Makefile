@@ -33,10 +33,10 @@ collector-check: ## Format check, analyze and test the collector
 	cd collector && dart format --output=none --set-exit-if-changed . && dart analyze && dart test
 
 collect-dry: require-collector-env ## Preview an import, writes nothing: make collect-dry FILE=imports/x.json
-	cd collector && dart run bin/collector.dart manual $(or $(FILE),samples/manual_sample.json) --dry-run
+	cd collector && dart run bin/collector.dart manual $(or $(FILE),samples/manual_sample.json) --dry-run $(ARGS)
 
 collect: require-collector-env require-file ## Import listings: make collect FILE=imports/x.json
-	cd collector && dart run bin/collector.dart manual $(FILE)
+	cd collector && dart run bin/collector.dart manual $(FILE) $(ARGS)
 
 # ---- Database --------------------------------------------------------------
 

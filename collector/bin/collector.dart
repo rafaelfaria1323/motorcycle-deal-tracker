@@ -3,17 +3,28 @@ import 'dart:io';
 import 'package:collector/collector.dart';
 import 'package:supabase/supabase.dart';
 
-Future<void> main(List<String> args) async {
-  final dryRun = args.contains('--dry-run');
-  final positional = args.where((a) => a != '--dry-run').toList();
+const _knownFlags = {'--dry-run', '--full', '--force'};
 
-  if (positional.length != 2 || positional.first != 'manual') {
+Future<void> main(List<String> args) async {
+  final flags = args.where((a) => a.startsWith('--')).toSet();
+  final positional = args.where((a) => !a.startsWith('--')).toList();
+
+  if (positional.length != 2 ||
+      positional.first != 'manual' ||
+      flags.difference(_knownFlags).isNotEmpty) {
     stderr.writeln(
-      'Usage: dart run bin/collector.dart manual <file.json> [--dry-run]',
+      'Usage: dart run bin/collector.dart manual <file.json> '
+      '[--dry-run] [--full] [--force]\n'
+      '  --full   the file lists EVERY live listing of this source; '
+      'listings missing from it are marked removed\n'
+      '  --force  skip the safety limit on removals',
     );
     exitCode = 64;
     return;
   }
+  final dryRun = flags.contains('--dry-run');
+  final full = flags.contains('--full');
+  final force = flags.contains('--force');
 
   SupabaseClient? client;
   try {
@@ -71,25 +82,43 @@ Future<void> main(List<String> args) async {
       '${stored.duplicatesInInput} duplicate(s) in the file.',
     );
 
-    // 2. Everything in this file was seen just now, new or not.
+    // 2. Everything in this file was seen just now, new or not. A listing
+    //    that had been marked removed comes back to life here.
     final unique = uniqueBySourceId(listings);
-    final seen = await store.markSeen(adapter.source, [
-      for (final l in unique) l.sourceListingId,
-    ]);
+    final seenIds = [for (final l in unique) l.sourceListingId];
+    final seen = await store.markSeen(adapter.source, seenIds);
     stdout.writeln('Seen $seen listing(s).');
 
     // 3. Known listings whose price moved get the new price and a history row.
     final changed = await store.applyPriceChanges(adapter.source, unique);
     stdout.writeln('Price changes: $changed');
 
-    // 4. Only recompute when something actually changed. Duplicates first, so
-    //    the market prices and scores that follow leave them out.
-    if (stored.inserted > 0 || changed > 0) {
-      final duplicates = await store.markDuplicates();
-      stdout.writeln('Duplicates flagged: $duplicates');
-      final scored = await store.recalculateScores();
-      stdout.writeln('Scored $scored listing(s).');
+    // 4. Only for a complete import: what is missing has been removed.
+    //    A file with unreadable or rejected records may be incomplete, so it
+    //    is never trusted to remove anything unless forced.
+    if (full) {
+      if (!force && (result.issues.isNotEmpty || rejected > 0)) {
+        stdout.writeln(
+          'Removal skipped: the file had unreadable or rejected records, so '
+          'it may be incomplete (use --force to override).',
+        );
+      } else {
+        final removed = await store.markRemoved(
+          adapter.source,
+          seenIds,
+          force: force,
+        );
+        stdout.writeln('Removed: $removed');
+      }
     }
+
+    // 5. Recompute. Duplicates first, so the market prices and scores that
+    //    follow leave them out. Done on every run because a listing can come
+    //    back or disappear without anything being inserted.
+    final duplicates = await store.markDuplicates();
+    stdout.writeln('Duplicates flagged: $duplicates');
+    final scored = await store.recalculateScores();
+    stdout.writeln('Scored $scored listing(s).');
   } on ConfigException catch (e) {
     stderr.writeln('Configuration error: $e');
     exitCode = 78;

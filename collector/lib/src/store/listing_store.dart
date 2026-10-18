@@ -137,4 +137,23 @@ class ListingStore {
     );
     return (result as num).toInt();
   }
+
+  /// For a complete import: marks live listings missing from [seenIds] as
+  /// removed. The database refuses empty or suspiciously large removals unless
+  /// [force] is set. Returns how many were marked.
+  Future<int> markRemoved(
+    String source,
+    List<String> seenIds, {
+    bool force = false,
+  }) async {
+    final result = await _client.rpc(
+      'mark_removed_listings',
+      params: {
+        'p_source': source,
+        'p_seen_ids': seenIds,
+        'p_max_fraction': force ? 1.0 : 0.5,
+      },
+    );
+    return (result as num).toInt();
+  }
 }
