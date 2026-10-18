@@ -94,4 +94,11 @@ class ListingStore {
     final result = await _client.rpc('mark_duplicates');
     return (result as num).toInt();
   }
+
+  /// Marks listings as seen now (updates last_seen_at); returns how many.
+  Future<int> markSeen(String source, List<String> sourceListingIds) async {
+    if (sourceListingIds.isEmpty) return 0;
+    final result = await _client.rpc('mark_listings_seen', params: {'p_source': source, 'p_ids': sourceListingIds});
+    return (result as num).toInt();
+  }
 }

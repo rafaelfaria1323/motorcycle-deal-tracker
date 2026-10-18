@@ -62,6 +62,11 @@ Future<void> main(List<String> args) async {
 
     final store = ListingStore(client);
     final stored = await store.save(listings, catalog);
+    final seen = await store.markSeen(
+      adapter.source, // 'manual'
+      uniqueBySourceId(listings).map((l) => l.sourceListingId).toList(),
+    );
+    stdout.writeln('Seen $seen listing(s).');
     stdout.writeln(
       'Stored ${stored.inserted} new, ${stored.alreadyStored} already stored, '
       '${stored.duplicatesInInput} duplicate(s) in the file.',
