@@ -8,12 +8,14 @@ class CatalogEntry {
     required this.brand,
     required this.model,
     required this.minYear,
+    this.id,
   });
 
   final String slug;
   final String brand;
   final String model;
   final int minYear;
+  final String? id;
 }
 
 class Catalog {

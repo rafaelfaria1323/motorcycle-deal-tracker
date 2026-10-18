@@ -3,5 +3,8 @@ export 'src/adapters/manual/manual_mapper.dart';
 export 'src/adapters/manual/manual_raw_listing.dart';
 export 'src/adapters/source_adapter.dart';
 export 'src/catalog/catalog.dart';
+export 'src/config/supabase_config.dart';
 export 'src/normalized/normalized_listing.dart';
 export 'src/normalized/normalizers.dart';
+export 'src/store/catalog_loader.dart';
+export 'src/store/listing_store.dart';
