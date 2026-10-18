@@ -101,4 +101,12 @@ class ListingStore {
     final result = await _client.rpc('mark_listings_seen', params: {'p_source': source, 'p_ids': sourceListingIds});
     return (result as num).toInt();
   }
+
+  /// Applies new prices to listings already stored; returns how many changed.
+  Future<int> applyPriceChanges(String source, List<NormalizedListing> listings) async {
+    final prices = <String, num>{for (final l in listings) l.sourceListingId: l.price};
+    if (prices.isEmpty) return 0;
+    final result = await _client.rpc('apply_price_updates', params: {'p_source': source, 'p_prices': prices});
+    return (result as num).toInt();
+  }
 }

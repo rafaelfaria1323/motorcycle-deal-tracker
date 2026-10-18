@@ -62,17 +62,21 @@ Future<void> main(List<String> args) async {
 
     final store = ListingStore(client);
     final stored = await store.save(listings, catalog);
-    final seen = await store.markSeen(
-      adapter.source, // 'manual'
-      uniqueBySourceId(listings).map((l) => l.sourceListingId).toList(),
-    );
-    stdout.writeln('Seen $seen listing(s).');
+
     stdout.writeln(
       'Stored ${stored.inserted} new, ${stored.alreadyStored} already stored, '
       '${stored.duplicatesInInput} duplicate(s) in the file.',
     );
 
-    if (stored.inserted > 0) {
+    final unique = uniqueBySourceId(listings);
+
+    final seen = await store.markSeen(adapter.source, unique.map((l) => l.sourceListingId).toList());
+    stdout.writeln('Seen $seen listing(s).');
+
+    final changed = await store.applyPriceChanges(adapter.source, unique);
+    stdout.writeln('Price changes: $changed');
+
+    if (stored.inserted > 0 || changed > 0) {
       final duplicates = await store.markDuplicates();
       stdout.writeln('Duplicates flagged: $duplicates');
       final scored = await store.recalculateScores();
