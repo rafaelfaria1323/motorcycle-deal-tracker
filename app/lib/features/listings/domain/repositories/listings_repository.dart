@@ -14,4 +14,8 @@ abstract interface class ListingsRepository {
 
   /// Active catalog models, for the model filter.
   Future<List<MotorcycleOption>> getMotorcycleOptions();
+
+  /// Other listings of the same bike: the original's reposts, or, for a
+  /// repost, the original plus its siblings.
+  Future<List<Listing>> getAlsoListed(Listing listing);
 }

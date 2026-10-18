@@ -76,4 +76,16 @@ class SupabaseListingsRepository implements ListingsRepository {
         )
         .toList();
   }
+
+  @override
+  Future<List<Listing>> getAlsoListed(Listing listing) async {
+    final originalId = listing.duplicateOf ?? listing.id;
+    final rows = await _client
+        .from('listings')
+        .select()
+        .or('id.eq.$originalId,duplicate_of.eq.$originalId')
+        .neq('id', listing.id)
+        .order('first_seen_at');
+    return rows.map<Listing>(ListingModel.fromJson).toList();
+  }
 }

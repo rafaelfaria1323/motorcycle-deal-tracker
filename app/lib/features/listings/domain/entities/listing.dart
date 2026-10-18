@@ -17,6 +17,7 @@ class Listing extends Equatable {
     required this.firstSeenAt,
     required this.lastSeenAt,
     this.motorcycleId,
+    this.duplicateOf,
     this.riskScore,
     this.year,
     this.mileage,
@@ -34,6 +35,7 @@ class Listing extends Equatable {
   final String brand;
   final String model;
   final String? motorcycleId;
+  final String? duplicateOf;
   final int? riskScore;
   final int? year;
   final int? mileage;

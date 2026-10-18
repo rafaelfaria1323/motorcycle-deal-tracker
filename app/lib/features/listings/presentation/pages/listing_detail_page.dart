@@ -10,6 +10,7 @@ import '../../domain/entities/listing.dart';
 import '../cubit/listing_detail_cubit.dart';
 import '../cubit/listing_detail_state.dart';
 import '../listing_labels.dart';
+import '../widgets/also_listed_section.dart';
 import '../widgets/deal_score_badge.dart';
 import '../widgets/listing_photo.dart';
 import '../widgets/score_explanation_card.dart';
@@ -104,6 +105,24 @@ class _Content extends StatelessWidget {
               style: textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
+            if (listing.duplicateOf != null)
+              Card(
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                child: ListTile(
+                  leading: const Icon(Icons.content_copy),
+                  title: const Text('Anúncio repetido'),
+                  subtitle: const Text(
+                    'Este anúncio parece ser a mesma mota de outro anúncio. '
+                    'Não conta para o mercado nem tem pontuação.',
+                  ),
+                  trailing: TextButton(
+                    onPressed: () => context.go('/deals/${listing.duplicateOf}'),
+                    child: const Text('Ver original'),
+                  ),
+                ),
+              ),
+            AlsoListedSection(listing: listing),
+
             ScoreExplanationCard(listing: listing),
             Card(
               child: Padding(
