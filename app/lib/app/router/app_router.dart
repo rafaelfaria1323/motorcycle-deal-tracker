@@ -16,6 +16,15 @@ import 'app_routes.dart';
 
 final appRouter = GoRouter(
   initialLocation: AppRoutes.deals,
+  redirect: (context, state) {
+    final url = state.uri.toString();
+    if (url.contains('error_code=') ||
+        url.contains('access_token=') ||
+        url.contains('error=')) {
+      return AppRoutes.deals;
+    }
+    return null;
+  },
   routes: [
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) =>

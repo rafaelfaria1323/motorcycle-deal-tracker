@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
+import '../../../../core/auth/account_sheet.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/motorcycle_option.dart';
 import '../../domain/entities/saved_search.dart';
@@ -81,7 +82,16 @@ class SavedSearchesPage extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Pesquisas')),
+      appBar: AppBar(
+        title: const Text('Pesquisas'),
+        actions: [
+          IconButton(
+            tooltip: 'Conta',
+            icon: const Icon(Icons.account_circle_outlined),
+            onPressed: () => showAccountSheet(context),
+          ),
+        ],
+      ),
       body: BlocBuilder<SavedSearchesCubit, SavedSearchesState>(
         builder: (context, state) {
           switch (state.status) {
