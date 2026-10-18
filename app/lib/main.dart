@@ -7,17 +7,22 @@ import 'app/di/injection.dart';
 import 'core/auth/session_bootstrap.dart';
 
 const _supabaseUrl = String.fromEnvironment('SUPABASE_URL');
-const _supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+const _supabasePublishableKey = String.fromEnvironment(
+  'SUPABASE_PUBLISHABLE_KEY',
+);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   assert(
-    _supabaseUrl.isNotEmpty && _supabaseAnonKey.isNotEmpty,
+    _supabaseUrl.isNotEmpty && _supabasePublishableKey.isNotEmpty,
     'Missing Supabase config. Run with --dart-define-from-file=env/dev.json',
   );
 
-  await Supabase.initialize(url: _supabaseUrl, anonKey: _supabaseAnonKey);
+  await Supabase.initialize(
+    url: _supabaseUrl,
+    publishableKey: _supabasePublishableKey,
+  );
   await ensureSession(Supabase.instance.client);
   configureDependencies();
 

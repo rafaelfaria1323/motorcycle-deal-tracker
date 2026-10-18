@@ -123,4 +123,11 @@ void main() {
     expect(alert.oldPrice, 7600);
     expect(alert.newPrice, 7300);
   });
+
+  test('an excellent-opportunity alert is recognised', () {
+    final row = _row('a4')..['type'] = 'excellent_opportunity';
+    final alert = ListingAlertModel.fromJson(row);
+
+    expect(alert.type, AlertType.excellentOpportunity);
+  });
 }
