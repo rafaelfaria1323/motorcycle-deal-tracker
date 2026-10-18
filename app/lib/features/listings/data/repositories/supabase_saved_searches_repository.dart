@@ -46,4 +46,18 @@ class SupabaseSavedSearchesRepository implements SavedSearchesRepository {
         .single();
     return SavedSearchModel.fromJson(row);
   }
+
+  @override
+  Future<void> delete(String id) async {
+    // A delete that row-level security filters out is not an error, it just
+    // removes nothing. Asking for the deleted rows back lets us tell.
+    final deleted = await _client
+        .from('saved_searches')
+        .delete()
+        .eq('id', id)
+        .select('id');
+    if (deleted.isEmpty) {
+      throw StateError('Saved search $id was not deleted.');
+    }
+  }
 }

@@ -59,4 +59,22 @@ class SavedSearchesCubit extends Cubit<SavedSearchesState> {
       return false;
     }
   }
+
+  /// Returns true when the search was deleted.
+  Future<bool> delete(String id) async {
+    try {
+      await _searches.delete(id);
+      emit(
+        state.copyWith(
+          searches: [
+            for (final s in state.searches)
+              if (s.id != id) s,
+          ],
+        ),
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 }

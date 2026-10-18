@@ -13,4 +13,7 @@ abstract interface class SavedSearchesRepository {
 
   /// Saves the name, criteria and notification choices of [search].
   Future<SavedSearch> update(SavedSearch search);
+
+  /// Deletes a search. Throws if nothing was deleted.
+  Future<void> delete(String id);
 }

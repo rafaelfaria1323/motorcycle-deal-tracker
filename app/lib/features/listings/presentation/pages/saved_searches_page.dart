@@ -12,6 +12,7 @@ import '../cubit/listings_state.dart';
 import '../cubit/saved_searches_cubit.dart';
 import '../cubit/saved_searches_state.dart';
 import '../saved_search_summary.dart';
+import '../widgets/delete_saved_search_dialog.dart';
 import '../widgets/edit_saved_search_sheet.dart';
 
 class SavedSearchesPage extends StatelessWidget {
@@ -49,6 +50,24 @@ class SavedSearchesPage extends StatelessWidget {
           saved
               ? 'Pesquisa atualizada'
               : 'Não foi possível atualizar a pesquisa',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _delete(BuildContext context, SavedSearch search) async {
+    final cubit = context.read<SavedSearchesCubit>();
+    final messenger = ScaffoldMessenger.of(context);
+
+    if (!await confirmDeleteSavedSearch(context, search)) return;
+
+    final deleted = await cubit.delete(search.id);
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          deleted
+              ? 'Pesquisa eliminada'
+              : 'Não foi possível eliminar a pesquisa',
         ),
       ),
     );
@@ -100,11 +119,21 @@ class SavedSearchesPage extends StatelessWidget {
                             summarizeFilters(search.filters, state.motorcycles),
                           ),
                           onTap: () => _apply(context, search),
-                          trailing: IconButton(
-                            tooltip: 'Editar',
-                            icon: const Icon(Icons.edit_outlined),
-                            onPressed: () =>
-                                _edit(context, search, state.motorcycles),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                tooltip: 'Editar',
+                                icon: const Icon(Icons.edit_outlined),
+                                onPressed: () =>
+                                    _edit(context, search, state.motorcycles),
+                              ),
+                              IconButton(
+                                tooltip: 'Eliminar',
+                                icon: const Icon(Icons.delete_outline),
+                                onPressed: () => _delete(context, search),
+                              ),
+                            ],
                           ),
                         ),
                       );
