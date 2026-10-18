@@ -24,18 +24,26 @@ class ScoreExplanationCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Deal Score ${explanation.score} · ${explanation.label}', style: theme.textTheme.titleMedium),
+            Text(
+              'Deal Score ${explanation.score} · ${explanation.label}',
+              style: theme.textTheme.titleMedium,
+            ),
             const SizedBox(height: 12),
             for (final line in explanation.lines) _LineRow(line: line),
             if (risk != null) ...[
               const Divider(height: 24),
-              Text('Risco $risk/100 · ${ScoreExplainer.riskLabel(risk)}', style: theme.textTheme.titleSmall),
+              Text(
+                'Risco $risk/100 · ${ScoreExplainer.riskLabel(risk)}',
+                style: theme.textTheme.titleSmall,
+              ),
             ],
             if (used != null && total != null) ...[
               const SizedBox(height: 8),
               Text(
                 'Baseado em $used de $total fatores',
-                style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ],
@@ -54,9 +62,21 @@ class _LineRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final (icon, color, semantic) = switch (line.tone) {
-      ExplanationTone.positive => (Icons.add_circle_outline, const Color(0xFF2E7D32), 'Positivo'),
-      ExplanationTone.negative => (Icons.remove_circle_outline, scheme.error, 'Negativo'),
-      ExplanationTone.neutral => (Icons.info_outline, scheme.onSurfaceVariant, 'Informação'),
+      ExplanationTone.positive => (
+        Icons.add_circle_outline,
+        const Color(0xFF2E7D32),
+        'Positivo',
+      ),
+      ExplanationTone.negative => (
+        Icons.remove_circle_outline,
+        scheme.error,
+        'Negativo',
+      ),
+      ExplanationTone.neutral => (
+        Icons.info_outline,
+        scheme.onSurfaceVariant,
+        'Informação',
+      ),
     };
 
     return Padding(

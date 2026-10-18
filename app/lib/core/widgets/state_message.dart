@@ -33,7 +33,11 @@ class StateMessage extends StatelessWidget {
             children: [
               Icon(icon, size: 48, color: muted),
               const SizedBox(height: 16),
-              Text(title, style: theme.textTheme.titleMedium, textAlign: TextAlign.center),
+              Text(
+                title,
+                style: theme.textTheme.titleMedium,
+                textAlign: TextAlign.center,
+              ),
               if (message != null) ...[
                 const SizedBox(height: 8),
                 Text(
@@ -44,7 +48,10 @@ class StateMessage extends StatelessWidget {
               ],
               if (actionLabel != null && onAction != null) ...[
                 const SizedBox(height: 16),
-                FilledButton.tonal(onPressed: onAction, child: Text(actionLabel!)),
+                FilledButton.tonal(
+                  onPressed: onAction,
+                  child: Text(actionLabel!),
+                ),
               ],
             ],
           ),

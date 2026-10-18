@@ -38,7 +38,8 @@ class ScoreExplanation extends Equatable {
 /// Only things that actually influence the score are listed.
 abstract final class ScoreExplainer {
   static const _riskLines = <String, String>{
-    'price_far_below_market': 'Preço muito abaixo do mercado, confirme se é real',
+    'price_far_below_market':
+        'Preço muito abaixo do mercado, confirme se é real',
     'price_below_market': 'Preço bastante abaixo do mercado',
     'possible_accident': 'A descrição pode indicar acidente',
     'no_mileage': 'Quilometragem não indicada',
@@ -84,24 +85,54 @@ abstract final class ScoreExplainer {
       final amount = Formatters.price((market - price).abs());
       final pctText = pct.abs().toStringAsFixed(0);
       if (pct >= _priceNoticePct) {
-        lines.add(ExplanationLine(ExplanationTone.positive, '$pctText% ($amount) abaixo do preço de mercado'));
+        lines.add(
+          ExplanationLine(
+            ExplanationTone.positive,
+            '$pctText% ($amount) abaixo do preço de mercado',
+          ),
+        );
       } else if (pct <= -_priceNoticePct) {
-        lines.add(ExplanationLine(ExplanationTone.negative, '$pctText% ($amount) acima do preço de mercado'));
+        lines.add(
+          ExplanationLine(
+            ExplanationTone.negative,
+            '$pctText% ($amount) acima do preço de mercado',
+          ),
+        );
       } else {
-        lines.add(const ExplanationLine(ExplanationTone.neutral, 'Preço em linha com o mercado'));
+        lines.add(
+          const ExplanationLine(
+            ExplanationTone.neutral,
+            'Preço em linha com o mercado',
+          ),
+        );
       }
     }
     final marketCount = (data['market_listing_count'] as num?)?.toInt();
     if (marketCount != null && marketCount < _minReliableMarket) {
-      lines.add(ExplanationLine(ExplanationTone.neutral, 'Mercado estimado com poucos anúncios ($marketCount)'));
+      lines.add(
+        ExplanationLine(
+          ExplanationTone.neutral,
+          'Mercado estimado com poucos anúncios ($marketCount)',
+        ),
+      );
     }
 
     // Mileage
     final km = listing.mileage;
     if (km != null && km <= _lowMileageKm) {
-      lines.add(ExplanationLine(ExplanationTone.positive, 'Baixa quilometragem (${Formatters.mileage(km)})'));
+      lines.add(
+        ExplanationLine(
+          ExplanationTone.positive,
+          'Baixa quilometragem (${Formatters.mileage(km)})',
+        ),
+      );
     } else if (km != null && km >= _highMileageKm) {
-      lines.add(ExplanationLine(ExplanationTone.negative, 'Quilometragem elevada (${Formatters.mileage(km)})'));
+      lines.add(
+        ExplanationLine(
+          ExplanationTone.negative,
+          'Quilometragem elevada (${Formatters.mileage(km)})',
+        ),
+      );
     }
 
     // Year
@@ -109,7 +140,12 @@ abstract final class ScoreExplainer {
     if (year != null && year >= thisYear) {
       lines.add(ExplanationLine(ExplanationTone.positive, 'Modelo de $year'));
     } else if (year != null && year <= thisYear - 3) {
-      lines.add(ExplanationLine(ExplanationTone.negative, 'Modelo de $year (mais antigo)'));
+      lines.add(
+        ExplanationLine(
+          ExplanationTone.negative,
+          'Modelo de $year (mais antigo)',
+        ),
+      );
     }
 
     // Risk signals

@@ -4,7 +4,11 @@ import '../catalog/catalog.dart';
 import '../normalized/normalized_listing.dart';
 
 class StoreResult {
-  const StoreResult({required this.inserted, required this.alreadyStored, required this.duplicatesInInput});
+  const StoreResult({
+    required this.inserted,
+    required this.alreadyStored,
+    required this.duplicatesInInput,
+  });
 
   final int inserted;
   final int alreadyStored;
@@ -49,11 +53,18 @@ class ListingStore {
 
   /// Inserts listings that are not stored yet. Existing ones (same source and
   /// source id) are left untouched, so running the same file twice is safe.
-  Future<StoreResult> save(List<NormalizedListing> listings, Catalog catalog) async {
+  Future<StoreResult> save(
+    List<NormalizedListing> listings,
+    Catalog catalog,
+  ) async {
     final unique = uniqueBySourceId(listings);
     final duplicates = listings.length - unique.length;
     if (unique.isEmpty) {
-      return StoreResult(inserted: 0, alreadyStored: 0, duplicatesInInput: duplicates);
+      return StoreResult(
+        inserted: 0,
+        alreadyStored: 0,
+        duplicatesInInput: duplicates,
+      );
     }
 
     final idBySlug = {
@@ -65,7 +76,9 @@ class ListingStore {
     for (final l in unique) {
       final slug = l.motorcycleSlug;
       if (slug != null && !idBySlug.containsKey(slug)) {
-        throw StateError('Catalog entry "$slug" has no id; load the catalog from Supabase.');
+        throw StateError(
+          'Catalog entry "$slug" has no id; load the catalog from Supabase.',
+        );
       }
       rows.add(listingRow(l, slug == null ? null : idBySlug[slug]));
     }
@@ -73,7 +86,11 @@ class ListingStore {
     // Only the rows that were really inserted come back.
     final inserted = await _client
         .from('listings')
-        .upsert(rows, onConflict: 'source,source_listing_id', ignoreDuplicates: true)
+        .upsert(
+          rows,
+          onConflict: 'source,source_listing_id',
+          ignoreDuplicates: true,
+        )
         .select('id');
 
     return StoreResult(
@@ -98,15 +115,26 @@ class ListingStore {
   /// Marks listings as seen now (updates last_seen_at); returns how many.
   Future<int> markSeen(String source, List<String> sourceListingIds) async {
     if (sourceListingIds.isEmpty) return 0;
-    final result = await _client.rpc('mark_listings_seen', params: {'p_source': source, 'p_ids': sourceListingIds});
+    final result = await _client.rpc(
+      'mark_listings_seen',
+      params: {'p_source': source, 'p_ids': sourceListingIds},
+    );
     return (result as num).toInt();
   }
 
   /// Applies new prices to listings already stored; returns how many changed.
-  Future<int> applyPriceChanges(String source, List<NormalizedListing> listings) async {
-    final prices = <String, num>{for (final l in listings) l.sourceListingId: l.price};
-    if (prices.isEmpty) return 0;
-    final result = await _client.rpc('apply_price_updates', params: {'p_source': source, 'p_prices': prices});
+  Future<int> applyPriceChanges(
+    String source,
+    List<NormalizedListing> listings,
+  ) async {
+    if (listings.isEmpty) return 0;
+    final prices = <String, num>{
+      for (final l in listings) l.sourceListingId: l.price,
+    };
+    final result = await _client.rpc(
+      'apply_price_updates',
+      params: {'p_source': source, 'p_prices': prices},
+    );
     return (result as num).toInt();
   }
 }

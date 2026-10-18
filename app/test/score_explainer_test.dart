@@ -2,7 +2,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/score_explanation.dart';
 
-Listing _listing({int? dealScore, double? price, int? mileage, int? year, Map<String, dynamic>? breakdown}) {
+Listing _listing({
+  int? dealScore,
+  double? price,
+  int? mileage,
+  int? year,
+  Map<String, dynamic>? breakdown,
+}) {
   return Listing(
     id: 'id',
     source: 'mock',
@@ -60,7 +66,10 @@ void main() {
       ExplanationTone.positive,
       ExplanationTone.positive,
     ]);
-    expect(explanation.lines.first.text, contains('abaixo do preço de mercado'));
+    expect(
+      explanation.lines.first.text,
+      contains('abaixo do preço de mercado'),
+    );
     expect(explanation.slicesUsed, 3);
   });
 
@@ -80,7 +89,13 @@ void main() {
     )!;
 
     expect(explanation.label, 'Fraco');
-    expect(explanation.lines.where((l) => l.tone == ExplanationTone.negative), hasLength(2));
-    expect(explanation.lines.where((l) => l.text.contains('poucos anúncios')), hasLength(1));
+    expect(
+      explanation.lines.where((l) => l.tone == ExplanationTone.negative),
+      hasLength(2),
+    );
+    expect(
+      explanation.lines.where((l) => l.text.contains('poucos anúncios')),
+      hasLength(1),
+    );
   });
 }

@@ -12,7 +12,13 @@ final getIt = GetIt.instance;
 void configureDependencies() {
   getIt
     ..registerLazySingleton<SupabaseClient>(() => Supabase.instance.client)
-    ..registerLazySingleton<ListingsRepository>(() => SupabaseListingsRepository(getIt<SupabaseClient>()))
-    ..registerFactory<ListingsCubit>(() => ListingsCubit(getIt<ListingsRepository>()))
-    ..registerFactory<ListingDetailCubit>(() => ListingDetailCubit(getIt<ListingsRepository>()));
+    ..registerLazySingleton<ListingsRepository>(
+      () => SupabaseListingsRepository(getIt<SupabaseClient>()),
+    )
+    ..registerFactory<ListingsCubit>(
+      () => ListingsCubit(getIt<ListingsRepository>()),
+    )
+    ..registerFactory<ListingDetailCubit>(
+      () => ListingDetailCubit(getIt<ListingsRepository>()),
+    );
 }

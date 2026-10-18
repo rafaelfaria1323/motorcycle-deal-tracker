@@ -20,7 +20,10 @@ class DashboardPage extends StatelessWidget {
       isScrollControlled: true,
       useSafeArea: true,
       constraints: const BoxConstraints(maxWidth: 560),
-      builder: (_) => FiltersSheet(initial: cubit.state.filters, motorcycles: cubit.state.motorcycles),
+      builder: (_) => FiltersSheet(
+        initial: cubit.state.filters,
+        motorcycles: cubit.state.motorcycles,
+      ),
     );
     if (result != null) cubit.applyFilters(result);
   }
@@ -32,7 +35,8 @@ class DashboardPage extends StatelessWidget {
         title: const Text('Ofertas'),
         actions: [
           BlocBuilder<ListingsCubit, ListingsState>(
-            buildWhen: (previous, current) => previous.filters != current.filters,
+            buildWhen: (previous, current) =>
+                previous.filters != current.filters,
             builder: (context, state) => IconButton(
               tooltip: 'Filtros',
               icon: Badge(
@@ -64,12 +68,18 @@ class DashboardPage extends StatelessWidget {
                 final hasFilters = state.filters.appliedCount > 0;
                 return StateMessage(
                   icon: Icons.search_off,
-                  title: hasFilters ? 'Nenhuma oferta com estes filtros' : 'Ainda não há ofertas',
+                  title: hasFilters
+                      ? 'Nenhuma oferta com estes filtros'
+                      : 'Ainda não há ofertas',
                   message: hasFilters
                       ? 'Experimente alargar os critérios de pesquisa.'
                       : 'Volte mais tarde, estamos a acompanhar o mercado.',
                   actionLabel: hasFilters ? 'Limpar filtros' : null,
-                  onAction: hasFilters ? () => context.read<ListingsCubit>().applyFilters(ListingFilters.empty) : null,
+                  onAction: hasFilters
+                      ? () => context.read<ListingsCubit>().applyFilters(
+                          ListingFilters.empty,
+                        )
+                      : null,
                 );
               }
 
@@ -84,7 +94,11 @@ class DashboardPage extends StatelessWidget {
                 itemCount: state.listings.length,
                 itemBuilder: (context, index) {
                   final listing = state.listings[index];
-                  return ListingCard(listing: listing, onTap: () => context.go(AppRoutes.listingDetail(listing.id)));
+                  return ListingCard(
+                    listing: listing,
+                    onTap: () =>
+                        context.go(AppRoutes.listingDetail(listing.id)),
+                  );
                 },
               );
           }

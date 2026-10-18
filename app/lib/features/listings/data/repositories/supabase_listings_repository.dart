@@ -44,9 +44,21 @@ class SupabaseListingsRepository implements ListingsRepository {
 
     final ordered = switch (sort) {
       ListingSort.newest => query.order('first_seen_at', ascending: false),
-      ListingSort.priceAsc => query.order('price', ascending: true, nullsFirst: false),
-      ListingSort.priceDesc => query.order('price', ascending: false, nullsFirst: false),
-      ListingSort.dealScoreDesc => query.order('deal_score', ascending: false, nullsFirst: false),
+      ListingSort.priceAsc => query.order(
+        'price',
+        ascending: true,
+        nullsFirst: false,
+      ),
+      ListingSort.priceDesc => query.order(
+        'price',
+        ascending: false,
+        nullsFirst: false,
+      ),
+      ListingSort.dealScoreDesc => query.order(
+        'deal_score',
+        ascending: false,
+        nullsFirst: false,
+      ),
     };
 
     final rows = await ordered;
@@ -55,7 +67,11 @@ class SupabaseListingsRepository implements ListingsRepository {
 
   @override
   Future<Listing?> getListingById(String id) async {
-    final row = await _client.from('listings').select().eq('id', id).maybeSingle();
+    final row = await _client
+        .from('listings')
+        .select()
+        .eq('id', id)
+        .maybeSingle();
 
     return row == null ? null : ListingModel.fromJson(row);
   }
@@ -71,8 +87,11 @@ class SupabaseListingsRepository implements ListingsRepository {
 
     return rows
         .map(
-          (row) =>
-              MotorcycleOption(id: row['id'] as String, brand: row['brand'] as String, model: row['model'] as String),
+          (row) => MotorcycleOption(
+            id: row['id'] as String,
+            brand: row['brand'] as String,
+            model: row['model'] as String,
+          ),
         )
         .toList();
   }

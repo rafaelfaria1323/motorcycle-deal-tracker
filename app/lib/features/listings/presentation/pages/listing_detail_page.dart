@@ -24,7 +24,10 @@ class ListingDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(onPressed: () => context.canPop() ? context.pop() : context.go(AppRoutes.deals)),
+        leading: BackButton(
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go(AppRoutes.deals),
+        ),
         title: const Text('Detalhe'),
       ),
       body: BlocBuilder<ListingDetailCubit, ListingDetailState>(
@@ -46,7 +49,8 @@ class ListingDetailPage extends StatelessWidget {
                 title: 'Não foi possível carregar o anúncio',
                 message: 'Verifique a ligação e tente novamente.',
                 actionLabel: 'Tentar novamente',
-                onAction: () => context.read<ListingDetailCubit>().load(listingId),
+                onAction: () =>
+                    context.read<ListingDetailCubit>().load(listingId),
               );
             case ListingDetailStatus.success:
               return _Content(listing: state.listing!);
@@ -65,11 +69,15 @@ class _Content extends StatelessWidget {
   Future<void> _openOriginal(BuildContext context) async {
     final uri = Uri.tryParse(listing.url);
     // Only open web links, since the URL comes from an external source.
-    final canOpen = uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
-    final opened = canOpen && await launchUrl(uri, mode: LaunchMode.externalApplication);
+    final canOpen =
+        uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
+    final opened =
+        canOpen && await launchUrl(uri, mode: LaunchMode.externalApplication);
 
     if (!opened && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Não foi possível abrir o anúncio')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Não foi possível abrir o anúncio')),
+      );
     }
   }
 
@@ -89,20 +97,30 @@ class _Content extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               child: AspectRatio(
                 aspectRatio: 16 / 9,
-                child: ListingPhoto(url: listing.images.isEmpty ? null : listing.images.first),
+                child: ListingPhoto(
+                  url: listing.images.isEmpty ? null : listing.images.first,
+                ),
               ),
             ),
             const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(child: Text('${listing.brand} ${listing.model}', style: textTheme.headlineSmall)),
-                if (listing.dealScore != null) DealScoreBadge(score: listing.dealScore!),
+                Expanded(
+                  child: Text(
+                    '${listing.brand} ${listing.model}',
+                    style: textTheme.headlineSmall,
+                  ),
+                ),
+                if (listing.dealScore != null)
+                  DealScoreBadge(score: listing.dealScore!),
               ],
             ),
             const SizedBox(height: 4),
             Text(
               Formatters.price(listing.price),
-              style: textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 16),
             if (listing.duplicateOf != null)
@@ -116,7 +134,8 @@ class _Content extends StatelessWidget {
                     'Não conta para o mercado nem tem pontuação.',
                   ),
                   trailing: TextButton(
-                    onPressed: () => context.go('/deals/${listing.duplicateOf}'),
+                    onPressed: () =>
+                        context.go('/deals/${listing.duplicateOf}'),
                     child: const Text('Ver original'),
                   ),
                 ),
@@ -130,7 +149,10 @@ class _Content extends StatelessWidget {
                 child: Column(
                   children: [
                     _FactRow('Ano', listing.year?.toString() ?? '—'),
-                    _FactRow('Quilometragem', Formatters.mileage(listing.mileage)),
+                    _FactRow(
+                      'Quilometragem',
+                      Formatters.mileage(listing.mileage),
+                    ),
                     _FactRow('Localização', listing.location ?? '—'),
                     _FactRow('Vendedor', listing.sellerName ?? '—'),
                     _FactRow('Tipo de vendedor', listing.sellerType.label),
@@ -141,7 +163,10 @@ class _Content extends StatelessWidget {
                       '${Formatters.date(listing.firstSeenAt)}'
                           ' (${Formatters.daysAgo(listing.firstSeenAt)})',
                     ),
-                    _FactRow('Última vez visto', Formatters.date(listing.lastSeenAt)),
+                    _FactRow(
+                      'Última vez visto',
+                      Formatters.date(listing.lastSeenAt),
+                    ),
                   ],
                 ),
               ),
@@ -182,12 +207,18 @@ class _FactRow extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              style: textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
           const SizedBox(width: 16),
           Flexible(
-            child: Text(value, textAlign: TextAlign.end, style: textTheme.bodyMedium),
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: textTheme.bodyMedium,
+            ),
           ),
         ],
       ),

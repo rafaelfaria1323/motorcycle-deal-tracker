@@ -21,10 +21,16 @@ class DealScoreBadge extends StatelessWidget {
       label: 'Deal Score $score',
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(color: _color, borderRadius: BorderRadius.circular(20)),
+        decoration: BoxDecoration(
+          color: _color,
+          borderRadius: BorderRadius.circular(20),
+        ),
         child: Text(
           '$score',
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );

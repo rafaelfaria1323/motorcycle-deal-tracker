@@ -12,9 +12,20 @@ class ListingsCubit extends Cubit<ListingsState> {
   Future<void> load() async {
     emit(state.copyWith(status: ListingsStatus.loading));
     try {
-      final motorcycles = state.motorcycles.isEmpty ? await _repository.getMotorcycleOptions() : state.motorcycles;
-      final listings = await _repository.getListings(filters: state.filters, sort: state.sort);
-      emit(state.copyWith(status: ListingsStatus.success, listings: listings, motorcycles: motorcycles));
+      final motorcycles = state.motorcycles.isEmpty
+          ? await _repository.getMotorcycleOptions()
+          : state.motorcycles;
+      final listings = await _repository.getListings(
+        filters: state.filters,
+        sort: state.sort,
+      );
+      emit(
+        state.copyWith(
+          status: ListingsStatus.success,
+          listings: listings,
+          motorcycles: motorcycles,
+        ),
+      );
     } catch (_) {
       emit(state.copyWith(status: ListingsStatus.failure));
     }

@@ -14,6 +14,10 @@ class ListingPhoto extends StatelessWidget {
 
     if (url == null) return placeholder;
 
-    return Image.network(url!, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) => placeholder);
+    return Image.network(
+      url!,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => placeholder,
+    );
   }
 }

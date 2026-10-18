@@ -16,7 +16,8 @@ class AlsoListedSection extends StatefulWidget {
 }
 
 class _AlsoListedSectionState extends State<AlsoListedSection> {
-  late final Future<List<Listing>> _future = getIt<ListingsRepository>().getAlsoListed(widget.listing);
+  late final Future<List<Listing>> _future = getIt<ListingsRepository>()
+      .getAlsoListed(widget.listing);
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +33,10 @@ class _AlsoListedSectionState extends State<AlsoListedSection> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Também anunciada em', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  'Também anunciada em',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: 8),
                 for (final other in others)
                   ListTile(

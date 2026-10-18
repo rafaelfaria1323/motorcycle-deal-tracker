@@ -8,7 +8,9 @@ Future<void> main(List<String> args) async {
   final positional = args.where((a) => a != '--dry-run').toList();
 
   if (positional.length != 2 || positional.first != 'manual') {
-    stderr.writeln('Usage: dart run bin/collector.dart manual <file.json> [--dry-run]');
+    stderr.writeln(
+      'Usage: dart run bin/collector.dart manual <file.json> [--dry-run]',
+    );
     exitCode = 64;
     return;
   }
@@ -61,21 +63,27 @@ Future<void> main(List<String> args) async {
     }
 
     final store = ListingStore(client);
-    final stored = await store.save(listings, catalog);
 
+    // 1. Insert new listings (the database adds their first price-history row).
+    final stored = await store.save(listings, catalog);
     stdout.writeln(
       'Stored ${stored.inserted} new, ${stored.alreadyStored} already stored, '
       '${stored.duplicatesInInput} duplicate(s) in the file.',
     );
 
+    // 2. Everything in this file was seen just now, new or not.
     final unique = uniqueBySourceId(listings);
-
-    final seen = await store.markSeen(adapter.source, unique.map((l) => l.sourceListingId).toList());
+    final seen = await store.markSeen(adapter.source, [
+      for (final l in unique) l.sourceListingId,
+    ]);
     stdout.writeln('Seen $seen listing(s).');
 
+    // 3. Known listings whose price moved get the new price and a history row.
     final changed = await store.applyPriceChanges(adapter.source, unique);
     stdout.writeln('Price changes: $changed');
 
+    // 4. Only recompute when something actually changed. Duplicates first, so
+    //    the market prices and scores that follow leave them out.
     if (stored.inserted > 0 || changed > 0) {
       final duplicates = await store.markDuplicates();
       stdout.writeln('Duplicates flagged: $duplicates');

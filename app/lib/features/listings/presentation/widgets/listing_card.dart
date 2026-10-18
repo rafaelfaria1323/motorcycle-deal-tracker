@@ -16,7 +16,10 @@ class ListingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final title = ['${listing.brand} ${listing.model}', if (listing.year != null) '${listing.year}'].join(' · ');
+    final title = [
+      '${listing.brand} ${listing.model}',
+      if (listing.year != null) '${listing.year}',
+    ].join(' · ');
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -30,9 +33,15 @@ class ListingCard extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  ListingPhoto(url: listing.images.isEmpty ? null : listing.images.first),
+                  ListingPhoto(
+                    url: listing.images.isEmpty ? null : listing.images.first,
+                  ),
                   if (listing.dealScore != null)
-                    Positioned(top: 8, right: 8, child: DealScoreBadge(score: listing.dealScore!)),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: DealScoreBadge(score: listing.dealScore!),
+                    ),
                 ],
               ),
             ),
@@ -41,11 +50,18 @@ class ListingCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: textTheme.titleMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(
+                    title,
+                    style: textTheme.titleMedium,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   const SizedBox(height: 4),
                   Text(
                     Formatters.price(listing.price),
-                    style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                    style: textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(

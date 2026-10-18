@@ -66,7 +66,11 @@ class AppShell extends StatelessWidget {
         onDestinationSelected: _onSelect,
         destinations: [
           for (final d in _destinations)
-            NavigationDestination(icon: Icon(d.icon), selectedIcon: Icon(d.selectedIcon), label: d.label),
+            NavigationDestination(
+              icon: Icon(d.icon),
+              selectedIcon: Icon(d.selectedIcon),
+              label: d.label,
+            ),
         ],
       ),
     );

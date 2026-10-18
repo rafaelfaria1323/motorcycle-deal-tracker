@@ -25,7 +25,10 @@ class ListingDetailCubit extends Cubit<ListingDetailState> {
       emit(
         listing == null
             ? const ListingDetailState(status: ListingDetailStatus.notFound)
-            : ListingDetailState(status: ListingDetailStatus.success, listing: listing),
+            : ListingDetailState(
+                status: ListingDetailStatus.success,
+                listing: listing,
+              ),
       );
     } catch (_) {
       emit(const ListingDetailState(status: ListingDetailStatus.failure));

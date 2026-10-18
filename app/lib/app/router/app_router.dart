@@ -14,14 +14,17 @@ final appRouter = GoRouter(
   initialLocation: AppRoutes.deals,
   routes: [
     StatefulShellRoute.indexedStack(
-      builder: (context, state, navigationShell) => AppShell(navigationShell: navigationShell),
+      builder: (context, state, navigationShell) =>
+          AppShell(navigationShell: navigationShell),
       branches: [
         StatefulShellBranch(
           routes: [
             GoRoute(
               path: AppRoutes.deals,
-              builder: (context, state) =>
-                  BlocProvider(create: (_) => getIt<ListingsCubit>()..load(), child: const DashboardPage()),
+              builder: (context, state) => BlocProvider(
+                create: (_) => getIt<ListingsCubit>()..load(),
+                child: const DashboardPage(),
+              ),
               routes: [
                 GoRoute(
                   path: ':id',
@@ -41,7 +44,8 @@ final appRouter = GoRouter(
           routes: [
             GoRoute(
               path: AppRoutes.searches,
-              builder: (context, state) => const PlaceholderPage(title: 'Pesquisas'),
+              builder: (context, state) =>
+                  const PlaceholderPage(title: 'Pesquisas'),
             ),
           ],
         ),
@@ -49,7 +53,8 @@ final appRouter = GoRouter(
           routes: [
             GoRoute(
               path: AppRoutes.alerts,
-              builder: (context, state) => const PlaceholderPage(title: 'Alertas'),
+              builder: (context, state) =>
+                  const PlaceholderPage(title: 'Alertas'),
             ),
           ],
         ),

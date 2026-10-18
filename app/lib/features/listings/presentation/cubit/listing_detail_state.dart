@@ -5,7 +5,10 @@ import '../../domain/entities/listing.dart';
 enum ListingDetailStatus { loading, success, notFound, failure }
 
 class ListingDetailState extends Equatable {
-  const ListingDetailState({this.status = ListingDetailStatus.loading, this.listing});
+  const ListingDetailState({
+    this.status = ListingDetailStatus.loading,
+    this.listing,
+  });
 
   final ListingDetailStatus status;
   final Listing? listing;
