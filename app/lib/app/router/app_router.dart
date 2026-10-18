@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/listings/presentation/cubit/listing_detail_cubit.dart';
 import '../../features/listings/presentation/cubit/listings_cubit.dart';
+import '../../features/listings/presentation/cubit/listings_state.dart';
 import '../../features/listings/presentation/cubit/saved_searches_cubit.dart';
 import '../../features/listings/presentation/pages/dashboard_page.dart';
 import '../../features/listings/presentation/pages/listing_detail_page.dart';
@@ -23,10 +24,15 @@ final appRouter = GoRouter(
           routes: [
             GoRoute(
               path: AppRoutes.deals,
-              builder: (context, state) => BlocProvider(
-                create: (_) => getIt<ListingsCubit>()..load(),
-                child: const DashboardPage(),
-              ),
+              builder: (context, state) {
+                final cubit = getIt<ListingsCubit>();
+                if (cubit.state.status == ListingsStatus.initial) cubit.load();
+                // .value: the cubit is shared, so this route must not close it.
+                return BlocProvider.value(
+                  value: cubit,
+                  child: const DashboardPage(),
+                );
+              },
               routes: [
                 GoRoute(
                   path: ':id',
@@ -46,7 +52,6 @@ final appRouter = GoRouter(
           routes: [
             GoRoute(
               path: AppRoutes.searches,
-
               builder: (context, state) => BlocProvider.value(
                 value: getIt<SavedSearchesCubit>()..load(),
                 child: const SavedSearchesPage(),

@@ -18,7 +18,7 @@ void configureDependencies() {
     ..registerLazySingleton<ListingsRepository>(
       () => SupabaseListingsRepository(getIt<SupabaseClient>()),
     )
-    ..registerFactory<ListingsCubit>(
+    ..registerLazySingleton<ListingsCubit>(
       () => ListingsCubit(getIt<ListingsRepository>()),
     )
     ..registerFactory<ListingDetailCubit>(

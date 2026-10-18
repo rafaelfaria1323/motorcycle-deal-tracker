@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/motorcycle_option.dart';
 import '../../domain/entities/saved_search.dart';
+import '../cubit/listings_cubit.dart';
+import '../cubit/listings_state.dart';
 import '../cubit/saved_searches_cubit.dart';
 import '../cubit/saved_searches_state.dart';
 import '../saved_search_summary.dart';
@@ -13,6 +16,16 @@ import '../widgets/edit_saved_search_sheet.dart';
 
 class SavedSearchesPage extends StatelessWidget {
   const SavedSearchesPage({super.key});
+
+  Future<void> _apply(BuildContext context, SavedSearch search) async {
+    final listings = getIt<ListingsCubit>();
+    // Only matters when the app was opened directly on this tab.
+    if (listings.state.status == ListingsStatus.initial) {
+      await listings.load();
+    }
+    listings.applyFilters(search.filters);
+    if (context.mounted) context.go(AppRoutes.deals);
+  }
 
   Future<void> _edit(
     BuildContext context,
@@ -86,6 +99,7 @@ class SavedSearchesPage extends StatelessWidget {
                           subtitle: Text(
                             summarizeFilters(search.filters, state.motorcycles),
                           ),
+                          onTap: () => _apply(context, search),
                           trailing: IconButton(
                             tooltip: 'Editar',
                             icon: const Icon(Icons.edit_outlined),
