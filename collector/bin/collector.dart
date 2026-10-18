@@ -119,6 +119,11 @@ Future<void> main(List<String> args) async {
     stdout.writeln('Duplicates flagged: $duplicates');
     final scored = await store.recalculateScores();
     stdout.writeln('Scored $scored listing(s).');
+
+    // 6. Last, once statuses, duplicates and prices are final: who needs to
+    //    be told about what.
+    final alerts = await store.generateAlerts();
+    stdout.writeln('Alerts created: $alerts');
   } on ConfigException catch (e) {
     stderr.writeln('Configuration error: $e');
     exitCode = 78;

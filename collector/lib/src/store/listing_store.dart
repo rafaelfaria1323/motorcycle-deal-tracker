@@ -156,4 +156,10 @@ class ListingStore {
     );
     return (result as num).toInt();
   }
+
+  /// Creates the alerts that are due (see `generate_alerts`); returns how many.
+  Future<int> generateAlerts() async {
+    final result = await _client.rpc('generate_alerts');
+    return (result as num).toInt();
+  }
 }
