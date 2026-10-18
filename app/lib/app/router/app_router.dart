@@ -3,8 +3,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/listings/presentation/cubit/listing_detail_cubit.dart';
 import '../../features/listings/presentation/cubit/listings_cubit.dart';
+import '../../features/listings/presentation/cubit/saved_searches_cubit.dart';
 import '../../features/listings/presentation/pages/dashboard_page.dart';
 import '../../features/listings/presentation/pages/listing_detail_page.dart';
+import '../../features/listings/presentation/pages/saved_searches_page.dart';
 import '../di/injection.dart';
 import '../shell/app_shell.dart';
 import '../shell/placeholder_page.dart';
@@ -44,8 +46,11 @@ final appRouter = GoRouter(
           routes: [
             GoRoute(
               path: AppRoutes.searches,
-              builder: (context, state) =>
-                  const PlaceholderPage(title: 'Pesquisas'),
+
+              builder: (context, state) => BlocProvider.value(
+                value: getIt<SavedSearchesCubit>()..load(),
+                child: const SavedSearchesPage(),
+              ),
             ),
           ],
         ),

@@ -1,0 +1,54 @@
+import 'package:equatable/equatable.dart';
+
+import 'listing_filters.dart';
+
+class SavedSearch extends Equatable {
+  const SavedSearch({
+    required this.id,
+    required this.filters,
+    required this.createdAt,
+    this.name,
+    this.notifyNewListing = true,
+    this.notifyPriceReduction = true,
+    this.notifyExcellentDeal = false,
+    this.notifyListingRemoved = false,
+  });
+
+  final String id;
+  final String? name;
+  final ListingFilters filters;
+  final DateTime createdAt;
+
+  // Used by alerts in Sprint 8.
+  final bool notifyNewListing;
+  final bool notifyPriceReduction;
+  final bool notifyExcellentDeal;
+  final bool notifyListingRemoved;
+
+  String get displayName =>
+      (name == null || name!.trim().isEmpty) ? 'Pesquisa sem nome' : name!;
+
+  @override
+  List<Object?> get props => [
+    id,
+    name,
+    filters,
+    createdAt,
+    notifyNewListing,
+    notifyPriceReduction,
+    notifyExcellentDeal,
+    notifyListingRemoved,
+  ];
+}
+
+extension ListingFiltersCriteria on ListingFilters {
+  /// True when at least one search criterion is set. "Only live listings" is
+  /// not a criterion: a saved search always looks at live listings.
+  bool get hasCriteria =>
+      motorcycleId != null ||
+      minYear != null ||
+      maxPrice != null ||
+      maxMileage != null ||
+      location != null ||
+      sellerType != null;
+}

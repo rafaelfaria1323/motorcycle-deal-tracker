@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/entities/saved_search.dart';
 
+import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/listing_filters.dart';
 import '../cubit/listings_cubit.dart';
 import '../cubit/listings_state.dart';
+import '../cubit/saved_searches_cubit.dart';
+import '../saved_search_summary.dart';
 import '../widgets/filters_sheet.dart';
 import '../widgets/listing_card.dart';
+import '../widgets/save_search_dialog.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -26,6 +31,36 @@ class DashboardPage extends StatelessWidget {
       ),
     );
     if (result != null) cubit.applyFilters(result);
+  }
+
+  Future<void> _saveSearch(BuildContext context) async {
+    final state = context.read<ListingsCubit>().state;
+    final filters = state.filters;
+    final messenger = ScaffoldMessenger.of(context);
+
+    if (!filters.hasCriteria) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Escolha pelo menos um filtro antes de guardar.'),
+        ),
+      );
+      return;
+    }
+
+    final name = await showSaveSearchDialog(
+      context,
+      suggestion: summarizeFilters(filters, state.motorcycles),
+    );
+    if (name == null) return;
+
+    final saved = await getIt<SavedSearchesCubit>().create(name, filters);
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          saved ? 'Pesquisa guardada' : 'Não foi possível guardar a pesquisa',
+        ),
+      ),
+    );
   }
 
   @override
@@ -46,6 +81,11 @@ class DashboardPage extends StatelessWidget {
               ),
               onPressed: () => _openFilters(context),
             ),
+          ),
+          IconButton(
+            tooltip: 'Guardar pesquisa',
+            icon: const Icon(Icons.bookmark_add_outlined),
+            onPressed: () => _saveSearch(context),
           ),
         ],
       ),
