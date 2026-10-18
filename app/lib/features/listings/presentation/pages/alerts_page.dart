@@ -27,6 +27,14 @@ class AlertsPage extends StatelessWidget {
     };
   }
 
+  static IconData _icon(AlertType type) => switch (type) {
+    AlertType.newListing => Icons.fiber_new_outlined,
+    AlertType.priceReduction => Icons.trending_down,
+    AlertType.excellentOpportunity => Icons.local_fire_department_outlined,
+    AlertType.listingRemoved => Icons.block,
+    AlertType.unknown => Icons.notifications_none,
+  };
+
   void _open(BuildContext context, ListingAlert alert) {
     context.read<AlertsCubit>().markRead(alert.id);
     context.go(AppRoutes.listingDetail(alert.listing.id));
@@ -95,9 +103,18 @@ class AlertsPage extends StatelessWidget {
                       itemCount: state.alerts.length,
                       itemBuilder: (context, index) {
                         final alert = state.alerts[index];
-                        final price = alert.newPrice ?? alert.listing.price;
+                        final isReduction =
+                            alert.type == AlertType.priceReduction &&
+                            alert.oldPrice != null &&
+                            alert.newPrice != null;
+                        final priceText = isReduction
+                            ? '${Formatters.price(alert.oldPrice)} → '
+                                  '${Formatters.price(alert.newPrice)}'
+                            : Formatters.price(
+                                alert.newPrice ?? alert.listing.price,
+                              );
                         final details = [
-                          Formatters.price(price),
+                          priceText,
                           if (alert.listing.location != null)
                             alert.listing.location!,
                         ].join(' · ');
@@ -109,7 +126,7 @@ class AlertsPage extends StatelessWidget {
                         return Card(
                           child: ListTile(
                             isThreeLine: true,
-                            leading: const Icon(Icons.fiber_new_outlined),
+                            leading: Icon(_icon(alert.type)),
                             title: Text(
                               _title(alert),
                               style: TextStyle(

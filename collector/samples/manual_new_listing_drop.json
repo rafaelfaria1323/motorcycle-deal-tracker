@@ -1,0 +1,14 @@
+[
+{
+"url": "https://example.com/sample/mt07-alert-1",
+"brand": "Yamaha",
+"model": "MT-07",
+"year": 2026,
+"mileage_km": 1500,
+"price_eur": 7000,
+"seller_type": "dealer",
+"seller_name": "Stand Exemplo",
+"location": "Coimbra",
+"description": "Yamaha MT-07 2026 com 1500 km, garantia de fábrica, revisão feita, pronta a circular."
+}
+]

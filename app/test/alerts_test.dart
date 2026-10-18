@@ -111,4 +111,16 @@ void main() {
     expect(cubit.state.unreadCount, 0);
     expect(cubit.state.status, AlertsStatus.success);
   });
+
+  test('a price reduction keeps the old and the new price', () {
+    final row = _row('a3')
+      ..['type'] = 'price_reduction'
+      ..['old_price'] = 7600
+      ..['new_price'] = 7300;
+    final alert = ListingAlertModel.fromJson(row);
+
+    expect(alert.type, AlertType.priceReduction);
+    expect(alert.oldPrice, 7600);
+    expect(alert.newPrice, 7300);
+  });
 }
