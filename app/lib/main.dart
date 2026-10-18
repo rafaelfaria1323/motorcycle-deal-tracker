@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/app.dart';
@@ -17,6 +18,8 @@ Future<void> main() async {
 
   await Supabase.initialize(url: _supabaseUrl, anonKey: _supabaseAnonKey);
   configureDependencies();
+
+  await initializeDateFormatting('pt_PT');
 
   runApp(const App());
 }

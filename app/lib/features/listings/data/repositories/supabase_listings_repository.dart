@@ -4,6 +4,7 @@ import '../../domain/entities/listing.dart';
 import '../../domain/entities/listing_filters.dart';
 import '../../domain/entities/listing_sort.dart';
 import '../../domain/entities/motorcycle_option.dart';
+import '../../domain/entities/price_point.dart';
 import '../../domain/repositories/listings_repository.dart';
 import '../models/listing_model.dart';
 
@@ -106,5 +107,21 @@ class SupabaseListingsRepository implements ListingsRepository {
         .neq('id', listing.id)
         .order('first_seen_at');
     return rows.map<Listing>(ListingModel.fromJson).toList();
+  }
+
+  @override
+  Future<List<PricePoint>> getPriceHistory(String listingId) async {
+    final rows = await _client
+        .from('listing_price_history')
+        .select('price, observed_at')
+        .eq('listing_id', listingId)
+        .order('observed_at');
+    return [
+      for (final r in rows)
+        PricePoint(
+          price: (r['price'] as num).toDouble(),
+          observedAt: DateTime.parse(r['observed_at'] as String).toLocal(),
+        ),
+    ];
   }
 }

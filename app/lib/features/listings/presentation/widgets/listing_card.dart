@@ -4,6 +4,7 @@ import '../../../../core/formatting/formatters.dart';
 import '../../domain/entities/listing.dart';
 import 'deal_score_badge.dart';
 import 'listing_photo.dart';
+import 'price_change_tag.dart';
 
 class ListingCard extends StatelessWidget {
   const ListingCard({required this.listing, this.onTap, super.key});
@@ -42,6 +43,15 @@ class ListingCard extends StatelessWidget {
                       right: 8,
                       child: DealScoreBadge(score: listing.dealScore!),
                     ),
+                  if (listing.isRemoved)
+                    const Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Chip(
+                        label: Text('Removido'),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -57,11 +67,17 @@ class ListingCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    Formatters.price(listing.price),
-                    style: textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        Formatters.price(listing.price),
+                        style: textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      PriceChangeTag(listing: listing),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Text(

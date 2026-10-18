@@ -14,19 +14,20 @@ class Listing extends Equatable {
     required this.status,
     required this.sellerType,
     required this.images,
-    required this.firstSeenAt,
-    required this.lastSeenAt,
     this.motorcycleId,
     this.duplicateOf,
     this.riskScore,
     this.year,
     this.mileage,
     this.dealScore,
+    this.initialPrice,
     this.price,
     this.scoreBreakdown,
     this.sellerName,
     this.location,
     this.description,
+    this.firstSeenAt,
+    this.lastSeenAt,
   });
 
   final String id;
@@ -40,6 +41,7 @@ class Listing extends Equatable {
   final int? year;
   final int? mileage;
   final int? dealScore;
+  final double? initialPrice;
   final double? price;
   final Map<String, dynamic>? scoreBreakdown;
   final SellerType sellerType;
@@ -48,9 +50,28 @@ class Listing extends Equatable {
   final String? description;
   final List<String> images;
   final ListingStatus status;
-  final DateTime firstSeenAt;
-  final DateTime lastSeenAt;
+  final DateTime? firstSeenAt;
+  final DateTime? lastSeenAt;
+
+  /// Current price minus the first price we saw; null when either is unknown.
+  double? get priceChange {
+    final current = price;
+    final initial = initialPrice;
+    if (current == null || initial == null) return null;
+    return current - initial;
+  }
+
+  bool get hasPriceChanged => (priceChange ?? 0).abs() >= 1;
+
+  bool get isRemoved => status == ListingStatus.removed;
 
   @override
-  List<Object?> get props => [id, price, dealScore, status, lastSeenAt];
+  List<Object?> get props => [
+    id,
+    price,
+    initialPrice,
+    dealScore,
+    status,
+    lastSeenAt,
+  ];
 }

@@ -18,6 +18,7 @@ class ListingModel extends Listing {
     super.year,
     super.mileage,
     super.dealScore,
+    super.initialPrice,
     super.price,
     super.scoreBreakdown,
     super.sellerName,
@@ -38,6 +39,7 @@ class ListingModel extends Listing {
       year: json['year'] as int?,
       mileage: json['mileage'] as int?,
       dealScore: json['deal_score'] as int?,
+      initialPrice: (json['initial_price'] as num?)?.toDouble(),
       price: (json['price'] as num?)?.toDouble(),
       scoreBreakdown: json['score_breakdown'] as Map<String, dynamic>?,
       sellerType: _sellerType(json['seller_type'] as String?),
@@ -46,8 +48,12 @@ class ListingModel extends Listing {
       description: json['description'] as String?,
       images: List<String>.from(json['images'] as List? ?? const []),
       status: _status(json['status'] as String?),
-      firstSeenAt: DateTime.parse(json['first_seen_at'] as String),
-      lastSeenAt: DateTime.parse(json['last_seen_at'] as String),
+      firstSeenAt: json['first_seen_at'] == null
+          ? null
+          : DateTime.parse(json['first_seen_at'] as String),
+      lastSeenAt: json['last_seen_at'] == null
+          ? null
+          : DateTime.parse(json['last_seen_at'] as String),
     );
   }
 

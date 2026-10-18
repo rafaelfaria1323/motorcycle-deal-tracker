@@ -13,6 +13,8 @@ import '../listing_labels.dart';
 import '../widgets/also_listed_section.dart';
 import '../widgets/deal_score_badge.dart';
 import '../widgets/listing_photo.dart';
+import '../widgets/price_change_tag.dart';
+import '../widgets/price_history_section.dart';
 import '../widgets/score_explanation_card.dart';
 
 class ListingDetailPage extends StatelessWidget {
@@ -85,6 +87,7 @@ class _Content extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final description = listing.description;
+    final lastSeenAt = listing.lastSeenAt;
 
     return Align(
       alignment: Alignment.topCenter,
@@ -116,13 +119,33 @@ class _Content extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 4),
-            Text(
-              Formatters.price(listing.price),
-              style: textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              children: [
+                Text(
+                  Formatters.price(listing.price),
+                  style: textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                PriceChangeTag(listing: listing),
+              ],
             ),
             const SizedBox(height: 16),
+            if (listing.isRemoved)
+              Card(
+                color: Theme.of(context).colorScheme.errorContainer,
+                child: ListTile(
+                  leading: const Icon(Icons.block),
+                  title: const Text('Anúncio removido'),
+                  subtitle: Text(
+                    lastSeenAt == null
+                        ? 'Este anúncio já não está disponível.'
+                        : 'Este anúncio já não está disponível. '
+                              'Visto pela última vez ${Formatters.daysAgo(lastSeenAt)}.',
+                  ),
+                ),
+              ),
             if (listing.duplicateOf != null)
               Card(
                 color: Theme.of(context).colorScheme.secondaryContainer,
@@ -141,8 +164,8 @@ class _Content extends StatelessWidget {
                 ),
               ),
             AlsoListedSection(listing: listing),
-
             ScoreExplanationCard(listing: listing),
+            PriceHistorySection(listing: listing),
             Card(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
@@ -158,15 +181,6 @@ class _Content extends StatelessWidget {
                     _FactRow('Tipo de vendedor', listing.sellerType.label),
                     _FactRow('Fonte', listing.source),
                     _FactRow('Estado', listing.status.label),
-                    _FactRow(
-                      'Visto pela 1.ª vez',
-                      '${Formatters.date(listing.firstSeenAt)}'
-                          ' (${Formatters.daysAgo(listing.firstSeenAt)})',
-                    ),
-                    _FactRow(
-                      'Última vez visto',
-                      Formatters.date(listing.lastSeenAt),
-                    ),
                   ],
                 ),
               ),

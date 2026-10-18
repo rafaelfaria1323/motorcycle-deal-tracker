@@ -2,6 +2,7 @@ import '../entities/listing.dart';
 import '../entities/listing_filters.dart';
 import '../entities/listing_sort.dart';
 import '../entities/motorcycle_option.dart';
+import '../entities/price_point.dart';
 
 abstract interface class ListingsRepository {
   Future<List<Listing>> getListings({
@@ -18,4 +19,6 @@ abstract interface class ListingsRepository {
   /// Other listings of the same bike: the original's reposts, or, for a
   /// repost, the original plus its siblings.
   Future<List<Listing>> getAlsoListed(Listing listing);
+
+  Future<List<PricePoint>> getPriceHistory(String listingId);
 }
