@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/app.dart';
 import 'app/di/injection.dart';
+import 'core/auth/session_bootstrap.dart';
 
 const _supabaseUrl = String.fromEnvironment('SUPABASE_URL');
 const _supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
@@ -17,6 +18,7 @@ Future<void> main() async {
   );
 
   await Supabase.initialize(url: _supabaseUrl, anonKey: _supabaseAnonKey);
+  await ensureSession(Supabase.instance.client);
   configureDependencies();
 
   await initializeDateFormatting('pt_PT');
