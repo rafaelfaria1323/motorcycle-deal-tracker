@@ -1,0 +1,37 @@
+[
+  {
+    "url": "https://example.com/sample/cbr650r-faro-1",
+    "brand": "Honda",
+    "model": "CBR650R",
+    "year": 2025,
+    "mileage_km": 7800,
+    "price_eur": 8100,
+    "seller_type": "dealer",
+    "seller_name": "Stand Exemplo",
+    "location": "Faro",
+    "description": "CBR650R de 2025 com 7800 km, um dono, revisões feitas, sem acidentes, pronta a circular."
+  },
+  {
+    "url": "https://example.org/anuncios/honda-cbr650r-faro-55231",
+    "brand": "Honda",
+    "model": "CBR650R",
+    "year": 2025,
+    "mileage_km": 7800,
+    "price_eur": 8050,
+    "seller_type": "dealer",
+    "seller_name": "Stand Exemplo",
+    "location": "Faro",
+    "description": "CBR650R de 2025 com 7800 km, um dono, revisões feitas, sem acidentes, pronta a circular"
+  },
+  {
+    "url": "https://example.com/sample/cbr650r-braga-2",
+    "brand": "Honda",
+    "model": "CBR650R",
+    "year": 2025,
+    "mileage_km": 1200,
+    "price_eur": 9400,
+    "seller_type": "private",
+    "location": "Braga",
+    "description": "Mota quase nova, comprada em 2025, guardada em garagem, sem qualquer problema."
+  }
+]

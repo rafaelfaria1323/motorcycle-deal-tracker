@@ -8,9 +8,7 @@ Future<void> main(List<String> args) async {
   final positional = args.where((a) => a != '--dry-run').toList();
 
   if (positional.length != 2 || positional.first != 'manual') {
-    stderr.writeln(
-      'Usage: dart run bin/collector.dart manual <file.json> [--dry-run]',
-    );
+    stderr.writeln('Usage: dart run bin/collector.dart manual <file.json> [--dry-run]');
     exitCode = 64;
     return;
   }
@@ -70,6 +68,8 @@ Future<void> main(List<String> args) async {
     );
 
     if (stored.inserted > 0) {
+      final duplicates = await store.markDuplicates();
+      stdout.writeln('Duplicates flagged: $duplicates');
       final scored = await store.recalculateScores();
       stdout.writeln('Scored $scored listing(s).');
     }

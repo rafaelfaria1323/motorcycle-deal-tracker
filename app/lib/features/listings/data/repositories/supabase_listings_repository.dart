@@ -18,6 +18,7 @@ class SupabaseListingsRepository implements ListingsRepository {
     ListingSort sort = ListingSort.newest,
   }) async {
     var query = _client.from('listings').select();
+    query = query.isFilter('duplicate_of', null);
 
     if (filters.motorcycleId != null) {
       query = query.eq('motorcycle_id', filters.motorcycleId!);

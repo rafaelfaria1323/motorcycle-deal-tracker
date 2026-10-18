@@ -4,11 +4,7 @@ import '../catalog/catalog.dart';
 import '../normalized/normalized_listing.dart';
 
 class StoreResult {
-  const StoreResult({
-    required this.inserted,
-    required this.alreadyStored,
-    required this.duplicatesInInput,
-  });
+  const StoreResult({required this.inserted, required this.alreadyStored, required this.duplicatesInInput});
 
   final int inserted;
   final int alreadyStored;
@@ -53,18 +49,11 @@ class ListingStore {
 
   /// Inserts listings that are not stored yet. Existing ones (same source and
   /// source id) are left untouched, so running the same file twice is safe.
-  Future<StoreResult> save(
-    List<NormalizedListing> listings,
-    Catalog catalog,
-  ) async {
+  Future<StoreResult> save(List<NormalizedListing> listings, Catalog catalog) async {
     final unique = uniqueBySourceId(listings);
     final duplicates = listings.length - unique.length;
     if (unique.isEmpty) {
-      return StoreResult(
-        inserted: 0,
-        alreadyStored: 0,
-        duplicatesInInput: duplicates,
-      );
+      return StoreResult(inserted: 0, alreadyStored: 0, duplicatesInInput: duplicates);
     }
 
     final idBySlug = {
@@ -76,9 +65,7 @@ class ListingStore {
     for (final l in unique) {
       final slug = l.motorcycleSlug;
       if (slug != null && !idBySlug.containsKey(slug)) {
-        throw StateError(
-          'Catalog entry "$slug" has no id; load the catalog from Supabase.',
-        );
+        throw StateError('Catalog entry "$slug" has no id; load the catalog from Supabase.');
       }
       rows.add(listingRow(l, slug == null ? null : idBySlug[slug]));
     }
@@ -86,11 +73,7 @@ class ListingStore {
     // Only the rows that were really inserted come back.
     final inserted = await _client
         .from('listings')
-        .upsert(
-          rows,
-          onConflict: 'source,source_listing_id',
-          ignoreDuplicates: true,
-        )
+        .upsert(rows, onConflict: 'source,source_listing_id', ignoreDuplicates: true)
         .select('id');
 
     return StoreResult(
@@ -103,6 +86,12 @@ class ListingStore {
   /// Recomputes the stored deal and risk scores (see `recalculate_deal_scores`).
   Future<int> recalculateScores() async {
     final result = await _client.rpc('recalculate_deal_scores');
+    return (result as num).toInt();
+  }
+
+  /// Flags likely duplicates (see `mark_duplicates`); returns how many.
+  Future<int> markDuplicates() async {
+    final result = await _client.rpc('mark_duplicates');
     return (result as num).toInt();
   }
 }
