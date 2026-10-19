@@ -28,6 +28,22 @@ void main() {
     ]);
   });
 
+  test('uniqueBySourceId: the same id on two sites is two listings', () {
+    final olx = NormalizedListing(
+      source: 'olx',
+      sourceListingId: 'a',
+      url: 'https://www.olx.pt/d/anuncio/a.html',
+      brand: 'Yamaha',
+      model: 'R7',
+      price: 8900,
+      sellerType: SellerType.private,
+      images: const [],
+    );
+
+    expect(uniqueBySourceId([_listing('a'), olx]), hasLength(2));
+    expect(uniqueBySourceId(const []), isEmpty);
+  });
+
   test('listingRow matches the listings columns', () {
     final row = listingRow(_listing('a'), 'uuid-1');
 
