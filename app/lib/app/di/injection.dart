@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/auth/account_cubit.dart';
 import '../../features/collector_status/data/collector_runs_repository.dart';
+import '../../features/collector_status/data/source_quality_repository.dart';
 import '../../features/collector_status/presentation/collector_status_cubit.dart';
 import '../../features/listings/data/repositories/supabase_alerts_repository.dart';
 import '../../features/listings/data/repositories/supabase_catalog_repository.dart';
@@ -56,6 +57,9 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton(
     () => CollectorStatusCubit(getIt<CollectorRunsRepository>()),
+  );
+  getIt.registerLazySingleton<SourceQualityRepository>(
+    () => SupabaseSourceQualityRepository(Supabase.instance.client),
   );
   getIt.registerLazySingleton<MarketBehaviourRepository>(
     () => SupabaseMarketBehaviourRepository(Supabase.instance.client),

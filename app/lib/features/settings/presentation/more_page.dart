@@ -6,6 +6,7 @@ import '../../../app/router/app_routes.dart';
 import '../../../core/auth/account_sheet.dart';
 import '../../collector_status/presentation/collection_details.dart';
 import '../../collector_status/presentation/collector_status_banner.dart';
+import '../../collector_status/presentation/data_quality_details.dart';
 
 /// Everything that is not a list of offers: the account, the tracked
 /// models and how the data collection is doing.
@@ -83,6 +84,8 @@ class MorePage extends StatelessWidget {
                   ),
                 ),
               ),
+              const _Header('Qualidade dos dados'),
+              const _Group(child: DataQualityDetails()),
               const SizedBox(height: 24),
             ],
           );

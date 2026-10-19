@@ -147,6 +147,8 @@ for the code-quality review.
   must call them. Views: `with (security_invoker = true)`.
 - Pure scoring functions take plain values (testable with literals).
 - The service-role key is only ever used by the collector, never the app.
+- `source_data_quality` (view, readable by everyone) feeds "Qualidade dos
+  dados" in Mais.
 - `collector_runs` is readable only by non-anonymous users. `requests` holds
   the requests each site used (from refresh.dart's "Requests used:" lines,
   parsed by report_run.dart).
