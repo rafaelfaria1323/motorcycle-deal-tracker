@@ -44,6 +44,25 @@ void main() {
     );
   });
 
+  test('the age line says publicado only with the site\'s date', () {
+    expect(
+      marketLines(market(), daysListed: 0).last,
+      'Este anúncio foi publicado hoje',
+    );
+    expect(
+      marketLines(market(), daysListed: 3).last,
+      'Este anúncio está publicado há 3 dias',
+    );
+    expect(
+      marketLines(market(), daysListed: 0, firstSeenOnly: true).last,
+      'Visto pela primeira vez hoje',
+    );
+    expect(
+      marketLines(market(), daysListed: 1, firstSeenOnly: true).last,
+      'Visto pela primeira vez há 1 dia',
+    );
+  });
+
   test('a listing up for over twice the usual time gets the hint', () {
     final lines = marketLines(market(gone: 6, toGone: 20), daysListed: 45);
 
