@@ -18,6 +18,8 @@ class OlxRawListing {
     this.partner,
     this.externalUrl,
     this.images = const [],
+    this.createdAt,
+    this.refreshedAt,
   });
 
   final String id;
@@ -51,4 +53,9 @@ class OlxRawListing {
   final String? partner;
   final String? externalUrl;
   final List<String> images;
+
+  /// When the ad was first published, and when the seller last renewed or
+  /// promoted it (OLX shows and sorts by the latter).
+  final DateTime? createdAt;
+  final DateTime? refreshedAt;
 }

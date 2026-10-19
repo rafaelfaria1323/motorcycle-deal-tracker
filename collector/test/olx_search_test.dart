@@ -44,6 +44,8 @@ Map<String, dynamic> ad({
   'partner': {'code': partner},
   'externalUrl': externalUrl,
   'photos': ['https://img.example.com/$id.jpg'],
+  'createdTime': '2026-05-18T20:08:50+01:00',
+  'lastRefreshTime': '2026-10-19T14:00:16+01:00',
 };
 
 String searchPage(
@@ -240,6 +242,13 @@ void main() {
       final listing = (mapper.map(raw) as Mapped).listing;
       expect(listing.motorcycleSlug, 'yamaha-r7', reason: title);
     }
+  });
+
+  test('keeps when the ad was published and when it was renewed', () {
+    final listing = (mapper.map(one(ad())) as Mapped).listing;
+
+    expect(listing.publishedAt, DateTime.utc(2026, 5, 18, 19, 8, 50));
+    expect(listing.siteRefreshedAt, DateTime.utc(2026, 10, 19, 13, 0, 16));
   });
 
   test('an ad without a price is skipped, not a read problem', () {

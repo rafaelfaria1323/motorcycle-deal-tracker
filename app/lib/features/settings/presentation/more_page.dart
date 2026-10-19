@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/router/app_routes.dart';
 import '../../../core/auth/account_sheet.dart';
+import '../../collector_status/presentation/collection_details.dart';
 import '../../collector_status/presentation/collector_status_banner.dart';
 
 /// Everything that is not a list of offers: the account, the tracked
@@ -60,11 +61,13 @@ class MorePage extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 16),
                 child: CollectorStatusBanner(),
               ),
+              CollectionDetails(signedIn: signedIn),
               if (!signedIn)
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16),
                   child: Text(
-                    'O estado da recolha aparece com sessão iniciada.',
+                    'O estado e a duração das recolhas aparecem com sessão '
+                    'iniciada.',
                   ),
                 ),
             ],

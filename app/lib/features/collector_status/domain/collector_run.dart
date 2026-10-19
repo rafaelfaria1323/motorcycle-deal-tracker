@@ -5,6 +5,7 @@ class CollectorRun extends Equatable {
     required this.status,
     required this.startedAt,
     required this.finishedAt,
+    this.requests = const {},
   });
 
   /// 'ok', 'blocked' or 'failed'.
@@ -12,8 +13,13 @@ class CollectorRun extends Equatable {
   final DateTime startedAt;
   final DateTime finishedAt;
 
+  /// Requests each site used ({'standvirtual': 15, 'olx': 9}).
+  final Map<String, int> requests;
+
+  Duration get duration => finishedAt.difference(startedAt);
+
   @override
-  List<Object?> get props => [status, startedAt, finishedAt];
+  List<Object?> get props => [status, startedAt, finishedAt, requests];
 }
 
 enum CollectorHealth { unknown, ok, stale, blocked, failed }

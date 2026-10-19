@@ -79,6 +79,8 @@ class OlxMapper {
           location: listing.location,
           description: listing.description,
           images: listing.images,
+          publishedAt: raw.createdAt,
+          siteRefreshedAt: raw.refreshedAt,
         ),
         warnings,
       ),

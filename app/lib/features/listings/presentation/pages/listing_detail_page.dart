@@ -9,6 +9,7 @@ import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/listing.dart';
 import '../cubit/listing_detail_cubit.dart';
 import '../cubit/listing_detail_state.dart';
+import '../listing_dates_text.dart';
 import '../listing_labels.dart';
 import '../widgets/also_listed_section.dart';
 import '../widgets/deal_score_badge.dart';
@@ -203,10 +204,9 @@ class _Content extends StatelessWidget {
                         '${listing.dealerWarrantyMonths} meses',
                       ),
                     if (listing.publishedAt != null)
-                      _FactRow(
-                        'Publicado',
-                        Formatters.daysAgo(listing.publishedAt!),
-                      ),
+                      _FactRow('Publicado', dateWithAge(listing.publishedAt!)),
+                    if (renewalToShow(listing) case final renewed?)
+                      _FactRow('Renovado no site', dateWithAge(renewed)),
                     _FactRow('Localização', listing.location ?? '—'),
                     _FactRow('Vendedor', listing.sellerName ?? '—'),
                     _FactRow('Tipo de vendedor', listing.sellerType.label),

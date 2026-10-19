@@ -140,6 +140,7 @@ Do not implement several unrelated features at once.
 *Search result pages only (they hold the full description), every page of each search, 2023+ year filter. Standvirtual copies skipped. Fixes in 9.7b (multi-page searches, ads without a price, R7 titles) and 9.7c ("CBR 650" = CBR650R).*
 ➕ 9.8 Choose the tracked models in the app; matching rules moved into the catalog; 9 more models added (off by default) ✅
 ➕ 9.9 Searches built from the tracked models; removal per search; first year editable and new models added from the app; request budget shown with a warning ✅
+➕ 9.7d OLX publication and renewal dates: `createdTime` is stored as `published_at` (it was missing, so the app fell back to the day we first saw the ad) and `lastRefreshTime` as `site_refreshed_at`; the listing page shows "Publicado" with the date and "Renovado no site" when the seller renewed the ad later (OLX shows the renewal date) ✅
 ➕ 9.10 Collector performance: one Dart process per run (`bin/refresh.dart`) instead of seven; Standvirtual searches and listing pages share one fetcher (robots.txt read once, one 20-request budget); the pause between requests counts the time already spent since the previous one; duplicates, scores, alerts and notifications run once per run instead of three times ✅
 
 # Sprint 10 — Market Intelligence 🟡
@@ -165,7 +166,7 @@ Do not implement several unrelated features at once.
 ## 11.4 Error handling 🟡
 *Fetcher stops and pauses on blocks; incomplete searches never trigger removals; the dashboard shows when the last run failed, was blocked or is too old.*
 ## 11.5 Data-quality monitoring 🟡
-*Collector failures and blocks are tracked. Requests used per run, missing fields, duplicate rates, unexpected price changes and source availability are not shown yet.*
+*Collector failures and blocks are tracked; requests used per site and run, run duration and monthly runs are shown in Mais. Missing fields, duplicate rates, unexpected price changes and source availability are not shown yet.*
 
 ➕ **Notifications on the phone via Telegram** ✅ (11.1; replaces Web/PWA push). 11.1b: "Test Telegram" workflow / `make notify-test` sends a test message. Confirmed on Rafael's phone (2026-10-19) after `TELEGRAM_CHAT_ID` was corrected (it held the bot's own id).
 ➕ **Housekeeping** 🟡: saved pages and fetch state are no longer tracked ✅; **the repo should be made private** (old saved pages with phone numbers remain in git history) ⬜.
@@ -183,8 +184,8 @@ Do not implement several unrelated features at once.
 - *The Alertas tab shows no unread badge.*
 - *The listing page shows only the first photo.*
 - *The text mixes "tu" and "você" ("Escolhe os modelos…" vs "Verifique a ligação…").*
-## 13.2 A "Mais"/settings tab 🟡
-*Fourth tab "Mais" with the account (sign in/out), Modelos acompanhados and the collection status; the profile icon left Pesquisas and the models link left the account sheet. Still to add: Telegram status and the requests used per run.*
+## 13.2 A "Mais"/settings tab ✅
+*Fourth tab "Mais" with the account (sign in/out), Modelos acompanhados and the collection: when the last run ended and how long it took, requests used per site (of 20), when the next run is due, and this month's runs with an estimate of GitHub Actions minutes. The profile icon left Pesquisas and the models link left the account sheet. The status card shows only when something is wrong (failed, blocked, no recent run) and lives only in Mais; the "Atualizado há…" line left Ofertas.*
 ## 13.3 Ofertas ✅
 *Only listings of tracked models (switched-off models' listings and unmatched ones are left out); a sort menu (Melhor pontuação, Mais recentes, Preço mais baixo/alto); applied filters as chips under the status line, each removable on its own, plus "Limpar tudo".*
 ## 13.4 Listing page ⬜
@@ -216,11 +217,10 @@ Do not implement several unrelated features at once.
 
 # Next
 
-1. UI/UX redesign (Sprint 13), starting with the audit (13.1).
-2. Show the requests used by the last run per site (and searches cut short) in the app, so the budget warning is based on real numbers (fits in 13.2).
-3. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history.
-4. Price history chart on the detail page.
-5. Weekly Telegram summary (best deals, new drops, listings gone).
+1. UI/UX redesign (Sprint 13): 13.4 listing page next.
+2. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history.
+3. Price history chart on the detail page.
+4. Weekly Telegram summary (best deals, new drops, listings gone).
 
 **Open items for Rafael:** read the Standvirtual/OLX terms and record the clauses in `docs/sources.md`; check the new-bike reference prices; make the repo private.
 

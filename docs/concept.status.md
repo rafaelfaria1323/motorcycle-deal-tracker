@@ -123,7 +123,7 @@ All four types, each at most once per event, only for events after the search wa
 
 ## 17. Dashboard ✅
 
-✅ Best deals sorted by Deal Score (or newest, cheapest, most expensive); only tracked models; filters for model, price, mileage, year, location, seller type, Deal Score, Risk Score, active only, shown as removable chips. ➕ Collection status line ("Atualizado há 3 h" / blocked / failed).
+✅ Best deals sorted by Deal Score (or newest, cheapest, most expensive); only tracked models; filters for model, price, mileage, year, location, seller type, Deal Score, Risk Score, active only, shown as removable chips. ➕ Collection status (last run, duration, requests, next run; a warning card when a run failed or was blocked) in Mais.
 
 ## 18. Listing Detail Page ✅
 
@@ -140,7 +140,7 @@ Shown on the detail page. Reference prices are edited in the app; set for the or
 
 ## 21. Data Quality 🟡
 
-✅ Collection runs and blocks are tracked. ⬜ Requests used per run shown in the app. ⬜ Per-field confidence.
+✅ Collection runs and blocks are tracked. ✅ Requests used per run, run duration, next run and monthly usage shown in the app (Mais). ⬜ Per-field confidence.
 
 ## 22. Privacy 🟡
 

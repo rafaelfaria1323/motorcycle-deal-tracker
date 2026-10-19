@@ -110,7 +110,11 @@ names, plus `SUPABASE_PUBLISHABLE_KEY`, `CLOUDFLARE_API_TOKEN` and
   must call them. Views: `with (security_invoker = true)`.
 - Pure scoring functions take plain values (testable with literals).
 - The service-role key is only ever used by the collector, never the app.
-- `collector_runs` is readable only by non-anonymous users.
+- `collector_runs` is readable only by non-anonymous users. `requests` holds
+  the requests each site used (from refresh.dart's "Requests used:" lines,
+  parsed by report_run.dart).
+- The app's next-run time (`collection_text.dart`) mirrors the cron in
+  `collect.yml`: change both together.
 - Watch out: `greatest`/`least` ignore nulls.
 
 ## Collection pipeline
@@ -120,7 +124,7 @@ starts once, the catalog is loaded once). For each site:
 `planSearches` (tracked models) → `fetchSearches` saves the pages plus
 `searches.json` (planned searches, search of each page) → `importBatch`:
 save → markSeen → applyPriceChanges → setSearchKeys → applyPricesBeforeDrop
-→ (if `--full`) markRemoved; Standvirtual then reads new listings' details
+→ applyListingDates → (if `--full`) markRemoved; Standvirtual then reads new listings' details
 (`enrichDetails`) with the same fetcher. Then once for all sites
 (`finishRun`): markDuplicates → recalculateScores → generateAlerts →
 Telegram notifications. The single-step commands (`fetch.dart`,
@@ -148,7 +152,9 @@ functions for manual work.
 - **OLX** search results (`__PRERENDERED_STATE__`, 40 per page, `page=N`)
   hold the full description; no listing pages. Ads with
   `partner.code = 'standvirtual'` are copies of Standvirtual ads and are
-  skipped. Ads without a price are rejected but count as live.
+  skipped. Ads without a price are rejected but count as live. `createdTime`
+  is stored as `published_at`, `lastRefreshTime` (the date OLX shows) as
+  `site_refreshed_at`.
 - **Model matching** (`ModelResolver`, shared by all sources) reads its rules
   from the catalog: model name and `aliases` spelled within the first three
   words (also without closing letters: "CBR 650" = CBR650R), Honda code

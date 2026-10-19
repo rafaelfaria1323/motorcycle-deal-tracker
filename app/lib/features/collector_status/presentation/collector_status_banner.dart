@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/di/injection.dart';
 import '../domain/collector_run.dart';
+import 'collection_text.dart';
 import 'collector_status_cubit.dart';
 
 class CollectorStatusBanner extends StatefulWidget {
@@ -50,24 +51,16 @@ class _CollectorStatusBannerState extends State<CollectorStatusBanner> {
 
         switch (collectorHealth(run, DateTime.now())) {
           case CollectorHealth.unknown:
-            return const SizedBox.shrink();
           case CollectorHealth.ok:
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Text(
-                'Atualizado ${_ago(run!.finishedAt)}',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
-              ),
-            );
+            // All is well: the time of the last run is in the details.
+            return const SizedBox.shrink();
           case CollectorHealth.stale:
             return _card(
               color: scheme.tertiaryContainer,
               icon: Icons.schedule,
               title: 'Sem atualizações recentes',
               text:
-                  'A última recolha foi ${_ago(run!.finishedAt)}. '
+                  'A última recolha foi ${agoText(run!.finishedAt)}. '
                   'Os preços podem estar desatualizados.',
             );
           case CollectorHealth.blocked:
@@ -76,8 +69,8 @@ class _CollectorStatusBannerState extends State<CollectorStatusBanner> {
               icon: Icons.block,
               title: 'Recolha bloqueada pelo site',
               text:
-                  'Na última recolha (${_ago(run!.finishedAt)}) o '
-                  'Standvirtual recusou os pedidos. A recolha pausa 24 h '
+                  'Na última recolha (${agoText(run!.finishedAt)}) um '
+                  'dos sites recusou os pedidos. A recolha pausa 24 h '
                   'e volta a tentar sozinha.',
             );
           case CollectorHealth.failed:
@@ -86,7 +79,7 @@ class _CollectorStatusBannerState extends State<CollectorStatusBanner> {
               icon: Icons.error_outline,
               title: 'A última recolha falhou',
               text:
-                  '${_capitalize(_ago(run!.finishedAt))}. '
+                  '${_capitalize(agoText(run!.finishedAt))}. '
                   'Veja o registo em GitHub Actions.',
             );
         }
@@ -108,13 +101,6 @@ class _CollectorStatusBannerState extends State<CollectorStatusBanner> {
       subtitle: Text(text),
     ),
   );
-}
-
-String _ago(DateTime time) {
-  final diff = DateTime.now().difference(time);
-  if (diff.inMinutes < 60) return 'há ${diff.inMinutes} min';
-  if (diff.inHours < 48) return 'há ${diff.inHours} h';
-  return 'há ${diff.inDays} dias';
 }
 
 String _capitalize(String s) =>
