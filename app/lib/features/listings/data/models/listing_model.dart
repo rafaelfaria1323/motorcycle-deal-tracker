@@ -24,6 +24,12 @@ class ListingModel extends Listing {
     super.sellerName,
     super.location,
     super.description,
+    super.registrations,
+    super.serviceBook,
+    super.origin,
+    super.warrantyUntil,
+    super.dealerWarrantyMonths,
+    super.publishedAt,
   });
 
   factory ListingModel.fromJson(Map<String, dynamic> json) {
@@ -54,6 +60,12 @@ class ListingModel extends Listing {
       lastSeenAt: json['last_seen_at'] == null
           ? null
           : DateTime.parse(json['last_seen_at'] as String),
+      registrations: json['registrations'] as int?,
+      serviceBook: json['service_book'] as bool?,
+      origin: json['origin'] as String?,
+      warrantyUntil: _date(json['warranty_until']),
+      dealerWarrantyMonths: json['dealer_warranty_months'] as int?,
+      publishedAt: _date(json['published_at']),
     );
   }
 
@@ -70,4 +82,7 @@ class ListingModel extends Listing {
     'sold' => ListingStatus.sold,
     _ => ListingStatus.unknown,
   };
+
+  static DateTime? _date(Object? value) =>
+      value is String ? DateTime.tryParse(value) : null;
 }

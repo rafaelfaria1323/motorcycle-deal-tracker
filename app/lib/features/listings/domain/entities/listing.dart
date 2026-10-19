@@ -28,6 +28,12 @@ class Listing extends Equatable {
     this.description,
     this.firstSeenAt,
     this.lastSeenAt,
+    this.registrations,
+    this.serviceBook,
+    this.origin,
+    this.warrantyUntil,
+    this.dealerWarrantyMonths,
+    this.publishedAt,
   });
 
   final String id;
@@ -52,6 +58,12 @@ class Listing extends Equatable {
   final ListingStatus status;
   final DateTime? firstSeenAt;
   final DateTime? lastSeenAt;
+  final int? registrations;
+  final bool? serviceBook;
+  final String? origin;
+  final DateTime? warrantyUntil;
+  final int? dealerWarrantyMonths;
+  final DateTime? publishedAt;
 
   /// Current price minus the first price we saw; null when either is unknown.
   double? get priceChange {

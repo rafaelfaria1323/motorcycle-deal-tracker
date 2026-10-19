@@ -37,15 +37,35 @@ class ScoreExplanation extends Equatable {
 /// Turns the stored score data into human-readable lines.
 /// Only things that actually influence the score are listed.
 abstract final class ScoreExplainer {
-  static const _riskLines = <String, String>{
-    'price_far_below_market':
-        'Preço muito abaixo do mercado, confirme se é real',
-    'price_below_market': 'Preço bastante abaixo do mercado',
-    'possible_accident': 'A descrição pode indicar acidente',
-    'no_mileage': 'Quilometragem não indicada',
-    'no_year': 'Ano não indicado',
-    'thin_description': 'Descrição muito curta',
-    'no_location': 'Localização não indicada',
+  static const _riskLines = <String, (ExplanationTone, String)>{
+    'price_far_below_market': (
+      ExplanationTone.negative,
+      'Preço muito abaixo do mercado, confirme se é real',
+    ),
+    'price_below_market': (
+      ExplanationTone.negative,
+      'Preço bastante abaixo do mercado',
+    ),
+    'possible_accident': (
+      ExplanationTone.negative,
+      'A descrição pode indicar acidente',
+    ),
+    'no_mileage': (ExplanationTone.negative, 'Quilometragem não indicada'),
+    'no_year': (ExplanationTone.negative, 'Ano não indicado'),
+    'thin_description': (ExplanationTone.negative, 'Descrição muito curta'),
+    'no_location': (ExplanationTone.negative, 'Localização não indicada'),
+    'many_owners': (ExplanationTone.negative, 'Três ou mais registos (donos)'),
+    'no_service_book': (
+      ExplanationTone.negative,
+      'Sem livro de revisões completo',
+    ),
+    'imported': (ExplanationTone.negative, 'Mota importada'),
+    'first_owner': (ExplanationTone.positive, 'Primeiro dono'),
+    'service_book': (ExplanationTone.positive, 'Livro de revisões completo'),
+    'under_warranty': (
+      ExplanationTone.positive,
+      'Ainda com garantia de fábrica',
+    ),
   };
 
   // Presentation thresholds for the wording only; the score itself is
@@ -148,12 +168,10 @@ abstract final class ScoreExplainer {
       );
     }
 
-    // Risk signals
+    // Risk signals; some are reassuring and read as positives.
     for (final code in (data['risk_reasons'] as List? ?? const [])) {
-      final text = _riskLines[code];
-      if (text != null) {
-        lines.add(ExplanationLine(ExplanationTone.negative, text));
-      }
+      final entry = _riskLines[code];
+      if (entry != null) lines.add(ExplanationLine(entry.$1, entry.$2));
     }
 
     return ScoreExplanation(

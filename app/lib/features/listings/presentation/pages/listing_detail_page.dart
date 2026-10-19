@@ -176,6 +176,33 @@ class _Content extends StatelessWidget {
                       'Quilometragem',
                       Formatters.mileage(listing.mileage),
                     ),
+                    if (listing.registrations != null)
+                      _FactRow('Registos (donos)', '${listing.registrations}'),
+                    if (listing.serviceBook != null)
+                      _FactRow(
+                        'Livro de revisões',
+                        listing.serviceBook! ? 'Completo' : 'Não',
+                      ),
+                    if (listing.origin != null)
+                      _FactRow(
+                        'Origem',
+                        listing.origin == 'national' ? 'Nacional' : 'Importada',
+                      ),
+                    if (listing.warrantyUntil != null)
+                      _FactRow(
+                        'Garantia de fábrica até',
+                        Formatters.date(listing.warrantyUntil!),
+                      ),
+                    if (listing.dealerWarrantyMonths != null)
+                      _FactRow(
+                        'Garantia do vendedor',
+                        '${listing.dealerWarrantyMonths} meses',
+                      ),
+                    if (listing.publishedAt != null)
+                      _FactRow(
+                        'Publicado',
+                        Formatters.daysAgo(listing.publishedAt!),
+                      ),
                     _FactRow('Localização', listing.location ?? '—'),
                     _FactRow('Vendedor', listing.sellerName ?? '—'),
                     _FactRow('Tipo de vendedor', listing.sellerType.label),
