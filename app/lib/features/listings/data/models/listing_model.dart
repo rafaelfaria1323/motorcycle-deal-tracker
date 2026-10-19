@@ -64,7 +64,7 @@ class ListingModel extends Listing {
       priceBeforeDrop: (json['price_before_drop'] as num?)?.toDouble(),
       price: (json['price'] as num?)?.toDouble(),
       scoreBreakdown: json['score_breakdown'] as Map<String, dynamic>?,
-      sellerType: _sellerType(json['seller_type'] as String?),
+      sellerType: sellerTypeOf(json['seller_type'] as String?),
       sellerName: json['seller_name'] as String?,
       location: json['location'] as String?,
       description: json['description'] as String?,
@@ -84,7 +84,8 @@ class ListingModel extends Listing {
     );
   }
 
-  static SellerType _sellerType(String? value) => switch (value) {
+  /// Shared with `SavedSearchModel`; anything unrecognised is `unknown`.
+  static SellerType sellerTypeOf(String? value) => switch (value) {
     'private' => SellerType.private,
     'dealer' => SellerType.dealer,
     _ => SellerType.unknown,
