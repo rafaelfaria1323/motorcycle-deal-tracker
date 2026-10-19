@@ -196,7 +196,7 @@ class DashboardPage extends StatelessWidget {
                               gridDelegate:
                                   const SliverGridDelegateWithMaxCrossAxisExtent(
                                     maxCrossAxisExtent: 420,
-                                    mainAxisExtent: 290,
+                                    mainAxisExtent: ListingCard.height,
                                     crossAxisSpacing: 16,
                                     mainAxisSpacing: 16,
                                   ),

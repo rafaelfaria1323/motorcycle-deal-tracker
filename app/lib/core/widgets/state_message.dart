@@ -31,11 +31,23 @@ class StateMessage extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 48, color: muted),
-              const SizedBox(height: 16),
+              Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  size: 40,
+                  color: theme.colorScheme.onPrimaryContainer,
+                ),
+              ),
+              const SizedBox(height: 20),
               Text(
                 title,
-                style: theme.textTheme.titleMedium,
+                style: theme.textTheme.titleLarge,
                 textAlign: TextAlign.center,
               ),
               if (message != null) ...[

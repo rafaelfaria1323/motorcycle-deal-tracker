@@ -44,6 +44,11 @@ lib/features/   listings, collector_status, settings
 test/           unit tests, mostly for the cubits and *_text.dart functions
 ```
 
+The look lives in `lib/app/theme/`: `AppTheme` (light and dark colour
+schemes, component styles) and `AppColors` (good/bad and Deal Score
+colours). Fonts are bundled in `assets/fonts`: Barlow for text and Barlow
+Semi Condensed for titles, prices and scores (SIL Open Font License).
+
 State uses Cubits (flutter_bloc) with Equatable states. Photos use
 `Image.network` with `WebHtmlElementStrategy.prefer`, because the photo
 sites send no CORS headers.

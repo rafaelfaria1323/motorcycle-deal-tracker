@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/di/injection.dart';
+import '../../../../app/theme/app_colors.dart';
 import '../../../../core/formatting/formatters.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/entities/price_point.dart';
@@ -104,9 +105,10 @@ class _ChangeRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final delta = previous == null ? null : point.price - previous!.price;
+    final colors = AppColors.of(context);
     final color = delta == null
         ? null
-        : (delta < 0 ? Colors.green.shade700 : Colors.red.shade700);
+        : (delta < 0 ? colors.positive : colors.negative);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),

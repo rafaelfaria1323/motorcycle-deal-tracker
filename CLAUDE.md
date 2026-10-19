@@ -7,7 +7,10 @@ Alerts go to the app and to the owner's phone (Telegram).
 
 Progress lives in `docs/roadmap.status.md` (step by step) and
 `docs/concept.status.md` (against the original concept). **Update both in
-the same PR as the work.**
+the same PR as the work.** Also keep the READMEs (`README.md`,
+`app/README.md`, `collector/README.md`) and this file true in the same PR
+when a change affects what they say (screens, commands, secrets, layout,
+pipeline, rules).
 
 Catalog (table `motorcycles`): 13 models, chosen in the app ("Modelos
 acompanhados"). Tracked by default: Yamaha MT-07, Yamaha R7, Honda CB650R,
@@ -98,10 +101,18 @@ names, plus `SUPABASE_PUBLISHABLE_KEY`, `CLOUDFLARE_API_TOKEN` and
   CDNs don't send CORS headers, so an `<img>` element is the only way).
 - Lists load `ListingModel.summaryColumns`, never `*` (descriptions are big);
   the deals list is paged (40 per page, more on scroll).
+- Look: `app/theme/app_theme.dart` (hand-made colour schemes: cool greys,
+  racing-orange primary, white cards with a hairline border, no shadows or
+  tints) and `app_colors.dart` (`AppColors.of(context)`: positive/negative
+  and Deal Score band colours, light and dark). Never hard-code colours in
+  widgets. Fonts are bundled (`assets/fonts`, Latin subset): Barlow for
+  text, Barlow Semi Condensed (`AppTheme.displayFont`) for titles, prices
+  and scores; prices use tabular figures.
 - Hosting: Cloudflare Pages, installed on the iPhone from Safari ("Adicionar
-  ao ecrã principal"). Status bar = `theme-color` = the theme's surface
-  colour (`#FFF8F6` light, `#1A110F` dark), kept in step by a `Title` in
-  `MaterialApp.builder`.
+  ao ecrã principal"). Status bar = `theme-color` = the page background
+  (`AppTheme.lightBackground` `#F4F5F7`, `darkBackground` `#0F1115`), kept
+  in step by a `Title` in `MaterialApp.builder`; `web/index.html` and
+  `web/manifest.json` repeat these colours.
 
 ## Database conventions (Supabase / Postgres)
 
