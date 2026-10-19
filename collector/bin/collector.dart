@@ -97,16 +97,19 @@ Future<void> main(List<String> args) async {
     stdout.writeln('Site-reported price cuts updated: $drops');
 
     // 4. Only for a complete import: what is missing has been removed.
-    //    An input with unreadable or rejected records may be incomplete, so it
-    //    is never trusted to remove anything unless forced.
+    //    Rejected records still count as on the site (an old bike is still
+    //    listed). An input with unreadable records, or a rejected one that
+    //    can't be placed, may be incomplete, so it is never trusted to remove
+    //    anything unless forced.
     if (full) {
-      if (!force && (batch.issues.isNotEmpty || rejected > 0)) {
+      final live = liveIds(batch);
+      if (!force && (batch.issues.isNotEmpty || live == null)) {
         stdout.writeln(
-          'Removal skipped: the input had unreadable or rejected records, so '
-          'it may be incomplete (use --force to override).',
+          'Removal skipped: the input had unreadable records or a rejected '
+          'one without an id, so it may be incomplete (use --force to override).',
         );
       } else {
-        final removed = await store.markRemoved(batch.source, seenIds, force: force);
+        final removed = await store.markRemoved(batch.source, live ?? seenIds, force: force);
         stdout.writeln('Removed: $removed');
       }
     }
