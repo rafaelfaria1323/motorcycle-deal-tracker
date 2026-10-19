@@ -2,12 +2,12 @@ import 'home_screen_app_stub.dart'
     if (dart.library.js_interop) 'home_screen_app_web.dart'
     as impl;
 
-/// Room for the iPhone's home bar under the tab bar. In the home-screen app
-/// the page runs under the home bar, and Flutter on the web reports no
-/// safe area for it, so the tab bar labels would sit beneath the bar.
-const homeBarInset = 24.0;
-
-/// True in the app added to the iPhone home screen ("Adicionar ao ecrã
-/// principal") on an iPhone with a home bar (no Home button).
-bool get isIphoneHomeScreenAppWithHomeBar =>
-    impl.isIphoneHomeScreenAppWithHomeBar;
+/// Extra bottom safe area on iPhone/iPad, which Flutter on the web doesn't
+/// report:
+/// - in Safari, 12px for the strip `web/index.html` puts at the bottom edge
+///   (Safari 26 tints its toolbar from it), so it sits under the tab bar
+///   labels instead of over them;
+/// - in the home-screen app on an iPhone with a home bar, 24px so the
+///   labels stay above the home bar (there is no strip there);
+/// - 0 elsewhere.
+double get iosBottomInset => impl.iosBottomInset;

@@ -131,10 +131,11 @@ for the code-quality review.
   `#0F1115`; Material 3's default is transparent black) and an AppBar with
   its own background sets its own (the photo viewer: black). Keep these
   colours in step with `index.html` and `web/manifest.json`. In the
-  home-screen app the bottom strip is hidden (no Safari toolbar) and,
-  because Flutter web reports no safe area, `MaterialApp.builder` adds a
-  24px bottom inset on iPhones with a home bar
-  (`core/platform/home_screen_app.dart`).
+  home-screen app the bottom strip is hidden (no Safari toolbar). Flutter
+  web reports no safe area, so `MaterialApp.builder` adds a bottom inset
+  (`iosBottomInset`, `core/platform/home_screen_app.dart`): 12px in Safari
+  on iPhone/iPad (the strip's height, so it sits under the tab bar labels),
+  24px in the home-screen app on iPhones with a home bar, 0 elsewhere.
 
 ## Database conventions (Supabase / Postgres)
 
