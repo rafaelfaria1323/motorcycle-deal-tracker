@@ -13,6 +13,7 @@ import '../listing_labels.dart';
 import '../widgets/also_listed_section.dart';
 import '../widgets/deal_score_badge.dart';
 import '../widgets/listing_photo.dart';
+import '../widgets/market_behaviour_section.dart';
 import '../widgets/price_change_tag.dart';
 import '../widgets/price_history_section.dart';
 import '../widgets/score_explanation_card.dart';
@@ -165,6 +166,7 @@ class _Content extends StatelessWidget {
               ),
             AlsoListedSection(listing: listing),
             ScoreExplanationCard(listing: listing),
+            MarketBehaviourSection(listing: listing),
             PriceHistorySection(listing: listing),
             Card(
               child: Padding(
