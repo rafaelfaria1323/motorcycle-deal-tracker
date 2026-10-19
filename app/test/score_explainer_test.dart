@@ -99,4 +99,27 @@ void main() {
       hasLength(1),
     );
   });
+
+  test('extras found in the ad read as a positive', () {
+    final explanation = ScoreExplainer.explain(
+      _listing(
+        dealScore: 80,
+        breakdown: {
+          'extras': ['exhaust', 'heated_grips', 'something_new'],
+        },
+      ),
+    )!;
+
+    expect(
+      explanation.lines,
+      contains(
+        const ExplanationLine(
+          ExplanationTone.positive,
+          'Extras indicados: escape desportivo, punhos aquecidos',
+        ),
+      ),
+    );
+    expect(extrasText(const {'extras': <String>[]}), isNull);
+    expect(extrasText(null), isNull);
+  });
 }

@@ -100,6 +100,27 @@ void main() {
     expect(rowOf(rows, 'Pontuação').values, ['—', '—']);
   });
 
+  test('extras: the listed ones, most wins', () {
+    Listing withExtras(String id, List<String> extras) => Listing(
+      id: id,
+      source: 'olx',
+      url: 'https://www.olx.pt/d/anuncio/$id.html',
+      brand: 'Yamaha',
+      model: 'MT-07',
+      status: ListingStatus.active,
+      sellerType: SellerType.private,
+      images: const [],
+      scoreBreakdown: {'extras': extras},
+    );
+    final rows = compareRows([
+      withExtras('a', ['quickshifter', 'luggage']),
+      withExtras('b', []),
+    ]);
+
+    expect(rowOf(rows, 'Extras').values, ['quickshifter, malas', '—']);
+    expect(rowOf(rows, 'Extras').best, {0});
+  });
+
   test('a price drop shows how much', () {
     final rows = compareRows([
       listing('a', price: 6500, initialPrice: 7000),

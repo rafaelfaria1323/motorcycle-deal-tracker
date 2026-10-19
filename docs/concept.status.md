@@ -88,7 +88,7 @@ Initial price, current price, every change with date, percentage, and time onlin
 |---|---:|---|
 | Price vs market | 35% | ✅ fair value adjusted for age and mileage (per-model rates) |
 | Year / mileage | 20% | ✅ |
-| Version / equipment | 15% | ⬜ |
+| Version / equipment | 15% | ✅ extras named in the ad (no penalty when none); the version itself is not scored |
 | Seller / confidence | 10% | ⬜ |
 | Market / listing behaviour | 10% | ⬜ data being collected |
 | Risk indicators | 10% | ✅ |
