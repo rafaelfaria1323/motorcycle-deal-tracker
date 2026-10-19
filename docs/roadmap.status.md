@@ -173,6 +173,8 @@ Do not implement several unrelated features at once.
 ➕ **Weekly Telegram summary** ✅ (11.1c): every Monday (`weekly-summary.yml`, 07:52 UTC, or "Run workflow") one message about the tracked models' last 7 days: new listings per model, price drops of 1 % or more (biggest 3 shown), listings gone, live count, and the 5 best live deals with risk below 50, each with its link. Reads the database only; `make weekly-summary ARGS=--dry-run` prints it.
 ➕ **Housekeeping** 🟡: saved pages and fetch state are no longer tracked ✅; **the repo should be made private** (old saved pages with phone numbers remain in git history) ⬜.
 
+➕ **Ads from other sites** ✅ (9.11): Facebook Marketplace and CustoJusto forbid automated access (robots.txt notices, recorded in `docs/sources.md`), so they are not collected. "Adicionar anúncio" (Mais, route `/add`) saves one ad from any site: link, model (guessed from the title), price, year, km, location, seller type, description; stored by `add_shared_listing` with the catalog's names, scored at once, never removed by the collector. An iPhone Shortcut run from Safari's share sheet fills the page from the ad being viewed (title, price, description, place, photo; never the seller's name); the page explains how to make it and copies the script. Next: update the price or mark one sold from its page.
+
 # Sprint 13 — UI/UX redesign ✅
 
 *Goal: the app has grown screen by screen; make it coherent on the iPhone. Each step is a small PR Rafael checks on the phone.*

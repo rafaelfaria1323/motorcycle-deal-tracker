@@ -104,7 +104,10 @@ for the code-quality review.
 - Routing: go_router `StatefulShellRoute` (Ofertas / Pesquisas / Alertas /
   Mais). Account, "Modelos acompanhados" and collection status live in Mais.
   Use `context.go`, not `push`, so web URLs stay correct. Exception: full
-  pages outside the shell (`/models`) are pushed.
+  pages outside the shell (`/models`, `/add`) are pushed. `/add` (Adicionar
+  anúncio) also opens from the iPhone share button with the ad in its query
+  (`u`, `t`, `p`, `d`, `l`, `i`; `shared_listing_text.dart`,
+  `share_script.dart`).
 - Formatting: `Formatters.price`, `.mileage`, `.date`, `.daysAgo`
   (`core/formatting/formatters.dart`).
 - Auth: anonymous session on first visit; the owner signs in with
@@ -209,7 +212,9 @@ functions for manual work.
 
 - Only `https://www.standvirtual.com/motos/...` and
   `https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/...`,
-  robots.txt read every run.
+  robots.txt read every run. Facebook Marketplace and CustoJusto forbid
+  automated access (`docs/sources.md`): never collect them; their ads are
+  saved by the owner ("Adicionar anúncio", `add_shared_listing`).
 - 6-10 s between requests (counted from the end of the previous request,
   so work done in between counts), max 20 per run and 120 per day **per
   site** (Standvirtual's searches and listing pages share one fetcher, one

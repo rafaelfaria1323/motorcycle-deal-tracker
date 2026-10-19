@@ -61,6 +61,21 @@ class MorePage extends StatelessWidget {
                   onTap: () => context.push(AppRoutes.models),
                 ),
               ),
+              const SizedBox(height: 12),
+              _Group(
+                child: ListTile(
+                  leading: const Icon(Icons.add_link),
+                  title: const Text('Adicionar anúncio'),
+                  subtitle: Text(
+                    signedIn
+                        ? 'De outro site: Facebook Marketplace, CustoJusto…'
+                        : 'Disponível com sessão iniciada',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  enabled: signedIn,
+                  onTap: () => context.push(AppRoutes.addListing),
+                ),
+              ),
               const _Header('Recolha de dados'),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),

@@ -5,6 +5,38 @@ here. Robots.txt is not permission; the source's terms of use decide.
 
 ## Decision log
 
+### 2026-10-20: Facebook Marketplace and CustoJusto are not collected; ads from them are saved by hand
+
+**Facebook Marketplace: no collector.** robots.txt opens with "Collection
+of data on Facebook through automated means is prohibited unless you have
+express written permission from Facebook" and ends with `User-agent: *`
+`Disallow: /`. Browsing Marketplace needs a signed-in account; running a
+bot on the owner's account would break Facebook's terms, get the account
+checkpointed or locked (logins from GitHub's servers are flagged), and need
+bot-detection evasion, which we do not build. Sellers are mostly private
+people shown by name.
+
+**CustoJusto: no collector.** robots.txt (pasted by the owner on
+2026-10-20) opens with "It is expressly forbidden to use spiders or other
+automated methods to access CustoJusto.pt. Only if custojusto.pt has given
+special permit such access is allowed." Category pages are not in its
+Disallow list, but the notice covers the whole site, and pagination
+(`/*?o=*`, `/*&o=*`) is disallowed. Collecting would need written
+permission from CustoJusto.
+
+**Instead: "Adicionar anúncio".** The owner saves single ads from these
+sites (or any other) in the app: a form (Mais › Adicionar anúncio, route
+`/add`), optionally filled by an iPhone Shortcut run from Safari's share
+sheet on the ad the owner is viewing. The Shortcut's script reads only
+what that page shows (title, price, description, place, photo; never the
+seller's name) and opens `/#/add?u=&t=&p=&d=&l=&i=` (the app uses hash URLs); the owner checks and
+saves. Nothing is fetched by us. The listing is stored through the RPC
+`add_shared_listing` (signed-in accounts only) with source `facebook`,
+`custojusto` or `other`, the catalog's brand and model, no seller name,
+and is scored at once. The collector never removes these (it reads only
+OLX and Standvirtual); OLX and Standvirtual links are refused there because
+they are collected.
+
 ### 2026-10-19: searches come from the tracked models (9.9)
 
 **Decision.** Each catalog model stores the OLX and Standvirtual search

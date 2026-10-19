@@ -44,7 +44,8 @@ Unchanged.
 
 - ✅ Standvirtual (search pages + listing pages for details, low-volume personal fetcher).
 - ✅ OLX (search result pages, which hold the full description; Standvirtual copies skipped).
-- ⬜ Future: CustoJusto, dealerships, European marketplaces, imports.
+- ➕ Facebook Marketplace and CustoJusto: both forbid automated access (robots.txt notices), so ads from them, or from any other site, are saved by the owner ("Adicionar anúncio", iPhone share button) ✅.
+- ⬜ Future: dealerships, European marketplaces, imports.
 
 *robots.txt checked and read every run; same polite limits per site (20 requests per run, 120 per day). **Terms of use still to be read and recorded** in `docs/sources.md`.*
 

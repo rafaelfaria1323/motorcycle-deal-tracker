@@ -33,5 +33,8 @@ String sourceLabel(String source) => switch (source) {
   'standvirtual' => 'Standvirtual',
   'olx' => 'OLX',
   'manual' => 'Importação manual',
+  'facebook' => 'Facebook Marketplace',
+  'custojusto' => 'CustoJusto',
+  'other' => 'Outro site',
   _ => source,
 };

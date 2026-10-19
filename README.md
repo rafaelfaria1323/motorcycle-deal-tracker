@@ -9,7 +9,9 @@ keeps each listing's price and status history, and ranks the listings with
 an explainable **Deal Score** (price against similar bikes, year and
 mileage) and a separate **Risk Score** (missing details, possible accident,
 several owners, price too good to be true…). Saved searches raise alerts in
-the app and on the phone through Telegram.
+the app and on the phone through Telegram. Ads from sites that forbid
+collection (Facebook Marketplace, CustoJusto) can be saved by hand or with
+an iPhone share button, and are scored like the rest.
 
 The app is in Portuguese and installs on the iPhone from Safari
 ("Adicionar ao ecrã principal").

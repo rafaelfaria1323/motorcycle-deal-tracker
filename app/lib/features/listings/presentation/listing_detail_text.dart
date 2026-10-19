@@ -17,6 +17,7 @@ String photoCounterText(int index, int count) => '${index + 1} / $count';
 
 /// The button to the seller's ad: "Ver no OLX".
 String originalLinkLabel(String source) => switch (source) {
-  'standvirtual' || 'olx' => 'Ver no ${sourceLabel(source)}',
+  'standvirtual' || 'olx' || 'custojusto' => 'Ver no ${sourceLabel(source)}',
+  'facebook' => 'Ver no Facebook',
   _ => 'Ver anúncio original',
 };

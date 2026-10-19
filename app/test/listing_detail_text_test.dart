@@ -37,5 +37,8 @@ void main() {
     expect(originalLinkLabel('olx'), 'Ver no OLX');
     expect(originalLinkLabel('standvirtual'), 'Ver no Standvirtual');
     expect(originalLinkLabel('manual'), 'Ver anúncio original');
+    expect(originalLinkLabel('facebook'), 'Ver no Facebook');
+    expect(originalLinkLabel('custojusto'), 'Ver no CustoJusto');
+    expect(originalLinkLabel('other'), 'Ver anúncio original');
   });
 }

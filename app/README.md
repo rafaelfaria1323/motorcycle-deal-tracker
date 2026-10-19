@@ -20,7 +20,10 @@ Cloudflare Pages on every merge that touches `app/`
   removed listings, grouped by day; the tab shows the unread count.
 - **Mais:** account, "Modelos acompanhados" (switch models on/off, first
   year, new-bike price, add models), the collection status and data quality
-  per site (live listings, unmatched, duplicates, missing year/km/location).
+  per site (live listings, unmatched, duplicates, missing year/km/location),
+  and "Adicionar anúncio": save an ad from Facebook Marketplace, CustoJusto
+  or any other site by hand, or from Safari with an iPhone Shortcut (the
+  page explains how to make it).
 
 ## Running it
 

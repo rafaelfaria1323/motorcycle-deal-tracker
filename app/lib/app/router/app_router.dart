@@ -6,6 +6,7 @@ import '../../features/listings/presentation/cubit/listing_detail_cubit.dart';
 import '../../features/listings/presentation/cubit/listings_cubit.dart';
 import '../../features/listings/presentation/cubit/listings_state.dart';
 import '../../features/listings/presentation/cubit/saved_searches_cubit.dart';
+import '../../features/listings/presentation/pages/add_listing_page.dart';
 import '../../features/listings/presentation/pages/alerts_page.dart';
 import '../../features/listings/presentation/pages/dashboard_page.dart';
 import '../../features/listings/presentation/pages/listing_detail_page.dart';
@@ -96,6 +97,12 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.models,
       builder: (context, state) => const TrackedModelsPage(),
+    ),
+    // Also opened by the iPhone share button, with the ad in the query.
+    GoRoute(
+      path: AppRoutes.addListing,
+      builder: (context, state) =>
+          AddListingPage(query: state.uri.queryParameters),
     ),
   ],
 );
