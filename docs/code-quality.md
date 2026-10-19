@@ -18,6 +18,7 @@ the database schema, secrets or workflows goes to "Needs Rafael".
 
 ## Done
 
+- 2026-10-19: `enrichDetails` (skips a gone or unreadable page; running out of requests or a block still stores what was read, a block is rethrown) and `notifyPending` (a failed send stops and marks only what went out) got tests with fakes.
 - 2026-10-19: `importBatch` got tests with a fake store (step order, no removal without `--full`, a damaged input removes nothing unless forced, rejected bikes count as seen); `json_values.dart` got tests.
 - 2026-10-19: Edge-case tests for `uniqueBySourceId` (same id on two sites, empty input) and `logTail` (empty log, fewer lines than the limit, character cut).
 - 2026-10-19: `ListingDetailCubit` got tests (known listing, malformed id is not found without a query, unknown id, failure).
