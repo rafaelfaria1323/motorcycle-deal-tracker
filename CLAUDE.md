@@ -122,8 +122,10 @@ for the code-quality review.
 - Hosting: Cloudflare Pages, installed on the iPhone from Safari ("Adicionar
   ao ecrã principal"). Status bar = `theme-color` = the page background
   (`AppTheme.lightBackground` `#F4F5F7`, `darkBackground` `#0F1115`), kept
-  in step by a `Title` in `MaterialApp.builder`; `web/index.html` and
-  `web/manifest.json` repeat these colours.
+  in step by a `Title` in `MaterialApp.builder`. `web/index.html` has ONE
+  `theme-color` tag (`id="flutterweb-theme"`), set by an inline script from
+  `prefers-color-scheme` (the iPhone app ignores `media` on theme-color
+  tags); it and `web/manifest.json` repeat these colours.
 
 ## Database conventions (Supabase / Postgres)
 

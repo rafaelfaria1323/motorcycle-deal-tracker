@@ -34,9 +34,27 @@
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="favicon.png"/>
 
-    <!-- The app's background (AppTheme.lightBackground / darkBackground) in light and dark mode. -->
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F4F5F7">
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0F1115">
+    <!-- The status bar colour = the app's background (AppTheme.lightBackground
+         / darkBackground). One theme-color tag only: the installed iPhone app
+         ignores media="(prefers-color-scheme…)" and took the last (dark) tag.
+         The script sets it for the current mode and follows mode changes. The
+         id is the one Flutter's engine uses for the colour of the Title in
+         MaterialApp.builder, so Flutter updates this same tag (if it ever
+         adds its own, it writes the same colour). -->
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" id="flutterweb-theme" content="#F4F5F7">
+    <script>
+      (function () {
+        var dark = window.matchMedia('(prefers-color-scheme: dark)');
+        function apply() {
+          var colour = dark.matches ? '#0F1115' : '#F4F5F7';
+          document.getElementById('flutterweb-theme').setAttribute('content', colour);
+          document.documentElement.style.backgroundColor = colour;
+        }
+        apply();
+        dark.addEventListener('change', apply);
+      })();
+    </script>
 
     <title>Motorcycle Deal Tracker</title>
 
@@ -44,8 +62,8 @@
 
     <!-- Same background before the app has loaded, so nothing flashes. -->
     <style>
-      body { background-color: #F4F5F7; }
-      @media (prefers-color-scheme: dark) { body { background-color: #0F1115; } }
+      html, body { background-color: #F4F5F7; }
+      @media (prefers-color-scheme: dark) { html, body { background-color: #0F1115; } }
     </style>
 </head>
 <body>
