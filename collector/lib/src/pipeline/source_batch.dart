@@ -1,5 +1,7 @@
 import '../adapters/manual/manual_adapter.dart';
 import '../adapters/manual/manual_mapper.dart';
+import '../adapters/olx/olx_mapper.dart';
+import '../adapters/olx/olx_search_adapter.dart';
 import '../adapters/source_adapter.dart';
 import '../adapters/standvirtual/standvirtual_mapper.dart';
 import '../adapters/standvirtual/standvirtual_page_adapter.dart';
@@ -48,7 +50,12 @@ class SourceBatch {
   final List<MappedRecord> records;
 }
 
-const sourceKinds = ['manual', 'standvirtual', 'standvirtual-search'];
+const sourceKinds = [
+  'manual',
+  'standvirtual',
+  'standvirtual-search',
+  'olx-search',
+];
 
 Future<SourceBatch> loadBatch(String kind, String path, Catalog catalog) async {
   switch (kind) {
@@ -90,6 +97,18 @@ Future<SourceBatch> loadBatch(String kind, String path, Catalog catalog) async {
             liveId: raw.status == 'ACTIVE'
                 ? StandvirtualMapper.listingId(raw.id)
                 : null,
+          ),
+      ]);
+    case 'olx-search':
+      final adapter = OlxSearchAdapter(path);
+      final mapper = OlxMapper(catalog);
+      final result = await adapter.read();
+      return SourceBatch(adapter.source, result.issues, [
+        for (final raw in result.records)
+          MappedRecord(
+            raw.url,
+            mapper.map(raw),
+            liveId: raw.status == 'active' ? OlxMapper.listingId(raw.id) : null,
           ),
       ]);
     default:

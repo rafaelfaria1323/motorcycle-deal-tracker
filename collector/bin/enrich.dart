@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:collector/collector.dart';
 import 'package:supabase/supabase.dart';
 
-const _host = 'www.standvirtual.com';
 const _source = 'standvirtual';
 
 Future<void> main(List<String> args) async {
@@ -49,8 +48,7 @@ Future<void> main(List<String> args) async {
 
     // One extra request for robots.txt.
     fetcher = PoliteFetcher(
-      host: _host,
-      statePath: '.fetch_state.json',
+      site: FetchSite.standvirtual,
       policy: FetchPolicy(maxRequestsPerRun: max + 1),
     );
     await fetcher.prepare();

@@ -3,8 +3,9 @@ name: Collect listings
 on:
   workflow_dispatch: # manual "Run workflow" button
   # Every 4 hours, GitHub uses UTC: 00:40, 04:40, ... 20:40 UTC.
-  # A run uses about 16 requests (robots.txt twice, 4 search pages,
-  # up to 10 listing pages), so 6 runs fit the 120-per-day cap.
+  # Each site has its own 120-per-day cap. A run uses about 16 Standvirtual
+  # requests (robots.txt twice, 4 search pages, up to 10 listing pages) and
+  # about 10-12 OLX requests (robots.txt, every page of 3 searches).
   schedule:
     - cron: '40 */4 * * *'
 
@@ -36,12 +37,15 @@ jobs:
       - name: Install collector dependencies
         run: cd collector && dart pub get
 
-      # The fetcher's request count and block pause live in this file; each
-      # run saves a new copy and the next run restores the latest.
+      # The fetcher's request count and block pause live in these files (one
+      # per site); each run saves a new copy and the next run restores the
+      # latest.
       - name: Restore fetch state
         uses: actions/cache/restore@v4
         with:
-          path: collector/.fetch_state.json
+          path: |
+            collector/.fetch_state.json
+            collector/.fetch_state.olx.json
           key: fetch-state-${{ github.run_id }}
           restore-keys: fetch-state-
 
@@ -67,7 +71,9 @@ jobs:
         if: always()
         uses: actions/cache/save@v4
         with:
-          path: collector/.fetch_state.json
+          path: |
+            collector/.fetch_state.json
+            collector/.fetch_state.olx.json
           key: fetch-state-${{ github.run_id }}
 
       - name: Keep the log

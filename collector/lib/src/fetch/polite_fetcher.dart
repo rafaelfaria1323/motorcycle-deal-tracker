@@ -81,13 +81,52 @@ class FetchState {
       : FetchState(day: today, requests: 0, blockedAt: blockedAt);
 }
 
+/// One website we fetch from: where we may go, how a normal page looks, and
+/// where its request count is kept. Each site has its own budget.
+class FetchSite {
+  const FetchSite({
+    required this.host,
+    required this.pathPrefix,
+    required this.pageMarker,
+    required this.statePath,
+  });
+
+  static const standvirtual = FetchSite(
+    host: 'www.standvirtual.com',
+    pathPrefix: '/motos/',
+    pageMarker: '__NEXT_DATA__',
+    statePath: '.fetch_state.json',
+  );
+
+  static const olx = FetchSite(
+    host: 'www.olx.pt',
+    pathPrefix: '/carros-motos-e-barcos/motociclos-scooters/',
+    pageMarker: '__PRERENDERED_STATE__',
+    statePath: '.fetch_state.olx.json',
+  );
+
+  static const byName = {'standvirtual': standvirtual, 'olx': olx};
+
+  final String host;
+
+  /// Only pages under this path are fetched (motorcycles only).
+  final String pathPrefix;
+
+  /// Text every normal page holds; without it the page is treated as a
+  /// block or verification page.
+  final String pageMarker;
+  final String statePath;
+}
+
 /// Null when the address may be fetched, otherwise why not.
-String? urlProblem(Uri url, {required String host}) {
+String? urlProblem(Uri url, {required FetchSite site}) {
   if (url.scheme != 'https') return 'only https addresses are allowed';
-  if (url.host != host) return 'only $host is allowed (got ${url.host})';
+  if (url.host != site.host) {
+    return 'only ${site.host} is allowed (got ${url.host})';
+  }
   if (url.userInfo.isNotEmpty) return 'addresses with credentials are refused';
-  if (!url.path.startsWith('/motos/')) {
-    return 'only /motos/ pages are allowed (got ${url.path})';
+  if (!url.path.startsWith(site.pathPrefix)) {
+    return 'only ${site.pathPrefix} pages are allowed (got ${url.path})';
   }
   return null;
 }
@@ -95,14 +134,12 @@ String? urlProblem(Uri url, {required String host}) {
 /// A deliberately slow, capped, honest downloader for one website.
 class PoliteFetcher {
   PoliteFetcher({
-    required this.host,
-    required this.statePath,
+    required this.site,
     this.userAgent = 'MotorcycleDealTracker/0.1 (personal project, low volume)',
     this.policy = const FetchPolicy(),
   });
 
-  final String host;
-  final String statePath;
+  final FetchSite site;
   final String userAgent;
   final FetchPolicy policy;
 
@@ -134,7 +171,7 @@ class PoliteFetcher {
       _state.blockedAt = null;
     }
 
-    final robots = await _request(Uri.https(host, '/robots.txt'));
+    final robots = await _request(Uri.https(site.host, '/robots.txt'));
     if (robots.status != 200) {
       throw FetchRefused(
         'could not read robots.txt (HTTP ${robots.status}); '
@@ -148,7 +185,7 @@ class PoliteFetcher {
   Future<String> get(Uri url) async {
     var current = url;
     for (var hop = 0; hop <= 3; hop++) {
-      final problem = urlProblem(current, host: host);
+      final problem = urlProblem(current, site: site);
       if (problem != null) throw FetchRefused('$current: $problem');
       final target =
           current.path + (current.hasQuery ? '?${current.query}' : '');
@@ -160,7 +197,7 @@ class PoliteFetcher {
       final status = response.status;
 
       if (status == 200) {
-        if (!response.body.contains('__NEXT_DATA__')) {
+        if (!response.body.contains(site.pageMarker)) {
           await _markBlocked();
           throw FetchBlocked(
             '$current: not a normal page (a block or verification page?)',
@@ -236,7 +273,7 @@ class PoliteFetcher {
   }
 
   Future<FetchState> _loadState() async {
-    final file = File(statePath);
+    final file = File(site.statePath);
     try {
       if (await file.exists()) {
         return FetchState.fromJson(
@@ -250,7 +287,7 @@ class PoliteFetcher {
   }
 
   Future<void> _saveState() async =>
-      File(statePath).writeAsString(jsonEncode(_state.toJson()));
+      File(site.statePath).writeAsString(jsonEncode(_state.toJson()));
 
   void close() => _client.close(force: true);
 }

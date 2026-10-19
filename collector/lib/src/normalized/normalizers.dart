@@ -62,3 +62,54 @@ List<String> cleanImages(List<String> images) {
   }
   return result;
 }
+
+// Sentences dealers' systems add to every ad. Left in, they make unrelated
+// bikes from one dealer look like duplicates of each other. Only these
+// sentences are removed; the rest of the paragraph stays.
+final _boilerplate = [
+  RegExp(r'A informação disponibilizada[^.]*\.?', caseSensitive: false),
+  RegExp(
+    r'Anúncio introduzido por rotina informática\.?',
+    caseSensitive: false,
+  ),
+  RegExp(
+    r'Todos os dados carecem de confirmação presencial\.?',
+    caseSensitive: false,
+  ),
+];
+
+/// Plain text from a listing's HTML description, without the boilerplate
+/// sentences dealers' systems add; null when nothing is left.
+String? cleanDescription(Object? html) {
+  if (html is! String) return null;
+
+  var text = html
+      // Block ends and line breaks become new lines; list items get a dash.
+      .replaceAll(
+        RegExp(r'<br\s*/?>|</p>|</div>|</li>|</h\d>', caseSensitive: false),
+        '\n',
+      )
+      .replaceAll(RegExp(r'<li[^>]*>', caseSensitive: false), '- ')
+      .replaceAll(RegExp(r'<[^>]+>'), '')
+      .replaceAllMapped(
+        RegExp(r'&#(\d+);'),
+        (m) => String.fromCharCode(int.parse(m[1]!)),
+      )
+      .replaceAll('&nbsp;', ' ')
+      .replaceAll('&lt;', '<')
+      .replaceAll('&gt;', '>')
+      .replaceAll('&quot;', '"')
+      .replaceAll('&#39;', "'")
+      .replaceAll('&amp;', '&');
+
+  for (final sentence in _boilerplate) {
+    text = text.replaceAll(sentence, '');
+  }
+
+  final lines = text
+      .split('\n')
+      .map((l) => l.replaceAll(RegExp(r'[ \t]+'), ' ').trim())
+      .where((l) => l.isNotEmpty && l != '-')
+      .toList();
+  return lines.isEmpty ? null : lines.join('\n');
+}

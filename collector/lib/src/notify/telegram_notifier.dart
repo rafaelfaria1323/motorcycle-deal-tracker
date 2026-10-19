@@ -29,14 +29,17 @@ class TelegramNotifier {
   final String chatId;
 
   Future<void> send(String text) async {
-    final client = HttpClient()..connectionTimeout = const Duration(seconds: 15);
+    final client = HttpClient()
+      ..connectionTimeout = const Duration(seconds: 15);
     try {
       final request = await client
           .postUrl(Uri.https('api.telegram.org', '/bot$token/sendMessage'))
           .timeout(const Duration(seconds: 15));
       request.headers.contentType = ContentType.json;
       request.write(jsonEncode({'chat_id': chatId, 'text': text}));
-      final response = await request.close().timeout(const Duration(seconds: 15));
+      final response = await request.close().timeout(
+        const Duration(seconds: 15),
+      );
       final body = await response.transform(utf8.decoder).join();
       if (response.statusCode != 200) {
         // The body is Telegram's error description; it never contains the token.
