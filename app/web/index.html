@@ -70,6 +70,11 @@
         #edge-tint-top { top: 0; }
         #edge-tint-bottom { bottom: 0; }
       }
+      /* The home-screen app has no Safari toolbar to tint, and the strip
+         would cover the tab bar labels. */
+      @media (display-mode: standalone) {
+        #edge-tint-bottom { display: none; }
+      }
     </style>
 </head>
 <body>
