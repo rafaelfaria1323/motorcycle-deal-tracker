@@ -36,8 +36,8 @@ class MorePage extends StatelessWidget {
                   ),
                   subtitle: Text(
                     signedIn
-                        ? 'Tocar para terminar a sessão'
-                        : 'Iniciar sessão para ter as pesquisas e os alertas '
+                        ? 'Toque para terminar a sessão'
+                        : 'Inicie sessão para ter as pesquisas e os alertas '
                               'em qualquer dispositivo',
                   ),
                   trailing: const Icon(Icons.chevron_right),

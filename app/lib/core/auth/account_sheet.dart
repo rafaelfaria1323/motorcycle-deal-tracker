@@ -76,7 +76,7 @@ class _AccountSheetState extends State<_AccountSheet> {
     AccountState s,
   ) {
     return [
-      Text('A tua conta', style: Theme.of(context).textTheme.titleLarge),
+      Text('A sua conta', style: Theme.of(context).textTheme.titleLarge),
       const SizedBox(height: 8),
       Text('Sessão iniciada como ${cubit.currentEmail}.'),
       const SizedBox(height: 16),
@@ -97,7 +97,7 @@ class _AccountSheetState extends State<_AccountSheet> {
       Text('Iniciar sessão', style: Theme.of(context).textTheme.titleLarge),
       const SizedBox(height: 8),
       const Text(
-        'Com a tua conta, as pesquisas e alertas ficam iguais em qualquer '
+        'Com a sua conta, as pesquisas e alertas ficam iguais em qualquer '
         'dispositivo ou browser.',
       ),
       const SizedBox(height: 16),

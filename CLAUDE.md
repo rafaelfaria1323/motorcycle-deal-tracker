@@ -25,8 +25,10 @@ CB300R, CBR500R, CB750 Hornet, CBR600RR. The owner can add more from the app.
   the fetching rules).
 - Work in small verifiable steps: implement → test → commit. Each step ends
   with a definition of done.
-- Answers to Rafael in English; **all UI text in Portuguese (pt-PT)**; code,
-  comments and commit messages in English.
+- Answers to Rafael in English; **all UI text in Portuguese (pt-PT)**,
+  speaking to the user as "você" ("Verifique", "a sua conta"; never "tu",
+  checked by `app/test/voice_test.dart`); code, comments and commit
+  messages in English.
 - Commit style: `feat(scope): what (step id)`, e.g.
   `feat(alerts): push new alerts to Telegram after each run (11.1)`.
 - Flow: push to the `claude/...` branch, open a PR, Rafael merges. Once a PR

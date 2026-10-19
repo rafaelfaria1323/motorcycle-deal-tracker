@@ -114,8 +114,8 @@ class _AddModelSheetState extends State<_AddModelSheet> {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Para a pesquisa: abrir o OLX (ou o Standvirtual) no browser, '
-              'escolher Motociclos, a marca e o modelo, e copiar o endereço. '
+              'Para a pesquisa: abra o OLX (ou o Standvirtual) no browser, '
+              'escolha Motociclos, a marca e o modelo, e copie o endereço. '
               'O ano é acrescentado automaticamente.',
             ),
             const SizedBox(height: 16),

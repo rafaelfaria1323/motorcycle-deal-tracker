@@ -1,0 +1,47 @@
+import 'package:flutter/material.dart';
+
+import 'listing_card.dart';
+
+/// The shape of a [ListingCard] while the offers load, so the page doesn't
+/// jump from a spinner to a grid.
+class ListingCardSkeleton extends StatelessWidget {
+  const ListingCardSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final fill = Theme.of(context).colorScheme.surfaceContainerHigh;
+
+    Widget bar(double width, double height) => Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: fill,
+        borderRadius: BorderRadius.circular(6),
+      ),
+    );
+
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(height: ListingCard.photoHeight, color: fill),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 16, 14, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                bar(160, 16),
+                const SizedBox(height: 12),
+                bar(100, 24),
+                const SizedBox(height: 12),
+                bar(200, 14),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
