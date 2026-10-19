@@ -30,7 +30,7 @@ Tracked models (chosen in the app)
 | [`collector/`](collector/README.md) | Dart command line: fetches, parses and stores listings, then scores and alerts |
 | `supabase/` | Database migrations: tables, scoring, alerts, views, access rules |
 | `docs/` | Progress and decisions (see below) |
-| `.github/workflows/` | `collect.yml` (every 4 hours), `deploy-web.yml` (app on merge), `notify-test.yml` (Telegram test), `code-quality.yml` (Claude reviews the code after every 5 merged PRs) |
+| `.github/workflows/` | `collect.yml` (every 4 hours), `deploy-web.yml` (app on merge), `notify-test.yml` (Telegram test), `code-quality.yml` (after every 5 merged PRs, Claude works through the backlog in `docs/code-quality.md`) |
 
 ## Getting started
 
@@ -67,4 +67,5 @@ are never committed.
 - [`docs/concept.status.md`](docs/concept.status.md): the original concept and how far it is built.
 - [`docs/sources.md`](docs/sources.md): data-source decisions.
 - [`docs/hosting.md`](docs/hosting.md): Cloudflare Pages and installing on the iPhone.
+- [`docs/code-quality.md`](docs/code-quality.md): code improvements to do and done (worked through automatically).
 - [`CLAUDE.md`](CLAUDE.md): conventions and the detailed pipeline, scoring and alert rules.

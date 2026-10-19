@@ -49,13 +49,15 @@ app/        Flutter Web/PWA (package name: motorcycle_deal_tracker)
 collector/  Pure Dart CLI: fetch, parse, store, score, alert (service-role key)
 supabase/   Migrations (Postgres: scoring, alerts, views, RLS)
 docs/       sources.md (data-source decisions, keep updated), hosting.md,
-            roadmap.status.md, concept.status.md
+            roadmap.status.md, concept.status.md, code-quality.md (backlog)
 .github/workflows/collect.yml     Collection every 4 hours (minute 40, UTC)
 .github/workflows/deploy-web.yml  Test, build and publish the app to
                                   Cloudflare Pages on merges touching app/
-.github/workflows/code-quality.yml  After every 5 merged PRs, Claude reviews
-                                  the code and opens one small PR labelled
-                                  code-quality (merges since the tag
+.github/workflows/code-quality.yml  After every 5 merged PRs, Claude does up
+                                  to 3 items of docs/code-quality.md (or
+                                  refills it with up to 10 when empty) and
+                                  opens one PR labelled code-quality
+                                  (merges since the tag
                                   code-quality-reviewed are counted)
 Makefile    All commands (`make help`)
 ```
