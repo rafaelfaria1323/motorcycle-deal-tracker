@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/platform/home_screen_app.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 
@@ -24,8 +25,23 @@ class App extends StatelessWidget {
       builder: (context, child) => Title(
         title: _title,
         color: Theme.of(context).colorScheme.surface,
-        child: child ?? const SizedBox.shrink(),
+        child: _withHomeBarInset(context, child ?? const SizedBox.shrink()),
       ),
+    );
+  }
+
+  /// In the iPhone home-screen app, a bottom safe area for the home bar, so
+  /// the tab bar (and every SafeArea at the bottom) stays above it.
+  static Widget _withHomeBarInset(BuildContext context, Widget child) {
+    if (!isIphoneHomeScreenAppWithHomeBar) return child;
+    final media = MediaQuery.of(context);
+    if (media.viewPadding.bottom >= homeBarInset) return child;
+    return MediaQuery(
+      data: media.copyWith(
+        padding: media.padding.copyWith(bottom: homeBarInset),
+        viewPadding: media.viewPadding.copyWith(bottom: homeBarInset),
+      ),
+      child: child,
     );
   }
 }
