@@ -140,6 +140,7 @@ Do not implement several unrelated features at once.
 *Search result pages only (they hold the full description), every page of each search, 2023+ year filter. Standvirtual copies skipped. Fixes in 9.7b (multi-page searches, ads without a price, R7 titles) and 9.7c ("CBR 650" = CBR650R).*
 ➕ 9.8 Choose the tracked models in the app; matching rules moved into the catalog; 9 more models added (off by default) ✅
 ➕ 9.9 Searches built from the tracked models; removal per search; first year editable and new models added from the app; request budget shown with a warning ✅
+➕ 9.10 Collector performance: one Dart process per run (`bin/refresh.dart`) instead of seven; Standvirtual searches and listing pages share one fetcher (robots.txt read once, one 20-request budget); the pause between requests counts the time already spent since the previous one; duplicates, scores, alerts and notifications run once per run instead of three times ✅
 
 # Sprint 10 — Market Intelligence 🟡
 
@@ -166,7 +167,7 @@ Do not implement several unrelated features at once.
 ## 11.5 Data-quality monitoring 🟡
 *Collector failures and blocks are tracked. Requests used per run, missing fields, duplicate rates, unexpected price changes and source availability are not shown yet.*
 
-➕ **Notifications on the phone via Telegram** ✅ (11.1; replaces Web/PWA push). 11.1b: "Test Telegram" workflow / `make notify-test` sends a test message. Not yet confirmed on Rafael's phone: no alert has been created by a run so far.
+➕ **Notifications on the phone via Telegram** ✅ (11.1; replaces Web/PWA push). 11.1b: "Test Telegram" workflow / `make notify-test` sends a test message. The first test showed `TELEGRAM_CHAT_ID` held the bot's own id; to be fixed by Rafael, then confirmed end to end.
 ➕ **Housekeeping** 🟡: saved pages and fetch state are no longer tracked ✅; **the repo should be made private** (old saved pages with phone numbers remain in git history) ⬜.
 
 # Sprint 12 — Flutter iOS ⬜

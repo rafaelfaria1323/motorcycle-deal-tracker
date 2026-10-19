@@ -79,47 +79,10 @@ Future<void> main(List<String> args) async {
     site: site,
     policy: FetchPolicy(maxRequestsPerRun: maxRequests),
   );
-  // Which search each saved page belongs to, so the import removes only
-  // listings of searches saved in full.
-  final saved = <String, String>{};
-  var started = 0;
   try {
     await fetcher.prepare();
-    await Directory(out).create(recursive: true);
-
-    Future<String> save(Uri url, Uri search) async {
-      final html = await fetcher.get(url);
-      final name = fileNameFor(url);
-      await File('$out/$name').writeAsString(html);
-      saved[name] = '$search';
-      stdout.writeln('  saved $out/$name (${html.length ~/ 1024} KB)');
-      return html;
-    }
-
-    for (final url in urls) {
-      started++;
-      final first = await save(url, url);
-      if (site == FetchSite.olx) {
-        final pages = OlxSearchAdapter('').parseSearchPage(first).totalPages;
-        for (var page = 2; page <= pages; page++) {
-          await save(OlxSearchAdapter.pageUrl(url, page), url);
-        }
-      }
-    }
+    await fetchSearches(fetcher, urls, out);
     stdout.writeln('Done.');
-  } on FetchLimitReached catch (e) {
-    if (saved.isEmpty) {
-      stderr.writeln('Not fetched: $e');
-      exitCode = 75;
-    } else {
-      // Not a failure: what was saved is used, and a search cut short keeps
-      // its listings as they are until a run reads it in full.
-      final cut = urls.length - started + 1;
-      stdout.writeln(
-        'Stopped: $e. $cut of ${urls.length} search(es) not read in full '
-        'this run.',
-      );
-    }
   } on FetchRefused catch (e) {
     stderr.writeln('Not fetched: $e');
     exitCode = 75;
@@ -135,11 +98,5 @@ Future<void> main(List<String> args) async {
     exitCode = 65;
   } finally {
     fetcher.close();
-    if (saved.isNotEmpty) {
-      await SearchManifest(
-        planned: [for (final url in urls) '$url'],
-        files: saved,
-      ).writeTo(out);
-    }
   }
 }

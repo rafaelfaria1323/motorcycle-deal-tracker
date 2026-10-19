@@ -53,37 +53,7 @@ Future<void> main(List<String> args) async {
     );
     await fetcher.prepare();
 
-    final adapter = StandvirtualPageAdapter('unused');
-    final details = <ListingDetails>[];
-    var skipped = 0;
-
-    try {
-      for (final p in pending) {
-        try {
-          final html = await fetcher.get(Uri.parse(p.url));
-          details.add(adapter.parseDetails(html));
-          stdout.writeln('  read ${p.sourceListingId}');
-        } on FetchFailed catch (e) {
-          // e.g. 404 for a listing removed since the last search: skip it.
-          skipped++;
-          stdout.writeln('  - skipped ${p.sourceListingId}: $e');
-        } on FormatException catch (e) {
-          skipped++;
-          stdout.writeln('  - skipped ${p.sourceListingId}: ${e.message}');
-        }
-      }
-    } on FetchBlocked catch (e) {
-      stderr.writeln('Stopped, the site pushed back: $e');
-      stderr.writeln('No new requests for 24 hours.');
-      exitCode = 75;
-    } on FetchRefused catch (e) {
-      stderr.writeln('Stopped: $e');
-      exitCode = 75;
-    }
-
-    // Keep whatever was read before a stop.
-    final updated = await store.applyDetails(_source, details);
-    stdout.writeln('Details stored for $updated listing(s), $skipped skipped.');
+    final updated = await enrichDetails(store, fetcher, pending);
 
     // Descriptions feed duplicate detection; scores follow the duplicates.
     if (updated > 0) {
