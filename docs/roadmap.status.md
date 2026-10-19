@@ -167,7 +167,7 @@ Do not implement several unrelated features at once.
 ## 11.4 Error handling 🟡
 *Fetcher stops and pauses on blocks; incomplete searches never trigger removals; the dashboard shows when the last run failed, was blocked or is too old.*
 ## 11.5 Data-quality monitoring 🟡
-*Collector failures and blocks are tracked; requests used per site and run, run duration and monthly runs are shown in Mais. Missing fields, duplicate rates, unexpected price changes and source availability are not shown yet.*
+*Collector failures and blocks are tracked; requests used per site and run, run duration and monthly runs are shown in Mais. "Qualidade dos dados" in Mais (view `source_data_quality`): per site, live listings, how many are tracked models, unmatched or duplicates, the share of scored listings missing year, mileage or location, and Standvirtual listing pages still to read. Unexpected price changes and source availability are not shown yet.*
 
 ➕ **Notifications on the phone via Telegram** ✅ (11.1; replaces Web/PWA push). 11.1b: "Test Telegram" workflow / `make notify-test` sends a test message. Confirmed on Rafael's phone (2026-10-19) after `TELEGRAM_CHAT_ID` was corrected (it held the bot's own id).
 ➕ **Weekly Telegram summary** ✅ (11.1c): every Monday (`weekly-summary.yml`, 07:52 UTC, or "Run workflow") one message about the tracked models' last 7 days: new listings per model, price drops of 1 % or more (biggest 3 shown), listings gone, live count, and the 5 best live deals with risk below 50, each with its link. Reads the database only; `make weekly-summary ARGS=--dry-run` prints it.
@@ -227,8 +227,8 @@ Do not implement several unrelated features at once.
 # Next
 
 1. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history.
-2. Data quality in Mais (11.5): share of listings missing year, mileage or location, and duplicate rate per site.
-3. Price trends per model (10.3): median asking price per model by week, once a few weeks of history exist.
+2. Price trends per model (10.3): median asking price per model by week, once a few weeks of history exist.
+3. Compare listings side by side (concept: "Compare motorcycles" ⬜).
 
 **Open items for Rafael:** read the Standvirtual/OLX terms and record the clauses in `docs/sources.md`; check the new-bike reference prices; make the repo private.
 
