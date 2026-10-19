@@ -202,8 +202,6 @@ class _Content extends StatelessWidget {
                   PriceHistorySection(listing: listing),
                   FactsCard(title: 'O anúncio', facts: adFacts(listing)),
                 ],
-                  ),
-                ],
               ),
             ),
           ),
