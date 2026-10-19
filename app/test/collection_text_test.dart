@@ -81,4 +81,10 @@ void main() {
       '2 recolhas este mês, cerca de 7 min de GitHub Actions',
     );
   });
+
+  test('capitalize only changes the first letter', () {
+    expect(capitalize('há 3 h'), 'Há 3 h');
+    expect(capitalize('Já'), 'Já');
+    expect(capitalize(''), '');
+  });
 }
