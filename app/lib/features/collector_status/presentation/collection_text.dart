@@ -1,9 +1,10 @@
 import '../../../core/formatting/formatters.dart';
 import '../domain/collector_run.dart';
 
-/// The collection runs at minute 40 of every 4th hour, UTC (cron
-/// '40 */4 * * *' in .github/workflows/collect.yml; keep them in step).
-const _hourStep = 4;
+/// The collection runs at minute 40 of every hour, UTC (cron '40 * * * *'
+/// in .github/workflows/collect.yml; keep them in step). Temporary while
+/// testing the schedule; normally every 4th hour (step 4).
+const _hourStep = 1;
 const _minute = 40;
 
 /// Requests allowed per site and run (FetchPolicy.maxRequestsPerRun).

@@ -52,7 +52,9 @@ collector/  Pure Dart CLI: fetch, parse, store, score, alert (service-role key)
 supabase/   Migrations (Postgres: scoring, alerts, views, RLS)
 docs/       sources.md (data-source decisions, keep updated), hosting.md,
             roadmap.status.md, concept.status.md, code-quality.md (backlog)
-.github/workflows/collect.yml     Collection every 4 hours (minute 40, UTC)
+.github/workflows/collect.yml     Collection every 4 hours (minute 40, UTC);
+                                  TEMPORARILY every hour while testing
+                                  that GitHub's scheduler starts it
 .github/workflows/weekly-summary.yml  Mondays 07:52 UTC: the week's summary
                                   on Telegram (bin/weekly_summary.dart)
 .github/workflows/deploy-web.yml  Test, build and publish the app to

@@ -13,28 +13,28 @@ CollectorRun run(int seconds, {Map<String, int> requests = const {}}) {
 }
 
 void main() {
-  group('next collection (minute 40 of every 4th hour, UTC)', () {
-    test('later the same block', () {
+  group('next collection (minute 40 of every hour, UTC)', () {
+    test('later the same hour', () {
       expect(
         nextCollection(DateTime.utc(2026, 10, 19, 12, 10)),
         DateTime.utc(2026, 10, 19, 12, 40),
       );
     });
 
-    test('just after a run, the next block', () {
+    test('just after a run, the next hour', () {
       expect(
         nextCollection(DateTime.utc(2026, 10, 19, 12, 40)),
-        DateTime.utc(2026, 10, 19, 16, 40),
+        DateTime.utc(2026, 10, 19, 13, 40),
       );
       expect(
         nextCollection(DateTime.utc(2026, 10, 19, 14, 5)),
-        DateTime.utc(2026, 10, 19, 16, 40),
+        DateTime.utc(2026, 10, 19, 14, 40),
       );
     });
 
     test('across midnight', () {
       expect(
-        nextCollection(DateTime.utc(2026, 10, 19, 22, 50)),
+        nextCollection(DateTime.utc(2026, 10, 19, 23, 50)),
         DateTime.utc(2026, 10, 20, 0, 40),
       );
     });

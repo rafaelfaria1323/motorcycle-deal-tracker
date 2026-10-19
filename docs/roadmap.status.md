@@ -175,6 +175,8 @@ Do not implement several unrelated features at once.
 
 ➕ **Compare listings** ✅ (13.7): long press a card in Ofertas (or "Comparar" on a listing's page) to pick up to 3; "Comparar (n)" opens them side by side (`/compare?ids=…`, so a reload keeps them): photo and title per column, then price, Deal Score, Risk Score, difference to the market value, year, km, price drop, owners, service book, location, seller, source and first seen, the best value of each row highlighted. Table logic in `compare_text.dart`, tested.
 
+➕ **Scheduled collection never started** 🟡 (9.6c): GitHub never ran `collect.yml` on its schedule (no scheduled run at all since 2026-10-19 morning; the five runs were all manual), though the workflow is on `main`, active, valid and the repo public. Test: the cron is temporarily every hour (`40 * * * *`, app's next-run text in step) and the file re-registered by this change; back to every 4 hours once a scheduled run appears. If none does, the fallback is Supabase `pg_cron` calling GitHub's workflow_dispatch API with a repo-only token.
+
 # Sprint 13 — UI/UX redesign ✅
 
 *Goal: the app has grown screen by screen; make it coherent on the iPhone. Each step is a small PR Rafael checks on the phone.*
