@@ -17,7 +17,68 @@ PendingAlert alert(String type, {double? oldPrice, double? newPrice}) =>
       location: 'Viseu',
     );
 
+class _Store implements ListingStore {
+  _Store(this.pending);
+
+  final List<PendingAlert> pending;
+  List<String>? notified;
+
+  @override
+  Future<List<PendingAlert>> pendingNotifications({int limit = 20}) async =>
+      pending;
+
+  @override
+  Future<int> markNotified(List<String> alertIds) async {
+    notified = alertIds;
+    return alertIds.length;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Sends until [failAt] messages went out, then fails.
+class _Notifier implements TelegramNotifier {
+  _Notifier({this.failAt});
+
+  final int? failAt;
+  final sent = <String>[];
+
+  @override
+  Future<void> send(String text, {bool linkPreview = true}) async {
+    if (sent.length == failAt) throw const NotifyFailed('HTTP 502');
+    sent.add(text);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+PendingAlert _withId(String id) => PendingAlert(
+  alertId: id,
+  type: 'new_listing',
+  brand: 'Yamaha',
+  model: 'R7',
+  url: 'https://www.olx.pt/d/anuncio/$id.html',
+);
+
 void main() {
+  test('every pending alert is sent and marked', () async {
+    final store = _Store([_withId('a'), _withId('b')]);
+    final notifier = _Notifier();
+
+    expect(await notifyPending(store, notifier), 2);
+    expect(notifier.sent, hasLength(2));
+    expect(store.notified, ['a', 'b']);
+  });
+
+  test('a failed send stops; only what went out is marked', () async {
+    final store = _Store([_withId('a'), _withId('b'), _withId('c')]);
+
+    expect(await notifyPending(store, _Notifier(failAt: 1)), 1);
+    expect(store.notified, ['a']);
+  });
+
   test('euros groups thousands', () {
     expect(euros(6800), '6 800 €');
     expect(euros(12500.4), '12 500 €');
