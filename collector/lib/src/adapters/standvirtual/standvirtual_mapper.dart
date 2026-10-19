@@ -74,6 +74,8 @@ class StandvirtualMapper {
           location: listing.location,
           description: listing.description,
           images: listing.images,
+          publishedAt: raw.createdAt,
+          siteRefreshedAt: raw.bumpedAt,
         ),
         warnings,
       ),

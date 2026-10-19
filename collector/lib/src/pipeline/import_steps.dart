@@ -88,7 +88,7 @@ Future<void> importBatch(
   final drops = await store.applyPricesBeforeDrop(batch.source, unique);
   log.writeln('Site-reported price cuts updated: $drops');
 
-  // 3c. Publication and renewal dates the source shows (OLX).
+  // 3c. Publication and renewal dates the source shows.
   final dated = await store.applyListingDates(batch.source, unique);
   if (dated > 0) log.writeln('Listing dates updated: $dated');
 

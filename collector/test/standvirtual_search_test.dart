@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:collector/collector.dart';
 import 'package:test/test.dart';
@@ -42,14 +43,22 @@ Map<String, dynamic> node({
   'thumbnail': {'x2': 'https://img.example.com/$id.jpg'},
 };
 
-String searchPage(List<Map<String, dynamic>> nodes, {int? total}) {
+String searchPage(
+  List<Map<String, dynamic>> nodes, {
+  int? total,
+  String? bumpDate,
+}) {
   final search = {
     'advertSearch': {
       'totalCount': total ?? nodes.length,
       'pageInfo': {'pageSize': 32, 'currentOffset': 0},
       'topads': <Object>[],
       'edges': [
-        for (final n in nodes) {'node': n},
+        for (final n in nodes)
+          {
+            'vas': {'bumpDate': bumpDate},
+            'node': n,
+          },
       ],
     },
   };
@@ -161,6 +170,34 @@ void main() {
     ];
 
     expect(slugs, ['yamaha-mt-07', null]);
+  });
+
+  test('publication and bump dates reach the normalized listing', () {
+    final mapper = StandvirtualMapper(catalog, currentYear: 2026);
+    final page = adapter.parseSearchPage(
+      searchPage([
+        node(id: '1')..['createdAt'] = '2026-10-08T18:31:14Z',
+        node(id: '2'),
+      ], bumpDate: '2026-10-18T18:30:00Z'),
+    );
+
+    final listing = (mapper.map(page.records.first) as Mapped).listing;
+    expect(listing.publishedAt, DateTime.utc(2026, 10, 8, 18, 31, 14));
+    expect(listing.siteRefreshedAt, DateTime.utc(2026, 10, 18, 18, 30));
+    expect(page.records.last.createdAt, isNull);
+  });
+
+  test('a saved search page has every listing\'s publication date', () async {
+    final page = adapter.parseSearchPage(
+      await File(
+        'samples/standvirtual/search/motos-yamaha-mt-07.html',
+      ).readAsString(),
+    );
+
+    expect(page.records, isNotEmpty);
+    expect(page.records.every((r) => r.createdAt != null), isTrue);
+    // Only ads the seller pushed back to the top have a bump date.
+    expect(page.records.any((r) => r.bumpedAt != null), isTrue);
   });
 
   group('price cuts the site reports', () {
