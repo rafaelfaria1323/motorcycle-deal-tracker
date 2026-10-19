@@ -1,0 +1,37 @@
+name: Weekly summary
+
+# Every Monday morning, one Telegram message about the tracked models' last
+# 7 days: new listings, price drops, listings gone and the best deals now.
+# It only reads the database (no site is fetched). "Run workflow" sends one
+# now.
+on:
+  workflow_dispatch:
+  # GitHub uses UTC: 08:52 in Lisbon in summer, 07:52 in winter.
+  schedule:
+    - cron: '52 7 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  summary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Install collector dependencies
+        run: cd collector && dart pub get
+
+      - name: Send the summary
+        run: cd collector && dart run bin/weekly_summary.dart

@@ -159,7 +159,7 @@ Do not implement several unrelated features at once.
 # Sprint 11 — Quality 🟡
 
 ## 11.1 Unit tests 🟡
-*App: alerts, saved searches, score explainer, risk reasons, market behaviour, collector status, new-price text, catalog and tracked-models text. Collector (121 tests): adapters, mappers, model resolver (real OLX titles), search plan, removal plan, normalizers, store, fetcher, robots.txt, run status. SQL is verified on a local Postgres with all migrations, not with automated tests.*
+*App: alerts, saved searches, score explainer, risk reasons, market behaviour, collector status, new-price text, catalog and tracked-models text. Collector (132 tests): adapters, mappers, model resolver (real OLX titles), search plan, removal plan, normalizers, store, fetcher, robots.txt, run status. SQL is verified on a local Postgres with all migrations, not with automated tests.*
 ## 11.2 Integration tests ⬜
 ## 11.3 Logging 🟡
 *Every scheduled run is recorded in `collector_runs` with a log tail; Actions keeps the full log for 7 days.*
@@ -169,6 +169,7 @@ Do not implement several unrelated features at once.
 *Collector failures and blocks are tracked; requests used per site and run, run duration and monthly runs are shown in Mais. Missing fields, duplicate rates, unexpected price changes and source availability are not shown yet.*
 
 ➕ **Notifications on the phone via Telegram** ✅ (11.1; replaces Web/PWA push). 11.1b: "Test Telegram" workflow / `make notify-test` sends a test message. Confirmed on Rafael's phone (2026-10-19) after `TELEGRAM_CHAT_ID` was corrected (it held the bot's own id).
+➕ **Weekly Telegram summary** ✅ (11.1c): every Monday (`weekly-summary.yml`, 07:52 UTC, or "Run workflow") one message about the tracked models' last 7 days: new listings per model, price drops of 1 % or more (biggest 3 shown), listings gone, live count, and the 5 best live deals with risk below 50, each with its link. Reads the database only; `make weekly-summary ARGS=--dry-run` prints it.
 ➕ **Housekeeping** 🟡: saved pages and fetch state are no longer tracked ✅; **the repo should be made private** (old saved pages with phone numbers remain in git history) ⬜.
 
 # Sprint 13 — UI/UX redesign ✅
@@ -224,9 +225,9 @@ Do not implement several unrelated features at once.
 
 # Next
 
-1. Weekly Telegram summary (best deals, new drops, listings gone).
-2. Price history chart on the detail page.
-3. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history.
+1. Price history chart on the detail page.
+2. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history.
+3. Data quality in Mais (11.5): share of listings missing year, mileage or location, and duplicate rate per site.
 
 **Open items for Rafael:** read the Standvirtual/OLX terms and record the clauses in `docs/sources.md`; check the new-bike reference prices; make the repo private.
 

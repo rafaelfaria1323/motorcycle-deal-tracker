@@ -19,6 +19,11 @@ For each site (Standvirtual, OLX):
 Then, once for both sites: find duplicates, recalculate the scores,
 generate the alerts and send the new ones to Telegram.
 
+Every Monday `bin/weekly_summary.dart` (workflow `weekly-summary.yml`) sends
+one Telegram message about the tracked models' last 7 days: new listings per
+model, price drops (1 % or more, biggest first), listings gone, and the 5
+best live deals with a Risk Score below 50. It only reads the database.
+
 ## Commands
 
 | Command | What it does |
@@ -30,6 +35,7 @@ generate the alerts and send the new ones to Telegram.
 | `make collect-dry` / `collect SOURCE=... FILE=...` | Import saved pages or a JSON file |
 | `make enrich-dry` / `enrich` | Standvirtual listing details |
 | `make notify-test` | Send a test message to Telegram |
+| `make weekly-summary [ARGS=--dry-run]` | Send (or print) the week's summary |
 | `make collector-check` | Format check, analyze and test |
 
 Secrets go in `collector/.env` (gitignored): `SUPABASE_URL`,
@@ -38,7 +44,7 @@ Secrets go in `collector/.env` (gitignored): `SUPABASE_URL`,
 ## Code layout
 
 ```text
-bin/        entry points (refresh, fetch, collector, enrich, searches, report_run, notify_test)
+bin/        entry points (refresh, fetch, collector, enrich, searches, report_run, notify_test, weekly_summary)
 lib/        fetcher, site adapters and mappers, model matching, store, run steps
 test/       unit tests
 samples/    small listing files for trying `make collect` by hand

@@ -29,7 +29,7 @@ Unchanged.
 - ✅ Calculate an explainable Deal Score.
 - ✅ Calculate a separate Risk Score.
 - ✅ Create saved searches. *Also by minimum Deal Score / maximum Risk Score.*
-- ✅ Send alerts. *In the app and on the phone via Telegram.*
+- ✅ Send alerts. *In the app and on the phone via Telegram, plus a weekly summary on Mondays.*
 - ⬜ Compare motorcycles.
 - 🟡 Show market trends. *Time on market, price drops and depreciation per model; price trends need more history.*
 
@@ -59,7 +59,7 @@ Unchanged.
 - Backend: Supabase, PostgreSQL ✅, Supabase Auth ✅ *(anonymous + owner email/password)*; scheduled jobs ➕ *on GitHub Actions instead of Edge Functions (a Dart CLI collector, one process per run, every 4 hours).*
 - Hosting: Cloudflare Pages ✅
 - Repository: GitHub ✅ *(should become private)*; ➕ automatic code-quality review by Claude after every 5 merged PRs
-- Notifications: ➕ Telegram bot ✅; Web push / FCM ⬜
+- Notifications: ➕ Telegram bot ✅ (alerts after each run, weekly summary on Mondays); Web push / FCM ⬜
 
 ## 8. Architecture ✅
 

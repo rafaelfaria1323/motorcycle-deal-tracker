@@ -53,6 +53,8 @@ supabase/   Migrations (Postgres: scoring, alerts, views, RLS)
 docs/       sources.md (data-source decisions, keep updated), hosting.md,
             roadmap.status.md, concept.status.md, code-quality.md (backlog)
 .github/workflows/collect.yml     Collection every 4 hours (minute 40, UTC)
+.github/workflows/weekly-summary.yml  Mondays 07:52 UTC: the week's summary
+                                  on Telegram (bin/weekly_summary.dart)
 .github/workflows/deploy-web.yml  Test, build and publish the app to
                                   Cloudflare Pages on merges touching app/
 .github/workflows/code-quality.yml  After every 5 merged PRs, Claude does up
@@ -77,6 +79,7 @@ make enrich-dry|enrich         read Standvirtual listing pages for details (max 
 make refresh ARGS=--full       one process for both sites (bin/refresh.dart): searches -> fetch
                                -> import (with removal) -> enrich, then scores/alerts once
 make refresh-olx|refresh-standvirtual   the same for one site
+make weekly-summary [ARGS=--dry-run]   send (or print) the week's Telegram summary
 ```
 
 Local secrets live in `collector/.env` (gitignored, loaded by the Makefile):
@@ -246,5 +249,10 @@ row), `excellent_opportunity` (score >= 80, risk < 50, one per user/listing,
 alerted about). Only events after the saved search was created. Saved
 searches can also require a minimum Deal Score / maximum Risk Score.
 `notified_at` marks alerts already pushed to Telegram (only real accounts).
+Weekly summary (Mondays, `weekly_summary.dart`, pure logic in
+`notify/weekly_summary.dart`): tracked models, non-duplicates; new = first
+seen in the last 7 days, gone = removed with `last_checked_at` in them,
+drop = last price this week >= 1% below the price the week started with
+(live listings), best deals = live, risk < 50, by Deal Score.
 Reimporting everything after a reset: create saved searches AFTER the import,
 or every listing counts as new.
