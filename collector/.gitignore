@@ -3,8 +3,9 @@
 .dart_tool/
 imports/
 # Paths here are relative to collector/.
-# Saved Standvirtual pages hold sellers' contact details; the fetch state is
+# Saved Standvirtual and OLX pages hold sellers' contact details; the fetch state is
 # per machine (Actions keeps it in its cache).
 /samples/standvirtual/
-/.fetch_state.json
+/samples/olx/
+/.fetch_state*.json
 .env

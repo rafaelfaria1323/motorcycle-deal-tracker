@@ -4,9 +4,12 @@
         db-push db-new check format clean \
         require-collector-env require-file
 
-# Which source the collector reads: manual (a JSON file) or standvirtual
-# (a folder of saved listing pages). Extra collector flags go in ARGS.
+# Which source the collector reads: manual (a JSON file), standvirtual
+# (a folder of saved listing pages), standvirtual-search or olx-search
+# (folders of search pages). Extra collector flags go in ARGS.
 SOURCE ?= manual
+# Which website make fetch downloads from: standvirtual or olx.
+SITE ?= standvirtual
 # Local secrets for the collector (not committed). GitHub Actions has no such
 # file and uses its repository secrets instead.
 -include collector/.env
@@ -15,6 +18,8 @@ ifeq ($(SOURCE),standvirtual)
 DEFAULT_INPUT := samples/standvirtual
 else ifeq ($(SOURCE),standvirtual-search)
 DEFAULT_INPUT := samples/standvirtual/search
+else ifeq ($(SOURCE),olx-search)
+DEFAULT_INPUT := samples/olx/search
 else
 DEFAULT_INPUT := samples/manual_sample.json
 endif
@@ -53,11 +58,11 @@ collect-dry: require-collector-env ## Preview, writes nothing: make collect-dry 
 collect: require-collector-env require-file ## Import: make collect [SOURCE=standvirtual] FILE=... [ARGS=--full]
 	cd collector && dart run bin/collector.dart $(SOURCE) $(FILE) $(ARGS)
 
-fetch-dry: ## Check the search addresses and limits, requests nothing
-	cd collector && dart run bin/fetch.dart standvirtual sources/standvirtual_searches.txt --dry-run
+fetch-dry: ## Check the search addresses and limits, requests nothing: make fetch-dry [SITE=olx]
+	cd collector && dart run bin/fetch.dart $(SITE) sources/$(SITE)_searches.txt --dry-run
 
-fetch: ## Download the search pages, slowly and capped (see collector/lib/src/fetch)
-	cd collector && dart run bin/fetch.dart standvirtual sources/standvirtual_searches.txt $(ARGS)
+fetch: ## Download the search pages, slowly and capped: make fetch [SITE=olx]
+	cd collector && dart run bin/fetch.dart $(SITE) sources/$(SITE)_searches.txt $(ARGS)
 
 enrich-dry: require-collector-env ## List the listings that still need details, requests nothing
 	cd collector && dart run bin/enrich.dart --dry-run
@@ -65,11 +70,21 @@ enrich-dry: require-collector-env ## List the listings that still need details, 
 enrich: require-collector-env ## Read details of up to 15 new listings: make enrich [ARGS=--max=10]
 	cd collector && dart run bin/enrich.dart $(ARGS)
 
-refresh: require-collector-env ## Fetch search pages, import them, read new listings' details: make refresh [ARGS=--full]
+# Each site runs on its own (-k): a block or limit on one does not stop the
+# other, but the refresh still fails if either did.
+refresh: require-collector-env ## Fetch and import both sites: make refresh [ARGS=--full]
+	$(MAKE) -k refresh-standvirtual refresh-olx ARGS="$(ARGS)"
+
+refresh-standvirtual: require-collector-env ## Standvirtual: search pages, import, new listings' details
 	rm -f collector/samples/standvirtual/search/*.html
-	$(MAKE) fetch ARGS=
+	$(MAKE) fetch SITE=standvirtual ARGS=
 	$(MAKE) collect SOURCE=standvirtual-search FILE=samples/standvirtual/search ARGS="$(ARGS)"
 	$(MAKE) enrich ARGS=--max=10
+
+refresh-olx: require-collector-env ## OLX: every page of each search, import (results hold the details)
+	rm -f collector/samples/olx/search/*.html
+	$(MAKE) fetch SITE=olx ARGS=
+	$(MAKE) collect SOURCE=olx-search FILE=samples/olx/search ARGS="$(ARGS)"
 
 # ---- Database --------------------------------------------------------------
 

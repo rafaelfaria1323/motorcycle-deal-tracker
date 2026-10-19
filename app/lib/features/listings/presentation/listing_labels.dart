@@ -17,3 +17,11 @@ extension SellerTypeLabel on SellerType {
     SellerType.unknown => 'Desconhecido',
   };
 }
+
+/// The site a listing comes from, as people know it.
+String sourceLabel(String source) => switch (source) {
+  'standvirtual' => 'Standvirtual',
+  'olx' => 'OLX',
+  'manual' => 'Importação manual',
+  _ => source,
+};
