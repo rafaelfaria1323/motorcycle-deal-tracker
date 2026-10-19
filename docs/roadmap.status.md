@@ -102,6 +102,7 @@ Do not implement several unrelated features at once.
 ## 6.3 Price changes ✅
 ➕ 6.3b Standvirtual's price-drop note stored as `price_before_drop`, so cuts made before tracking count ✅
 ## 6.4 Price history ✅
+*The listing page's chart: a step line over real time from the first price to today (each price holds until the next), a dot per recorded price, the highest and lowest prices labelled on hairlines, the first date and "Hoje" underneath, and Standvirtual's earlier price (from before tracking) as a dashed "Antes" line. Geometry in `price_chart.dart`, tested.*
 ## 6.5 Removed detection ✅
 *Only with `--full`; refuses to remove more than 50% at once; a listing seen again comes back. Rejected bikes still on the site count as seen. Since 9.9 removal is per search: only searches read in full remove their missing listings.*
 ## 6.6 History UI ✅
@@ -225,9 +226,9 @@ Do not implement several unrelated features at once.
 
 # Next
 
-1. Price history chart on the detail page.
-2. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history.
-3. Data quality in Mais (11.5): share of listings missing year, mileage or location, and duplicate rate per site.
+1. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history.
+2. Data quality in Mais (11.5): share of listings missing year, mileage or location, and duplicate rate per site.
+3. Price trends per model (10.3): median asking price per model by week, once a few weeks of history exist.
 
 **Open items for Rafael:** read the Standvirtual/OLX terms and record the clauses in `docs/sources.md`; check the new-bike reference prices; make the repo private.
 
