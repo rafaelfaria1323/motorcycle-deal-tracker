@@ -70,12 +70,8 @@ class ListingModel extends Listing {
       description: json['description'] as String?,
       images: List<String>.from(json['images'] as List? ?? const []),
       status: _status(json['status'] as String?),
-      firstSeenAt: json['first_seen_at'] == null
-          ? null
-          : DateTime.parse(json['first_seen_at'] as String),
-      lastSeenAt: json['last_seen_at'] == null
-          ? null
-          : DateTime.parse(json['last_seen_at'] as String),
+      firstSeenAt: _date(json['first_seen_at']),
+      lastSeenAt: _date(json['last_seen_at']),
       registrations: json['registrations'] as int?,
       serviceBook: json['service_book'] as bool?,
       origin: json['origin'] as String?,
