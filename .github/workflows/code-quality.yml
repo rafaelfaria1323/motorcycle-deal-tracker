@@ -1,0 +1,147 @@
+name: Code quality review
+
+# After every 5 merged PRs, Claude reviews the code and opens at most one
+# small PR labelled "code-quality" (none if nothing is worth changing). The
+# count restarts at each review (the tag code-quality-reviewed marks where
+# it happened) and skips the review PRs themselves; no review starts while
+# one is still open. Needs the CLAUDE_CODE_OAUTH_TOKEN secret and "Allow
+# GitHub Actions to create and approve pull requests" in the repo settings.
+on:
+  workflow_dispatch: # manual "Run workflow" button: review now
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+concurrency:
+  group: code-quality
+  cancel-in-progress: false
+
+env:
+  EVERY: 5
+  LABEL: code-quality
+  TAG: code-quality-reviewed
+  # Before the first review, merges before this date don't count.
+  COUNT_FROM: '2026-10-19T00:00:00Z'
+
+jobs:
+  count:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: read
+    outputs:
+      due: ${{ steps.count.outputs.due }}
+    steps:
+      - id: count
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          MANUAL: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          open=$(gh pr list --state open --label "$LABEL" --json number --jq length)
+          since=$COUNT_FROM
+          if sha=$(gh api "repos/$GH_REPO/git/ref/tags/$TAG" --jq .object.sha 2>/dev/null); then
+            since=$(gh api "repos/$GH_REPO/commits/$sha" --jq .commit.committer.date)
+          fi
+          merged=$(gh pr list --state merged --limit 200 \
+            --search "merged:>$since -label:$LABEL" --json number --jq length)
+          echo "Merged since $since: $merged (every $EVERY); open reviews: $open"
+          if [ "$open" -gt 0 ]; then
+            due=false
+          elif [ "$MANUAL" = true ] || [ "$merged" -ge "$EVERY" ]; then
+            due=true
+          else
+            due=false
+          fi
+          echo "due=$due" >> "$GITHUB_OUTPUT"
+
+  review:
+    needs: count
+    if: needs.count.outputs.due == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          cd app && flutter pub get
+          cd ../collector && dart pub get
+
+      - name: Prepare the branch
+        run: |
+          git config user.name "claude[bot]"
+          git config user.email "claude[bot]@users.noreply.github.com"
+          # Restart the count here, whatever the review finds.
+          git tag -f "$TAG" HEAD
+          git push -f origin "refs/tags/$TAG"
+          git switch -c "claude/code-quality-${{ github.run_number }}"
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: >-
+            --max-turns 120
+            --allowedTools "Read,Edit,Write,Glob,Grep,Bash(make check),Bash(make format),Bash(cd:*),Bash(flutter analyze:*),Bash(flutter test:*),Bash(dart format:*),Bash(dart analyze:*),Bash(dart test:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git add:*),Bash(git commit:*)"
+          prompt: |
+            You are doing a periodic code-quality review of this repository
+            (a Flutter web app in app/, a Dart collector in collector/,
+            Supabase migrations in supabase/). Read CLAUDE.md first and
+            follow it: it holds the conventions and the rules you must not
+            break.
+
+            Goal: one small, safe PR that makes the code better without
+            changing what the app or the collector does. Look for, in this
+            order: bugs you can prove with a test; duplicated code; dead
+            code; missing tests for pure logic (*_text.dart, cubits,
+            parsers); hard-coded colours or styles that bypass the theme;
+            inefficient queries or rebuilds; unclear names or comments that
+            no longer match the code.
+
+            Rules:
+            - Pick the 1 to 3 most valuable improvements; keep the diff
+              small and easy to review. Do not reformat files you don't
+              otherwise change.
+            - Never change the fetching rules, the scoring or alert rules,
+              or the database schema (no new migrations). Never touch
+              secrets, workflows, collector/pubspec.lock or saved pages.
+            - UI text stays in pt-PT; code, comments and commits in English.
+            - If a change affects what README.md, app/README.md,
+              collector/README.md, CLAUDE.md or docs/*.status.md say,
+              update them in the same commit.
+            - Run `make check` before committing; it must pass.
+            - Commit on the current branch with git (do not push), message
+              style `refactor(scope): what` or `test(scope): what`.
+            - Then write the PR title (one line) to /tmp/pr-title.txt and
+              the PR body (what changed and why, how it was tested, in
+              English) to /tmp/pr-body.md.
+            - If nothing is worth changing, make no commit.
+
+      - name: Open the PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$(git rev-list --count origin/main..HEAD)" = 0 ]; then
+            echo "Nothing worth changing this time."
+            exit 0
+          fi
+          git push -u origin HEAD
+          gh label create "$LABEL" --color 5319E7 \
+            --description "Periodic code-quality review" --force
+          title=$(cat /tmp/pr-title.txt 2>/dev/null || echo "refactor: code-quality review")
+          body=$(cat /tmp/pr-body.md 2>/dev/null || echo "Periodic code-quality review.")
+          gh pr create --base main --label "$LABEL" --title "$title" \
+            --body "$body"$'\n\n'"Opened by the code-quality workflow (run ${{ github.run_id }})."

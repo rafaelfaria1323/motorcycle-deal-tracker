@@ -53,6 +53,10 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
 .github/workflows/collect.yml     Collection every 4 hours (minute 40, UTC)
 .github/workflows/deploy-web.yml  Test, build and publish the app to
                                   Cloudflare Pages on merges touching app/
+.github/workflows/code-quality.yml  After every 5 merged PRs, Claude reviews
+                                  the code and opens one small PR labelled
+                                  code-quality (merges since the tag
+                                  code-quality-reviewed are counted)
 Makefile    All commands (`make help`)
 ```
 
@@ -75,7 +79,8 @@ Local secrets live in `collector/.env` (gitignored, loaded by the Makefile):
 `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN`,
 `TELEGRAM_CHAT_ID`. GitHub Actions uses repository secrets with the same
 names, plus `SUPABASE_PUBLISHABLE_KEY`, `CLOUDFLARE_API_TOKEN` and
-`CLOUDFLARE_ACCOUNT_ID` for the web deploy.
+`CLOUDFLARE_ACCOUNT_ID` for the web deploy, and `CLAUDE_CODE_OAUTH_TOKEN`
+for the code-quality review.
 
 ## App conventions (Flutter)
 
