@@ -6,7 +6,6 @@ import 'package:motorcycle_deal_tracker/features/listings/domain/entities/saved_
 import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/widgets/state_message.dart';
-import '../../../collector_status/presentation/collector_status_banner.dart';
 import '../../domain/entities/listing_filters.dart';
 import '../../domain/entities/listing_sort.dart';
 import '../cubit/listings_cubit.dart';
@@ -111,10 +110,6 @@ class DashboardPage extends StatelessWidget {
       ),
       body: Column(
         children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: CollectorStatusBanner(),
-          ),
           BlocBuilder<ListingsCubit, ListingsState>(
             buildWhen: (previous, current) =>
                 previous.filters != current.filters ||

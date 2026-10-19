@@ -47,6 +47,19 @@ void main() {
     });
   });
 
+  test('how long ago, in minutes, hours or days', () {
+    final now = DateTime.utc(2026, 10, 19, 12);
+    expect(
+      agoText(now.subtract(const Duration(minutes: 25)), now: now),
+      'há 25 min',
+    );
+    expect(agoText(now.subtract(const Duration(hours: 3)), now: now), 'há 3 h');
+    expect(
+      agoText(now.subtract(const Duration(days: 3)), now: now),
+      'há 3 dias',
+    );
+  });
+
   test('durations read as minutes and seconds', () {
     expect(durationText(const Duration(seconds: 151)), '2 min 31 s');
     expect(durationText(const Duration(seconds: 42)), '42 s');

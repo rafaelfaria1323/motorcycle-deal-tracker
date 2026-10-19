@@ -54,8 +54,9 @@ class _CollectionDetailsState extends State<CollectionDetails> {
           final last = runs.first;
           lines.insertAll(0, [
             (
-              Icons.timer_outlined,
-              'Última recolha demorou ${durationText(last.duration)}',
+              Icons.update,
+              'Última recolha ${agoText(last.finishedAt)}, demorou '
+                  '${durationText(last.duration)}',
             ),
             if (requestsText(last.requests) case final requests?)
               (Icons.swap_vert, 'Pedidos: $requests'),

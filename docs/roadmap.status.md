@@ -185,7 +185,7 @@ Do not implement several unrelated features at once.
 - *The listing page shows only the first photo.*
 - *The text mixes "tu" and "você" ("Escolhe os modelos…" vs "Verifique a ligação…").*
 ## 13.2 A "Mais"/settings tab ✅
-*Fourth tab "Mais" with the account (sign in/out), Modelos acompanhados and the collection: status, how long the last run took, requests used per site (of 20), when the next run is due, and this month's runs with an estimate of GitHub Actions minutes. The profile icon left Pesquisas and the models link left the account sheet.*
+*Fourth tab "Mais" with the account (sign in/out), Modelos acompanhados and the collection: when the last run ended and how long it took, requests used per site (of 20), when the next run is due, and this month's runs with an estimate of GitHub Actions minutes. The profile icon left Pesquisas and the models link left the account sheet. The status card shows only when something is wrong (failed, blocked, no recent run) and lives only in Mais; the "Atualizado há…" line left Ofertas.*
 ## 13.3 Ofertas ✅
 *Only listings of tracked models (switched-off models' listings and unmatched ones are left out); a sort menu (Melhor pontuação, Mais recentes, Preço mais baixo/alto); applied filters as chips under the status line, each removable on its own, plus "Limpar tudo".*
 ## 13.4 Listing page ⬜

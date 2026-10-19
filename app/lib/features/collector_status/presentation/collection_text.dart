@@ -44,6 +44,14 @@ String nextCollectionText(DateTime now) {
       'minutos)';
 }
 
+/// "há 3 h" (or minutes, or days).
+String agoText(DateTime time, {DateTime? now}) {
+  final diff = (now ?? DateTime.now()).difference(time);
+  if (diff.inMinutes < 60) return 'há ${diff.inMinutes} min';
+  if (diff.inHours < 48) return 'há ${diff.inHours} h';
+  return 'há ${diff.inDays} dias';
+}
+
 /// "2 min 31 s".
 String durationText(Duration d) {
   final minutes = d.inMinutes;
