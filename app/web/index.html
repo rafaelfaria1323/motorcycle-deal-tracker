@@ -34,27 +34,12 @@
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="favicon.png"/>
 
-    <!-- The status bar colour = the app's background (AppTheme.lightBackground
-         / darkBackground). One theme-color tag only: the installed iPhone app
-         ignores media="(prefers-color-scheme…)" and took the last (dark) tag.
-         The script sets it for the current mode and follows mode changes. The
-         id is the one Flutter's engine uses for the colour of the Title in
-         MaterialApp.builder, so Flutter updates this same tag (if it ever
-         adds its own, it writes the same colour). -->
+    <!-- The status bar colour. Flutter writes each app bar's status bar
+         colour into this tag (the id is the one its engine uses); the script
+         at the start of <body> sets it before the app loads and copies it
+         to the top edge strip, which is what Safari 26+ actually uses. -->
     <meta name="color-scheme" content="light dark">
     <meta name="theme-color" id="flutterweb-theme" content="#F4F5F7">
-    <script>
-      (function () {
-        var dark = window.matchMedia('(prefers-color-scheme: dark)');
-        function apply() {
-          var colour = dark.matches ? '#0F1115' : '#F4F5F7';
-          document.getElementById('flutterweb-theme').setAttribute('content', colour);
-          document.documentElement.style.backgroundColor = colour;
-        }
-        apply();
-        dark.addEventListener('change', apply);
-      })();
-    </script>
 
     <title>Motorcycle Deal Tracker</title>
 
@@ -64,9 +49,71 @@
     <style>
       html, body { background-color: #F4F5F7; }
       @media (prefers-color-scheme: dark) { html, body { background-color: #0F1115; } }
+
+      /* Safari 26+ on iPhone ignores theme-color: it colours the status bar
+         (and its own toolbar) from a solid position:fixed element at the top
+         (and bottom) edge, and Flutter's page gave it black. These strips are
+         that element: as wide as the screen, more than 10px tall, the colour
+         of the app bar (top) and the tab bar (bottom), so they can't be seen
+         over them, and they let taps through. iPhone/iPad only. */
+      .edge-tint { display: none; }
+      @supports (-webkit-touch-callout: none) {
+        .edge-tint {
+          display: block;
+          position: fixed;
+          left: 0;
+          right: 0;
+          height: 12px;
+          z-index: 2147483647;
+          pointer-events: none;
+        }
+        #edge-tint-top { top: 0; }
+        #edge-tint-bottom { bottom: 0; }
+      }
     </style>
 </head>
 <body>
+<div class="edge-tint" id="edge-tint-top"></div>
+<div class="edge-tint" id="edge-tint-bottom"></div>
+<script>
+  // Before the app loads: theme-color and the strips in the current
+  // light/dark mode (AppTheme.lightBackground / darkBackground at the top,
+  // the tab bar's surfaceContainerLowest at the bottom). Afterwards the top
+  // strip follows theme-color, which Flutter sets from each app bar (the
+  // photo viewer makes it black). Safari samples a strip only when it
+  // appears, so a strip is put back whenever its colour changes.
+  (function () {
+    var dark = window.matchMedia('(prefers-color-scheme: dark)');
+    var theme = document.getElementById('flutterweb-theme');
+
+    var painted = {};
+
+    function paint(id, colour) {
+      if (painted[id] === colour) return;
+      painted[id] = colour;
+      var strip = document.getElementById(id);
+      var parent = strip.parentNode;
+      var next = strip.nextSibling;
+      parent.removeChild(strip);
+      strip.style.backgroundColor = colour;
+      parent.insertBefore(strip, next);
+    }
+
+    function applyMode() {
+      var background = dark.matches ? '#0F1115' : '#F4F5F7';
+      theme.setAttribute('content', background);
+      document.documentElement.style.backgroundColor = background;
+      paint('edge-tint-bottom', dark.matches ? '#171A20' : '#FFFFFF');
+    }
+
+    applyMode();
+    paint('edge-tint-top', theme.getAttribute('content'));
+    dark.addEventListener('change', applyMode);
+    new MutationObserver(function () {
+      paint('edge-tint-top', theme.getAttribute('content'));
+    }).observe(theme, { attributes: true, attributeFilter: ['content'] });
+  })();
+</script>
 <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

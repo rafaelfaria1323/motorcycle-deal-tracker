@@ -120,16 +120,17 @@ for the code-quality review.
   text, Barlow Semi Condensed (`AppTheme.displayFont`) for titles, prices
   and scores; prices use tabular figures.
 - Hosting: Cloudflare Pages, installed on the iPhone from Safari ("Adicionar
-  ao ecrã principal"). Status bar = `theme-color` = the page background
-  (`AppTheme.lightBackground` `#F4F5F7`, `darkBackground` `#0F1115`), kept
-  in step by a `Title` in `MaterialApp.builder`. `web/index.html` has ONE
-  `theme-color` tag (`id="flutterweb-theme"`), set by an inline script from
-  `prefers-color-scheme` (the iPhone app ignores `media` on theme-color
-  tags); it and `web/manifest.json` repeat these colours. Every `AppBar`
-  also writes its `systemOverlayStyle.statusBarColor` into that tag, so
-  `AppBarTheme.systemOverlayStyle` sets it to the background (Material 3's
-  default is transparent black, which Safari shows as black); an AppBar
-  with its own background sets its own.
+  ao ecrã principal"). Status bar: Safari 26+ ignores `theme-color` and tints
+  its bars from a solid `position: fixed` element at the top/bottom edge, so
+  `web/index.html` has two 12px iOS-only strips (`.edge-tint`, taps pass
+  through): the top one copies the `theme-color` tag, the bottom one is the
+  tab bar colour (`surfaceContainerLowest`: `#FFFFFF` / `#171A20`). Flutter
+  writes each AppBar's `systemOverlayStyle.statusBarColor` into
+  `theme-color`, so `AppBarTheme.systemOverlayStyle` sets it to the page
+  background (`AppTheme.lightBackground` `#F4F5F7`, `darkBackground`
+  `#0F1115`; Material 3's default is transparent black) and an AppBar with
+  its own background sets its own (the photo viewer: black). Keep these
+  colours in step with `index.html` and `web/manifest.json`.
 
 ## Database conventions (Supabase / Postgres)
 
