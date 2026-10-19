@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 class ListingPhoto extends StatelessWidget {
-  const ListingPhoto({this.url, super.key});
+  const ListingPhoto({this.url, this.fit = BoxFit.cover, super.key});
 
   final String? url;
+  final BoxFit fit;
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +17,7 @@ class ListingPhoto extends StatelessWidget {
 
     return Image.network(
       url!,
-      fit: BoxFit.cover,
+      fit: fit,
       // The photo sites send no CORS headers, so Flutter can't download the
       // photo itself; a plain <img> element shows it. Going straight to it
       // saves a refused request per photo.
