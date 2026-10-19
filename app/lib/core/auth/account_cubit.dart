@@ -32,7 +32,7 @@ class AccountCubit extends Cubit<AccountState> {
 
   Future<void> signIn(String email, String password) async {
     if (email.trim().isEmpty || password.isEmpty) {
-      emit(const AccountState(error: 'Indica o email e a palavra-passe.'));
+      emit(const AccountState(error: 'Indique o email e a palavra-passe.'));
       return;
     }
     emit(const AccountState(busy: true));

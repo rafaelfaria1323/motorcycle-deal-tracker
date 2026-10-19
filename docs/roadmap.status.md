@@ -171,7 +171,7 @@ Do not implement several unrelated features at once.
 ➕ **Notifications on the phone via Telegram** ✅ (11.1; replaces Web/PWA push). 11.1b: "Test Telegram" workflow / `make notify-test` sends a test message. Confirmed on Rafael's phone (2026-10-19) after `TELEGRAM_CHAT_ID` was corrected (it held the bot's own id).
 ➕ **Housekeeping** 🟡: saved pages and fetch state are no longer tracked ✅; **the repo should be made private** (old saved pages with phone numbers remain in git history) ⬜.
 
-# Sprint 13 — UI/UX redesign ⬜
+# Sprint 13 — UI/UX redesign ✅
 
 *Goal: the app has grown screen by screen; make it coherent on the iPhone. Each step is a small PR Rafael checks on the phone.*
 
@@ -194,8 +194,8 @@ Do not implement several unrelated features at once.
 *The app stops looking like the Material default: hand-made light and dark colours (cool greys, one racing-orange accent, white cards with a hairline border instead of shadows and pink tints), bundled Barlow fonts (Semi Condensed for titles, prices and scores, tabular figures for prices), semantic colours for good/bad and score bands (`AppColors`), a square score badge, the score card led by the score and its label with a coloured risk bar, listing cards with a bigger photo and icon facts, a hairline above the tab bar, grouped cards in Mais, and empty states with a round icon.*
 ## 13.5 Pesquisas and Alertas ✅
 *"Nova pesquisa" in Pesquisas (name, criteria and alert choices in one sheet; also the empty screen's button). The Alertas tab shows the unread count, loaded when the app opens and again when it comes back to the screen. Alerts are grouped under "Hoje", "Ontem", the weekday, then the date, each with its time and a coloured icon by type.*
-## 13.6 One voice and polish ⬜
-*One form of address in all pt-PT text; consistent empty/loading/error states; light/dark and iPhone safe-area check.*
+## 13.6 One voice and polish ✅
+*All pt-PT text speaks to the user as "você" ("Indique", "a sua conta", "Toque…"); the few "tu" forms and bare infinitive instructions were changed, and `test/voice_test.dart` fails the build if a "tu" form comes back. Ofertas shows card-shaped placeholders while loading instead of a spinner; every page uses the same empty/error screen (`StateMessage`); the unused placeholder page was removed. Light/dark and safe areas were covered by 13.4b (themed colours, bottom bar and sheets inside the safe area).*
 
 # Sprint 14 — More than one person ⬜
 
@@ -224,12 +224,11 @@ Do not implement several unrelated features at once.
 
 # Next
 
-1. UI/UX redesign (Sprint 13): 13.6 one voice and polish next.
-2. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history.
-3. Price history chart on the detail page.
-4. Weekly Telegram summary (best deals, new drops, listings gone).
+1. Weekly Telegram summary (best deals, new drops, listings gone).
+2. Price history chart on the detail page.
+3. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history.
 
-**Open items for Rafael:** add the `CLAUDE_CODE_OAUTH_TOKEN` secret and allow Actions to create PRs (see T.1); read the Standvirtual/OLX terms and record the clauses in `docs/sources.md`; check the new-bike reference prices; make the repo private.
+**Open items for Rafael:** read the Standvirtual/OLX terms and record the clauses in `docs/sources.md`; check the new-bike reference prices; make the repo private.
 
 # Definition of Done
 

@@ -15,10 +15,18 @@ import '../listing_labels.dart';
 import '../saved_search_summary.dart';
 import '../widgets/filters_sheet.dart';
 import '../widgets/listing_card.dart';
+import '../widgets/listing_card_skeleton.dart';
 import '../widgets/save_search_dialog.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
+
+  static const _grid = SliverGridDelegateWithMaxCrossAxisExtent(
+    maxCrossAxisExtent: 420,
+    mainAxisExtent: ListingCard.height,
+    crossAxisSpacing: 16,
+    mainAxisSpacing: 16,
+  );
 
   Future<void> _openFilters(BuildContext context) async {
     final cubit = context.read<ListingsCubit>();
@@ -149,7 +157,13 @@ class DashboardPage extends StatelessWidget {
                 switch (state.status) {
                   case ListingsStatus.initial:
                   case ListingsStatus.loading:
-                    return const Center(child: CircularProgressIndicator());
+                    return GridView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(16),
+                      gridDelegate: _grid,
+                      itemCount: 6,
+                      itemBuilder: (_, _) => const ListingCardSkeleton(),
+                    );
                   case ListingsStatus.failure:
                     return StateMessage(
                       icon: Icons.cloud_off,
@@ -193,13 +207,7 @@ class DashboardPage extends StatelessWidget {
                           SliverPadding(
                             padding: const EdgeInsets.all(16),
                             sliver: SliverGrid.builder(
-                              gridDelegate:
-                                  const SliverGridDelegateWithMaxCrossAxisExtent(
-                                    maxCrossAxisExtent: 420,
-                                    mainAxisExtent: ListingCard.height,
-                                    crossAxisSpacing: 16,
-                                    mainAxisSpacing: 16,
-                                  ),
+                              gridDelegate: _grid,
                               itemCount: state.listings.length,
                               itemBuilder: (context, index) {
                                 final listing = state.listings[index];

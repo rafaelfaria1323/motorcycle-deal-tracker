@@ -134,7 +134,7 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
         return 'Não foi possível guardar: é preciso ter sessão iniciada.';
       }
     }
-    return 'Não foi possível guardar. Tentar novamente.';
+    return 'Não foi possível guardar. Tente novamente.';
   }
 
   void _replace(CatalogModel model) {
@@ -184,7 +184,7 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
           child: Text(
             'O recolhedor pesquisa só os modelos ligados e dá-lhes pontuação, '
             'alertas e dados de mercado. As alterações contam a partir da '
-            'próxima recolha (até 4 horas). Tocar num modelo para mudar o ano '
+            'próxima recolha (até 4 horas). Toque num modelo para mudar o ano '
             'ou o preço de uma nova.',
             style: muted,
           ),
