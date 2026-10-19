@@ -68,7 +68,8 @@ String formatAlert(PendingAlert a) {
 
   final old = a.oldPrice;
   final current = a.newPrice ?? a.price;
-  final priceLine = a.type == 'price_reduction' && old != null && current != null
+  final priceLine =
+      a.type == 'price_reduction' && old != null && current != null
       ? '${euros(old)} → ${euros(current)}'
       : current == null
       ? null
@@ -77,8 +78,14 @@ String formatAlert(PendingAlert a) {
   final facts = [
     if (a.mileage != null) '${euros(a.mileage!).replaceAll(' €', '')} km',
     if (a.location != null) a.location!,
-    if (a.dealScore != null && a.type != 'listing_removed') 'Pontuação ${a.dealScore}',
+    if (a.dealScore != null && a.type != 'listing_removed')
+      'Pontuação ${a.dealScore}',
   ].join(' · ');
 
-  return ['$heading: $bike', if (priceLine != null) priceLine, if (facts.isNotEmpty) facts, a.url].join('\n');
+  return [
+    '$heading: $bike',
+    if (priceLine != null) priceLine,
+    if (facts.isNotEmpty) facts,
+    a.url,
+  ].join('\n');
 }

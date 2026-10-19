@@ -4,7 +4,11 @@ import 'package:supabase/supabase.dart';
 import '../../collector.dart';
 
 class StoreResult {
-  const StoreResult({required this.inserted, required this.alreadyStored, required this.duplicatesInInput});
+  const StoreResult({
+    required this.inserted,
+    required this.alreadyStored,
+    required this.duplicatesInInput,
+  });
 
   final int inserted;
   final int alreadyStored;
@@ -50,7 +54,10 @@ class ListingStore {
 
   /// Live listings of [source] whose listing page has not been read yet,
   /// newest first.
-  Future<List<({String sourceListingId, String url})>> listingsMissingDetails(String source, int limit) async {
+  Future<List<({String sourceListingId, String url})>> listingsMissingDetails(
+    String source,
+    int limit,
+  ) async {
     final rows = await _client
         .from('listings')
         .select('source_listing_id, url')
@@ -59,7 +66,13 @@ class ListingStore {
         .inFilter('status', ['active', 'price_changed'])
         .order('first_seen_at', ascending: false)
         .limit(limit);
-    return [for (final r in rows) (sourceListingId: r['source_listing_id'] as String, url: r['url'] as String)];
+    return [
+      for (final r in rows)
+        (
+          sourceListingId: r['source_listing_id'] as String,
+          url: r['url'] as String,
+        ),
+    ];
   }
 
   /// Saves what listing pages added; returns how many listings were updated.
@@ -77,11 +90,18 @@ class ListingStore {
 
   /// Inserts listings that are not stored yet. Existing ones (same source and
   /// source id) are left untouched, so running the same file twice is safe.
-  Future<StoreResult> save(List<NormalizedListing> listings, Catalog catalog) async {
+  Future<StoreResult> save(
+    List<NormalizedListing> listings,
+    Catalog catalog,
+  ) async {
     final unique = uniqueBySourceId(listings);
     final duplicates = listings.length - unique.length;
     if (unique.isEmpty) {
-      return StoreResult(inserted: 0, alreadyStored: 0, duplicatesInInput: duplicates);
+      return StoreResult(
+        inserted: 0,
+        alreadyStored: 0,
+        duplicatesInInput: duplicates,
+      );
     }
 
     final idBySlug = {
@@ -93,7 +113,9 @@ class ListingStore {
     for (final l in unique) {
       final slug = l.motorcycleSlug;
       if (slug != null && !idBySlug.containsKey(slug)) {
-        throw StateError('Catalog entry "$slug" has no id; load the catalog from Supabase.');
+        throw StateError(
+          'Catalog entry "$slug" has no id; load the catalog from Supabase.',
+        );
       }
       rows.add(listingRow(l, slug == null ? null : idBySlug[slug]));
     }
@@ -101,7 +123,11 @@ class ListingStore {
     // Only the rows that were really inserted come back.
     final inserted = await _client
         .from('listings')
-        .upsert(rows, onConflict: 'source,source_listing_id', ignoreDuplicates: true)
+        .upsert(
+          rows,
+          onConflict: 'source,source_listing_id',
+          ignoreDuplicates: true,
+        )
         .select('id');
 
     return StoreResult(
@@ -126,34 +152,61 @@ class ListingStore {
   /// Marks listings as seen now (updates last_seen_at); returns how many.
   Future<int> markSeen(String source, List<String> sourceListingIds) async {
     if (sourceListingIds.isEmpty) return 0;
-    final result = await _client.rpc('mark_listings_seen', params: {'p_source': source, 'p_ids': sourceListingIds});
+    final result = await _client.rpc(
+      'mark_listings_seen',
+      params: {'p_source': source, 'p_ids': sourceListingIds},
+    );
     return (result as num).toInt();
   }
 
   /// Applies new prices to listings already stored; returns how many changed.
-  Future<int> applyPriceChanges(String source, List<NormalizedListing> listings) async {
+  Future<int> applyPriceChanges(
+    String source,
+    List<NormalizedListing> listings,
+  ) async {
     if (listings.isEmpty) return 0;
-    final prices = <String, num>{for (final l in listings) l.sourceListingId: l.price};
-    final result = await _client.rpc('apply_price_updates', params: {'p_source': source, 'p_prices': prices});
+    final prices = <String, num>{
+      for (final l in listings) l.sourceListingId: l.price,
+    };
+    final result = await _client.rpc(
+      'apply_price_updates',
+      params: {'p_source': source, 'p_prices': prices},
+    );
     return (result as num).toInt();
   }
 
   /// Records what the source says the price was before its last cut (the
   /// database keeps the highest seen); returns how many changed.
-  Future<int> applyPricesBeforeDrop(String source, List<NormalizedListing> listings) async {
-    final prices = <String, num>{for (final l in listings) l.sourceListingId: ?l.priceBeforeDrop};
+  Future<int> applyPricesBeforeDrop(
+    String source,
+    List<NormalizedListing> listings,
+  ) async {
+    final prices = <String, num>{
+      for (final l in listings) l.sourceListingId: ?l.priceBeforeDrop,
+    };
     if (prices.isEmpty) return 0;
-    final result = await _client.rpc('apply_prices_before_drop', params: {'p_source': source, 'p_prices': prices});
+    final result = await _client.rpc(
+      'apply_prices_before_drop',
+      params: {'p_source': source, 'p_prices': prices},
+    );
     return (result as num).toInt();
   }
 
   /// For a complete import: marks live listings missing from [seenIds] as
   /// removed. The database refuses empty or suspiciously large removals unless
   /// [force] is set. Returns how many were marked.
-  Future<int> markRemoved(String source, List<String> seenIds, {bool force = false}) async {
+  Future<int> markRemoved(
+    String source,
+    List<String> seenIds, {
+    bool force = false,
+  }) async {
     final result = await _client.rpc(
       'mark_removed_listings',
-      params: {'p_source': source, 'p_seen_ids': seenIds, 'p_max_fraction': force ? 1.0 : 0.5},
+      params: {
+        'p_source': source,
+        'p_seen_ids': seenIds,
+        'p_max_fraction': force ? 1.0 : 0.5,
+      },
     );
     return (result as num).toInt();
   }
@@ -166,13 +219,20 @@ class ListingStore {
 
   /// Alerts of real accounts not pushed yet, oldest first.
   Future<List<PendingAlert>> pendingNotifications({int limit = 20}) async {
-    final rows = await _client.rpc('pending_notifications', params: {'p_limit': limit}) as List<dynamic>;
-    return [for (final row in rows) PendingAlert.fromRow(row as Map<String, dynamic>)];
+    final rows =
+        await _client.rpc('pending_notifications', params: {'p_limit': limit})
+            as List<dynamic>;
+    return [
+      for (final row in rows) PendingAlert.fromRow(row as Map<String, dynamic>),
+    ];
   }
 
   Future<int> markNotified(List<String> alertIds) async {
     if (alertIds.isEmpty) return 0;
-    final result = await _client.rpc('mark_alerts_notified', params: {'p_ids': alertIds});
+    final result = await _client.rpc(
+      'mark_alerts_notified',
+      params: {'p_ids': alertIds},
+    );
     return (result as num).toInt();
   }
 }
