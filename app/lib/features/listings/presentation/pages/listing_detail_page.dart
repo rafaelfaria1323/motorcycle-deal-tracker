@@ -14,9 +14,9 @@ import '../cubit/listing_detail_cubit.dart';
 import '../cubit/listing_detail_state.dart';
 import '../listing_dates_text.dart';
 import '../listing_detail_text.dart';
-import '../listing_labels.dart';
 import '../widgets/also_listed_section.dart';
 import '../widgets/deal_score_badge.dart';
+import '../widgets/facts_card.dart';
 import '../widgets/market_behaviour_section.dart';
 import '../widgets/new_price_card.dart';
 import '../widgets/photo_gallery.dart';
@@ -195,63 +195,13 @@ class _Content extends StatelessWidget {
                   ScoreExplanationCard(listing: listing),
                   AlsoListedSection(listing: listing),
                   NewPriceCard(listing: listing),
-                  _FactsCard(
-                    title: 'A mota',
-                    rows: [
-                      _FactRow('Ano', listing.year?.toString() ?? '—'),
-                      _FactRow(
-                        'Quilometragem',
-                        Formatters.mileage(listing.mileage),
-                      ),
-                      if (listing.registrations != null)
-                        _FactRow(
-                          'Registos (donos)',
-                          '${listing.registrations}',
-                        ),
-                      if (listing.serviceBook != null)
-                        _FactRow(
-                          'Livro de revisões',
-                          listing.serviceBook! ? 'Completo' : 'Não',
-                        ),
-                      if (listing.origin != null)
-                        _FactRow(
-                          'Origem',
-                          listing.origin == 'national'
-                              ? 'Nacional'
-                              : 'Importada',
-                        ),
-                      if (listing.warrantyUntil != null)
-                        _FactRow(
-                          'Garantia de fábrica até',
-                          Formatters.date(listing.warrantyUntil!),
-                        ),
-                      if (listing.dealerWarrantyMonths != null)
-                        _FactRow(
-                          'Garantia do vendedor',
-                          '${listing.dealerWarrantyMonths} meses',
-                        ),
-                    ],
-                  ),
+                  FactsCard(title: 'A mota', facts: bikeFacts(listing)),
                   if (description != null && description.isNotEmpty)
                     _DescriptionCard(description: description),
                   MarketBehaviourSection(listing: listing),
                   PriceHistorySection(listing: listing),
-                  _FactsCard(
-                    title: 'O anúncio',
-                    rows: [
-                      _FactRow('Localização', listing.location ?? '—'),
-                      _FactRow('Vendedor', listing.sellerName ?? '—'),
-                      _FactRow('Tipo de vendedor', listing.sellerType.label),
-                      _FactRow('Fonte', sourceLabel(listing.source)),
-                      if (listing.publishedAt != null)
-                        _FactRow(
-                          'Publicado',
-                          dateWithAge(listing.publishedAt!),
-                        ),
-                      if (renewalToShow(listing) case final renewed?)
-                        _FactRow('Renovado no site', dateWithAge(renewed)),
-                      _FactRow('Estado', listing.status.label),
-                    ],
+                  FactsCard(title: 'O anúncio', facts: adFacts(listing)),
+                ],
                   ),
                 ],
               ),
@@ -285,35 +235,6 @@ class _Content extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _FactsCard extends StatelessWidget {
-  const _FactsCard({required this.title, required this.rows});
-
-  final String title;
-  final List<Widget> rows;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-              child: Text(
-                title,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
-            ...rows,
-          ],
-        ),
-      ),
     );
   }
 }
@@ -374,42 +295,6 @@ class _DescriptionCardState extends State<_DescriptionCard> {
             );
           },
         ),
-      ),
-    );
-  }
-}
-
-class _FactRow extends StatelessWidget {
-  const _FactRow(this.label, this.value);
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Flexible(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: textTheme.bodyMedium,
-            ),
-          ),
-        ],
       ),
     );
   }
