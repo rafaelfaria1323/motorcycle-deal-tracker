@@ -3,9 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
+import '../../../../app/theme/app_colors.dart';
 import '../../../../core/formatting/formatters.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/listing_alert.dart';
+import '../alerts_text.dart';
 import '../cubit/alerts_cubit.dart';
 import '../cubit/alerts_state.dart';
 
@@ -85,8 +87,7 @@ class AlertsPage extends StatelessWidget {
                 return StateMessage(
                   icon: Icons.notifications_none,
                   title: 'Ainda não tem alertas',
-                  message:
-                      'Guarde uma pesquisa e avisamos quando surgir uma oferta nova.',
+                  message: 'Guarde uma pesquisa e avisamos quando surgir uma oferta nova.',
                   actionLabel: 'Ver pesquisas',
                   onAction: () => context.go(AppRoutes.searches),
                 );
@@ -97,68 +98,123 @@ class AlertsPage extends StatelessWidget {
                   alignment: Alignment.topCenter,
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 800),
-                    child: ListView.builder(
+                    child: ListView(
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(16),
-                      itemCount: state.alerts.length,
-                      itemBuilder: (context, index) {
-                        final alert = state.alerts[index];
-                        final isReduction =
-                            alert.type == AlertType.priceReduction &&
-                            alert.oldPrice != null &&
-                            alert.newPrice != null;
-                        final priceText = isReduction
-                            ? '${Formatters.price(alert.oldPrice)} → '
-                                  '${Formatters.price(alert.newPrice)}'
-                            : Formatters.price(
-                                alert.newPrice ?? alert.listing.price,
-                              );
-                        final details = [
-                          priceText,
-                          if (alert.listing.location != null)
-                            alert.listing.location!,
-                        ].join(' · ');
-                        final origin = [
-                          if (alert.searchName != null) '"${alert.searchName}"',
-                          Formatters.daysAgo(alert.createdAt),
-                        ].join(' · ');
-
-                        return Card(
-                          child: ListTile(
-                            isThreeLine: true,
-                            leading: Icon(_icon(alert.type)),
-                            title: Text(
-                              _title(alert),
-                              style: TextStyle(
-                                fontWeight: alert.isRead
-                                    ? FontWeight.normal
-                                    : FontWeight.bold,
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      children: [
+                        for (final day in groupAlertsByDay(state.alerts)) ...[
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
+                            child: Text(
+                              day.label.toUpperCase(),
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                letterSpacing: 1.2,
                               ),
                             ),
-                            subtitle: Text('$details\n$origin'),
-                            trailing: alert.isRead
-                                ? null
-                                : Semantics(
-                                    label: 'Não lido',
-                                    child: Container(
-                                      width: 10,
-                                      height: 10,
-                                      decoration: BoxDecoration(
-                                        color: theme.colorScheme.primary,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                  ),
-                            onTap: () => _open(context, alert),
                           ),
-                        );
-                      },
+                          for (final alert in day.alerts)
+                            _AlertTile(
+                              alert: alert,
+                              title: _title(alert),
+                              icon: _icon(alert.type),
+                              onTap: () => _open(context, alert),
+                            ),
+                        ],
+                      ],
                     ),
                   ),
                 ),
               );
           }
         },
+      ),
+    );
+  }
+}
+
+class _AlertTile extends StatelessWidget {
+  const _AlertTile({
+    required this.alert,
+    required this.title,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final ListingAlert alert;
+  final String title;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final colors = AppColors.of(context);
+
+    final isReduction =
+        alert.type == AlertType.priceReduction &&
+        alert.oldPrice != null &&
+        alert.newPrice != null;
+    final priceText = isReduction
+        ? '${Formatters.price(alert.oldPrice)} → '
+              '${Formatters.price(alert.newPrice)}'
+        : Formatters.price(alert.newPrice ?? alert.listing.price);
+    final details = [
+      priceText,
+      if (alert.listing.location != null) alert.listing.location!,
+    ].join(' · ');
+    final origin = [
+      if (alert.searchName != null) '"${alert.searchName}"',
+      Formatters.time(alert.createdAt),
+    ].join(' · ');
+
+    // Good news in green, a removal in grey, the rest in the accent.
+    final (Color background, Color foreground) = switch (alert.type) {
+      AlertType.priceReduction || AlertType.excellentOpportunity => (
+        colors.positive.withValues(alpha: 0.14),
+        colors.positive,
+      ),
+      AlertType.listingRemoved || AlertType.unknown => (
+        scheme.surfaceContainerHighest,
+        scheme.onSurfaceVariant,
+      ),
+      AlertType.newListing => (
+        scheme.primaryContainer,
+        scheme.onPrimaryContainer,
+      ),
+    };
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        isThreeLine: true,
+        leading: CircleAvatar(
+          backgroundColor: background,
+          foregroundColor: foreground,
+          child: Icon(icon, size: 22),
+        ),
+        title: Text(
+          title,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: alert.isRead ? FontWeight.w500 : FontWeight.w700,
+          ),
+        ),
+        subtitle: Text('$details\n$origin'),
+        trailing: alert.isRead
+            ? null
+            : Semantics(
+                label: 'Não lido',
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: scheme.primary,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+        onTap: onTap,
       ),
     );
   }

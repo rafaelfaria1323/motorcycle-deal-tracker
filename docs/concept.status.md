@@ -115,11 +115,11 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 
 ## 15. Saved Searches ✅
 
-All criteria (➕ plus minimum Deal Score and maximum Risk Score) and all four notification preferences, with edit, delete and "N ofertas".
+All criteria (➕ plus minimum Deal Score and maximum Risk Score) and all four notification preferences, with edit, delete and "N ofertas". Created from Ofertas (current filters) or from Pesquisas ("Nova pesquisa").
 
 ## 16. Alerts ✅
 
-All four types, each at most once per event, only for events after the search was created. Pushed to Telegram ✅ (confirmed on the phone).
+All four types, each at most once per event, only for events after the search was created. Pushed to Telegram ✅ (confirmed on the phone). In the app: grouped by day, unread count on the Alertas tab.
 
 ## 17. Dashboard ✅
 

@@ -1,13 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-class AppShell extends StatelessWidget {
+import '../../features/listings/presentation/cubit/alerts_cubit.dart';
+import '../../features/listings/presentation/cubit/alerts_state.dart';
+import '../di/injection.dart';
+
+class AppShell extends StatefulWidget {
   const AppShell({required this.navigationShell, super.key});
 
   final StatefulNavigationShell navigationShell;
 
+  @override
+  State<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<AppShell> {
+  final _alerts = getIt<AlertsCubit>();
+
+  // The unread count on the Alertas tab needs the alerts from the start,
+  // and again when the app comes back to the screen (new collections run
+  // while it is in the background).
+  late final AppLifecycleListener _lifecycle;
+
+  StatefulNavigationShell get navigationShell => widget.navigationShell;
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle = AppLifecycleListener(onResume: _alerts.load);
+    if (_alerts.state.status == AlertsStatus.initial) _alerts.load();
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    super.dispose();
+  }
+
   static const _wideBreakpoint = 840.0;
   static const _maxContentWidth = 1200.0;
+
+  static const _alertsIndex = 2;
 
   static const _destinations = [
     _Destination('Ofertas', Icons.local_offer_outlined, Icons.local_offer),
@@ -15,6 +49,24 @@ class AppShell extends StatelessWidget {
     _Destination('Alertas', Icons.notifications_outlined, Icons.notifications),
     _Destination('Mais', Icons.more_horiz, Icons.more_horiz),
   ];
+
+  /// The tab icon, with the unread count on Alertas.
+  Widget _icon(int index, {required bool selected}) {
+    final d = _destinations[index];
+    final icon = Icon(selected ? d.selectedIcon : d.icon);
+    if (index != _alertsIndex) return icon;
+
+    return BlocBuilder<AlertsCubit, AlertsState>(
+      bloc: _alerts,
+      buildWhen: (previous, current) =>
+          previous.unreadCount != current.unreadCount,
+      builder: (context, state) => Badge(
+        isLabelVisible: state.unreadCount > 0,
+        label: Text(state.unreadCount > 99 ? '99+' : '${state.unreadCount}'),
+        child: icon,
+      ),
+    );
+  }
 
   void _onSelect(int index) {
     navigationShell.goBranch(
@@ -45,10 +97,10 @@ class AppShell extends StatelessWidget {
               onDestinationSelected: _onSelect,
               labelType: NavigationRailLabelType.all,
               destinations: [
-                for (final d in _destinations)
+                for (final (i, d) in _destinations.indexed)
                   NavigationRailDestination(
-                    icon: Icon(d.icon),
-                    selectedIcon: Icon(d.selectedIcon),
+                    icon: _icon(i, selected: false),
+                    selectedIcon: _icon(i, selected: true),
                     label: Text(d.label),
                   ),
               ],
@@ -75,10 +127,10 @@ class AppShell extends StatelessWidget {
           selectedIndex: navigationShell.currentIndex,
           onDestinationSelected: _onSelect,
           destinations: [
-            for (final d in _destinations)
+            for (final (i, d) in _destinations.indexed)
               NavigationDestination(
-                icon: Icon(d.icon),
-                selectedIcon: Icon(d.selectedIcon),
+                icon: _icon(i, selected: false),
+                selectedIcon: _icon(i, selected: true),
                 label: d.label,
               ),
           ],

@@ -14,9 +14,10 @@ Cloudflare Pages on every merge that touches `app/`
   it, risks, the same bike on the other site, the comparison with a new one,
   market behaviour for the model and the price history.
 - **Pesquisas:** saved searches, each with its "N ofertas" and alert
-  preferences.
+  preferences; "Nova pesquisa" creates one (Ofertas can also save its
+  current filters).
 - **Alertas:** new listings, price drops, excellent opportunities and
-  removed listings.
+  removed listings, grouped by day; the tab shows the unread count.
 - **Mais:** account, "Modelos acompanhados" (switch models on/off, first
   year, new-bike price, add models) and the collection status.
 

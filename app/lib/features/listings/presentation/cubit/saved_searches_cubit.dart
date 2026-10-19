@@ -55,6 +55,35 @@ class SavedSearchesCubit extends Cubit<SavedSearchesState> {
     }
   }
 
+  /// Saves a search made in the "Nova pesquisa" sheet, with its alert
+  /// choices. Returns true when it was saved; if only the alert choices
+  /// fail to save, the search stays with the default ones.
+  Future<bool> createFrom(SavedSearch draft) async {
+    final SavedSearch created;
+    try {
+      created = await _searches.create(
+        name: draft.name ?? '',
+        filters: draft.filters,
+      );
+    } catch (_) {
+      return false;
+    }
+    emit(state.copyWith(searches: [created, ...state.searches]));
+
+    final wanted = created.copyWith(
+      notifyNewListing: draft.notifyNewListing,
+      notifyPriceReduction: draft.notifyPriceReduction,
+      notifyExcellentDeal: draft.notifyExcellentDeal,
+      notifyListingRemoved: draft.notifyListingRemoved,
+    );
+    if (wanted != created) {
+      await update(wanted);
+    } else {
+      await _refreshCounts();
+    }
+    return true;
+  }
+
   /// Returns true when the changes were saved.
   Future<bool> update(SavedSearch search) async {
     try {

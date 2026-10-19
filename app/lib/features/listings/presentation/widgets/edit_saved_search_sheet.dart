@@ -108,7 +108,10 @@ class _EditSavedSearchSheetState extends State<EditSavedSearchSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Editar pesquisa', style: theme.textTheme.titleLarge),
+              Text(
+                widget.search.isDraft ? 'Nova pesquisa' : 'Editar pesquisa',
+                style: theme.textTheme.titleLarge,
+              ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _nameController,
@@ -132,7 +135,7 @@ class _EditSavedSearchSheetState extends State<EditSavedSearchSheet> {
                 ),
                 trailing: TextButton(
                   onPressed: _editCriteria,
-                  child: const Text('Alterar'),
+                  child: Text(_filters.hasCriteria ? 'Alterar' : 'Escolher'),
                 ),
               ),
               const Divider(),

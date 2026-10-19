@@ -18,6 +18,11 @@ abstract final class Formatters {
 
   static String date(DateTime value) => _date.format(value.toLocal());
 
+  static final _time = DateFormat('HH:mm');
+
+  /// "09:05", local time.
+  static String time(DateTime value) => _time.format(value.toLocal());
+
   static String daysAgo(DateTime value, {DateTime? now}) {
     final days = (now ?? DateTime.now()).difference(value).inDays;
     if (days <= 0) return 'hoje';

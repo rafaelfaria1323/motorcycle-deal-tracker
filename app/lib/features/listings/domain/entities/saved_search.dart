@@ -14,6 +14,13 @@ class SavedSearch extends Equatable {
     this.notifyListingRemoved = false,
   });
 
+  /// A search not saved yet, for the "Nova pesquisa" sheet.
+  factory SavedSearch.draft() => SavedSearch(
+    id: '',
+    filters: ListingFilters.empty,
+    createdAt: DateTime.now(),
+  );
+
   final String id;
   final String? name;
   final ListingFilters filters;
@@ -24,6 +31,8 @@ class SavedSearch extends Equatable {
   final bool notifyPriceReduction;
   final bool notifyExcellentDeal;
   final bool notifyListingRemoved;
+
+  bool get isDraft => id.isEmpty;
 
   String get displayName =>
       (name == null || name!.trim().isEmpty) ? 'Pesquisa sem nome' : name!;
