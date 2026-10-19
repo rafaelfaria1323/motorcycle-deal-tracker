@@ -63,12 +63,13 @@ void main() {
     expect(explanation.label, 'Excelente');
     expect(explanation.lines.map((l) => l.tone), [
       ExplanationTone.positive,
+      ExplanationTone.neutral,
       ExplanationTone.positive,
       ExplanationTone.positive,
     ]);
     expect(
       explanation.lines.first.text,
-      contains('abaixo do preço de mercado'),
+      contains('8% (720 €) abaixo do valor estimado'),
     );
     expect(explanation.slicesUsed, 3);
   });
