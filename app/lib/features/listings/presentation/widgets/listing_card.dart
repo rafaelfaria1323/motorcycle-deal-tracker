@@ -8,10 +8,22 @@ import 'listing_photo.dart';
 import 'price_change_tag.dart';
 
 class ListingCard extends StatelessWidget {
-  const ListingCard({required this.listing, this.onTap, super.key});
+  const ListingCard({
+    required this.listing,
+    this.onTap,
+    this.onLongPress,
+    this.selected = false,
+    super.key,
+  });
 
   final Listing listing;
   final VoidCallback? onTap;
+
+  /// Picks the listing for the comparison.
+  final VoidCallback? onLongPress;
+
+  /// In the comparison: a primary border and a check mark.
+  final bool selected;
 
   static const photoHeight = 180.0;
 
@@ -24,11 +36,18 @@ class ListingCard extends StatelessWidget {
     final textTheme = theme.textTheme;
     final muted = theme.colorScheme.onSurfaceVariant;
 
+    final shape = theme.cardTheme.shape;
     return Card(
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
+      shape: selected && shape is RoundedRectangleBorder
+          ? shape.copyWith(
+              side: BorderSide(color: theme.colorScheme.primary, width: 2),
+            )
+          : null,
       child: InkWell(
         onTap: onTap,
+        onLongPress: onLongPress,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -48,6 +67,20 @@ class ListingCard extends StatelessWidget {
                     ),
                   if (listing.isRemoved)
                     const Positioned(top: 10, left: 10, child: _RemovedPill()),
+                  if (selected)
+                    Positioned(
+                      bottom: 10,
+                      left: 10,
+                      child: CircleAvatar(
+                        radius: 14,
+                        backgroundColor: theme.colorScheme.primary,
+                        child: Icon(
+                          Icons.compare_arrows,
+                          size: 16,
+                          color: theme.colorScheme.onPrimary,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),

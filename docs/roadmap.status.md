@@ -173,6 +173,8 @@ Do not implement several unrelated features at once.
 ➕ **Weekly Telegram summary** ✅ (11.1c): every Monday (`weekly-summary.yml`, 07:52 UTC, or "Run workflow") one message about the tracked models' last 7 days: new listings per model, price drops of 1 % or more (biggest 3 shown), listings gone, live count, and the 5 best live deals with risk below 50, each with its link. Reads the database only; `make weekly-summary ARGS=--dry-run` prints it.
 ➕ **Housekeeping** 🟡: saved pages and fetch state are no longer tracked ✅; **the repo should be made private** (old saved pages with phone numbers remain in git history) ⬜.
 
+➕ **Compare listings** ✅ (13.7): long press a card in Ofertas (or "Comparar" on a listing's page) to pick up to 3; "Comparar (n)" opens them side by side (`/compare?ids=…`, so a reload keeps them): photo and title per column, then price, Deal Score, Risk Score, difference to the market value, year, km, price drop, owners, service book, location, seller, source and first seen, the best value of each row highlighted. Table logic in `compare_text.dart`, tested.
+
 # Sprint 13 — UI/UX redesign ✅
 
 *Goal: the app has grown screen by screen; make it coherent on the iPhone. Each step is a small PR Rafael checks on the phone.*
@@ -228,7 +230,7 @@ Do not implement several unrelated features at once.
 
 1. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history.
 2. Price trends per model (10.3): median asking price per model by week, once a few weeks of history exist.
-3. Compare listings side by side (concept: "Compare motorcycles" ⬜).
+3. Saved ads from other sites: update the price or mark sold from their page (after #43).
 
 **Open items for Rafael:** read the Standvirtual/OLX terms and record the clauses in `docs/sources.md`; check the new-bike reference prices; make the repo private.
 

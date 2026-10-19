@@ -6,7 +6,9 @@ import '../../features/listings/presentation/cubit/listing_detail_cubit.dart';
 import '../../features/listings/presentation/cubit/listings_cubit.dart';
 import '../../features/listings/presentation/cubit/listings_state.dart';
 import '../../features/listings/presentation/cubit/saved_searches_cubit.dart';
+import '../../features/listings/presentation/compare_text.dart';
 import '../../features/listings/presentation/pages/alerts_page.dart';
+import '../../features/listings/presentation/pages/compare_page.dart';
 import '../../features/listings/presentation/pages/dashboard_page.dart';
 import '../../features/listings/presentation/pages/listing_detail_page.dart';
 import '../../features/listings/presentation/pages/saved_searches_page.dart';
@@ -96,6 +98,11 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.models,
       builder: (context, state) => const TrackedModelsPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.comparePath,
+      builder: (context, state) =>
+          ComparePage(ids: parseCompareIds(state.uri.queryParameters['ids'])),
     ),
   ],
 );

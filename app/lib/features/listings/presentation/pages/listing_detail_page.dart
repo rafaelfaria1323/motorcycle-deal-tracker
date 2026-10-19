@@ -3,10 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/formatting/formatters.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/listing.dart';
+import '../compare_text.dart';
+import '../cubit/compare_cubit.dart';
 import '../cubit/listing_detail_cubit.dart';
 import '../cubit/listing_detail_state.dart';
 import '../listing_dates_text.dart';
@@ -35,6 +38,7 @@ class ListingDetailPage extends StatelessWidget {
               context.canPop() ? context.pop() : context.go(AppRoutes.deals),
         ),
         title: const Text('Detalhe'),
+        actions: [_CompareButton(listingId: listingId)],
       ),
       body: BlocBuilder<ListingDetailCubit, ListingDetailState>(
         builder: (context, state) {
@@ -393,6 +397,69 @@ class _FactRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Adds the listing to the comparison or takes it out; offers to open the
+/// comparison once there are two or more.
+class _CompareButton extends StatelessWidget {
+  const _CompareButton({required this.listingId});
+
+  final String listingId;
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = getIt<CompareCubit>();
+    return BlocBuilder<CompareCubit, List<String>>(
+      bloc: cubit,
+      builder: (context, compared) {
+        final added = compared.contains(listingId);
+        return IconButton(
+          tooltip: added ? 'Retirar da comparação' : 'Comparar',
+          isSelected: added,
+          icon: const Icon(Icons.compare_arrows),
+          onPressed: () {
+            final messenger = ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar();
+            if (!cubit.toggle(listingId)) {
+              messenger.showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Já tem $maxCompared anúncios na comparação. '
+                    'Retire um primeiro.',
+                  ),
+                ),
+              );
+              return;
+            }
+            final now = cubit.state;
+            if (added) {
+              messenger.showSnackBar(
+                const SnackBar(content: Text('Retirado da comparação.')),
+              );
+            } else if (now.length < 2) {
+              messenger.showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Na comparação. Escolha outro anúncio para comparar.',
+                  ),
+                ),
+              );
+            } else {
+              messenger.showSnackBar(
+                SnackBar(
+                  content: Text('Na comparação (${now.length}).'),
+                  action: SnackBarAction(
+                    label: 'Comparar',
+                    onPressed: () => context.push(AppRoutes.compare(now)),
+                  ),
+                ),
+              );
+            }
+          },
+        );
+      },
     );
   }
 }
