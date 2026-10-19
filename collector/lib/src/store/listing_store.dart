@@ -1,4 +1,3 @@
-import 'package:collector/src/notify/pending_alert.dart';
 import 'package:supabase/supabase.dart';
 
 import '../../collector.dart';

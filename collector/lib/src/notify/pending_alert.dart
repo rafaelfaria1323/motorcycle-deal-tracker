@@ -84,7 +84,7 @@ String formatAlert(PendingAlert a) {
 
   return [
     '$heading: $bike',
-    if (priceLine != null) priceLine,
+    ?priceLine,
     if (facts.isNotEmpty) facts,
     a.url,
   ].join('\n');

@@ -4,7 +4,7 @@ import 'package:collector/collector.dart';
 import 'package:supabase/supabase.dart';
 
 /// Records one scheduled run in `collector_runs` and drops rows older than
-/// 90 days. Usage: report_run.dart <exit-code> <started-at> <log-file>
+/// 90 days. Usage: `report_run.dart <exit-code> <started-at> <log-file>`
 Future<void> main(List<String> args) async {
   if (args.length != 3) {
     stderr.writeln(
