@@ -125,7 +125,11 @@ for the code-quality review.
   in step by a `Title` in `MaterialApp.builder`. `web/index.html` has ONE
   `theme-color` tag (`id="flutterweb-theme"`), set by an inline script from
   `prefers-color-scheme` (the iPhone app ignores `media` on theme-color
-  tags); it and `web/manifest.json` repeat these colours.
+  tags); it and `web/manifest.json` repeat these colours. Every `AppBar`
+  also writes its `systemOverlayStyle.statusBarColor` into that tag, so
+  `AppBarTheme.systemOverlayStyle` sets it to the background (Material 3's
+  default is transparent black, which Safari shows as black); an AppBar
+  with its own background sets its own.
 
 ## Database conventions (Supabase / Postgres)
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'app_colors.dart';
 
@@ -146,6 +147,16 @@ abstract final class AppTheme {
       // The app bar keeps the page's background when content scrolls under
       // it, so it stays the same colour as the status bar above it.
       appBarTheme: AppBarTheme(
+        // Every app bar reports a status bar colour, and on the web Flutter
+        // writes it into the page's theme-color, which Safari paints the
+        // status bar with. Material 3's default is transparent black, which
+        // Safari shows as black even in light mode; the page background is
+        // what the status bar must show.
+        systemOverlayStyle:
+            (scheme.brightness == Brightness.dark
+                    ? SystemUiOverlayStyle.light
+                    : SystemUiOverlayStyle.dark)
+                .copyWith(statusBarColor: scheme.surface),
         backgroundColor: scheme.surface,
         foregroundColor: scheme.onSurface,
         elevation: 0,
