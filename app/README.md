@@ -1,16 +1,49 @@
-# motorcycle_deal_tracker
+# App (Flutter Web/PWA)
 
-A new Flutter project.
+The Motorcycle Deal Tracker app, in Portuguese (pt-PT). Published to
+Cloudflare Pages on every merge that touches `app/`
+(`.github/workflows/deploy-web.yml`: `flutter test`, then
+`flutter build web`).
 
-## Getting Started
+## Screens
 
-This project is a starting point for a Flutter application.
+- **Ofertas:** listings of the tracked models, sorted by Deal Score (or
+  newest, cheapest, most expensive), with filters shown as chips and paged
+  40 at a time.
+- **Listing page:** photo gallery, price and score with the reasons behind
+  it, risks, the same bike on the other site, the comparison with a new one,
+  market behaviour for the model and the price history.
+- **Pesquisas:** saved searches, each with its "N ofertas" and alert
+  preferences.
+- **Alertas:** new listings, price drops, excellent opportunities and
+  removed listings.
+- **Mais:** account, "Modelos acompanhados" (switch models on/off, first
+  year, new-bike price, add models) and the collection status.
 
-A few resources to get you started if this is your first Flutter project:
+## Running it
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+```sh
+cp env/dev.example.json env/dev.json   # SUPABASE_URL + SUPABASE_PUBLISHABLE_KEY
+make app-run                           # from the repo root: Chrome
+make app-check                         # analyze and test
+make app-serve                         # release build on http://localhost:8080
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Visitors get an anonymous session; the owner signs in with email and
+password (created by hand in Supabase) to change the catalog.
+
+## Code layout
+
+```text
+lib/app/        App widget, theme, router (go_router, one shell with 4 tabs), DI (get_it)
+lib/core/       Formatting, shared widgets
+lib/features/   listings, collector_status, settings
+  <feature>/domain/        entities, repository interfaces
+  <feature>/data/          models (fromJson), Supabase repositories
+  <feature>/presentation/  cubits, pages, widgets, *_text.dart (text built from data)
+test/           unit tests, mostly for the cubits and *_text.dart functions
+```
+
+State uses Cubits (flutter_bloc) with Equatable states. Photos use
+`Image.network` with `WebHtmlElementStrategy.prefer`, because the photo
+sites send no CORS headers.
