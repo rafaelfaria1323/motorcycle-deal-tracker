@@ -30,7 +30,7 @@ Tracked models (chosen in the app)
 | [`collector/`](collector/README.md) | Dart command line: fetches, parses and stores listings, then scores and alerts |
 | `supabase/` | Database migrations: tables, scoring, alerts, views, access rules |
 | `docs/` | Progress and decisions (see below) |
-| `.github/workflows/` | `collect.yml` (every 4 hours), `deploy-web.yml` (app on merge), `notify-test.yml` (Telegram test) |
+| `.github/workflows/` | `collect.yml` (every 4 hours), `deploy-web.yml` (app on merge), `notify-test.yml` (Telegram test), `code-quality.yml` (Claude reviews the code after every 5 merged PRs) |
 
 ## Getting started
 
@@ -49,7 +49,8 @@ make check                # analyze and test everything (before each commit)
 `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`.
 GitHub Actions uses repository secrets with the same names, plus
 `SUPABASE_PUBLISHABLE_KEY`, `CLOUDFLARE_API_TOKEN` and
-`CLOUDFLARE_ACCOUNT_ID` for the web deploy. Database changes: `make db-new
+`CLOUDFLARE_ACCOUNT_ID` for the web deploy, and `CLAUDE_CODE_OAUTH_TOKEN`
+for the code-quality review. Database changes: `make db-new
 NAME=...`, then `make db-push`.
 
 ## Fetching rules

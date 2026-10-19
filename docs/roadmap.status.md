@@ -217,6 +217,11 @@ Do not implement several unrelated features at once.
 ## 12.3 Native notifications ⬜
 ## 12.4 Mobile-specific UX ⬜
 
+# Tooling
+
+## T.1 Automatic code-quality review ✅
+*`.github/workflows/code-quality.yml`: after every 5 merged PRs (or "Run workflow"), Claude Code reviews the code on GitHub Actions, with Flutter installed so `make check` really runs, and opens at most one small PR labelled `code-quality` (none if nothing is worth changing). The tag `code-quality-reviewed` marks the last review; no review starts while one is open. Runs on Rafael's Claude plan through the `CLAUDE_CODE_OAUTH_TOKEN` secret.*
+
 # Next
 
 1. UI/UX redesign (Sprint 13): 13.6 one voice and polish next.
@@ -224,7 +229,7 @@ Do not implement several unrelated features at once.
 3. Price history chart on the detail page.
 4. Weekly Telegram summary (best deals, new drops, listings gone).
 
-**Open items for Rafael:** read the Standvirtual/OLX terms and record the clauses in `docs/sources.md`; check the new-bike reference prices; make the repo private.
+**Open items for Rafael:** add the `CLAUDE_CODE_OAUTH_TOKEN` secret and allow Actions to create PRs (see T.1); read the Standvirtual/OLX terms and record the clauses in `docs/sources.md`; check the new-bike reference prices; make the repo private.
 
 # Definition of Done
 

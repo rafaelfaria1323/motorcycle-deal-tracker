@@ -58,7 +58,7 @@ Unchanged.
 - Frontend: Flutter Web, Dart ✅
 - Backend: Supabase, PostgreSQL ✅, Supabase Auth ✅ *(anonymous + owner email/password)*; scheduled jobs ➕ *on GitHub Actions instead of Edge Functions (a Dart CLI collector, one process per run, every 4 hours).*
 - Hosting: Cloudflare Pages ✅
-- Repository: GitHub ✅ *(should become private)*
+- Repository: GitHub ✅ *(should become private)*; ➕ automatic code-quality review by Claude after every 5 merged PRs
 - Notifications: ➕ Telegram bot ✅; Web push / FCM ⬜
 
 ## 8. Architecture ✅
