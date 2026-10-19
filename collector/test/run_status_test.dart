@@ -23,6 +23,17 @@ void main() {
     expect(tail, 'line 97\nline 98\nline 99');
   });
 
+  test('the tail of a short or empty log is all of it', () {
+    expect(logTail(''), '');
+    expect(logTail('one\ntwo\n\n'), 'one\ntwo');
+  });
+
+  test('the tail is cut to the last characters', () {
+    final log = List.generate(5, (i) => 'line $i').join('\n');
+
+    expect(logTail(log, maxChars: 6), 'line 4');
+  });
+
   test('reads the requests each site used', () {
     const log =
         'Requests used: standvirtual=15 (limit 20)\n'

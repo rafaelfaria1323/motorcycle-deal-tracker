@@ -161,7 +161,7 @@ Do not implement several unrelated features at once.
 # Sprint 11 — Quality 🟡
 
 ## 11.1 Unit tests 🟡
-*App: alerts, saved searches, score explainer, risk reasons, market behaviour, collector status, new-price text, catalog and tracked-models text. Collector (132 tests): adapters, mappers, model resolver (real OLX titles), search plan, removal plan, normalizers, store, fetcher, robots.txt, run status. SQL is verified on a local Postgres with all migrations, not with automated tests.*
+*App: alerts, saved searches, score explainer, risk reasons, market behaviour, collector status, new-price text, catalog and tracked-models text. Collector (137 tests): adapters, mappers, model resolver (real OLX titles), search plan, removal plan, normalizers, store, fetcher, robots.txt, run status. SQL is verified on a local Postgres with all migrations, not with automated tests.*
 ## 11.2 Integration tests ⬜
 ## 11.3 Logging 🟡
 *Every scheduled run is recorded in `collector_runs` with a log tail; Actions keeps the full log for 7 days.*

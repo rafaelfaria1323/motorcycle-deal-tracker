@@ -12,13 +12,13 @@ the database schema, secrets or workflows goes to "Needs Rafael".
 ## To do
 
 - Photo overlays bypass the theme: `Colors.black54/black45/white` in `app/lib/features/listings/presentation/widgets/photo_gallery.dart`, `Colors.black.withValues` + `Colors.white` in `listing_card.dart`, `Colors.white` + `Color(0x33000000)` in `deal_score_badge.dart`; move them into `AppColors`.
-- `collector/lib/src/store/listing_store.dart` and `collector/lib/src/pipeline/run_status.dart` have no direct tests for `uniqueBySourceId` / `logTail` edge cases (empty log, fewer lines than the limit); check and add.
 - `CollectorStatusCubit` (`app/lib/features/collector_status/presentation/collector_status_cubit.dart`) has no test for its swallow-errors behaviour.
 
 ## Needs Rafael
 
 ## Done
 
+- 2026-10-19: Edge-case tests for `uniqueBySourceId` (same id on two sites, empty input) and `logTail` (empty log, fewer lines than the limit, character cut).
 - 2026-10-19: `ListingDetailCubit` got tests (known listing, malformed id is not found without a query, unknown id, failure).
 - 2026-10-19: The test reading the uncommitted saved Standvirtual search page (`standvirtual_search_test.dart`) is skipped when the file is missing, so `make check` passes on a clean checkout.
 - 2026-10-19: `_map`, `_int` and `_time` were copied in the OLX and Standvirtual search/page adapters; now `asMap`, `asInt`, `asTime` in `collector/lib/src/adapters/json_values.dart`.
