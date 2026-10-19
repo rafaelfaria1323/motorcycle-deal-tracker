@@ -29,7 +29,4 @@ abstract final class Formatters {
     if (days == 1) return 'ontem';
     return 'há $days dias';
   }
-
-  static String formatDate(DateTime date) =>
-      DateFormat.yMMMd('pt_PT').format(date);
 }
