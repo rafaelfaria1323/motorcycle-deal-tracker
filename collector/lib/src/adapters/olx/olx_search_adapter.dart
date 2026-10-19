@@ -146,7 +146,8 @@ class OlxSearchAdapter implements SourceAdapter<OlxRawListing> {
     final filters = _map(request?['params']) ?? const {};
     final search = [
       categoryPath,
-      for (final key in filters.keys.toList()..sort()) '$key=${filters[key]}',
+      for (final key in filters.keys.toList()..sort())
+        if (key != 'page') '$key=${filters[key]}',
     ].join(' ');
 
     final brand = categoryPath.split('/').length > 2
@@ -195,9 +196,10 @@ OlxRawListing _fromAd(Map<String, dynamic> ad, String? brand) {
   String? value(String key) => params[key]?['value']?.toString();
   String? normalized(String key) => params[key]?['normalizedValue']?.toString();
 
+  // Trade-only and "price on request" ads have no price; the mapper
+  // rejects them, but they are still live listings.
   final regular = _map(_map(ad['price'])?['regularPrice']);
   final price = regular?['value'];
-  if (price is! num) throw FormatException('$id: no price');
 
   final user = _map(ad['user']);
   final company = '${user?['company_name'] ?? ''}'.trim();
@@ -221,7 +223,7 @@ OlxRawListing _fromAd(Map<String, dynamic> ad, String? brand) {
     url: url,
     status: '${ad['status']}',
     title: '${ad['title'] ?? ''}',
-    price: price,
+    price: price is num ? price : null,
     currency: '${regular?['currencyCode']}',
     categoryBrand: brand,
     model: value('modelo'),

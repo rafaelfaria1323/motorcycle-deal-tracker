@@ -118,12 +118,3 @@ Future<void> main(List<String> args) async {
     fetcher.close();
   }
 }
-
-/// `/motos/yamaha/mt-07?x=1` -> `motos-yamaha-mt-07-x-1.html`
-String fileNameFor(Uri url) {
-  final raw = '${url.path}${url.hasQuery ? '?${url.query}' : ''}'.toLowerCase();
-  final slug = raw
-      .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
-      .replaceAll(RegExp(r'^-+|-+$'), '');
-  return '${slug.length > 150 ? slug.substring(0, 150) : slug}.html';
-}

@@ -13,7 +13,8 @@ Map<String, dynamic> param(String key, String value, [String? normalized]) => {
 Map<String, dynamic> ad({
   int id = 1,
   String title = 'Yamaha MT-07 35Kw',
-  int price = 7400,
+  String model = 'MT-07',
+  int? price = 7400,
   String year = '2024',
   bool business = false,
   String userName = 'Paula Teixeira',
@@ -28,13 +29,15 @@ Map<String, dynamic> ad({
   'description': 'Para venda Mt-07<br />\nDeslimitada<br />\n',
   'isBusiness': business,
   'params': [
-    param('modelo', 'MT-07', 'mt-07'),
+    param('modelo', model, model.toLowerCase()),
     param('year', year),
     param('quilometros', '10.000 km', '10000'),
     param('cilindrada', '501 - 1000 cc', '501-1000-cc'),
   ],
   'price': {
-    'regularPrice': {'value': price, 'currencyCode': 'EUR'},
+    'regularPrice': price == null
+        ? null
+        : {'value': price, 'currencyCode': 'EUR'},
   },
   'location': {'cityName': 'Fafe', 'regionName': 'Braga'},
   'user': {'name': userName, 'company_name': company},
@@ -58,7 +61,10 @@ String searchPage(
         'requestParams': {
           'page': page,
           'categoryPath': 'carros-motos-e-barcos/motociclos-scooters/yamaha',
-          'params': {'search[filter_enum_modelo][0]': 'mt-07'},
+          'params': {
+            'search[filter_enum_modelo][0]': 'mt-07',
+            if (page > 0) 'page': '$page',
+          },
         },
       },
     },
@@ -74,6 +80,12 @@ final mapper = OlxMapper(
       slug: 'yamaha-mt-07',
       brand: 'Yamaha',
       model: 'MT-07',
+      minYear: 2023,
+    ),
+    CatalogEntry(
+      slug: 'yamaha-r7',
+      brand: 'Yamaha',
+      model: 'R7',
       minYear: 2023,
     ),
   ]),
@@ -128,7 +140,7 @@ void main() {
     final listing = (mapper.map(raw) as Mapped).listing;
 
     expect(listing.motorcycleSlug, isNull);
-    expect(listing.model, 'Yamaha Tracer 7 2023');
+    expect(listing.model, 'Tracer 7 2023');
   });
 
   test('a copy of a Standvirtual ad is skipped but still counts as live', () {
@@ -185,5 +197,41 @@ void main() {
       'page': '3',
     });
     expect(urlProblem(page, site: FetchSite.olx), isNull);
+  });
+
+  test('the model is found after OLX\'s family and the brand', () {
+    for (final title in [
+      'Yamaha YZF-R7 [2024] [3500]km',
+      'Moto Yamaha YZF R7 2024',
+      'YZF-R7 impecável',
+    ]) {
+      final raw = one(ad(title: title, model: 'YZF'));
+      final listing = (mapper.map(raw) as Mapped).listing;
+      expect(listing.motorcycleSlug, 'yamaha-r7', reason: title);
+    }
+  });
+
+  test('an ad without a price is skipped, not a read problem', () {
+    final page = adapter.parseSearchPage(searchPage([ad(price: null)]));
+
+    expect(page.problems, isEmpty);
+    expect(mapper.map(page.records.single), isA<Rejected>());
+  });
+
+  test('long addresses of different pages get different file names', () {
+    final search = Uri.parse(
+      'https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/honda/'
+      '?search%5Bfilter_enum_modelo%5D%5B0%5D=cb'
+      '&search%5Bfilter_enum_modelo%5D%5B1%5D=cbr'
+      '&search%5Bfilter_float_year:from%5D=2023',
+    );
+    final names = {
+      for (var p = 2; p <= 4; p++)
+        fileNameFor(OlxSearchAdapter.pageUrl(search, p)),
+      fileNameFor(search),
+    };
+
+    expect(names.length, 4);
+    expect(names.every((n) => n.length <= 155 && n.endsWith('.html')), isTrue);
   });
 }

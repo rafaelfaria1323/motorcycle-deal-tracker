@@ -5,7 +5,7 @@ class OlxRawListing {
     required this.url,
     required this.status,
     required this.title,
-    required this.price,
+    this.price,
     required this.currency,
     this.categoryBrand,
     this.model,
@@ -24,7 +24,9 @@ class OlxRawListing {
   final String url;
   final String status;
   final String title;
-  final num price;
+
+  /// Null for trade-only or "price on request" ads.
+  final num? price;
   final String currency;
 
   /// The brand the search's category stands for ("yamaha" in
