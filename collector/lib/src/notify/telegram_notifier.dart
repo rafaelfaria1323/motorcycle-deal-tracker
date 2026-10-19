@@ -28,7 +28,9 @@ class TelegramNotifier {
   final String token;
   final String chatId;
 
-  Future<void> send(String text) async {
+  /// Sends [text]; [linkPreview] false hides the preview Telegram shows
+  /// for the first link (a message with many links reads better without).
+  Future<void> send(String text, {bool linkPreview = true}) async {
     final client = HttpClient()
       ..connectionTimeout = const Duration(seconds: 15);
     try {
@@ -36,7 +38,13 @@ class TelegramNotifier {
           .postUrl(Uri.https('api.telegram.org', '/bot$token/sendMessage'))
           .timeout(const Duration(seconds: 15));
       request.headers.contentType = ContentType.json;
-      request.write(jsonEncode({'chat_id': chatId, 'text': text}));
+      request.write(
+        jsonEncode({
+          'chat_id': chatId,
+          'text': text,
+          if (!linkPreview) 'link_preview_options': {'is_disabled': true},
+        }),
+      );
       final response = await request.close().timeout(
         const Duration(seconds: 15),
       );

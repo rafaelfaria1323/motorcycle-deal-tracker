@@ -21,7 +21,7 @@ Tracked models (chosen in the app)
   → collector (GitHub Actions, every 4 hours): searches → polite fetch → parse → store
   → Supabase / Postgres: price history, duplicates, fair value, scores, alerts
   → app (Flutter Web on Cloudflare Pages): Ofertas · Pesquisas · Alertas · Mais
-  → Telegram: new alerts after each run
+  → Telegram: new alerts after each run, and a summary of the week every Monday
 ```
 
 | Folder | What it is |
@@ -30,7 +30,7 @@ Tracked models (chosen in the app)
 | [`collector/`](collector/README.md) | Dart command line: fetches, parses and stores listings, then scores and alerts |
 | `supabase/` | Database migrations: tables, scoring, alerts, views, access rules |
 | `docs/` | Progress and decisions (see below) |
-| `.github/workflows/` | `collect.yml` (every 4 hours), `deploy-web.yml` (app on merge), `notify-test.yml` (Telegram test), `code-quality.yml` (after every 5 merged PRs, Claude works through the backlog in `docs/code-quality.md`) |
+| `.github/workflows/` | `collect.yml` (every 4 hours), `deploy-web.yml` (app on merge), `weekly-summary.yml` (Mondays, the week on Telegram), `notify-test.yml` (Telegram test), `code-quality.yml` (after every 5 merged PRs, Claude works through the backlog in `docs/code-quality.md`) |
 
 ## Getting started
 

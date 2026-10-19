@@ -266,6 +266,69 @@ class ListingStore {
     ];
   }
 
+  /// For the weekly summary: listings of the models in [bikeNames] (id to
+  /// name), not duplicates, that are live or were first seen or found
+  /// missing since [since].
+  Future<List<SummaryListing>> summaryListings(
+    Map<String, String> bikeNames,
+    DateTime since,
+  ) async {
+    if (bikeNames.isEmpty) return const [];
+    final from = since.toUtc().toIso8601String();
+    const page = 1000;
+    final result = <SummaryListing>[];
+    for (var offset = 0; ; offset += page) {
+      final rows = await _client
+          .from('listings')
+          .select(
+            'id, motorcycle_id, brand, model, url, status, first_seen_at, '
+            'last_checked_at, year, mileage, price, deal_score, risk_score',
+          )
+          .inFilter('motorcycle_id', bikeNames.keys.toList())
+          .isFilter('duplicate_of', null)
+          .or(
+            'status.in.(active,price_changed),'
+            'first_seen_at.gte."$from",last_checked_at.gte."$from"',
+          )
+          .order('id')
+          .range(offset, offset + page - 1);
+      result.addAll([
+        for (final r in rows) SummaryListing.fromRow(r, bikeNames),
+      ]);
+      if (rows.length < page) return result;
+    }
+  }
+
+  /// The whole price history of those of [listingIds] whose price was
+  /// recorded since [since] (a new price, or a new listing's first one).
+  Future<List<PricePoint>> priceHistoryChangedSince(
+    Set<String> listingIds,
+    DateTime since,
+  ) async {
+    final recent = await _client
+        .from('listing_price_history')
+        .select('listing_id')
+        .gte('observed_at', since.toUtc().toIso8601String());
+    final ids = {
+      for (final r in recent)
+        if (listingIds.contains(r['listing_id'])) r['listing_id'] as String,
+    }.toList();
+
+    final points = <PricePoint>[];
+    // A few ids per request keep the address short.
+    for (var i = 0; i < ids.length; i += 100) {
+      final rows = await _client
+          .from('listing_price_history')
+          .select('listing_id, price, observed_at')
+          .inFilter(
+            'listing_id',
+            ids.sublist(i, (i + 100).clamp(0, ids.length)),
+          );
+      points.addAll([for (final r in rows) PricePoint.fromRow(r)]);
+    }
+    return points;
+  }
+
   Future<int> markNotified(List<String> alertIds) async {
     if (alertIds.isEmpty) return 0;
     final result = await _client.rpc(
