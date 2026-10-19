@@ -90,8 +90,10 @@ names, plus `SUPABASE_PUBLISHABLE_KEY`, `CLOUDFLARE_API_TOKEN` and
   email + password (user created by hand in Supabase, no SMTP). Catalog
   changes go through RPCs that call `require_account()` (signed in, not
   anonymous).
-- Photos: `Image.network` with `WebHtmlElementStrategy.fallback` (the photo
-  CDNs don't send CORS headers).
+- Photos: `Image.network` with `WebHtmlElementStrategy.prefer` (the photo
+  CDNs don't send CORS headers, so an `<img>` element is the only way).
+- Lists load `ListingModel.summaryColumns`, never `*` (descriptions are big);
+  the deals list is paged (40 per page, more on scroll).
 - Hosting: Cloudflare Pages, installed on the iPhone from Safari ("Adicionar
   ao ecrã principal"). Status bar = `theme-color` = the theme's surface
   colour (`#FFF8F6` light, `#1A110F` dark), kept in step by a `Title` in

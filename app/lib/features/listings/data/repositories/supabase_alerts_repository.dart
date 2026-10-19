@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/listing_alert.dart';
 import '../../domain/repositories/alerts_repository.dart';
 import '../models/listing_alert_model.dart';
+import '../models/listing_model.dart';
 
 class SupabaseAlertsRepository implements AlertsRepository {
   SupabaseAlertsRepository(this._client);
@@ -14,7 +15,9 @@ class SupabaseAlertsRepository implements AlertsRepository {
     // Row-level security returns only the current user's alerts.
     final rows = await _client
         .from('alerts')
-        .select('*, listings(*), saved_searches(name)')
+        .select(
+          '*, listings(${ListingModel.summaryColumns}), saved_searches(name)',
+        )
         .order('created_at', ascending: false)
         .limit(100);
     return rows.map<ListingAlert>(ListingAlertModel.fromJson).toList();

@@ -4,8 +4,8 @@ import 'listing_model.dart';
 class ListingAlertModel {
   const ListingAlertModel._();
 
-  /// Expects the row with its listing and saved search embedded:
-  /// `select('*, listings(*), saved_searches(name)')`.
+  /// Expects the row with its listing (`ListingModel.summaryColumns`) and
+  /// saved search embedded: `select('*, listings(...), saved_searches(name)')`.
   static ListingAlert fromJson(Map<String, dynamic> json) {
     final search = json['saved_searches'] as Map<String, dynamic>?;
     return ListingAlert(

@@ -17,8 +17,10 @@ class SupabaseListingsRepository implements ListingsRepository {
   Future<List<Listing>> getListings({
     ListingFilters filters = ListingFilters.empty,
     ListingSort sort = ListingSort.newest,
+    int offset = 0,
+    int limit = 40,
   }) async {
-    var query = _client.from('listings').select();
+    var query = _client.from('listings').select(ListingModel.summaryColumns);
     query = query.isFilter('duplicate_of', null);
 
     if (filters.motorcycleId != null) {
@@ -68,7 +70,8 @@ class SupabaseListingsRepository implements ListingsRepository {
       ),
     };
 
-    final rows = await ordered;
+    // The id breaks ties, so pages never repeat or skip a listing.
+    final rows = await ordered.order('id').range(offset, offset + limit - 1);
     return rows.map(ListingModel.fromJson).toList();
   }
 
@@ -108,7 +111,7 @@ class SupabaseListingsRepository implements ListingsRepository {
     final originalId = listing.duplicateOf ?? listing.id;
     final rows = await _client
         .from('listings')
-        .select()
+        .select(ListingModel.summaryColumns)
         .or('id.eq.$originalId,duplicate_of.eq.$originalId')
         .neq('id', listing.id)
         .order('first_seen_at');

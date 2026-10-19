@@ -63,6 +63,7 @@ Do not implement several unrelated features at once.
 ➕ 3.8 Hosting: Cloudflare Pages, deployed by GitHub Actions on every merge touching `app/` (tests must pass) ✅
 ➕ 3.9 Listing photos load despite missing CORS headers (`<img>` fallback) ✅
 ➕ 3.10 iPhone status bar matches the app background in light and dark mode ✅
+➕ 3.11 Performance: lists load only the columns they show (no descriptions), the deals list is paged (40 at a time, more on scroll), first load and market card queries run in parallel, photos go straight to `<img>` ✅
 
 # Sprint 4 — Deal Engine ✅
 

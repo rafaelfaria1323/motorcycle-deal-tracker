@@ -35,6 +35,15 @@ class ListingModel extends Listing {
     super.newPriceCheckedAt,
   });
 
+  /// The columns lists need (cards, alerts, other sources of a bike); the
+  /// detail page loads the whole row. Leaves out the description and score
+  /// breakdown, the bulk of a row.
+  static const summaryColumns =
+      'id, source, url, brand, model, motorcycle_id, duplicate_of, year, '
+      'mileage, price, initial_price, price_before_drop, deal_score, '
+      'risk_score, seller_type, location, images, status, first_seen_at, '
+      'last_seen_at';
+
   factory ListingModel.fromJson(Map<String, dynamic> json) {
     // Present when the query embeds the matched model's new-bike price.
     final bike = json['motorcycles'] as Map<String, dynamic>?;
