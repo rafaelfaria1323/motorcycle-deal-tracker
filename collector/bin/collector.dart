@@ -91,6 +91,11 @@ Future<void> main(List<String> args) async {
     final changed = await store.applyPriceChanges(batch.source, unique);
     stdout.writeln('Price changes: $changed');
 
+    // 3b. Cuts the site reports, which may predate our tracking. Kept apart
+    //     from our own price history, so they never create alerts.
+    final drops = await store.applyPricesBeforeDrop(batch.source, unique);
+    stdout.writeln('Site-reported price cuts updated: $drops');
+
     // 4. Only for a complete import: what is missing has been removed.
     //    An input with unreadable or rejected records may be incomplete, so it
     //    is never trusted to remove anything unless forced.

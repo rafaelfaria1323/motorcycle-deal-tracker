@@ -18,6 +18,7 @@ class NormalizedListing {
     this.sellerName,
     this.location,
     this.description,
+    this.priceBeforeDrop,
   });
 
   final String source;
@@ -32,6 +33,10 @@ class NormalizedListing {
   final int? year;
   final int? mileage;
   final double price;
+
+  /// What the source says the price was before its last cut; may predate
+  /// our tracking. Null when the source shows no cut or doesn't say.
+  final double? priceBeforeDrop;
   final SellerType sellerType;
   final String? sellerName;
   final String? location;

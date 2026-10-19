@@ -34,6 +34,7 @@ Map<String, Object?> listingRow(NormalizedListing l, String? motorcycleId) {
     'year': l.year,
     'mileage': l.mileage,
     'price': l.price,
+    'price_before_drop': l.priceBeforeDrop,
     'seller_type': l.sellerType.name,
     'seller_name': l.sellerName,
     'location': l.location,
@@ -134,6 +135,15 @@ class ListingStore {
     if (listings.isEmpty) return 0;
     final prices = <String, num>{for (final l in listings) l.sourceListingId: l.price};
     final result = await _client.rpc('apply_price_updates', params: {'p_source': source, 'p_prices': prices});
+    return (result as num).toInt();
+  }
+
+  /// Records what the source says the price was before its last cut (the
+  /// database keeps the highest seen); returns how many changed.
+  Future<int> applyPricesBeforeDrop(String source, List<NormalizedListing> listings) async {
+    final prices = <String, num>{for (final l in listings) l.sourceListingId: ?l.priceBeforeDrop};
+    if (prices.isEmpty) return 0;
+    final result = await _client.rpc('apply_prices_before_drop', params: {'p_source': source, 'p_prices': prices});
     return (result as num).toInt();
   }
 

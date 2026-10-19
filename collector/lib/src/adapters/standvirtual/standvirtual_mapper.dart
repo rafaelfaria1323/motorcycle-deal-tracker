@@ -76,6 +76,7 @@ class StandvirtualMapper {
           year: listing.year,
           mileage: listing.mileage,
           price: listing.price,
+          priceBeforeDrop: raw.priceBeforeDrop?.toDouble(),
           sellerType: listing.sellerType,
           sellerName: listing.sellerName,
           location: listing.location,

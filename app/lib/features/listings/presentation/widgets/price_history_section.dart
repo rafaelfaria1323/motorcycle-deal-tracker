@@ -5,6 +5,7 @@ import '../../../../core/formatting/formatters.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/entities/price_point.dart';
 import '../../domain/repositories/listings_repository.dart';
+import '../price_history_text.dart';
 
 class PriceHistorySection extends StatefulWidget {
   const PriceHistorySection({super.key, required this.listing});
@@ -32,6 +33,7 @@ class _PriceHistorySectionState extends State<PriceHistorySection> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final seenLine = _seenLine();
+    final siteLine = siteDropLine(widget.listing);
 
     return Card(
       child: Padding(
@@ -43,6 +45,10 @@ class _PriceHistorySectionState extends State<PriceHistorySection> {
             if (seenLine != null) ...[
               const SizedBox(height: 4),
               Text(seenLine, style: theme.textTheme.bodySmall),
+            ],
+            if (siteLine != null) ...[
+              const SizedBox(height: 8),
+              Text(siteLine, style: theme.textTheme.bodyMedium),
             ],
             const SizedBox(height: 12),
             FutureBuilder<List<PricePoint>>(

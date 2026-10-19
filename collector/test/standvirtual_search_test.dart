@@ -159,4 +159,34 @@ void main() {
 
     expect(slugs, ['yamaha-mt-07', null]);
   });
+
+  group('price cuts the site reports', () {
+    Map<String, dynamic> drop(int minor, {String currency = 'EUR'}) => {
+      'percentage': 4.41,
+      'lowestPrice': {'currencyCode': currency, 'minorAmount': minor},
+    };
+
+    test('the price before the cut reaches the normalized listing', () {
+      final mapper = StandvirtualMapper(catalog, currentYear: 2026);
+      final page = adapter.parseSearchPage(
+        searchPage([
+          node(id: '1', price: '6500')..['priceDrop'] = drop(680000),
+          node(id: '2')..['priceDrop'] = null,
+        ]),
+      );
+
+      expect(page.records.first.priceBeforeDrop, 6800);
+      expect(page.records.last.priceBeforeDrop, isNull);
+      final listing = (mapper.map(page.records.first) as Mapped).listing;
+      expect(listing.priceBeforeDrop, 6800.0);
+    });
+
+    test('only a euro price above the current one counts', () {
+      expect(priceBeforeDrop(drop(680000), 6500), 6800);
+      expect(priceBeforeDrop(drop(650000), 6500), isNull);
+      expect(priceBeforeDrop(drop(680000, currency: 'USD'), 6500), isNull);
+      expect(priceBeforeDrop({'percentage': 1}, 6500), isNull);
+      expect(priceBeforeDrop(null, 6500), isNull);
+    });
+  });
 }

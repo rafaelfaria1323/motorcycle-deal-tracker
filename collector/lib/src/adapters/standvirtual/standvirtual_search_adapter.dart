@@ -219,6 +219,7 @@ StandvirtualRawListing _fromNode(Map<String, dynamic> node) {
     version: display('version'),
     price: price,
     currency: '${amount?['currencyCode']}',
+    priceBeforeDrop: priceBeforeDrop(node['priceDrop'], price),
     year: int.tryParse(value('first_registration_year') ?? ''),
     mileageKm: int.tryParse(value('mileage') ?? ''),
     engineCc: int.tryParse(value('engine_capacity') ?? ''),
