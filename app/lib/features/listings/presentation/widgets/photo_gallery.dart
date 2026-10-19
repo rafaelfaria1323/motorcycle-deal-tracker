@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../app/theme/app_colors.dart';
 import '../listing_detail_text.dart';
 import 'listing_photo.dart';
 
@@ -117,14 +118,14 @@ class _GalleryControls extends StatelessWidget {
           bottom: 8,
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: Colors.black54,
+              color: AppColors.photoCounterScrim,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               child: Text(
                 photoCounterText(index, count),
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: AppColors.onPhoto),
               ),
             ),
           ),
@@ -154,8 +155,8 @@ class _RoundButton extends StatelessWidget {
         tooltip: tooltip,
         onPressed: onPressed,
         style: IconButton.styleFrom(
-          backgroundColor: Colors.black45,
-          foregroundColor: Colors.white,
+          backgroundColor: AppColors.photoControlScrim,
+          foregroundColor: AppColors.onPhoto,
         ),
       ),
     );
@@ -187,12 +188,12 @@ class _FullScreenGalleryState extends State<_FullScreenGallery> {
     final images = widget.images;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.photoBackdrop,
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.photoBackdrop,
+        foregroundColor: AppColors.onPhoto,
         systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(
-          statusBarColor: Colors.black,
+          statusBarColor: AppColors.photoBackdrop,
         ),
       ),
       body: SafeArea(
