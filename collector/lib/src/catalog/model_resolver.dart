@@ -86,8 +86,15 @@ class ModelResolver {
 
   /// True when [key] ("cbr650r", or with a Honda code suffix) is spelled by up
   /// to four consecutive words starting in the first three.
+  ///
+  /// The key without its closing letters counts too: sellers write "CBR 650"
+  /// for the CBR650R, the only CBR650 made in the tracked years. Older bikes
+  /// with the same digits are left out by [_notTheseBikes] and the year range.
   static bool _hasModel(List<String> tokens, String key) {
-    final accepted = {for (final s in _codeSuffixes) '$key$s'};
+    final accepted = {
+      for (final s in _codeSuffixes) '$key$s',
+      key.replaceFirst(RegExp(r'(?<=[0-9])[a-z]+$'), ''),
+    };
     final longest = accepted
         .map((k) => k.length)
         .reduce((a, b) => a > b ? a : b);

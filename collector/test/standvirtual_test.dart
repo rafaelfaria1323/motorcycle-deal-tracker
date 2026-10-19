@@ -174,6 +174,13 @@ void main() {
       expect(slugOf('Honda', 'CBR', '650R E-CLUTCH 2026'), 'honda-cbr650r');
     });
 
+    test('a 650 without the R is still the R', () {
+      expect(slugOf('Honda', 'CBR', 'CBR 650 2025'), 'honda-cbr650r');
+      expect(slugOf('Honda', 'CB', 'CB650 E-Clutch'), 'honda-cb650r');
+      expect(slugOf('Honda', 'CBR', '650 F'), isNull);
+      expect(slugOf('Honda', 'CBR', 'CBR600RR'), isNull);
+    });
+
     test('a bare family name is not a model', () {
       expect(slugOf('Yamaha', 'R', null), isNull);
       expect(slugOf('Honda', 'CB', null), isNull);
