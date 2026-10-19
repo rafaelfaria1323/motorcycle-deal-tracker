@@ -56,6 +56,8 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
                                   started by Supabase pg_cron (see below)
 .github/workflows/weekly-summary.yml  Mondays 07:52 UTC (pg_cron): the week's summary
                                   on Telegram (bin/weekly_summary.dart)
+.github/workflows/check.yml       `make check` (with Flutter) on every pull
+                                  request to main
 .github/workflows/deploy-web.yml  Test, build and publish the app to
                                   Cloudflare Pages on merges touching app/
 .github/workflows/code-quality.yml  After every 5 merged PRs, Claude does up

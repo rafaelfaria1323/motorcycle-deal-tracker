@@ -231,6 +231,9 @@ Do not implement several unrelated features at once.
 ## T.1 Automatic code-quality review ✅
 *`.github/workflows/code-quality.yml`: after every 5 merged PRs (or "Run workflow"), Claude Code reviews the code on GitHub Actions, with Flutter installed so `make check` really runs, and opens at most one small PR labelled `code-quality` (none if nothing is worth changing). It works from a backlog, `docs/code-quality.md`: up to 3 items per run; when the list is empty it reviews the code, writes up to 10 new items and does the first 3. The PR is pushed with the job's own token (the Claude step revokes its token when it ends; the first run failed on that). The tag `code-quality-reviewed` marks the last review; no review starts while one is open. Runs on Rafael's Claude plan through the `CLAUDE_CODE_OAUTH_TOKEN` secret.*
 
+## T.2 Checks on pull requests ✅
+*`.github/workflows/check.yml` runs `make check` with Flutter installed (app analyze and tests, collector format, analyze and tests) on every pull request to main, so app changes made where Flutter isn't installed are compiled and tested before merging, not only by the deploy afterwards.*
+
 # Next
 
 1. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history.
