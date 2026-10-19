@@ -291,3 +291,24 @@ class PoliteFetcher {
 
   void close() => _client.close(force: true);
 }
+
+/// `/motos/yamaha/mt-07?x=1` -> `motos-yamaha-mt-07-x-1.html`. A long
+/// address is cut and gets a hash of the whole address, so two pages of one
+/// search never share a name.
+String fileNameFor(Uri url) {
+  final raw = '${url.path}${url.hasQuery ? '?${url.query}' : ''}'.toLowerCase();
+  final slug = raw
+      .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+      .replaceAll(RegExp(r'^-+|-+$'), '');
+  if (slug.length <= 150) return '$slug.html';
+  return '${slug.substring(0, 140)}-${_fnv1a(raw)}.html';
+}
+
+/// FNV-1a, 32 bits: stable across runs, unlike [String.hashCode].
+String _fnv1a(String text) {
+  var hash = 0x811c9dc5;
+  for (final unit in text.codeUnits) {
+    hash = ((hash ^ unit) * 0x01000193) & 0xffffffff;
+  }
+  return hash.toRadixString(16).padLeft(8, '0');
+}

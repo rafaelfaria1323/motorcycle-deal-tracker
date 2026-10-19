@@ -26,28 +26,31 @@ class OlxMapper {
     if (raw.partner == 'standvirtual') {
       return Rejected('copy of a Standvirtual ad (${raw.externalUrl ?? '?'})');
     }
+    final price = raw.price;
+    if (price == null) return const Rejected('no price (trade or on request)');
     if (raw.currency != 'EUR') {
       return Rejected('price is in ${raw.currency}, not EUR');
     }
 
     final brand = _brand(raw);
     final family = raw.model ?? '';
+    final title = _withoutBrand(raw.title, brand);
     final entry = _models.resolve(
       brand: brand,
       family: family,
-      text: '$family ${raw.title}',
+      text: '$family $title',
     );
 
     // Unresolved: keep the title, so the base mapper cannot match the
     // site's model field ("MT-07" for a Tracer 7) by accident.
-    final model = entry?.model ?? raw.title;
+    final model = entry?.model ?? title;
 
     final outcome = _base.map(
       ManualRawListing(
         url: raw.url,
         brand: brand,
         model: model,
-        priceEur: raw.price,
+        priceEur: price,
         year: raw.year,
         mileageKm: raw.mileageKm,
         sellerType: raw.isBusiness ? 'dealer' : 'private',
@@ -81,6 +84,18 @@ class OlxMapper {
       ),
       Rejected() => outcome,
     };
+  }
+
+  /// The title without the brand and the words around it ("Moto Yamaha
+  /// YZF-R7" -> "YZF-R7"), so the model sits at the start where the
+  /// resolver looks for it.
+  static String _withoutBrand(String title, String brand) {
+    final words = title.trim().split(RegExp(r'\s+'));
+    final key = brand.toLowerCase();
+    final at = words.indexWhere((w) => w.toLowerCase() == key);
+    if (at < 0 || at > 1) return title.trim();
+    final rest = words.sublist(at + 1).join(' ');
+    return rest.isEmpty ? title.trim() : rest;
   }
 
   /// The catalog brand named by the search's category or the title,
