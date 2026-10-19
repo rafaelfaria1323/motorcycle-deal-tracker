@@ -9,9 +9,7 @@ Future<void> main(List<String> args) async {
   final flags = args.where((a) => a.startsWith('--')).toSet();
   final positional = args.where((a) => !a.startsWith('--')).toList();
 
-  if (positional.length != 2 ||
-      !sourceKinds.contains(positional.first) ||
-      flags.difference(_knownFlags).isNotEmpty) {
+  if (positional.length != 2 || !sourceKinds.contains(positional.first) || flags.difference(_knownFlags).isNotEmpty) {
     stderr.writeln(
       'Usage: dart run bin/collector.dart <${sourceKinds.join('|')}> <path> '
       '[--dry-run] [--full] [--force]\n'
@@ -103,11 +101,7 @@ Future<void> main(List<String> args) async {
           'it may be incomplete (use --force to override).',
         );
       } else {
-        final removed = await store.markRemoved(
-          batch.source,
-          seenIds,
-          force: force,
-        );
+        final removed = await store.markRemoved(batch.source, seenIds, force: force);
         stdout.writeln('Removed: $removed');
       }
     }
@@ -124,6 +118,15 @@ Future<void> main(List<String> args) async {
     //    be told about what.
     final alerts = await store.generateAlerts();
     stdout.writeln('Alerts created: $alerts');
+
+    // 7. Push what's new to the phone, when Telegram is configured.
+    final notifier = TelegramNotifier.fromEnvironment();
+    if (notifier != null) {
+      final pushed = await notifyPending(store, notifier);
+      stdout.writeln('Notifications sent: $pushed');
+    } else {
+      stdout.writeln('Notifications: Telegram not configured');
+    }
   } on ConfigException catch (e) {
     stderr.writeln('Configuration error: $e');
     exitCode = 78;
