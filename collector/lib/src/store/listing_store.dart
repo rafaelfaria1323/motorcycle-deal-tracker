@@ -1,7 +1,6 @@
 import 'package:supabase/supabase.dart';
 
-import '../catalog/catalog.dart';
-import '../normalized/normalized_listing.dart';
+import '../../collector.dart';
 
 class StoreResult {
   const StoreResult({
@@ -50,6 +49,42 @@ class ListingStore {
   ListingStore(this._client);
 
   final SupabaseClient _client;
+
+  /// Live listings of [source] whose listing page has not been read yet,
+  /// newest first.
+  Future<List<({String sourceListingId, String url})>> listingsMissingDetails(
+    String source,
+    int limit,
+  ) async {
+    final rows = await _client
+        .from('listings')
+        .select('source_listing_id, url')
+        .eq('source', source)
+        .isFilter('details_checked_at', null)
+        .inFilter('status', ['active', 'price_changed'])
+        .order('first_seen_at', ascending: false)
+        .limit(limit);
+    return [
+      for (final r in rows)
+        (
+          sourceListingId: r['source_listing_id'] as String,
+          url: r['url'] as String,
+        ),
+    ];
+  }
+
+  /// Saves what listing pages added; returns how many listings were updated.
+  Future<int> applyDetails(String source, List<ListingDetails> details) async {
+    if (details.isEmpty) return 0;
+    final result = await _client.rpc(
+      'apply_listing_details',
+      params: {
+        'p_source': source,
+        'p_details': [for (final d in details) d.toJson()],
+      },
+    );
+    return (result as num).toInt();
+  }
 
   /// Inserts listings that are not stored yet. Existing ones (same source and
   /// source id) are left untouched, so running the same file twice is safe.

@@ -31,8 +31,12 @@ class StandvirtualSearchPage {
 
 /// Reads search results pages (saved by `make fetch` or by hand) out of a
 /// folder. One page lists a whole model, so no listing pages are needed.
-class StandvirtualSearchAdapter implements SourceAdapter<StandvirtualRawListing> {
-  StandvirtualSearchAdapter(this.directory, {this.maxAge = const Duration(hours: 48)});
+class StandvirtualSearchAdapter
+    implements SourceAdapter<StandvirtualRawListing> {
+  StandvirtualSearchAdapter(
+    this.directory, {
+    this.maxAge = const Duration(hours: 48),
+  });
 
   final String directory;
 
@@ -50,7 +54,10 @@ class StandvirtualSearchAdapter implements SourceAdapter<StandvirtualRawListing>
     }
 
     final files =
-        (await dir.list().toList()).whereType<File>().where((f) => f.path.toLowerCase().endsWith('.html')).toList()
+        (await dir.list().toList())
+            .whereType<File>()
+            .where((f) => f.path.toLowerCase().endsWith('.html'))
+            .toList()
           ..sort((a, b) => a.path.compareTo(b.path));
 
     final records = <StandvirtualRawListing>[];
@@ -92,7 +99,10 @@ class StandvirtualSearchAdapter implements SourceAdapter<StandvirtualRawListing>
     return ParseResult(records, issues);
   }
 
-  static final _nextData = RegExp(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', dotAll: true);
+  static final _nextData = RegExp(
+    r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>',
+    dotAll: true,
+  );
 
   /// Pure parsing step, so it can be tested without files.
   /// Throws [FormatException] when the page is not a search results page.

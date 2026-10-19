@@ -32,7 +32,10 @@ void main() {
     });
 
     test('allows searches and listings', () {
-      expect(rules.isAllowed('/motos/yamaha/mt-07?search%5Border%5D=1'), isTrue);
+      expect(
+        rules.isAllowed('/motos/yamaha/mt-07?search%5Border%5D=1'),
+        isTrue,
+      );
       expect(rules.isAllowed('/motos/anuncio/x-IDabc.html'), isTrue);
     });
 
@@ -47,8 +50,10 @@ void main() {
 
     test('accepts a motorcycle search over https', () {
       expect(
-        urlProblem(Uri.parse('https://www.standvirtual.com/motos/yamaha'),
-            host: host),
+        urlProblem(
+          Uri.parse('https://www.standvirtual.com/motos/yamaha'),
+          host: host,
+        ),
         isNull,
       );
     });
@@ -68,8 +73,11 @@ void main() {
   group('fetch state', () {
     test('the count restarts on a new day but a block is remembered', () {
       final blocked = DateTime.utc(2026, 10, 19, 8);
-      final state =
-      FetchState(day: '2026-10-19', requests: 40, blockedAt: blocked);
+      final state = FetchState(
+        day: '2026-10-19',
+        requests: 40,
+        blockedAt: blocked,
+      );
 
       final next = state.rolledTo('2026-10-20');
 

@@ -55,9 +55,16 @@ fetch-dry: ## Check the search addresses and limits, requests nothing
 fetch: ## Download the search pages, slowly and capped (see collector/lib/src/fetch)
 	cd collector && dart run bin/fetch.dart standvirtual sources/standvirtual_searches.txt $(ARGS)
 
-refresh: require-collector-env ## Fetch the search pages, then import them: make refresh [ARGS=--full]
+enrich-dry: require-collector-env ## List the listings that still need details, requests nothing
+	cd collector && dart run bin/enrich.dart --dry-run
+
+enrich: require-collector-env ## Read details of up to 15 new listings: make enrich [ARGS=--max=10]
+	cd collector && dart run bin/enrich.dart $(ARGS)
+
+refresh: require-collector-env ## Fetch search pages, import them, then read new listings' details: make refresh [ARGS=--full]
 	$(MAKE) fetch
 	$(MAKE) collect SOURCE=standvirtual-search FILE=samples/standvirtual/search ARGS="$(ARGS)"
+	$(MAKE) enrich
 
 # ---- Database --------------------------------------------------------------
 

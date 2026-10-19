@@ -23,7 +23,10 @@ Future<void> main(List<String> args) async {
     }
   }
 
-  if (positional.length != 2 || positional.first != 'standvirtual' || maxRequests < 1 || maxRequests > 50) {
+  if (positional.length != 2 ||
+      positional.first != 'standvirtual' ||
+      maxRequests < 1 ||
+      maxRequests > 50) {
     stderr.writeln(
       'Usage: dart run bin/fetch.dart standvirtual <urls-file> '
       '[--dry-run] [--out=<dir>] [--max=<1-50>]\n'
@@ -40,7 +43,9 @@ Future<void> main(List<String> args) async {
       final line = raw.split('#').first.trim();
       if (line.isEmpty) continue;
       final url = Uri.tryParse(line);
-      final problem = url == null ? 'not an address' : urlProblem(url, host: _host);
+      final problem = url == null
+          ? 'not an address'
+          : urlProblem(url, host: _host);
       if (problem != null) {
         stderr.writeln('Refused "$line": $problem');
         exitCode = 64;
@@ -103,6 +108,8 @@ Future<void> main(List<String> args) async {
 /// `/motos/yamaha/mt-07?x=1` -> `motos-yamaha-mt-07-x-1.html`
 String fileNameFor(Uri url) {
   final raw = '${url.path}${url.hasQuery ? '?${url.query}' : ''}'.toLowerCase();
-  final slug = raw.replaceAll(RegExp(r'[^a-z0-9]+'), '-').replaceAll(RegExp(r'^-+|-+$'), '');
+  final slug = raw
+      .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+      .replaceAll(RegExp(r'^-+|-+$'), '');
   return '${slug.length > 150 ? slug.substring(0, 150) : slug}.html';
 }

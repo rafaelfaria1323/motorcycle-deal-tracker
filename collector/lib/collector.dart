@@ -10,6 +10,7 @@ export 'src/catalog/catalog.dart';
 export 'src/config/supabase_config.dart';
 export 'src/fetch/polite_fetcher.dart';
 export 'src/fetch/robots.dart';
+export 'src/normalized/listing_details.dart';
 export 'src/normalized/normalized_listing.dart';
 export 'src/normalized/normalizers.dart';
 export 'src/pipeline/source_batch.dart';

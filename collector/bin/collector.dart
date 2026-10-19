@@ -9,7 +9,9 @@ Future<void> main(List<String> args) async {
   final flags = args.where((a) => a.startsWith('--')).toSet();
   final positional = args.where((a) => !a.startsWith('--')).toList();
 
-  if (positional.length != 2 || !sourceKinds.contains(positional.first) || flags.difference(_knownFlags).isNotEmpty) {
+  if (positional.length != 2 ||
+      !sourceKinds.contains(positional.first) ||
+      flags.difference(_knownFlags).isNotEmpty) {
     stderr.writeln(
       'Usage: dart run bin/collector.dart <${sourceKinds.join('|')}> <path> '
       '[--dry-run] [--full] [--force]\n'
@@ -101,7 +103,11 @@ Future<void> main(List<String> args) async {
           'it may be incomplete (use --force to override).',
         );
       } else {
-        final removed = await store.markRemoved(batch.source, seenIds, force: force);
+        final removed = await store.markRemoved(
+          batch.source,
+          seenIds,
+          force: force,
+        );
         stdout.writeln('Removed: $removed');
       }
     }

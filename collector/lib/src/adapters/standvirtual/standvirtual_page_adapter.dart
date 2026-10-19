@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 
+import '../../normalized/listing_details.dart';
 import '../source_adapter.dart';
+import 'standvirtual_mapper.dart';
 import 'standvirtual_raw_listing.dart';
 
 /// Reads listing pages saved from the browser (File > Save, "HTML only") out of
-/// a folder. Nothing is requested from the website: the files are all it sees.
+/// a folder, and parses listing pages fetched for their details.
 class StandvirtualPageAdapter implements SourceAdapter<StandvirtualRawListing> {
   StandvirtualPageAdapter(this.directory);
 
@@ -22,7 +24,10 @@ class StandvirtualPageAdapter implements SourceAdapter<StandvirtualRawListing> {
     }
 
     final files =
-        (await dir.list().toList()).whereType<File>().where((f) => f.path.toLowerCase().endsWith('.html')).toList()
+        (await dir.list().toList())
+            .whereType<File>()
+            .where((f) => f.path.toLowerCase().endsWith('.html'))
+            .toList()
           ..sort((a, b) => a.path.compareTo(b.path));
 
     final records = <StandvirtualRawListing>[];
@@ -40,14 +45,19 @@ class StandvirtualPageAdapter implements SourceAdapter<StandvirtualRawListing> {
     return ParseResult(records, issues);
   }
 
-  static final _nextData = RegExp(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', dotAll: true);
+  static final _nextData = RegExp(
+    r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>',
+    dotAll: true,
+  );
 
-  /// Pure parsing step, so it can be tested without files.
+  /// The listing object inside the page.
   /// Throws [FormatException] when the page is not a listing page.
-  StandvirtualRawListing parsePage(String html) {
+  Map<String, dynamic> _advert(String html) {
     final match = _nextData.firstMatch(html);
     if (match == null) {
-      throw const FormatException('no __NEXT_DATA__ block (is this a Standvirtual listing page?)');
+      throw const FormatException(
+        'no __NEXT_DATA__ block (is this a Standvirtual listing page?)',
+      );
     }
 
     final Object? data;
@@ -59,8 +69,16 @@ class StandvirtualPageAdapter implements SourceAdapter<StandvirtualRawListing> {
 
     final advert = _map(_map(_map(data)?['props'])?['pageProps'])?['advert'];
     if (advert is! Map<String, dynamic>) {
-      throw const FormatException('no listing data (a search page, or a removed listing?)');
+      throw const FormatException(
+        'no listing data (a search page, or a removed listing?)',
+      );
     }
+    return advert;
+  }
+
+  /// Pure parsing step, so it can be tested without files.
+  StandvirtualRawListing parsePage(String html) {
+    final advert = _advert(html);
 
     final id = advert['id']?.toString();
     final url = advert['url'];
@@ -106,6 +124,42 @@ class StandvirtualPageAdapter implements SourceAdapter<StandvirtualRawListing> {
       images: _images(advert['images']),
     );
   }
+
+  /// The facts a listing page adds to a listing stored from a search.
+  ListingDetails parseDetails(String html) {
+    final advert = _advert(html);
+
+    final id = advert['id']?.toString();
+    if (id == null || id.isEmpty) {
+      throw const FormatException('listing has no id');
+    }
+
+    final params = _map(advert['parametersDict']) ?? const {};
+    final warranty = _value(params, 'maker_warranty_valid_until_date');
+    final published = advert['originalCreatedAt'] ?? advert['createdAt'];
+
+    return ListingDetails(
+      sourceListingId: StandvirtualMapper.listingId(id),
+      description: _cleanDescription(advert['description']),
+      registrations: int.tryParse(
+        _value(params, 'number_of_registrations') ?? '',
+      ),
+      serviceBook: switch (_value(params, 'complete_review_book')) {
+        '1' => true,
+        '0' => false,
+        _ => null,
+      },
+      origin: _value(params, 'origin'),
+      warrantyUntil:
+          warranty != null && RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(warranty)
+          ? warranty
+          : null,
+      dealerWarrantyMonths: int.tryParse(
+        _value(params, 'vendors_warranty_valid_until_date') ?? '',
+      ),
+      publishedAt: published is String ? published : null,
+    );
+  }
 }
 
 Map<String, dynamic>? _map(Object? o) => o is Map<String, dynamic> ? o : null;
@@ -116,9 +170,11 @@ Map<String, dynamic>? _first(Map<String, dynamic> params, String key) {
   return null;
 }
 
-String? _value(Map<String, dynamic> params, String key) => _first(params, key)?['value']?.toString();
+String? _value(Map<String, dynamic> params, String key) =>
+    _first(params, key)?['value']?.toString();
 
-String? _label(Map<String, dynamic> params, String key) => _first(params, key)?['label']?.toString();
+String? _label(Map<String, dynamic> params, String key) =>
+    _first(params, key)?['label']?.toString();
 
 /// The dealer's municipality ("concelho X"), falling back to the city text.
 String? _location(Map<String, dynamic>? seller) {
@@ -142,23 +198,51 @@ List<String> _images(Object? images) {
   ].take(10).toList();
 }
 
-// Text dealers' systems add to every ad. Left in, it makes unrelated bikes
-// from one dealer look like duplicates of each other.
-const _boilerplate = ['A informação disponibilizada', 'Anúncio introduzido por rotina informática'];
+// Sentences dealers' systems add to every ad. Left in, they make unrelated
+// bikes from one dealer look like duplicates of each other. Only these
+// sentences are removed; the rest of the paragraph stays.
+final _boilerplate = [
+  RegExp(r'A informação disponibilizada[^.]*\.?', caseSensitive: false),
+  RegExp(
+    r'Anúncio introduzido por rotina informática\.?',
+    caseSensitive: false,
+  ),
+  RegExp(
+    r'Todos os dados carecem de confirmação presencial\.?',
+    caseSensitive: false,
+  ),
+];
 
 String? _cleanDescription(Object? html) {
   if (html is! String) return null;
-  final text = html
-      .replaceAll(RegExp(r'<br\s*/?>|</p>', caseSensitive: false), '\n')
+
+  var text = html
+      // Block ends and line breaks become new lines; list items get a dash.
+      .replaceAll(
+        RegExp(r'<br\s*/?>|</p>|</div>|</li>|</h\d>', caseSensitive: false),
+        '\n',
+      )
+      .replaceAll(RegExp(r'<li[^>]*>', caseSensitive: false), '- ')
       .replaceAll(RegExp(r'<[^>]+>'), '')
+      .replaceAllMapped(
+        RegExp(r'&#(\d+);'),
+        (m) => String.fromCharCode(int.parse(m[1]!)),
+      )
       .replaceAll('&nbsp;', ' ')
-      .replaceAll('&amp;', '&')
+      .replaceAll('&lt;', '<')
+      .replaceAll('&gt;', '>')
       .replaceAll('&quot;', '"')
-      .replaceAll('&#39;', "'");
+      .replaceAll('&#39;', "'")
+      .replaceAll('&amp;', '&');
+
+  for (final sentence in _boilerplate) {
+    text = text.replaceAll(sentence, '');
+  }
+
   final lines = text
       .split('\n')
-      .map((l) => l.trim())
-      .where((l) => l.isNotEmpty && !_boilerplate.any(l.contains))
+      .map((l) => l.replaceAll(RegExp(r'[ \t]+'), ' ').trim())
+      .where((l) => l.isNotEmpty && l != '-')
       .toList();
   return lines.isEmpty ? null : lines.join('\n');
 }

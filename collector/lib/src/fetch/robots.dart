@@ -35,7 +35,8 @@ class RobotsRules {
   final List<RegExp> _disallow;
 
   /// [pathAndQuery] is the path plus `?query`, e.g. `/motos/x?page=2`.
-  bool isAllowed(String pathAndQuery) => !_disallow.any((rule) => rule.hasMatch(pathAndQuery));
+  bool isAllowed(String pathAndQuery) =>
+      !_disallow.any((rule) => rule.hasMatch(pathAndQuery));
 
   static RegExp _toRegExp(String rule) {
     final out = StringBuffer('^');

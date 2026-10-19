@@ -5,7 +5,8 @@ import '../manual/manual_raw_listing.dart';
 import 'standvirtual_raw_listing.dart';
 
 class StandvirtualMapper {
-  StandvirtualMapper(this.catalog, {int? currentYear}) : _base = ManualMapper(catalog, currentYear: currentYear);
+  StandvirtualMapper(this.catalog, {int? currentYear})
+    : _base = ManualMapper(catalog, currentYear: currentYear);
 
   final Catalog catalog;
   final ManualMapper _base;
@@ -26,6 +27,9 @@ class StandvirtualMapper {
     'honda-cbr650r': (640, 660),
   };
 
+  /// The id a Standvirtual ad is stored under.
+  static String listingId(String adId) => 'standvirtual.com/$adId';
+
   MapOutcome map(StandvirtualRawListing raw) {
     if (raw.status != 'ACTIVE') {
       return Rejected('listing is not active (${raw.status})');
@@ -38,7 +42,8 @@ class StandvirtualMapper {
 
     // Unresolved: keep the full text, so the base mapper cannot match the
     // bare family name ("R", "CB") or the base of a variant by accident.
-    final model = entry?.model ?? [raw.model, raw.version].whereType<String>().join(' ');
+    final model =
+        entry?.model ?? [raw.model, raw.version].whereType<String>().join(' ');
 
     final outcome = _base.map(
       ManualRawListing(
@@ -62,7 +67,7 @@ class StandvirtualMapper {
         NormalizedListing(
           source: 'standvirtual',
           // The numeric ad id survives the title being edited.
-          sourceListingId: 'standvirtual.com/${raw.id}',
+          sourceListingId: listingId(raw.id),
           url: listing.url,
           motorcycleSlug: listing.motorcycleSlug,
           brand: listing.brand,
@@ -126,16 +131,22 @@ class StandvirtualMapper {
   }
 
   /// `cbr650r` -> `cbr`, `r7` -> `r`: the letters before the first digit.
-  static String _family(String key) => key.replaceFirst(RegExp(r'[0-9].*$'), '');
+  static String _family(String key) =>
+      key.replaceFirst(RegExp(r'[0-9].*$'), '');
 
-  static List<String> _tokens(String text) =>
-      text.toLowerCase().split(RegExp(r'[^a-z0-9]+')).where((t) => t.isNotEmpty).toList();
+  static List<String> _tokens(String text) => text
+      .toLowerCase()
+      .split(RegExp(r'[^a-z0-9]+'))
+      .where((t) => t.isNotEmpty)
+      .toList();
 
   /// True when [key] ("cbr650r", or with a Honda code suffix) is spelled by up
   /// to four consecutive words starting in the first three.
   static bool _hasModel(List<String> tokens, String key) {
     final accepted = {for (final s in _codeSuffixes) '$key$s'};
-    final longest = accepted.map((k) => k.length).reduce((a, b) => a > b ? a : b);
+    final longest = accepted
+        .map((k) => k.length)
+        .reduce((a, b) => a > b ? a : b);
 
     for (var start = 0; start < tokens.length && start <= 2; start++) {
       var joined = '';

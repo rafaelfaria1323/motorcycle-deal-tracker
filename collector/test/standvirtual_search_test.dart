@@ -3,7 +3,11 @@ import 'dart:convert';
 import 'package:collector/collector.dart';
 import 'package:test/test.dart';
 
-Map<String, String> p(String key, String value) => {'key': key, 'displayValue': value, 'value': value};
+Map<String, String> p(String key, String value) => {
+  'key': key,
+  'displayValue': value,
+  'value': value,
+};
 
 Map<String, dynamic> node({
   String id = '1',
@@ -66,7 +70,14 @@ String searchPage(List<Map<String, dynamic>> nodes, {int? total}) {
 }
 
 final adapter = StandvirtualSearchAdapter('unused');
-final catalog = Catalog(const [CatalogEntry(slug: 'yamaha-mt-07', brand: 'Yamaha', model: 'MT-07', minYear: 2023)]);
+final catalog = Catalog(const [
+  CatalogEntry(
+    slug: 'yamaha-mt-07',
+    brand: 'Yamaha',
+    model: 'MT-07',
+    minYear: 2023,
+  ),
+]);
 
 void main() {
   test('reads every listing of a search page', () {
@@ -106,7 +117,9 @@ void main() {
   });
 
   test('a page showing fewer listings than the search has is incomplete', () {
-    final page = adapter.parseSearchPage(searchPage([node(id: '1'), node(id: '2')], total: 40));
+    final page = adapter.parseSearchPage(
+      searchPage([node(id: '1'), node(id: '2')], total: 40),
+    );
 
     expect(page.isComplete, isFalse);
     expect(page.total, 40);
@@ -121,18 +134,28 @@ void main() {
   });
 
   test('a page that is not a search page is a format error', () {
-    expect(() => adapter.parseSearchPage('<html></html>'), throwsFormatException);
     expect(
-      () => adapter.parseSearchPage('<script id="__NEXT_DATA__">{"props":{"pageProps":{}}}</script>'),
+      () => adapter.parseSearchPage('<html></html>'),
+      throwsFormatException,
+    );
+    expect(
+      () => adapter.parseSearchPage(
+        '<script id="__NEXT_DATA__">{"props":{"pageProps":{}}}</script>',
+      ),
       throwsFormatException,
     );
   });
 
   test('maps through the same rules as a listing page', () {
     final mapper = StandvirtualMapper(catalog, currentYear: 2026);
-    final page = adapter.parseSearchPage(searchPage([node(id: '1'), node(id: '2', version: 'tracer')]));
+    final page = adapter.parseSearchPage(
+      searchPage([node(id: '1'), node(id: '2', version: 'tracer')]),
+    );
 
-    final slugs = [for (final r in page.records) (mapper.map(r) as Mapped).listing.motorcycleSlug];
+    final slugs = [
+      for (final r in page.records)
+        (mapper.map(r) as Mapped).listing.motorcycleSlug,
+    ];
 
     expect(slugs, ['yamaha-mt-07', null]);
   });

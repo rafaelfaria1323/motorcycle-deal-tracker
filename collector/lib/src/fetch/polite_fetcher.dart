@@ -60,7 +60,9 @@ class FetchState {
   factory FetchState.fromJson(Map<String, dynamic> json) => FetchState(
     day: json['day'] as String,
     requests: json['requests'] as int,
-    blockedAt: json['blocked_at'] == null ? null : DateTime.parse(json['blocked_at'] as String),
+    blockedAt: json['blocked_at'] == null
+        ? null
+        : DateTime.parse(json['blocked_at'] as String),
   );
 
   String day;
@@ -74,7 +76,9 @@ class FetchState {
   };
 
   /// The count restarts each day; a block is remembered.
-  FetchState rolledTo(String today) => day == today ? this : FetchState(day: today, requests: 0, blockedAt: blockedAt);
+  FetchState rolledTo(String today) => day == today
+      ? this
+      : FetchState(day: today, requests: 0, blockedAt: blockedAt);
 }
 
 /// Null when the address may be fetched, otherwise why not.
@@ -111,7 +115,8 @@ class PoliteFetcher {
   late RobotsRules _robots;
   var _runRequests = 0;
 
-  static String _today() => DateTime.now().toUtc().toIso8601String().substring(0, 10);
+  static String _today() =>
+      DateTime.now().toUtc().toIso8601String().substring(0, 10);
 
   /// Checks the pause after a block, loads robots.txt. Call before [get].
   Future<void> prepare() async {
@@ -145,7 +150,8 @@ class PoliteFetcher {
     for (var hop = 0; hop <= 3; hop++) {
       final problem = urlProblem(current, host: host);
       if (problem != null) throw FetchRefused('$current: $problem');
-      final target = current.path + (current.hasQuery ? '?${current.query}' : '');
+      final target =
+          current.path + (current.hasQuery ? '?${current.query}' : '');
       if (!_robots.isAllowed(target)) {
         throw FetchRefused('$current: disallowed by robots.txt');
       }
@@ -156,7 +162,9 @@ class PoliteFetcher {
       if (status == 200) {
         if (!response.body.contains('__NEXT_DATA__')) {
           await _markBlocked();
-          throw FetchBlocked('$current: not a normal page (a block or verification page?)');
+          throw FetchBlocked(
+            '$current: not a normal page (a block or verification page?)',
+          );
         }
         return response.body;
       }
@@ -169,16 +177,24 @@ class PoliteFetcher {
     throw FetchFailed('$url: too many redirects');
   }
 
-  Future<({int status, String body, String? location})> _request(Uri url) async {
+  Future<({int status, String body, String? location})> _request(
+    Uri url,
+  ) async {
     if (_runRequests >= policy.maxRequestsPerRun) {
-      throw FetchRefused('run limit of ${policy.maxRequestsPerRun} requests reached');
+      throw FetchRefused(
+        'run limit of ${policy.maxRequestsPerRun} requests reached',
+      );
     }
     if (_state.requests >= policy.maxRequestsPerDay) {
-      throw FetchRefused('daily limit of ${policy.maxRequestsPerDay} requests reached');
+      throw FetchRefused(
+        'daily limit of ${policy.maxRequestsPerDay} requests reached',
+      );
     }
     if (_runRequests > 0) {
       final extra = _random.nextInt(policy.jitter.inMilliseconds + 1);
-      await Future<void>.delayed(policy.minDelay + Duration(milliseconds: extra));
+      await Future<void>.delayed(
+        policy.minDelay + Duration(milliseconds: extra),
+      );
     }
     _runRequests++;
     _state.requests++;
@@ -191,13 +207,20 @@ class PoliteFetcher {
         ..set(HttpHeaders.acceptHeader, 'text/html,application/xhtml+xml')
         ..set(HttpHeaders.acceptLanguageHeader, 'pt-PT,pt;q=0.9');
       final response = await request.close().timeout(policy.timeout);
-      final body = await response.transform(const Utf8Decoder(allowMalformed: true)).join().timeout(policy.timeout);
+      final body = await response
+          .transform(const Utf8Decoder(allowMalformed: true))
+          .join()
+          .timeout(policy.timeout);
 
       if ({403, 429, 503}.contains(response.statusCode)) {
         await _markBlocked();
         throw FetchBlocked('$url: HTTP ${response.statusCode}');
       }
-      return (status: response.statusCode, body: body, location: response.headers.value(HttpHeaders.locationHeader));
+      return (
+        status: response.statusCode,
+        body: body,
+        location: response.headers.value(HttpHeaders.locationHeader),
+      );
     } on TimeoutException {
       throw FetchFailed('$url: timed out');
     } on SocketException catch (e) {
@@ -216,7 +239,9 @@ class PoliteFetcher {
     final file = File(statePath);
     try {
       if (await file.exists()) {
-        return FetchState.fromJson(jsonDecode(await file.readAsString()) as Map<String, dynamic>);
+        return FetchState.fromJson(
+          jsonDecode(await file.readAsString()) as Map<String, dynamic>,
+        );
       }
     } on Object {
       // A damaged state file is treated as a fresh one.
@@ -224,7 +249,8 @@ class PoliteFetcher {
     return FetchState(day: _today());
   }
 
-  Future<void> _saveState() async => File(statePath).writeAsString(jsonEncode(_state.toJson()));
+  Future<void> _saveState() async =>
+      File(statePath).writeAsString(jsonEncode(_state.toJson()));
 
   void close() => _client.close(force: true);
 }

@@ -33,21 +33,24 @@ Future<SourceBatch> loadBatch(String kind, String path, Catalog catalog) async {
       final mapper = ManualMapper(catalog);
       final result = await adapter.read();
       return SourceBatch(adapter.source, result.issues, [
-        for (final raw in result.records) MappedRecord(raw.url, mapper.map(raw)),
+        for (final raw in result.records)
+          MappedRecord(raw.url, mapper.map(raw)),
       ]);
     case 'standvirtual':
       final adapter = StandvirtualPageAdapter(path);
       final mapper = StandvirtualMapper(catalog);
       final result = await adapter.read();
       return SourceBatch(adapter.source, result.issues, [
-        for (final raw in result.records) MappedRecord(raw.url, mapper.map(raw)),
+        for (final raw in result.records)
+          MappedRecord(raw.url, mapper.map(raw)),
       ]);
     case 'standvirtual-search':
       final adapter = StandvirtualSearchAdapter(path);
       final mapper = StandvirtualMapper(catalog);
       final result = await adapter.read();
       return SourceBatch(adapter.source, result.issues, [
-        for (final raw in result.records) MappedRecord(raw.url, mapper.map(raw)),
+        for (final raw in result.records)
+          MappedRecord(raw.url, mapper.map(raw)),
       ]);
     default:
       throw ArgumentError('Unknown source "$kind"');
