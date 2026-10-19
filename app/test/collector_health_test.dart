@@ -19,8 +19,8 @@ void main() {
     expect(collectorHealth(r, now), CollectorHealth.ok);
   });
 
-  test('an ok run older than 36 hours is stale', () {
-    final r = run('ok', now.subtract(const Duration(hours: 40)));
+  test('an ok run older than 12 hours is stale', () {
+    final r = run('ok', now.subtract(const Duration(hours: 13)));
     expect(collectorHealth(r, now), CollectorHealth.stale);
   });
 

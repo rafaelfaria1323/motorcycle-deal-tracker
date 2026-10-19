@@ -9,7 +9,7 @@ void main() {
   test('a push-back, a pause or the daily cap is a block', () {
     expect(runStatus(2, 'Stopped, the site pushed back: HTTP 429'), 'blocked');
     expect(runStatus(2, 'Not fetched: paused until 2026-10-20'), 'blocked');
-    expect(runStatus(2, 'Not fetched: daily limit of 60 requests'), 'blocked');
+    expect(runStatus(2, 'Not fetched: daily limit of 120 requests'), 'blocked');
   });
 
   test('anything else is a failure', () {

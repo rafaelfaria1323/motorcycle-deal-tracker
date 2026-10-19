@@ -40,7 +40,7 @@ class FetchPolicy {
     this.minDelay = const Duration(seconds: 6),
     this.jitter = const Duration(seconds: 4),
     this.maxRequestsPerRun = 20,
-    this.maxRequestsPerDay = 60,
+    this.maxRequestsPerDay = 120,
     this.timeout = const Duration(seconds: 20),
     this.cooldownAfterBlock = const Duration(hours: 24),
   });

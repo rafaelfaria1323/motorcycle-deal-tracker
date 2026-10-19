@@ -13,7 +13,8 @@ terms risk knowingly; the terms clauses are still to be recorded below.
 
 **Limits (enforced in code).** Only www.standvirtual.com over https, only
 /motos/ paths allowed by robots.txt (read at the start of every run); 6-10 s
-between requests; max 20 requests per run and 60 per day; no retries; stops on
+between requests; max 20 requests per run and 120 per day (60 until
+2026-10-19, raised for runs every 4 hours); no retries; stops on
 HTTP 403/429/503 or a non-normal page and then refuses to run for 24 h;
 honest user-agent ("MotorcycleDealTracker/0.1 (personal project, low volume)").
 
