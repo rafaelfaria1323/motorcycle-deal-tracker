@@ -35,6 +35,8 @@ class Listing extends Equatable {
     this.warrantyUntil,
     this.dealerWarrantyMonths,
     this.publishedAt,
+    this.newPrice,
+    this.newPriceCheckedAt,
   });
 
   final String id;
@@ -69,6 +71,11 @@ class Listing extends Equatable {
   final DateTime? warrantyUntil;
   final int? dealerWarrantyMonths;
   final DateTime? publishedAt;
+
+  /// Official new-bike list price of the matched model, and when it was last
+  /// checked. Only loaded on the detail page.
+  final double? newPrice;
+  final DateTime? newPriceCheckedAt;
 
   /// The price changes are measured from: the first price we saw, or a
   /// higher earlier price the site reported.

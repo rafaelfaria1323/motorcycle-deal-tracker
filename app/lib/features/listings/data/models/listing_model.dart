@@ -31,9 +31,13 @@ class ListingModel extends Listing {
     super.warrantyUntil,
     super.dealerWarrantyMonths,
     super.publishedAt,
+    super.newPrice,
+    super.newPriceCheckedAt,
   });
 
   factory ListingModel.fromJson(Map<String, dynamic> json) {
+    // Present when the query embeds the matched model's new-bike price.
+    final bike = json['motorcycles'] as Map<String, dynamic>?;
     return ListingModel(
       id: json['id'] as String,
       source: json['source'] as String,
@@ -68,6 +72,8 @@ class ListingModel extends Listing {
       warrantyUntil: _date(json['warranty_until']),
       dealerWarrantyMonths: json['dealer_warranty_months'] as int?,
       publishedAt: _date(json['published_at']),
+      newPrice: (bike?['new_price_reference'] as num?)?.toDouble(),
+      newPriceCheckedAt: _date(bike?['new_price_checked_at']),
     );
   }
 

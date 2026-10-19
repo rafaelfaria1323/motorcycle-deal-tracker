@@ -76,7 +76,7 @@ class SupabaseListingsRepository implements ListingsRepository {
   Future<Listing?> getListingById(String id) async {
     final row = await _client
         .from('listings')
-        .select()
+        .select('*, motorcycles(new_price_reference, new_price_checked_at)')
         .eq('id', id)
         .maybeSingle();
 
