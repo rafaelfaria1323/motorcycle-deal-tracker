@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../app/di/injection.dart';
+import '../../app/router/app_routes.dart';
 import '../../features/listings/presentation/cubit/alerts_cubit.dart';
 import '../../features/listings/presentation/cubit/saved_searches_cubit.dart';
 import 'account_cubit.dart';
@@ -80,6 +82,19 @@ class _AccountSheetState extends State<_AccountSheet> {
       const SizedBox(height: 8),
       Text('Sessão iniciada como ${cubit.currentEmail}.'),
       const SizedBox(height: 16),
+      ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: const Icon(Icons.two_wheeler),
+        title: const Text('Modelos acompanhados'),
+        subtitle: const Text('Escolhe os modelos que queres seguir'),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () {
+          final router = GoRouter.of(context);
+          Navigator.of(context).pop();
+          router.push(AppRoutes.models);
+        },
+      ),
+      const SizedBox(height: 8),
       if (s.error != null) _error(context, s.error!),
       OutlinedButton(
         onPressed: s.busy ? null : cubit.signOut,

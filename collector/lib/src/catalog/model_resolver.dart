@@ -8,21 +8,8 @@ class ModelResolver {
 
   final Catalog catalog;
 
-  /// Text that makes a listing a different bike than the catalog model it
-  /// otherwise looks like (searched in the letters and digits of the text):
-  /// an MT-07 Tracer and a CB650F are not an MT-07 and a CB650R.
-  static const _notTheseBikes = ['tracer', '650f'];
-
   /// Honda's ABS and E-Clutch codes: CB650RA, CB650RAC are still a CB650R.
   static const _codeSuffixes = ['', 'a', 'ac'];
-
-  /// Engine sizes (cc) sellers state for each catalog model.
-  static const _displacement = <String, (int, int)>{
-    'yamaha-mt-07': (680, 710),
-    'yamaha-r7': (680, 710),
-    'honda-cb650r': (640, 660),
-    'honda-cbr650r': (640, 660),
-  };
 
   /// The catalog model, or null when it is not clearly one.
   ///
@@ -35,19 +22,22 @@ class ModelResolver {
     required String text,
     int? engineCc,
   }) {
-    if (_notTheseBikes.any(normalizeKey(text).contains)) return null;
-
+    // A model's excluded words (searched in the letters and digits of the
+    // text) rule out that model only: "MT-07 Tracer" can still be a Tracer 7.
+    final textKey = normalizeKey(text);
     final brandKey = normalizeKey(brand);
     final entries = [
       for (final e in catalog.entries)
-        if (normalizeKey(e.brand) == brandKey) e,
+        if (normalizeKey(e.brand) == brandKey &&
+            !e.excludedWords.any((w) => textKey.contains(normalizeKey(w))))
+          e,
     ];
 
     // 1. The text names the model ("CB" + "650 RA", "R" + "YZF-R7").
     final tokens = _tokens(text);
     final named = [
       for (final e in entries)
-        if (_hasModel(tokens, normalizeKey(e.model))) e,
+        if (_hasModel(tokens, e)) e,
     ];
     if (named.length > 1) return null; // ambiguous
     var found = named.isEmpty ? null : named.first;
@@ -70,8 +60,9 @@ class ModelResolver {
   }
 
   bool _fits(CatalogEntry entry, int cc) {
-    final range = _displacement[entry.slug];
-    return range == null || (cc >= range.$1 && cc <= range.$2);
+    final min = entry.engineCcMin;
+    final max = entry.engineCcMax;
+    return (min == null || cc >= min) && (max == null || cc <= max);
   }
 
   /// `cbr650r` -> `cbr`, `r7` -> `r`: the letters before the first digit.
@@ -84,16 +75,19 @@ class ModelResolver {
       .where((t) => t.isNotEmpty)
       .toList();
 
-  /// True when [key] ("cbr650r", or with a Honda code suffix) is spelled by up
-  /// to four consecutive words starting in the first three.
+  /// True when the model name or an alias ("cbr650r", or with a Honda code
+  /// suffix) is spelled by up to four consecutive words starting in the first
+  /// three.
   ///
-  /// The key without its closing letters counts too: sellers write "CBR 650"
+  /// A name without its closing letters counts too: sellers write "CBR 650"
   /// for the CBR650R, the only CBR650 made in the tracked years. Older bikes
-  /// with the same digits are left out by [_notTheseBikes] and the year range.
-  static bool _hasModel(List<String> tokens, String key) {
+  /// with the same digits are left out by excluded words and the year range.
+  static bool _hasModel(List<String> tokens, CatalogEntry entry) {
     final accepted = {
-      for (final s in _codeSuffixes) '$key$s',
-      key.replaceFirst(RegExp(r'(?<=[0-9])[a-z]+$'), ''),
+      for (final name in [entry.model, ...entry.aliases]) ...{
+        for (final s in _codeSuffixes) '${normalizeKey(name)}$s',
+        normalizeKey(name).replaceFirst(RegExp(r'(?<=[0-9])[a-z]+$'), ''),
+      },
     };
     final longest = accepted
         .map((k) => k.length)

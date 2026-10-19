@@ -10,6 +10,7 @@ import '../../features/listings/presentation/pages/alerts_page.dart';
 import '../../features/listings/presentation/pages/dashboard_page.dart';
 import '../../features/listings/presentation/pages/listing_detail_page.dart';
 import '../../features/listings/presentation/pages/saved_searches_page.dart';
+import '../../features/listings/presentation/pages/tracked_models_page.dart';
 import '../di/injection.dart';
 import '../shell/app_shell.dart';
 import 'app_routes.dart';
@@ -81,6 +82,12 @@ final appRouter = GoRouter(
           ],
         ),
       ],
+    ),
+    // Outside the shell: a full page with a back button, opened from the
+    // account sheet.
+    GoRoute(
+      path: AppRoutes.models,
+      builder: (context, state) => const TrackedModelsPage(),
     ),
   ],
 );

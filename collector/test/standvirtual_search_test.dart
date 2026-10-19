@@ -76,6 +76,9 @@ final catalog = Catalog(const [
     brand: 'Yamaha',
     model: 'MT-07',
     minYear: 2023,
+    excludedWords: ['tracer'],
+    engineCcMin: 680,
+    engineCcMax: 710,
   ),
 ]);
 
