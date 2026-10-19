@@ -112,6 +112,14 @@ Map<String, String> newModelProblems({
   };
 }
 
+/// The snackbar text for a failed catalog change, from the Postgres error
+/// code (null when the error was not a database one).
+String catalogSaveErrorText(String? postgresCode) => switch (postgresCode) {
+  '23505' => 'Esse modelo já está na lista.',
+  '42501' => 'Não foi possível guardar: é preciso ter sessão iniciada.',
+  _ => 'Não foi possível guardar. Tente novamente.',
+};
+
 /// "Z 650, Z-650" -> ["Z 650", "Z-650"].
 List<String> parseAliases(String text) => [
   for (final part in text.split(','))

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/entities/listing_filters.dart';
 import '../../domain/entities/motorcycle_option.dart';
+import '../filter_fields_text.dart';
 import '../score_criteria.dart';
 
 class FiltersSheet extends StatefulWidget {
@@ -49,13 +50,12 @@ class _FiltersSheetState extends State<FiltersSheet> {
   }
 
   ListingFilters _build() {
-    final location = _location.text.trim();
     return ListingFilters(
       motorcycleId: _motorcycleId,
-      minYear: int.tryParse(_year.text.trim()),
-      maxPrice: double.tryParse(_price.text.trim().replaceAll(',', '.')),
-      maxMileage: int.tryParse(_mileage.text.trim()),
-      location: location.isEmpty ? null : location,
+      minYear: parseWholeNumberField(_year.text),
+      maxPrice: parsePriceField(_price.text),
+      maxMileage: parseWholeNumberField(_mileage.text),
+      location: parseTextField(_location.text),
       sellerType: _sellerType,
       minDealScore: _minDealScore,
       maxRiskScore: _maxRiskScore,

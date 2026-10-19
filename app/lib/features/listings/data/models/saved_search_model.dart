@@ -1,6 +1,7 @@
 import '../../domain/entities/listing.dart';
 import '../../domain/entities/listing_filters.dart';
 import '../../domain/entities/saved_search.dart';
+import 'listing_model.dart';
 
 class SavedSearchModel {
   const SavedSearchModel._();
@@ -59,9 +60,8 @@ class SavedSearchModel {
   }
 
   // In a saved search, null means "any", so "unknown" is the same as null.
-  static SellerType? _sellerType(String? value) => switch (value) {
-    'private' => SellerType.private,
-    'dealer' => SellerType.dealer,
-    _ => null,
-  };
+  static SellerType? _sellerType(String? value) {
+    final type = ListingModel.sellerTypeOf(value);
+    return type == SellerType.unknown ? null : type;
+  }
 }

@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'account_text.dart';
 import 'session_bootstrap.dart';
 
 class AccountState extends Equatable {
@@ -43,7 +44,7 @@ class AccountCubit extends Cubit<AccountState> {
       );
       emit(const AccountState(done: true));
     } on AuthException catch (e) {
-      emit(AccountState(error: _friendly(e)));
+      emit(AccountState(error: authErrorText(e.code, e.message)));
     }
   }
 
@@ -55,14 +56,7 @@ class AccountCubit extends Cubit<AccountState> {
       await ensureSession(_client);
       emit(const AccountState(done: true));
     } on AuthException catch (e) {
-      emit(AccountState(error: _friendly(e)));
+      emit(AccountState(error: authErrorText(e.code, e.message)));
     }
-  }
-
-  String _friendly(AuthException e) {
-    if (e.code == 'invalid_credentials') {
-      return 'Email ou palavra-passe incorretos.';
-    }
-    return e.message;
   }
 }

@@ -11,15 +11,15 @@ the database schema, secrets or workflows goes to "Needs Rafael".
 
 ## To do
 
-- Test `ListingAlertModel` / `SavedSearchModel` enum fallbacks (unknown type, null seller) and share the seller-type mapping with `ListingModel` (`app/lib/features/listings/data/models/`).
-- Move the filter-field parsing in `FiltersSheet._build` (`filters_sheet.dart`) to a pure function in a `*_text.dart` file and test it (comma decimals, blanks).
-- Move `TrackedModelsPage._errorText` and `AccountCubit._friendly` error mapping into testable pure functions.
 - Use one date-parsing helper for `DateTime.parse(...)` of nullable columns in `ListingAlertModel`, `SavedSearchModel` and the repositories.
 
 ## Needs Rafael
 
 ## Done
 
+- 2026-10-19: Error-message mapping of `TrackedModelsPage` and `AccountCubit` became `catalogSaveErrorText` and `authErrorText`, with tests.
+- 2026-10-19: Filter-field parsing of `FiltersSheet` became pure functions in `filter_fields_text.dart`, with tests.
+- 2026-10-19: Tests for `ListingAlertModel` / `SavedSearchModel` enum fallbacks; `SavedSearchModel` reuses `ListingModel.sellerTypeOf`.
 - 2026-10-19: Tests for `ListingModel.fromJson`; its seen-at dates now use the same `_date` helper as the other dates.
 - 2026-10-19: `_capitalize` of the status banner became `capitalize` in `collection_text.dart`, with a test.
 - 2026-10-19: Removed a needless `?.` in `more_page.dart` (the analyzer warning made `make check` fail).
