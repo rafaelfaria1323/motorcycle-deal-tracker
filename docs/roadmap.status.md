@@ -188,8 +188,8 @@ Do not implement several unrelated features at once.
 *Fourth tab "Mais" with the account (sign in/out), Modelos acompanhados and the collection: when the last run ended and how long it took, requests used per site (of 20), when the next run is due, and this month's runs with an estimate of GitHub Actions minutes. The profile icon left Pesquisas and the models link left the account sheet. The status card shows only when something is wrong (failed, blocked, no recent run) and lives only in Mais; the "Atualizado há…" line left Ofertas.*
 ## 13.3 Ofertas ✅
 *Only listings of tracked models (switched-off models' listings and unmatched ones are left out); a sort menu (Melhor pontuação, Mais recentes, Preço mais baixo/alto); applied filters as chips under the status line, each removable on its own, plus "Limpar tudo".*
-## 13.4 Listing page ⬜
-*Photo gallery; sections ordered by what matters for a decision (price and score first, then risk, market, history).*
+## 13.4 Listing page ✅
+*Photo gallery (swipe or arrows, "3 / 12" counter, tap for full screen). Sections ordered for a decision: photos, model, price and a line with year · km · location · seller type; then the score with its risks, "also listed as", the new-bike comparison, "A mota" (year, km, owners, service book, origin, warranties), the description (folded after 8 lines), the market, the price history and "O anúncio" (seller, source, dates, status). The button to the ad ("Ver no OLX"/"Ver no Standvirtual") stays fixed at the bottom.*
 ## 13.5 Pesquisas and Alertas ⬜
 *Create a search from Pesquisas; unread badge on Alertas; alerts grouped by day.*
 ## 13.6 One voice and polish ⬜
@@ -217,7 +217,7 @@ Do not implement several unrelated features at once.
 
 # Next
 
-1. UI/UX redesign (Sprint 13): 13.4 listing page next.
+1. UI/UX redesign (Sprint 13): 13.5 Pesquisas and Alertas next.
 2. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history.
 3. Price history chart on the detail page.
 4. Weekly Telegram summary (best deals, new drops, listings gone).
