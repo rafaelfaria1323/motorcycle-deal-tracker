@@ -195,7 +195,7 @@ Do not implement several unrelated features at once.
 ## 13.5 Pesquisas and Alertas ✅
 *"Nova pesquisa" in Pesquisas (name, criteria and alert choices in one sheet; also the empty screen's button). The Alertas tab shows the unread count, loaded when the app opens and again when it comes back to the screen. Alerts are grouped under "Hoje", "Ontem", the weekday, then the date, each with its time and a coloured icon by type.*
 ## 13.6 One voice and polish ✅
-*All pt-PT text speaks to the user as "você" ("Indique", "a sua conta", "Toque…"); the few "tu" forms and bare infinitive instructions were changed, and `test/voice_test.dart` fails the build if a "tu" form comes back. Ofertas shows card-shaped placeholders while loading instead of a spinner; every page uses the same empty/error screen (`StateMessage`); the unused placeholder page was removed. Light/dark and safe areas were covered by 13.4b (themed colours, bottom bar and sheets inside the safe area).*
+*All pt-PT text speaks to the user as "você" ("Indique", "a sua conta", "Toque…"); the few "tu" forms and bare infinitive instructions were changed, and `test/voice_test.dart` fails the build if a "tu" form comes back. Ofertas shows card-shaped placeholders while loading instead of a spinner; every page uses the same empty/error screen (`StateMessage`); the unused placeholder page was removed. Light/dark and safe areas were covered by 13.4b (themed colours, bottom bar and sheets inside the safe area). Fix after it: the status bar stayed dark in light mode on the iPhone (it ignored the light/dark `theme-color` tags and used the last one); now one tag, set by a script from the current mode.*
 
 # Sprint 14 — More than one person ⬜
 
