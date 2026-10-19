@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/entities/listing_filters.dart';
 import '../../domain/entities/motorcycle_option.dart';
+import '../score_criteria.dart';
 
 class FiltersSheet extends StatefulWidget {
   const FiltersSheet({
@@ -22,6 +23,8 @@ class _FiltersSheetState extends State<FiltersSheet> {
   late String? _motorcycleId = widget.initial.motorcycleId;
   late SellerType? _sellerType = widget.initial.sellerType;
   late bool _activeOnly = widget.initial.activeOnly;
+  late int? _minDealScore = widget.initial.minDealScore;
+  late int? _maxRiskScore = widget.initial.maxRiskScore;
 
   late final _year = TextEditingController(
     text: widget.initial.minYear?.toString() ?? '',
@@ -54,6 +57,8 @@ class _FiltersSheetState extends State<FiltersSheet> {
       maxMileage: int.tryParse(_mileage.text.trim()),
       location: location.isEmpty ? null : location,
       sellerType: _sellerType,
+      minDealScore: _minDealScore,
+      maxRiskScore: _maxRiskScore,
       activeOnly: _activeOnly,
     );
   }
@@ -105,6 +110,40 @@ class _FiltersSheetState extends State<FiltersSheet> {
               labelText: 'Localização',
               border: OutlineInputBorder(),
             ),
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<int?>(
+            initialValue: _minDealScore,
+            decoration: const InputDecoration(
+              labelText: 'Deal Score mínimo',
+              border: OutlineInputBorder(),
+            ),
+            items: [
+              const DropdownMenuItem(value: null, child: Text('Qualquer')),
+              for (final min in minDealScoreOptions)
+                DropdownMenuItem(
+                  value: min,
+                  child: Text(dealScoreOptionLabel(min)),
+                ),
+            ],
+            onChanged: (value) => setState(() => _minDealScore = value),
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<int?>(
+            initialValue: _maxRiskScore,
+            decoration: const InputDecoration(
+              labelText: 'Risco máximo',
+              border: OutlineInputBorder(),
+            ),
+            items: [
+              const DropdownMenuItem(value: null, child: Text('Qualquer')),
+              for (final max in maxRiskScoreOptions)
+                DropdownMenuItem(
+                  value: max,
+                  child: Text(riskCriterionLabel(max)),
+                ),
+            ],
+            onChanged: (value) => setState(() => _maxRiskScore = value),
           ),
           const SizedBox(height: 16),
           SegmentedButton<SellerType?>(
