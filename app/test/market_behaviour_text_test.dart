@@ -55,4 +55,58 @@ void main() {
 
     expect(lines.any((l) => l.contains('margem')), isFalse);
   });
+
+  test('a fitted model shows its own depreciation', () {
+    final line = depreciationLine(
+      const Depreciation(
+        sampleCount: 64,
+        isFitted: true,
+        perYear: 0.05235,
+        per1000Km: 0.002771,
+      ),
+    );
+
+    expect(
+      line,
+      'Desvalorização deste modelo: 5.1% por ano e 2.7% por 10 000 km '
+      '(64 anúncios)',
+    );
+  });
+
+  test('a model with few listings says the general rates apply', () {
+    final line = depreciationLine(
+      const Depreciation(
+        sampleCount: 12,
+        isFitted: false,
+        perYear: 0.04,
+        per1000Km: 0.002,
+      ),
+    );
+
+    expect(
+      line,
+      'Desvalorização: ainda poucos dados (12 de 30 anúncios); '
+      'usa-se a regra geral de 3.9% por ano e 2.0% por 10 000 km',
+    );
+  });
+
+  test('the depreciation line comes before the days listed', () {
+    final lines = marketLines(
+      MarketBehaviour(
+        liveCount: 40,
+        goneCount: 0,
+        pricedCount: 0,
+        droppedCount: 0,
+        depreciation: const Depreciation(
+          sampleCount: 40,
+          isFitted: true,
+          perYear: 0.05,
+          per1000Km: 0.003,
+        ),
+      ),
+      daysListed: 3,
+    );
+
+    expect(lines[lines.length - 2], startsWith('Desvalorização deste modelo'));
+  });
 }
