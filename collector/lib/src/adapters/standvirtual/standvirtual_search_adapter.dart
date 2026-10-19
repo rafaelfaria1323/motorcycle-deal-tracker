@@ -168,12 +168,13 @@ class StandvirtualSearchAdapter
     final problems = <String>[];
     for (final edge in edges) {
       final node = _map(_map(edge)?['node']);
+      final bump = _map(_map(edge)?['vas'])?['bumpDate'];
       if (node == null) {
         problems.add('a result had no data');
         continue;
       }
       try {
-        records.add(_fromNode(node));
+        records.add(_fromNode(node, bumpDate: bump));
       } on FormatException catch (e) {
         problems.add(e.message);
       }
@@ -189,7 +190,10 @@ class StandvirtualSearchAdapter
   }
 }
 
-StandvirtualRawListing _fromNode(Map<String, dynamic> node) {
+StandvirtualRawListing _fromNode(
+  Map<String, dynamic> node, {
+  Object? bumpDate,
+}) {
   final id = node['id']?.toString();
   final url = node['url'];
   if (id == null || id.isEmpty || url is! String) {
@@ -243,6 +247,8 @@ StandvirtualRawListing _fromNode(Map<String, dynamic> node) {
     sellerName: sellerName is String ? sellerName : null,
     location: _location(_map(node['location'])),
     images: [if (thumbnail is String) thumbnail],
+    createdAt: _time(node['createdAt']),
+    bumpedAt: _time(bumpDate),
   );
 }
 
@@ -259,3 +265,6 @@ String? _location(Map<String, dynamic>? location) {
 Map<String, dynamic>? _map(Object? o) => o is Map<String, dynamic> ? o : null;
 
 int? _int(Object? o) => o is num ? o.toInt() : null;
+
+DateTime? _time(Object? o) =>
+    o is String ? DateTime.tryParse(o)?.toUtc() : null;

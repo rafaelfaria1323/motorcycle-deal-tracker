@@ -187,7 +187,10 @@ functions for manual work.
   every planned search was read in full. Without a manifest (hand-saved
   pages, manual JSON) the whole input must be clean. The database refuses
   to remove more than 50% at once unless forced.
-- **Standvirtual** search pages hold everything except the description; one
+- **Standvirtual** search pages hold everything except the description
+  (including `createdAt` -> `published_at` and the bump date ->
+  `site_refreshed_at`; `apply_listing_dates` keeps the earliest publication
+  and latest renewal); one
   page per search. Listing pages are read only for matched, non-duplicate
   listings without details (`details_checked_at is null`). The search
   result's `priceDrop` is stored as `price_before_drop` (highest seen, never

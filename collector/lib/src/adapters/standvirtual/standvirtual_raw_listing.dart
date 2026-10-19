@@ -18,6 +18,8 @@ class StandvirtualRawListing {
     this.version,
     this.priceBeforeDrop,
     this.images = const [],
+    this.createdAt,
+    this.bumpedAt,
   });
 
   final String id;
@@ -42,6 +44,13 @@ class StandvirtualRawListing {
   /// site reports it; null when it shows no cut.
   final num? priceBeforeDrop;
   final List<String> images;
+
+  /// When the ad was published, from search results (listing pages give
+  /// it through `ListingDetails`).
+  final DateTime? createdAt;
+
+  /// When the seller last pushed the ad back to the top of the results.
+  final DateTime? bumpedAt;
 }
 
 /// Reads Standvirtual's `priceDrop` (`{percentage, lowestPrice: {minorAmount,
