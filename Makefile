@@ -67,6 +67,9 @@ fetch-dry: searches ## Check the search addresses and limits, requests nothing: 
 fetch: searches ## Download the search pages, slowly and capped: make fetch [SITE=olx]
 	cd collector && dart run bin/fetch.dart $(SITE) .searches.$(SITE).txt $(ARGS)
 
+notify-test: require-collector-env ## Send a test message to Telegram
+	cd collector && dart run bin/notify_test.dart
+
 enrich-dry: require-collector-env ## List the listings that still need details, requests nothing
 	cd collector && dart run bin/enrich.dart --dry-run
 
