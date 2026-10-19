@@ -62,4 +62,17 @@ void main() {
     expect(listing.newPrice, 8999.0);
     expect(listing.newPriceCheckedAt, DateTime.utc(2026, 10));
   });
+
+  test('reads the earlier ad of a relisted bike', () {
+    final listing = ListingModel.fromJson(
+      _row({
+        'relisted_from': 'l0',
+        'relisted_since': '2026-07-25T00:00:00Z',
+        'relisted_price': 6500,
+      }),
+    );
+    expect(listing.relistedFrom, 'l0');
+    expect(listing.relistedSince, DateTime.utc(2026, 7, 25));
+    expect(listing.relistedPrice, 6500.0);
+  });
 }

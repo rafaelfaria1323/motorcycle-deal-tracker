@@ -40,4 +40,52 @@ void main() {
     );
     expect(renewalToShow(listing(published: published)), isNull);
   });
+
+  group('relisted bikes', () {
+    Listing relisted({String? from = 'old', double? before, double? price}) =>
+        Listing(
+          id: 'l2',
+          source: 'olx',
+          url: 'https://www.olx.pt/d/anuncio/y.html',
+          brand: 'Yamaha',
+          model: 'MT-07',
+          status: ListingStatus.active,
+          sellerType: SellerType.private,
+          images: const [],
+          price: price,
+          relistedFrom: from,
+          relistedSince: DateTime(2026, 7, 25),
+          relistedPrice: before,
+        );
+    final now = DateTime(2026, 10, 19);
+
+    test('the earlier ad, its date and how the price moved', () {
+      expect(
+        relistText(relisted(before: 6500, price: 6200), now: now),
+        allOf(
+          startsWith(
+            'Esteve à venda noutro anúncio desde 25/07/2026 (há 86 dias), '
+            'a última vez por ',
+          ),
+          contains('(agora menos '),
+        ),
+      );
+      expect(
+        relistText(relisted(before: 6200, price: 6500), now: now),
+        contains('(agora mais '),
+      );
+      expect(
+        relistText(relisted(before: 6500, price: 6500), now: now),
+        isNot(contains('agora')),
+      );
+      expect(
+        relistText(relisted(), now: now),
+        'Esteve à venda noutro anúncio desde 25/07/2026 (há 86 dias).',
+      );
+    });
+
+    test('nothing for a listing that is not a relist', () {
+      expect(relistText(relisted(from: null), now: now), isNull);
+    });
+  });
 }

@@ -32,6 +32,9 @@ class ListingModel extends Listing {
     super.dealerWarrantyMonths,
     super.publishedAt,
     super.siteRefreshedAt,
+    super.relistedFrom,
+    super.relistedSince,
+    super.relistedPrice,
     super.newPrice,
     super.newPriceCheckedAt,
   });
@@ -79,6 +82,9 @@ class ListingModel extends Listing {
       dealerWarrantyMonths: json['dealer_warranty_months'] as int?,
       publishedAt: dateOf(json['published_at']),
       siteRefreshedAt: dateOf(json['site_refreshed_at']),
+      relistedFrom: json['relisted_from'] as String?,
+      relistedSince: dateOf(json['relisted_since']),
+      relistedPrice: (json['relisted_price'] as num?)?.toDouble(),
       newPrice: (bike?['new_price_reference'] as num?)?.toDouble(),
       newPriceCheckedAt: dateOf(bike?['new_price_checked_at']),
     );

@@ -107,7 +107,7 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 - ✅ Missing information.
 - ✅ Possible accident.
 - 🟡 Duplicate listing. *Detected (across sources too) and excluded from scoring, not a risk signal.*
-- ⬜ Suspicious seller behaviour.
+- 🟡 Suspicious seller behaviour. *Relisted ads are detected (the same bike taken down and listed again) and shown with the first date on sale and the earlier price; not a risk signal.*
 - ✅ Unclear ownership/history. *3+ owners, no service book, imported.*
 - ⬜ Excessively edited or reused images.
 

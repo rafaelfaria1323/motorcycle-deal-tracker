@@ -218,6 +218,12 @@ functions for manual work.
   (a matched listing stores the catalog names), removed ones included.
 - Dealer boilerplate sentences are stripped from descriptions (they caused
   false duplicates). Duplicates are detected across sources too.
+- Relisted ads (`mark_relists`, called at the end of `mark_duplicates`): a
+  live listing that matches a gone ad (same model and year, duplicate
+  similarity >= 70) which disappeared up to 90 days before it was first
+  seen gets `relisted_from`, `relisted_since` (when the bike first went on
+  sale, following earlier relists) and `relisted_price`. Shown on the
+  listing page ("Anúncio publicado de novo"); changes no score.
 
 ## Fetching rules (do not loosen without asking Rafael)
 
