@@ -4,3 +4,4 @@
 imports/
 collector/samples/standvirtual/
 collector/.fetch_state.json
+collector/.env

@@ -6,6 +6,7 @@ import 'package:motorcycle_deal_tracker/features/listings/domain/entities/saved_
 import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/widgets/state_message.dart';
+import '../../../collector_status/presentation/collector_status_banner.dart';
 import '../../domain/entities/listing_filters.dart';
 import '../cubit/listings_cubit.dart';
 import '../cubit/listings_state.dart';
@@ -89,60 +90,71 @@ class DashboardPage extends StatelessWidget {
           ),
         ],
       ),
-      body: BlocBuilder<ListingsCubit, ListingsState>(
-        builder: (context, state) {
-          switch (state.status) {
-            case ListingsStatus.initial:
-            case ListingsStatus.loading:
-              return const Center(child: CircularProgressIndicator());
-            case ListingsStatus.failure:
-              return StateMessage(
-                icon: Icons.cloud_off,
-                title: 'Não foi possível carregar as ofertas',
-                message: 'Verifique a ligação e tente novamente.',
-                actionLabel: 'Tentar novamente',
-                onAction: () => context.read<ListingsCubit>().load(),
-              );
-            case ListingsStatus.success:
-              if (state.listings.isEmpty) {
-                final hasFilters = state.filters.appliedCount > 0;
-                return StateMessage(
-                  icon: Icons.search_off,
-                  title: hasFilters
-                      ? 'Nenhuma oferta com estes filtros'
-                      : 'Ainda não há ofertas',
-                  message: hasFilters
-                      ? 'Experimente alargar os critérios de pesquisa.'
-                      : 'Volte mais tarde, estamos a acompanhar o mercado.',
-                  actionLabel: hasFilters ? 'Limpar filtros' : null,
-                  onAction: hasFilters
-                      ? () => context.read<ListingsCubit>().applyFilters(
-                          ListingFilters.empty,
-                        )
-                      : null,
-                );
-              }
+      body: Column(
+        children: [
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: CollectorStatusBanner(),
+          ),
+          Expanded(
+            child: BlocBuilder<ListingsCubit, ListingsState>(
+              builder: (context, state) {
+                switch (state.status) {
+                  case ListingsStatus.initial:
+                  case ListingsStatus.loading:
+                    return const Center(child: CircularProgressIndicator());
+                  case ListingsStatus.failure:
+                    return StateMessage(
+                      icon: Icons.cloud_off,
+                      title: 'Não foi possível carregar as ofertas',
+                      message: 'Verifique a ligação e tente novamente.',
+                      actionLabel: 'Tentar novamente',
+                      onAction: () => context.read<ListingsCubit>().load(),
+                    );
+                  case ListingsStatus.success:
+                    if (state.listings.isEmpty) {
+                      final hasFilters = state.filters.appliedCount > 0;
+                      return StateMessage(
+                        icon: Icons.search_off,
+                        title: hasFilters
+                            ? 'Nenhuma oferta com estes filtros'
+                            : 'Ainda não há ofertas',
+                        message: hasFilters
+                            ? 'Experimente alargar os critérios de pesquisa.'
+                            : 'Volte mais tarde, estamos a acompanhar o mercado.',
+                        actionLabel: hasFilters ? 'Limpar filtros' : null,
+                        onAction: hasFilters
+                            ? () => context.read<ListingsCubit>().applyFilters(
+                                ListingFilters.empty,
+                              )
+                            : null,
+                      );
+                    }
 
-              return GridView.builder(
-                padding: const EdgeInsets.all(16),
-                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 420,
-                  mainAxisExtent: 290,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                ),
-                itemCount: state.listings.length,
-                itemBuilder: (context, index) {
-                  final listing = state.listings[index];
-                  return ListingCard(
-                    listing: listing,
-                    onTap: () =>
-                        context.go(AppRoutes.listingDetail(listing.id)),
-                  );
-                },
-              );
-          }
-        },
+                    return GridView.builder(
+                      padding: const EdgeInsets.all(16),
+                      gridDelegate:
+                          const SliverGridDelegateWithMaxCrossAxisExtent(
+                            maxCrossAxisExtent: 420,
+                            mainAxisExtent: 290,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                          ),
+                      itemCount: state.listings.length,
+                      itemBuilder: (context, index) {
+                        final listing = state.listings[index];
+                        return ListingCard(
+                          listing: listing,
+                          onTap: () =>
+                              context.go(AppRoutes.listingDetail(listing.id)),
+                        );
+                      },
+                    );
+                }
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

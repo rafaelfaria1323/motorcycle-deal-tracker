@@ -4,8 +4,8 @@ on:
   workflow_dispatch: # manual "Run workflow" button
   # Enable after a manual run comes back ok. GitHub uses UTC:
   # 06:40 and 18:40 UTC = 07:40 and 19:40 in Lisbon in winter.
-  # schedule:
-  #   - cron: '40 6,18 * * *'
+  schedule:
+    - cron: '40 6,18 * * *'
 
 # Never two runs at once: they would share the request budget.
 concurrency:

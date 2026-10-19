@@ -2,6 +2,8 @@ import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/auth/account_cubit.dart';
+import '../../features/collector_status/data/collector_runs_repository.dart';
+import '../../features/collector_status/presentation/collector_status_cubit.dart';
 import '../../features/listings/data/repositories/supabase_alerts_repository.dart';
 import '../../features/listings/data/repositories/supabase_listings_repository.dart';
 import '../../features/listings/data/repositories/supabase_saved_searches_repository.dart';
@@ -45,4 +47,10 @@ void configureDependencies() {
     );
 
   getIt.registerFactory(() => AccountCubit(Supabase.instance.client));
+  getIt.registerLazySingleton<CollectorRunsRepository>(
+    () => SupabaseCollectorRunsRepository(Supabase.instance.client),
+  );
+  getIt.registerLazySingleton(
+    () => CollectorStatusCubit(getIt<CollectorRunsRepository>()),
+  );
 }

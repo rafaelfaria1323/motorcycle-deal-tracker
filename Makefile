@@ -7,6 +7,10 @@
 # Which source the collector reads: manual (a JSON file) or standvirtual
 # (a folder of saved listing pages). Extra collector flags go in ARGS.
 SOURCE ?= manual
+# Local secrets for the collector (not committed). GitHub Actions has no such
+# file and uses its repository secrets instead.
+-include collector/.env
+export SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY
 ifeq ($(SOURCE),standvirtual)
 DEFAULT_INPUT := samples/standvirtual
 else ifeq ($(SOURCE),standvirtual-search)

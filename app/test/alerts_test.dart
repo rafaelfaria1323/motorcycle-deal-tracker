@@ -130,4 +130,11 @@ void main() {
 
     expect(alert.type, AlertType.excellentOpportunity);
   });
+
+  test('a removed-listing alert is recognised', () {
+    final row = _row('a5')..['type'] = 'listing_removed';
+    final alert = ListingAlertModel.fromJson(row);
+
+    expect(alert.type, AlertType.listingRemoved);
+  });
 }
