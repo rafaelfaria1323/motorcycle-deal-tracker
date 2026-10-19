@@ -52,6 +52,10 @@ abstract final class ScoreExplainer {
     ),
     'no_mileage': (ExplanationTone.negative, 'Quilometragem não indicada'),
     'no_year': (ExplanationTone.negative, 'Ano não indicado'),
+    'suspicious_mileage': (
+      ExplanationTone.negative,
+      'Quilometragem pouco provável para o ano, confirme com o vendedor',
+    ),
     'thin_description': (ExplanationTone.negative, 'Descrição muito curta'),
     'no_location': (ExplanationTone.negative, 'Localização não indicada'),
     'many_owners': (ExplanationTone.negative, 'Três ou mais registos (donos)'),

@@ -243,7 +243,8 @@ functions for manual work.
   (70% mileage), risk 10 (inverted). Missing slices are skipped.
 - Risk signals: price far below market, possible accident (text), missing
   mileage/year/location, thin description (only private sellers with details
-  read), 3+ owners, no service book, imported; reassuring: first owner,
+  read), 3+ owners, no service book, imported, implausible mileage (under
+  100 km on a bike 3+ years old, or over 25 000 km a year); reassuring: first owner,
   service book, factory warranty (negative points, floor 0).
 - Market behaviour per model (`model_market_behaviour`): time until leaving
   the market, share and size of price drops (measured from the higher of the
