@@ -127,15 +127,8 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
     }
   }
 
-  String _errorText(Object e) {
-    if (e is PostgrestException) {
-      if (e.code == '23505') return 'Esse modelo já está na lista.';
-      if (e.code == '42501') {
-        return 'Não foi possível guardar: é preciso ter sessão iniciada.';
-      }
-    }
-    return 'Não foi possível guardar. Tente novamente.';
-  }
+  String _errorText(Object e) =>
+      catalogSaveErrorText(e is PostgrestException ? e.code : null);
 
   void _replace(CatalogModel model) {
     _models = [for (final m in _models!) m.id == model.id ? model : m];
