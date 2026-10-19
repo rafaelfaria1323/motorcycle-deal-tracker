@@ -169,4 +169,21 @@ void main() {
       expect(full.records.map((r) => r.id), ['1', '2']);
     });
   });
+
+  test('later pages keep the search filters', () {
+    final search = Uri.parse(
+      'https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/yamaha/'
+      '?search%5Bfilter_enum_modelo%5D%5B0%5D=mt-07'
+      '&search%5Bfilter_float_year:from%5D=2023',
+    );
+    final page = OlxSearchAdapter.pageUrl(search, 3);
+
+    expect(page.path, search.path);
+    expect(page.queryParameters, {
+      'search[filter_enum_modelo][0]': 'mt-07',
+      'search[filter_float_year:from]': '2023',
+      'page': '3',
+    });
+    expect(urlProblem(page, site: FetchSite.olx), isNull);
+  });
 }

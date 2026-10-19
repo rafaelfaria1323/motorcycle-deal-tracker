@@ -111,6 +111,11 @@ class OlxSearchAdapter implements SourceAdapter<OlxRawListing> {
     return ParseResult(records, issues);
   }
 
+  /// The address of page [page] of a search (the first page has none).
+  static Uri pageUrl(Uri search, int page) => search.replace(
+    queryParameters: {...search.queryParameters, 'page': '$page'},
+  );
+
   static final _state = RegExp(
     r'window\.__PRERENDERED_STATE__\s*=\s*("(?:[^"\\]|\\.)*")',
   );

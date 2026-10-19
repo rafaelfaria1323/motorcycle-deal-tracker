@@ -5,6 +5,41 @@ here. Robots.txt is not permission; the source's terms of use decide.
 
 ## Decision log
 
+### 2026-10-19: OLX search pages as a second source (9.7)
+
+**Decision.** The same low-volume personal fetcher reads the owner's OLX
+search pages (`sources/olx_searches.txt`, `make refresh-olx`). OLX search
+results already hold the full description, so no listing pages are read.
+
+**Limits (enforced in code).** The same rules as Standvirtual, with OLX's
+own budget (`.fetch_state.olx.json`): only www.olx.pt over https, only
+/carros-motos-e-barcos/motociclos-scooters/ paths allowed by robots.txt
+(read every run); 6-10 s between requests; max 20 per run and 120 per day;
+no retries; stops on HTTP 403/429/503 or a page without OLX's
+`__PRERENDERED_STATE__`, then refuses to run for 24 h. Searches carry a
+2023+ year filter so each one is a few pages; every page of a search is
+read, and a search with missing pages never removes listings.
+
+**robots.txt (checked 2026-10-19, saved by the owner).** For `*`: blocks
+*/ajax/, /adminpanel/, /api/ (including /api/v1/offers, which the search
+page itself calls; we read the HTML page, never the API), */facebook/,
+*/rss/, */account/, */myaccount/, /adprint/, /anuncio/leaflet/,
+/anuncio/contact/, /payment/, /searchform/, ad-posting confirmation pages,
+abuse and contact pages, */i2/*; `Allow: /`; no crawl delay.
+
+**What is stored.** Source id `olx.pt/<ad id>`, url, brand, model, year,
+mileage, price, seller type, business name (business accounts only; private
+sellers' names are never read), city, description and up to 10 photo
+links. Phone numbers are never read. Ads OLX shows as copies of Standvirtual
+ads (`partner: standvirtual`, 8 of 47 on the first page checked) are
+skipped: the original is collected from Standvirtual.
+
+**Not committed.** Saved pages (`collector/samples/olx/`) are in
+`.gitignore`.
+
+**Open: OLX terms of use** (row in the table below): to be read and quoted
+by the owner.
+
 ### 2026-10-19: low-volume personal fetcher for Standvirtual search pages (9.2)
 
 **Decision.** For personal, non-commercial use, a capped fetcher downloads a

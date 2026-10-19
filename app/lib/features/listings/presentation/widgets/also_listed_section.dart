@@ -5,6 +5,7 @@ import '../../../../app/di/injection.dart';
 import '../../../../core/formatting/formatters.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/repositories/listings_repository.dart';
+import '../listing_labels.dart';
 
 class AlsoListedSection extends StatefulWidget {
   const AlsoListedSection({super.key, required this.listing});
@@ -41,7 +42,7 @@ class _AlsoListedSectionState extends State<AlsoListedSection> {
                 for (final other in others)
                   ListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: Text(other.source),
+                    title: Text(sourceLabel(other.source)),
                     subtitle: Text(other.location ?? 'Local não indicado'),
                     trailing: Text(Formatters.price(other.price)),
                     onTap: () => launchUrl(Uri.parse(other.url)),

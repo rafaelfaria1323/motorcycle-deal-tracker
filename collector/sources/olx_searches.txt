@@ -1,0 +1,15 @@
+# One OLX search address per line, copied from the browser's address bar
+# after setting your filters. Only www.olx.pt/carros-motos-e-barcos/
+# motociclos-scooters/... works. Every page of a search costs one request
+# per run, so keep the year filter (2023+): without it the MT-07 search
+# alone is 9 pages.
+#
+# OLX's model filter only names families for some bikes (Yamaha "r"/"yzf",
+# Honda "cb"/"cbr"); the collector picks the catalog models out of them.
+
+# Yamaha MT-07 (OLX also files the Tracer 7 here; it stays unmatched)
+https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/yamaha/?search%5Bfilter_enum_modelo%5D%5B0%5D=mt-07&search%5Bfilter_float_year:from%5D=2023
+# Yamaha R7 (filed as "R" or "YZF")
+https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/yamaha/?search%5Bfilter_enum_modelo%5D%5B0%5D=r&search%5Bfilter_enum_modelo%5D%5B1%5D=yzf&search%5Bfilter_float_year:from%5D=2023
+# Honda CB650R and CBR650R (filed as "CB" or "CBR")
+https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/honda/?search%5Bfilter_enum_modelo%5D%5B0%5D=cb&search%5Bfilter_enum_modelo%5D%5B1%5D=cbr&search%5Bfilter_float_year:from%5D=2023

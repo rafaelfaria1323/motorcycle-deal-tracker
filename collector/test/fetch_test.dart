@@ -46,13 +46,13 @@ void main() {
   });
 
   group('address checks', () {
-    const host = 'www.standvirtual.com';
+    const site = FetchSite.standvirtual;
 
     test('accepts a motorcycle search over https', () {
       expect(
         urlProblem(
           Uri.parse('https://www.standvirtual.com/motos/yamaha'),
-          host: host,
+          site: site,
         ),
         isNull,
       );
@@ -65,8 +65,32 @@ void main() {
         'https://www.standvirtual.com/carros/bmw',
         'https://user:pw@www.standvirtual.com/motos/x',
       ]) {
-        expect(urlProblem(Uri.parse(bad), host: host), isNotNull, reason: bad);
+        expect(urlProblem(Uri.parse(bad), site: site), isNotNull, reason: bad);
       }
+    });
+
+    test('OLX: only the motorcycles category', () {
+      const olx = FetchSite.olx;
+      expect(
+        urlProblem(
+          Uri.parse(
+            'https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/yamaha/',
+          ),
+          site: olx,
+        ),
+        isNull,
+      );
+      expect(
+        urlProblem(
+          Uri.parse('https://www.olx.pt/carros-motos-e-barcos/carros/bmw/'),
+          site: olx,
+        ),
+        isNotNull,
+      );
+      expect(
+        urlProblem(Uri.parse('https://www.olx.pt/api/v1/offers'), site: olx),
+        isNotNull,
+      );
     });
   });
 

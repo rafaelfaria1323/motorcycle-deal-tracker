@@ -7,5 +7,5 @@ imports/
 # per machine (Actions keeps it in its cache).
 /samples/standvirtual/
 /samples/olx/
-/.fetch_state.json
+/.fetch_state*.json
 .env

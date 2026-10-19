@@ -2,14 +2,12 @@ import 'dart:io';
 
 import 'package:collector/collector.dart';
 
-const _host = 'www.standvirtual.com';
-
 Future<void> main(List<String> args) async {
   final flags = args.where((a) => a.startsWith('--')).toList();
   final positional = args.where((a) => !a.startsWith('--')).toList();
 
   var dryRun = false;
-  var outDir = 'samples/standvirtual/search';
+  String? outDir;
   var maxRequests = const FetchPolicy().maxRequestsPerRun;
   for (final flag in flags) {
     if (flag == '--dry-run') {
@@ -23,19 +21,22 @@ Future<void> main(List<String> args) async {
     }
   }
 
+  final site = positional.isEmpty ? null : FetchSite.byName[positional.first];
   if (positional.length != 2 ||
-      positional.first != 'standvirtual' ||
+      site == null ||
       maxRequests < 1 ||
       maxRequests > 50) {
     stderr.writeln(
-      'Usage: dart run bin/fetch.dart standvirtual <urls-file> '
-      '[--dry-run] [--out=<dir>] [--max=<1-50>]\n'
+      'Usage: dart run bin/fetch.dart <${FetchSite.byName.keys.join('|')}> '
+      '<urls-file> [--dry-run] [--out=<dir>] [--max=<1-50>]\n'
       '  <urls-file>  one search address per line (# starts a comment)\n'
-      '  --dry-run    check the addresses and limits; nothing is requested',
+      '  --dry-run    check the addresses and limits; nothing is requested\n'
+      '  OLX searches span pages; the following pages are fetched too.',
     );
     exitCode = 64;
     return;
   }
+  final out = outDir ?? 'samples/${positional.first}/search';
 
   final urls = <Uri>[];
   try {
@@ -45,7 +46,7 @@ Future<void> main(List<String> args) async {
       final url = Uri.tryParse(line);
       final problem = url == null
           ? 'not an address'
-          : urlProblem(url, host: _host);
+          : urlProblem(url, site: site);
       if (problem != null) {
         stderr.writeln('Refused "$line": $problem');
         exitCode = 64;
@@ -75,19 +76,29 @@ Future<void> main(List<String> args) async {
   }
 
   final fetcher = PoliteFetcher(
-    host: _host,
-    statePath: '.fetch_state.json',
+    site: site,
     policy: FetchPolicy(maxRequestsPerRun: maxRequests),
   );
   try {
     await fetcher.prepare();
-    await Directory(outDir).create(recursive: true);
+    await Directory(out).create(recursive: true);
 
-    for (final url in urls) {
+    Future<String> save(Uri url) async {
       final html = await fetcher.get(url);
-      final file = File('$outDir/${fileNameFor(url)}');
+      final file = File('$out/${fileNameFor(url)}');
       await file.writeAsString(html);
       stdout.writeln('  saved ${file.path} (${html.length ~/ 1024} KB)');
+      return html;
+    }
+
+    for (final url in urls) {
+      final first = await save(url);
+      if (site == FetchSite.olx) {
+        final pages = OlxSearchAdapter('').parseSearchPage(first).totalPages;
+        for (var page = 2; page <= pages; page++) {
+          await save(OlxSearchAdapter.pageUrl(url, page));
+        }
+      }
     }
     stdout.writeln('Done.');
   } on FetchRefused catch (e) {
@@ -100,6 +111,9 @@ Future<void> main(List<String> args) async {
   } on FetchFailed catch (e) {
     stderr.writeln('Failed: $e');
     exitCode = 75;
+  } on FormatException catch (e) {
+    stderr.writeln('Not a search results page: ${e.message}');
+    exitCode = 65;
   } finally {
     fetcher.close();
   }

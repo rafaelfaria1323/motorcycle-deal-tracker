@@ -208,7 +208,7 @@ class _Content extends StatelessWidget {
                     _FactRow('Localização', listing.location ?? '—'),
                     _FactRow('Vendedor', listing.sellerName ?? '—'),
                     _FactRow('Tipo de vendedor', listing.sellerType.label),
-                    _FactRow('Fonte', listing.source),
+                    _FactRow('Fonte', sourceLabel(listing.source)),
                     _FactRow('Estado', listing.status.label),
                   ],
                 ),
