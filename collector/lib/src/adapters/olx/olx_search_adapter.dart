@@ -4,6 +4,7 @@ import 'dart:io';
 import '../../normalized/normalized_listing.dart';
 import '../../normalized/normalizers.dart';
 import '../../fetch/search_manifest.dart';
+import '../json_values.dart';
 import '../source_adapter.dart';
 import 'olx_raw_listing.dart';
 
@@ -149,15 +150,15 @@ class OlxSearchAdapter implements SourceAdapter<OlxRawListing> {
       throw const FormatException('__PRERENDERED_STATE__ is not valid JSON');
     }
 
-    final listing = _map(_map(_map(state)?['listing'])?['listing']);
+    final listing = asMap(asMap(asMap(state)?['listing'])?['listing']);
     final ads = listing?['ads'];
     if (listing == null || ads is! List) {
       throw const FormatException('not a search results page');
     }
 
-    final request = _map(listing['requestParams']);
+    final request = asMap(listing['requestParams']);
     final categoryPath = '${request?['categoryPath'] ?? ''}';
-    final filters = _map(request?['params']) ?? const {};
+    final filters = asMap(request?['params']) ?? const {};
     final search = [
       categoryPath,
       for (final key in filters.keys.toList()..sort())
@@ -172,7 +173,7 @@ class OlxSearchAdapter implements SourceAdapter<OlxRawListing> {
     final problems = <String>[];
     for (final ad in ads) {
       try {
-        final map = _map(ad);
+        final map = asMap(ad);
         if (map == null) throw const FormatException('a result is not an ad');
         records.add(_fromAd(map, brand));
       } on FormatException catch (e) {
@@ -182,9 +183,9 @@ class OlxSearchAdapter implements SourceAdapter<OlxRawListing> {
 
     return OlxSearchPage(
       search: search,
-      pageNumber: _int(listing['pageNumber']) ?? 0,
-      totalPages: _int(listing['totalPages']) ?? 1,
-      total: _int(listing['totalElements']) ?? ads.length,
+      pageNumber: asInt(listing['pageNumber']) ?? 0,
+      totalPages: asInt(listing['totalPages']) ?? 1,
+      total: asInt(listing['totalElements']) ?? ads.length,
       records: records,
       problems: problems,
     );
@@ -202,7 +203,7 @@ OlxRawListing _fromAd(Map<String, dynamic> ad, String? brand) {
   final list = ad['params'];
   if (list is List) {
     for (final p in list) {
-      final map = _map(p);
+      final map = asMap(p);
       final key = map?['key'];
       if (key is String) params[key] = map!;
     }
@@ -212,10 +213,10 @@ OlxRawListing _fromAd(Map<String, dynamic> ad, String? brand) {
 
   // Trade-only and "price on request" ads have no price; the mapper
   // rejects them, but they are still live listings.
-  final regular = _map(_map(ad['price'])?['regularPrice']);
+  final regular = asMap(asMap(ad['price'])?['regularPrice']);
   final price = regular?['value'];
 
-  final user = _map(ad['user']);
+  final user = asMap(ad['user']);
   final company = '${user?['company_name'] ?? ''}'.trim();
   final userName = '${user?['name'] ?? ''}'.trim();
   // Some business accounts are named "Particular": they are private sellers.
@@ -224,11 +225,11 @@ OlxRawListing _fromAd(Map<String, dynamic> ad, String? brand) {
       parseSellerType(company.isNotEmpty ? company : userName) !=
           SellerType.private;
 
-  final location = _map(ad['location']);
+  final location = asMap(ad['location']);
   final city = location?['cityName'];
   final region = location?['regionName'];
 
-  final partner = '${_map(ad['partner'])?['code'] ?? ''}';
+  final partner = '${asMap(ad['partner'])?['code'] ?? ''}';
   final external = ad['externalUrl'];
   final photos = ad['photos'];
 
@@ -260,14 +261,7 @@ OlxRawListing _fromAd(Map<String, dynamic> ad, String? brand) {
         for (final p in photos.take(10))
           if (p is String) p,
     ],
-    createdAt: _time(ad['createdTime']),
-    refreshedAt: _time(ad['lastRefreshTime']),
+    createdAt: asTime(ad['createdTime']),
+    refreshedAt: asTime(ad['lastRefreshTime']),
   );
 }
-
-DateTime? _time(Object? value) =>
-    value is String ? DateTime.tryParse(value)?.toUtc() : null;
-
-Map<String, dynamic>? _map(Object? o) => o is Map<String, dynamic> ? o : null;
-
-int? _int(Object? o) => o is num ? o.toInt() : null;

@@ -187,18 +187,16 @@ void main() {
     expect(page.records.last.createdAt, isNull);
   });
 
+  // Saved pages are never committed, so this only runs on Rafael's machine.
+  final savedPage = File('samples/standvirtual/search/motos-yamaha-mt-07.html');
   test('a saved search page has every listing\'s publication date', () async {
-    final page = adapter.parseSearchPage(
-      await File(
-        'samples/standvirtual/search/motos-yamaha-mt-07.html',
-      ).readAsString(),
-    );
+    final page = adapter.parseSearchPage(await savedPage.readAsString());
 
     expect(page.records, isNotEmpty);
     expect(page.records.every((r) => r.createdAt != null), isTrue);
     // Only ads the seller pushed back to the top have a bump date.
     expect(page.records.any((r) => r.bumpedAt != null), isTrue);
-  });
+  }, skip: savedPage.existsSync() ? false : 'no saved search page here');
 
   group('price cuts the site reports', () {
     Map<String, dynamic> drop(int minor, {String currency = 'EUR'}) => {
