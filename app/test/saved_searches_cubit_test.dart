@@ -38,14 +38,30 @@ class _FakeSearches implements SavedSearchesRepository {
     ];
   }
 
+  /// The database's defaults: alerts for new listings and price drops.
   @override
   Future<SavedSearch> create({
     required String name,
     required ListingFilters filters,
-  }) => throw UnimplementedError();
+  }) async {
+    final created = SavedSearch(
+      id: 'new',
+      name: name,
+      filters: filters,
+      createdAt: DateTime(2026, 10, 19),
+    );
+    items = [created, ...items];
+    return created;
+  }
+
+  final updates = <SavedSearch>[];
 
   @override
-  Future<SavedSearch> update(SavedSearch search) => throw UnimplementedError();
+  Future<SavedSearch> update(SavedSearch search) async {
+    updates.add(search);
+    items = [for (final s in items) s.id == search.id ? search : s];
+    return search;
+  }
 }
 
 /// Only the method the cubit uses; anything else would throw.
@@ -114,5 +130,41 @@ void main() {
     expect(cubit.state.status, SavedSearchesStatus.success);
     expect(cubit.state.searches, hasLength(1));
     expect(cubit.state.matchCounts, isEmpty);
+  });
+
+  test('a new search keeps the alert choices made in its sheet', () async {
+    final repository = _FakeSearches([_search('a')]);
+    final cubit = SavedSearchesCubit(repository, _FakeListings());
+    await cubit.load();
+
+    final saved = await cubit.createFrom(
+      SavedSearch.draft().copyWith(
+        name: 'R7 até 8000 €',
+        filters: const ListingFilters(maxPrice: 8000),
+        notifyExcellentDeal: true,
+      ),
+    );
+
+    expect(saved, isTrue);
+    expect(cubit.state.searches.map((s) => s.id), ['new', 'a']);
+    expect(cubit.state.searches.first.name, 'R7 até 8000 €');
+    expect(cubit.state.searches.first.notifyExcellentDeal, isTrue);
+    expect(repository.updates, hasLength(1));
+  });
+
+  test('a new search with the default alerts needs no second save', () async {
+    final repository = _FakeSearches([]);
+    final cubit = SavedSearchesCubit(repository, _FakeListings());
+    await cubit.load();
+
+    await cubit.createFrom(
+      SavedSearch.draft().copyWith(
+        name: 'MT-07',
+        filters: const ListingFilters(minYear: 2024),
+      ),
+    );
+
+    expect(cubit.state.searches.map((s) => s.id), ['new']);
+    expect(repository.updates, isEmpty);
   });
 }

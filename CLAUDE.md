@@ -86,7 +86,9 @@ names, plus `SUPABASE_PUBLISHABLE_KEY`, `CLOUDFLARE_API_TOKEN` and
 - Text built from data lives in pure functions (`*_text.dart`) with tests.
 - State: flutter_bloc Cubits + Equatable states. DI: get_it. Shared cubits
   (`ListingsCubit`, `SavedSearchesCubit`, `AlertsCubit`, `CollectorStatusCubit`)
-  are lazy singletons, provided in routes with `BlocProvider.value`.
+  are lazy singletons, provided in routes with `BlocProvider.value`. The
+  shell (`AppShell`) loads `AlertsCubit` at start and on app resume for the
+  unread badge on Alertas.
 - Routing: go_router `StatefulShellRoute` (Ofertas / Pesquisas / Alertas /
   Mais). Account, "Modelos acompanhados" and collection status live in Mais.
   Use `context.go`, not `push`, so web URLs stay correct. Exception: full

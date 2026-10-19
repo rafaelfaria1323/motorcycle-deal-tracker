@@ -58,6 +58,30 @@ class SavedSearchesPage extends StatelessWidget {
     );
   }
 
+  Future<void> _create(
+    BuildContext context,
+    List<MotorcycleOption> motorcycles,
+  ) async {
+    final cubit = context.read<SavedSearchesCubit>();
+    final messenger = ScaffoldMessenger.of(context);
+
+    final draft = await showEditSavedSearchSheet(
+      context,
+      search: SavedSearch.draft(),
+      motorcycles: motorcycles,
+    );
+    if (draft == null) return;
+
+    final saved = await cubit.createFrom(draft);
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          saved ? 'Pesquisa guardada' : 'Não foi possível guardar a pesquisa',
+        ),
+      ),
+    );
+  }
+
   Future<void> _delete(BuildContext context, SavedSearch search) async {
     final cubit = context.read<SavedSearchesCubit>();
     final messenger = ScaffoldMessenger.of(context);
@@ -82,6 +106,22 @@ class SavedSearchesPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Pesquisas')),
+      floatingActionButton: BlocBuilder<SavedSearchesCubit, SavedSearchesState>(
+        buildWhen: (previous, current) =>
+            previous.status != current.status ||
+            previous.searches.isEmpty != current.searches.isEmpty ||
+            previous.motorcycles != current.motorcycles,
+        // With no searches yet the empty screen has its own button.
+        builder: (context, state) =>
+            state.status == SavedSearchesStatus.success &&
+                state.searches.isNotEmpty
+            ? FloatingActionButton.extended(
+                onPressed: () => _create(context, state.motorcycles),
+                icon: const Icon(Icons.add),
+                label: const Text('Nova pesquisa'),
+              )
+            : const SizedBox.shrink(),
+      ),
       body: BlocBuilder<SavedSearchesCubit, SavedSearchesState>(
         builder: (context, state) {
           switch (state.status) {
@@ -102,9 +142,10 @@ class SavedSearchesPage extends StatelessWidget {
                   icon: Icons.bookmark_border,
                   title: 'Ainda não tem pesquisas guardadas',
                   message:
-                      'Aplique filtros em Ofertas e toque em "Guardar pesquisa".',
-                  actionLabel: 'Ver ofertas',
-                  onAction: () => context.go(AppRoutes.deals),
+                      'Crie uma pesquisa e avisamos quando surgir uma oferta '
+                      'que lhe interesse.',
+                  actionLabel: 'Nova pesquisa',
+                  onAction: () => _create(context, state.motorcycles),
                 );
               }
               return Align(
@@ -112,7 +153,8 @@ class SavedSearchesPage extends StatelessWidget {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 800),
                   child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
+                    // Room at the end so the button never covers a search.
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
                     itemCount: state.searches.length,
                     itemBuilder: (context, index) {
                       final search = state.searches[index];
