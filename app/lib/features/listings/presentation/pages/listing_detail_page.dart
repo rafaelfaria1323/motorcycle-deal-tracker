@@ -241,8 +241,9 @@ class _Content extends StatelessWidget {
           ),
         ),
         // Always in reach: the next step after reading is the seller's ad.
+        // The tab bar's colour, which Safari's bottom toolbar is tinted with.
         Material(
-          color: theme.colorScheme.surface,
+          color: theme.colorScheme.surfaceContainerLowest,
           elevation: 3,
           child: SafeArea(
             top: false,
