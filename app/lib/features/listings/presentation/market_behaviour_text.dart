@@ -1,7 +1,13 @@
+import 'dart:math';
+
 import '../domain/entities/market_behaviour.dart';
 
 /// Below this many listings a figure is not shown as a fact.
 const minMarketData = 5;
+
+/// Listings a model needs before its own depreciation is fitted (the same
+/// threshold as the model_depreciation view).
+const minDepreciationData = 30;
 
 List<String> marketLines(MarketBehaviour m, {int? daysListed}) {
   final lines = <String>[
@@ -38,6 +44,9 @@ List<String> marketLines(MarketBehaviour m, {int? daysListed}) {
     }
   }
 
+  final depreciation = m.depreciation;
+  if (depreciation != null) lines.add(depreciationLine(depreciation));
+
   if (daysListed != null) {
     lines.add(
       daysListed <= 0
@@ -53,4 +62,16 @@ List<String> marketLines(MarketBehaviour m, {int? daysListed}) {
     }
   }
   return lines;
+}
+
+/// The yearly and per-10 000 km loss in value, as percentages of the price.
+String depreciationLine(Depreciation d) {
+  String pct(double rate) => ((1 - exp(-rate)) * 100).toStringAsFixed(1);
+  final rates =
+      '${pct(d.perYear)}% por ano e ${pct(d.per1000Km * 10)}% por 10 000 km';
+
+  return d.isFitted
+      ? 'Desvalorização deste modelo: $rates (${d.sampleCount} anúncios)'
+      : 'Desvalorização: ainda poucos dados (${d.sampleCount} de '
+            '$minDepreciationData anúncios); usa-se a regra geral de $rates';
 }
