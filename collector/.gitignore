@@ -2,6 +2,9 @@
 # Created by `dart pub`
 .dart_tool/
 imports/
-collector/samples/standvirtual/
-collector/.fetch_state.json
-collector/.env
+# Paths here are relative to collector/.
+# Saved Standvirtual pages hold sellers' contact details; the fetch state is
+# per machine (Actions keeps it in its cache).
+/samples/standvirtual/
+/.fetch_state.json
+.env
