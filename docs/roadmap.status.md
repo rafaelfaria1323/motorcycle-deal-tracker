@@ -167,7 +167,7 @@ Do not implement several unrelated features at once.
 ## 11.5 Data-quality monitoring 🟡
 *Collector failures and blocks are tracked. Requests used per run, missing fields, duplicate rates, unexpected price changes and source availability are not shown yet.*
 
-➕ **Notifications on the phone via Telegram** ✅ (11.1; replaces Web/PWA push). 11.1b: "Test Telegram" workflow / `make notify-test` sends a test message. The first test showed `TELEGRAM_CHAT_ID` held the bot's own id; to be fixed by Rafael, then confirmed end to end.
+➕ **Notifications on the phone via Telegram** ✅ (11.1; replaces Web/PWA push). 11.1b: "Test Telegram" workflow / `make notify-test` sends a test message. Confirmed on Rafael's phone (2026-10-19) after `TELEGRAM_CHAT_ID` was corrected (it held the bot's own id).
 ➕ **Housekeeping** 🟡: saved pages and fetch state are no longer tracked ✅; **the repo should be made private** (old saved pages with phone numbers remain in git history) ⬜.
 
 # Sprint 12 — Flutter iOS ⬜
@@ -181,11 +181,10 @@ Do not implement several unrelated features at once.
 
 # Next
 
-1. Confirm Telegram notifications end to end (test message, then a real alert from a saved search of the signed-in account).
-2. Show the requests used by the last run per site (and searches cut short) in the app, so the budget warning is based on real numbers.
-3. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history.
-4. Price history chart on the detail page.
-5. Weekly Telegram summary (best deals, new drops, listings gone).
+1. Show the requests used by the last run per site (and searches cut short) in the app, so the budget warning is based on real numbers.
+2. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history.
+3. Price history chart on the detail page.
+4. Weekly Telegram summary (best deals, new drops, listings gone).
 
 **Open items for Rafael:** read the Standvirtual/OLX terms and record the clauses in `docs/sources.md`; check the new-bike reference prices; make the repo private.
 
