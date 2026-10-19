@@ -1,2 +1,2 @@
-/// Outside the browser (tests) there is no home-screen app.
-bool get isIphoneHomeScreenAppWithHomeBar => false;
+/// Outside the browser (tests) there is no iPhone.
+double get iosBottomInset => 0;

@@ -30,16 +30,17 @@ class App extends StatelessWidget {
     );
   }
 
-  /// In the iPhone home-screen app, a bottom safe area for the home bar, so
-  /// the tab bar (and every SafeArea at the bottom) stays above it.
+  /// On iPhone/iPad, the bottom safe area Flutter on the web doesn't
+  /// report ([iosBottomInset]), so the tab bar (and every SafeArea at the
+  /// bottom) stays clear of the home bar or of Safari's tint strip.
   static Widget _withHomeBarInset(BuildContext context, Widget child) {
-    if (!isIphoneHomeScreenAppWithHomeBar) return child;
+    final inset = iosBottomInset;
     final media = MediaQuery.of(context);
-    if (media.viewPadding.bottom >= homeBarInset) return child;
+    if (inset == 0 || media.viewPadding.bottom >= inset) return child;
     return MediaQuery(
       data: media.copyWith(
-        padding: media.padding.copyWith(bottom: homeBarInset),
-        viewPadding: media.viewPadding.copyWith(bottom: homeBarInset),
+        padding: media.padding.copyWith(bottom: inset),
+        viewPadding: media.viewPadding.copyWith(bottom: inset),
       ),
       child: child,
     );
