@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../listing_detail_text.dart';
 import 'listing_photo.dart';
@@ -190,6 +191,9 @@ class _FullScreenGalleryState extends State<_FullScreenGallery> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
+        systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(
+          statusBarColor: Colors.black,
+        ),
       ),
       body: SafeArea(
         child: Stack(
