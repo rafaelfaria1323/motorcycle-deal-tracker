@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
-import '../../../../core/formatting/formatters.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/listing_alert.dart';
 import '../alerts_text.dart';
@@ -13,21 +12,6 @@ import '../cubit/alerts_state.dart';
 
 class AlertsPage extends StatelessWidget {
   const AlertsPage({super.key});
-
-  static String _title(ListingAlert alert) {
-    final listing = alert.listing;
-    final bike = [
-      '${listing.brand} ${listing.model}',
-      if (listing.year != null) '${listing.year}',
-    ].join(' · ');
-    return switch (alert.type) {
-      AlertType.newListing => 'Nova oferta: $bike',
-      AlertType.priceReduction => 'Preço reduzido: $bike',
-      AlertType.excellentOpportunity => 'Excelente oportunidade: $bike',
-      AlertType.listingRemoved => 'Anúncio removido: $bike',
-      AlertType.unknown => bike,
-    };
-  }
 
   static IconData _icon(AlertType type) => switch (type) {
     AlertType.newListing => Icons.fiber_new_outlined,
@@ -116,7 +100,7 @@ class AlertsPage extends StatelessWidget {
                           for (final alert in day.alerts)
                             _AlertTile(
                               alert: alert,
-                              title: _title(alert),
+                              title: alertTitle(alert),
                               icon: _icon(alert.type),
                               onTap: () => _open(context, alert),
                             ),
@@ -152,23 +136,6 @@ class _AlertTile extends StatelessWidget {
     final scheme = theme.colorScheme;
     final colors = AppColors.of(context);
 
-    final isReduction =
-        alert.type == AlertType.priceReduction &&
-        alert.oldPrice != null &&
-        alert.newPrice != null;
-    final priceText = isReduction
-        ? '${Formatters.price(alert.oldPrice)} → '
-              '${Formatters.price(alert.newPrice)}'
-        : Formatters.price(alert.newPrice ?? alert.listing.price);
-    final details = [
-      priceText,
-      if (alert.listing.location != null) alert.listing.location!,
-    ].join(' · ');
-    final origin = [
-      if (alert.searchName != null) '"${alert.searchName}"',
-      Formatters.time(alert.createdAt),
-    ].join(' · ');
-
     // Good news in green, a removal in grey, the rest in the accent.
     final (Color background, Color foreground) = switch (alert.type) {
       AlertType.priceReduction || AlertType.excellentOpportunity => (
@@ -200,7 +167,7 @@ class _AlertTile extends StatelessWidget {
             fontWeight: alert.isRead ? FontWeight.w500 : FontWeight.w700,
           ),
         ),
-        subtitle: Text('$details\n$origin'),
+        subtitle: Text('${alertDetailsLine(alert)}\n${alertOriginLine(alert)}'),
         trailing: alert.isRead
             ? null
             : Semantics(

@@ -24,19 +24,10 @@ class _PriceHistorySectionState extends State<PriceHistorySection> {
   late final Future<List<PricePoint>> _future = getIt<ListingsRepository>()
       .getPriceHistory(widget.listing.id);
 
-  String? _seenLine() {
-    final first = widget.listing.firstSeenAt;
-    final last = widget.listing.lastSeenAt;
-    if (first == null) return null;
-    final firstText = 'Visto pela primeira vez em ${Formatters.date(first)}';
-    if (last == null) return firstText;
-    return '$firstText · última vez ${Formatters.daysAgo(last)}';
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final seenLine = _seenLine();
+    final seen = seenLine(widget.listing);
     final siteLine = siteDropLine(widget.listing);
 
     return Card(
@@ -46,9 +37,9 @@ class _PriceHistorySectionState extends State<PriceHistorySection> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Histórico de preço', style: theme.textTheme.titleMedium),
-            if (seenLine != null) ...[
+            if (seen != null) ...[
               const SizedBox(height: 4),
-              Text(seenLine, style: theme.textTheme.bodySmall),
+              Text(seen, style: theme.textTheme.bodySmall),
             ],
             if (siteLine != null) ...[
               const SizedBox(height: 8),
