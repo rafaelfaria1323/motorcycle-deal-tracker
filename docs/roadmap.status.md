@@ -135,6 +135,7 @@ Do not implement several unrelated features at once.
 ➕ 9.4 Listing details: full description, owners, service book, origin, warranty ✅
 ➕ 9.4b Details read only for matched, non-duplicate listings ✅
 ➕ 9.5 Details used in Risk Score and shown on the detail page ✅
+➕ 9.5b Risk signal for implausible mileage: under 100 km on a bike three or more years old (a placeholder like "0" or "1"), or more than 25 000 km a year; 10 points, explained on the listing page ✅
 ➕ 9.6 Scheduled collection on GitHub Actions, every 4 hours, 120 requests per day per site, with run log ✅
 ➕ 9.6b Collection status banner on the dashboard ✅
 ## 9.7 OLX adapter ✅

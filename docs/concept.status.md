@@ -102,7 +102,7 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 ## 14. Risk Score 🟡
 
 - ✅ Price significantly below market.
-- ⬜ Suspicious mileage.
+- ✅ Suspicious mileage. *Under 100 km on a bike three or more years old (a placeholder), or more than 25 000 km a year.*
 - 🟡 Inconsistent description. *Only "possible accident" keywords.*
 - ✅ Missing information.
 - ✅ Possible accident.

@@ -47,6 +47,15 @@ void main() {
     );
   });
 
+  test('an implausible mileage reads as a negative', () {
+    final lines = ScoreExplainer.explain(listingWith(['suspicious_mileage']))!
+        .lines;
+
+    expect(lines, hasLength(1));
+    expect(lines.single.tone, ExplanationTone.negative);
+    expect(lines.single.text, startsWith('Quilometragem pouco provável'));
+  });
+
   test('unknown reason codes are ignored', () {
     final lines = ScoreExplainer.explain(listingWith(['something_new']))!.lines;
 
