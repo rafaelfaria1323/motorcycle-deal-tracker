@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/formatting/formatters.dart';
 import '../../domain/entities/listing.dart';
@@ -157,7 +158,7 @@ class _RemovedPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.7),
+        color: AppColors.photoPillScrim,
         borderRadius: BorderRadius.circular(8),
       ),
       child: const Padding(
@@ -167,7 +168,7 @@ class _RemovedPill extends StatelessWidget {
           style: TextStyle(
             fontFamily: AppTheme.bodyFont,
             fontWeight: FontWeight.w600,
-            color: Colors.white,
+            color: AppColors.onPhoto,
           ),
         ),
       ),
