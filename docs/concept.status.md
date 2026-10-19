@@ -119,7 +119,7 @@ All criteria (➕ plus minimum Deal Score and maximum Risk Score) and all four n
 
 ## 16. Alerts ✅
 
-All four types, each at most once per event, only for events after the search was created. Pushed to Telegram ✅.
+All four types, each at most once per event, only for events after the search was created. Pushed to Telegram ✅ (confirmed on the phone).
 
 ## 17. Dashboard ✅
 
