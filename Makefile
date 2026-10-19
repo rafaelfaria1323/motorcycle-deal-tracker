@@ -9,6 +9,8 @@
 SOURCE ?= manual
 ifeq ($(SOURCE),standvirtual)
 DEFAULT_INPUT := samples/standvirtual
+else ifeq ($(SOURCE),standvirtual-search)
+DEFAULT_INPUT := samples/standvirtual/search
 else
 DEFAULT_INPUT := samples/manual_sample.json
 endif
@@ -52,6 +54,10 @@ fetch-dry: ## Check the search addresses and limits, requests nothing
 
 fetch: ## Download the search pages, slowly and capped (see collector/lib/src/fetch)
 	cd collector && dart run bin/fetch.dart standvirtual sources/standvirtual_searches.txt $(ARGS)
+
+refresh: require-collector-env ## Fetch the search pages, then import them: make refresh [ARGS=--full]
+	$(MAKE) fetch
+	$(MAKE) collect SOURCE=standvirtual-search FILE=samples/standvirtual/search ARGS="$(ARGS)"
 
 # ---- Database --------------------------------------------------------------
 

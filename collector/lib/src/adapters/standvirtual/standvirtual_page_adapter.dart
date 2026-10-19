@@ -94,6 +94,7 @@ class StandvirtualPageAdapter implements SourceAdapter<StandvirtualRawListing> {
       currency: '${price?['currency']}',
       year: int.tryParse(_value(params, 'first_registration_year') ?? ''),
       mileageKm: int.tryParse(_value(params, 'mileage') ?? ''),
+      engineCc: int.tryParse(_value(params, 'engine_capacity') ?? ''),
       sellerType: switch (seller?['type']) {
         'PROFESSIONAL' => 'dealer',
         'PRIVATE' => 'private',

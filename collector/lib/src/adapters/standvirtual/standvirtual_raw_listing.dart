@@ -10,6 +10,7 @@ class StandvirtualRawListing {
     required this.currency,
     this.year,
     this.mileageKm,
+    this.engineCc,
     this.sellerType,
     this.sellerName,
     this.location,
@@ -27,6 +28,7 @@ class StandvirtualRawListing {
   final String currency;
   final int? year;
   final int? mileageKm;
+  final int? engineCc;
 
   /// 'dealer' or 'private' when known.
   final String? sellerType;

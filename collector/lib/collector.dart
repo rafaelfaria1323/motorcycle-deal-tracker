@@ -5,6 +5,7 @@ export 'src/adapters/source_adapter.dart';
 export 'src/adapters/standvirtual/standvirtual_mapper.dart';
 export 'src/adapters/standvirtual/standvirtual_page_adapter.dart';
 export 'src/adapters/standvirtual/standvirtual_raw_listing.dart';
+export 'src/adapters/standvirtual/standvirtual_search_adapter.dart';
 export 'src/catalog/catalog.dart';
 export 'src/config/supabase_config.dart';
 export 'src/fetch/polite_fetcher.dart';

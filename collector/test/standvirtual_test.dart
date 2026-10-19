@@ -26,6 +26,7 @@ Map<String, dynamic> advert({
   String make = 'Yamaha',
   String model = 'MT-07',
   String? version,
+  String? cc,
 }) => {
   'id': '123456',
   'url': 'https://www.standvirtual.com/motos/anuncio/example-IDx.html',
@@ -37,6 +38,7 @@ Map<String, dynamic> advert({
     if (version != null) 'version': param(version),
     'first_registration_year': param(year),
     'mileage': param('4383', '4 383 km'),
+    if (cc != null) 'engine_capacity': param(cc),
   },
   'seller': {
     'type': 'PROFESSIONAL',
@@ -62,8 +64,8 @@ final catalog = Catalog(const [
 MapOutcome mapAd(Map<String, dynamic> ad) =>
     StandvirtualMapper(catalog, currentYear: 2026).map(adapter.parsePage(page(ad)));
 
-String? slugOf(String make, String model, String? version) {
-  final outcome = mapAd(advert(make: make, model: model, version: version));
+String? slugOf(String make, String model, String? version, {String? cc}) {
+  final outcome = mapAd(advert(make: make, model: model, version: version, cc: cc));
   return (outcome as Mapped).listing.motorcycleSlug;
 }
 
@@ -159,6 +161,32 @@ void main() {
 
     test('the brand must agree', () {
       expect(slugOf('Honda', 'R', 'R7'), isNull);
+    });
+  });
+
+  group('Honda codes and engine size', () {
+    test('ABS and E-Clutch codes are still the CB650R', () {
+      expect(slugOf('Honda', 'CB', '650 RA'), 'honda-cb650r');
+      expect(slugOf('Honda', 'CB', '650 RAC E-CLUTCH'), 'honda-cb650r');
+    });
+
+    test('the engine size settles a bare family', () {
+      expect(slugOf('Honda', 'CB', 'R', cc: '649'), 'honda-cb650r');
+      expect(slugOf('Honda', 'CBR', '650 E-Clutch 35KW', cc: '649'), 'honda-cbr650r');
+      expect(slugOf('Yamaha', 'R', null, cc: '689'), 'yamaha-r7');
+    });
+
+    test('without an engine size a bare family stays unmatched', () {
+      expect(slugOf('Honda', 'CB', 'R'), isNull);
+    });
+
+    test('a size that does not fit rules the match out', () {
+      expect(slugOf('Yamaha', 'R', 'R7', cc: '321'), isNull);
+      expect(slugOf('Yamaha', 'R', '9 Ediçao 70 anos', cc: '890'), isNull);
+    });
+
+    test('a CB650F is not a CB650R, whatever the engine size', () {
+      expect(slugOf('Honda', 'CB', '650 F', cc: '650'), isNull);
     });
   });
 }

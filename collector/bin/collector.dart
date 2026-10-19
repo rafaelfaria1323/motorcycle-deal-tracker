@@ -14,7 +14,8 @@ Future<void> main(List<String> args) async {
       'Usage: dart run bin/collector.dart <${sourceKinds.join('|')}> <path> '
       '[--dry-run] [--full] [--force]\n'
       '  manual        <path> is a JSON file\n'
-      '  standvirtual  <path> is a folder of saved listing pages (.html)\n'
+      '  standvirtual  <path> is a folder of page results\n'
+      '  standvirtual-search  <path> is a folder of search results pages\n'
       '  --full   the input lists EVERY live listing of this source; '
       'listings missing from it are marked removed\n'
       '  --force  skip the safety limit on removals',

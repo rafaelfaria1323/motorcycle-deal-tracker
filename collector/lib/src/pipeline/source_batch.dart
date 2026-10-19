@@ -3,6 +3,7 @@ import '../adapters/manual/manual_mapper.dart';
 import '../adapters/source_adapter.dart';
 import '../adapters/standvirtual/standvirtual_mapper.dart';
 import '../adapters/standvirtual/standvirtual_page_adapter.dart';
+import '../adapters/standvirtual/standvirtual_search_adapter.dart';
 import '../catalog/catalog.dart';
 import '../normalized/normalized_listing.dart';
 
@@ -23,7 +24,7 @@ class SourceBatch {
   final List<MappedRecord> records;
 }
 
-const sourceKinds = ['manual', 'standvirtual'];
+const sourceKinds = ['manual', 'standvirtual', 'standvirtual-search'];
 
 Future<SourceBatch> loadBatch(String kind, String path, Catalog catalog) async {
   switch (kind) {
@@ -36,6 +37,13 @@ Future<SourceBatch> loadBatch(String kind, String path, Catalog catalog) async {
       ]);
     case 'standvirtual':
       final adapter = StandvirtualPageAdapter(path);
+      final mapper = StandvirtualMapper(catalog);
+      final result = await adapter.read();
+      return SourceBatch(adapter.source, result.issues, [
+        for (final raw in result.records) MappedRecord(raw.url, mapper.map(raw)),
+      ]);
+    case 'standvirtual-search':
+      final adapter = StandvirtualSearchAdapter(path);
       final mapper = StandvirtualMapper(catalog);
       final result = await adapter.read();
       return SourceBatch(adapter.source, result.issues, [
