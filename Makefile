@@ -8,7 +8,7 @@
 # (a folder of saved listing pages), standvirtual-search or olx-search
 # (folders of search pages). Extra collector flags go in ARGS.
 SOURCE ?= manual
-# Which website make fetch downloads from: standvirtual or olx.
+# Which website make searches/fetch work on: standvirtual or olx.
 SITE ?= standvirtual
 # Local secrets for the collector (not committed). GitHub Actions has no such
 # file and uses its repository secrets instead.
@@ -58,11 +58,14 @@ collect-dry: require-collector-env ## Preview, writes nothing: make collect-dry 
 collect: require-collector-env require-file ## Import: make collect [SOURCE=standvirtual] FILE=... [ARGS=--full]
 	cd collector && dart run bin/collector.dart $(SOURCE) $(FILE) $(ARGS)
 
-fetch-dry: ## Check the search addresses and limits, requests nothing: make fetch-dry [SITE=olx]
-	cd collector && dart run bin/fetch.dart $(SITE) sources/$(SITE)_searches.txt --dry-run
+searches: require-collector-env ## Write the searches of the tracked models: make searches [SITE=olx]
+	cd collector && dart run bin/searches.dart $(SITE) --out=.searches.$(SITE).txt
 
-fetch: ## Download the search pages, slowly and capped: make fetch [SITE=olx]
-	cd collector && dart run bin/fetch.dart $(SITE) sources/$(SITE)_searches.txt $(ARGS)
+fetch-dry: searches ## Check the search addresses and limits, requests nothing: make fetch-dry [SITE=olx]
+	cd collector && dart run bin/fetch.dart $(SITE) .searches.$(SITE).txt --dry-run
+
+fetch: searches ## Download the search pages, slowly and capped: make fetch [SITE=olx]
+	cd collector && dart run bin/fetch.dart $(SITE) .searches.$(SITE).txt $(ARGS)
 
 enrich-dry: require-collector-env ## List the listings that still need details, requests nothing
 	cd collector && dart run bin/enrich.dart --dry-run
@@ -75,16 +78,24 @@ enrich: require-collector-env ## Read details of up to 15 new listings: make enr
 refresh: require-collector-env ## Fetch and import both sites: make refresh [ARGS=--full]
 	$(MAKE) -k refresh-standvirtual refresh-olx ARGS="$(ARGS)"
 
+# Each site fetches the searches of the tracked models (make searches); a
+# site with none is skipped. Pages and their manifest are replaced each run.
 refresh-standvirtual: require-collector-env ## Standvirtual: search pages, import, new listings' details
-	rm -f collector/samples/standvirtual/search/*.html
-	$(MAKE) fetch SITE=standvirtual ARGS=
-	$(MAKE) collect SOURCE=standvirtual-search FILE=samples/standvirtual/search ARGS="$(ARGS)"
-	$(MAKE) enrich ARGS=--max=10
+	rm -f collector/samples/standvirtual/search/*.html collector/samples/standvirtual/search/searches.json
+	$(MAKE) searches SITE=standvirtual
+	@if [ -s collector/.searches.standvirtual.txt ]; then \
+	  cd collector && dart run bin/fetch.dart standvirtual .searches.standvirtual.txt && cd .. && \
+	  $(MAKE) collect SOURCE=standvirtual-search FILE=samples/standvirtual/search ARGS="$(ARGS)" && \
+	  $(MAKE) enrich ARGS=--max=10; \
+	else echo "Standvirtual: no tracked model has a Standvirtual search, skipped."; fi
 
 refresh-olx: require-collector-env ## OLX: every page of each search, import (results hold the details)
-	rm -f collector/samples/olx/search/*.html
-	$(MAKE) fetch SITE=olx ARGS=
-	$(MAKE) collect SOURCE=olx-search FILE=samples/olx/search ARGS="$(ARGS)"
+	rm -f collector/samples/olx/search/*.html collector/samples/olx/search/searches.json
+	$(MAKE) searches SITE=olx
+	@if [ -s collector/.searches.olx.txt ]; then \
+	  cd collector && dart run bin/fetch.dart olx .searches.olx.txt && cd .. && \
+	  $(MAKE) collect SOURCE=olx-search FILE=samples/olx/search ARGS="$(ARGS)"; \
+	else echo "OLX: no tracked model has an OLX search, skipped."; fi
 
 # ---- Database --------------------------------------------------------------
 

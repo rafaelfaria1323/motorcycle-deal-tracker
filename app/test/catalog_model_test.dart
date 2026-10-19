@@ -25,7 +25,7 @@ void main() {
   });
 
   test('switching a model keeps everything else', () {
-    final on = model('Yamaha', 'R9').withTracked(true);
+    final on = model('Yamaha', 'R9').copyWith(isTracked: true);
 
     expect(on.isTracked, isTrue);
     expect(on, model('Yamaha', 'R9', tracked: true));

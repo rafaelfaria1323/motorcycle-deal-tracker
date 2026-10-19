@@ -2,15 +2,17 @@ import 'package:supabase/supabase.dart';
 
 import '../catalog/catalog.dart';
 
-/// The active models from the `motorcycles` table.
+/// The active models from the `motorcycles` table, oldest first: when the
+/// request budget runs out, the searches of the newest models wait.
 Future<Catalog> loadCatalog(SupabaseClient client) async {
   final rows = await client
       .from('motorcycles')
       .select(
         'id, slug, brand, model, min_year, aliases, excluded_words, '
-        'engine_cc_min, engine_cc_max',
+        'engine_cc_min, engine_cc_max, olx_search, standvirtual_search',
       )
       .eq('is_active', true)
+      .order('created_at')
       .order('slug');
 
   return Catalog([
@@ -27,6 +29,8 @@ Future<Catalog> loadCatalog(SupabaseClient client) async {
         ),
         engineCcMin: row['engine_cc_min'] as int?,
         engineCcMax: row['engine_cc_max'] as int?,
+        olxSearch: row['olx_search'] as String?,
+        standvirtualSearch: row['standvirtual_search'] as String?,
       ),
   ]);
 }

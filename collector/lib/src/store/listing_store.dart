@@ -201,6 +201,8 @@ class ListingStore {
     String source,
     List<String> seenIds, {
     bool force = false,
+    List<String>? searches,
+    bool includeUnkeyed = true,
   }) async {
     final result = await _client.rpc(
       'mark_removed_listings',
@@ -208,7 +210,20 @@ class ListingStore {
         'p_source': source,
         'p_seen_ids': seenIds,
         'p_max_fraction': force ? 1.0 : 0.5,
+        'p_search_keys': searches,
+        'p_include_unkeyed': includeUnkeyed,
       },
+    );
+    return (result as num).toInt();
+  }
+
+  /// Records the search each stored listing was found by; returns how many
+  /// changed.
+  Future<int> setSearchKeys(String source, Map<String, String> keys) async {
+    if (keys.isEmpty) return 0;
+    final result = await _client.rpc(
+      'set_search_keys',
+      params: {'p_source': source, 'p_keys': keys},
     );
     return (result as num).toInt();
   }

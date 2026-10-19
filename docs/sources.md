@@ -5,10 +5,34 @@ here. Robots.txt is not permission; the source's terms of use decide.
 
 ## Decision log
 
+### 2026-10-19: searches come from the tracked models (9.9)
+
+**Decision.** Each catalog model stores the OLX and Standvirtual search
+that lists it (`motorcycles.olx_search`, `standvirtual_search`); the
+`sources/*_searches.txt` files are gone. Every run, `make searches` writes
+the searches of the tracked models (switched on in the app), one per
+address: models that share one (R7, R1, R3, R9 under OLX "R/YZF") share
+the requests, and OLX gets a "year from" filter of the earliest year any of
+them tracks. Models can be added from the app with a search address copied
+from the site.
+
+**Limits unchanged.** The same fetch rules and budget apply (20 requests
+per run, 120 per day, per site). Searches run oldest model first; when the
+budget runs out the rest wait for the next run, and the app warns when the
+OLX searches are many.
+
+**Removal per search.** `fetch.dart` writes `searches.json` next to the
+pages (planned searches, and the search of each saved page); each listing
+records the search that found it (`listings.search_key`). A run removes
+only listings of searches it read in full: a search cut short, with an
+unreadable page, or no longer run (its models switched off) keeps its
+listings. Listings not yet tied to a search are covered only when every
+planned search was read in full.
+
 ### 2026-10-19: OLX search pages as a second source (9.7)
 
 **Decision.** The same low-volume personal fetcher reads the owner's OLX
-search pages (`sources/olx_searches.txt`, `make refresh-olx`). OLX search
+search pages (the tracked models' OLX searches, `make refresh-olx`). OLX search
 results already hold the full description, so no listing pages are read.
 
 **Limits (enforced in code).** The same rules as Standvirtual, with OLX's
