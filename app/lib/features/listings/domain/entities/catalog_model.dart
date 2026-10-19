@@ -10,6 +10,8 @@ class CatalogModel extends Equatable {
     required this.isTracked,
     this.olxSearch,
     this.standvirtualSearch,
+    this.newPrice,
+    this.newPriceCheckedAt,
   });
 
   final String id;
@@ -25,6 +27,11 @@ class CatalogModel extends Equatable {
   final String? olxSearch;
   final String? standvirtualSearch;
 
+  /// Official new-bike list price, and when it was checked; null when not
+  /// set.
+  final double? newPrice;
+  final DateTime? newPriceCheckedAt;
+
   CatalogModel copyWith({bool? isTracked, int? minYear}) => CatalogModel(
     id: id,
     brand: brand,
@@ -33,6 +40,21 @@ class CatalogModel extends Equatable {
     isTracked: isTracked ?? this.isTracked,
     olxSearch: olxSearch,
     standvirtualSearch: standvirtualSearch,
+    newPrice: newPrice,
+    newPriceCheckedAt: newPriceCheckedAt,
+  );
+
+  /// The same model with another new-bike price (null clears it).
+  CatalogModel withNewPrice(double? price, DateTime checkedAt) => CatalogModel(
+    id: id,
+    brand: brand,
+    model: model,
+    minYear: minYear,
+    isTracked: isTracked,
+    olxSearch: olxSearch,
+    standvirtualSearch: standvirtualSearch,
+    newPrice: price,
+    newPriceCheckedAt: price == null ? null : checkedAt,
   );
 
   @override
@@ -44,6 +66,8 @@ class CatalogModel extends Equatable {
     isTracked,
     olxSearch,
     standvirtualSearch,
+    newPrice,
+    newPriceCheckedAt,
   ];
 }
 

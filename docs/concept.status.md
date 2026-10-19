@@ -131,7 +131,7 @@ All four types, each at most once per event, only for events after the search wa
 
 ## 19. New Motorcycle Comparison 🟡
 
-Shown on the detail page. Reference prices: set for the original 4 models (need checking), not set for the newer models.
+Shown on the detail page. Reference prices are edited in the app; set for the original 4 models (need checking), not set for the newer models.
 
 ## 20. Deduplication 🟡
 

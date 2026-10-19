@@ -30,4 +30,11 @@ void main() {
     expect(on.isTracked, isTrue);
     expect(on, model('Yamaha', 'R9', tracked: true));
   });
+
+  test('clearing the new-bike price clears its date', () {
+    final priced = model('Yamaha', 'R7').withNewPrice(10640, DateTime(2026));
+
+    expect(priced.newPriceCheckedAt, DateTime(2026));
+    expect(priced.withNewPrice(null, DateTime(2027)).newPriceCheckedAt, isNull);
+  });
 }

@@ -1,0 +1,31 @@
+name: Test Telegram
+
+# Sends one test message with the same secrets the collection uses, so the
+# notifications can be checked without waiting for a real alert. Start it
+# from the Actions tab ("Run workflow").
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Install collector dependencies
+        run: cd collector && dart pub get
+
+      - name: Send a test message
+        run: cd collector && dart run bin/notify_test.dart

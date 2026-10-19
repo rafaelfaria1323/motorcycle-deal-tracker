@@ -14,7 +14,7 @@ class SupabaseCatalogRepository implements CatalogRepository {
         .from('motorcycles')
         .select(
           'id, brand, model, min_year, is_active, olx_search, '
-          'standvirtual_search',
+          'standvirtual_search, new_price_reference, new_price_checked_at',
         );
     return [
       for (final row in rows)
@@ -26,6 +26,10 @@ class SupabaseCatalogRepository implements CatalogRepository {
           isTracked: row['is_active'] as bool,
           olxSearch: row['olx_search'] as String?,
           standvirtualSearch: row['standvirtual_search'] as String?,
+          newPrice: (row['new_price_reference'] as num?)?.toDouble(),
+          newPriceCheckedAt: row['new_price_checked_at'] is String
+              ? DateTime.tryParse(row['new_price_checked_at'] as String)
+              : null,
         ),
     ];
   }
@@ -43,6 +47,14 @@ class SupabaseCatalogRepository implements CatalogRepository {
     await _client.rpc(
       'set_model_min_year',
       params: {'p_motorcycle_id': motorcycleId, 'p_min_year': minYear},
+    );
+  }
+
+  @override
+  Future<void> setNewPrice(String motorcycleId, double? price) async {
+    await _client.rpc(
+      'set_model_new_price',
+      params: {'p_motorcycle_id': motorcycleId, 'p_price': price},
     );
   }
 

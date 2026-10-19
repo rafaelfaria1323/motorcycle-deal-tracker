@@ -58,6 +58,8 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
       if (!mounted) return;
       setState(() => _replace(model));
       messenger.showSnackBar(SnackBar(content: Text(_errorText(e))));
+      // Part of a change may have been saved: show what is stored.
+      await _load();
     } finally {
       if (mounted) setState(() => _saving.remove(model.id));
     }
@@ -69,16 +71,32 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
     () => _repository.setTracked(model.id, tracked: tracked),
   );
 
-  Future<void> _editYear(CatalogModel model) async {
-    final year = await showDialog<int>(
+  Future<void> _edit(CatalogModel model) async {
+    final edited = await showDialog<({int year, double? price})>(
       context: context,
-      builder: (_) => _YearDialog(initial: model.minYear),
+      builder: (_) => _ModelDialog(model: model),
     );
-    if (year == null || year == model.minYear) return;
+    if (edited == null) return;
+    final yearChanged = edited.year != model.minYear;
+    final priceChanged = edited.price != model.newPrice;
+    if (!yearChanged && !priceChanged) return;
+
     await _save(
       model,
-      model.copyWith(minYear: year),
-      () => _repository.setMinYear(model.id, year),
+      model
+          .copyWith(minYear: edited.year)
+          .withNewPrice(
+            edited.price,
+            priceChanged
+                ? DateTime.now()
+                : (model.newPriceCheckedAt ?? DateTime.now()),
+          ),
+      () async {
+        if (yearChanged) await _repository.setMinYear(model.id, edited.year);
+        if (priceChanged) {
+          await _repository.setNewPrice(model.id, edited.price);
+        }
+      },
     );
   }
 
@@ -166,7 +184,8 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
           child: Text(
             'O recolhedor pesquisa só os modelos ligados e dá-lhes pontuação, '
             'alertas e dados de mercado. As alterações contam a partir da '
-            'próxima recolha (até 4 horas). Tocar num modelo para mudar o ano.',
+            'próxima recolha (até 4 horas). Tocar num modelo para mudar o ano '
+            'ou o preço de uma nova.',
             style: muted,
           ),
         ),
@@ -200,8 +219,9 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
           for (final m in brandModels)
             ListTile(
               title: Text(m.model),
-              subtitle: Text(modelSubtitle(m)),
-              onTap: _saving.contains(m.id) ? null : () => _editYear(m),
+              subtitle: Text('${modelSubtitle(m)}\n${newPriceSubtitle(m)}'),
+              isThreeLine: true,
+              onTap: _saving.contains(m.id) ? null : () => _edit(m),
               trailing: Switch(
                 value: m.isTracked,
                 onChanged: _saving.contains(m.id)
@@ -215,58 +235,99 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
   }
 }
 
-class _YearDialog extends StatefulWidget {
-  const _YearDialog({required this.initial});
+/// Edits a model's first year and new-bike price; returns null if
+/// cancelled.
+class _ModelDialog extends StatefulWidget {
+  const _ModelDialog({required this.model});
 
-  final int initial;
+  final CatalogModel model;
 
   @override
-  State<_YearDialog> createState() => _YearDialogState();
+  State<_ModelDialog> createState() => _ModelDialogState();
 }
 
-class _YearDialogState extends State<_YearDialog> {
-  late int _year = widget.initial;
+class _ModelDialogState extends State<_ModelDialog> {
+  late int _year = widget.model.minYear;
+  late final _price = TextEditingController(
+    text: widget.model.newPrice?.toStringAsFixed(0) ?? '',
+  );
   final _maxYear = DateTime.now().year + 1;
+  String? _priceError;
+
+  @override
+  void dispose() {
+    _price.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final parsed = parseNewPrice(_price.text);
+    if (parsed.error != null) {
+      setState(() => _priceError = parsed.error);
+      return;
+    }
+    Navigator.of(context).pop((year: _year, price: parsed.price));
+  }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return AlertDialog(
-      title: const Text('Desde o ano'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                onPressed: _year > 1990 ? () => setState(() => _year--) : null,
-                icon: const Icon(Icons.remove),
+      title: Text('${widget.model.brand} ${widget.model.model}'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Desde o ano', style: theme.textTheme.titleSmall),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  onPressed: _year > 1990
+                      ? () => setState(() => _year--)
+                      : null,
+                  icon: const Icon(Icons.remove),
+                ),
+                Text('$_year', style: theme.textTheme.headlineSmall),
+                IconButton(
+                  onPressed: _year < _maxYear
+                      ? () => setState(() => _year++)
+                      : null,
+                  icon: const Icon(Icons.add),
+                ),
+              ],
+            ),
+            const Text(
+              'Anúncios mais antigos são ignorados. Um ano mais antigo traz '
+              'mais anúncios, mas a pesquisa ocupa mais pedidos.',
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _price,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
               ),
-              Text('$_year', style: Theme.of(context).textTheme.headlineSmall),
-              IconButton(
-                onPressed: _year < _maxYear
-                    ? () => setState(() => _year++)
-                    : null,
-                icon: const Icon(Icons.add),
+              decoration: InputDecoration(
+                labelText: 'Preço de uma nova (€)',
+                helperText:
+                    'Preço de tabela no site da marca. Fica com a data de '
+                    'hoje; vazio para apagar.',
+                helperMaxLines: 3,
+                errorText: _priceError,
+                border: const OutlineInputBorder(),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Anúncios mais antigos são ignorados. Um ano mais antigo traz '
-            'mais anúncios, mas a pesquisa ocupa mais pedidos.',
-          ),
-        ],
+              onSubmitted: (_) => _submit(),
+            ),
+          ],
+        ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancelar'),
         ),
-        FilledButton(
-          onPressed: () => Navigator.of(context).pop(_year),
-          child: const Text('Guardar'),
-        ),
+        FilledButton(onPressed: _submit, child: const Text('Guardar')),
       ],
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/catalog_model.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/tracked_models_text.dart';
 
@@ -98,5 +99,26 @@ void main() {
 
   test('other names are split on commas', () {
     expect(parseAliases(' Z 650, Z-650 ,, '), ['Z 650', 'Z-650']);
+  });
+
+  test('the new-bike price line says when it was checked', () {
+    final priced = model('R7').withNewPrice(10640, DateTime(2026, 10, 13));
+
+    expect(
+      newPriceSubtitle(priced),
+      'Preço de uma nova: ${Formatters.price(10640)} '
+      '(verificado em 13/10/2026)',
+    );
+    expect(newPriceSubtitle(model('R9')), 'Sem preço de uma nova');
+  });
+
+  test('prices are read the way they are written in Portugal', () {
+    expect(parseNewPrice('8250').price, 8250);
+    expect(parseNewPrice('8 250 €').price, 8250);
+    expect(parseNewPrice('8.250').price, 8250);
+    expect(parseNewPrice('8250,50').price, 8250.5);
+    expect(parseNewPrice('  '), (price: null, error: null));
+    expect(parseNewPrice('abc').error, 'Preço inválido');
+    expect(parseNewPrice('0').error, 'Preço inválido');
   });
 }

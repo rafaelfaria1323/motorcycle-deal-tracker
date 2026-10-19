@@ -9,6 +9,9 @@ abstract interface class CatalogRepository {
 
   Future<void> setMinYear(String motorcycleId, int minYear);
 
+  /// Sets the new-bike list price, checked today; null clears it.
+  Future<void> setNewPrice(String motorcycleId, double? price);
+
   /// Adds a model, tracked from the next collection.
   Future<void> addModel({
     required String brand,
