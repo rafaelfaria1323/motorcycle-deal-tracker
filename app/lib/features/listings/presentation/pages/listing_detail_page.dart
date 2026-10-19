@@ -178,6 +178,20 @@ class _Content extends StatelessWidget {
                         ),
                       ),
                     ),
+                  if (relistText(listing) case final relist?)
+                    Card(
+                      color: theme.colorScheme.secondaryContainer,
+                      child: ListTile(
+                        leading: const Icon(Icons.history),
+                        title: const Text('Anúncio publicado de novo'),
+                        subtitle: Text(relist),
+                        trailing: TextButton(
+                          onPressed: () =>
+                              context.go('/deals/${listing.relistedFrom}'),
+                          child: const Text('Ver anterior'),
+                        ),
+                      ),
+                    ),
                   ScoreExplanationCard(listing: listing),
                   AlsoListedSection(listing: listing),
                   NewPriceCard(listing: listing),
