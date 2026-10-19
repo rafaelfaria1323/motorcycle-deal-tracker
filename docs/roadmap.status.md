@@ -174,7 +174,7 @@ Do not implement several unrelated features at once.
 
 *Goal: the app has grown screen by screen; make it coherent on the iPhone. Each step is a small PR Rafael checks on the phone.*
 
-## 13.1 UX audit and navigation plan ⬜
+## 13.1 UX audit and navigation plan ✅
 *Walk every screen, list what doesn't make sense, agree the structure before changing it. Known issues so far:*
 - *The account (profile icon) lives only in the Pesquisas app bar, and "Modelos acompanhados" is hidden inside the account sheet.*
 - *Ofertas has no way to change the sort order (the code supports newest, price and Deal Score).*
@@ -183,8 +183,8 @@ Do not implement several unrelated features at once.
 - *The Alertas tab shows no unread badge.*
 - *The listing page shows only the first photo.*
 - *The text mixes "tu" and "você" ("Escolhe os modelos…" vs "Verifique a ligação…").*
-## 13.2 A "Mais"/settings tab ⬜
-*Account, Modelos acompanhados, Telegram, collection status and request budget in one place, reachable from every screen.*
+## 13.2 A "Mais"/settings tab 🟡
+*Fourth tab "Mais" with the account (sign in/out), Modelos acompanhados and the collection status; the profile icon left Pesquisas and the models link left the account sheet. Still to add: Telegram status and the requests used per run.*
 ## 13.3 Ofertas ⬜
 *Only tracked models by default; visible sort selector; active filters as chips that can be removed one by one.*
 ## 13.4 Listing page ⬜

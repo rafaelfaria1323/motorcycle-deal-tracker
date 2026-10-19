@@ -13,6 +13,7 @@ class AppShell extends StatelessWidget {
     _Destination('Ofertas', Icons.local_offer_outlined, Icons.local_offer),
     _Destination('Pesquisas', Icons.bookmark_border, Icons.bookmark),
     _Destination('Alertas', Icons.notifications_outlined, Icons.notifications),
+    _Destination('Mais', Icons.more_horiz, Icons.more_horiz),
   ];
 
   void _onSelect(int index) {
