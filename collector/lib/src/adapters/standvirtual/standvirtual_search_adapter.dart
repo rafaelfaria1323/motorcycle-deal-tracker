@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import '../../fetch/search_manifest.dart';
 import '../source_adapter.dart';
 import 'standvirtual_raw_listing.dart';
 
@@ -59,19 +60,23 @@ class StandvirtualSearchAdapter
             .where((f) => f.path.toLowerCase().endsWith('.html'))
             .toList()
           ..sort((a, b) => a.path.compareTo(b.path));
+    final manifest = await SearchManifest.readFrom(directory);
+    final recordSearches = <String?>[];
 
     final records = <StandvirtualRawListing>[];
     final issues = <ParseIssue>[];
 
     for (var i = 0; i < files.length; i++) {
       final name = files[i].uri.pathSegments.last;
+      final search = manifest?.files[name];
       try {
         final bytes = await files[i].readAsBytes();
         final page = parseSearchPage(utf8.decode(bytes, allowMalformed: true));
         records.addAll(page.records);
+        recordSearches.addAll([for (final _ in page.records) search]);
 
         for (final problem in page.problems) {
-          issues.add(ParseIssue(i, '$name: $problem'));
+          issues.add(ParseIssue(i, '$name: $problem', search: search));
         }
         if (!page.isComplete) {
           issues.add(
@@ -79,6 +84,7 @@ class StandvirtualSearchAdapter
               i,
               '$name: holds ${page.offset + page.shown} of ${page.total} '
               'listings (more pages exist and were not read)',
+              search: search,
             ),
           );
         }
@@ -89,14 +95,20 @@ class StandvirtualSearchAdapter
               i,
               '$name: saved ${age.inHours} h ago (older than '
               '${maxAge.inHours} h), so it may be out of date',
+              search: search,
             ),
           );
         }
       } on FormatException catch (e) {
-        issues.add(ParseIssue(i, '$name: ${e.message}'));
+        issues.add(ParseIssue(i, '$name: ${e.message}', search: search));
       }
     }
-    return ParseResult(records, issues);
+    return ParseResult(
+      records,
+      issues,
+      recordSearches: manifest == null ? null : recordSearches,
+      manifest: manifest,
+    );
   }
 
   static final _nextData = RegExp(

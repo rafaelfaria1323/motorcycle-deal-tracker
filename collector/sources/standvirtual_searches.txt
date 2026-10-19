@@ -1,9 +1,0 @@
-# One Standvirtual search address per line, copied from the browser's address
-# bar after setting your filters. Only www.standvirtual.com/motos/... works.
-# Keep this short: every line costs one request per run.
-#
-# https://www.standvirtual.com/motos/...
-https://www.standvirtual.com/motos/yamaha/mt-07
-https://www.standvirtual.com/motos/yamaha/r/q-7
-https://www.standvirtual.com/motos/honda/cb/q-650
-https://www.standvirtual.com/motos/honda/cbr/q-650

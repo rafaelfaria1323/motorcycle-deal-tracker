@@ -12,7 +12,10 @@ class SupabaseCatalogRepository implements CatalogRepository {
   Future<List<CatalogModel>> getModels() async {
     final rows = await _client
         .from('motorcycles')
-        .select('id, brand, model, min_year, is_active');
+        .select(
+          'id, brand, model, min_year, is_active, olx_search, '
+          'standvirtual_search',
+        );
     return [
       for (final row in rows)
         CatalogModel(
@@ -21,6 +24,8 @@ class SupabaseCatalogRepository implements CatalogRepository {
           model: row['model'] as String,
           minYear: row['min_year'] as int,
           isTracked: row['is_active'] as bool,
+          olxSearch: row['olx_search'] as String?,
+          standvirtualSearch: row['standvirtual_search'] as String?,
         ),
     ];
   }
@@ -30,6 +35,36 @@ class SupabaseCatalogRepository implements CatalogRepository {
     await _client.rpc(
       'set_model_tracked',
       params: {'p_motorcycle_id': motorcycleId, 'p_tracked': tracked},
+    );
+  }
+
+  @override
+  Future<void> setMinYear(String motorcycleId, int minYear) async {
+    await _client.rpc(
+      'set_model_min_year',
+      params: {'p_motorcycle_id': motorcycleId, 'p_min_year': minYear},
+    );
+  }
+
+  @override
+  Future<void> addModel({
+    required String brand,
+    required String model,
+    required int minYear,
+    String? olxSearch,
+    String? standvirtualSearch,
+    List<String> aliases = const [],
+  }) async {
+    await _client.rpc(
+      'add_catalog_model',
+      params: {
+        'p_brand': brand,
+        'p_model': model,
+        'p_min_year': minYear,
+        'p_olx_search': olxSearch,
+        'p_standvirtual_search': standvirtualSearch,
+        'p_aliases': aliases,
+      },
     );
   }
 }

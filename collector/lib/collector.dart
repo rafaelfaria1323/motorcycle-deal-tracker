@@ -14,6 +14,8 @@ export 'src/catalog/model_resolver.dart';
 export 'src/config/supabase_config.dart';
 export 'src/fetch/polite_fetcher.dart';
 export 'src/fetch/robots.dart';
+export 'src/fetch/search_manifest.dart';
+export 'src/fetch/search_plan.dart';
 export 'src/normalized/listing_details.dart';
 export 'src/normalized/normalized_listing.dart';
 export 'src/normalized/normalizers.dart';

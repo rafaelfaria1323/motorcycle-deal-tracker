@@ -185,6 +185,32 @@ void main() {
       expect(full.issues, isEmpty);
       expect(full.records.map((r) => r.id), ['1', '2']);
     });
+
+    test('a manifest ties records and problems to their search', () async {
+      const url = 'https://www.olx.pt/carros-motos-e-barcos/x/';
+      File(
+        '${dir.path}/p1.html',
+      ).writeAsStringSync(searchPage([ad(id: 1)], totalPages: 2));
+      await const SearchManifest(
+        planned: [url],
+        files: {'p1.html': url},
+      ).writeTo(dir.path);
+
+      final result = await OlxSearchAdapter(dir.path).read();
+
+      expect(result.recordSearches, [url]);
+      expect(result.issues.single.search, url);
+      expect(result.manifest!.fetched, {url});
+    });
+
+    test('without a manifest nothing is tied to a search', () async {
+      File('${dir.path}/p1.html').writeAsStringSync(searchPage([ad(id: 1)]));
+
+      final result = await OlxSearchAdapter(dir.path).read();
+
+      expect(result.recordSearches, isNull);
+      expect(result.manifest, isNull);
+    });
   });
 
   test('later pages keep the search filters', () {

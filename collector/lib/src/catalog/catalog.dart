@@ -13,6 +13,8 @@ class CatalogEntry {
     this.excludedWords = const [],
     this.engineCcMin,
     this.engineCcMax,
+    this.olxSearch,
+    this.standvirtualSearch,
   });
 
   final String slug;
@@ -31,6 +33,10 @@ class CatalogEntry {
   /// The engine sizes (cc) sellers state for the model; null when unknown.
   final int? engineCcMin;
   final int? engineCcMax;
+
+  /// The search address that lists the model on each site, if any.
+  final String? olxSearch;
+  final String? standvirtualSearch;
 }
 
 class Catalog {

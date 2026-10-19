@@ -15,6 +15,12 @@ class FetchRefused implements Exception {
   String toString() => reason;
 }
 
+/// The run's or the day's request budget is spent. What was fetched so far
+/// is fine to use; the rest waits for a later run.
+class FetchLimitReached extends FetchRefused {
+  const FetchLimitReached(super.reason);
+}
+
 /// The site pushed back. Stop, and do not try again soon.
 class FetchBlocked implements Exception {
   const FetchBlocked(this.reason);
@@ -218,12 +224,12 @@ class PoliteFetcher {
     Uri url,
   ) async {
     if (_runRequests >= policy.maxRequestsPerRun) {
-      throw FetchRefused(
+      throw FetchLimitReached(
         'run limit of ${policy.maxRequestsPerRun} requests reached',
       );
     }
     if (_state.requests >= policy.maxRequestsPerDay) {
-      throw FetchRefused(
+      throw FetchLimitReached(
         'daily limit of ${policy.maxRequestsPerDay} requests reached',
       );
     }

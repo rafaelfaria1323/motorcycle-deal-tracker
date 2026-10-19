@@ -8,6 +8,8 @@ class CatalogModel extends Equatable {
     required this.model,
     required this.minYear,
     required this.isTracked,
+    this.olxSearch,
+    this.standvirtualSearch,
   });
 
   final String id;
@@ -15,19 +17,34 @@ class CatalogModel extends Equatable {
   final String model;
   final int minYear;
 
-  /// The collector matches, scores and alerts only on tracked models.
+  /// The collector matches, scores and alerts only on tracked models, and
+  /// runs only their searches.
   final bool isTracked;
 
-  CatalogModel withTracked(bool tracked) => CatalogModel(
+  /// The search address that lists the model on each site, if any.
+  final String? olxSearch;
+  final String? standvirtualSearch;
+
+  CatalogModel copyWith({bool? isTracked, int? minYear}) => CatalogModel(
     id: id,
     brand: brand,
     model: model,
-    minYear: minYear,
-    isTracked: tracked,
+    minYear: minYear ?? this.minYear,
+    isTracked: isTracked ?? this.isTracked,
+    olxSearch: olxSearch,
+    standvirtualSearch: standvirtualSearch,
   );
 
   @override
-  List<Object?> get props => [id, brand, model, minYear, isTracked];
+  List<Object?> get props => [
+    id,
+    brand,
+    model,
+    minYear,
+    isTracked,
+    olxSearch,
+    standvirtualSearch,
+  ];
 }
 
 /// The models grouped by brand, brands and models in alphabetical order.

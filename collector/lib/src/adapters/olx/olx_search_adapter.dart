@@ -3,6 +3,7 @@ import 'dart:io';
 
 import '../../normalized/normalized_listing.dart';
 import '../../normalized/normalizers.dart';
+import '../../fetch/search_manifest.dart';
 import '../source_adapter.dart';
 import 'olx_raw_listing.dart';
 
@@ -61,25 +62,31 @@ class OlxSearchAdapter implements SourceAdapter<OlxRawListing> {
             .where((f) => f.path.toLowerCase().endsWith('.html'))
             .toList()
           ..sort((a, b) => a.path.compareTo(b.path));
+    final manifest = await SearchManifest.readFrom(directory);
+    final recordSearches = <String?>[];
 
     final records = <OlxRawListing>[];
     final issues = <ParseIssue>[];
     final pagesBySearch = <String, Set<int>>{};
     final totalPages = <String, int>{};
     final firstFile = <String, int>{};
+    final manifestSearch = <String, String?>{};
 
     for (var i = 0; i < files.length; i++) {
       final name = files[i].uri.pathSegments.last;
+      final search = manifest?.files[name];
       try {
         final bytes = await files[i].readAsBytes();
         final page = parseSearchPage(utf8.decode(bytes, allowMalformed: true));
         records.addAll(page.records);
+        recordSearches.addAll([for (final _ in page.records) search]);
         (pagesBySearch[page.search] ??= {}).add(page.pageNumber);
         totalPages[page.search] = page.totalPages;
         firstFile.putIfAbsent(page.search, () => i);
+        manifestSearch.putIfAbsent(page.search, () => search);
 
         for (final problem in page.problems) {
-          issues.add(ParseIssue(i, '$name: $problem'));
+          issues.add(ParseIssue(i, '$name: $problem', search: search));
         }
         final age = DateTime.now().difference(await files[i].lastModified());
         if (age > maxAge) {
@@ -88,11 +95,12 @@ class OlxSearchAdapter implements SourceAdapter<OlxRawListing> {
               i,
               '$name: saved ${age.inHours} h ago (older than '
               '${maxAge.inHours} h), so it may be out of date',
+              search: search,
             ),
           );
         }
       } on FormatException catch (e) {
-        issues.add(ParseIssue(i, '$name: ${e.message}'));
+        issues.add(ParseIssue(i, '$name: ${e.message}', search: search));
       }
     }
 
@@ -104,11 +112,17 @@ class OlxSearchAdapter implements SourceAdapter<OlxRawListing> {
             firstFile[search]!,
             '$search: ${pages.length} of $expected page(s) saved '
             '(the others were not read)',
+            search: manifestSearch[search],
           ),
         );
       }
     }
-    return ParseResult(records, issues);
+    return ParseResult(
+      records,
+      issues,
+      recordSearches: manifest == null ? null : recordSearches,
+      manifest: manifest,
+    );
   }
 
   /// The address of page [page] of a search (the first page has none).

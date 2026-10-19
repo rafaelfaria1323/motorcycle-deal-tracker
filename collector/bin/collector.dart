@@ -93,6 +93,16 @@ Future<void> main(List<String> args) async {
     final changed = await store.applyPriceChanges(batch.source, unique);
     stdout.writeln('Price changes: $changed');
 
+    // 3a. The search each listing was found by, so later runs remove only
+    //     listings of the searches they read in full.
+    final keys = <String, String>{
+      for (final r in batch.records)
+        if (r.outcome case Mapped(:final listing))
+          listing.sourceListingId: ?r.search,
+    };
+    final keyed = await store.setSearchKeys(batch.source, keys);
+    if (keys.isNotEmpty) stdout.writeln('Search keys updated: $keyed');
+
     // 3b. Cuts the site reports, which may predate our tracking. Kept apart
     //     from our own price history, so they never create alerts.
     final drops = await store.applyPricesBeforeDrop(batch.source, unique);
@@ -104,17 +114,24 @@ Future<void> main(List<String> args) async {
     //    can't be placed, may be incomplete, so it is never trusted to remove
     //    anything unless forced.
     if (full) {
-      final live = liveIds(batch);
-      if (!force && (batch.issues.isNotEmpty || live == null)) {
-        stdout.writeln(
-          'Removal skipped: the input had unreadable records or a rejected '
-          'one without an id, so it may be incomplete (use --force to override).',
-        );
+      final plan = removalPlan(batch);
+      final reason = plan.skipReason;
+      if (reason != null && !force) {
+        stdout.writeln('Removal skipped: $reason (use --force to override).');
       } else {
+        final searches = plan.searches;
+        if (searches != null) {
+          stdout.writeln(
+            'Removal covers ${searches.length} search(es) read in full'
+            '${plan.includeUnkeyed ? '' : ' (listings not yet tied to a search are left alone)'}.',
+          );
+        }
         final removed = await store.markRemoved(
           batch.source,
-          live ?? seenIds,
+          reason == null ? plan.seenIds : (liveIds(batch) ?? seenIds),
           force: force,
+          searches: reason == null ? searches : null,
+          includeUnkeyed: plan.includeUnkeyed,
         );
         stdout.writeln('Removed: $removed');
       }
