@@ -4,11 +4,11 @@ name: Weekly summary
 # 7 days: new listings, price drops, listings gone and the best deals now.
 # It only reads the database (no site is fetched). "Run workflow" sends one
 # now.
+#
+# Started on Mondays at 07:52 UTC (08:52 in Lisbon in summer) by the
+# Supabase pg_cron job 'weekly-summary', like collect.yml.
 on:
   workflow_dispatch:
-  # GitHub uses UTC: 08:52 in Lisbon in summer, 07:52 in winter.
-  schedule:
-    - cron: '52 7 * * 1'
 
 permissions:
   contents: read

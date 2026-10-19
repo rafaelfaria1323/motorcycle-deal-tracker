@@ -1,11 +1,12 @@
 import '../../../core/formatting/formatters.dart';
 import '../domain/collector_run.dart';
 
-/// The collection runs at minute 30 of every hour, UTC (cron '30 * * * *'
-/// in .github/workflows/collect.yml; keep them in step). Temporary while
-/// testing the schedule; normally minute 40 of every 4th hour.
-const _hourStep = 1;
-const _minute = 30;
+/// The collection starts at minute 40 of every 4th hour, UTC (the pg_cron
+/// job 'collect-listings', '40 */4 * * *', in
+/// supabase/migrations/20261020140000_schedule_workflows_with_pg_cron.sql;
+/// keep them in step).
+const _hourStep = 4;
+const _minute = 40;
 
 /// Requests allowed per site and run (FetchPolicy.maxRequestsPerRun).
 const requestsPerRunLimit = 20;
@@ -26,8 +27,8 @@ DateTime nextCollection(DateTime now) {
   return next;
 }
 
-/// "Próxima recolha: hoje às 20:40" (local time). GitHub starts scheduled
-/// runs late when it is busy, hence the note.
+/// "Próxima recolha: hoje às 20:40" (local time). The run itself waits for
+/// a free GitHub runner, hence the note.
 String nextCollectionText(DateTime now) {
   final next = nextCollection(now).toLocal();
   final local = now.toLocal();

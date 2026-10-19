@@ -18,7 +18,7 @@ The app is in Portuguese and installs on the iPhone from Safari
 
 ```text
 Tracked models (chosen in the app)
-  → collector (GitHub Actions, every 4 hours): searches → polite fetch → parse → store
+  → collector (GitHub Actions, started every 4 hours by Supabase pg_cron): searches → polite fetch → parse → store
   → Supabase / Postgres: price history, duplicates, fair value, scores, alerts
   → app (Flutter Web on Cloudflare Pages): Ofertas · Pesquisas · Alertas · Mais
   → Telegram: new alerts after each run, and a summary of the week every Monday
@@ -30,7 +30,7 @@ Tracked models (chosen in the app)
 | [`collector/`](collector/README.md) | Dart command line: fetches, parses and stores listings, then scores and alerts |
 | `supabase/` | Database migrations: tables, scoring, alerts, views, access rules |
 | `docs/` | Progress and decisions (see below) |
-| `.github/workflows/` | `collect.yml` (every 4 hours; every hour for now, while testing the schedule), `deploy-web.yml` (app on merge), `weekly-summary.yml` (Mondays, the week on Telegram), `notify-test.yml` (Telegram test), `code-quality.yml` (after every 5 merged PRs, Claude works through the backlog in `docs/code-quality.md`) |
+| `.github/workflows/` | `collect.yml` (every 4 hours, started by Supabase pg_cron), `deploy-web.yml` (app on merge), `weekly-summary.yml` (Mondays, the week on Telegram), `notify-test.yml` (Telegram test), `code-quality.yml` (after every 5 merged PRs, Claude works through the backlog in `docs/code-quality.md`) |
 
 ## Getting started
 
@@ -50,7 +50,9 @@ make check                # analyze and test everything (before each commit)
 GitHub Actions uses repository secrets with the same names, plus
 `SUPABASE_PUBLISHABLE_KEY`, `CLOUDFLARE_API_TOKEN` and
 `CLOUDFLARE_ACCOUNT_ID` for the web deploy, and `CLAUDE_CODE_OAUTH_TOKEN`
-for the code-quality review. Database changes: `make db-new
+for the code-quality review. Supabase's Vault holds `github_dispatch_token`,
+which the scheduled jobs use to start the workflows (`docs/hosting.md`).
+Database changes: `make db-new
 NAME=...`, then `make db-push`.
 
 ## Fetching rules

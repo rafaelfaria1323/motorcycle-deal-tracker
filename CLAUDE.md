@@ -52,10 +52,9 @@ collector/  Pure Dart CLI: fetch, parse, store, score, alert (service-role key)
 supabase/   Migrations (Postgres: scoring, alerts, views, RLS)
 docs/       sources.md (data-source decisions, keep updated), hosting.md,
             roadmap.status.md, concept.status.md, code-quality.md (backlog)
-.github/workflows/collect.yml     Collection every 4 hours (minute 40, UTC);
-                                  TEMPORARILY every hour at minute 30 while testing
-                                  that GitHub's scheduler starts it
-.github/workflows/weekly-summary.yml  Mondays 07:52 UTC: the week's summary
+.github/workflows/collect.yml     Collection every 4 hours (minute 40, UTC),
+                                  started by Supabase pg_cron (see below)
+.github/workflows/weekly-summary.yml  Mondays 07:52 UTC (pg_cron): the week's summary
                                   on Telegram (bin/weekly_summary.dart)
 .github/workflows/deploy-web.yml  Test, build and publish the app to
                                   Cloudflare Pages on merges touching app/
@@ -89,7 +88,8 @@ Local secrets live in `collector/.env` (gitignored, loaded by the Makefile):
 `TELEGRAM_CHAT_ID`. GitHub Actions uses repository secrets with the same
 names, plus `SUPABASE_PUBLISHABLE_KEY`, `CLOUDFLARE_API_TOKEN` and
 `CLOUDFLARE_ACCOUNT_ID` for the web deploy, and `CLAUDE_CODE_OAUTH_TOKEN`
-for the code-quality review.
+for the code-quality review. Supabase's Vault holds `github_dispatch_token`
+(starts the scheduled workflows).
 
 ## App conventions (Flutter)
 
@@ -156,8 +156,15 @@ for the code-quality review.
 - `collector_runs` is readable only by non-anonymous users. `requests` holds
   the requests each site used (from refresh.dart's "Requests used:" lines,
   parsed by report_run.dart).
-- The app's next-run time (`collection_text.dart`) mirrors the cron in
-  `collect.yml`: change both together.
+- Schedules live in Supabase, not in the workflows (GitHub's scheduler never
+  started `collect.yml`): pg_cron jobs `collect-listings` (`40 */4 * * *`)
+  and `weekly-summary` (`52 7 * * 1`) call `dispatch_workflow()`, which
+  starts the workflow through GitHub's workflow_dispatch API with pg_net and
+  the Vault secret `github_dispatch_token` (fine-grained, this repo only,
+  Actions read/write; created by Rafael, see `docs/hosting.md`). Change a
+  schedule with a migration calling `cron.schedule` with the same job name.
+- The app's next-run time (`collection_text.dart`) mirrors the
+  `collect-listings` job: change both together.
 - Watch out: `greatest`/`least` ignore nulls.
 
 ## Collection pipeline

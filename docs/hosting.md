@@ -24,6 +24,29 @@ Tests must pass before anything is published.
    (`https://motorcycle-deal-tracker.pages.dev`, or with a suffix if the
    name was taken).
 
+## Scheduled runs (Supabase starts them)
+
+GitHub's own scheduler never started `collect.yml`, so Supabase does:
+pg_cron jobs `collect-listings` (every 4 hours, minute 40 UTC) and
+`weekly-summary` (Mondays 07:52 UTC) call GitHub's "Run workflow" API.
+They need one token, created once:
+
+1. GitHub → Settings → Developer settings → Personal access tokens →
+   Fine-grained tokens → Generate new token. Repository access: *Only
+   select repositories* → `motorcycle-deal-tracker`. Permissions:
+   *Actions: Read and write* (nothing else). Pick the longest expiry you
+   are comfortable with and note the date.
+2. Supabase → SQL Editor, run (with your token in place of the dots):
+   `select vault.create_secret('github_pat_...', 'github_dispatch_token');`
+3. Check it: `select public.dispatch_workflow('collect.yml');` starts a
+   run (Actions tab), and
+   `select status_code from net._http_response order by created desc limit 1;`
+   shows 204.
+
+When the token expires, make a new one and replace it:
+`select vault.update_secret(id, 'github_pat_...') from vault.secrets where name = 'github_dispatch_token';`.
+The app's "Mais" shows a warning when no run happened recently.
+
 ## On the iPhone
 
 Open the address in Safari → Share → "Adicionar ao ecrã principal". The app
