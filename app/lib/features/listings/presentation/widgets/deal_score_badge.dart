@@ -32,7 +32,7 @@ class DealScoreBadge extends StatelessWidget {
           borderRadius: BorderRadius.circular(large ? 14 : 10),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x33000000),
+              color: AppColors.badgeShadow,
               blurRadius: 6,
               offset: Offset(0, 2),
             ),
@@ -46,7 +46,7 @@ class DealScoreBadge extends StatelessWidget {
             fontWeight: FontWeight.w700,
             fontSize: large ? 28 : 18,
             height: 1.1,
-            color: Colors.white,
+            color: AppColors.onPhoto,
             fontFeatures: const [FontFeature.tabularFigures()],
           ),
         ),
