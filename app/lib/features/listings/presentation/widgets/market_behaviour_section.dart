@@ -56,7 +56,11 @@ class _MarketBehaviourSectionState extends State<MarketBehaviourSection> {
                   style: theme.textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),
-                for (final line in marketLines(market, daysListed: days))
+                for (final line in marketLines(
+                  market,
+                  daysListed: days,
+                  firstSeenOnly: widget.listing.publishedAt == null,
+                ))
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 3),
                     child: Row(

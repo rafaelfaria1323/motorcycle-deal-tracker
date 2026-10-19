@@ -9,7 +9,14 @@ const minMarketData = 5;
 /// threshold as the model_depreciation view).
 const minDepreciationData = 30;
 
-List<String> marketLines(MarketBehaviour m, {int? daysListed}) {
+/// [daysListed] counts from the site's publication date, or from the day
+/// the collector first saw the listing when the site gave none
+/// ([firstSeenOnly]); then the line says so instead of "publicado".
+List<String> marketLines(
+  MarketBehaviour m, {
+  int? daysListed,
+  bool firstSeenOnly = false,
+}) {
   final lines = <String>[
     '${m.liveCount} ${m.liveCount == 1 ? 'anúncio ativo' : 'anúncios ativos'} '
         'deste modelo',
@@ -48,12 +55,16 @@ List<String> marketLines(MarketBehaviour m, {int? daysListed}) {
   if (depreciation != null) lines.add(depreciationLine(depreciation));
 
   if (daysListed != null) {
-    lines.add(
-      daysListed <= 0
-          ? 'Este anúncio foi publicado hoje'
-          : 'Este anúncio está publicado há $daysListed '
-                '${daysListed == 1 ? 'dia' : 'dias'}',
-    );
+    lines.add(switch ((daysListed <= 0, firstSeenOnly)) {
+      (true, false) => 'Este anúncio foi publicado hoje',
+      (true, true) => 'Visto pela primeira vez hoje',
+      (false, false) =>
+        'Este anúncio está publicado há $daysListed '
+            '${daysListed == 1 ? 'dia' : 'dias'}',
+      (false, true) =>
+        'Visto pela primeira vez há $daysListed '
+            '${daysListed == 1 ? 'dia' : 'dias'}',
+    });
     if (enoughGone && daysListed > 2 * toGone) {
       lines.add(
         'Está à venda há mais do dobro do tempo habitual: '

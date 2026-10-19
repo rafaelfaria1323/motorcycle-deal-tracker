@@ -150,7 +150,7 @@ Do not implement several unrelated features at once.
 ## 10.3 Price trends ⬜
 *Needs a few weeks of price history first.*
 ## 10.4 Time-to-sale estimation 🟡
-*"Mercado deste modelo" on the detail page: typical time until a listing leaves the market, share and size of price drops, depreciation rates, and how long this listing has been up. Shows "ainda poucos dados" until enough history exists.*
+*"Mercado deste modelo" on the detail page: typical time until a listing leaves the market, share and size of price drops, depreciation rates, and how long this listing has been up (from the site's publication date; without one it says "Visto pela primeira vez há…", counted from the day the collector first saw it, never "publicado"). Shows "ainda poucos dados" until enough history exists.*
 ## 10.5 Deal ranking ✅
 *The dashboard sorted by Deal Score is the ranking.*
 
