@@ -56,7 +56,7 @@ Unchanged.
 ## 7. Stack
 
 - Frontend: Flutter Web, Dart ✅
-- Backend: Supabase, PostgreSQL ✅, Supabase Auth ✅ *(anonymous + owner email/password)*; scheduled jobs ➕ *on GitHub Actions instead of Edge Functions (a Dart CLI collector, one process per run, every 4 hours).*
+- Backend: Supabase, PostgreSQL ✅, Supabase Auth ✅ *(anonymous + owner email/password)*; scheduled jobs ➕ *on GitHub Actions instead of Edge Functions (a Dart CLI collector, one process per run, every 4 hours), started by Supabase pg_cron (GitHub's own scheduler never started them).*
 - Hosting: Cloudflare Pages ✅
 - Repository: GitHub ✅ *(should become private)*; ➕ automatic code-quality review by Claude after every 5 merged PRs
 - Notifications: ➕ Telegram bot ✅ (alerts after each run, weekly summary on Mondays); Web push / FCM ⬜

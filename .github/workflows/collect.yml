@@ -1,17 +1,15 @@
 name: Collect listings
 
 on:
-  workflow_dispatch: # manual "Run workflow" button
-  # TEMPORARY (testing whether GitHub's scheduler starts this at all): every
-  # hour at minute 30, UTC (22:30 in Lisbon is the first one to watch). Back
-  # to every 4 hours ('40 */4 * * *') once a scheduled run has been seen;
-  # the per-site daily cap still applies.
+  # Started every 4 hours (minute 40, UTC) by Supabase: the pg_cron job
+  # 'collect-listings' calls the workflow_dispatch API (GitHub's own
+  # scheduler never started this workflow). Also the manual "Run workflow"
+  # button.
   # Each site has its own caps (20 per run, 120 per day). A run uses about
   # 15 Standvirtual requests (robots.txt, 4 search pages, up to 10 listing
   # pages) and about 10-12 OLX requests (robots.txt, every page of the
   # tracked models' searches).
-  schedule:
-    - cron: '30 * * * *'
+  workflow_dispatch:
 
 # Never two runs at once: they would share the request budget.
 concurrency:
