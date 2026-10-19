@@ -78,7 +78,7 @@ Do not implement several unrelated features at once.
 ## 4.6 Risk score ✅
 *Extended in 9.5 with owners, service book, origin and warranty.*
 ## 4.7 Combined Deal Score 🟡
-*Price 35, year/mileage 20, risk 10 are live. Version/equipment 15, seller/confidence 10 and market behaviour 10 are not scored yet; the score renormalizes over the slices that have data.*
+*Price 35, year/mileage 20, risk 10 and equipment 15 are live. Seller/confidence 10 and market behaviour 10 are not scored yet; the score renormalizes over the slices that have data.* ➕ 4.7b Equipment slice: extras named in the ad (quickshifter, sports exhaust, luggage, heated grips, protection, new tyres; "sem …" ignored) score 70 for one and +10 for each more; an ad that names none skips the slice instead of losing points. Shown as "Extras indicados" in the explanation and as a row of the comparison ✅
 ## 4.8 Score explanation ✅
 *Includes estimated value for the bike's age and mileage, and reassuring facts (first owner, service book, warranty) as positives.*
 

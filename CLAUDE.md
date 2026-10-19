@@ -240,7 +240,10 @@ functions for manual work.
   (4 %/year, 0.2 %/1000 km) weighted by count; below 30 the general rates.
   Price score needs >= 2 comparables; risk price signal needs >= 3.
 - Deal score = weighted average of available slices: price 35, year/mileage 20
-  (70% mileage), risk 10 (inverted). Missing slices are skipped.
+  (70% mileage), risk 10 (inverted), equipment 15 (`listing_extras`: keywords
+  in variant/description for quickshifter, exhaust, luggage, heated grips,
+  protection, new tyres; 70 for one, +10 each, max 100; none found = slice
+  skipped, never a penalty). Missing slices are skipped.
 - Risk signals: price far below market, possible accident (text), missing
   mileage/year/location, thin description (only private sellers with details
   read), 3+ owners, no service book, imported, implausible mileage (under

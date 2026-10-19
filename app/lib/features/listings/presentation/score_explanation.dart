@@ -34,6 +34,24 @@ class ScoreExplanation extends Equatable {
   List<Object?> get props => [score, label, lines, slicesUsed, slicesTotal];
 }
 
+const _extraLabels = {
+  'quickshifter': 'quickshifter',
+  'exhaust': 'escape desportivo',
+  'luggage': 'malas',
+  'heated_grips': 'punhos aquecidos',
+  'protection': 'proteções',
+  'new_tyres': 'pneus novos',
+};
+
+/// The extras found in the ad ("quickshifter, malas"), or null when none.
+String? extrasText(Map<String, dynamic>? breakdown) {
+  final labels = [
+    for (final code in (breakdown?['extras'] as List? ?? const []))
+      if (_extraLabels[code] case final label?) label,
+  ];
+  return labels.isEmpty ? null : labels.join(', ');
+}
+
 /// Turns the stored score data into human-readable lines.
 /// Only things that actually influence the score are listed.
 abstract final class ScoreExplainer {
@@ -176,6 +194,13 @@ abstract final class ScoreExplainer {
           ExplanationTone.negative,
           'Modelo de $year (mais antigo)',
         ),
+      );
+    }
+
+    // Version / equipment
+    if (extrasText(data) case final extras?) {
+      lines.add(
+        ExplanationLine(ExplanationTone.positive, 'Extras indicados: $extras'),
       );
     }
 

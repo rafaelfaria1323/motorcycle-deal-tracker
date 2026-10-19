@@ -1,6 +1,7 @@
 import '../../../core/formatting/formatters.dart';
 import '../domain/entities/listing.dart';
 import 'listing_labels.dart';
+import 'score_explanation.dart';
 
 /// At most this many listings side by side (columns on a phone).
 const maxCompared = 3;
@@ -108,6 +109,12 @@ List<CompareRow> compareRows(List<Listing> listings, {DateTime? now}) {
         false => 0,
         null => null,
       },
+      higherIsBetter: true,
+    ),
+    row(
+      'Extras',
+      (l) => extrasText(l.scoreBreakdown) ?? '—',
+      score: (l) => (l.scoreBreakdown?['extras'] as List?)?.length,
       higherIsBetter: true,
     ),
     row('Localização', (l) => l.location ?? '—'),
