@@ -1,12 +1,16 @@
 export 'src/adapters/manual/manual_adapter.dart';
 export 'src/adapters/manual/manual_mapper.dart';
 export 'src/adapters/manual/manual_raw_listing.dart';
+export 'src/adapters/olx/olx_mapper.dart';
+export 'src/adapters/olx/olx_raw_listing.dart';
+export 'src/adapters/olx/olx_search_adapter.dart';
 export 'src/adapters/source_adapter.dart';
 export 'src/adapters/standvirtual/standvirtual_mapper.dart';
 export 'src/adapters/standvirtual/standvirtual_page_adapter.dart';
 export 'src/adapters/standvirtual/standvirtual_raw_listing.dart';
 export 'src/adapters/standvirtual/standvirtual_search_adapter.dart';
 export 'src/catalog/catalog.dart';
+export 'src/catalog/model_resolver.dart';
 export 'src/config/supabase_config.dart';
 export 'src/fetch/polite_fetcher.dart';
 export 'src/fetch/robots.dart';
