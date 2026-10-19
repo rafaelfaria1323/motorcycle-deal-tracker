@@ -53,7 +53,8 @@ class ListingStore {
   final SupabaseClient _client;
 
   /// Live listings of [source] whose listing page has not been read yet,
-  /// newest first.
+  /// newest first. Only catalog models that are not duplicates: details
+  /// feed the scores, and other listings are never scored.
   Future<List<({String sourceListingId, String url})>> listingsMissingDetails(
     String source,
     int limit,
@@ -63,6 +64,8 @@ class ListingStore {
         .select('source_listing_id, url')
         .eq('source', source)
         .isFilter('details_checked_at', null)
+        .not('motorcycle_id', 'is', null)
+        .isFilter('duplicate_of', null)
         .inFilter('status', ['active', 'price_changed'])
         .order('first_seen_at', ascending: false)
         .limit(limit);
