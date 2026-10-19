@@ -6,7 +6,10 @@ import '../catalog/catalog.dart';
 Future<Catalog> loadCatalog(SupabaseClient client) async {
   final rows = await client
       .from('motorcycles')
-      .select('id, slug, brand, model, min_year')
+      .select(
+        'id, slug, brand, model, min_year, aliases, excluded_words, '
+        'engine_cc_min, engine_cc_max',
+      )
       .eq('is_active', true)
       .order('slug');
 
@@ -18,6 +21,12 @@ Future<Catalog> loadCatalog(SupabaseClient client) async {
         brand: row['brand'] as String,
         model: row['model'] as String,
         minYear: row['min_year'] as int,
+        aliases: List<String>.from(row['aliases'] as List? ?? const []),
+        excludedWords: List<String>.from(
+          row['excluded_words'] as List? ?? const [],
+        ),
+        engineCcMin: row['engine_cc_min'] as int?,
+        engineCcMax: row['engine_cc_max'] as int?,
       ),
   ]);
 }
