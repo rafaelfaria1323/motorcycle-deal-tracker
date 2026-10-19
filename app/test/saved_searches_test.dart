@@ -105,4 +105,34 @@ void main() {
     expect(filters.criteriaOnly.activeOnly, isTrue);
     expect(filters.criteriaOnly.minYear, 2026);
   });
+
+  group('score criteria', () {
+    test('count as criteria and survive a save', () {
+      const filters = ListingFilters(minDealScore: 80, maxRiskScore: 19);
+      expect(filters.hasCriteria, isTrue);
+      expect(filters.appliedCount, 2);
+
+      final row = SavedSearchModel.toInsert('Boas', filters);
+      expect(row['min_deal_score'], 80);
+      expect(row['max_risk_score'], 19);
+
+      final back = SavedSearchModel.fromJson({
+        'id': 's1',
+        'name': 'Boas',
+        ...row,
+        'created_at': '2026-10-19T12:00:00Z',
+      });
+      expect(back.filters, filters);
+      expect(back.filters.criteriaOnly, filters);
+    });
+
+    test('are named in the summary', () {
+      final text = summarizeFilters(
+        const ListingFilters(minDealScore: 80, maxRiskScore: 49),
+        const [],
+      );
+
+      expect(text, 'Deal Score 80+ · Risco até médio');
+    });
+  });
 }

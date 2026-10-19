@@ -10,6 +10,8 @@ class ListingFilters extends Equatable {
     this.maxMileage,
     this.location,
     this.sellerType,
+    this.minDealScore,
+    this.maxRiskScore,
     this.activeOnly = true,
   });
 
@@ -21,6 +23,10 @@ class ListingFilters extends Equatable {
   final int? maxMileage;
   final String? location;
   final SellerType? sellerType;
+
+  /// Listings without a score never match a set score criterion.
+  final int? minDealScore;
+  final int? maxRiskScore;
   final bool activeOnly;
 
   /// How many filters differ from the defaults (shown on the filter button).
@@ -31,6 +37,8 @@ class ListingFilters extends Equatable {
     maxMileage != null,
     location != null,
     sellerType != null,
+    minDealScore != null,
+    maxRiskScore != null,
     !activeOnly,
   ].where((applied) => applied).length;
 
@@ -42,6 +50,8 @@ class ListingFilters extends Equatable {
     maxMileage,
     location,
     sellerType,
+    minDealScore,
+    maxRiskScore,
     activeOnly,
   ];
 }

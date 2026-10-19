@@ -2,6 +2,7 @@ import '../../../core/formatting/formatters.dart';
 import '../domain/entities/listing_filters.dart';
 import '../domain/entities/motorcycle_option.dart';
 import 'listing_labels.dart';
+import 'score_criteria.dart';
 
 /// "Yamaha MT-07 · desde 2026 · até 8 000 €" from a set of filters.
 String summarizeFilters(
@@ -24,6 +25,10 @@ String summarizeFilters(
   }
   if (filters.location != null) parts.add(filters.location!);
   if (filters.sellerType != null) parts.add(filters.sellerType!.label);
+  final minScore = filters.minDealScore;
+  if (minScore != null) parts.add('Deal Score $minScore+');
+  final maxRisk = filters.maxRiskScore;
+  if (maxRisk != null) parts.add(riskCriterionLabel(maxRisk));
 
   return parts.join(' · ');
 }

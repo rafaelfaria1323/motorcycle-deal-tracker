@@ -39,6 +39,12 @@ class SupabaseListingsRepository implements ListingsRepository {
     if (filters.sellerType != null) {
       query = query.eq('seller_type', filters.sellerType!.name);
     }
+    if (filters.minDealScore != null) {
+      query = query.gte('deal_score', filters.minDealScore!);
+    }
+    if (filters.maxRiskScore != null) {
+      query = query.lte('risk_score', filters.maxRiskScore!);
+    }
     if (filters.activeOnly) {
       query = query.inFilter('status', ['active', 'price_changed']);
     }

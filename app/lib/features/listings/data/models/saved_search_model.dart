@@ -16,6 +16,8 @@ class SavedSearchModel {
         maxMileage: json['max_mileage'] as int?,
         location: json['location'] as String?,
         sellerType: _sellerType(json['seller_type'] as String?),
+        minDealScore: json['min_deal_score'] as int?,
+        maxRiskScore: json['max_risk_score'] as int?,
       ),
       createdAt: DateTime.parse(json['created_at'] as String),
       notifyNewListing: json['notify_new_listing'] as bool? ?? true,
@@ -32,6 +34,8 @@ class SavedSearchModel {
     'max_mileage': filters.maxMileage,
     'location': filters.location,
     'seller_type': filters.sellerType?.name,
+    'min_deal_score': filters.minDealScore,
+    'max_risk_score': filters.maxRiskScore,
   };
 
   /// The row to insert. `user_id` is filled in by the database
