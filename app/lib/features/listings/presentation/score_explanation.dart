@@ -108,31 +108,38 @@ abstract final class ScoreExplainer {
         lines.add(
           ExplanationLine(
             ExplanationTone.positive,
-            '$pctText% ($amount) abaixo do preço de mercado',
+            '$pctText% ($amount) abaixo do valor estimado',
           ),
         );
       } else if (pct <= -_priceNoticePct) {
         lines.add(
           ExplanationLine(
             ExplanationTone.negative,
-            '$pctText% ($amount) acima do preço de mercado',
+            '$pctText% ($amount) acima do valor estimado',
           ),
         );
       } else {
         lines.add(
           const ExplanationLine(
             ExplanationTone.neutral,
-            'Preço em linha com o mercado',
+            'Preço em linha com o valor estimado',
           ),
         );
       }
+      lines.add(
+        ExplanationLine(
+          ExplanationTone.neutral,
+          'Valor estimado para este ano e quilometragem: '
+          '${Formatters.price(market)}',
+        ),
+      );
     }
     final marketCount = (data['market_listing_count'] as num?)?.toInt();
     if (marketCount != null && marketCount < _minReliableMarket) {
       lines.add(
         ExplanationLine(
           ExplanationTone.neutral,
-          'Mercado estimado com poucos anúncios ($marketCount)',
+          'Valor estimado com poucos anúncios comparáveis ($marketCount)',
         ),
       );
     }
