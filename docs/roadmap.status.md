@@ -185,8 +185,8 @@ Do not implement several unrelated features at once.
 - *The text mixes "tu" and "você" ("Escolhe os modelos…" vs "Verifique a ligação…").*
 ## 13.2 A "Mais"/settings tab 🟡
 *Fourth tab "Mais" with the account (sign in/out), Modelos acompanhados and the collection status; the profile icon left Pesquisas and the models link left the account sheet. Still to add: Telegram status and the requests used per run.*
-## 13.3 Ofertas ⬜
-*Only tracked models by default; visible sort selector; active filters as chips that can be removed one by one.*
+## 13.3 Ofertas ✅
+*Only listings of tracked models (switched-off models' listings and unmatched ones are left out); a sort menu (Melhor pontuação, Mais recentes, Preço mais baixo/alto); applied filters as chips under the status line, each removable on its own, plus "Limpar tudo".*
 ## 13.4 Listing page ⬜
 *Photo gallery; sections ordered by what matters for a decision (price and score first, then risk, market, history).*
 ## 13.5 Pesquisas and Alertas ⬜

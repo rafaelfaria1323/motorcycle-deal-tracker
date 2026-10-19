@@ -24,6 +24,7 @@ class _PagedListings implements ListingsRepository {
 
   final int total;
   final offsets = <int>[];
+  final sorts = <ListingSort>[];
   var optionCalls = 0;
 
   @override
@@ -34,6 +35,7 @@ class _PagedListings implements ListingsRepository {
     int limit = 40,
   }) async {
     offsets.add(offset);
+    sorts.add(sort);
     final end = (offset + limit).clamp(0, total);
     return [for (var i = offset; i < end; i++) _listing(i)];
   }
@@ -90,5 +92,19 @@ void main() {
     expect(cubit.state.listings, hasLength(ListingsCubit.pageSize));
     expect(repository.offsets.last, 0);
     expect(repository.optionCalls, 1);
+  });
+
+  test('a new sort order starts again from the first page', () async {
+    final repository = _PagedListings(200);
+    final cubit = ListingsCubit(repository);
+    await cubit.load();
+    await cubit.loadMore();
+
+    await cubit.applySort(ListingSort.priceAsc);
+
+    expect(cubit.state.sort, ListingSort.priceAsc);
+    expect(cubit.state.listings, hasLength(ListingsCubit.pageSize));
+    expect(repository.sorts.last, ListingSort.priceAsc);
+    expect(repository.offsets.last, 0);
   });
 }
