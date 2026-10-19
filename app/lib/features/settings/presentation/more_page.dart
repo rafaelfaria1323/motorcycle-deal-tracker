@@ -32,7 +32,7 @@ class MorePage extends StatelessWidget {
                 child: ListTile(
                   leading: const Icon(Icons.account_circle_outlined),
                   title: Text(
-                    signedIn ? user?.email ?? 'Sessão iniciada' : 'Sem sessão',
+                    signedIn ? user.email ?? 'Sessão iniciada' : 'Sem sessão',
                   ),
                   subtitle: Text(
                     signedIn
