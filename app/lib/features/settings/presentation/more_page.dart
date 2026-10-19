@@ -1,0 +1,96 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../../app/router/app_routes.dart';
+import '../../../core/auth/account_sheet.dart';
+import '../../collector_status/presentation/collector_status_banner.dart';
+
+/// Everything that is not a list of offers: the account, the tracked
+/// models and how the data collection is doing.
+class MorePage extends StatelessWidget {
+  const MorePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = Supabase.instance.client.auth;
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Mais')),
+      // Rebuilt on sign-in and sign-out.
+      body: StreamBuilder<AuthState>(
+        stream: auth.onAuthStateChange,
+        builder: (context, _) {
+          final user = auth.currentUser;
+          final signedIn = user != null && !user.isAnonymous;
+
+          return ListView(
+            children: [
+              const _Header('Conta'),
+              ListTile(
+                leading: const Icon(Icons.account_circle_outlined),
+                title: Text(
+                  signedIn ? user?.email ?? 'Sessão iniciada' : 'Sem sessão',
+                ),
+                subtitle: Text(
+                  signedIn
+                      ? 'Tocar para terminar a sessão'
+                      : 'Iniciar sessão para ter as pesquisas e os alertas '
+                            'em qualquer dispositivo',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => showAccountSheet(context),
+              ),
+              const _Header('Mercado'),
+              ListTile(
+                leading: const Icon(Icons.two_wheeler),
+                title: const Text('Modelos acompanhados'),
+                subtitle: Text(
+                  signedIn
+                      ? 'Que modelos recolher, desde que ano e o preço de '
+                            'uma nova'
+                      : 'Disponível com sessão iniciada',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                enabled: signedIn,
+                onTap: () => context.push(AppRoutes.models),
+              ),
+              const _Header('Recolha de dados'),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: CollectorStatusBanner(),
+              ),
+              if (!signedIn)
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    'O estado da recolha aparece com sessão iniciada.',
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _Header extends StatelessWidget {
+  const _Header(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+      child: Text(
+        text,
+        style: theme.textTheme.titleSmall?.copyWith(
+          color: theme.colorScheme.primary,
+        ),
+      ),
+    );
+  }
+}

@@ -170,6 +170,41 @@ Do not implement several unrelated features at once.
 ➕ **Notifications on the phone via Telegram** ✅ (11.1; replaces Web/PWA push). 11.1b: "Test Telegram" workflow / `make notify-test` sends a test message. Confirmed on Rafael's phone (2026-10-19) after `TELEGRAM_CHAT_ID` was corrected (it held the bot's own id).
 ➕ **Housekeeping** 🟡: saved pages and fetch state are no longer tracked ✅; **the repo should be made private** (old saved pages with phone numbers remain in git history) ⬜.
 
+# Sprint 13 — UI/UX redesign ⬜
+
+*Goal: the app has grown screen by screen; make it coherent on the iPhone. Each step is a small PR Rafael checks on the phone.*
+
+## 13.1 UX audit and navigation plan ✅
+*Walk every screen, list what doesn't make sense, agree the structure before changing it. Known issues so far:*
+- *The account (profile icon) lives only in the Pesquisas app bar, and "Modelos acompanhados" is hidden inside the account sheet.*
+- *Ofertas has no way to change the sort order (the code supports newest, price and Deal Score).*
+- *Ofertas still shows listings of switched-off models and unmatched listings.*
+- *Saved searches can only be created from the bookmark icon in Ofertas, not from Pesquisas.*
+- *The Alertas tab shows no unread badge.*
+- *The listing page shows only the first photo.*
+- *The text mixes "tu" and "você" ("Escolhe os modelos…" vs "Verifique a ligação…").*
+## 13.2 A "Mais"/settings tab 🟡
+*Fourth tab "Mais" with the account (sign in/out), Modelos acompanhados and the collection status; the profile icon left Pesquisas and the models link left the account sheet. Still to add: Telegram status and the requests used per run.*
+## 13.3 Ofertas ✅
+*Only listings of tracked models (switched-off models' listings and unmatched ones are left out); a sort menu (Melhor pontuação, Mais recentes, Preço mais baixo/alto); applied filters as chips under the status line, each removable on its own, plus "Limpar tudo".*
+## 13.4 Listing page ⬜
+*Photo gallery; sections ordered by what matters for a decision (price and score first, then risk, market, history).*
+## 13.5 Pesquisas and Alertas ⬜
+*Create a search from Pesquisas; unread badge on Alertas; alerts grouped by day.*
+## 13.6 One voice and polish ⬜
+*One form of address in all pt-PT text; consistent empty/loading/error states; light/dark and iPhone safe-area check.*
+
+# Sprint 14 — More than one person ⬜
+
+*Only needed if someone else will use the app. Today the tracked models are one shared list (`motorcycles.is_active`): any signed-in account changes it for everyone, and everyone sees the same listings.*
+
+## 14.1 Per-person model selection ⬜
+*`user_models (user_id, motorcycle_id)`; "Modelos acompanhados" edits your own list; Ofertas, filters and saved searches show your models only.*
+## 14.2 Collector follows the union ⬜
+*A model is searched while at least one person tracks it; `is_active` becomes "someone tracks it". Scores and market data stay shared (the market is the same for everyone).*
+## 14.3 Accounts ⬜
+*Today accounts are created by hand in Supabase; a second person needs an invite or sign-up path, and Telegram per person (own chat id).*
+
 # Sprint 12 — Flutter iOS ⬜
 
 *Decision: stay with the home-screen web app. A native build needs a paid Apple Developer account (TestFlight); with a free account apps expire after 7 days.*
@@ -181,10 +216,11 @@ Do not implement several unrelated features at once.
 
 # Next
 
-1. Show the requests used by the last run per site (and searches cut short) in the app, so the budget warning is based on real numbers.
-2. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history.
-3. Price history chart on the detail page.
-4. Weekly Telegram summary (best deals, new drops, listings gone).
+1. UI/UX redesign (Sprint 13), starting with the audit (13.1).
+2. Show the requests used by the last run per site (and searches cut short) in the app, so the budget warning is based on real numbers (fits in 13.2).
+3. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history.
+4. Price history chart on the detail page.
+5. Weekly Telegram summary (best deals, new drops, listings gone).
 
 **Open items for Rafael:** read the Standvirtual/OLX terms and record the clauses in `docs/sources.md`; check the new-bike reference prices; make the repo private.
 

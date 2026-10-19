@@ -20,7 +20,12 @@ class SupabaseListingsRepository implements ListingsRepository {
     int offset = 0,
     int limit = 40,
   }) async {
-    var query = _client.from('listings').select(ListingModel.summaryColumns);
+    // Only listings of tracked models: switched-off models' listings are
+    // no longer checked, and unmatched ones have no score.
+    var query = _client
+        .from('listings')
+        .select('${ListingModel.summaryColumns}, motorcycles!inner(is_active)')
+        .eq('motorcycles.is_active', true);
     query = query.isFilter('duplicate_of', null);
 
     if (filters.motorcycleId != null) {

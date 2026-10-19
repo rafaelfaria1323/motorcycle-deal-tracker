@@ -1,4 +1,14 @@
 import '../domain/entities/listing.dart';
+import '../domain/entities/listing_sort.dart';
+
+extension ListingSortLabel on ListingSort {
+  String get label => switch (this) {
+    ListingSort.dealScoreDesc => 'Melhor pontuação',
+    ListingSort.newest => 'Mais recentes',
+    ListingSort.priceAsc => 'Preço mais baixo',
+    ListingSort.priceDesc => 'Preço mais alto',
+  };
+}
 
 extension ListingStatusLabel on ListingStatus {
   String get label => switch (this) {

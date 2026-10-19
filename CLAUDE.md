@@ -78,12 +78,14 @@ names, plus `SUPABASE_PUBLISHABLE_KEY`, `CLOUDFLARE_API_TOKEN` and
 
 - Clean architecture per feature: `domain/` (entities, repository interfaces),
   `data/` (models with `fromJson`, Supabase repositories), `presentation/`
-  (cubits, pages, widgets). Features: `listings`, `collector_status`.
+  (cubits, pages, widgets). Features: `listings`, `collector_status`,
+  `settings` (the "Mais" tab).
 - Text built from data lives in pure functions (`*_text.dart`) with tests.
 - State: flutter_bloc Cubits + Equatable states. DI: get_it. Shared cubits
   (`ListingsCubit`, `SavedSearchesCubit`, `AlertsCubit`, `CollectorStatusCubit`)
   are lazy singletons, provided in routes with `BlocProvider.value`.
-- Routing: go_router `StatefulShellRoute` (Ofertas / Pesquisas / Alertas).
+- Routing: go_router `StatefulShellRoute` (Ofertas / Pesquisas / Alertas /
+  Mais). Account, "Modelos acompanhados" and collection status live in Mais.
   Use `context.go`, not `push`, so web URLs stay correct. Exception: full
   pages outside the shell (`/models`) are pushed.
 - Formatting: `Formatters.price`, `.mileage`, `.date`, `.daysAgo`

@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/listing_filters.dart';
+import '../../domain/entities/listing_sort.dart';
 import '../../domain/repositories/listings_repository.dart';
 import 'listings_state.dart';
 
@@ -76,6 +77,12 @@ class ListingsCubit extends Cubit<ListingsState> {
         emit(state.copyWith(loadingMore: false));
       }
     }
+  }
+
+  Future<void> applySort(ListingSort sort) async {
+    if (sort == state.sort) return;
+    emit(state.copyWith(sort: sort));
+    await load();
   }
 
   Future<void> applyFilters(ListingFilters filters) async {

@@ -8,9 +8,11 @@ import '../../../../app/router/app_routes.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../../collector_status/presentation/collector_status_banner.dart';
 import '../../domain/entities/listing_filters.dart';
+import '../../domain/entities/listing_sort.dart';
 import '../cubit/listings_cubit.dart';
 import '../cubit/listings_state.dart';
 import '../cubit/saved_searches_cubit.dart';
+import '../listing_labels.dart';
 import '../saved_search_summary.dart';
 import '../widgets/filters_sheet.dart';
 import '../widgets/listing_card.dart';
@@ -71,6 +73,23 @@ class DashboardPage extends StatelessWidget {
         title: const Text('Ofertas'),
         actions: [
           BlocBuilder<ListingsCubit, ListingsState>(
+            buildWhen: (previous, current) => previous.sort != current.sort,
+            builder: (context, state) => PopupMenuButton<ListingSort>(
+              tooltip: 'Ordenar',
+              icon: const Icon(Icons.sort),
+              initialValue: state.sort,
+              onSelected: context.read<ListingsCubit>().applySort,
+              itemBuilder: (_) => [
+                for (final sort in ListingSort.values)
+                  CheckedPopupMenuItem(
+                    value: sort,
+                    checked: sort == state.sort,
+                    child: Text(sort.label),
+                  ),
+              ],
+            ),
+          ),
+          BlocBuilder<ListingsCubit, ListingsState>(
             buildWhen: (previous, current) =>
                 previous.filters != current.filters,
             builder: (context, state) => IconButton(
@@ -95,6 +114,39 @@ class DashboardPage extends StatelessWidget {
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
             child: CollectorStatusBanner(),
+          ),
+          BlocBuilder<ListingsCubit, ListingsState>(
+            buildWhen: (previous, current) =>
+                previous.filters != current.filters ||
+                previous.motorcycles != current.motorcycles,
+            builder: (context, state) {
+              final chips = filterChips(state.filters, state.motorcycles);
+              if (chips.isEmpty) return const SizedBox.shrink();
+              final cubit = context.read<ListingsCubit>();
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+                child: Row(
+                  children: [
+                    for (final chip in chips)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: InputChip(
+                          label: Text(chip.label),
+                          onDeleted: () => cubit.applyFilters(chip.without),
+                          deleteButtonTooltipMessage: 'Remover filtro',
+                        ),
+                      ),
+                    if (chips.length > 1)
+                      ActionChip(
+                        label: const Text('Limpar tudo'),
+                        onPressed: () =>
+                            cubit.applyFilters(ListingFilters.empty),
+                      ),
+                  ],
+                ),
+              );
+            },
           ),
           Expanded(
             child: BlocBuilder<ListingsCubit, ListingsState>(

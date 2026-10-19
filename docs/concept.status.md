@@ -50,7 +50,7 @@ Unchanged.
 
 ## 6. Platform
 
-- Phase 1 — Flutter Web/PWA ✅ *Hosted on Cloudflare Pages, installed on the iPhone Home Screen; deployed on every merge.*
+- Phase 1 — Flutter Web/PWA ✅ *Hosted on Cloudflare Pages, installed on the iPhone Home Screen; deployed on every merge. UI/UX redesign planned (roadmap Sprint 13); single-user for now (Sprint 14 if someone else joins).*
 - Phase 2 — Flutter iOS/Android ⬜ *Not needed for now: a native iPhone build requires a paid Apple Developer account.*
 
 ## 7. Stack
@@ -123,7 +123,7 @@ All four types, each at most once per event, only for events after the search wa
 
 ## 17. Dashboard ✅
 
-✅ Best deals sorted by Deal Score; filters for model, price, mileage, year, location, seller type, Deal Score, Risk Score, active only. ➕ Collection status line ("Atualizado há 3 h" / blocked / failed).
+✅ Best deals sorted by Deal Score (or newest, cheapest, most expensive); only tracked models; filters for model, price, mileage, year, location, seller type, Deal Score, Risk Score, active only, shown as removable chips. ➕ Collection status line ("Atualizado há 3 h" / blocked / failed).
 
 ## 18. Listing Detail Page ✅
 
