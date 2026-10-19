@@ -70,17 +70,17 @@ class ListingModel extends Listing {
       description: json['description'] as String?,
       images: List<String>.from(json['images'] as List? ?? const []),
       status: _status(json['status'] as String?),
-      firstSeenAt: _date(json['first_seen_at']),
-      lastSeenAt: _date(json['last_seen_at']),
+      firstSeenAt: dateOf(json['first_seen_at']),
+      lastSeenAt: dateOf(json['last_seen_at']),
       registrations: json['registrations'] as int?,
       serviceBook: json['service_book'] as bool?,
       origin: json['origin'] as String?,
-      warrantyUntil: _date(json['warranty_until']),
+      warrantyUntil: dateOf(json['warranty_until']),
       dealerWarrantyMonths: json['dealer_warranty_months'] as int?,
-      publishedAt: _date(json['published_at']),
-      siteRefreshedAt: _date(json['site_refreshed_at']),
+      publishedAt: dateOf(json['published_at']),
+      siteRefreshedAt: dateOf(json['site_refreshed_at']),
       newPrice: (bike?['new_price_reference'] as num?)?.toDouble(),
-      newPriceCheckedAt: _date(bike?['new_price_checked_at']),
+      newPriceCheckedAt: dateOf(bike?['new_price_checked_at']),
     );
   }
 
@@ -99,6 +99,7 @@ class ListingModel extends Listing {
     _ => ListingStatus.unknown,
   };
 
-  static DateTime? _date(Object? value) =>
+  /// Shared with the alert model; null when absent or unparseable.
+  static DateTime? dateOf(Object? value) =>
       value is String ? DateTime.tryParse(value) : null;
 }

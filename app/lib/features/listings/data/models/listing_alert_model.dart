@@ -16,9 +16,7 @@ class ListingAlertModel {
       searchName: search?['name'] as String?,
       oldPrice: (json['old_price'] as num?)?.toDouble(),
       newPrice: (json['new_price'] as num?)?.toDouble(),
-      readAt: json['read_at'] == null
-          ? null
-          : DateTime.parse(json['read_at'] as String).toLocal(),
+      readAt: ListingModel.dateOf(json['read_at'])?.toLocal(),
     );
   }
 

@@ -11,12 +11,11 @@ the database schema, secrets or workflows goes to "Needs Rafael".
 
 ## To do
 
-- Use one date-parsing helper for `DateTime.parse(...)` of nullable columns in `ListingAlertModel`, `SavedSearchModel` and the repositories.
-
 ## Needs Rafael
 
 ## Done
 
+- 2026-10-19: `ListingAlertModel.read_at` (the only nullable date left) uses `ListingModel.dateOf`; the other `DateTime.parse` calls read non-null columns and stay.
 - 2026-10-19: Error-message mapping of `TrackedModelsPage` and `AccountCubit` became `catalogSaveErrorText` and `authErrorText`, with tests.
 - 2026-10-19: Filter-field parsing of `FiltersSheet` became pure functions in `filter_fields_text.dart`, with tests.
 - 2026-10-19: Tests for `ListingAlertModel` / `SavedSearchModel` enum fallbacks; `SavedSearchModel` reuses `ListingModel.sellerTypeOf`.
