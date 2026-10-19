@@ -50,7 +50,7 @@ Unchanged.
 
 ## 6. Platform
 
-- Phase 1 — Flutter Web/PWA ✅ *Hosted on Cloudflare Pages, installed on the iPhone Home Screen; deployed on every merge.*
+- Phase 1 — Flutter Web/PWA ✅ *Hosted on Cloudflare Pages, installed on the iPhone Home Screen; deployed on every merge. UI/UX redesign planned (roadmap Sprint 13); single-user for now (Sprint 14 if someone else joins).*
 - Phase 2 — Flutter iOS/Android ⬜ *Not needed for now: a native iPhone build requires a paid Apple Developer account.*
 
 ## 7. Stack
