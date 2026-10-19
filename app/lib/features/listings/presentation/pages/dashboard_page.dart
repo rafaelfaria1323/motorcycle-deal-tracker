@@ -8,6 +8,8 @@ import '../../../../app/router/app_routes.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/listing_filters.dart';
 import '../../domain/entities/listing_sort.dart';
+import '../compare_text.dart';
+import '../cubit/compare_cubit.dart';
 import '../cubit/listings_cubit.dart';
 import '../cubit/listings_state.dart';
 import '../cubit/saved_searches_cubit.dart';
@@ -73,9 +75,48 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
+  void _toggleCompare(BuildContext context, String id) {
+    if (!getIt<CompareCubit>().toggle(id)) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Já tem $maxCompared anúncios na comparação. Retire um primeiro.',
+            ),
+          ),
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: BlocBuilder<CompareCubit, List<String>>(
+        bloc: getIt<CompareCubit>(),
+        builder: (context, compared) {
+          if (compared.isEmpty) return const SizedBox.shrink();
+          return FloatingActionButton.extended(
+            icon: const Icon(Icons.compare_arrows),
+            label: Text('Comparar (${compared.length})'),
+            onPressed: () {
+              if (compared.length >= 2) {
+                context.push(AppRoutes.compare(compared));
+                return;
+              }
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Mantenha premido outro anúncio para o comparar.',
+                    ),
+                  ),
+                );
+            },
+          );
+        },
+      ),
       appBar: AppBar(
         title: const Text('Ofertas'),
         actions: [
@@ -211,10 +252,16 @@ class DashboardPage extends StatelessWidget {
                               itemCount: state.listings.length,
                               itemBuilder: (context, index) {
                                 final listing = state.listings[index];
-                                return ListingCard(
-                                  listing: listing,
-                                  onTap: () => context.go(
-                                    AppRoutes.listingDetail(listing.id),
+                                return BlocBuilder<CompareCubit, List<String>>(
+                                  bloc: getIt<CompareCubit>(),
+                                  builder: (context, compared) => ListingCard(
+                                    listing: listing,
+                                    selected: compared.contains(listing.id),
+                                    onTap: () => context.go(
+                                      AppRoutes.listingDetail(listing.id),
+                                    ),
+                                    onLongPress: () =>
+                                        _toggleCompare(context, listing.id),
                                   ),
                                 );
                               },

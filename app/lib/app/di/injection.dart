@@ -16,6 +16,7 @@ import '../../features/listings/domain/repositories/listings_repository.dart';
 import '../../features/listings/domain/repositories/market_behaviour_repository.dart';
 import '../../features/listings/domain/repositories/saved_searches_repository.dart';
 import '../../features/listings/presentation/cubit/alerts_cubit.dart';
+import '../../features/listings/presentation/cubit/compare_cubit.dart';
 import '../../features/listings/presentation/cubit/listing_detail_cubit.dart';
 import '../../features/listings/presentation/cubit/listings_cubit.dart';
 import '../../features/listings/presentation/cubit/saved_searches_cubit.dart';
@@ -52,6 +53,7 @@ void configureDependencies() {
     );
 
   getIt.registerFactory(() => AccountCubit(Supabase.instance.client));
+  getIt.registerLazySingleton(CompareCubit.new);
   getIt.registerLazySingleton<CollectorRunsRepository>(
     () => SupabaseCollectorRunsRepository(Supabase.instance.client),
   );

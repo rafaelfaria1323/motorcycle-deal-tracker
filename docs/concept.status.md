@@ -30,7 +30,7 @@ Unchanged.
 - ✅ Calculate a separate Risk Score.
 - ✅ Create saved searches. *Also by minimum Deal Score / maximum Risk Score.*
 - ✅ Send alerts. *In the app and on the phone via Telegram, plus a weekly summary on Mondays.*
-- ⬜ Compare motorcycles.
+- ✅ Compare motorcycles. *Up to 3 listings side by side (long press in Ofertas or "Comparar" on a listing), best value per row highlighted.*
 - 🟡 Show market trends. *Time on market, price drops and depreciation per model; price trends need more history.*
 
 ## 4. Motorcycle Models ✅
@@ -148,7 +148,7 @@ Private sellers' names and all phone numbers are never stored; saved pages and f
 
 ## 23. Future Features ⬜
 
-Comparison, buying assistant, checklists, cost calculators, price prediction, weekly ranking, smart alerts, model price history, imports, dealer integration. ➕ Depreciation tracking ✅ (per-model rates fitted from data).
+Comparison ✅ (listings side by side), buying assistant, checklists, cost calculators, price prediction, weekly ranking, smart alerts, model price history, imports, dealer integration. ➕ Depreciation tracking ✅ (per-model rates fitted from data).
 
 ## 24. Product Philosophy ✅
 

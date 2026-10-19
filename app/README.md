@@ -10,6 +10,8 @@ Cloudflare Pages on every merge that touches `app/`
 - **Ofertas:** listings of the tracked models, sorted by Deal Score (or
   newest, cheapest, most expensive), with filters shown as chips and paged
   40 at a time.
+- **Comparar:** up to 3 listings side by side (long press a card in Ofertas,
+  or "Comparar" on a listing's page), the best value of each row marked.
 - **Listing page:** photo gallery, price and score with the reasons behind
   it, risks, the same bike on the other site, the comparison with a new one,
   market behaviour for the model and the price history.
