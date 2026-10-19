@@ -5,9 +5,13 @@ import '../entities/motorcycle_option.dart';
 import '../entities/price_point.dart';
 
 abstract interface class ListingsRepository {
+  /// One page of listings, [limit] long from [offset]; a shorter page is
+  /// the last one.
   Future<List<Listing>> getListings({
     ListingFilters filters = ListingFilters.empty,
     ListingSort sort = ListingSort.newest,
+    int offset = 0,
+    int limit = 40,
   });
 
   /// Returns null when no listing has this id.

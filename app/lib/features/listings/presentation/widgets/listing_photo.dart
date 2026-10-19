@@ -17,9 +17,10 @@ class ListingPhoto extends StatelessWidget {
     return Image.network(
       url!,
       fit: BoxFit.cover,
-      // On the web the app first downloads the photo itself, which the photo
-      // site's CORS rules can refuse; a plain <img> element still shows it.
-      webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
+      // The photo sites send no CORS headers, so Flutter can't download the
+      // photo itself; a plain <img> element shows it. Going straight to it
+      // saves a refused request per photo.
+      webHtmlElementStrategy: WebHtmlElementStrategy.prefer,
       errorBuilder: (context, error, stackTrace) => placeholder,
     );
   }

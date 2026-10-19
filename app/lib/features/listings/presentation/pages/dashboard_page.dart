@@ -131,24 +131,51 @@ class DashboardPage extends StatelessWidget {
                       );
                     }
 
-                    return GridView.builder(
-                      padding: const EdgeInsets.all(16),
-                      gridDelegate:
-                          const SliverGridDelegateWithMaxCrossAxisExtent(
-                            maxCrossAxisExtent: 420,
-                            mainAxisExtent: 290,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
-                          ),
-                      itemCount: state.listings.length,
-                      itemBuilder: (context, index) {
-                        final listing = state.listings[index];
-                        return ListingCard(
-                          listing: listing,
-                          onTap: () =>
-                              context.go(AppRoutes.listingDetail(listing.id)),
-                        );
+                    final cubit = context.read<ListingsCubit>();
+                    return NotificationListener<ScrollNotification>(
+                      // Asks for the next page a screen before the end.
+                      onNotification: (notification) {
+                        // Deferred: a notification can arrive mid-layout.
+                        if (notification.metrics.extentAfter < 800) {
+                          Future.microtask(cubit.loadMore);
+                        }
+                        return false;
                       },
+                      child: CustomScrollView(
+                        slivers: [
+                          SliverPadding(
+                            padding: const EdgeInsets.all(16),
+                            sliver: SliverGrid.builder(
+                              gridDelegate:
+                                  const SliverGridDelegateWithMaxCrossAxisExtent(
+                                    maxCrossAxisExtent: 420,
+                                    mainAxisExtent: 290,
+                                    crossAxisSpacing: 16,
+                                    mainAxisSpacing: 16,
+                                  ),
+                              itemCount: state.listings.length,
+                              itemBuilder: (context, index) {
+                                final listing = state.listings[index];
+                                return ListingCard(
+                                  listing: listing,
+                                  onTap: () => context.go(
+                                    AppRoutes.listingDetail(listing.id),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          if (state.loadingMore)
+                            const SliverToBoxAdapter(
+                              child: Padding(
+                                padding: EdgeInsets.only(bottom: 24),
+                                child: Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     );
                 }
               },

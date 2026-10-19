@@ -14,6 +14,8 @@ class ListingsState extends Equatable {
     this.motorcycles = const [],
     this.filters = ListingFilters.empty,
     this.sort = ListingSort.dealScoreDesc,
+    this.hasMore = false,
+    this.loadingMore = false,
   });
 
   final ListingsStatus status;
@@ -22,12 +24,20 @@ class ListingsState extends Equatable {
   final ListingFilters filters;
   final ListingSort sort;
 
+  /// More pages exist after [listings].
+  final bool hasMore;
+
+  /// A next page is on its way.
+  final bool loadingMore;
+
   ListingsState copyWith({
     ListingsStatus? status,
     List<Listing>? listings,
     List<MotorcycleOption>? motorcycles,
     ListingFilters? filters,
     ListingSort? sort,
+    bool? hasMore,
+    bool? loadingMore,
   }) {
     return ListingsState(
       status: status ?? this.status,
@@ -35,9 +45,19 @@ class ListingsState extends Equatable {
       motorcycles: motorcycles ?? this.motorcycles,
       filters: filters ?? this.filters,
       sort: sort ?? this.sort,
+      hasMore: hasMore ?? this.hasMore,
+      loadingMore: loadingMore ?? this.loadingMore,
     );
   }
 
   @override
-  List<Object?> get props => [status, listings, motorcycles, filters, sort];
+  List<Object?> get props => [
+    status,
+    listings,
+    motorcycles,
+    filters,
+    sort,
+    hasMore,
+    loadingMore,
+  ];
 }

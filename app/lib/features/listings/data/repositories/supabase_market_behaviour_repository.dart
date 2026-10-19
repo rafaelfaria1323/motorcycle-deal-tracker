@@ -10,11 +10,10 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
 
   @override
   Future<MarketBehaviour?> getForModel(String motorcycleId) async {
-    final row = await _client
-        .from('model_market_behaviour')
-        .select()
-        .eq('motorcycle_id', motorcycleId)
-        .maybeSingle();
+    final (row, depreciation) = await (
+      _behaviour(motorcycleId),
+      _depreciation(motorcycleId),
+    ).wait;
     if (row == null) return null;
 
     int count(String key) => (row[key] as num?)?.toInt() ?? 0;
@@ -27,9 +26,15 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
       medianDaysToGone: (row['median_days_to_gone'] as num?)?.toInt(),
       medianDaysListedLive: (row['median_days_listed_live'] as num?)?.toInt(),
       medianDropPct: (row['median_drop_pct'] as num?)?.toDouble(),
-      depreciation: await _depreciation(motorcycleId),
+      depreciation: depreciation,
     );
   }
+
+  Future<Map<String, dynamic>?> _behaviour(String motorcycleId) async => _client
+      .from('model_market_behaviour')
+      .select()
+      .eq('motorcycle_id', motorcycleId)
+      .maybeSingle();
 
   Future<Depreciation?> _depreciation(String motorcycleId) async {
     final row = await _client
