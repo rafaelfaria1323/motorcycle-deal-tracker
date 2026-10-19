@@ -47,6 +47,12 @@ collect-dry: require-collector-env ## Preview, writes nothing: make collect-dry 
 collect: require-collector-env require-file ## Import: make collect [SOURCE=standvirtual] FILE=... [ARGS=--full]
 	cd collector && dart run bin/collector.dart $(SOURCE) $(FILE) $(ARGS)
 
+fetch-dry: ## Check the search addresses and limits, requests nothing
+	cd collector && dart run bin/fetch.dart standvirtual sources/standvirtual_searches.txt --dry-run
+
+fetch: ## Download the search pages, slowly and capped (see collector/lib/src/fetch)
+	cd collector && dart run bin/fetch.dart standvirtual sources/standvirtual_searches.txt $(ARGS)
+
 # ---- Database --------------------------------------------------------------
 
 db-push: ## Apply new migrations to the linked Supabase project

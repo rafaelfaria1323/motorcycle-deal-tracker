@@ -5,6 +5,25 @@ here. Robots.txt is not permission; the source's terms of use decide.
 
 ## Decision log
 
+### 2026-10-19: low-volume personal fetcher for Standvirtual search pages (9.2)
+
+**Decision.** For personal, non-commercial use, a capped fetcher downloads a
+handful of the owner's own search pages (`make fetch`). The owner accepted the
+terms risk knowingly; the terms clauses are still to be recorded below.
+
+**Limits (enforced in code).** Only www.standvirtual.com over https, only
+/motos/ paths allowed by robots.txt (read at the start of every run); 6-10 s
+between requests; max 20 requests per run and 60 per day; no retries; stops on
+HTTP 403/429/503 or a non-normal page and then refuses to run for 24 h;
+honest user-agent ("MotorcycleDealTracker/0.1 (personal project, low volume)").
+
+**robots.txt (checked 2026-10-19).** For `*`: blocks /adminpanel/, /account/,
+/myaccount/, /payment/, /api/, /ajax/, /i2/, /authentication*, /catalog/*/*/,
+*/rss/, ad-action and confirmation paths; `Allow: /`; no crawl delay for `*`.
+
+**Data use.** Kept in the owner's private Supabase project, never republished;
+every listing keeps its link to the original.
+
 ### 2026-10-19: Standvirtual saved-page adapter, personal testing only (9.1)
 
 **Decision.** A second adapter, `source = 'standvirtual'`, reads listing pages

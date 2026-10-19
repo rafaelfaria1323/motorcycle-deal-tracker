@@ -3,3 +3,4 @@
 .dart_tool/
 imports/
 collector/samples/standvirtual/
+collector/.fetch_state.json
