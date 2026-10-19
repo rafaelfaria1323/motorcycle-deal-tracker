@@ -24,18 +24,29 @@
 
     <!-- iOS meta tags & icons -->
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <!-- "default" lets iOS colour the status bar with theme-color below, so
+         it matches the app's background (the app keeps it in step with
+         light/dark mode while it runs). -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Deal Tracker">
     <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="favicon.png"/>
 
-    <meta name="theme-color" content="#E4572E">
+    <!-- The app's background (Material surface) in light and dark mode. -->
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFF8F6">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1A110F">
 
     <title>Motorcycle Deal Tracker</title>
 
     <link rel="manifest" href="manifest.json">
+
+    <!-- Same background before the app has loaded, so nothing flashes. -->
+    <style>
+      body { background-color: #FFF8F6; }
+      @media (prefers-color-scheme: dark) { body { background-color: #1A110F; } }
+    </style>
 </head>
 <body>
 <script src="flutter_bootstrap.js" async></script>
