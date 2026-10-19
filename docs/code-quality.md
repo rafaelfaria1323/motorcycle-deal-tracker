@@ -11,12 +11,12 @@ the database schema, secrets or workflows goes to "Needs Rafael".
 
 ## To do
 
-- Photo overlays bypass the theme: `Colors.black54/black45/white` in `app/lib/features/listings/presentation/widgets/photo_gallery.dart`, `Colors.black.withValues` + `Colors.white` in `listing_card.dart`, `Colors.white` + `Color(0x33000000)` in `deal_score_badge.dart`; move them into `AppColors`.
-- `CollectorStatusCubit` (`app/lib/features/collector_status/presentation/collector_status_cubit.dart`) has no test for its swallow-errors behaviour.
-
 ## Needs Rafael
 
 ## Done
+
+- 2026-10-19: Photo and score-badge overlay colours (`Colors.black54/black45/white`, `Color(0x33000000)`) became static constants of `AppColors` (same values, same look).
+- 2026-10-19: `CollectorStatusCubit` got tests (latest run, no run, swallowed failure).
 
 - 2026-10-19: Edge-case tests for `uniqueBySourceId` (same id on two sites, empty input) and `logTail` (empty log, fewer lines than the limit, character cut).
 - 2026-10-19: `ListingDetailCubit` got tests (known listing, malformed id is not found without a query, unknown id, failure).
