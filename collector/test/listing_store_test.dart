@@ -36,6 +36,7 @@ void main() {
     expect(row['motorcycle_id'], 'uuid-1');
     expect(row['seller_type'], 'dealer');
     expect(row['price'], 9300.0);
+    expect(row['price_before_drop'], isNull);
     expect(row.containsKey('status'), isFalse);
     expect(row.containsKey('first_seen_at'), isFalse);
     expect(row.containsKey('deal_score'), isFalse);

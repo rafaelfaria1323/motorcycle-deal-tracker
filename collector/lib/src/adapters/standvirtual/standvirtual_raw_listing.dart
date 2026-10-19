@@ -16,6 +16,7 @@ class StandvirtualRawListing {
     this.location,
     this.description,
     this.version,
+    this.priceBeforeDrop,
     this.images = const [],
   });
 
@@ -36,5 +37,21 @@ class StandvirtualRawListing {
   final String? location;
   final String? description;
   final String? version;
+
+  /// Lowest price in the 30 days before the site's last price cut, as the
+  /// site reports it; null when it shows no cut.
+  final num? priceBeforeDrop;
   final List<String> images;
+}
+
+/// Reads Standvirtual's `priceDrop` (`{percentage, lowestPrice: {minorAmount,
+/// currencyCode}}`). Only a euro price above [price] counts.
+num? priceBeforeDrop(Object? priceDrop, num price) {
+  if (priceDrop is! Map) return null;
+  final lowest = priceDrop['lowestPrice'];
+  if (lowest is! Map || lowest['currencyCode'] != 'EUR') return null;
+  final minor = lowest['minorAmount'];
+  if (minor is! num) return null;
+  final before = minor / 100;
+  return before > price ? before : null;
 }

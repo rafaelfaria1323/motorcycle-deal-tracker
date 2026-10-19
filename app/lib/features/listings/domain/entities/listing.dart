@@ -21,6 +21,7 @@ class Listing extends Equatable {
     this.mileage,
     this.dealScore,
     this.initialPrice,
+    this.priceBeforeDrop,
     this.price,
     this.scoreBreakdown,
     this.sellerName,
@@ -48,6 +49,10 @@ class Listing extends Equatable {
   final int? mileage;
   final int? dealScore;
   final double? initialPrice;
+
+  /// Highest earlier price the site reported, possibly from before we
+  /// started tracking (Standvirtual's price-drop note).
+  final double? priceBeforeDrop;
   final double? price;
   final Map<String, dynamic>? scoreBreakdown;
   final SellerType sellerType;
@@ -65,12 +70,28 @@ class Listing extends Equatable {
   final int? dealerWarrantyMonths;
   final DateTime? publishedAt;
 
-  /// Current price minus the first price we saw; null when either is unknown.
+  /// The price changes are measured from: the first price we saw, or a
+  /// higher earlier price the site reported.
+  double? get referencePrice {
+    final initial = initialPrice;
+    final before = priceBeforeDrop;
+    if (before == null) return initial;
+    if (initial == null || before > initial) return before;
+    return initial;
+  }
+
+  /// Whether [referencePrice] comes from the site rather than from us.
+  bool get referenceIsFromSite =>
+      priceBeforeDrop != null &&
+      referencePrice == priceBeforeDrop &&
+      priceBeforeDrop != initialPrice;
+
+  /// Current price minus [referencePrice]; null when either is unknown.
   double? get priceChange {
     final current = price;
-    final initial = initialPrice;
-    if (current == null || initial == null) return null;
-    return current - initial;
+    final reference = referencePrice;
+    if (current == null || reference == null) return null;
+    return current - reference;
   }
 
   bool get hasPriceChanged => (priceChange ?? 0).abs() >= 1;
@@ -82,6 +103,7 @@ class Listing extends Equatable {
     id,
     price,
     initialPrice,
+    priceBeforeDrop,
     dealScore,
     status,
     lastSeenAt,
