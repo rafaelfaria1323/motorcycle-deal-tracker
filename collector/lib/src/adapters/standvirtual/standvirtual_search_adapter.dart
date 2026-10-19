@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import '../../fetch/search_manifest.dart';
+import '../json_values.dart';
 import '../source_adapter.dart';
 import 'standvirtual_raw_listing.dart';
 
@@ -131,7 +132,9 @@ class StandvirtualSearchAdapter
       throw const FormatException('__NEXT_DATA__ is not valid JSON');
     }
 
-    final urql = _map(_map(_map(data)?['props'])?['pageProps'])?['urqlState'];
+    final urql = asMap(
+      asMap(asMap(data)?['props'])?['pageProps'],
+    )?['urqlState'];
     if (urql is! Map<String, dynamic>) {
       throw const FormatException('no search data (is this a search page?)');
     }
@@ -140,7 +143,7 @@ class StandvirtualSearchAdapter
     // JSON inside JSON.
     Map<String, dynamic>? search;
     for (final entry in urql.values) {
-      Object? payload = _map(entry)?['data'];
+      Object? payload = asMap(entry)?['data'];
       if (payload is String) {
         try {
           payload = jsonDecode(payload);
@@ -148,7 +151,7 @@ class StandvirtualSearchAdapter
           continue;
         }
       }
-      final found = _map(_map(payload)?['advertSearch']);
+      final found = asMap(asMap(payload)?['advertSearch']);
       if (found != null) {
         search = found;
         break;
@@ -167,8 +170,8 @@ class StandvirtualSearchAdapter
     final records = <StandvirtualRawListing>[];
     final problems = <String>[];
     for (final edge in edges) {
-      final node = _map(_map(edge)?['node']);
-      final bump = _map(_map(edge)?['vas'])?['bumpDate'];
+      final node = asMap(asMap(edge)?['node']);
+      final bump = asMap(asMap(edge)?['vas'])?['bumpDate'];
       if (node == null) {
         problems.add('a result had no data');
         continue;
@@ -183,8 +186,8 @@ class StandvirtualSearchAdapter
     return StandvirtualSearchPage(
       records: records,
       problems: problems,
-      total: _int(search['totalCount']) ?? edges.length,
-      offset: _int(_map(search['pageInfo'])?['currentOffset']) ?? 0,
+      total: asInt(search['totalCount']) ?? edges.length,
+      offset: asInt(asMap(search['pageInfo'])?['currentOffset']) ?? 0,
       shown: edges.length + topAds.length,
     );
   }
@@ -204,7 +207,7 @@ StandvirtualRawListing _fromNode(
   final list = node['parameters'];
   if (list is List) {
     for (final p in list) {
-      final map = _map(p);
+      final map = asMap(p);
       final key = map?['key'];
       if (key is String) params[key] = map!;
     }
@@ -218,12 +221,12 @@ StandvirtualRawListing _fromNode(
     throw FormatException('$id: no make or model');
   }
 
-  final amount = _map(_map(node['price'])?['amount']);
+  final amount = asMap(asMap(node['price'])?['amount']);
   final price = num.tryParse('${amount?['value']}');
   if (price == null) throw FormatException('$id: no price');
 
-  final sellerName = _map(node['sellerLink'])?['name'];
-  final thumbnail = _map(node['thumbnail'])?['x2'];
+  final sellerName = asMap(node['sellerLink'])?['name'];
+  final thumbnail = asMap(node['thumbnail'])?['x2'];
 
   return StandvirtualRawListing(
     id: id,
@@ -239,32 +242,25 @@ StandvirtualRawListing _fromNode(
     year: int.tryParse(value('first_registration_year') ?? ''),
     mileageKm: int.tryParse(value('mileage') ?? ''),
     engineCc: int.tryParse(value('engine_capacity') ?? ''),
-    sellerType: switch (_map(node['seller'])?['__typename']) {
+    sellerType: switch (asMap(node['seller'])?['__typename']) {
       'ProfessionalSeller' => 'dealer',
       'PrivateSeller' => 'private',
       _ => null,
     },
     sellerName: sellerName is String ? sellerName : null,
-    location: _location(_map(node['location'])),
+    location: _location(asMap(node['location'])),
     images: [if (thumbnail is String) thumbnail],
-    createdAt: _time(node['createdAt']),
-    bumpedAt: _time(bumpDate),
+    createdAt: asTime(node['createdAt']),
+    bumpedAt: asTime(bumpDate),
   );
 }
 
 /// The city, unless the site spells out a long list of parishes; then the
 /// district.
 String? _location(Map<String, dynamic>? location) {
-  final city = _map(location?['city'])?['name'];
-  final region = _map(location?['region'])?['name'];
+  final city = asMap(location?['city'])?['name'];
+  final region = asMap(location?['region'])?['name'];
   if (city is String && city.isNotEmpty && !city.contains(',')) return city;
   if (region is String && region.isNotEmpty) return region;
   return city is String && city.isNotEmpty ? city : null;
 }
-
-Map<String, dynamic>? _map(Object? o) => o is Map<String, dynamic> ? o : null;
-
-int? _int(Object? o) => o is num ? o.toInt() : null;
-
-DateTime? _time(Object? o) =>
-    o is String ? DateTime.tryParse(o)?.toUtc() : null;
