@@ -13,6 +13,7 @@ export 'src/fetch/robots.dart';
 export 'src/normalized/listing_details.dart';
 export 'src/normalized/normalized_listing.dart';
 export 'src/normalized/normalizers.dart';
+export 'src/pipeline/run_status.dart';
 export 'src/pipeline/source_batch.dart';
 export 'src/store/catalog_loader.dart';
 export 'src/store/listing_store.dart';

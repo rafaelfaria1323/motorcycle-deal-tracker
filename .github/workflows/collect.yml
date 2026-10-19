@@ -1,0 +1,80 @@
+name: Collect listings
+
+on:
+  workflow_dispatch: # manual "Run workflow" button
+  # Enable after a manual run comes back ok. GitHub uses UTC:
+  # 06:40 and 18:40 UTC = 07:40 and 19:40 in Lisbon in winter.
+  # schedule:
+  #   - cron: '40 6,18 * * *'
+
+# Never two runs at once: they would share the request budget.
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Install collector dependencies
+        run: cd collector && dart pub get
+
+      # The fetcher's request count and block pause live in this file; each
+      # run saves a new copy and the next run restores the latest.
+      - name: Restore fetch state
+        uses: actions/cache/restore@v4
+        with:
+          path: collector/.fetch_state.json
+          key: fetch-state-${{ github.run_id }}
+          restore-keys: fetch-state-
+
+      - name: Refresh
+        id: refresh
+        run: |
+          echo "started=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+          set +e
+          make refresh ARGS=--full 2>&1 | tee run.log
+          echo "code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Record the run
+        if: always()
+        run: >
+          cd collector &&
+          dart run bin/report_run.dart
+          "${{ steps.refresh.outputs.code || '1' }}"
+          "${{ steps.refresh.outputs.started }}"
+          ../run.log
+
+      - name: Save fetch state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: collector/.fetch_state.json
+          key: fetch-state-${{ github.run_id }}
+
+      - name: Keep the log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: run-log
+          path: run.log
+          retention-days: 7
+
+      - name: Fail the job if the refresh failed
+        if: steps.refresh.outputs.code != '0'
+        run: exit 1

@@ -61,10 +61,11 @@ enrich-dry: require-collector-env ## List the listings that still need details, 
 enrich: require-collector-env ## Read details of up to 15 new listings: make enrich [ARGS=--max=10]
 	cd collector && dart run bin/enrich.dart $(ARGS)
 
-refresh: require-collector-env ## Fetch search pages, import them, then read new listings' details: make refresh [ARGS=--full]
-	$(MAKE) fetch
+refresh: require-collector-env ## Fetch search pages, import them, read new listings' details: make refresh [ARGS=--full]
+	rm -f collector/samples/standvirtual/search/*.html
+	$(MAKE) fetch ARGS=
 	$(MAKE) collect SOURCE=standvirtual-search FILE=samples/standvirtual/search ARGS="$(ARGS)"
-	$(MAKE) enrich
+	$(MAKE) enrich ARGS=--max=10
 
 # ---- Database --------------------------------------------------------------
 
