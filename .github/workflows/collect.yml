@@ -3,9 +3,10 @@ name: Collect listings
 on:
   workflow_dispatch: # manual "Run workflow" button
   # Every 4 hours, GitHub uses UTC: 00:40, 04:40, ... 20:40 UTC.
-  # Each site has its own 120-per-day cap. A run uses about 16 Standvirtual
-  # requests (robots.txt twice, 4 search pages, up to 10 listing pages) and
-  # about 10-12 OLX requests (robots.txt, every page of 3 searches).
+  # Each site has its own caps (20 per run, 120 per day). A run uses about
+  # 15 Standvirtual requests (robots.txt, 4 search pages, up to 10 listing
+  # pages) and about 10-12 OLX requests (robots.txt, every page of the
+  # tracked models' searches).
   schedule:
     - cron: '40 */4 * * *'
 

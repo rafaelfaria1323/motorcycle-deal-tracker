@@ -63,7 +63,9 @@ make searches SITE=olx|standvirtual   write the tracked models' searches
 make fetch-dry|fetch SITE=...  download those search pages (polite, capped)
 make collect-dry|collect SOURCE=manual|standvirtual|standvirtual-search|olx-search FILE=... [ARGS=--full]
 make enrich-dry|enrich         read Standvirtual listing pages for details (max 10 per run)
-make refresh ARGS=--full       both sites: searches -> fetch -> collect (with removal) -> enrich
+make refresh ARGS=--full       one process for both sites (bin/refresh.dart): searches -> fetch
+                               -> import (with removal) -> enrich, then scores/alerts once
+make refresh-olx|refresh-standvirtual   the same for one site
 ```
 
 Local secrets live in `collector/.env` (gitignored, loaded by the Makefile):
@@ -111,14 +113,17 @@ names, plus `SUPABASE_PUBLISHABLE_KEY`, `CLOUDFLARE_API_TOKEN` and
 
 ## Collection pipeline
 
-Per site (`make refresh-olx` / `refresh-standvirtual`):
-`bin/searches.dart` writes the searches of the tracked models →
-`bin/fetch.dart` saves the pages plus `searches.json` (planned searches,
-search of each page) → `bin/collector.dart`:
-
+`make refresh` runs `bin/refresh.dart`, one Dart process per run (Dart
+starts once, the catalog is loaded once). For each site:
+`planSearches` (tracked models) → `fetchSearches` saves the pages plus
+`searches.json` (planned searches, search of each page) → `importBatch`:
 save → markSeen → applyPriceChanges → setSearchKeys → applyPricesBeforeDrop
-→ (if `--full`) markRemoved → markDuplicates → recalculateScores →
-generateAlerts → Telegram notifications.
+→ (if `--full`) markRemoved; Standvirtual then reads new listings' details
+(`enrichDetails`) with the same fetcher. Then once for all sites
+(`finishRun`): markDuplicates → recalculateScores → generateAlerts →
+Telegram notifications. The single-step commands (`fetch.dart`,
+`collector.dart`, `enrich.dart`, `searches.dart`) reuse the same library
+functions for manual work.
 
 - **Searches** come from `motorcycles.olx_search` / `standvirtual_search` of
   the tracked models (`planSearches`). Models with the same address share one
@@ -156,7 +161,10 @@ generateAlerts → Telegram notifications.
 - Only `https://www.standvirtual.com/motos/...` and
   `https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/...`,
   robots.txt read every run.
-- 6-10 s between requests, max 20 per run and 120 per day **per site**,
+- 6-10 s between requests (counted from the end of the previous request,
+  so work done in between counts), max 20 per run and 120 per day **per
+  site** (Standvirtual's searches and listing pages share one fetcher, one
+  robots.txt read and one budget),
   **never parallel**, no retries; stop on 403/429/503 or a non-normal page,
   then pause 24 h (state in `collector/.fetch_state.json` and
   `.fetch_state.olx.json`, cached between Actions runs). Reaching the run or

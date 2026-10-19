@@ -76,29 +76,19 @@ enrich-dry: require-collector-env ## List the listings that still need details, 
 enrich: require-collector-env ## Read details of up to 15 new listings: make enrich [ARGS=--max=10]
 	cd collector && dart run bin/enrich.dart $(ARGS)
 
-# Each site runs on its own (-k): a block or limit on one does not stop the
-# other, but the refresh still fails if either did.
+# One process for the whole collection (bin/refresh.dart): each site's
+# searches are fetched and imported, Standvirtual's new listings get their
+# details with the same fetcher, then duplicates, scores, alerts and
+# notifications run once. A site that fails does not stop the other, but the
+# refresh still fails.
 refresh: require-collector-env ## Fetch and import both sites: make refresh [ARGS=--full]
-	$(MAKE) -k refresh-standvirtual refresh-olx ARGS="$(ARGS)"
+	cd collector && dart run bin/refresh.dart $(ARGS)
 
-# Each site fetches the searches of the tracked models (make searches); a
-# site with none is skipped. Pages and their manifest are replaced each run.
-refresh-standvirtual: require-collector-env ## Standvirtual: search pages, import, new listings' details
-	rm -f collector/samples/standvirtual/search/*.html collector/samples/standvirtual/search/searches.json
-	$(MAKE) searches SITE=standvirtual
-	@if [ -s collector/.searches.standvirtual.txt ]; then \
-	  cd collector && dart run bin/fetch.dart standvirtual .searches.standvirtual.txt && cd .. && \
-	  $(MAKE) collect SOURCE=standvirtual-search FILE=samples/standvirtual/search ARGS="$(ARGS)" && \
-	  $(MAKE) enrich ARGS=--max=10; \
-	else echo "Standvirtual: no tracked model has a Standvirtual search, skipped."; fi
+refresh-standvirtual: require-collector-env ## Standvirtual only: search pages, import, new listings' details
+	cd collector && dart run bin/refresh.dart --site=standvirtual $(ARGS)
 
-refresh-olx: require-collector-env ## OLX: every page of each search, import (results hold the details)
-	rm -f collector/samples/olx/search/*.html collector/samples/olx/search/searches.json
-	$(MAKE) searches SITE=olx
-	@if [ -s collector/.searches.olx.txt ]; then \
-	  cd collector && dart run bin/fetch.dart olx .searches.olx.txt && cd .. && \
-	  $(MAKE) collect SOURCE=olx-search FILE=samples/olx/search ARGS="$(ARGS)"; \
-	else echo "OLX: no tracked model has an OLX search, skipped."; fi
+refresh-olx: require-collector-env ## OLX only: every page of each search, import
+	cd collector && dart run bin/refresh.dart --site=olx $(ARGS)
 
 # ---- Database --------------------------------------------------------------
 

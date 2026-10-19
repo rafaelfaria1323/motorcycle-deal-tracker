@@ -158,6 +158,9 @@ class PoliteFetcher {
   late RobotsRules _robots;
   var _runRequests = 0;
 
+  /// When the previous request of this run finished.
+  DateTime? _lastRequestAt;
+
   static String _today() =>
       DateTime.now().toUtc().toIso8601String().substring(0, 10);
 
@@ -233,11 +236,14 @@ class PoliteFetcher {
         'daily limit of ${policy.maxRequestsPerDay} requests reached',
       );
     }
-    if (_runRequests > 0) {
+    // The pause runs from the end of the previous request, so time spent in
+    // between (parsing, storing) counts towards it.
+    final last = _lastRequestAt;
+    if (last != null) {
       final extra = _random.nextInt(policy.jitter.inMilliseconds + 1);
-      await Future<void>.delayed(
-        policy.minDelay + Duration(milliseconds: extra),
-      );
+      final pause = policy.minDelay + Duration(milliseconds: extra);
+      final rest = pause - DateTime.now().difference(last);
+      if (rest > Duration.zero) await Future<void>.delayed(rest);
     }
     _runRequests++;
     _state.requests++;
@@ -270,6 +276,8 @@ class PoliteFetcher {
       throw FetchFailed('$url: ${e.message}');
     } on HandshakeException catch (e) {
       throw FetchFailed('$url: ${e.message}');
+    } finally {
+      _lastRequestAt = DateTime.now();
     }
   }
 

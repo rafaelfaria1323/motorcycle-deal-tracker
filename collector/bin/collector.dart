@@ -37,127 +37,14 @@ Future<void> main(List<String> args) async {
     final catalog = await loadCatalog(client);
     final batch = await loadBatch(positional.first, positional[1], catalog);
 
-    stdout.writeln('Source: ${batch.source}');
-    stdout.writeln('Catalog: ${catalog.entries.length} model(s)');
-    stdout.writeln(
-      'Read ${batch.records.length + batch.issues.length} record(s), '
-      '${batch.issues.length} read issue(s).',
+    await importBatch(
+      batch,
+      catalog,
+      store: dryRun ? null : ListingStore(client),
+      full: full,
+      force: force,
     );
-    for (final issue in batch.issues) {
-      stdout.writeln('  ! $issue');
-    }
-
-    final listings = <NormalizedListing>[];
-    var rejected = 0;
-    for (final record in batch.records) {
-      switch (record.outcome) {
-        case Mapped(:final listing, :final warnings):
-          listings.add(listing);
-          stdout.writeln(
-            '  - ${listing.motorcycleSlug ?? 'unmatched'} · '
-            '${listing.year ?? '-'} · ${listing.price} EUR · '
-            '${listing.sourceListingId}',
-          );
-          for (final warning in warnings) {
-            stdout.writeln('      ~ $warning');
-          }
-        case Rejected(:final reason):
-          rejected++;
-          stdout.writeln('  ! ${record.ref}: $reason');
-      }
-    }
-    stdout.writeln('Mapped ${listings.length}, rejected $rejected.');
-
-    if (dryRun) {
-      stdout.writeln('Dry run: nothing was written.');
-      return;
-    }
-
-    final store = ListingStore(client);
-
-    // 1. Insert new listings (the database adds their first price-history row).
-    final stored = await store.save(listings, catalog);
-    stdout.writeln(
-      'Stored ${stored.inserted} new, ${stored.alreadyStored} already stored, '
-      '${stored.duplicatesInInput} duplicate(s) in the input.',
-    );
-
-    // 2. Everything in this input was seen just now, new or not. A listing
-    //    that had been marked removed comes back to life here.
-    final unique = uniqueBySourceId(listings);
-    final seenIds = [for (final l in unique) l.sourceListingId];
-    final seen = await store.markSeen(batch.source, seenIds);
-    stdout.writeln('Seen $seen listing(s).');
-
-    // 3. Known listings whose price moved get the new price and a history row.
-    final changed = await store.applyPriceChanges(batch.source, unique);
-    stdout.writeln('Price changes: $changed');
-
-    // 3a. The search each listing was found by, so later runs remove only
-    //     listings of the searches they read in full.
-    final keys = <String, String>{
-      for (final r in batch.records)
-        if (r.outcome case Mapped(:final listing))
-          listing.sourceListingId: ?r.search,
-    };
-    final keyed = await store.setSearchKeys(batch.source, keys);
-    if (keys.isNotEmpty) stdout.writeln('Search keys updated: $keyed');
-
-    // 3b. Cuts the site reports, which may predate our tracking. Kept apart
-    //     from our own price history, so they never create alerts.
-    final drops = await store.applyPricesBeforeDrop(batch.source, unique);
-    stdout.writeln('Site-reported price cuts updated: $drops');
-
-    // 4. Only for a complete import: what is missing has been removed.
-    //    Rejected records still count as on the site (an old bike is still
-    //    listed). An input with unreadable records, or a rejected one that
-    //    can't be placed, may be incomplete, so it is never trusted to remove
-    //    anything unless forced.
-    if (full) {
-      final plan = removalPlan(batch);
-      final reason = plan.skipReason;
-      if (reason != null && !force) {
-        stdout.writeln('Removal skipped: $reason (use --force to override).');
-      } else {
-        final searches = plan.searches;
-        if (searches != null) {
-          stdout.writeln(
-            'Removal covers ${searches.length} search(es) read in full'
-            '${plan.includeUnkeyed ? '' : ' (listings not yet tied to a search are left alone)'}.',
-          );
-        }
-        final removed = await store.markRemoved(
-          batch.source,
-          reason == null ? plan.seenIds : (liveIds(batch) ?? seenIds),
-          force: force,
-          searches: reason == null ? searches : null,
-          includeUnkeyed: plan.includeUnkeyed,
-        );
-        stdout.writeln('Removed: $removed');
-      }
-    }
-
-    // 5. Recompute. Duplicates first, so the market prices and scores that
-    //    follow leave them out. Done on every run because a listing can come
-    //    back or disappear without anything being inserted.
-    final duplicates = await store.markDuplicates();
-    stdout.writeln('Duplicates flagged: $duplicates');
-    final scored = await store.recalculateScores();
-    stdout.writeln('Scored $scored listing(s).');
-
-    // 6. Last, once statuses, duplicates and prices are final: who needs to
-    //    be told about what.
-    final alerts = await store.generateAlerts();
-    stdout.writeln('Alerts created: $alerts');
-
-    // 7. Push what's new to the phone, when Telegram is configured.
-    final notifier = TelegramNotifier.fromEnvironment();
-    if (notifier != null) {
-      final pushed = await notifyPending(store, notifier);
-      stdout.writeln('Notifications sent: $pushed');
-    } else {
-      stdout.writeln('Notifications: Telegram not configured');
-    }
+    if (!dryRun) await finishRun(ListingStore(client));
   } on ConfigException catch (e) {
     stderr.writeln('Configuration error: $e');
     exitCode = 78;
