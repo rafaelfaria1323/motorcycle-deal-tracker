@@ -9,13 +9,13 @@ Future<void> main(List<String> args) async {
   final flags = args.where((a) => a.startsWith('--')).toSet();
   final positional = args.where((a) => !a.startsWith('--')).toList();
 
-  if (positional.length != 2 ||
-      positional.first != 'manual' ||
-      flags.difference(_knownFlags).isNotEmpty) {
+  if (positional.length != 2 || !sourceKinds.contains(positional.first) || flags.difference(_knownFlags).isNotEmpty) {
     stderr.writeln(
-      'Usage: dart run bin/collector.dart manual <file.json> '
+      'Usage: dart run bin/collector.dart <${sourceKinds.join('|')}> <path> '
       '[--dry-run] [--full] [--force]\n'
-      '  --full   the file lists EVERY live listing of this source; '
+      '  manual        <path> is a JSON file\n'
+      '  standvirtual  <path> is a folder of saved listing pages (.html)\n'
+      '  --full   the input lists EVERY live listing of this source; '
       'listings missing from it are marked removed\n'
       '  --force  skip the safety limit on removals',
     );
@@ -32,25 +32,22 @@ Future<void> main(List<String> args) async {
     client = SupabaseClient(config.url, config.serviceKey);
 
     final catalog = await loadCatalog(client);
-    final adapter = ManualAdapter(positional[1]);
-    final mapper = ManualMapper(catalog);
+    final batch = await loadBatch(positional.first, positional[1], catalog);
 
-    stdout.writeln('Source: ${adapter.source}');
+    stdout.writeln('Source: ${batch.source}');
     stdout.writeln('Catalog: ${catalog.entries.length} model(s)');
-
-    final result = await adapter.read();
     stdout.writeln(
-      'Read ${result.records.length} record(s), '
-      '${result.issues.length} read issue(s).',
+      'Read ${batch.records.length + batch.issues.length} record(s), '
+      '${batch.issues.length} read issue(s).',
     );
-    for (final issue in result.issues) {
+    for (final issue in batch.issues) {
       stdout.writeln('  ! $issue');
     }
 
     final listings = <NormalizedListing>[];
     var rejected = 0;
-    for (final raw in result.records) {
-      switch (mapper.map(raw)) {
+    for (final record in batch.records) {
+      switch (record.outcome) {
         case Mapped(:final listing, :final warnings):
           listings.add(listing);
           stdout.writeln(
@@ -63,7 +60,7 @@ Future<void> main(List<String> args) async {
           }
         case Rejected(:final reason):
           rejected++;
-          stdout.writeln('  ! ${raw.url}: $reason');
+          stdout.writeln('  ! ${record.ref}: $reason');
       }
     }
     stdout.writeln('Mapped ${listings.length}, rejected $rejected.');
@@ -79,35 +76,31 @@ Future<void> main(List<String> args) async {
     final stored = await store.save(listings, catalog);
     stdout.writeln(
       'Stored ${stored.inserted} new, ${stored.alreadyStored} already stored, '
-      '${stored.duplicatesInInput} duplicate(s) in the file.',
+      '${stored.duplicatesInInput} duplicate(s) in the input.',
     );
 
-    // 2. Everything in this file was seen just now, new or not. A listing
+    // 2. Everything in this input was seen just now, new or not. A listing
     //    that had been marked removed comes back to life here.
     final unique = uniqueBySourceId(listings);
     final seenIds = [for (final l in unique) l.sourceListingId];
-    final seen = await store.markSeen(adapter.source, seenIds);
+    final seen = await store.markSeen(batch.source, seenIds);
     stdout.writeln('Seen $seen listing(s).');
 
     // 3. Known listings whose price moved get the new price and a history row.
-    final changed = await store.applyPriceChanges(adapter.source, unique);
+    final changed = await store.applyPriceChanges(batch.source, unique);
     stdout.writeln('Price changes: $changed');
 
     // 4. Only for a complete import: what is missing has been removed.
-    //    A file with unreadable or rejected records may be incomplete, so it
+    //    An input with unreadable or rejected records may be incomplete, so it
     //    is never trusted to remove anything unless forced.
     if (full) {
-      if (!force && (result.issues.isNotEmpty || rejected > 0)) {
+      if (!force && (batch.issues.isNotEmpty || rejected > 0)) {
         stdout.writeln(
-          'Removal skipped: the file had unreadable or rejected records, so '
+          'Removal skipped: the input had unreadable or rejected records, so '
           'it may be incomplete (use --force to override).',
         );
       } else {
-        final removed = await store.markRemoved(
-          adapter.source,
-          seenIds,
-          force: force,
-        );
+        final removed = await store.markRemoved(batch.source, seenIds, force: force);
         stdout.writeln('Removed: $removed');
       }
     }
@@ -128,10 +121,10 @@ Future<void> main(List<String> args) async {
     stderr.writeln('Configuration error: $e');
     exitCode = 78;
   } on FileSystemException catch (e) {
-    stderr.writeln('Cannot read file: ${e.message} (${e.path})');
+    stderr.writeln('Cannot read input: ${e.message} (${e.path})');
     exitCode = 66;
   } on FormatException catch (e) {
-    stderr.writeln('Invalid file: ${e.message}');
+    stderr.writeln('Invalid input: ${e.message}');
     exitCode = 65;
   } on PostgrestException catch (e) {
     stderr.writeln('Database error: ${e.message}');

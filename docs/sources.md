@@ -5,6 +5,49 @@ here. Robots.txt is not permission; the source's terms of use decide.
 
 ## Decision log
 
+### 2026-10-19: Standvirtual saved-page adapter, personal testing only (9.1)
+
+**Decision.** A second adapter, `source = 'standvirtual'`, reads listing pages
+that the owner saves by hand from the browser (File > Save, "HTML only") into
+`collector/samples/standvirtual/`. The collector makes no request to the
+website: the saved files are its only input.
+
+**Why.** Whether the pipeline and the Deal Score work on real listings is the
+largest unknown in the project, and it can be answered without automated
+access. Using this adapter for anything beyond personal testing, or any
+automated fetching, is blocked until the terms are read and recorded below.
+
+**What the pages contain (checked 2026-10-19, one listing page).** The
+`application/ld+json` blocks hold only site-wide data (WebSite, Organization).
+The listing is in the `__NEXT_DATA__` JSON at `props.pageProps.advert`: id,
+status, price and currency, make, model, registration year, mileage, seller
+type and name, the dealer's address, description, photos and dates.
+`createdAt` changes when an ad is bumped; `originalCreatedAt` is the first
+publication date.
+
+**What the adapter stores.** Source id (`standvirtual.com/<ad id>`), url,
+brand, model, year, mileage, price, seller type, business name (dealers only),
+municipality, description and up to 10 photo links. It does not read phone
+numbers or other contact details, and it drops the generic boilerplate dealers
+add to every ad, which would otherwise make unrelated bikes look like
+duplicates.
+
+**Not committed.** Saved pages are in `.gitignore`: they contain other
+people's content and contact details.
+
+**Open: terms of use (to be filled by the owner).**
+
+| Source | Clause (quote) | Verdict |
+|---|---|---|
+| Standvirtual terms | _paste the clause(s) about robots, automated access, extraction, reuse of content/database_ | _allowed / not allowed / unclear_ |
+| OLX Portugal terms | _same_ | _same_ |
+
+Standvirtual's terms are linked from its footer to a help-centre page that is
+rendered with JavaScript, so they could not be read automatically.
+
+**Open: access request.** Ask each company whether a data feed or API for
+market analysis exists. Date sent: _____ Answer: _____
+
 ### 2026-10-13: first source is a manual import (5.1, 5.2)
 
 **Decision.** The first adapter imports listings from a JSON/CSV file that the
@@ -23,9 +66,9 @@ adapter, normalization, storage, deduplication, scoring and alerts.
 | OLX Portugal developer portal | Login with an OLX account and app registration. Says nothing about reading public adverts. |
 | OLX robots.txt / terms | Not verified (robots.txt could not be fetched; terms not read). |
 | Standvirtual robots.txt | Crawling allowed in general; blocks account, ad-action, `/api/`, `/ajax/`, RSS and some catalog paths; fully blocks the Trovit aggregator bot. No statement about scraping. |
-| Standvirtual terms | Not found/read. Whether it lists motorcycles is also unconfirmed. |
+| Standvirtual terms | Not found/read on 2026-10-13. Standvirtual does list motorcycles (`/motos/`), confirmed 2026-10-19. |
 
-**Checklist before adding a real source**
+**Checklist before adding an automated source**
 
 1. Official API, feed or written permission available? Prefer that.
 2. Terms of use read; the relevant clause quoted here.
@@ -45,26 +88,4 @@ URL on every listing.
 - OLX Group API reference: https://developer.olxgroup.com/reference
 - OLX Portugal developer portal: https://developer.olx.pt/
 - Standvirtual robots.txt: https://www.standvirtual.com/robots.txt
-## Pipeline test (5.7)
-
-Tested the full path (manual JSON → adapter → mapper → store → duplicates → scoring) with a deliberately messy file (`collector/samples/manual_edge_cases.json`).
-
-### What worked
-- Records without a URL are rejected at read time with a clear message.
-- Tracking parameters (`utm_*`, `fbclid`), `www.` and trailing slashes are stripped, so the same listing gets one canonical `source_listing_id`.
-- Messy input normalizes to the catalog: `honda` / `cb 650 r` → `honda-cb650r`, `particular` → private, padded locations are trimmed.
-- In-file duplicates are dropped before writing; re-running the same file stores nothing new (idempotent).
-- Duplicate detection runs before scoring, so duplicates stay out of market stats and scores.
-
-### Findings
-- Models not in the catalog are accepted as `unmatched` (stored with no `motorcycle_id`). They used to get a score from year/mileage only, which ranked bikes with no market price misleadingly. Fixed in 5.7b: only listings matched to a catalog model are scored; unmatched ones are stored, shown, and unscored.
-- Cleanup SQL for test data must cover every fake domain used (`example.com` and `example.org`); a pattern for one domain left a stray row that skewed market stats.
-- Dry run does not show in-file duplicates or normalized seller type / location; those are only visible in the database after a real run.
-
-### Real listings (hand-copied, 3-5 samples)
-- Normalizer problems seen: _fill in_
-- Fields on the real pages that our format cannot hold (fuel, engine size, warranty, etc.): _fill in_
-- Scores that looked off for a real bike: _fill in_
-
-### Decisions
-- Automated collection from a marketplace stays blocked until the terms of use are reviewed and recorded here. Until then the manual import adapter is the only live source.
+- Standvirtual terms (help centre): https://ajuda.standvirtual.com/standvirtualhelp/s/topic/0TO09000000kiW2GAI/novos-termos-e-condi%C3%A7%C3%B5es

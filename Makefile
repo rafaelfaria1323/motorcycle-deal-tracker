@@ -4,6 +4,15 @@
         db-push db-new check format clean \
         require-collector-env require-file
 
+# Which source the collector reads: manual (a JSON file) or standvirtual
+# (a folder of saved listing pages). Extra collector flags go in ARGS.
+SOURCE ?= manual
+ifeq ($(SOURCE),standvirtual)
+DEFAULT_INPUT := samples/standvirtual
+else
+DEFAULT_INPUT := samples/manual_sample.json
+endif
+
 help: ## Show this list
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-18s %s\n", $$1, $$2}'
 
@@ -32,11 +41,11 @@ collector-get: ## Install collector dependencies
 collector-check: ## Format check, analyze and test the collector
 	cd collector && dart format --output=none --set-exit-if-changed . && dart analyze && dart test
 
-collect-dry: require-collector-env ## Preview an import, writes nothing: make collect-dry FILE=imports/x.json
-	cd collector && dart run bin/collector.dart manual $(or $(FILE),samples/manual_sample.json) --dry-run $(ARGS)
+collect-dry: require-collector-env ## Preview, writes nothing: make collect-dry [SOURCE=standvirtual] [FILE=...]
+	cd collector && dart run bin/collector.dart $(SOURCE) $(or $(FILE),$(DEFAULT_INPUT)) --dry-run $(ARGS)
 
-collect: require-collector-env require-file ## Import listings: make collect FILE=imports/x.json
-	cd collector && dart run bin/collector.dart manual $(FILE) $(ARGS)
+collect: require-collector-env require-file ## Import: make collect [SOURCE=standvirtual] FILE=... [ARGS=--full]
+	cd collector && dart run bin/collector.dart $(SOURCE) $(FILE) $(ARGS)
 
 # ---- Database --------------------------------------------------------------
 
@@ -65,4 +74,4 @@ require-collector-env:
 	@test -n "$$SUPABASE_SERVICE_ROLE_KEY" || (echo "SUPABASE_SERVICE_ROLE_KEY is not set"; exit 1)
 
 require-file:
-	@test -n "$(FILE)" || (echo "Usage: make collect FILE=imports/my_listings.json"; exit 1)
+	@test -n "$(FILE)" || (echo "Usage: make collect [SOURCE=standvirtual] FILE=imports/my_listings.json"; exit 1)
