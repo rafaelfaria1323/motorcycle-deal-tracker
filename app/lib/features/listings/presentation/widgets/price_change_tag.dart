@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/theme/app_colors.dart';
 import '../../../../core/formatting/formatters.dart';
 import '../../domain/entities/listing.dart';
 
@@ -16,7 +17,8 @@ class PriceChangeTag extends StatelessWidget {
       return const SizedBox.shrink();
     }
     final dropped = change < 0;
-    final color = dropped ? Colors.green.shade700 : Colors.red.shade700;
+    final colors = AppColors.of(context);
+    final color = dropped ? colors.positive : colors.negative;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -26,10 +28,8 @@ class PriceChangeTag extends StatelessWidget {
       ),
       child: Text(
         '${dropped ? '↓' : '↑'} ${Formatters.price(change.abs())}',
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: color,
-          fontWeight: FontWeight.w600,
-        ),
+        style: Theme.of(context).textTheme.labelMedium
+            ?.copyWith(color: color, fontWeight: FontWeight.w600),
       ),
     );
   }

@@ -190,6 +190,8 @@ Do not implement several unrelated features at once.
 *Only listings of tracked models (switched-off models' listings and unmatched ones are left out); a sort menu (Melhor pontuação, Mais recentes, Preço mais baixo/alto); applied filters as chips under the status line, each removable on its own, plus "Limpar tudo".*
 ## 13.4 Listing page ✅
 *Photo gallery (swipe or arrows, "3 / 12" counter, tap for full screen). Sections ordered for a decision: photos, model, price and a line with year · km · location · seller type; then the score with its risks, "also listed as", the new-bike comparison, "A mota" (year, km, owners, service book, origin, warranties), the description (folded after 8 lines), the market, the price history and "O anúncio" (seller, source, dates, status). The button to the ad ("Ver no OLX"/"Ver no Standvirtual") stays fixed at the bottom.*
+## 13.4b Look and feel ✅
+*The app stops looking like the Material default: hand-made light and dark colours (cool greys, one racing-orange accent, white cards with a hairline border instead of shadows and pink tints), bundled Barlow fonts (Semi Condensed for titles, prices and scores, tabular figures for prices), semantic colours for good/bad and score bands (`AppColors`), a square score badge, the score card led by the score and its label with a coloured risk bar, listing cards with a bigger photo and icon facts, a hairline above the tab bar, grouped cards in Mais, and empty states with a round icon.*
 ## 13.5 Pesquisas and Alertas ⬜
 *Create a search from Pesquisas; unread badge on Alertas; alerts grouped by day.*
 ## 13.6 One voice and polish ⬜

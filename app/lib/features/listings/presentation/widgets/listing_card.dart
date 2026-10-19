@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/theme/app_theme.dart';
 import '../../../../core/formatting/formatters.dart';
 import '../../domain/entities/listing.dart';
 import 'deal_score_badge.dart';
@@ -12,17 +13,19 @@ class ListingCard extends StatelessWidget {
   final Listing listing;
   final VoidCallback? onTap;
 
-  static const photoHeight = 160.0;
+  static const photoHeight = 180.0;
+
+  /// The card's full height, for the grid's `mainAxisExtent`.
+  static const height = 300.0;
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final title = [
-      '${listing.brand} ${listing.model}',
-      if (listing.year != null) '${listing.year}',
-    ].join(' · ');
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final muted = theme.colorScheme.onSurfaceVariant;
 
     return Card(
+      margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
@@ -39,58 +42,100 @@ class ListingCard extends StatelessWidget {
                   ),
                   if (listing.dealScore != null)
                     Positioned(
-                      top: 8,
-                      right: 8,
+                      top: 10,
+                      right: 10,
                       child: DealScoreBadge(score: listing.dealScore!),
                     ),
                   if (listing.isRemoved)
-                    const Positioned(
-                      top: 8,
-                      left: 8,
-                      child: Chip(
-                        label: Text('Removido'),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    ),
+                    const Positioned(top: 10, left: 10, child: _RemovedPill()),
                 ],
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    '${listing.brand} ${listing.model}',
                     style: textTheme.titleMedium,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Row(
                     children: [
                       Text(
                         Formatters.price(listing.price),
-                        style: textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
+                        style: textTheme.headlineSmall?.copyWith(
+                          fontFeatures: const [FontFeature.tabularFigures()],
                         ),
                       ),
                       const SizedBox(width: 8),
                       PriceChangeTag(listing: listing),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${Formatters.mileage(listing.mileage)}'
-                    ' · ${listing.location ?? '—'}',
-                    style: textTheme.bodyMedium,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  const SizedBox(height: 6),
+                  DefaultTextStyle.merge(
+                    style: textTheme.bodyMedium?.copyWith(color: muted),
+                    child: IconTheme.merge(
+                      data: IconThemeData(size: 16, color: muted),
+                      child: Row(
+                        children: [
+                          if (listing.year != null) ...[
+                            const Icon(Icons.calendar_today_outlined),
+                            const SizedBox(width: 4),
+                            Text('${listing.year}'),
+                            const SizedBox(width: 12),
+                          ],
+                          const Icon(Icons.speed),
+                          const SizedBox(width: 4),
+                          Text(Formatters.mileage(listing.mileage)),
+                          if (listing.location != null) ...[
+                            const SizedBox(width: 12),
+                            const Icon(Icons.place_outlined),
+                            const SizedBox(width: 2),
+                            Flexible(
+                              child: Text(
+                                listing.location!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RemovedPill extends StatelessWidget {
+  const _RemovedPill();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        child: Text(
+          'Removido',
+          style: TextStyle(
+            fontFamily: AppTheme.bodyFont,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
         ),
       ),
     );

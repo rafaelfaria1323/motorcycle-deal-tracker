@@ -1,35 +1,53 @@
 import 'package:flutter/material.dart';
 
-/// Colour bands follow the concept doc: 90+ excellent, 80+ very good,
-/// 70+ interesting, 60+ normal, below 60 poor.
+import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_theme.dart';
+
+/// The Deal Score in its band colour (90+ excellent, 80+ very good,
+/// 70+ interesting, 60+ normal, below 60 poor). [large] is the square
+/// shown at the top of the score explanation.
 class DealScoreBadge extends StatelessWidget {
-  const DealScoreBadge({required this.score, super.key});
+  const DealScoreBadge({required this.score, this.large = false, super.key});
 
   final int score;
-
-  Color get _color {
-    if (score >= 90) return const Color(0xFF2E7D32);
-    if (score >= 80) return const Color(0xFF558B2F);
-    if (score >= 70) return const Color(0xFFF9A825);
-    if (score >= 60) return const Color(0xFFEF6C00);
-    return const Color(0xFFC62828);
-  }
+  final bool large;
 
   @override
   Widget build(BuildContext context) {
+    final color = AppColors.of(context).score(score);
+
     return Semantics(
       label: 'Deal Score $score',
+      excludeSemantics: true,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        constraints: large
+            ? const BoxConstraints.tightFor(width: 56, height: 56)
+            : const BoxConstraints(minWidth: 40),
+        padding: large
+            ? null
+            : const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        alignment: large ? Alignment.center : null,
         decoration: BoxDecoration(
-          color: _color,
-          borderRadius: BorderRadius.circular(20),
+          color: color,
+          borderRadius: BorderRadius.circular(large ? 14 : 10),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x33000000),
+              blurRadius: 6,
+              offset: Offset(0, 2),
+            ),
+          ],
         ),
         child: Text(
           '$score',
-          style: const TextStyle(
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontFamily: AppTheme.displayFont,
+            fontWeight: FontWeight.w700,
+            fontSize: large ? 28 : 18,
+            height: 1.1,
             color: Colors.white,
-            fontWeight: FontWeight.bold,
+            fontFeatures: const [FontFeature.tabularFigures()],
           ),
         ),
       ),

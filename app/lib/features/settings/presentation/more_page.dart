@@ -28,48 +28,62 @@ class MorePage extends StatelessWidget {
           return ListView(
             children: [
               const _Header('Conta'),
-              ListTile(
-                leading: const Icon(Icons.account_circle_outlined),
-                title: Text(
-                  signedIn ? user?.email ?? 'Sessão iniciada' : 'Sem sessão',
+              _Group(
+                child: ListTile(
+                  leading: const Icon(Icons.account_circle_outlined),
+                  title: Text(
+                    signedIn ? user?.email ?? 'Sessão iniciada' : 'Sem sessão',
+                  ),
+                  subtitle: Text(
+                    signedIn
+                        ? 'Tocar para terminar a sessão'
+                        : 'Iniciar sessão para ter as pesquisas e os alertas '
+                              'em qualquer dispositivo',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => showAccountSheet(context),
                 ),
-                subtitle: Text(
-                  signedIn
-                      ? 'Tocar para terminar a sessão'
-                      : 'Iniciar sessão para ter as pesquisas e os alertas '
-                            'em qualquer dispositivo',
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => showAccountSheet(context),
               ),
               const _Header('Mercado'),
-              ListTile(
-                leading: const Icon(Icons.two_wheeler),
-                title: const Text('Modelos acompanhados'),
-                subtitle: Text(
-                  signedIn
-                      ? 'Que modelos recolher, desde que ano e o preço de '
-                            'uma nova'
-                      : 'Disponível com sessão iniciada',
+              _Group(
+                child: ListTile(
+                  leading: const Icon(Icons.two_wheeler),
+                  title: const Text('Modelos acompanhados'),
+                  subtitle: Text(
+                    signedIn
+                        ? 'Que modelos recolher, desde que ano e o preço de '
+                              'uma nova'
+                        : 'Disponível com sessão iniciada',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  enabled: signedIn,
+                  onTap: () => context.push(AppRoutes.models),
                 ),
-                trailing: const Icon(Icons.chevron_right),
-                enabled: signedIn,
-                onTap: () => context.push(AppRoutes.models),
               ),
               const _Header('Recolha de dados'),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
                 child: CollectorStatusBanner(),
               ),
-              CollectionDetails(signedIn: signedIn),
-              if (!signedIn)
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Text(
-                    'O estado e a duração das recolhas aparecem com sessão '
-                    'iniciada.',
+              _Group(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Column(
+                    children: [
+                      CollectionDetails(signedIn: signedIn),
+                      if (!signedIn)
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
+                          child: Text(
+                            'O estado e a duração das recolhas aparecem com '
+                            'sessão iniciada.',
+                          ),
+                        ),
+                    ],
                   ),
                 ),
+              ),
+              const SizedBox(height: 24),
             ],
           );
         },
@@ -87,13 +101,30 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
       child: Text(
-        text,
-        style: theme.textTheme.titleSmall?.copyWith(
-          color: theme.colorScheme.primary,
+        text.toUpperCase(),
+        style: theme.textTheme.labelMedium?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+          letterSpacing: 1.2,
         ),
       ),
+    );
+  }
+}
+
+/// One rounded card per section, as in the iPhone's settings.
+class _Group extends StatelessWidget {
+  const _Group({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      clipBehavior: Clip.antiAlias,
+      child: child,
     );
   }
 }

@@ -39,7 +39,7 @@ class _PhotoGalleryState extends State<PhotoGallery> {
     final images = widget.images;
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(16),
       child: AspectRatio(
         aspectRatio: 4 / 3,
         child: images.isEmpty
