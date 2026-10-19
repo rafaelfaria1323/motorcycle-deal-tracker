@@ -69,7 +69,7 @@ Do not implement several unrelated features at once.
 ## 4.1 Market average ✅
 *Replaced in 10.1 (➕) by a fair value per listing: median of comparable listings adjusted for age and mileage.*
 ## 4.2 Difference vs new ✅
-*4.2b: "Comparação com uma nova" card on the detail page (new price, difference, hint under 10%, warning when not cheaper, outdated after 180 days). Reference prices for the 9 newer models are not set yet, and the original 4 still need checking.*
+*4.2b: "Comparação com uma nova" card on the detail page (new price, difference, hint under 10%, warning when not cheaper, outdated after 180 days). 4.2c: the new-bike price is set from the app (tap a model in "Modelos acompanhados"), dated the day it is saved. Prices for the 9 newer models are not set yet, and the original 4 still need checking.*
 ## 4.3 Price score ✅
 ➕ 4.3 Per-model depreciation fitted from the model's own listings (from 30 listings, blended with the general 4 %/year, 0.2 %/1000 km), shown in "Mercado deste modelo" ✅
 ## 4.4 Mileage score ✅
@@ -165,7 +165,7 @@ Do not implement several unrelated features at once.
 ## 11.5 Data-quality monitoring 🟡
 *Collector failures and blocks are tracked. Requests used per run, missing fields, duplicate rates, unexpected price changes and source availability are not shown yet.*
 
-➕ **Notifications on the phone via Telegram** ✅ (11.1; replaces Web/PWA push)
+➕ **Notifications on the phone via Telegram** ✅ (11.1; replaces Web/PWA push). 11.1b: "Test Telegram" workflow / `make notify-test` sends a test message. Not yet confirmed on Rafael's phone: no alert has been created by a run so far.
 ➕ **Housekeeping** 🟡: saved pages and fetch state are no longer tracked ✅; **the repo should be made private** (old saved pages with phone numbers remain in git history) ⬜.
 
 # Sprint 12 — Flutter iOS ⬜
@@ -179,7 +179,7 @@ Do not implement several unrelated features at once.
 
 # Next
 
-1. Edit the new-bike reference price in the app ("Modelos acompanhados"), so every model can show the comparison and Rafael can keep prices current without SQL.
+1. Confirm Telegram notifications end to end (test message, then a real alert from a saved search of the signed-in account).
 2. Show the requests used by the last run per site (and searches cut short) in the app, so the budget warning is based on real numbers.
 3. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history.
 4. Price history chart on the detail page.

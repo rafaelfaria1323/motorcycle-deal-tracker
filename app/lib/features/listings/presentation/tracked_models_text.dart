@@ -1,3 +1,4 @@
+import '../../../core/formatting/formatters.dart';
 import '../domain/entities/catalog_model.dart';
 
 const olxSearchPrefix =
@@ -19,6 +20,30 @@ String modelSubtitle(CatalogModel m) {
     'Desde ${m.minYear}',
     sites.isEmpty ? 'sem pesquisa' : sites.join(' e '),
   ].join(' · ');
+}
+
+/// "Preço de uma nova: 8 250 € (verificado em 13/10/2026)".
+String newPriceSubtitle(CatalogModel m) {
+  final price = m.newPrice;
+  if (price == null) return 'Sem preço de uma nova';
+  final checked = m.newPriceCheckedAt;
+  return 'Preço de uma nova: ${Formatters.price(price)}'
+      '${checked == null ? '' : ' (verificado em ${Formatters.date(checked)})'}';
+}
+
+/// Reads a price typed as "8250", "8 250", "8.250 €" or "8250,50". Empty
+/// clears the price.
+({double? price, String? error}) parseNewPrice(String text) {
+  final cleaned = text
+      .replaceAll(RegExp(r'[\s\u00a0\u202f€]'), '')
+      .replaceAll('.', '')
+      .replaceAll(',', '.');
+  if (cleaned.isEmpty) return (price: null, error: null);
+  final value = double.tryParse(cleaned);
+  if (value == null || value <= 0 || value > 200000) {
+    return (price: null, error: 'Preço inválido');
+  }
+  return (price: value, error: null);
 }
 
 /// The searches the collector will run for the tracked models: models that
