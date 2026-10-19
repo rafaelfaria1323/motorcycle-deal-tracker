@@ -88,6 +88,10 @@ Future<void> importBatch(
   final drops = await store.applyPricesBeforeDrop(batch.source, unique);
   log.writeln('Site-reported price cuts updated: $drops');
 
+  // 3c. Publication and renewal dates the source shows (OLX).
+  final dated = await store.applyListingDates(batch.source, unique);
+  if (dated > 0) log.writeln('Listing dates updated: $dated');
+
   // 4. Only for a complete import: what is missing has been removed.
   //    Rejected records still count as on the site (an old bike is still
   //    listed). An input with unreadable records, or a rejected one that

@@ -260,8 +260,13 @@ OlxRawListing _fromAd(Map<String, dynamic> ad, String? brand) {
         for (final p in photos.take(10))
           if (p is String) p,
     ],
+    createdAt: _time(ad['createdTime']),
+    refreshedAt: _time(ad['lastRefreshTime']),
   );
 }
+
+DateTime? _time(Object? value) =>
+    value is String ? DateTime.tryParse(value)?.toUtc() : null;
 
 Map<String, dynamic>? _map(Object? o) => o is Map<String, dynamic> ? o : null;
 

@@ -217,6 +217,28 @@ class ListingStore {
     return (result as num).toInt();
   }
 
+  /// Stores the publication and renewal dates the source shows; returns how
+  /// many listings changed.
+  Future<int> applyListingDates(
+    String source,
+    List<NormalizedListing> listings,
+  ) async {
+    final dates = <String, Map<String, String?>>{
+      for (final l in listings)
+        if (l.publishedAt != null || l.siteRefreshedAt != null)
+          l.sourceListingId: {
+            'published_at': l.publishedAt?.toIso8601String(),
+            'site_refreshed_at': l.siteRefreshedAt?.toIso8601String(),
+          },
+    };
+    if (dates.isEmpty) return 0;
+    final result = await _client.rpc(
+      'apply_listing_dates',
+      params: {'p_source': source, 'p_dates': dates},
+    );
+    return (result as num).toInt();
+  }
+
   /// Records the search each stored listing was found by; returns how many
   /// changed.
   Future<int> setSearchKeys(String source, Map<String, String> keys) async {

@@ -22,4 +22,14 @@ void main() {
 
     expect(tail, 'line 97\nline 98\nline 99');
   });
+
+  test('reads the requests each site used', () {
+    const log =
+        'Requests used: standvirtual=15 (limit 20)\n'
+        'Scored 89 listing(s).\n'
+        'Requests used: olx=9 (limit 20)\n';
+
+    expect(requestsUsed(log), {'standvirtual': 15, 'olx': 9});
+    expect(requestsUsed('no counts here'), isEmpty);
+  });
 }

@@ -158,6 +158,9 @@ class PoliteFetcher {
   late RobotsRules _robots;
   var _runRequests = 0;
 
+  /// Requests sent in this run, robots.txt included.
+  int get requestsThisRun => _runRequests;
+
   /// When the previous request of this run finished.
   DateTime? _lastRequestAt;
 

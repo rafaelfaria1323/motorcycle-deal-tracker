@@ -19,6 +19,8 @@ class NormalizedListing {
     this.location,
     this.description,
     this.priceBeforeDrop,
+    this.publishedAt,
+    this.siteRefreshedAt,
   });
 
   final String source;
@@ -42,6 +44,11 @@ class NormalizedListing {
   final String? location;
   final String? description;
   final List<String> images;
+
+  /// When the source says the ad was first published, and when it was last
+  /// renewed there; null when the source doesn't say.
+  final DateTime? publishedAt;
+  final DateTime? siteRefreshedAt;
 }
 
 /// Result of mapping one raw record.

@@ -19,3 +19,10 @@ String logTail(String log, {int lines = 40, int maxChars = 4000}) {
   final text = tail.join('\n');
   return text.length > maxChars ? text.substring(text.length - maxChars) : text;
 }
+
+/// Requests each site used in a run, from refresh.dart's
+/// `Requests used: <site>=<n>` lines; empty when the log has none.
+Map<String, int> requestsUsed(String log) => {
+  for (final m in RegExp(r'Requests used: (\w+)=(\d+)').allMatches(log))
+    m.group(1)!: int.parse(m.group(2)!),
+};

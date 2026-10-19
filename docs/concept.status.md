@@ -140,7 +140,7 @@ Shown on the detail page. Reference prices are edited in the app; set for the or
 
 ## 21. Data Quality 🟡
 
-✅ Collection runs and blocks are tracked. ⬜ Requests used per run shown in the app. ⬜ Per-field confidence.
+✅ Collection runs and blocks are tracked. ✅ Requests used per run, run duration, next run and monthly usage shown in the app (Mais). ⬜ Per-field confidence.
 
 ## 22. Privacy 🟡
 

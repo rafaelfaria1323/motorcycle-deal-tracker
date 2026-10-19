@@ -35,6 +35,7 @@ class Listing extends Equatable {
     this.warrantyUntil,
     this.dealerWarrantyMonths,
     this.publishedAt,
+    this.siteRefreshedAt,
     this.newPrice,
     this.newPriceCheckedAt,
   });
@@ -71,6 +72,9 @@ class Listing extends Equatable {
   final DateTime? warrantyUntil;
   final int? dealerWarrantyMonths;
   final DateTime? publishedAt;
+
+  /// When the site last renewed (bumped) the ad; OLX shows this date.
+  final DateTime? siteRefreshedAt;
 
   /// Official new-bike list price of the matched model, and when it was last
   /// checked. Only loaded on the detail page.

@@ -28,6 +28,7 @@ Future<void> main(List<String> args) async {
       'started_at': startedAt.toUtc().toIso8601String(),
       'status': status,
       'summary': logTail(log),
+      'requests': requestsUsed(log),
     });
 
     final cutoff = DateTime.now().toUtc().subtract(const Duration(days: 90));

@@ -156,6 +156,11 @@ Future<int> _refreshSite(
     stderr.writeln('Database error: ${e.message}');
     return 70;
   } finally {
+    // Read back by report_run.dart (requestsUsed) and shown in the app.
+    stdout.writeln(
+      'Requests used: $name=${fetcher.requestsThisRun} '
+      '(limit ${fetcher.policy.maxRequestsPerRun})',
+    );
     fetcher.close();
   }
 }
