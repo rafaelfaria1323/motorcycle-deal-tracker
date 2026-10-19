@@ -2,10 +2,11 @@ name: Collect listings
 
 on:
   workflow_dispatch: # manual "Run workflow" button
-  # Enable after a manual run comes back ok. GitHub uses UTC:
-  # 06:40 and 18:40 UTC = 07:40 and 19:40 in Lisbon in winter.
+  # Every 4 hours, GitHub uses UTC: 00:40, 04:40, ... 20:40 UTC.
+  # A run uses about 16 requests (robots.txt twice, 4 search pages,
+  # up to 10 listing pages), so 6 runs fit the 120-per-day cap.
   schedule:
-    - cron: '40 6,18 * * *'
+    - cron: '40 */4 * * *'
 
 # Never two runs at once: they would share the request budget.
 concurrency:

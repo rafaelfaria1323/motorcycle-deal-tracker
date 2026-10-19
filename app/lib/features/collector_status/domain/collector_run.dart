@@ -22,7 +22,7 @@ enum CollectorHealth { unknown, ok, stale, blocked, failed }
 CollectorHealth collectorHealth(
   CollectorRun? run,
   DateTime now, {
-  Duration maxAge = const Duration(hours: 36),
+  Duration maxAge = const Duration(hours: 12),
 }) {
   if (run == null) return CollectorHealth.unknown;
   if (run.status == 'blocked') return CollectorHealth.blocked;
