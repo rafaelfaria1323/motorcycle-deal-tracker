@@ -79,7 +79,7 @@ class _CollectorStatusBannerState extends State<CollectorStatusBanner> {
               icon: Icons.error_outline,
               title: 'A última recolha falhou',
               text:
-                  '${_capitalize(agoText(run!.finishedAt))}. '
+                  '${capitalize(agoText(run!.finishedAt))}. '
                   'Veja o registo em GitHub Actions.',
             );
         }
@@ -102,6 +102,3 @@ class _CollectorStatusBannerState extends State<CollectorStatusBanner> {
     ),
   );
 }
-
-String _capitalize(String s) =>
-    s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);

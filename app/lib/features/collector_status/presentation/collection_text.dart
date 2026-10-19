@@ -52,6 +52,10 @@ String agoText(DateTime time, {DateTime? now}) {
   return 'há ${diff.inDays} dias';
 }
 
+/// Starts a sentence: "há 3 h" -> "Há 3 h".
+String capitalize(String s) =>
+    s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
+
 /// "2 min 31 s".
 String durationText(Duration d) {
   final minutes = d.inMinutes;
