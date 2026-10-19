@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import '../../../../app/di/injection.dart';
@@ -6,6 +8,7 @@ import '../../../../core/formatting/formatters.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/entities/price_point.dart';
 import '../../domain/repositories/listings_repository.dart';
+import '../price_chart.dart';
 import '../price_history_text.dart';
 
 class PriceHistorySection extends StatefulWidget {
@@ -65,20 +68,43 @@ class _PriceHistorySectionState extends State<PriceHistorySection> {
                     style: theme.textTheme.bodyMedium,
                   );
                 }
+                final chart = priceChart(
+                  points,
+                  now: DateTime.now(),
+                  siteBefore: widget.listing.referenceIsFromSite
+                      ? widget.listing.priceBeforeDrop
+                      : null,
+                );
+                final labelStyle =
+                    (theme.textTheme.labelSmall ?? const TextStyle()).copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    );
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(
-                      height: 140,
-                      width: double.infinity,
-                      child: CustomPaint(
-                        painter: _PriceChartPainter(
-                          points: points,
-                          lineColor: theme.colorScheme.primary,
-                          gridColor: theme.colorScheme.outlineVariant,
+                    if (chart != null) ...[
+                      SizedBox(
+                        height: 160,
+                        width: double.infinity,
+                        child: CustomPaint(
+                          painter: _PriceChartPainter(
+                            chart: chart,
+                            lineColor: theme.colorScheme.primary,
+                            gridColor: theme.colorScheme.outlineVariant,
+                            labelStyle: labelStyle,
+                          ),
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Text(Formatters.date(chart.start), style: labelStyle),
+                          const Spacer(),
+                          Text('Hoje', style: labelStyle),
+                        ],
+                      ),
+                    ],
                     const SizedBox(height: 12),
                     for (var i = points.length - 1; i >= 0; i--)
                       _ChangeRow(
@@ -130,53 +156,88 @@ class _ChangeRow extends StatelessWidget {
   }
 }
 
-/// A step line: the price holds until it changes. Observations are evenly
-/// spaced, so the shape stays readable however close together they are.
+/// Draws a [PriceChart]: the step line over real time, a dot per recorded
+/// price, hairlines with the highest and lowest prices, and the site's
+/// earlier price as a dashed line.
 class _PriceChartPainter extends CustomPainter {
   _PriceChartPainter({
-    required this.points,
+    required this.chart,
     required this.lineColor,
     required this.gridColor,
+    required this.labelStyle,
   });
 
-  final List<PricePoint> points;
+  final PriceChart chart;
   final Color lineColor;
   final Color gridColor;
+  final TextStyle labelStyle;
+
+  /// Space above the top label and below the bottom line.
+  static const _pad = 6.0;
 
   @override
   void paint(Canvas canvas, Size size) {
-    const pad = 8.0;
-    final prices = points.map((p) => p.price);
-    var minP = prices.reduce((a, b) => a < b ? a : b);
-    var maxP = prices.reduce((a, b) => a > b ? a : b);
-    if (maxP - minP < 1) {
-      minP -= 1;
-      maxP += 1;
-    }
-
-    double x(int i) => pad + (size.width - 2 * pad) * i / (points.length - 1);
-    double y(double price) =>
-        pad + (size.height - 2 * pad) * (1 - (price - minP) / (maxP - minP));
+    final height = size.height - 2 * _pad;
+    Offset at(ChartPoint p) =>
+        Offset(p.x * size.width, _pad + height * (1 - p.y));
+    double yOf(double y) => _pad + height * (1 - y);
 
     final grid = Paint()
       ..color = gridColor
       ..strokeWidth = 1;
-    canvas.drawLine(
-      Offset(pad, y(minP)),
-      Offset(size.width - pad, y(minP)),
-      grid,
-    );
-    canvas.drawLine(
-      Offset(pad, y(maxP)),
-      Offset(size.width - pad, y(maxP)),
-      grid,
-    );
+    // The highest price's label sits above its line, the lowest's below
+    // (so close prices never overlap), the site's earlier price on the left.
+    void hairline(
+      double y,
+      String label, {
+      bool below = false,
+      bool left = false,
+      bool dashed = false,
+    }) {
+      final dy = yOf(y);
+      if (dashed) {
+        for (var x = 0.0; x < size.width; x += 8) {
+          canvas.drawLine(
+            Offset(x, dy),
+            Offset(min(x + 4, size.width), dy),
+            grid,
+          );
+        }
+      } else {
+        canvas.drawLine(Offset(0, dy), Offset(size.width, dy), grid);
+      }
+      final text = TextPainter(
+        text: TextSpan(text: label, style: labelStyle),
+        textDirection: TextDirection.ltr,
+      )..layout(maxWidth: size.width);
+      final above = dy - text.height - 6;
+      final under = dy + 4;
+      final top = below
+          ? (under + text.height > size.height ? above : under)
+          : (above < 0 ? under : above);
+      text
+        ..paint(canvas, Offset(left ? 0 : size.width - text.width, top))
+        ..dispose();
+    }
 
-    final path = Path()..moveTo(x(0), y(points[0].price));
-    for (var i = 1; i < points.length; i++) {
-      path
-        ..lineTo(x(i), y(points[i - 1].price))
-        ..lineTo(x(i), y(points[i].price));
+    hairline(chart.highestY, Formatters.price(chart.highest));
+    if (chart.lowest != chart.highest) {
+      hairline(chart.lowestY, Formatters.price(chart.lowest), below: true);
+    }
+    if (chart.reference case final reference?) {
+      hairline(
+        chart.referenceY!,
+        'Antes: ${Formatters.price(reference)}',
+        left: true,
+        dashed: true,
+      );
+    }
+
+    final path = Path()
+      ..moveTo(at(chart.line.first).dx, at(chart.line.first).dy);
+    for (final p in chart.line.skip(1)) {
+      final o = at(p);
+      path.lineTo(o.dx, o.dy);
     }
     canvas.drawPath(
       path,
@@ -188,14 +249,17 @@ class _PriceChartPainter extends CustomPainter {
     );
 
     final dot = Paint()..color = lineColor;
-    for (var i = 0; i < points.length; i++) {
-      canvas.drawCircle(Offset(x(i), y(points[i].price)), 4, dot);
+    for (final p in chart.changes) {
+      canvas.drawCircle(at(p), 3.5, dot);
     }
+    // Today's price, at the right edge.
+    canvas.drawCircle(at(chart.line.last), 5, dot);
   }
 
   @override
   bool shouldRepaint(_PriceChartPainter old) =>
-      old.points != points ||
+      old.chart != chart ||
       old.lineColor != lineColor ||
-      old.gridColor != gridColor;
+      old.gridColor != gridColor ||
+      old.labelStyle != labelStyle;
 }

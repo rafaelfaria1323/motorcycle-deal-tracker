@@ -80,7 +80,7 @@ All fields exist. ➕ Added: `initial_price`, `price_before_drop`, `duplicate_of
 
 ## 11. Price History ✅
 
-Initial price, current price, every change with date, percentage, and time online are tracked and shown.
+Initial price, current price, every change with date, percentage, and time online are tracked and shown; the listing page charts the price over real time, with the site's earlier price when it reported one.
 
 ## 12. Deal Score 🟡
 
