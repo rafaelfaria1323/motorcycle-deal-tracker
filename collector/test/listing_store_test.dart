@@ -100,4 +100,29 @@ void main() {
     expect(site.images, base.images);
     expect(site.motorcycleSlug, base.motorcycleSlug);
   });
+
+  test('readAllPages reads on until a short page', () async {
+    final asked = <(int, int)>[];
+    final rows = await readAllPages((from, to) async {
+      asked.add((from, to));
+      // 5 rows in all, 2 per page.
+      return [
+        for (var i = from; i <= to && i < 5; i++) {'n': i},
+      ];
+    }, pageSize: 2);
+
+    expect(rows.map((r) => r['n']), [0, 1, 2, 3, 4]);
+    expect(asked, [(0, 1), (2, 3), (4, 5)]);
+  });
+
+  test('readAllPages asks once more after an exactly full page', () async {
+    var calls = 0;
+    final rows = await readAllPages((from, to) async {
+      calls++;
+      return from == 0 ? [{}, {}] : [];
+    }, pageSize: 2);
+
+    expect(rows, hasLength(2));
+    expect(calls, 2);
+  });
 }
