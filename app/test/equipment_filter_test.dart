@@ -14,6 +14,17 @@ void main() {
       'heated_grips',
       'protection',
       'new_tyres',
+      'tail_tidy',
+      'screen',
+      'levers',
+      'mirrors',
+      'phone_mount',
+      'alarm',
+      'steering_damper',
+      'centre_stand',
+      'cruise_control',
+      'suspension',
+      'led_indicators',
     ]);
   });
 

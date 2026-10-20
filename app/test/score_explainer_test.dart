@@ -46,7 +46,7 @@ void main() {
       _listing(
         dealScore: 91,
         price: 8280,
-        mileage: 3500,
+        mileage: 2000,
         year: 2026,
         breakdown: {
           'pct_below_market': 8.0,
@@ -121,5 +121,31 @@ void main() {
     );
     expect(extrasText(const {'extras': <String>[]}), isNull);
     expect(extrasText(null), isNull);
+  });
+
+  group('mileage against the bike\'s age (5 000 km a year is normal)', () {
+    ExplanationLine? line(int? km, int? year) => mileageForAge(km, year, 2026);
+
+    test('the normal grows with age, at least one year\'s', () {
+      expect(expectedMileage(2026, 2026), 5000);
+      expect(expectedMileage(2025, 2026), 7500);
+      expect(expectedMileage(2016, 2026), 52500);
+    });
+
+    test('bands: low, normal, above, far above', () {
+      expect(line(2500, 2026)!.tone, ExplanationTone.positive);
+      expect(line(2500, 2026)!.text, startsWith('Poucos km para o ano'));
+      expect(line(30000, 2016)!.tone, ExplanationTone.neutral);
+      expect(line(10000, 2025)!.tone, ExplanationTone.negative);
+      expect(line(10000, 2025)!.text, startsWith('Km acima do normal'));
+      expect(line(20000, 2025)!.text, startsWith('Muitos km para o ano'));
+      expect(line(20000, 2025)!.text, contains('normal: cerca de'));
+    });
+
+    test('without a year only a low mileage is said; nothing without km', () {
+      expect(line(3000, null)!.tone, ExplanationTone.positive);
+      expect(line(30000, null), isNull);
+      expect(line(null, 2020), isNull);
+    });
   });
 }

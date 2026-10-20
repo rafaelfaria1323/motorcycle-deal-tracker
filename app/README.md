@@ -9,9 +9,9 @@ Cloudflare Pages on every merge that touches `app/`
 
 - **Ofertas:** listings of the tracked models, sorted by Deal Score (or
   newest, cheapest, most expensive, nearest), with filters shown as chips
-  (including "Distância máxima" from your home and equipment: quickshifter,
-  escape, malas, punhos aquecidos, proteções, pneus novos) and paged 40 at
-  a time.
+  (including "Distância máxima" from your home and equipment: 17 kinds,
+  e.g. quickshifter, escape, malas, proteções, suporte de matrícula curto,
+  bolha) and paged 40 at a time.
   Each card shows the place and its distance from your home.
 - **Favoritos:** the listings you starred (star on a listing's page; star
   in the Ofertas app bar or Mais opens the list), newest first, each with

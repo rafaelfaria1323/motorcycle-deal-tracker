@@ -30,7 +30,11 @@ const privateMargin = 0.06;
 const dealerMargin = 0.03;
 
 /// Never suggest starting more than this far below the ceiling.
-const maxMargin = 0.15;
+const maxMargin = 0.10;
+
+/// Never suggest starting more than this far below the estimated value: a
+/// much lower offer on a fairly priced bike is rarely taken seriously.
+const maxBelowEstimate = 0.10;
 
 /// Up on the site this long without a model figure counts as long.
 const defaultLongListingDays = 45;
@@ -70,6 +74,9 @@ OfferSuggestion? suggestOffer(
   // The most to pay: the asking price, or the estimated value when the
   // asking price is above it.
   final double ceiling;
+  // How far below the estimate the asking price already is: the seller has
+  // given that much already, so it comes off the room to negotiate.
+  final alreadyBelow = price < estimate ? 1 - price / estimate : 0.0;
   if (price > estimate * 1.02) {
     ceiling = _roundDown(estimate);
     reasons.add(
@@ -82,8 +89,9 @@ OfferSuggestion? suggestOffer(
     if (price < estimate * 0.98) {
       reasons.add(
         'O preço pedido já está '
-        '${Formatters.percent((1 - price / estimate) * 100)} abaixo do valor '
-        'estimado (${Formatters.price(estimate)}).',
+        '${Formatters.percent(alreadyBelow * 100)} abaixo do valor '
+        'estimado (${Formatters.price(estimate)}): há menos margem para '
+        'negociar.',
       );
     } else {
       reasons.add('O preço pedido está em linha com o valor estimado.');
@@ -162,10 +170,14 @@ OfferSuggestion? suggestOffer(
   }
 
   if (ceiling < offerStep) return null;
-  // At least 1 % (a dealer's 3 % less an earlier drop), so the opening is
-  // always below the ceiling.
-  margin = margin.clamp(0.01, maxMargin);
-  final opening = _roundDown(ceiling * (1 - margin));
+  // At least 1 % (a dealer's 3 % less an earlier drop, or a price already
+  // well below the estimate), so the opening is always below the ceiling.
+  margin = (margin - alreadyBelow).clamp(0.01, maxMargin);
+  final floor = _roundDown(estimate * (1 - maxBelowEstimate));
+  final opening = min(
+    max(_roundDown(ceiling * (1 - margin)), floor),
+    _roundDown(ceiling * 0.99),
+  );
   return OfferSuggestion(opening: opening, ceiling: ceiling, reasons: reasons);
 }
 
