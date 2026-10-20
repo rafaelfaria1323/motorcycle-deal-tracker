@@ -187,6 +187,8 @@ Do not implement several unrelated features at once.
 
 ➕ **Relisted ads** ✅ (20.2): when a bike is taken down and listed again as a new ad (same model and year, same similarity rule as duplicates, gone at most 90 days before the new ad appeared), the new listing links to the earlier one. The listing page shows "Anúncio publicado de novo: esteve à venda noutro anúncio desde … (há N dias), a última vez por … (agora menos …)" with "Ver anterior". Marked by `mark_relists` at the end of `mark_duplicates`, so the collector is unchanged.
 
+➕ **Fewer missed ads** ✅ (9.10b): checked against the run of 2026-10-20 16:40. Standvirtual: only the first page (32 listings) of a search was read; now every page (`?page=N`), with the first tracked year as a filter so old bikes don't use up pages (the address changes, so listings are tied to the new one as runs find them). Models named with a size but added without one ("Forza 350", "ADV 350") had no engine limits, so 14 Standvirtual ads named only "Forza"/"ADV" stayed unmatched; the name's size now gives the range (migration and `add_catalog_model`, `engine_range_from_name`). "350cc" in a title reads as "350" (an OLX "Honda modelo ADV 350cc", 2025, was missed). Listings under an address no search uses any more were never removed; a run that read every search in full now covers them (tracked model, within its years). SQL tests in `removal_test.sql`, `catalog_test.sql`, `engine_from_name_test.sql`.
+
 ➕ **Scheduled collection never started** ✅ (9.6c): GitHub never ran `collect.yml` on its schedule (no scheduled run at all since 2026-10-19 morning, not even with an hourly cron; every run was manual), though the workflow was on `main`, active, valid and the repo public. Now Supabase starts it: pg_cron jobs `collect-listings` (every 4 hours, minute 40 UTC) and `weekly-summary` (Mondays 07:52 UTC) call `dispatch_workflow()`, which asks GitHub's workflow_dispatch API through pg_net with a repo-only token from the Vault. The workflows no longer have a `schedule`; the app's next-run text is back to every 4 hours.
 
 # Sprint 13 — UI/UX redesign ✅
@@ -309,6 +311,8 @@ Do not implement several unrelated features at once.
 *Mutation testing already runs without AI after merges (`mutation.yml`); a minimum score comes once the next full run gives the current one.*
 ## N.5 Dependabot ✅
 *`.github/dependabot.yml`: weekly PRs for the app's and the collector's packages and the GitHub Actions (minor and patch grouped), each checked like any PR (no preview: Dependabot's PRs get no secrets). Replaces deprecated action versions too.*
+## N.6 SonarQube Cloud (maybe later) ⬜
+*One dashboard for coverage, duplication and code smells. Not now: the checks above already run free in `check.yml`, and Rafael found no free plan that fits; revisit if that changes.*
 
 # Security and privacy (later) ⬜
 

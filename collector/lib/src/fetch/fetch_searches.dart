@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import '../adapters/olx/olx_search_adapter.dart';
+import '../adapters/standvirtual/standvirtual_search_adapter.dart';
 import 'polite_fetcher.dart';
 import 'search_manifest.dart';
 
@@ -17,8 +18,9 @@ class FetchOutcome {
 }
 
 /// Saves every page of [searches] into [directory] with [fetcher], which
-/// must be prepared, and writes the [SearchManifest]. OLX searches span
-/// pages; the following pages are fetched too.
+/// must be prepared, and writes the [SearchManifest]. A search spanning
+/// pages (OLX: 40 listings each, Standvirtual: 32) has the following pages
+/// fetched too.
 ///
 /// Running out of requests after some pages were saved is not an error:
 /// the outcome says so and the import uses what was saved. A block, a
@@ -51,11 +53,15 @@ Future<FetchOutcome> fetchSearches(
     for (final url in searches) {
       started++;
       final first = await save(url, url);
-      if (fetcher.site.host == FetchSite.olx.host) {
-        final pages = OlxSearchAdapter('').parseSearchPage(first).totalPages;
-        for (var page = 2; page <= pages; page++) {
-          await save(OlxSearchAdapter.pageUrl(url, page), url);
-        }
+      final olx = fetcher.site.host == FetchSite.olx.host;
+      final pages = _totalPages(first, olx: olx);
+      for (var page = 2; page <= pages; page++) {
+        await save(
+          olx
+              ? OlxSearchAdapter.pageUrl(url, page)
+              : StandvirtualSearchAdapter.pageUrl(url, page),
+          url,
+        );
       }
     }
     return FetchOutcome(saved: saved.length);
@@ -76,5 +82,17 @@ Future<FetchOutcome> fetchSearches(
         files: saved,
       ).writeTo(directory);
     }
+  }
+}
+
+/// How many pages the search whose first page is [html] spans; 1 when the
+/// page can't be read (the import reports it).
+int _totalPages(String html, {required bool olx}) {
+  try {
+    return olx
+        ? OlxSearchAdapter('').parseSearchPage(html).totalPages
+        : StandvirtualSearchAdapter('').parseSearchPage(html).totalPages;
+  } on FormatException {
+    return 1;
   }
 }

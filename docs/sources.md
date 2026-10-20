@@ -22,8 +22,8 @@ that lists it (`motorcycles.olx_search`, `standvirtual_search`); the
 `sources/*_searches.txt` files are gone. Every run, `make searches` writes
 the searches of the tracked models (switched on in the app), one per
 address: models that share one (R7, R1, R3, R9 under OLX "R/YZF") share
-the requests, and OLX gets a "year from" filter of the earliest year any of
-them tracks. Models can be added from the app with a search address copied
+the requests, and each search gets a "year from" filter of the earliest
+year any of them tracks (Standvirtual's since 2026-10-20, see below). Models can be added from the app with a search address copied
 from the site.
 
 **Limits unchanged.** The same fetch rules and budget apply (20 requests
@@ -38,6 +38,25 @@ only listings of searches it read in full: a search cut short, with an
 unreadable page, or no longer run (its models switched off) keeps its
 listings. Listings not yet tied to a search are covered only when every
 planned search was read in full.
+
+### 2026-10-20: every page of a Standvirtual search, and fewer missed ads
+
+**Decision.** Standvirtual searches ask for the first tracked year
+(`search[filter_float_first_registration_year:from]`) and every page of a
+search is read (32 listings per page, `?page=N`, the same path robots.txt
+allows), as on OLX. Until now only the first page was read; a search over
+32 listings was reported incomplete and the rest never collected.
+
+**Also.** A model named with its engine size ("Forza 350", "ADV 350") but
+added without one now gets that size's range, so ads named only "Forza" or
+"ADV" are matched by the engine size the ad states (14 Standvirtual ads
+were left unmatched in the run of 2026-10-20 16:40); "350cc" in a title
+reads as "350". Listings under a search address no planned search uses any
+more are removed by a run that read every search in full (tracked model,
+within its years); before, they stayed live for good.
+
+**Limits unchanged.** Same requests budget; the year filter keeps the page
+count down (the 2026-10-20 run used 5 of 20 Standvirtual requests).
 
 ### 2026-10-19: OLX search pages as a second source (9.7)
 
