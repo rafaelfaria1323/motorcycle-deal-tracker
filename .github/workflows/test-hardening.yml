@@ -51,7 +51,7 @@ jobs:
            item only when such a test fails. Put the input and the wrong
            result in the item. Do not commit the throwaway tests.
         2. Surviving mutants. If /tmp/mutation-summary.md exists, it is the
-           latest report of mutation.yml (the mutation_test tool, no AI):
+           latest full report of mutation.yml (the mutation_test tool, no AI):
            start from its surviving mutants. Check each one, drop the
            equivalent ones (a change that makes no real difference), and
            make the others items. Only for logic files missing from

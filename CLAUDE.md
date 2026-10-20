@@ -81,7 +81,8 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
                                   the changed ones, "Run workflow" all (4+4
                                   parallel jobs). Report only (run summary,
                                   HTML artifacts); test hardening's find
-                                  runs start from its surviving mutants
+                                  runs start from the last full run's
+                                  surviving mutants
 .github/workflows/backlog-pass.yml  Shared by both: "To do" empty -> after 10
                                   merges, only find up to 10 items, no code
                                   change; otherwise every 5 merges do up to
