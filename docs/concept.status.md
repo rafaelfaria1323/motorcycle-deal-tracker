@@ -152,7 +152,7 @@ Comparison ✅ (listings side by side), buying assistant, checklists, cost calcu
 
 ## 24. Product Philosophy ✅
 
-Simple, explainable, incremental, testable, data-driven. The core idea is validated on real data from two sources.
+Simple, explainable, incremental, testable (Dart unit tests, mutation testing, and SQL tests on a real Postgres in CI), data-driven. The core idea is validated on real data from two sources.
 
 ## 25. Final Vision
 

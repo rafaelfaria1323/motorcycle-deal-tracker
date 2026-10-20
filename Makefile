@@ -102,6 +102,9 @@ db-new: ## Create a migration: make db-new NAME=add_something
 	@test -n "$(NAME)" || (echo "Usage: make db-new NAME=add_something"; exit 1)
 	supabase migration new $(NAME)
 
+db-test: ## Apply every migration to a fresh local Postgres and run supabase/tests (PGHOST, PGUSER, ...)
+	tool/db_test.sh
+
 # ---- Everything ------------------------------------------------------------
 
 check: app-check collector-check ## Run all checks (run before committing)

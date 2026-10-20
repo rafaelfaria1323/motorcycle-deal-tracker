@@ -1,8 +1,9 @@
 name: Check
 
 # Every pull request to main: the same checks as `make check` (app analyze
-# and tests with Flutter; collector format, analyze and tests), so a change
-# is proven before it is merged rather than when the deploy runs.
+# and tests with Flutter; collector format, analyze and tests) and
+# `make db-test` (migrations and SQL tests on Postgres), so a change is
+# proven before it is merged rather than when the deploy runs.
 # PRs opened by a workflow (code quality, test hardening) don't trigger
 # pull_request runs (GitHub's rule for GITHUB_TOKEN), so backlog-pass.yml
 # starts this by workflow_dispatch on the PR's branch; the result is
@@ -24,6 +25,17 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # Plain Postgres for `make db-test`: every migration applied to an
+    # empty database, then the SQL tests in supabase/tests.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s
+          --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@v4
 
@@ -39,3 +51,10 @@ jobs:
 
       - name: make check
         run: make check
+
+      - name: make db-test
+        env:
+          PGHOST: localhost
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: make db-test
