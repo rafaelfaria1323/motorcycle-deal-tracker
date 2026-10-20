@@ -56,7 +56,8 @@ app/        Flutter Web/PWA (package name: motorcycle_deal_tracker)
 collector/  Pure Dart CLI: fetch, parse, store, score, alert (service-role key)
 supabase/   Migrations (Postgres: scoring, alerts, views, RLS)
 docs/       sources.md (data-source decisions, keep updated), hosting.md,
-            roadmap.status.md, concept.status.md, code-quality.md (backlog)
+            roadmap.status.md, concept.status.md, code-quality.md and
+            test-hardening.md (backlogs of the automatic passes)
 .github/workflows/collect.yml     Collection every 4 hours (minute 40, UTC),
                                   started by Supabase pg_cron (see below)
 .github/workflows/weekly-summary.yml  Mondays 07:52 UTC (pg_cron): the week's summary
@@ -65,12 +66,18 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
                                   request to main
 .github/workflows/deploy-web.yml  Test, build and publish the app to
                                   Cloudflare Pages on merges touching app/
-.github/workflows/code-quality.yml  After every 5 merged PRs, Claude does up
-                                  to 3 items of docs/code-quality.md (or
-                                  refills it with up to 10 when empty) and
-                                  opens one PR labelled code-quality
-                                  (merges since the tag
+.github/workflows/code-quality.yml  After every 5 merged PRs, a Claude pass
+                                  on docs/code-quality.md (one PR labelled
+                                  code-quality; merges since the tag
                                   code-quality-reviewed are counted)
+.github/workflows/test-hardening.yml  The same on docs/test-hardening.md:
+                                  bugs, surviving mutants, redundant tests
+                                  (label test-hardening)
+.github/workflows/backlog-pass.yml  Shared by both: "To do" empty -> only
+                                  find up to 10 items, no code change;
+                                  otherwise do up to 3 items, find nothing.
+                                  One pass at a time, none while one of
+                                  the same backlog is open
 Makefile    All commands (`make help`)
 ```
 

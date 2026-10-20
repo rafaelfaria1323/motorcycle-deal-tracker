@@ -1,0 +1,252 @@
+name: Backlog pass
+
+# Shared by code-quality.yml and test-hardening.yml. Each run of a backlog
+# does ONE of two things:
+# - "To do" has items: Claude does up to 3 of them (fewer if fewer are
+#   left) and opens a PR with the changes. It does not look for new items.
+# - "To do" is empty: Claude only looks for new items (up to 10) and opens
+#   a PR that adds them to the backlog. It changes no code.
+# So a backlog alternates: find, fix, fix, ..., find. A run starts after
+# every 5 merged PRs (the backlogs' own PRs don't count; the tag marks
+# where the count restarts) or by hand, and never while a PR of the same
+# backlog is still open.
+on:
+  workflow_call:
+    inputs:
+      backlog:
+        description: The backlog file (e.g. docs/code-quality.md)
+        type: string
+        required: true
+      label:
+        description: Label of this backlog's PRs; also names the branch
+        type: string
+        required: true
+      tag:
+        description: Tag marking the last run (the merge count restarts there)
+        type: string
+        required: true
+      count_from:
+        description: Before the first run, merges before this date don't count
+        type: string
+        required: true
+      every:
+        type: number
+        default: 5
+      manual:
+        type: boolean
+        default: false
+      find_prompt:
+        description: What to look for when "To do" is empty
+        type: string
+        required: true
+      fix_prompt:
+        description: How to do the items
+        type: string
+        required: true
+      extra_tools:
+        description: More tools Claude may use (comma-separated)
+        type: string
+        default: ''
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN:
+        required: true
+
+env:
+  # Only real merges count, not the PRs of any backlog.
+  AUTOMATED_LABELS: '-label:code-quality -label:test-hardening'
+
+jobs:
+  count:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      due: ${{ steps.count.outputs.due }}
+      mode: ${{ steps.count.outputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - id: count
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          LABEL: ${{ inputs.label }}
+          TAG: ${{ inputs.tag }}
+          SINCE: ${{ inputs.count_from }}
+          EVERY: ${{ inputs.every }}
+          MANUAL: ${{ inputs.manual }}
+          BACKLOG: ${{ inputs.backlog }}
+        run: |
+          open=$(gh pr list --state open --label "$LABEL" --json number --jq length)
+          since=$SINCE
+          if sha=$(gh api "repos/$GH_REPO/git/ref/tags/$TAG" --jq .object.sha 2>/dev/null); then
+            since=$(gh api "repos/$GH_REPO/commits/$sha" --jq .commit.committer.date)
+          fi
+          merged=$(gh pr list --state merged --limit 200 \
+            --search "merged:>$since $AUTOMATED_LABELS" --json number --jq length)
+          # Items are the "- " lines between "## To do" and the next heading.
+          items=$(awk '/^## /{todo = ($0 == "## To do")} todo && /^- /' "$BACKLOG" | wc -l)
+          if [ "$items" -gt 0 ]; then mode=fix; else mode=find; fi
+          echo "Merged since $since: $merged (every $EVERY); open PRs: $open; to do: $items -> $mode"
+          if [ "$open" -gt 0 ]; then
+            due=false
+          elif [ "$MANUAL" = true ] || [ "$merged" -ge "$EVERY" ]; then
+            due=true
+          else
+            due=false
+          fi
+          echo "due=$due" >> "$GITHUB_OUTPUT"
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+
+  pass:
+    needs: count
+    if: needs.count.outputs.due == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    env:
+      MODE: ${{ needs.count.outputs.mode }}
+      LABEL: ${{ inputs.label }}
+      TAG: ${{ inputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          cd app && flutter pub get
+          cd ../collector && dart pub get
+
+      - name: Prepare the branch
+        run: |
+          git config user.name "claude[bot]"
+          git config user.email "claude[bot]@users.noreply.github.com"
+          # Restart the count here, whatever the run finds.
+          git tag -f "$TAG" HEAD
+          git push -f origin "refs/tags/$TAG"
+          git switch -c "claude/$LABEL-${{ github.run_number }}"
+
+      - name: Write the prompt
+        id: prompt
+        env:
+          BACKLOG: ${{ inputs.backlog }}
+          FIND_PROMPT: ${{ inputs.find_prompt }}
+          FIX_PROMPT: ${{ inputs.fix_prompt }}
+        run: |
+          {
+            cat <<EOF
+          You are working on this repository (a Flutter web app in app/, a
+          Dart collector in collector/, Supabase migrations in supabase/).
+          Read CLAUDE.md first and follow it: it holds the conventions and
+          the rules you must not break. Then read $BACKLOG, the backlog
+          this run works on.
+
+          EOF
+            if [ "$MODE" = find ]; then
+              cat <<EOF
+          This is a FIND run: the "To do" list is empty. Only look for new
+          items; change no code, tests or other docs.
+
+          $FIND_PROMPT
+
+          Write up to 10 new items under "## To do", most valuable first,
+          each one line: what, where (file paths and lines) and why (for a
+          bug: the input and the wrong result). Skip anything already
+          under "Done" or "Needs Rafael". An item that would touch the
+          fetching rules, the scoring or alert rules, the database schema,
+          secrets or workflows goes under "## Needs Rafael" instead. If
+          you find nothing worth an item, change nothing.
+
+          Before you finish, \`git status\` must show only $BACKLOG
+          changed. Commit it with the message
+          "docs($LABEL): new backlog items". Write the PR title (one line)
+          to /tmp/pr-title.txt and a short PR body (the items found and
+          how you found them; in English) to /tmp/pr-body.md.
+          EOF
+            else
+              cat <<EOF
+          This is a FIX run: do the first 3 items under "## To do" (all of
+          them if fewer are left; fewer if one turns out bigger than
+          expected). Do not look for new items: once the list is done, the
+          next run looks for more.
+
+          $FIX_PROMPT
+
+          For each item: make the change, run \`make check\` (it must
+          pass), move the item to "## Done" with today's date and a few
+          words on what was done, and commit (one commit per item,
+          including the backlog change; message style "refactor(scope):
+          what", "test(scope): what" or "fix(scope): what"). An item that
+          is no longer true moves to "Done" with "(no longer needed)". An
+          item that can't be made to pass, or that turns out to need a
+          rule, schema, secret or workflow change, is undone and moved to
+          "## Needs Rafael" with the reason.
+
+          Write the PR title (one line) to /tmp/pr-title.txt and the PR
+          body (the items done and why, how it was tested; in English) to
+          /tmp/pr-body.md.
+          EOF
+            fi
+            cat <<EOF
+
+          Rules for every run:
+          - Never change the fetching rules, the scoring or alert rules, or
+            the database schema (no new migrations). Never touch secrets,
+            workflows, collector/pubspec.lock or saved pages.
+          - UI text stays in pt-PT ("você"); code, comments and commits in
+            English.
+          - If a change affects what README.md, app/README.md,
+            collector/README.md, CLAUDE.md or docs/*.status.md say, update
+            them in the same commit.
+          - Commit on the current branch with git; do not push. Leave no
+            uncommitted changes behind.
+          EOF
+          } > /tmp/prompt.md
+          {
+            echo 'text<<PROMPT_END'
+            cat /tmp/prompt.md
+            echo 'PROMPT_END'
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: >-
+            --max-turns 150
+            --allowedTools "Read,Edit,Write,Glob,Grep,Bash(make check),Bash(make format),Bash(cd:*),Bash(flutter analyze:*),Bash(flutter test:*),Bash(dart format:*),Bash(dart analyze:*),Bash(dart test:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git add:*),Bash(git commit:*)${{ inputs.extra_tools != '' && format(',{0}', inputs.extra_tools) || '' }}"
+          prompt: ${{ steps.prompt.outputs.text }}
+
+      - name: Open the PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$(git rev-list --count origin/main..HEAD)" = 0 ]; then
+            echo "Nothing worth changing this time."
+            exit 0
+          fi
+          # The Claude step revokes the token git was set up with, so push
+          # with this job's own token.
+          git config --local --unset-all http.https://github.com/.extraheader || true
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            "HEAD:refs/heads/$(git branch --show-current)"
+          gh label create "$LABEL" --color 5319E7 \
+            --description "Automatic backlog pass ($LABEL)" --force
+          title=$(cat /tmp/pr-title.txt 2>/dev/null || echo "$LABEL: backlog pass ($MODE)")
+          body=$(cat /tmp/pr-body.md 2>/dev/null || echo "Automatic backlog pass ($MODE).")
+          gh pr create --base main --head "$(git branch --show-current)" \
+            --label "$LABEL" --title "$title" \
+            --body "$body"$'\n\n'"Opened by the $LABEL workflow ($MODE run ${{ github.run_id }})."
