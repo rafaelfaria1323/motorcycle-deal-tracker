@@ -210,6 +210,39 @@ class ListingStore {
     return (result as num).toInt();
   }
 
+  /// Re-checks the model of listings already stored: `save` never updates
+  /// a stored row, so without this a wrong match made by an older rule
+  /// would stay. Only listings whose model changes are touched; returns how
+  /// many.
+  Future<int> rematch(
+    String source,
+    List<NormalizedListing> listings,
+    Catalog catalog,
+  ) async {
+    if (listings.isEmpty) return 0;
+    final idBySlug = {
+      for (final e in catalog.entries)
+        if (e.id != null) e.slug: e.id!,
+    };
+    final result = await _client.rpc(
+      'rematch_listings',
+      params: {
+        'p_source': source,
+        'p_matches': {
+          for (final l in listings)
+            l.sourceListingId: {
+              'motorcycle_id': l.motorcycleSlug == null
+                  ? null
+                  : idBySlug[l.motorcycleSlug],
+              'brand': l.brand,
+              'model': l.model,
+            },
+        },
+      },
+    );
+    return (result as num).toInt();
+  }
+
   /// For a complete import: marks live listings missing from [seenIds] as
   /// removed. The database refuses empty or suspiciously large removals unless
   /// [force] is set. Returns how many were marked.

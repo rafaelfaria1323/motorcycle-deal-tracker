@@ -43,13 +43,18 @@ class ModelResolver {
     var found = named.isEmpty ? null : named.first;
 
     // 2. The text names only the family ("CB", "R"): the engine size decides,
-    //    but only when exactly one catalog model of that family fits it.
+    //    but only when exactly one catalog model of that family fits it. A
+    //    model without engine limits (added in the app) fits every size, so
+    //    it can't be chosen this way: a Forza 125 is not the Forza 350.
     final cc = engineCc;
     if (found == null && cc != null) {
       final familyKey = normalizeKey(family);
       final byEngine = [
         for (final e in entries)
-          if (_family(normalizeKey(e.model)) == familyKey && _fits(e, cc)) e,
+          if ((e.engineCcMin != null || e.engineCcMax != null) &&
+              _family(normalizeKey(e.model)) == familyKey &&
+              _fits(e, cc))
+            e,
       ];
       if (byEngine.length == 1) found = byEngine.first;
     }
