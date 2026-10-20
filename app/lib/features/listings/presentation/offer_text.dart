@@ -22,6 +22,61 @@ class OfferSuggestion {
   String get headline =>
       'Comece por ${Formatters.price(opening)} e não passe de '
       '${Formatters.price(ceiling)}.';
+
+  /// The offers to make in turn: the opening, one halfway to the most to
+  /// pay when there is room for it, and the most to pay as the last.
+  List<OfferStep> get steps {
+    final middle = _roundDown((opening + ceiling) / 2);
+    return [
+      OfferStep('Primeira proposta', opening),
+      if (middle > opening && middle < ceiling) OfferStep('Se recusar', middle),
+      OfferStep('Última proposta', ceiling),
+    ];
+  }
+
+  /// What to answer when the seller asks [counter] instead.
+  String replyTo(double counter) {
+    final steps = this.steps;
+    // The offer before the last: below it, the seller is already close.
+    final second = steps[steps.length - 2].price;
+    final value = Formatters.price(counter);
+    if (counter <= opening) {
+      return 'Aceite: $value é menos do que a sua primeira proposta.';
+    }
+    if (counter <= second) {
+      return 'Aceite: $value está dentro do que vale a pena pagar.';
+    }
+    if (counter <= ceiling) {
+      final halfway = _roundDown((second + counter) / 2);
+      // Too close to haggle over: no halfway above your last offer, or
+      // one step from the seller's price.
+      if (halfway <= second || counter - halfway <= offerStep) {
+        return 'Aceite: $value está dentro do máximo '
+            '(${Formatters.price(ceiling)}).';
+      }
+      return 'Proponha ${Formatters.price(halfway)} (a meio caminho). Se não '
+          'baixar mais, $value ainda está dentro do máximo.';
+    }
+    return '$value passa do máximo: ofereça ${Formatters.price(ceiling)} '
+        'como última proposta e, se não aceitar, procure outra mota.';
+  }
+}
+
+/// The seller's counter-offer as typed: "8500", "8.500", "8 500 €". Null
+/// for anything that is not a price.
+double? parseCounterOffer(String text) {
+  final value = double.tryParse(
+    text.replaceAll(RegExp(r'[\s.€]'), '').replaceAll(',', '.'),
+  );
+  return value != null && value >= offerStep ? value : null;
+}
+
+/// One offer of the plan.
+class OfferStep {
+  const OfferStep(this.label, this.price);
+
+  final String label;
+  final double price;
 }
 
 /// Where the opening offer starts below the ceiling before anything else is

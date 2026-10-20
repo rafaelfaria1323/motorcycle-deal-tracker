@@ -239,4 +239,53 @@ void main() {
       );
     });
   });
+
+  group('the plan and the reply to a counter-offer', () {
+    // Rafael's CB650R: 8 500 € asked, estimated at 8 842 €.
+    const offer = OfferSuggestion(opening: 7950, ceiling: 8500, reasons: []);
+
+    test('three offers: the opening, halfway, the most to pay', () {
+      expect(offer.steps.map((s) => (s.label, s.price)), [
+        ('Primeira proposta', 7950),
+        ('Se recusar', 8200), // 8225
+        ('Última proposta', 8500),
+      ]);
+    });
+
+    test('no middle step without room for one', () {
+      const close = OfferSuggestion(opening: 8450, ceiling: 8500, reasons: []);
+      expect(close.steps.map((s) => s.label), [
+        'Primeira proposta',
+        'Última proposta',
+      ]);
+      expect(close.replyTo(8500), startsWith('Aceite'));
+    });
+
+    test('the reply depends on where the counter-offer falls', () {
+      expect(offer.replyTo(7900), contains('menos do que a sua primeira'));
+      expect(offer.replyTo(8200), startsWith('Aceite'));
+      expect(
+        offer.replyTo(8400),
+        'Proponha ${Formatters.price(8300)} (a meio caminho). Se não baixar '
+        'mais, ${Formatters.price(8400)} ainda está dentro do máximo.',
+      );
+      expect(offer.replyTo(8250), startsWith('Aceite')); // halfway 8 200
+      expect(
+        offer.replyTo(8700),
+        '${Formatters.price(8700)} passa do máximo: ofereça '
+        '${Formatters.price(8500)} como última proposta e, se não aceitar, '
+        'procure outra mota.',
+      );
+    });
+  });
+
+  test('the counter-offer as typed', () {
+    expect(parseCounterOffer('8500'), 8500);
+    expect(parseCounterOffer('8.500'), 8500);
+    expect(parseCounterOffer(' 8 500 € '), 8500);
+    expect(parseCounterOffer('8500,50'), 8500.5);
+    expect(parseCounterOffer(''), isNull);
+    expect(parseCounterOffer('8'), isNull);
+    expect(parseCounterOffer('abc'), isNull);
+  });
 }
