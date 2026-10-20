@@ -78,3 +78,7 @@ are never committed.
 - [`docs/code-quality.md`](docs/code-quality.md): code improvements to do and done (worked through automatically).
 - [`docs/test-hardening.md`](docs/test-hardening.md): bugs, missing and redundant tests found by the automatic mutation-style pass, to do and done.
 - [`CLAUDE.md`](CLAUDE.md): conventions and the detailed pipeline, scoring and alert rules.
+
+## Credits
+
+Place coordinates (distance from home): [GeoNames](https://www.geonames.org), CC BY 4.0.

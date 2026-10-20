@@ -7,6 +7,7 @@ extension ListingSortLabel on ListingSort {
     ListingSort.newest => 'Mais recentes',
     ListingSort.priceAsc => 'Preço mais baixo',
     ListingSort.priceDesc => 'Preço mais alto',
+    ListingSort.nearest => 'Mais perto',
   };
 }
 

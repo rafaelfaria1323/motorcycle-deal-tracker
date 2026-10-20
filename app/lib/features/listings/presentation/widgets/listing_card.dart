@@ -4,6 +4,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/formatting/formatters.dart';
 import '../../domain/entities/listing.dart';
+import '../listing_detail_text.dart';
 import 'deal_score_badge.dart';
 import 'listing_photo.dart';
 import 'price_change_tag.dart';
@@ -143,13 +144,13 @@ class ListingCard extends StatelessWidget {
                           const Icon(Icons.speed),
                           const SizedBox(width: 4),
                           Text(Formatters.mileage(listing.mileage)),
-                          if (listing.location != null) ...[
+                          if (placeText(listing) case final place?) ...[
                             const SizedBox(width: 12),
                             const Icon(Icons.place_outlined),
                             const SizedBox(width: 2),
                             Flexible(
                               child: Text(
-                                listing.location!,
+                                place,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),

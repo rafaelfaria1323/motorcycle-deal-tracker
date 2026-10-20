@@ -38,16 +38,18 @@ class ListingModel extends Listing {
     super.newPrice,
     super.newPriceCheckedAt,
     super.engineCc,
+    super.distanceKm,
   });
 
   /// The columns lists need (cards, alerts, other sources of a bike); the
-  /// detail page loads the whole row. Leaves out the description and score
+  /// detail page loads the whole row. `distance_km` is a computed field
+  /// (from the caller's home), never part of `*`. Leaves out the description and score
   /// breakdown, the bulk of a row.
   static const summaryColumns =
       'id, source, url, brand, model, motorcycle_id, duplicate_of, year, '
       'mileage, price, initial_price, price_before_drop, deal_score, '
       'risk_score, seller_type, location, images, status, first_seen_at, '
-      'last_seen_at';
+      'last_seen_at, distance_km';
 
   factory ListingModel.fromJson(Map<String, dynamic> json) {
     // Present when the query embeds the matched model (detail page).
@@ -89,6 +91,7 @@ class ListingModel extends Listing {
       newPrice: (bike?['new_price_reference'] as num?)?.toDouble(),
       newPriceCheckedAt: dateOf(bike?['new_price_checked_at']),
       engineCc: engineCcOf(bike),
+      distanceKm: (json['distance_km'] as num?)?.toInt(),
     );
   }
 

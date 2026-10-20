@@ -9,6 +9,7 @@ import '../../../core/auth/session_cubit.dart';
 import '../../collector_status/presentation/collection_details.dart';
 import '../../collector_status/presentation/collector_status_banner.dart';
 import '../../collector_status/presentation/data_quality_details.dart';
+import 'home_place_tile.dart';
 
 /// Everything that is not a list of offers: the account, the tracked
 /// models and how the data collection is doing.
@@ -59,6 +60,8 @@ class MorePage extends StatelessWidget {
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => context.push(AppRoutes.favourites),
                     ),
+                    const Divider(height: 1),
+                    const HomePlaceTile(),
                     const Divider(height: 1),
                     ListTile(
                       leading: const Icon(Icons.two_wheeler),

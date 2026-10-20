@@ -29,9 +29,17 @@ String summarizeFilters(
   if (minScore != null) parts.add('Deal Score $minScore+');
   final maxRisk = filters.maxRiskScore;
   if (maxRisk != null) parts.add(riskCriterionLabel(maxRisk));
+  final maxKm = filters.maxDistanceKm;
+  if (maxKm != null) parts.add(maxDistanceLabel(maxKm));
 
   return parts.join(' · ');
 }
+
+/// The choices of the distance filter, in km.
+const maxDistanceOptions = [25, 50, 100, 200, 300];
+
+/// "até 50 km de casa".
+String maxDistanceLabel(int km) => 'até ${Formatters.mileage(km)} de casa';
 
 /// One applied filter as a removable chip: its label and the filters
 /// without it.
@@ -52,6 +60,7 @@ List<FilterChipData> filterChips(
     bool seller = true,
     bool score = true,
     bool risk = true,
+    bool distance = true,
     bool activeOnly = false,
   }) => ListingFilters(
     motorcycleId: model ? f.motorcycleId : null,
@@ -62,6 +71,7 @@ List<FilterChipData> filterChips(
     sellerType: seller ? f.sellerType : null,
     minDealScore: score ? f.minDealScore : null,
     maxRiskScore: risk ? f.maxRiskScore : null,
+    maxDistanceKm: distance ? f.maxDistanceKm : null,
     activeOnly: activeOnly || f.activeOnly,
   );
 
@@ -71,6 +81,7 @@ List<FilterChipData> filterChips(
       : motorcycles.where((m) => m.id == id).firstOrNull;
   final minScore = f.minDealScore;
   final maxRisk = f.maxRiskScore;
+  final maxKm = f.maxDistanceKm;
 
   return [
     if (id != null)
@@ -98,6 +109,8 @@ List<FilterChipData> filterChips(
       (label: 'Deal Score $minScore+', without: copy(score: false)),
     if (maxRisk != null)
       (label: riskCriterionLabel(maxRisk), without: copy(risk: false)),
+    if (maxKm != null)
+      (label: maxDistanceLabel(maxKm), without: copy(distance: false)),
     if (!f.activeOnly)
       (label: 'Inclui removidos', without: copy(activeOnly: true)),
   ];

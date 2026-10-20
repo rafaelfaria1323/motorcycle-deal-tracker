@@ -8,8 +8,9 @@ Cloudflare Pages on every merge that touches `app/`
 ## Screens
 
 - **Ofertas:** listings of the tracked models, sorted by Deal Score (or
-  newest, cheapest, most expensive), with filters shown as chips and paged
-  40 at a time.
+  newest, cheapest, most expensive, nearest), with filters shown as chips
+  (including "Distância máxima" from your home) and paged 40 at a time.
+  Each card shows the place and its distance from your home.
 - **Favoritos:** the listings you starred (star on a listing's page; star
   in the Ofertas app bar or Mais opens the list), newest first, each with
   your private note and the problems found on the viewing checklist;
@@ -34,7 +35,8 @@ Cloudflare Pages on every merge that touches `app/`
   current filters).
 - **Alertas:** new listings, price drops, excellent opportunities and
   removed listings, grouped by day; the tab shows the unread count.
-- **Mais:** account, "Modelos acompanhados" (switch models on/off, first
+- **Mais:** account, "A sua localidade" (your home town: every listing
+  shows its distance from it), "Modelos acompanhados" (switch models on/off, first
   year, new-bike price, add models: brand and model picked from the sites'
   lists, optional engine size, searches built automatically; or typed by
   hand), "Comparar modelos" (the tracked models side by side: typical asking
