@@ -192,4 +192,60 @@ void main() {
       'Forza 350',
     );
   });
+
+  group('boundaries', () {
+    final resolver = ModelResolver(Catalog.mvp());
+
+    test('an engine exactly at the limits fits, one cc outside does not', () {
+      String? at(int cc) => resolver
+          .resolve(brand: 'Honda', family: 'CB', text: 'CB650R', engineCc: cc)
+          ?.slug;
+
+      expect(at(640), 'honda-cb650r');
+      expect(at(660), 'honda-cb650r');
+      expect(at(639), isNull);
+      expect(at(661), isNull);
+    });
+
+    test('the model counts only when it starts in the first three words', () {
+      expect(slugOf(Catalog.mvp(), 'Honda', '', 'a b CB650R'), 'honda-cb650r');
+      expect(slugOf(Catalog.mvp(), 'Honda', '', 'a b c CB650R'), isNull);
+    });
+
+    test('a model spread over four words is found', () {
+      expect(slugOf(Catalog.mvp(), 'Honda', '', 'C B 6 50R'), 'honda-cb650r');
+    });
+
+    test('two models of the family fitting the engine stay unmatched', () {
+      final two = ModelResolver(
+        Catalog(const [
+          CatalogEntry(
+            slug: 'x-x1',
+            brand: 'X',
+            model: 'X1',
+            minYear: 2023,
+            engineCcMin: 100,
+            engineCcMax: 200,
+          ),
+          CatalogEntry(
+            slug: 'x-x2',
+            brand: 'X',
+            model: 'X2',
+            minYear: 2023,
+            engineCcMin: 100,
+            engineCcMax: 200,
+          ),
+        ]),
+      );
+
+      expect(
+        two.resolve(brand: 'X', family: 'X', text: 'X', engineCc: 150),
+        isNull,
+      );
+    });
+
+    test('a text naming two catalog models is unmatched', () {
+      expect(slugOf(Catalog.mvp(), 'Honda', '', 'CB650R CBR650R'), isNull);
+    });
+  });
 }
