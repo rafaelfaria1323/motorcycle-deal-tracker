@@ -51,6 +51,8 @@ class BuildDbUrlTest(unittest.TestCase):
             POOLER.replace("[YOUR-PASSWORD]", "a?b"): "cannot be read",
             "postgresql://postgres@host:5432/postgres": "needs a user, a password and a host",
             "postgresql://u:p@host/postgres": "has no port",
+            "postgresql://postgres:p@db.abcdefgh.supabase.co:5432/postgres":
+                "is the Direct connection",
         }
         for url, message in cases.items():
             with self.subTest(url=url):

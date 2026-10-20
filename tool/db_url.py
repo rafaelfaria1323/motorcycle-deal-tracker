@@ -70,6 +70,12 @@ def build_db_url(url, password=None):
             "(postgresql://user:password@host:port/postgres)")
     if port is None:
         raise DbUrlError("SUPABASE_DB_URL has no port (the Session pooler uses 5432)")
+    if parts.hostname.startswith("db.") and parts.hostname.endswith(".supabase.co"):
+        # The direct connection: IPv6 only, and GitHub's runners have no IPv6.
+        raise DbUrlError(
+            "SUPABASE_DB_URL is the Direct connection (db....supabase.co), which "
+            "GitHub cannot reach: in Supabase > Connect pick \"Session pooler\" "
+            "(host ...pooler.supabase.com, user postgres.<project>) and copy that")
     return urlunsplit(parts)
 
 
