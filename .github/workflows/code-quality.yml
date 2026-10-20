@@ -37,7 +37,12 @@ jobs:
       count_from: '2026-10-19T00:00:00Z'
       manual: ${{ github.event_name == 'workflow_dispatch' }}
       find_prompt: |
-        Review how the code is written, in this order: duplicated code;
+        Tools without AI already check what they can: the analyzer rules in
+        */analysis_options.yaml, exact copy-paste (`make duplication`,
+        jscpd) and coverage floors (`make coverage`). Don't list what they
+        catch; look for what needs judgment.
+        Review how the code is written, in this order: duplicated code
+        (near-duplicates the copy-paste check misses);
         dead code; code in the wrong place (logic in widgets that belongs
         in a tested *_text.dart or cubit, layers mixed up); hard-coded
         colours or styles that bypass the theme; inefficient queries or

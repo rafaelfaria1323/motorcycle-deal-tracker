@@ -37,7 +37,7 @@ class SupabaseCatalogRepository implements CatalogRepository {
 
   @override
   Future<void> setTracked(String motorcycleId, {required bool tracked}) async {
-    await _client.rpc(
+    await _client.rpc<Object?>(
       'set_model_tracked',
       params: {'p_motorcycle_id': motorcycleId, 'p_tracked': tracked},
     );
@@ -45,7 +45,7 @@ class SupabaseCatalogRepository implements CatalogRepository {
 
   @override
   Future<void> setMinYear(String motorcycleId, int minYear) async {
-    await _client.rpc(
+    await _client.rpc<Object?>(
       'set_model_min_year',
       params: {'p_motorcycle_id': motorcycleId, 'p_min_year': minYear},
     );
@@ -53,7 +53,7 @@ class SupabaseCatalogRepository implements CatalogRepository {
 
   @override
   Future<void> setNewPrice(String motorcycleId, double? price) async {
-    await _client.rpc(
+    await _client.rpc<Object?>(
       'set_model_new_price',
       params: {'p_motorcycle_id': motorcycleId, 'p_price': price},
     );
@@ -103,7 +103,7 @@ class SupabaseCatalogRepository implements CatalogRepository {
     int? engineCcMin,
     int? engineCcMax,
   }) async {
-    await _client.rpc(
+    await _client.rpc<Object?>(
       'add_catalog_model',
       params: {
         'p_brand': brand,

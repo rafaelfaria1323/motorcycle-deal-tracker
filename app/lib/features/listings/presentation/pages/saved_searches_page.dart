@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -28,7 +30,7 @@ class SavedSearchesPage extends StatelessWidget {
     if (listings.state.status == ListingsStatus.initial) {
       await listings.load();
     }
-    listings.applyFilters(search.filters);
+    unawaited(listings.applyFilters(search.filters));
     if (context.mounted) context.go(AppRoutes.deals);
   }
 

@@ -1,5 +1,9 @@
-# Checks without AI (2026-10-20, same rules as collector/): stricter than the recommended set, so the
-# analyzer (`make check`, CI) catches what a review would otherwise have to.
+# Checks without AI (2026-10-20): the collector's rules, except two that
+# fight this app's style: a screen catches every failure on purpose (to
+# show a message rather than crash), and explicit arguments such as
+# DateTime(2027, 3, 1) read better than the defaults left out. Stricter
+# than the recommended set, so the analyzer (`make check`, CI) catches what
+# a review would otherwise have to.
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
@@ -22,13 +26,11 @@ linter:
     - always_declare_return_types
     - test_types_in_equals
     - only_throw_errors
-    - avoid_catches_without_on_clauses
     # Dead or pointless code
     - unnecessary_statements
     - literal_only_boolean_expressions
     - unnecessary_lambdas
     - unnecessary_parenthesis
-    - avoid_redundant_argument_values
     # Immutability
     - prefer_final_locals
     - prefer_final_fields

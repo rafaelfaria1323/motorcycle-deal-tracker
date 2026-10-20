@@ -28,6 +28,13 @@ has the model), or typed by hand.
   most robust option) and explain them briefly, not present menus of choices.
   Ask only when a decision is really his (cost, risk he takes on, loosening
   the fetching rules).
+- **Prefer tools without AI.** AI is fine only where it is free, and a
+  fixed, free tool wins whenever it can do the same job. The app and the
+  collector use no AI (scores, estimates and alerts are rules and
+  statistics). Checks: analyzer rules (`*/analysis_options.yaml`),
+  `make duplication` (jscpd), `make coverage` (floors in the Makefile),
+  mutation testing, Dependabot; the Claude backlog passes only look for
+  what needs judgment.
 - Work in small verifiable steps: implement → test → commit. Each step ends
   with a definition of done.
 - Answers to Rafael in English; **all UI text in Portuguese (pt-PT)**,
@@ -120,6 +127,7 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
                                   touches supabase/, .github/, tool/ or the
                                   Makefile; variable AUTO_MERGE_BACKLOG=false
                                   turns it off) and starts the app deploy
+.github/dependabot.yml            Weekly dependency PRs (app, collector, Actions)
 .claude/hooks/session-start.sh  Cloud sessions only: Dart SDK on PATH, collector
                                   dependencies, local Postgres (PGHOST set), so
                                   make collector-check / tool-check / db-test run
@@ -130,6 +138,7 @@ Makefile    All commands (`make help`)
 
 ```
 make check                     analyze + test app and collector, test tool/ (before every commit)
+make coverage / duplication    coverage floors and copy-paste check (also in CI)
 make app-run                   run the app in Chrome (app/env/dev.json)
 make db-new NAME=x / db-push   create / apply migrations (merging applies them too)
 make db-test                   migrations + SQL tests on a local Postgres

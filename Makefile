@@ -2,6 +2,7 @@
 .PHONY: help app-get app-run app-check app-build app-serve \
         collector-get collector-check collect-dry collect \
         db-push db-new check tool-check format clean mutation \
+        coverage duplication \
         require-collector-env require-file
 
 # Which source the collector reads: manual (a JSON file), standvirtual
@@ -111,6 +112,26 @@ tool-check: ## Test the helper scripts in tool/ (Python)
 	python3 -m unittest discover -s tool -p 'test_*.py'
 
 check: app-check collector-check tool-check ## Run all checks (run before committing)
+
+# Floors for `make coverage` (line coverage, %). Raise them as tests are
+# added; lower one only with a reason in the commit. The app's floor counts
+# its logic (texts, entities, models, cubits), not the widgets.
+APP_COVERAGE_MIN ?= 0
+COLLECTOR_COVERAGE_MIN ?= 70
+APP_LOGIC_FILES = _text\.dart$$|/domain/|/data/models/|/cubit/|ownership_cost\.dart$$|viewing_checklist\.dart$$
+
+coverage: ## Test coverage of app logic and collector, with floors (needs `dart pub global activate coverage`)
+	cd app && flutter test --coverage
+	cd collector && dart test --coverage=coverage && dart pub global run coverage:format_coverage \
+	  --lcov --in=coverage --out=coverage/lcov.info --report-on=lib --package=.
+	python3 tool/lcov_summary.py app/coverage/lcov.info --name app \
+	  --only '$(APP_LOGIC_FILES)' --min $(APP_COVERAGE_MIN)
+	python3 tool/lcov_summary.py collector/coverage/lcov.info --name collector \
+	  --min $(COLLECTOR_COVERAGE_MIN)
+
+duplication: ## Copy-pasted code above 1 % of the lines fails (jscpd, via npx)
+	npx --yes jscpd@4 --min-tokens 70 --format dart --threshold 1 \
+	  --reporters console --ignore '**/*.g.dart' app/lib collector/lib collector/bin
 
 format: ## Format app and collector code
 	dart format app/lib app/test collector
