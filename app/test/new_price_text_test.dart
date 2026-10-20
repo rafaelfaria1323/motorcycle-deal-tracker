@@ -35,7 +35,7 @@ void main() {
 
     expect(lines, [
       'Preço de uma nova: ${Formatters.price(8250)}',
-      '${Formatters.price(1250)} abaixo de uma nova (15%)',
+      '${Formatters.price(1250)} abaixo de uma nova (15 %)',
       'Preço de uma nova verificado em 13/10/2026',
     ]);
   });
@@ -43,13 +43,13 @@ void main() {
   test('a small discount suggests comparing with a new one', () {
     final lines = newPriceLines(listing(price: 7900, newPrice: 8250), now: now);
 
-    expect(lines, contains(startsWith('Menos de 10% abaixo de uma nova')));
+    expect(lines, contains(startsWith('Menos de 10 % abaixo de uma nova')));
   });
 
   test('a price above a new one is flagged', () {
     final lines = newPriceLines(listing(price: 9000, newPrice: 8250), now: now);
 
-    expect(lines, contains('${Formatters.price(750)} acima de uma nova (9%)'));
+    expect(lines, contains('${Formatters.price(750)} acima de uma nova (9 %)'));
     expect(lines, contains(startsWith('Não é mais barata do que uma nova')));
   });
 

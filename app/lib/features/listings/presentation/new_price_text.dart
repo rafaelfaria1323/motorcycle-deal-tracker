@@ -22,15 +22,19 @@ List<String> newPriceLines(Listing listing, {DateTime? now}) {
   if (difference.abs() < 1) {
     lines.add('Custa o mesmo que uma nova');
   } else if (difference > 0) {
-    lines.add('${Formatters.price(difference)} abaixo de uma nova ($pct%)');
+    lines.add(
+      '${Formatters.price(difference)} abaixo de uma nova (${Formatters.percent(pct)})',
+    );
     if (pct < smallDiscountPct) {
       lines.add(
-        'Menos de $smallDiscountPct% abaixo de uma nova: compare com uma '
+        'Menos de ${Formatters.percent(smallDiscountPct)} abaixo de uma nova: compare com uma '
         'nova, que tem garantia de fábrica',
       );
     }
   } else {
-    lines.add('${Formatters.price(-difference)} acima de uma nova ($pct%)');
+    lines.add(
+      '${Formatters.price(-difference)} acima de uma nova (${Formatters.percent(pct)})',
+    );
   }
   if (difference < 1) {
     lines.add(

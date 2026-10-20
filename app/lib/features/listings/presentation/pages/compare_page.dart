@@ -86,7 +86,7 @@ class _ComparePageState extends State<ComparePage> {
               icon: Icons.compare_arrows,
               title: 'Escolha pelo menos dois anúncios',
               message:
-                  'Nas Ofertas, mantenha um anúncio premido, ou use '
+                  'Nas Ofertas, mantenha um anúncio premido ou use '
                   '"Comparar" na página do anúncio (até $maxCompared).',
               actionLabel: 'Ver ofertas',
               onAction: () => context.go(AppRoutes.deals),

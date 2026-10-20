@@ -11,6 +11,10 @@ abstract final class Formatters {
   static String price(double? value) =>
       value == null ? '—' : _price.format(value);
 
+  /// "5,3 %": decimal comma and a space before the sign, as in pt-PT.
+  static String percent(num value, {int decimals = 0}) =>
+      '${value.toStringAsFixed(decimals).replaceAll('.', ',')} %';
+
   static String mileage(int? value) =>
       value == null ? '—' : '${_number.format(value)} km';
 

@@ -70,8 +70,8 @@ class _CollectorStatusBannerState extends State<CollectorStatusBanner> {
               title: 'Recolha bloqueada pelo site',
               text:
                   'Na última recolha (${agoText(run!.finishedAt)}) um '
-                  'dos sites recusou os pedidos. A recolha pausa 24 h '
-                  'e volta a tentar sozinha.',
+                  'dos sites recusou os pedidos. A recolha fica em pausa '
+                  'durante 24 h e volta a tentar automaticamente.',
             );
           case CollectorHealth.failed:
             return _card(
@@ -80,7 +80,7 @@ class _CollectorStatusBannerState extends State<CollectorStatusBanner> {
               title: 'A última recolha falhou',
               text:
                   '${capitalize(agoText(run!.finishedAt))}. '
-                  'Veja o registo em GitHub Actions.',
+                  'Veja o registo no GitHub Actions.',
             );
         }
       },

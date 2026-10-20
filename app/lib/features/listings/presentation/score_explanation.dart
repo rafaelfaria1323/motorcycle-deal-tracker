@@ -125,19 +125,19 @@ abstract final class ScoreExplainer {
     final price = listing.price;
     if (pct != null && market != null && price != null) {
       final amount = Formatters.price((market - price).abs());
-      final pctText = pct.abs().toStringAsFixed(0);
+      final pctText = Formatters.percent(pct.abs());
       if (pct >= _priceNoticePct) {
         lines.add(
           ExplanationLine(
             ExplanationTone.positive,
-            '$pctText% ($amount) abaixo do valor estimado',
+            '$pctText ($amount) abaixo do valor estimado',
           ),
         );
       } else if (pct <= -_priceNoticePct) {
         lines.add(
           ExplanationLine(
             ExplanationTone.negative,
-            '$pctText% ($amount) acima do valor estimado',
+            '$pctText ($amount) acima do valor estimado',
           ),
         );
       } else {

@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import '../../../core/formatting/formatters.dart';
 import '../domain/entities/market_behaviour.dart';
 
 /// Below this many listings a figure is not shown as a fact.
@@ -38,15 +39,17 @@ List<String> marketLines(
 
   if (m.pricedCount >= minMarketData) {
     if (m.droppedCount == 0) {
-      lines.add('Nenhum vendedor baixou o preço desde que acompanhamos');
+      lines.add(
+        'Nenhum vendedor baixou o preço desde que acompanhamos este modelo',
+      );
     } else {
       final share = (m.droppedCount * 100 / m.pricedCount).round();
       final drop = m.medianDropPct;
       lines.add(
         drop == null
-            ? '$share% dos vendedores baixaram o preço'
-            : '$share% dos vendedores baixaram o preço '
-                  '(descida típica ${drop.toStringAsFixed(1)}%)',
+            ? '${Formatters.percent(share)} dos vendedores baixaram o preço'
+            : '${Formatters.percent(share)} dos vendedores baixaram o preço '
+                  '(descida típica ${Formatters.percent(drop, decimals: 1)})',
       );
     }
   }
@@ -77,9 +80,10 @@ List<String> marketLines(
 
 /// The yearly and per-10 000 km loss in value, as percentages of the price.
 String depreciationLine(Depreciation d) {
-  String pct(double rate) => ((1 - exp(-rate)) * 100).toStringAsFixed(1);
+  String pct(double rate) =>
+      Formatters.percent((1 - exp(-rate)) * 100, decimals: 1);
   final rates =
-      '${pct(d.perYear)}% por ano e ${pct(d.per1000Km * 10)}% por 10 000 km';
+      '${pct(d.perYear)} por ano e ${pct(d.per1000Km * 10)} por 10 000 km';
 
   return d.isFitted
       ? 'Desvalorização deste modelo: $rates (${d.sampleCount} anúncios)'

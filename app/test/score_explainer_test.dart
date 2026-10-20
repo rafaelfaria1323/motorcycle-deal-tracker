@@ -69,7 +69,7 @@ void main() {
     ]);
     expect(
       explanation.lines.first.text,
-      contains('8% (720 €) abaixo do valor estimado'),
+      contains('8 % (720 €) abaixo do valor estimado'),
     );
     expect(explanation.slicesUsed, 3);
   });

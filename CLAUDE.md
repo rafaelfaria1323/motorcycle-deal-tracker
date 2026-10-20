@@ -111,8 +111,10 @@ for the code-quality review. Supabase's Vault holds `github_dispatch_token`
   pages outside the shell (`/models`, `/compare?ids=a,b,c`) are pushed.
   The comparison picks live in `CompareCubit` (lazy singleton, max 3);
   its table is `compare_text.dart` (`compareRows`, tested).
-- Formatting: `Formatters.price`, `.mileage`, `.date`, `.daysAgo`
-  (`core/formatting/formatters.dart`).
+- Formatting: `Formatters.price`, `.mileage`, `.date`, `.daysAgo`,
+  `.percent` ("5,3 %": decimal comma, space before the sign)
+  (`core/formatting/formatters.dart`). A listing is an "anúncio" (Ofertas
+  is only the tab's name); a repeat of another listing is "duplicado".
 - Auth: anonymous session on first visit; the owner signs in with
   email + password (user created by hand in Supabase, no SMTP). Catalog
   changes go through RPCs that call `require_account()` (signed in, not

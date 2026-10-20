@@ -175,7 +175,7 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
           child: Text(
-            'O recolhedor pesquisa só os modelos ligados e dá-lhes pontuação, '
+            'A recolha só pesquisa os modelos ativos e atribui-lhes pontuação, '
             'alertas e dados de mercado. As alterações contam a partir da '
             'próxima recolha (até 4 horas). Toque num modelo para mudar o ano '
             'ou o preço de uma nova.',
@@ -304,8 +304,8 @@ class _ModelDialogState extends State<_ModelDialog> {
               decoration: InputDecoration(
                 labelText: 'Preço de uma nova (€)',
                 helperText:
-                    'Preço de tabela no site da marca. Fica com a data de '
-                    'hoje; vazio para apagar.',
+                    'Preço de tabela no site da marca. Fica registado com a '
+                    'data de hoje; deixe vazio para apagar.',
                 helperMaxLines: 3,
                 errorText: _priceError,
                 border: const OutlineInputBorder(),

@@ -86,7 +86,7 @@ List<CompareRow> compareRows(List<Listing> listings, {DateTime? now}) {
     ),
     row('Ano', (l) => _or(l.year), score: (l) => l.year, higherIsBetter: true),
     row(
-      'Quilómetros',
+      'Quilometragem',
       (l) => Formatters.mileage(l.mileage),
       score: (l) => l.mileage,
     ),
@@ -96,7 +96,11 @@ List<CompareRow> compareRows(List<Listing> listings, {DateTime? now}) {
           ? '−${Formatters.price(-l.priceChange!)}'
           : '—',
     ),
-    row('Donos', (l) => _or(l.registrations), score: (l) => l.registrations),
+    row(
+      'Registos (donos)',
+      (l) => _or(l.registrations),
+      score: (l) => l.registrations,
+    ),
     row(
       'Livro de revisões',
       (l) => switch (l.serviceBook) {

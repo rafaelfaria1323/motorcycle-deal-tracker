@@ -97,8 +97,8 @@ class _AccountSheetState extends State<_AccountSheet> {
       Text('Iniciar sessão', style: Theme.of(context).textTheme.titleLarge),
       const SizedBox(height: 8),
       const Text(
-        'Com a sua conta, as pesquisas e alertas ficam iguais em qualquer '
-        'dispositivo ou browser.',
+        'Com a sua conta, as suas pesquisas e alertas ficam sincronizados '
+        'em qualquer dispositivo ou browser.',
       ),
       const SizedBox(height: 16),
       TextField(

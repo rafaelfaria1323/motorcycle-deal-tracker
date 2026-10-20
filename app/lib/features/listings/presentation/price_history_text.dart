@@ -11,9 +11,12 @@ String? siteDropLine(Listing listing) {
     return null;
   }
   if (before - current < 1) return null;
-  final pct = ((before - current) / before * 100).toStringAsFixed(1);
+  final pct = Formatters.percent(
+    (before - current) / before * 100,
+    decimals: 1,
+  );
   return 'Segundo o ${sourceLabel(listing.source)}, o preço já foi '
-      '${Formatters.price(before)} (−${pct.replaceAll('.', ',')} % até hoje), '
+      '${Formatters.price(before)} (−$pct até hoje), '
       'antes de começarmos a seguir este anúncio.';
 }
 
