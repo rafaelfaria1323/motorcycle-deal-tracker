@@ -42,6 +42,7 @@ class Listing extends Equatable {
     this.newPrice,
     this.newPriceCheckedAt,
     this.engineCc,
+    this.distanceKm,
   });
 
   final String id;
@@ -94,6 +95,10 @@ class Listing extends Equatable {
   /// Engine size of the matched model (the middle of its catalog range).
   /// Only loaded on the detail page.
   final int? engineCc;
+
+  /// Straight-line km from the signed-in person's home (the computed field
+  /// `distance_km`); null without a home or a known place.
+  final int? distanceKm;
 
   /// The price changes are measured from: the first price we saw, or a
   /// higher earlier price the site reported.

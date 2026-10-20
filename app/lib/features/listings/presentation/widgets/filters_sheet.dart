@@ -4,6 +4,7 @@ import '../../domain/entities/listing.dart';
 import '../../domain/entities/listing_filters.dart';
 import '../../domain/entities/motorcycle_option.dart';
 import '../filter_fields_text.dart';
+import '../saved_search_summary.dart';
 import '../score_criteria.dart';
 
 class FiltersSheet extends StatefulWidget {
@@ -26,6 +27,7 @@ class _FiltersSheetState extends State<FiltersSheet> {
   late bool _activeOnly = widget.initial.activeOnly;
   late int? _minDealScore = widget.initial.minDealScore;
   late int? _maxRiskScore = widget.initial.maxRiskScore;
+  late int? _maxDistanceKm = widget.initial.maxDistanceKm;
 
   late final _year = TextEditingController(
     text: widget.initial.minYear?.toString() ?? '',
@@ -59,6 +61,7 @@ class _FiltersSheetState extends State<FiltersSheet> {
       sellerType: _sellerType,
       minDealScore: _minDealScore,
       maxRiskScore: _maxRiskScore,
+      maxDistanceKm: _maxDistanceKm,
       activeOnly: _activeOnly,
     );
   }
@@ -110,6 +113,22 @@ class _FiltersSheetState extends State<FiltersSheet> {
               labelText: 'Localização',
               border: OutlineInputBorder(),
             ),
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<int?>(
+            initialValue: _maxDistanceKm,
+            decoration: const InputDecoration(
+              labelText: 'Distância máxima',
+              helperText: 'A partir da sua localidade (em Mais)',
+              border: OutlineInputBorder(),
+            ),
+            items: [
+              const DropdownMenuItem(value: null, child: Text('Qualquer')),
+              // Keeps a saved value that is not one of the options.
+              for (final km in {...maxDistanceOptions, ?_maxDistanceKm})
+                DropdownMenuItem(value: km, child: Text(maxDistanceLabel(km))),
+            ],
+            onChanged: (value) => setState(() => _maxDistanceKm = value),
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<int?>(

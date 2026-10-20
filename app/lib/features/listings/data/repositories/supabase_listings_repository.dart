@@ -52,6 +52,9 @@ class SupabaseListingsRepository implements ListingsRepository {
     if (filters.maxRiskScore != null) {
       query = query.lte('risk_score', filters.maxRiskScore!);
     }
+    if (filters.maxDistanceKm != null) {
+      query = query.lte('distance_km', filters.maxDistanceKm!);
+    }
     if (filters.activeOnly) {
       query = query.inFilter('status', ['active', 'price_changed']);
     }
@@ -73,6 +76,11 @@ class SupabaseListingsRepository implements ListingsRepository {
         ascending: false,
         nullsFirst: false,
       ),
+      ListingSort.nearest => query.order(
+        'distance_km',
+        ascending: true,
+        nullsFirst: false,
+      ),
     };
 
     // The id breaks ties, so pages never repeat or skip a listing.
@@ -85,7 +93,7 @@ class SupabaseListingsRepository implements ListingsRepository {
     final row = await _client
         .from('listings')
         .select(
-          '*, motorcycles(new_price_reference, new_price_checked_at, '
+          '*, distance_km, motorcycles(new_price_reference, new_price_checked_at, '
           'engine_cc_min, engine_cc_max)',
         )
         .eq('id', id)

@@ -43,7 +43,7 @@ void main() {
   });
 
   test('every sort order has a label', () {
-    expect(ListingSort.values.map((s) => s.label).toSet(), hasLength(4));
+    expect(ListingSort.values.map((s) => s.label).toSet(), hasLength(5));
     expect(ListingSort.dealScoreDesc.label, 'Melhor pontuação');
   });
 }

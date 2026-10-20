@@ -5,6 +5,16 @@ here. Robots.txt is not permission; the source's terms of use decide.
 
 ## Decision log
 
+### 2026-10-20: place coordinates from GeoNames (15.11)
+
+The distance from home needs coordinates for the place names the sites
+give. Source: GeoNames (geonames.org, CC BY 4.0: free use with credit),
+taken from the npm package `cities.json` 1.1.65 (Portuguese towns over
+1 000 people, the municipalities and districts). It is a one-off copy in
+the migration `20261022150000_listing_distance.sql` (table `places`); no
+site is read at run time. Credit: "Place coordinates: GeoNames
+(geonames.org), CC BY 4.0".
+
 ### 2026-10-19: searches come from the tracked models (9.9)
 
 **Decision.** Each catalog model stores the OLX and Standvirtual search

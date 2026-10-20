@@ -351,6 +351,12 @@ functions for manual work.
   3 % (dealer) below it, more for long on sale (+3/5/7 % past 1x/2x/3x the
   model's typical time), relisted (+2 %), a model whose sellers often
   drop, high risk; less after a drop; 1-15 %, rounded down to 50 €.
+- Distance from home: `places` (towns, municipalities, districts with
+  coordinates; GeoNames CC BY 4.0), `user_home` (one place per account,
+  set in Mais), `place_key()` (= the app's `placeKey`, keep them equal),
+  and the computed field `listings.distance_km` (from the caller's home;
+  select it explicitly, it is never part of `*`). Saved searches have
+  `max_distance_km`, matched against the search owner's home.
 - Dealer figures (`dealer_reliability` view, per dealer name trimmed and
   case-folded, both sites; shown as "O stand" on dealer listings): bikes,
   live, relisted, sharp price changes, missing mileage, repeated used

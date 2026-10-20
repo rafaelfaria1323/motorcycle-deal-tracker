@@ -8,10 +8,21 @@ import 'listing_labels.dart';
 String keyFactsLine(Listing listing) => [
   if (listing.year != null) '${listing.year}',
   if (listing.mileage != null) Formatters.mileage(listing.mileage),
-  if (listing.location case final location? when location.trim().isNotEmpty)
-    location.trim(),
+  if (placeText(listing) case final place?) place,
   if (listing.sellerType != SellerType.unknown) listing.sellerType.label,
 ].join(' · ');
+
+/// "a 45 km" from the person's home.
+String distanceText(int km) => 'a ${Formatters.mileage(km)}';
+
+/// "Matosinhos, a 8 km"; the place alone without a distance; null without
+/// a place.
+String? placeText(Listing listing) {
+  final location = listing.location?.trim();
+  if (location == null || location.isEmpty) return null;
+  final km = listing.distanceKm;
+  return km == null ? location : '$location, ${distanceText(km)}';
+}
 
 /// "3 / 12" on the photo gallery.
 String photoCounterText(int index, int count) => '${index + 1} / $count';
@@ -43,7 +54,7 @@ List<Fact> bikeFacts(Listing listing) => [
 
 /// "O anúncio": where and who, the site, its dates and the status.
 List<Fact> adFacts(Listing listing, {DateTime? now}) => [
-  ('Localização', listing.location ?? '—'),
+  ('Localização', placeText(listing) ?? '—'),
   ('Vendedor', listing.sellerName ?? '—'),
   ('Tipo de vendedor', listing.sellerType.label),
   ('Fonte', sourceLabel(listing.source)),
