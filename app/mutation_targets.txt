@@ -6,6 +6,7 @@ lib/features/listings/presentation/market_behaviour_text.dart
 lib/features/listings/presentation/model_picker_text.dart
 lib/features/listings/presentation/alerts_text.dart
 lib/features/listings/presentation/new_price_text.dart
+lib/features/listings/presentation/price_position_text.dart
 lib/features/collector_status/presentation/data_quality_text.dart
 lib/features/collector_status/presentation/collection_text.dart
 lib/features/listings/presentation/price_history_text.dart

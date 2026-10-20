@@ -14,7 +14,8 @@ Cloudflare Pages on every merge that touches `app/`
   or "Comparar" on a listing's page), the best value of each row marked.
 - **Listing page:** photo gallery, price and score with the reasons behind
   it, risks, the same bike on the other site, the comparison with a new one,
-  market behaviour for the model and the price history.
+  market behaviour for the model (with where the asking price sits among
+  the model's live listings) and the price history.
 - **Pesquisas:** saved searches, each with its "N ofertas" and alert
   preferences; "Nova pesquisa" creates one (Ofertas can also save its
   current filters).

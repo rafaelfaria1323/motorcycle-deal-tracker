@@ -1,4 +1,4 @@
-# Motorcycle Deal Tracker — Concept & Architecture (status 2026-10-19)
+# Motorcycle Deal Tracker — Concept & Architecture (status 2026-10-20)
 
 **Legend:** ✅ done · 🟡 partly done · ⬜ not started · ➕ added along the way
 
@@ -31,7 +31,7 @@ Unchanged.
 - ✅ Create saved searches. *Also by minimum Deal Score / maximum Risk Score.*
 - ✅ Send alerts. *In the app and on the phone via Telegram, plus a weekly summary on Mondays.*
 - ✅ Compare motorcycles. *Up to 3 listings side by side (long press in Ofertas or "Comparar" on a listing), best value per row highlighted.*
-- 🟡 Show market trends. *Time on market, price drops and depreciation per model; price trends need more history.*
+- 🟡 Show market trends. *Time on market, price drops, depreciation and the spread of live asking prices per model; price trends need more history.*
 
 ## 4. Motorcycle Models ✅
 
@@ -127,7 +127,7 @@ All four types, each at most once per event, only for events after the search wa
 
 ## 18. Listing Detail Page ✅
 
-✅ Photos (gallery, full screen), price, year, mileage, location, seller, seller type, source, original link, Deal Score, Risk Score, explanation, estimated value, price history, first/last seen, status, new-motorcycle comparison. ➕ Owners, service book, origin, warranty, publication date, full description, market behaviour card (with depreciation), "also listed as" duplicates. *Sections ordered for a decision (score and risks first, history last); the button to the ad stays at the bottom of the screen.*
+✅ Photos (gallery, full screen), price, year, mileage, location, seller, seller type, source, original link, Deal Score, Risk Score, explanation, estimated value, price history, first/last seen, status, new-motorcycle comparison. ➕ Owners, service book, origin, warranty, publication date, full description, market behaviour card (with depreciation and where the asking price sits among the model's live listings), "also listed as" duplicates. *Sections ordered for a decision (score and risks first, history last); the button to the ad stays at the bottom of the screen.*
 
 ## 19. New Motorcycle Comparison 🟡
 

@@ -30,6 +30,20 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
     );
   }
 
+  @override
+  Future<Map<String, double>> getLivePrices(String motorcycleId) async {
+    final rows = await _client
+        .from('listings')
+        .select('id, price')
+        .eq('motorcycle_id', motorcycleId)
+        .isFilter('duplicate_of', null)
+        .inFilter('status', ['active', 'price_changed'])
+        .not('price', 'is', null);
+    return {
+      for (final r in rows) r['id'] as String: (r['price'] as num).toDouble(),
+    };
+  }
+
   Future<Map<String, dynamic>?> _behaviour(String motorcycleId) async => _client
       .from('model_market_behaviour')
       .select()
