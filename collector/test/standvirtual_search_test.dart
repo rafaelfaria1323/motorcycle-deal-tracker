@@ -49,6 +49,7 @@ String searchPage(
   List<Map<String, dynamic>> nodes, {
   int? total,
   String? bumpDate,
+  Map<String, dynamic>? filters,
 }) {
   final search = {
     'advertSearch': {
@@ -72,6 +73,10 @@ String searchPage(
             'data': jsonEncode({'sortOptions': <String, Object>{}}),
           },
           'b': {'data': jsonEncode(search)},
+          if (filters != null)
+            'c': {
+              'data': jsonEncode({'filters': filters}),
+            },
         },
       },
     },
@@ -83,7 +88,58 @@ String searchPage(
 final adapter = StandvirtualSearchAdapter('unused');
 final catalog = Catalog(const [mt07Entry]);
 
+Map<String, dynamic> filterState(
+  String filterId,
+  List<Map<String, Object?>> values, {
+  String? make,
+}) => {
+  'filterId': filterId,
+  'conditions': [
+    if (make != null) {'filterId': 'filter_enum_make', 'value': make},
+  ],
+  'values': [
+    {'name': null, 'values': values},
+  ],
+};
+
 void main() {
+  test('reads the brand and model lists of the filters', () {
+    final page = adapter.parseSearchPage(
+      searchPage(
+        [node()],
+        filters: {
+          'states': [
+            filterState('filter_enum_make', [
+              {'id': 'honda', 'name': 'Honda', 'counter': 361},
+            ]),
+            filterState('filter_enum_model', [
+              {'id': 'forza', 'name': 'Forza', 'counter': 32},
+              {'id': 'cb', 'name': 'CB ', 'counter': 52},
+              {'id': 'blank', 'name': ' '},
+            ], make: 'honda'),
+            // A brand missing from the brand list is left out.
+            filterState('filter_enum_model', [
+              {'id': 'x', 'name': 'X', 'counter': 1},
+            ], make: 'unknown'),
+            filterState('filter_enum_color', [
+              {'id': 'red', 'name': 'Vermelho'},
+            ]),
+          ],
+        },
+      ),
+    );
+
+    expect(
+      [
+        for (final m in page.models)
+          '${m.makeName}/${m.modelId}/${m.modelName}/${m.ads}',
+      ],
+      ['Honda/forza/Forza/32', 'Honda/cb/CB/52'],
+    );
+    expect(page.records, hasLength(1));
+    expect(adapter.parseSearchPage(searchPage([node()])).models, isEmpty);
+  });
+
   test('reads every listing of a search page', () {
     final page = adapter.parseSearchPage(
       searchPage([

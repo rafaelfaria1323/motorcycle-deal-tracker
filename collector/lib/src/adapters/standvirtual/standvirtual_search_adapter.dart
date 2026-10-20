@@ -3,6 +3,7 @@ import 'dart:io';
 
 import '../../fetch/search_manifest.dart';
 import '../json_values.dart';
+import '../site_model.dart';
 import '../source_adapter.dart';
 import 'standvirtual_raw_listing.dart';
 
@@ -14,6 +15,7 @@ class StandvirtualSearchPage {
     required this.total,
     required this.offset,
     required this.shown,
+    this.models = const [],
   });
 
   final List<StandvirtualRawListing> records;
@@ -27,6 +29,9 @@ class StandvirtualSearchPage {
 
   /// How many results this page holds.
   final int shown;
+
+  /// The brands and models in the page's filters.
+  final List<SiteModel> models;
 
   bool get isComplete => offset + shown >= total;
 }
@@ -66,6 +71,7 @@ class StandvirtualSearchAdapter
 
     final records = <StandvirtualRawListing>[];
     final issues = <ParseIssue>[];
+    final models = <SiteModel>[];
 
     for (var i = 0; i < files.length; i++) {
       final name = files[i].uri.pathSegments.last;
@@ -75,6 +81,7 @@ class StandvirtualSearchAdapter
         final page = parseSearchPage(utf8.decode(bytes, allowMalformed: true));
         records.addAll(page.records);
         recordSearches.addAll([for (final _ in page.records) search]);
+        models.addAll(page.models);
 
         for (final problem in page.problems) {
           issues.add(ParseIssue(i, '$name: $problem', search: search));
@@ -109,6 +116,7 @@ class StandvirtualSearchAdapter
       issues,
       recordSearches: manifest == null ? null : recordSearches,
       manifest: manifest,
+      siteModels: uniqueSiteModels(models),
     );
   }
 
@@ -139,9 +147,11 @@ class StandvirtualSearchAdapter
       throw const FormatException('no search data (is this a search page?)');
     }
 
-    // The search results are one cache entry among several; its payload is
-    // JSON inside JSON.
+    // The search results are one cache entry among several (the filters,
+    // with the brand and model lists, are another); its payload is JSON
+    // inside JSON.
     Map<String, dynamic>? search;
+    var models = const <SiteModel>[];
     for (final entry in urql.values) {
       Object? payload = asMap(entry)?['data'];
       if (payload is String) {
@@ -151,10 +161,10 @@ class StandvirtualSearchAdapter
           continue;
         }
       }
-      final found = asMap(asMap(payload)?['advertSearch']);
-      if (found != null) {
-        search = found;
-        break;
+      search ??= asMap(asMap(payload)?['advertSearch']);
+      if (asMap(asMap(payload)?['filters']) case final filters?
+          when models.isEmpty) {
+        models = standvirtualSiteModels(filters);
       }
     }
     if (search == null) {
@@ -189,6 +199,7 @@ class StandvirtualSearchAdapter
       total: asInt(search['totalCount']) ?? edges.length,
       offset: asInt(asMap(search['pageInfo'])?['currentOffset']) ?? 0,
       shown: edges.length + topAds.length,
+      models: models,
     );
   }
 }

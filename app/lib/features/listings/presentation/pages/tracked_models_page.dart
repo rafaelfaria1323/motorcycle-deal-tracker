@@ -102,7 +102,7 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
 
   Future<void> _add() async {
     final messenger = ScaffoldMessenger.of(context);
-    final added = await showAddModelSheet(context);
+    final added = await showAddModelSheet(context, _repository);
     if (added == null) return;
     try {
       await _repository.addModel(
@@ -112,6 +112,8 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
         olxSearch: added.olxSearch,
         standvirtualSearch: added.standvirtualSearch,
         aliases: added.aliases,
+        engineCcMin: added.engineCcMin,
+        engineCcMax: added.engineCcMax,
       );
       messenger.showSnackBar(
         SnackBar(

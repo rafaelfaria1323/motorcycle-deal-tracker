@@ -49,6 +49,9 @@ Future<void> importBatch(
     }
   }
   log.writeln('Mapped ${listings.length}, rejected $rejected.');
+  if (batch.siteModels.isNotEmpty) {
+    log.writeln('Brands and models on offer: ${batch.siteModels.length}');
+  }
 
   if (store == null) {
     log.writeln('Dry run: nothing was written.');
@@ -95,6 +98,11 @@ Future<void> importBatch(
   // 3c. Publication and renewal dates the source shows.
   final dated = await store.applyListingDates(batch.source, unique);
   if (dated > 0) log.writeln('Listing dates updated: $dated');
+
+  // 3d. The site's brand and model lists, for the app's model picker.
+  if (batch.siteModels.isNotEmpty) {
+    await store.saveSiteModels(batch.source, batch.siteModels);
+  }
 
   // 4. Only for a complete import: what is missing has been removed.
   //    Rejected records still count as on the site (an old bike is still

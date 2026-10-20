@@ -56,6 +56,12 @@ class _Store implements ListingStore {
   }
 
   @override
+  Future<int> saveSiteModels(String s, List<SiteModel> models) async {
+    calls.add('saveSiteModels ${models.length}');
+    return models.length;
+  }
+
+  @override
   Future<int> markRemoved(
     String source,
     List<String> seenIds, {
@@ -76,12 +82,14 @@ class _Store implements ListingStore {
 MappedRecord _mapped(String id) => MappedRecord(id, Mapped(testListing(id)));
 
 /// Two bikes we keep and an old one we reject that is still on the site.
-SourceBatch _batch({List<ParseIssue> issues = const []}) =>
-    SourceBatch('olx', issues, [
-      _mapped('a'),
-      _mapped('b'),
-      const MappedRecord('old', Rejected('year 2015 too old'), liveId: 'c'),
-    ]);
+SourceBatch _batch({
+  List<ParseIssue> issues = const [],
+  List<SiteModel> siteModels = const [],
+}) => SourceBatch('olx', issues, [
+  _mapped('a'),
+  _mapped('b'),
+  const MappedRecord('old', Rejected('year 2015 too old'), liveId: 'c'),
+], siteModels: siteModels);
 
 void main() {
   final catalog = Catalog(const []);
@@ -107,6 +115,29 @@ void main() {
       'applyPricesBeforeDrop',
       'applyListingDates',
     ]);
+  });
+
+  test('the site\'s brand and model lists are stored', () async {
+    final store = _Store();
+    final out = StringBuffer();
+    await importBatch(
+      _batch(
+        siteModels: const [
+          SiteModel(
+            makeId: 'yamaha',
+            makeName: 'yamaha',
+            modelId: 'mt-07',
+            modelName: 'MT-07',
+          ),
+        ],
+      ),
+      catalog,
+      store: store,
+      out: out,
+    );
+
+    expect(store.calls.last, 'saveSiteModels 1');
+    expect(out.toString(), contains('Brands and models on offer: 1'));
   });
 
   test(

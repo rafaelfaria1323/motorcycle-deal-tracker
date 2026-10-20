@@ -5,6 +5,7 @@ import '../../normalized/normalized_listing.dart';
 import '../../normalized/normalizers.dart';
 import '../../fetch/search_manifest.dart';
 import '../json_values.dart';
+import '../site_model.dart';
 import '../source_adapter.dart';
 import 'olx_raw_listing.dart';
 
@@ -17,6 +18,7 @@ class OlxSearchPage {
     required this.total,
     required this.records,
     required this.problems,
+    this.models = const [],
   });
 
   /// What was searched (category and filters, without the page), so the
@@ -31,6 +33,9 @@ class OlxSearchPage {
 
   /// Results on the page that could not be read.
   final List<String> problems;
+
+  /// The models OLX offers for the page's brand.
+  final List<SiteModel> models;
 }
 
 /// Reads OLX search results pages (saved by `make fetch` or by hand) out of
@@ -68,6 +73,7 @@ class OlxSearchAdapter implements SourceAdapter<OlxRawListing> {
 
     final records = <OlxRawListing>[];
     final issues = <ParseIssue>[];
+    final models = <SiteModel>[];
     final pagesBySearch = <String, Set<int>>{};
     final totalPages = <String, int>{};
     final firstFile = <String, int>{};
@@ -81,6 +87,7 @@ class OlxSearchAdapter implements SourceAdapter<OlxRawListing> {
         final page = parseSearchPage(utf8.decode(bytes, allowMalformed: true));
         records.addAll(page.records);
         recordSearches.addAll([for (final _ in page.records) search]);
+        models.addAll(page.models);
         (pagesBySearch[page.search] ??= {}).add(page.pageNumber);
         totalPages[page.search] = page.totalPages;
         firstFile.putIfAbsent(page.search, () => i);
@@ -123,6 +130,7 @@ class OlxSearchAdapter implements SourceAdapter<OlxRawListing> {
       issues,
       recordSearches: manifest == null ? null : recordSearches,
       manifest: manifest,
+      siteModels: uniqueSiteModels(models),
     );
   }
 
@@ -188,6 +196,7 @@ class OlxSearchAdapter implements SourceAdapter<OlxRawListing> {
       total: asInt(listing['totalElements']) ?? ads.length,
       records: records,
       problems: problems,
+      models: olxSiteModels(listing, brand),
     );
   }
 }

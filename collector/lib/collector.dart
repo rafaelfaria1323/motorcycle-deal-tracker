@@ -4,6 +4,7 @@ export 'src/adapters/manual/manual_raw_listing.dart';
 export 'src/adapters/olx/olx_mapper.dart';
 export 'src/adapters/olx/olx_raw_listing.dart';
 export 'src/adapters/olx/olx_search_adapter.dart';
+export 'src/adapters/site_model.dart';
 export 'src/adapters/source_adapter.dart';
 export 'src/adapters/standvirtual/standvirtual_mapper.dart';
 export 'src/adapters/standvirtual/standvirtual_page_adapter.dart';

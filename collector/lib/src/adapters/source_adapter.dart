@@ -1,4 +1,5 @@
 import '../fetch/search_manifest.dart';
+import 'site_model.dart';
 
 /// One record that could not be read; the rest of the file is still used.
 class ParseIssue {
@@ -22,6 +23,7 @@ class ParseResult<T> {
     this.issues, {
     this.recordSearches,
     this.manifest,
+    this.siteModels = const [],
   });
 
   final List<T> records;
@@ -33,6 +35,9 @@ class ParseResult<T> {
 
   /// What the fetch run planned and saved; null for pages saved by hand.
   final SearchManifest? manifest;
+
+  /// The brands and models the site offers, from its search filters.
+  final List<SiteModel> siteModels;
 }
 
 /// A source-specific reader. It returns raw records in the source's own shape;

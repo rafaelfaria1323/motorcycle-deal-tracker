@@ -161,6 +161,25 @@ class ListingStore {
     );
   }
 
+  /// Stores the brands and models a site offers (for the app's model
+  /// picker), updating the ones already stored. Returns how many.
+  Future<int> saveSiteModels(String source, List<SiteModel> models) async {
+    final now = DateTime.now().toUtc().toIso8601String();
+    final rows = [
+      for (final m in uniqueSiteModels(models))
+        {...m.toRow(source), 'seen_at': now},
+    ];
+    for (var i = 0; i < rows.length; i += 500) {
+      await _client
+          .from('site_models')
+          .upsert(
+            rows.sublist(i, i + 500 > rows.length ? rows.length : i + 500),
+            onConflict: 'source,make_id,model_id',
+          );
+    }
+    return rows.length;
+  }
+
   /// Recomputes the stored deal and risk scores (see `recalculate_deal_scores`).
   Future<int> recalculateScores() async {
     final result = await _client.rpc('recalculate_deal_scores');
