@@ -48,10 +48,25 @@ begin
   assert (select relisted_from from public.listings where source_listing_id = 'b3') is null,
     'a dealer''s identical new bikes are separate stock';
 
+  -- The relist is a risk reason: on sale for 200 days counting the old ad.
+  assert (select reasons from public.listing_risk_scores rs
+          join public.listings l on l.id = rs.listing_id
+          where l.source_listing_id = 'b1') @> array['relisted_often'],
+    'a relist on sale for over 90 days is relisted_often';
+  assert not (select reasons && array['relisted', 'relisted_often']
+              from public.listing_risk_scores rs
+              join public.listings l on l.id = rs.listing_id
+              where l.source_listing_id = 'b2'),
+    'not a relist, no relist reason';
+
   update public.listings set relisted_since = null where source_listing_id = 'g1';
   marked := public.mark_relists();
   assert marked = 1, format('recomputed from scratch, got %s', marked);
   assert (select relisted_since from public.listings where source_listing_id = 'b1')
          = now() - interval '50 days',
     'without a chain, the earlier of publication and first sighting';
+  assert (select reasons from public.listing_risk_scores rs
+          join public.listings l on l.id = rs.listing_id
+          where l.source_listing_id = 'b1') @> array['relisted'],
+    'relisted once, on sale for 50 days';
 end $$;

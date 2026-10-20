@@ -107,7 +107,7 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 - ✅ Missing information.
 - ✅ Possible accident.
 - 🟡 Duplicate listing. *Detected (across sources too) and excluded from scoring, not a risk signal.*
-- 🟡 Suspicious seller behaviour. *Relisted ads are detected (the same bike taken down and listed again) and shown with the first date on sale and the earlier price; not a risk signal yet (planned: 15.5).*
+- ✅ Suspicious seller behaviour. *Relisted ads are detected (the same bike taken down and listed again), shown with the first date on sale and the earlier price, and count as risk (15.5): 5 points, 10 when relisted twice or on sale for over 90 days counting the earlier ads. Dealer reliability is planned (15.7).*
 - ✅ Unclear ownership/history. *3+ owners, no service book, imported.*
 - ⬜ Excessively edited or reused images.
 
@@ -150,7 +150,7 @@ Private sellers' names and all phone numbers are never stored; saved pages and f
 
 Comparison ✅ (listings side by side), buying assistant, checklists, cost calculators, price prediction, weekly ranking, smart alerts, model price history, imports, dealer integration. ➕ Depreciation tracking ✅ (per-model rates fitted from data).
 
-Planned in roadmap Sprint 15 ("Deciding and buying"): ➕ favourites with private notes ✅ (15.1; a favourite always alerts on price drops and removal), price to offer (buying assistant, 15.2) ✅, viewing checklist (15.3) ⬜, cost of ownership (cost calculator, 15.4) ⬜, relists and text contradictions as risk signals (15.5, 15.6) ⬜, dealer reliability (15.7) ⬜, price trends (model price history, 15.8) ⬜, more sources and imports (15.9) ⬜, web push (15.10) ⬜.
+Planned in roadmap Sprint 15 ("Deciding and buying"): ➕ favourites with private notes ✅ (15.1; a favourite always alerts on price drops and removal), price to offer (buying assistant, 15.2) ✅, viewing checklist (15.3) ⬜, cost of ownership (cost calculator, 15.4) ⬜, relists as a risk signal (15.5) ✅, text contradictions as risk signals (15.6) ⬜, dealer reliability (15.7) ⬜, price trends (model price history, 15.8) ⬜, more sources and imports (15.9) ⬜, web push (15.10) ⬜.
 
 ## 24. Product Philosophy ✅
 

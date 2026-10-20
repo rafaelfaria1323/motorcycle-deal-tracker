@@ -56,6 +56,19 @@ void main() {
     expect(lines.single.text, startsWith('Quilometragem pouco provável'));
   });
 
+  test('a relisted bike reads as a negative', () {
+    for (final code in ['relisted', 'relisted_often']) {
+      final lines = ScoreExplainer.explain(listingWith([code]))!.lines;
+
+      expect(lines, hasLength(1));
+      expect(lines.single.tone, ExplanationTone.negative);
+    }
+    expect(
+      ScoreExplainer.explain(listingWith(['relisted']))!.lines.single.text,
+      'Já esteve à venda noutro anúncio e não foi vendida',
+    );
+  });
+
   test('unknown reason codes are ignored', () {
     final lines = ScoreExplainer.explain(listingWith(['something_new']))!.lines;
 

@@ -279,7 +279,8 @@ functions for manual work.
   similarity >= 70) which disappeared up to 90 days before it was first
   seen gets `relisted_from`, `relisted_since` (when the bike first went on
   sale, following earlier relists) and `relisted_price`. Shown on the
-  listing page ("Anúncio publicado de novo"); changes no score.
+  listing page ("Anúncio publicado de novo") and a risk reason (see Scoring
+  model).
 
 ## Fetching rules (do not loosen without asking Rafael)
 
@@ -320,7 +321,9 @@ functions for manual work.
 - Risk signals: price far below market, possible accident (text), missing
   mileage/year/location, thin description (only private sellers with details
   read), 3+ owners, no service book, imported, implausible mileage (under
-  100 km on a bike 3+ years old, or over 25 000 km a year); reassuring: first owner,
+  100 km on a bike 3+ years old, or over 25 000 km a year), relisted (5;
+  `relisted_often` 10: twice, or on sale for over 90 days counting the
+  earlier ads); reassuring: first owner,
   service book, factory warranty (negative points, floor 0).
 - Market behaviour per model (`model_market_behaviour`): time until leaving
   the market, share and size of price drops (measured from the higher of the

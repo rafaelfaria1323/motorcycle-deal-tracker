@@ -228,8 +228,8 @@ Do not implement several unrelated features at once.
 *Per favourite, a checklist for seeing the bike: VIN and plate against the DUA/registration, service stamps and invoices, chain and sprockets, tyres (DOT date), brakes and discs, fork seals, signs of a fall (levers, pegs, bar ends, scratched tank/fairings), cold start, lights and electrics, keys, open finance (ask for the "certidão de registo automóvel"). Ticks and per-item notes stored with the favourite (e.g. a `checklist jsonb` column on `listing_favourites`); the list itself lives in the app (pure Dart, tested). Model-specific items can come later.*
 ## 15.4 Cost of ownership ⬜
 *A yearly estimate on the listing page: IUC (by engine size and registration year, Portuguese table), insurance band (owner enters their own quote once; stored per account), tyres and services from km/year, and the depreciation already fitted per model (`model_depreciation`). Gives "custa cerca de X € por ano" and the total for the years the owner plans to keep it. Tables in one pure Dart file with tests; the IUC table needs checking each year.*
-## 15.5 Relisted as a risk signal ⬜
-*Relists are detected (20.2) but change no score. Add a risk reason when the bike has been relisted (more points for two or more, or more than 90 days on sale counting `relisted_since`), in `risk_assessment` with a SQL test, and its text in the app's risk reasons.*
+## 15.5 Relisted as a risk signal ✅
+*Two risk reasons from the relist links of 20.2 (`mark_relists`): `relisted` (5 points) for a bike put up again after its ad went, `relisted_often` (10) when that happened twice (this ad's previous ad was itself a relist) or the bike has been on sale for over 90 days counting the earlier ads (`relisted_since`). A long time on sale without a relist is not a signal. `risk_assessment` takes two new parameters (`p_relists`, `p_on_sale_since`), so the function and `listing_risk_scores` are created again. The app explains them ("Já esteve à venda noutro anúncio e não foi vendida", "Posta à venda várias vezes ou há mais de 90 dias sem ser vendida"). Tests: `scoring_functions_test.sql` (thresholds), `relists_test.sql` (through the view), `app/test/risk_reasons_test.dart`.*
 ## 15.6 Consistency checks in the text ⬜
 *More risk signals from the description against the ad's fields: a year or mileage written in the text that differs from the fields (e.g. "2019" in the text, 2021 in the field; "30 mil km" vs 12 000), "importada" or "matrícula estrangeira" on a national ad, "sem livro" while the field says service book. Each a keyword rule in SQL like `possible_accident`, with literal tests; only clear contradictions count.*
 ## 15.7 Seller / dealer reliability ⬜
@@ -278,7 +278,7 @@ Do not implement several unrelated features at once.
 # Next
 
 1. Viewing checklist (15.3) for favourites, then the cost of ownership (15.4).
-2. Relisted ads and text contradictions as risk signals (15.5, 15.6).
+2. Text contradictions as risk signals (15.6).
 3. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history; price trends per model (10.3, 15.8).
 4. Saved ads from other sites: update the price or mark sold from their page (after #43).
 

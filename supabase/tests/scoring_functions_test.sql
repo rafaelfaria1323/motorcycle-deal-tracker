@@ -122,4 +122,20 @@ begin
   select * into r from public.risk_assessment(5000, 10000, this_year - 1, null, 'Bateu.', '',
     false, false, 4);
   assert r.risk_score = 100, format('clamped at 100, got %s', r.risk_score);
+
+  -- Relisted: once (5), twice or on sale for over 90 days (10).
+  select * into r from public.risk_assessment(null, null, this_year - 1, 5000, null, 'Porto',
+    false, false, null, null, null, null, 1, now() - interval '40 days');
+  assert r.risk_score = 5 and r.reasons = array['relisted'],
+    format('relisted once, got %s %s', r.risk_score, r.reasons);
+  select * into r from public.risk_assessment(null, null, this_year - 1, 5000, null, 'Porto',
+    false, false, null, null, null, null, 1, now() - interval '91 days');
+  assert r.risk_score = 10 and r.reasons = array['relisted_often'],
+    format('relisted, on sale for 91 days, got %s %s', r.risk_score, r.reasons);
+  select * into r from public.risk_assessment(null, null, this_year - 1, 5000, null, 'Porto',
+    false, false, null, null, null, null, 2, now() - interval '40 days');
+  assert r.reasons = array['relisted_often'], 'relisted twice';
+  select * into r from public.risk_assessment(null, null, this_year - 1, 5000, null, 'Porto',
+    false, false, null, null, null, null, 0, now() - interval '200 days');
+  assert r.reasons = '{}', 'a long time on sale alone is not a relist';
 end $$;

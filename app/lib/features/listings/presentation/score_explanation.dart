@@ -82,6 +82,14 @@ abstract final class ScoreExplainer {
       'Sem livro de revisões completo',
     ),
     'imported': (ExplanationTone.negative, 'Mota importada'),
+    'relisted': (
+      ExplanationTone.negative,
+      'Já esteve à venda noutro anúncio e não foi vendida',
+    ),
+    'relisted_often': (
+      ExplanationTone.negative,
+      'Posta à venda várias vezes ou há mais de 90 dias sem ser vendida',
+    ),
     'first_owner': (ExplanationTone.positive, 'Primeiro dono'),
     'service_book': (ExplanationTone.positive, 'Livro de revisões completo'),
     'under_warranty': (
