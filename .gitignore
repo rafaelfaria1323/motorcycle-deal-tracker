@@ -4,3 +4,6 @@
 *.log
 app/env/*.json
 !app/env/*.example.json
+# make mutation's reports
+/.mutation-report/
+mutation-test-report/

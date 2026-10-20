@@ -25,6 +25,7 @@ jobs:
       contents: write
       pull-requests: write
       id-token: write
+      actions: read
     uses: ./.github/workflows/backlog-pass.yml
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -36,6 +37,7 @@ jobs:
       manual: ${{ github.event_name == 'workflow_dispatch' }}
       # To undo the temporary mutations of a find run.
       extra_tools: Bash(git checkout:*),Bash(git restore:*)
+      mutation_summary: true
       find_prompt: |
         Hunt for weaknesses the tests miss, in this order:
         1. Bugs. Read the pure logic (collector/lib: model resolver,
@@ -47,7 +49,12 @@ jobs:
            and time zones. Write throwaway tests to prove it; a bug is an
            item only when such a test fails. Put the input and the wrong
            result in the item. Do not commit the throwaway tests.
-        2. Surviving mutants. In the same files, make one small change at
+        2. Surviving mutants. If /tmp/mutation-summary.md exists, it is the
+           latest report of mutation.yml (the mutation_test tool, no AI):
+           start from its surviving mutants. Check each one, drop the
+           equivalent ones (a change that makes no real difference), and
+           make the others items. Then, for files that report does not
+           cover, or with no report, make one small change at
            a time to the code (flip a comparison, < to <=, + to -, drop a
            condition or a line, change a constant, return early, swap two
            arguments), run that package's tests (`cd collector && dart

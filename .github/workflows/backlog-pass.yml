@@ -47,6 +47,10 @@ on:
         description: More tools Claude may use (comma-separated)
         type: string
         default: ''
+      mutation_summary:
+        description: Find runs get the latest mutation.yml summary in /tmp/mutation-summary.md
+        type: boolean
+        default: false
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN:
         required: true
@@ -111,6 +115,7 @@ jobs:
       contents: write
       pull-requests: write
       id-token: write
+      actions: read
     env:
       MODE: ${{ needs.count.outputs.mode }}
       LABEL: ${{ inputs.label }}
@@ -139,6 +144,20 @@ jobs:
           git tag -f "$TAG" HEAD
           git push -f origin "refs/tags/$TAG"
           git switch -c "claude/$LABEL-${{ github.run_number }}"
+
+      - name: Get the latest mutation testing summary
+        if: inputs.mutation_summary && needs.count.outputs.mode == 'find'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          run=$(gh run list --workflow mutation.yml --status success --limit 1 \
+            --json databaseId --jq '.[0].databaseId // empty')
+          if [ -n "$run" ] && gh run download "$run" -n mutation-summary -D /tmp/mutation; then
+            cp /tmp/mutation/mutation-summary.md /tmp/mutation-summary.md
+            echo "Using the summary of mutation run $run."
+          else
+            echo "No mutation testing summary yet."
+          fi
 
       - name: Write the prompt
         id: prompt
