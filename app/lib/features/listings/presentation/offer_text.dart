@@ -35,6 +35,13 @@ const maxMargin = 0.15;
 /// Up on the site this long without a model figure counts as long.
 const defaultLongListingDays = 45;
 
+/// Extra room when on sale longer than the typical time, more than twice
+/// it and more than three times it.
+const longListingMargins = [0.03, 0.05, 0.07];
+
+/// Extra room for a bike put up again after its earlier ad went.
+const relistedMargin = 0.02;
+
 /// Prices are rounded to this many euros.
 const offerStep = 50.0;
 
@@ -94,7 +101,8 @@ OfferSuggestion? suggestOffer(
               '${Formatters.percent(privateMargin * 100)} abaixo.',
   );
 
-  // Long on sale: the seller has had time to see what the market pays.
+  // Long on sale: the seller has been waiting and may take a lower offer.
+  // More the longer it is: past the typical time, twice it, three times it.
   final enoughGone =
       market != null &&
       market.goneCount >= minMarketData &&
@@ -103,12 +111,28 @@ OfferSuggestion? suggestOffer(
       ? market.medianDaysToGone!
       : defaultLongListingDays;
   if (daysListed != null && daysListed > typicalDays) {
-    final veryLong = daysListed > 2 * typicalDays;
-    margin += veryLong ? 0.05 : 0.03;
+    final level = daysListed > 3 * typicalDays
+        ? 2
+        : daysListed > 2 * typicalDays
+        ? 1
+        : 0;
+    margin += longListingMargins[level];
+    final howLong = enoughGone
+        ? '${const ['mais do que o', 'mais do dobro do', 'mais do triplo do'][level]} '
+              'típico deste modelo ($typicalDays dias)'
+        : 'muito tempo';
     reasons.add(
-      'À venda há $daysListed dias, '
-      '${enoughGone ? 'mais do que o típico deste modelo ($typicalDays dias)' : 'muito tempo'}: '
-      'há mais margem para negociar.',
+      'À venda há $daysListed dias, $howLong: '
+      '${level == 0 ? 'há mais margem para negociar' : 'o vendedor pode aceitar uma proposta mais baixa'}.',
+    );
+  }
+
+  // Put up again after an earlier ad went: it did not sell at that price.
+  if (listing.relistedFrom != null) {
+    margin += relistedMargin;
+    reasons.add(
+      'Já foi anunciada antes e não se vendeu: o vendedor está à espera há '
+      'mais tempo do que este anúncio mostra.',
     );
   }
 

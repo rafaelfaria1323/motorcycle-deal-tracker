@@ -82,6 +82,30 @@ abstract final class ScoreExplainer {
       'Sem livro de revisões completo',
     ),
     'imported': (ExplanationTone.negative, 'Mota importada'),
+    'text_year_mismatch': (
+      ExplanationTone.negative,
+      'O ano escrito na descrição não bate certo com o do anúncio',
+    ),
+    'text_mileage_mismatch': (
+      ExplanationTone.negative,
+      'A descrição fala em mais quilómetros do que o anúncio indica',
+    ),
+    'text_origin_mismatch': (
+      ExplanationTone.negative,
+      'A descrição diz importada, o anúncio diz nacional',
+    ),
+    'text_service_book_mismatch': (
+      ExplanationTone.negative,
+      'A descrição diz sem livro, o anúncio diz livro de revisões',
+    ),
+    'relisted': (
+      ExplanationTone.negative,
+      'Já esteve à venda noutro anúncio e não foi vendida',
+    ),
+    'relisted_often': (
+      ExplanationTone.negative,
+      'Posta à venda várias vezes ou há mais de 90 dias sem ser vendida',
+    ),
     'first_owner': (ExplanationTone.positive, 'Primeiro dono'),
     'service_book': (ExplanationTone.positive, 'Livro de revisões completo'),
     'under_warranty': (

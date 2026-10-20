@@ -26,12 +26,15 @@ workflow" applies whatever is missing). `make db-push` still works by hand.
    - `SUPABASE_PUBLISHABLE_KEY` — Supabase dashboard → Project Settings →
      API Keys, the publishable key (the same value as in `app/env/dev.json`).
    - `SUPABASE_URL` already exists for the collector.
-   - `SUPABASE_DB_URL` — for the migrations: Supabase dashboard → Connect
-     → "Session pooler" connection string (GitHub's runners have no IPv6,
-     so not the direct one), with `[YOUR-PASSWORD]` replaced by the
-     database password (Project Settings → Database; reset it there if
-     unknown). Characters such as `@`, `#`, `/` or `%` in the password must
-     be URL-encoded (`%40`, `%23`, `%2F`, `%25`).
+   - `SUPABASE_DB_URL` and `SUPABASE_DB_PASSWORD` — for the migrations:
+     the URL is Supabase dashboard → Connect → "Session pooler" connection
+     string, copied **exactly as shown, `[YOUR-PASSWORD]` included**
+     (GitHub's runners have no IPv6, so not the direct one); the password
+     is the database password as you type it (Project Settings → Database;
+     reset it there if unknown). The workflow puts the password into the
+     URL and encodes it (`tool/db_url.py`), so characters such as `! * ? @
+     #` need nothing special. A URL with the password already in it, encoded,
+     also works without `SUPABASE_DB_PASSWORD`.
 5. Run "Deploy web app" once. The first run creates the Pages project
    `motorcycle-deal-tracker`; the log ends with the address
    (`https://motorcycle-deal-tracker.pages.dev`, or with a suffix if the

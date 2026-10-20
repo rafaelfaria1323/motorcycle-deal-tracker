@@ -122,4 +122,62 @@ begin
   select * into r from public.risk_assessment(5000, 10000, this_year - 1, null, 'Bateu.', '',
     false, false, 4);
   assert r.risk_score = 100, format('clamped at 100, got %s', r.risk_score);
+
+  -- Relisted: once (5), twice or on sale for over 90 days (10).
+  select * into r from public.risk_assessment(null, null, this_year - 1, 5000, null, 'Porto',
+    false, false, null, null, null, null, 1, now() - interval '40 days');
+  assert r.risk_score = 5 and r.reasons = array['relisted'],
+    format('relisted once, got %s %s', r.risk_score, r.reasons);
+  select * into r from public.risk_assessment(null, null, this_year - 1, 5000, null, 'Porto',
+    false, false, null, null, null, null, 1, now() - interval '91 days');
+  assert r.risk_score = 10 and r.reasons = array['relisted_often'],
+    format('relisted, on sale for 91 days, got %s %s', r.risk_score, r.reasons);
+  select * into r from public.risk_assessment(null, null, this_year - 1, 5000, null, 'Porto',
+    false, false, null, null, null, null, 2, now() - interval '40 days');
+  assert r.reasons = array['relisted_often'], 'relisted twice';
+  select * into r from public.risk_assessment(null, null, this_year - 1, 5000, null, 'Porto',
+    false, false, null, null, null, null, 0, now() - interval '200 days');
+  assert r.reasons = '{}', 'a long time on sale alone is not a relist';
+end $$;
+
+-- text_contradictions: only clear differences between the text and the fields.
+do $$
+declare
+  r record;
+begin
+  assert public.text_contradictions('Mota de 2021, matrícula de 2018.', 2021, null, null, null)
+         = array['text_year_mismatch'], 'registration year 3 years off';
+  assert public.text_contradictions('Ano 2020, matriculada em 2021.', 2021, null, null, null)
+         = '{}', 'one year off (built and registered) is fine';
+  assert public.text_contradictions('Revisão feita em 2018.', 2021, null, null, null)
+         = '{}', 'other years in the text are not the bike''s';
+
+  assert public.text_contradictions('Tem 30 mil km, sempre na garagem.', 2021, 12000, null, null)
+         = array['text_mileage_mismatch'], '30 mil km in the text, 12 000 in the field';
+  assert public.text_contradictions('Com 30.000 km reais.', 2021, 12000, null, null)
+         = array['text_mileage_mismatch'], 'dotted thousands';
+  assert public.text_contradictions('Pneus com 2000 km, revisão aos 40 000 km.', 2021, 12000, null, null)
+         = '{}', 'fewer km in the text are the tyres; "aos" is a service';
+  assert public.text_contradictions('Tem 13 000 km.', 2021, 12000, null, null)
+         = '{}', 'close enough';
+
+  assert public.text_contradictions('Mota importada de Espanha.', null, null, 'national', null)
+         = array['text_origin_mismatch'], 'imported in the text, national in the ad';
+  assert public.text_contradictions('Nacional, não é importada.', null, null, 'national', null)
+         = '{}', 'a denial does not count';
+  assert public.text_contradictions('Mota importada.', null, null, 'imported', null)
+         = '{}', 'the ad already says so';
+
+  assert public.text_contradictions('Vendo sem livro de revisões.', null, null, null, true)
+         = array['text_service_book_mismatch'], 'no book in the text, book in the ad';
+  assert public.text_contradictions('Vendo sem livro.', null, null, null, false)
+         = '{}', 'the ad already says so';
+
+  assert public.text_contradictions(null, null, null, null, null) = '{}', 'nothing to compare';
+
+  select * into r from public.risk_assessment(null, null, 2021, 12000,
+    'Tem 30 mil km, matrícula de 2018.', 'Porto');
+  assert r.risk_score = 20
+         and r.reasons = array['text_mileage_mismatch', 'text_year_mismatch'],
+    format('each contradiction is 10 points, got %s %s', r.risk_score, r.reasons);
 end $$;

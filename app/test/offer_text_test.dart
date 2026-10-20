@@ -15,6 +15,7 @@ Listing _listing({
   DateTime? publishedAt,
   DateTime? firstSeenAt,
   DateTime? relistedSince,
+  String? relistedFrom,
 }) => Listing(
   id: 'l1',
   source: 'olx',
@@ -32,6 +33,7 @@ Listing _listing({
   duplicateOf: duplicateOf,
   publishedAt: publishedAt,
   relistedSince: relistedSince,
+  relistedFrom: relistedFrom,
   scoreBreakdown: estimate == null ? null : {'market_price': estimate},
 );
 
@@ -112,6 +114,15 @@ void main() {
         daysListed: 61,
       )!;
       expect(veryLong.opening, 6200); // 11 %: 6230
+      expect(
+        veryLong.reasons.last,
+        'À venda há 61 dias, mais do dobro do típico deste modelo (30 dias): '
+        'o vendedor pode aceitar uma proposta mais baixa.',
+      );
+
+      final longest = suggestOffer(_listing(), market: market, daysListed: 91)!;
+      expect(longest.opening, 6050); // 13 %: 6090
+      expect(longest.reasons.last, contains('mais do triplo do típico'));
 
       final atTypical = suggestOffer(
         _listing(),
@@ -130,6 +141,12 @@ void main() {
       final offer = suggestOffer(_listing(), market: few, daysListed: 46)!;
       expect(offer.opening, 6350);
       expect(offer.reasons.last, contains('muito tempo'));
+    });
+
+    test('a relisted bike leaves more room', () {
+      final offer = suggestOffer(_listing(relistedFrom: 'l0'))!;
+      expect(offer.opening, 6400); // 8 %: 6440
+      expect(offer.reasons.last, startsWith('Já foi anunciada antes'));
     });
 
     test('an earlier drop leaves less room', () {

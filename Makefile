@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 .PHONY: help app-get app-run app-check app-build app-serve \
         collector-get collector-check collect-dry collect \
-        db-push db-new check format clean mutation \
+        db-push db-new check tool-check format clean mutation \
         require-collector-env require-file
 
 # Which source the collector reads: manual (a JSON file), standvirtual
@@ -107,7 +107,10 @@ db-test: ## Apply every migration to a fresh local Postgres and run supabase/tes
 
 # ---- Everything ------------------------------------------------------------
 
-check: app-check collector-check ## Run all checks (run before committing)
+tool-check: ## Test the helper scripts in tool/ (Python)
+	python3 -m unittest discover -s tool -p 'test_*.py'
+
+check: app-check collector-check tool-check ## Run all checks (run before committing)
 
 format: ## Format app and collector code
 	dart format app/lib app/test collector

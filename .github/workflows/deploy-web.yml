@@ -76,19 +76,21 @@ jobs:
           version: latest
 
       # SUPABASE_DB_URL: Supabase > Connect > Session pooler connection
-      # string, with the database password in it (GitHub's runners have no
-      # IPv6 for the direct connection). The dry run lists what will run.
+      # string exactly as shown, "[YOUR-PASSWORD]" included (GitHub's
+      # runners have no IPv6 for the direct connection); SUPABASE_DB_PASSWORD:
+      # the database password as typed. The password is URL-encoded here,
+      # so any character works. (A URL with the password already in it and
+      # no SUPABASE_DB_PASSWORD also works.) The dry run lists what will run.
       - name: Apply migrations to Supabase
         if: steps.new.outputs.count != '0'
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: |
-          test -n "$SUPABASE_DB_URL" || {
-            echo "::error::Set the SUPABASE_DB_URL secret (see docs/hosting.md)"
-            exit 1
-          }
-          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run
-          supabase db push --db-url "$SUPABASE_DB_URL" --yes
+          db_url=$(python3 tool/db_url.py) || exit 1
+          echo "::add-mask::$db_url"
+          supabase db push --db-url "$db_url" --dry-run
+          supabase db push --db-url "$db_url" --yes
 
   deploy:
     needs: migrate
