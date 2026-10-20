@@ -25,8 +25,6 @@ items by hand at any time.
 
 ## To do
 
-- Bug: `cleanDescription` throws on a numeric entity outside Unicode or too big for an int — `collector/lib/src/normalized/normalizers.dart:101` (`String.fromCharCode(int.parse(m[1]!))`). Input `'a &#99999999; b'` -> RangeError, `'&#99999999999999999999;'` -> FormatException; one odd OLX/Standvirtual description would abort the import. Fix: leave the entity as text when it does not parse or is above 0x10FFFF; add both inputs to `normalizers_test.dart`.
-- Bug: `asInt` throws on Infinity/NaN — `collector/lib/src/adapters/json_values.dart:7` (`o.toInt()`). `asInt(double.infinity)` -> UnsupportedError (Dart's `jsonDecode('1e999')` gives Infinity), so a bad counter/price field crashes instead of becoming null. Return null when `!o.isFinite`; test in `json_values_test.dart`.
 - Surviving mutant: `removalPlan` still removes when the searches read in full returned no listing at all — `collector/lib/src/pipeline/source_batch.dart:141`, dropping `|| seen.isEmpty` passes all tests. Add a `source_batch_test.dart` case: a manifest with one fully read search, zero records, no issues -> `skipReason` 'no search was read in full'.
 - Surviving mutant: `includeUnkeyed` ignores `incomplete` — `source_batch.dart:148`, changing `incomplete.isEmpty && manifest.planned.every(complete.contains)` to just the `every` part passes. Test: a manifest where the only incomplete search (an issue or an id-less rejected record) is not listed in `planned` must give `includeUnkeyed == false`.
 - Surviving mutants in `ModelResolver` (`collector/lib/src/catalog/model_resolver.dart`), none noticed by `model_resolver_test.dart`: `_fits` bounds `cc >= min` -> `cc > min` (line 62) and `cc <= max` -> `cc < max` (test engine exactly at `engineCcMin`/`engineCcMax`, e.g. CB650R 640 and 660 match, 639 and 661 don't); `start <= 2` -> `start <= 3` (the model in the 4th word must not match); `end < start + 4` -> `+ 3` (a model spread over 4 words, e.g. "C B 650 R", must match); `byEngine.length == 1` -> `isNotEmpty` (two family models fitting the engine must stay unmatched); `named.length > 1` -> `> 5` (text naming two catalog models, "CB650R CBR650R", must be unmatched).
@@ -39,3 +37,6 @@ items by hand at any time.
 ## Needs Rafael
 
 ## Done
+
+- 2026-10-20: `cleanDescription` keeps numeric entities that are not a valid code point (above 0x10FFFF or too big for an int) as text instead of throwing; both inputs tested in `normalizers_test.dart`.
+- 2026-10-20: `asInt` returns null for Infinity/NaN instead of throwing; tested in `json_values_test.dart`.
