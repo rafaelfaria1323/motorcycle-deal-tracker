@@ -80,6 +80,10 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
 .github/workflows/check.yml       `make check` (with Flutter) and `make
                                   db-test` (Postgres service) on every pull
                                   request to main
+.github/workflows/preview-web.yml Every PR touching app/: the app built and
+                                  published to pr-<number>.<project>.pages.dev,
+                                  linked in one comment on the PR (real
+                                  database; the PR's migrations not applied)
 .github/workflows/deploy-web.yml  On merges touching app/ or adding
                                   migrations: apply new migrations
                                   (tested again first; skipped if none),
@@ -108,6 +112,9 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
                                   3 items, find nothing.
                                   One pass at a time, none while one of
                                   the same backlog is open
+.claude/hooks/session-start.sh  Cloud sessions only: Dart SDK on PATH, collector
+                                  dependencies, local Postgres (PGHOST set), so
+                                  make collector-check / tool-check / db-test run
 Makefile    All commands (`make help`)
 ```
 
