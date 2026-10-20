@@ -1,6 +1,8 @@
 import 'package:collector/collector.dart';
 import 'package:test/test.dart';
 
+import 'helpers.dart';
+
 /// Records the store calls an import makes, in order.
 class _Store implements ListingStore {
   final calls = <String>[];
@@ -65,21 +67,7 @@ class _Store implements ListingStore {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-MappedRecord _mapped(String id) => MappedRecord(
-  id,
-  Mapped(
-    NormalizedListing(
-      source: 'olx',
-      sourceListingId: id,
-      url: 'https://www.olx.pt/d/anuncio/$id.html',
-      brand: 'Yamaha',
-      model: 'MT-07',
-      price: 7000,
-      sellerType: SellerType.private,
-      images: const [],
-    ),
-  ),
-);
+MappedRecord _mapped(String id) => MappedRecord(id, Mapped(testListing(id)));
 
 /// Two bikes we keep and an old one we reject that is still on the site.
 SourceBatch _batch({List<ParseIssue> issues = const []}) =>

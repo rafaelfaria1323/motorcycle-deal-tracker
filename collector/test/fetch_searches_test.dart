@@ -154,7 +154,8 @@ void main() {
   });
 
   test('the pause between requests counts the time spent in between', () async {
-    const pause = Duration(milliseconds: 400);
+    // Wide margins: a loaded CI machine can be slow by a few hundred ms.
+    const pause = Duration(milliseconds: 1000);
     await local(() async {
       final fetcher = PoliteFetcher(
         site: site,
@@ -163,13 +164,15 @@ void main() {
       await fetcher.prepare(); // robots.txt
       final page = search.replace(path: '${search.path}x');
       await fetcher.get(page); // waits the whole pause
-      await Future<void>.delayed(const Duration(milliseconds: 300));
+      await Future<void>.delayed(const Duration(milliseconds: 700));
       final before = DateTime.now();
       await fetcher.get(page); // only the rest of the pause is left
       final waited = DateTime.now().difference(before);
       fetcher.close();
 
-      expect(waited, lessThan(const Duration(milliseconds: 250)));
+      // About 300 ms are left; without counting the time in between it
+      // would be the whole 1000 ms.
+      expect(waited, lessThan(const Duration(milliseconds: 800)));
     });
 
     for (var i = 1; i < requestTimes.length; i++) {

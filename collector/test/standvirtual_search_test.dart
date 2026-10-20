@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:collector/collector.dart';
 import 'package:test/test.dart';
 
+import 'helpers.dart';
+
 Map<String, String> p(String key, String value) => {
   'key': key,
   'displayValue': value,
@@ -79,17 +81,7 @@ String searchPage(
 }
 
 final adapter = StandvirtualSearchAdapter('unused');
-final catalog = Catalog(const [
-  CatalogEntry(
-    slug: 'yamaha-mt-07',
-    brand: 'Yamaha',
-    model: 'MT-07',
-    minYear: 2023,
-    excludedWords: ['tracer'],
-    engineCcMin: 680,
-    engineCcMax: 710,
-  ),
-]);
+final catalog = Catalog(const [mt07Entry]);
 
 void main() {
   test('reads every listing of a search page', () {
