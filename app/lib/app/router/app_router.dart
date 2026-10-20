@@ -2,6 +2,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/listings/presentation/cubit/alerts_cubit.dart';
+import '../../features/listings/presentation/cubit/favourites_cubit.dart';
+import '../../features/listings/presentation/cubit/favourites_state.dart';
 import '../../features/listings/presentation/cubit/listing_detail_cubit.dart';
 import '../../features/listings/presentation/cubit/listings_cubit.dart';
 import '../../features/listings/presentation/cubit/listings_state.dart';
@@ -10,6 +12,7 @@ import '../../features/listings/presentation/compare_text.dart';
 import '../../features/listings/presentation/pages/alerts_page.dart';
 import '../../features/listings/presentation/pages/compare_page.dart';
 import '../../features/listings/presentation/pages/dashboard_page.dart';
+import '../../features/listings/presentation/pages/favourites_page.dart';
 import '../../features/listings/presentation/pages/listing_detail_page.dart';
 import '../../features/listings/presentation/pages/model_market_page.dart';
 import '../../features/listings/presentation/pages/saved_searches_page.dart';
@@ -103,6 +106,15 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.modelMarket,
       builder: (context, state) => const ModelMarketPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.favourites,
+      builder: (context, state) {
+        // Opened directly (a reload), the shell has not loaded them yet.
+        final cubit = getIt<FavouritesCubit>();
+        if (cubit.state.status == FavouritesStatus.initial) cubit.load();
+        return const FavouritesPage();
+      },
     ),
     GoRoute(
       path: AppRoutes.comparePath,

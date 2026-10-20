@@ -7,16 +7,19 @@ import '../../features/collector_status/data/source_quality_repository.dart';
 import '../../features/collector_status/presentation/collector_status_cubit.dart';
 import '../../features/listings/data/repositories/supabase_alerts_repository.dart';
 import '../../features/listings/data/repositories/supabase_catalog_repository.dart';
+import '../../features/listings/data/repositories/supabase_favourites_repository.dart';
 import '../../features/listings/data/repositories/supabase_listings_repository.dart';
 import '../../features/listings/data/repositories/supabase_market_behaviour_repository.dart';
 import '../../features/listings/data/repositories/supabase_saved_searches_repository.dart';
 import '../../features/listings/domain/repositories/alerts_repository.dart';
 import '../../features/listings/domain/repositories/catalog_repository.dart';
+import '../../features/listings/domain/repositories/favourites_repository.dart';
 import '../../features/listings/domain/repositories/listings_repository.dart';
 import '../../features/listings/domain/repositories/market_behaviour_repository.dart';
 import '../../features/listings/domain/repositories/saved_searches_repository.dart';
 import '../../features/listings/presentation/cubit/alerts_cubit.dart';
 import '../../features/listings/presentation/cubit/compare_cubit.dart';
+import '../../features/listings/presentation/cubit/favourites_cubit.dart';
 import '../../features/listings/presentation/cubit/listing_detail_cubit.dart';
 import '../../features/listings/presentation/cubit/listings_cubit.dart';
 import '../../features/listings/presentation/cubit/saved_searches_cubit.dart';
@@ -50,6 +53,12 @@ void configureDependencies() {
     )
     ..registerLazySingleton<AlertsCubit>(
       () => AlertsCubit(getIt<AlertsRepository>()),
+    )
+    ..registerLazySingleton<FavouritesRepository>(
+      () => SupabaseFavouritesRepository(getIt<SupabaseClient>()),
+    )
+    ..registerLazySingleton<FavouritesCubit>(
+      () => FavouritesCubit(getIt<FavouritesRepository>()),
     );
 
   getIt.registerFactory(() => AccountCubit(Supabase.instance.client));

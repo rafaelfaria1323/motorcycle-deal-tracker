@@ -18,6 +18,7 @@ import '../listing_detail_text.dart';
 import '../widgets/also_listed_section.dart';
 import '../widgets/deal_score_badge.dart';
 import '../widgets/facts_card.dart';
+import '../widgets/favourite_widgets.dart';
 import '../widgets/market_behaviour_section.dart';
 import '../widgets/new_price_card.dart';
 import '../widgets/photo_gallery.dart';
@@ -39,7 +40,15 @@ class ListingDetailPage extends StatelessWidget {
               context.canPop() ? context.pop() : context.go(AppRoutes.deals),
         ),
         title: const Text('Detalhe'),
-        actions: [_CompareButton(listingId: listingId)],
+        actions: [
+          // The star needs the listing (the favourites page shows it).
+          BlocBuilder<ListingDetailCubit, ListingDetailState>(
+            builder: (context, state) => state.listing == null
+                ? const SizedBox.shrink()
+                : FavouriteButton(listing: state.listing!),
+          ),
+          _CompareButton(listingId: listingId),
+        ],
       ),
       body: BlocBuilder<ListingDetailCubit, ListingDetailState>(
         builder: (context, state) {
@@ -149,6 +158,7 @@ class _Content extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  FavouriteNoteCard(listingId: listing.id),
                   if (listing.isRemoved)
                     Card(
                       color: theme.colorScheme.errorContainer,

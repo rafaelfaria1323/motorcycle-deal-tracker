@@ -135,15 +135,17 @@ for the code-quality review. Supabase's Vault holds `github_dispatch_token`
   `settings` (the "Mais" tab).
 - Text built from data lives in pure functions (`*_text.dart`) with tests.
 - State: flutter_bloc Cubits + Equatable states. DI: get_it. Shared cubits
-  (`ListingsCubit`, `SavedSearchesCubit`, `AlertsCubit`, `CollectorStatusCubit`)
-  are lazy singletons, provided in routes with `BlocProvider.value`. The
-  shell (`AppShell`) loads `AlertsCubit` at start and on app resume for the
-  unread badge on Alertas.
+  (`ListingsCubit`, `SavedSearchesCubit`, `AlertsCubit`, `CollectorStatusCubit`,
+  `FavouritesCubit`) are lazy singletons, provided in routes with
+  `BlocProvider.value`. The shell (`AppShell`) loads `AlertsCubit` at start
+  and on app resume for the unread badge on Alertas, and `FavouritesCubit`
+  at start for the stars on the cards; the account sheet reloads the shared
+  cubits after sign-in/out.
 - Routing: go_router `StatefulShellRoute` (Ofertas / Pesquisas / Alertas /
   Mais). Account, "Modelos acompanhados" and collection status live in Mais.
   Use `context.go`, not `push`, so web URLs stay correct. Exception: full
-  pages outside the shell (`/models`, `/market`, `/compare?ids=a,b,c`)
-  are pushed.
+  pages outside the shell (`/models`, `/market`, `/favourites`,
+  `/compare?ids=a,b,c`) are pushed.
   The comparison picks live in `CompareCubit` (lazy singleton, max 3);
   its table is `compare_text.dart` (`compareRows`, tested).
 - Formatting: `Formatters.price`, `.mileage`, `.date`, `.daysAgo`,
@@ -340,5 +342,11 @@ Weekly summary (Mondays, `weekly_summary.dart`, pure logic in
 seen in the last 7 days, gone = removed with `last_checked_at` in them,
 drop = last price this week >= 1% below the price the week started with
 (live listings), best deals = live, risk < 50, by Deal Score.
+Favourites (`listing_favourites`: user, listing, private note; owner-only
+RLS) alert their owner without a saved search (`saved_search_id` null):
+`generate_favourite_alerts()` gives every `price_reduction` (>= 1%) and the
+`listing_removed` after the listing became a favourite; the alerts' unique
+indexes keep one alert per price change / removal when a saved search also
+covers it.
 Reimporting everything after a reset: create saved searches AFTER the import,
 or every listing counts as new.

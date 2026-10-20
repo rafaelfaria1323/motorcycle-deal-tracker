@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/listings/presentation/cubit/alerts_cubit.dart';
 import '../../features/listings/presentation/cubit/alerts_state.dart';
+import '../../features/listings/presentation/cubit/favourites_cubit.dart';
+import '../../features/listings/presentation/cubit/favourites_state.dart';
 import '../di/injection.dart';
 
 class AppShell extends StatefulWidget {
@@ -17,10 +19,12 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   final _alerts = getIt<AlertsCubit>();
+  final _favourites = getIt<FavouritesCubit>();
 
   // The unread count on the Alertas tab needs the alerts from the start,
   // and again when the app comes back to the screen (new collections run
-  // while it is in the background).
+  // while it is in the background). The stars on the cards need the
+  // favourites from the start too.
   late final AppLifecycleListener _lifecycle;
 
   StatefulNavigationShell get navigationShell => widget.navigationShell;
@@ -30,6 +34,9 @@ class _AppShellState extends State<AppShell> {
     super.initState();
     _lifecycle = AppLifecycleListener(onResume: _alerts.load);
     if (_alerts.state.status == AlertsStatus.initial) _alerts.load();
+    if (_favourites.state.status == FavouritesStatus.initial) {
+      _favourites.load();
+    }
   }
 
   @override
