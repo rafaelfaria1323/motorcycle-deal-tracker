@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:collector/collector.dart';
-import 'package:supabase/supabase.dart';
 
 /// Writes the search addresses of the tracked models for one site, one per
 /// line, for `fetch.dart`. An empty file means no tracked model has a search
@@ -22,10 +21,7 @@ Future<void> main(List<String> args) async {
     return;
   }
 
-  SupabaseClient? client;
-  try {
-    final config = SupabaseConfig.fromEnvironment();
-    client = SupabaseClient(config.url, config.serviceKey);
+  await withServiceClient((client) async {
     final plan = planSearches(await loadCatalog(client), site);
 
     for (final problem in plan.problems) {
@@ -41,13 +37,5 @@ Future<void> main(List<String> args) async {
     for (final s in plan.searches) {
       stdout.writeln('  ${s.models.join(', ')}');
     }
-  } on ConfigException catch (e) {
-    stderr.writeln(e);
-    exitCode = 78;
-  } on PostgrestException catch (e) {
-    stderr.writeln('Could not read the catalog: ${e.message}');
-    exitCode = 69;
-  } finally {
-    await client?.dispose();
-  }
+  });
 }

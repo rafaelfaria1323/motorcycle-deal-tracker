@@ -10,6 +10,7 @@ export 'src/adapters/standvirtual/standvirtual_page_adapter.dart';
 export 'src/adapters/standvirtual/standvirtual_raw_listing.dart';
 export 'src/adapters/standvirtual/standvirtual_search_adapter.dart';
 export 'src/catalog/catalog.dart';
+export 'src/cli/command.dart';
 export 'src/catalog/model_resolver.dart';
 export 'src/config/supabase_config.dart';
 export 'src/fetch/fetch_searches.dart';
