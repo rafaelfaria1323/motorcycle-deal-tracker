@@ -1,10 +1,13 @@
 # Code-quality backlog
 
-Worked through by `.github/workflows/code-quality.yml` after every 5 merged
-PRs or by "Run workflow". Each run does one of two things: while "To do"
-has items it does up to 3 of them (all if fewer are left) and does not
-look for new ones; when "To do" is empty it only reviews the code and adds
-up to 10 new items (most valuable first), changing no code. Rafael can
+Worked through by `.github/workflows/code-quality.yml` (or "Run workflow").
+Each run does one of two things: while "To do" has items, every 5 merged
+PRs, it does up to 3 of them (all if fewer are left) and does not look for
+new ones; when "To do" is empty, after 10 merged PRs, it only reviews the
+code and adds up to 10 new items (most valuable first), changing no code.
+It looks at how the code is written (duplication, dead code, structure,
+theme, efficiency, names); bugs and tests belong to
+[`test-hardening.md`](test-hardening.md). Rafael can
 add, remove or reorder items by hand at any time.
 
 Items change how the code is written, never what the app or the collector

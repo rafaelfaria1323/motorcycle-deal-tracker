@@ -1,9 +1,10 @@
 name: Code quality review
 
-# After every 5 merged PRs (or "Run workflow"), Claude works on
-# docs/code-quality.md through backlog-pass.yml: while "To do" has items it
-# does up to 3 per run; when "To do" is empty the run only finds new items
-# (up to 10) and changes no code. One PR labelled "code-quality" per run
+# Claude works on docs/code-quality.md through backlog-pass.yml: while
+# "To do" has items, every 5 merged PRs it does up to 3; when "To do" is
+# empty, after 10 merged PRs a run only finds new items (up to 10) and
+# changes no code. "Run workflow" starts one now. Bugs and tests belong to
+# test-hardening.yml, so the two passes never look for the same things. One PR labelled "code-quality" per run
 # (none if nothing is worth it); no run starts while one is still open.
 # Needs the CLAUDE_CODE_OAUTH_TOKEN secret and "Allow GitHub Actions to
 # create and approve pull requests" in the repo settings.
@@ -25,7 +26,7 @@ jobs:
       contents: write
       pull-requests: write
       id-token: write
-      actions: read
+      actions: write
     uses: ./.github/workflows/backlog-pass.yml
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -36,12 +37,15 @@ jobs:
       count_from: '2026-10-19T00:00:00Z'
       manual: ${{ github.event_name == 'workflow_dispatch' }}
       find_prompt: |
-        Review the code for these, in this order: bugs you can prove with
-        a test; duplicated code; dead code; missing tests for pure logic
-        (*_text.dart, cubits, parsers); hard-coded colours or styles that
-        bypass the theme; inefficient queries or rebuilds; unclear names
-        or comments that no longer match the code. Items must make the
-        code better without changing what the app or the collector does.
+        Review how the code is written, in this order: duplicated code;
+        dead code; code in the wrong place (logic in widgets that belongs
+        in a tested *_text.dart or cubit, layers mixed up); hard-coded
+        colours or styles that bypass the theme; inefficient queries or
+        rebuilds; unclear names or comments that no longer match the code.
+        Leave bugs, missing tests and redundant tests out: the
+        test-hardening pass (docs/test-hardening.md) looks for those.
+        Items must make the code better without changing what the app or
+        the collector does.
       fix_prompt: |
         Each item must make the code better without changing what the app
         or the collector does. Keep the diff easy to review; do not
