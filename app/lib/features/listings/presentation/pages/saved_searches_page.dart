@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
+import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/motorcycle_option.dart';
 import '../../domain/entities/saved_search.dart';
@@ -47,14 +48,9 @@ class SavedSearchesPage extends StatelessWidget {
     if (edited == null) return;
 
     final saved = await cubit.update(edited);
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          saved
-              ? 'Pesquisa atualizada'
-              : 'Não foi possível atualizar a pesquisa',
-        ),
-      ),
+    showMessage(
+      messenger,
+      saved ? 'Pesquisa atualizada' : 'Não foi possível atualizar a pesquisa',
     );
   }
 
@@ -73,12 +69,9 @@ class SavedSearchesPage extends StatelessWidget {
     if (draft == null) return;
 
     final saved = await cubit.createFrom(draft);
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          saved ? 'Pesquisa guardada' : 'Não foi possível guardar a pesquisa',
-        ),
-      ),
+    showMessage(
+      messenger,
+      saved ? 'Pesquisa guardada' : 'Não foi possível guardar a pesquisa',
     );
   }
 
@@ -89,14 +82,9 @@ class SavedSearchesPage extends StatelessWidget {
     if (!await confirmDeleteSavedSearch(context, search)) return;
 
     final deleted = await cubit.delete(search.id);
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          deleted
-              ? 'Pesquisa eliminada'
-              : 'Não foi possível eliminar a pesquisa',
-        ),
-      ),
+    showMessage(
+      messenger,
+      deleted ? 'Pesquisa eliminada' : 'Não foi possível eliminar a pesquisa',
     );
   }
 

@@ -5,6 +5,7 @@ import 'package:motorcycle_deal_tracker/features/listings/domain/entities/saved_
 
 import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
+import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/listing_filters.dart';
 import '../../domain/entities/listing_sort.dart';
@@ -51,10 +52,9 @@ class DashboardPage extends StatelessWidget {
     final messenger = ScaffoldMessenger.of(context);
 
     if (!filters.hasCriteria) {
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Escolha pelo menos um filtro antes de guardar.'),
-        ),
+      showMessage(
+        messenger,
+        'Escolha pelo menos um filtro antes de guardar.',
       );
       return;
     }
@@ -66,26 +66,19 @@ class DashboardPage extends StatelessWidget {
     if (name == null) return;
 
     final saved = await getIt<SavedSearchesCubit>().create(name, filters);
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          saved ? 'Pesquisa guardada' : 'Não foi possível guardar a pesquisa',
-        ),
-      ),
+    showMessage(
+      messenger,
+      saved ? 'Pesquisa guardada' : 'Não foi possível guardar a pesquisa',
     );
   }
 
   void _toggleCompare(BuildContext context, String id) {
     if (!getIt<CompareCubit>().toggle(id)) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Já tem $maxCompared anúncios na comparação. Retire um primeiro.',
-            ),
-          ),
-        );
+      final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
+      showMessage(
+        messenger,
+        'Já tem $maxCompared anúncios na comparação. Retire um primeiro.',
+      );
     }
   }
 
@@ -104,15 +97,12 @@ class DashboardPage extends StatelessWidget {
                 context.push(AppRoutes.compare(compared));
                 return;
               }
-              ScaffoldMessenger.of(context)
-                ..hideCurrentSnackBar()
-                ..showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Mantenha premido outro anúncio para o comparar.',
-                    ),
-                  ),
-                );
+              final messenger = ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar();
+              showMessage(
+                messenger,
+                'Mantenha premido outro anúncio para o comparar.',
+              );
             },
           );
         },

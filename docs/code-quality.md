@@ -13,7 +13,6 @@ the database schema, secrets or workflows goes to "Needs Rafael".
 
 ## To do
 
-- `app/lib/features/listings/presentation/pages/{saved_searches,listing_detail,dashboard}_page.dart`: ~15 hand-built `SnackBar`s; one small helper (e.g. `showMessage(messenger, text)`) would keep their look and duration in one place.
 - `collector/lib/src/adapters/{olx,standvirtual}/*_search_adapter.dart`: both pull a JSON blob out of a page with their own regex and decode it; check whether a shared `extractJsonBlob` fits, with tests for a missing or damaged blob.
 - `collector/lib/src/store/listing_store.dart`: `save` and `rematch` both look up a listing's motorcycle id by slug; a `motorcycleIdFor(listing)` helper would remove the repeated null checks (test with a fake catalog).
 
@@ -21,6 +20,7 @@ the database schema, secrets or workflows goes to "Needs Rafael".
 
 ## Done
 
+- 2026-10-20: Plain-text snack bars of the saved searches, listing, dashboard and tracked models pages use one `showMessage(messenger, text)` (`core/widgets/show_message.dart`); the one with an action keeps its own `SnackBar`.
 - 2026-10-20: `ListingStore` reads the RPC row count through one `_count` helper (12 copies of `(result as num).toInt()`) and builds the catalog id map in one `_idBySlug` (copied in `save` and `rematch`).
 
 - 2026-10-20: Collector tests share `test/helpers.dart` (the MT-07 and R7 catalog entries, copied 3 times, and a minimal `testListing`, copied in 2 more files); the fetcher's pause test has wide margins (it allowed only 150 ms of slack, so a busy CI machine could fail it).
