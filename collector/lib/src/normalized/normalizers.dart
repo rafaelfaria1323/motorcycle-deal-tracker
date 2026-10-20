@@ -109,7 +109,6 @@ String? cleanDescription(Object? html) {
       .replaceAll('&lt;', '<')
       .replaceAll('&gt;', '>')
       .replaceAll('&quot;', '"')
-      .replaceAll('&#39;', "'")
       .replaceAll('&amp;', '&');
 
   for (final sentence in _boilerplate) {
