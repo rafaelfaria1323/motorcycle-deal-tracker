@@ -123,7 +123,7 @@ All four types, each at most once per event, only for events after the search wa
 
 ## 17. Dashboard ✅
 
-✅ Best deals sorted by Deal Score (or newest, cheapest, most expensive); only tracked models; filters for model, price, mileage, year, location, seller type, Deal Score, Risk Score, active only, shown as removable chips. ➕ Collection status (last run, duration, requests, next run; a warning card when a run failed or was blocked) in Mais.
+✅ Best deals sorted by Deal Score (or newest, cheapest, most expensive); only tracked models; filters for model, price, mileage, year, location, seller type, Deal Score, Risk Score, active only, shown as removable chips. ➕ Collection status (last run, duration, what it found, requests, next run; a warning card when a run failed or was blocked) in Mais.
 
 ## 18. Listing Detail Page ✅
 

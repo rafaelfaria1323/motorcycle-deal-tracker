@@ -15,7 +15,7 @@ class SupabaseCollectorRunsRepository implements CollectorRunsRepository {
 
   final SupabaseClient _client;
 
-  static const _columns = 'status, started_at, finished_at, requests';
+  static const _columns = 'status, started_at, finished_at, requests, counts';
 
   @override
   Future<CollectorRun?> getLatest() async {
@@ -41,10 +41,13 @@ class SupabaseCollectorRunsRepository implements CollectorRunsRepository {
     status: row['status'] as String,
     startedAt: DateTime.parse(row['started_at'] as String),
     finishedAt: DateTime.parse(row['finished_at'] as String),
-    requests: {
-      for (final MapEntry(:key, :value)
-          in (row['requests'] as Map<String, dynamic>? ?? const {}).entries)
-        if (value is num) key: value.toInt(),
-    },
+    requests: _ints(row['requests']),
+    counts: _ints(row['counts']),
   );
+
+  static Map<String, int> _ints(Object? json) => {
+    for (final MapEntry(:key, :value)
+        in (json as Map<String, dynamic>? ?? const {}).entries)
+      if (value is num) key: value.toInt(),
+  };
 }

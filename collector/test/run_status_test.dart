@@ -34,6 +34,30 @@ void main() {
     expect(logTail(log, maxChars: 6), 'line 4');
   });
 
+  test('sums what each site did', () {
+    const log =
+        '== standvirtual ==\n'
+        'Stored 2 new, 30 already stored, 0 duplicate(s) in the input.\n'
+        'Price changes: 1\n'
+        'Removal skipped: a page is missing (use --force to override).\n'
+        '== olx ==\n'
+        '  Stored 1 new, 50 already stored, 1 duplicate(s) in the input.\n'
+        'Price changes: 0\n'
+        'Removed: 3\n'
+        '== all sites ==\n'
+        'Alerts created: 4\n'
+        'Site-reported price cuts updated: 7\n';
+
+    expect(runCounts(log), {
+      'new': 3,
+      'price_changes': 1,
+      'removed': 3,
+      'alerts': 4,
+    });
+    expect(runCounts('Database error: timeout'), isEmpty);
+    expect(runCounts('x Removed: 2\nNot Stored 5 new'), isEmpty);
+  });
+
   test('reads the requests each site used', () {
     const log =
         'Requests used: standvirtual=15 (limit 20)\n'

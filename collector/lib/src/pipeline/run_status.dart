@@ -20,6 +20,26 @@ String logTail(String log, {int lines = 40, int maxChars = 4000}) {
   return text.length > maxChars ? text.substring(text.length - maxChars) : text;
 }
 
+/// What a run did, summed over the sites, from importBatch's and finishRun's
+/// log lines: `new` (Stored N new), `price_changes`, `removed` and `alerts`.
+/// A key is left out when its line is missing (e.g. no full import, no
+/// removal); empty when the run got that far nowhere.
+Map<String, int> runCounts(String log) {
+  const patterns = {
+    'new': r'^\s*Stored (\d+) new',
+    'price_changes': r'^\s*Price changes: (\d+)',
+    'removed': r'^\s*Removed: (\d+)',
+    'alerts': r'^\s*Alerts created: (\d+)',
+  };
+  final counts = <String, int>{};
+  for (final MapEntry(:key, :value) in patterns.entries) {
+    for (final m in RegExp(value, multiLine: true).allMatches(log)) {
+      counts[key] = (counts[key] ?? 0) + int.parse(m.group(1)!);
+    }
+  }
+  return counts;
+}
+
 /// Requests each site used in a run, from refresh.dart's
 /// `Requests used: <site>=<n>` lines; empty when the log has none.
 Map<String, int> requestsUsed(String log) => {
