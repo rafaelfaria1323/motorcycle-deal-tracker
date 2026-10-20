@@ -51,8 +51,8 @@ make check                # analyze and test everything (before each commit)
 `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`.
 GitHub Actions uses repository secrets with the same names, plus
 `SUPABASE_PUBLISHABLE_KEY`, `CLOUDFLARE_API_TOKEN` and
-`CLOUDFLARE_ACCOUNT_ID` for the web deploy, `SUPABASE_DB_URL` for the
-migrations, and `CLAUDE_CODE_OAUTH_TOKEN`
+`CLOUDFLARE_ACCOUNT_ID` for the web deploy, `SUPABASE_DB_URL` and
+`SUPABASE_DB_PASSWORD` for the migrations, and `CLAUDE_CODE_OAUTH_TOKEN`
 for the code-quality review. Supabase's Vault holds `github_dispatch_token`,
 which the scheduled jobs use to start the workflows (`docs/hosting.md`).
 Database changes: `make db-new

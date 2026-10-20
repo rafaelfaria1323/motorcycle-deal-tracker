@@ -40,7 +40,8 @@ has the model), or typed by hand.
   is merged, start the next work from a fresh `origin/main`.
 - **Migrations** are applied on merge: `deploy-web.yml`'s `migrate` job
   (skipped when the merge adds none) runs `make db-test` again, then
-  `supabase db push` (secret `SUPABASE_DB_URL`), and only then deploys the
+  `supabase db push` (secrets `SUPABASE_DB_URL` + `SUPABASE_DB_PASSWORD`,
+  joined by `tool/db_url.py`), and only then deploys the
   app. Never change, rename or delete a migration already on `main` (it
   may be live; add a new one); new ones must sort after main's latest
   (`tool/check_migrations.sh`, also run by `check.yml`). The collector runs
@@ -110,7 +111,7 @@ Makefile    All commands (`make help`)
 ## Commands
 
 ```
-make check                     analyze + test app and collector (before every commit)
+make check                     analyze + test app and collector, test tool/ (before every commit)
 make app-run                   run the app in Chrome (app/env/dev.json)
 make db-new NAME=x / db-push   create / apply migrations (merging applies them too)
 make db-test                   migrations + SQL tests on a local Postgres
@@ -131,7 +132,8 @@ Local secrets live in `collector/.env` (gitignored, loaded by the Makefile):
 `TELEGRAM_CHAT_ID`. GitHub Actions uses repository secrets with the same
 names, plus `SUPABASE_PUBLISHABLE_KEY`, `CLOUDFLARE_API_TOKEN` and
 `CLOUDFLARE_ACCOUNT_ID` for the web deploy, `SUPABASE_DB_URL` (Session
-pooler connection string) for the migrations, and `CLAUDE_CODE_OAUTH_TOKEN`
+pooler connection string, `[YOUR-PASSWORD]` left in) and
+`SUPABASE_DB_PASSWORD` for the migrations, and `CLAUDE_CODE_OAUTH_TOKEN`
 for the code-quality review. Supabase's Vault holds `github_dispatch_token`
 (starts the scheduled workflows) and `telegram_bot_token` /
 `telegram_chat_id` (the watchdog's messages).
