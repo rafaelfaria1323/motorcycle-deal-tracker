@@ -4,6 +4,7 @@ import 'dart:io';
 import '../../normalized/normalized_listing.dart';
 import '../../normalized/normalizers.dart';
 import '../../fetch/search_manifest.dart';
+import '../json_blob.dart';
 import '../json_values.dart';
 import '../site_model.dart';
 import '../source_adapter.dart';
@@ -146,17 +147,12 @@ class OlxSearchAdapter implements SourceAdapter<OlxRawListing> {
   /// Pure parsing step, so it can be tested without files.
   /// Throws [FormatException] when the page is not a search results page.
   OlxSearchPage parseSearchPage(String html) {
-    final match = _state.firstMatch(html);
-    if (match == null) {
-      throw const FormatException('no __PRERENDERED_STATE__ block');
-    }
-
-    final Object? state;
-    try {
-      state = jsonDecode(jsonDecode(match.group(1)!) as String);
-    } on Object {
-      throw const FormatException('__PRERENDERED_STATE__ is not valid JSON');
-    }
+    final state = extractJsonBlob(
+      html,
+      _state,
+      '__PRERENDERED_STATE__',
+      quoted: true,
+    );
 
     final listing = asMap(asMap(asMap(state)?['listing'])?['listing']);
     final ads = listing?['ads'];

@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/formatting/formatters.dart';
+import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/listing.dart';
 import '../compare_text.dart';
@@ -85,8 +86,9 @@ class _Content extends StatelessWidget {
         canOpen && await launchUrl(uri, mode: LaunchMode.externalApplication);
 
     if (!opened && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Não foi possível abrir o anúncio')),
+      showMessage(
+        ScaffoldMessenger.of(context),
+        'Não foi possível abrir o anúncio',
       );
     }
   }
@@ -320,28 +322,20 @@ class _CompareButton extends StatelessWidget {
             final messenger = ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar();
             if (!cubit.toggle(listingId)) {
-              messenger.showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Já tem $maxCompared anúncios na comparação. '
-                    'Retire um primeiro.',
-                  ),
-                ),
+              showMessage(
+                messenger,
+                'Já tem $maxCompared anúncios na comparação. '
+                'Retire um primeiro.',
               );
               return;
             }
             final now = cubit.state;
             if (added) {
-              messenger.showSnackBar(
-                const SnackBar(content: Text('Retirado da comparação')),
-              );
+              showMessage(messenger, 'Retirado da comparação');
             } else if (now.length < 2) {
-              messenger.showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Na comparação. Escolha outro anúncio para comparar.',
-                  ),
-                ),
+              showMessage(
+                messenger,
+                'Na comparação. Escolha outro anúncio para comparar.',
               );
             } else {
               messenger.showSnackBar(

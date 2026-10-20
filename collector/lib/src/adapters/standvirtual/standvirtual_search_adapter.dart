@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import '../../fetch/search_manifest.dart';
+import '../json_blob.dart';
 import '../json_values.dart';
 import '../site_model.dart';
 import '../source_adapter.dart';
@@ -120,25 +121,10 @@ class StandvirtualSearchAdapter
     );
   }
 
-  static final _nextData = RegExp(
-    r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>',
-    dotAll: true,
-  );
-
   /// Pure parsing step, so it can be tested without files.
   /// Throws [FormatException] when the page is not a search results page.
   StandvirtualSearchPage parseSearchPage(String html) {
-    final match = _nextData.firstMatch(html);
-    if (match == null) {
-      throw const FormatException('no __NEXT_DATA__ block');
-    }
-
-    final Object? data;
-    try {
-      data = jsonDecode(match.group(1)!);
-    } on FormatException {
-      throw const FormatException('__NEXT_DATA__ is not valid JSON');
-    }
+    final data = extractJsonBlob(html, nextDataBlock, '__NEXT_DATA__');
 
     final urql = asMap(
       asMap(asMap(data)?['props'])?['pageProps'],

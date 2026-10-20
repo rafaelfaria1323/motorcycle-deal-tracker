@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/di/injection.dart';
+import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/catalog_model.dart';
 import '../../domain/repositories/catalog_repository.dart';
@@ -57,7 +58,7 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _replace(model));
-      messenger.showSnackBar(SnackBar(content: Text(_errorText(e))));
+      showMessage(messenger, _errorText(e));
       // Part of a change may have been saved: show what is stored.
       await _load();
     } finally {
@@ -115,17 +116,13 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
         engineCcMin: added.engineCcMin,
         engineCcMax: added.engineCcMax,
       );
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            '${added.brand} ${added.model} adicionado: entra na próxima '
-            'recolha',
-          ),
-        ),
+      showMessage(
+        messenger,
+        '${added.brand} ${added.model} adicionado: entra na próxima recolha',
       );
       await _load();
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(_errorText(e))));
+      showMessage(messenger, _errorText(e));
     }
   }
 
