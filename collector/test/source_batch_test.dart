@@ -1,20 +1,13 @@
 import 'package:collector/collector.dart';
 import 'package:test/test.dart';
 
+import 'helpers.dart';
+
 MappedRecord mapped(String id, {String? search}) => MappedRecord(
   id,
   search: search,
   Mapped(
-    NormalizedListing(
-      source: 'standvirtual',
-      sourceListingId: id,
-      url: 'https://example.com/$id',
-      brand: 'Yamaha',
-      model: 'MT-07',
-      price: 7000,
-      sellerType: SellerType.dealer,
-      images: const [],
-    ),
+    testListing(id, source: 'standvirtual', sellerType: SellerType.dealer),
   ),
 );
 

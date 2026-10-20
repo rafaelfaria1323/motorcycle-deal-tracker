@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:collector/collector.dart';
 import 'package:test/test.dart';
 
+import 'helpers.dart';
+
 String page(Map<String, dynamic> advert) {
   final data = {
     'props': {
@@ -58,23 +60,8 @@ Map<String, dynamic> advert({
 
 final adapter = StandvirtualPageAdapter('unused');
 final catalog = Catalog(const [
-  CatalogEntry(
-    slug: 'yamaha-mt-07',
-    brand: 'Yamaha',
-    model: 'MT-07',
-    minYear: 2023,
-    excludedWords: ['tracer'],
-    engineCcMin: 680,
-    engineCcMax: 710,
-  ),
-  CatalogEntry(
-    slug: 'yamaha-r7',
-    brand: 'Yamaha',
-    model: 'R7',
-    minYear: 2023,
-    engineCcMin: 680,
-    engineCcMax: 710,
-  ),
+  mt07Entry,
+  r7Entry,
   CatalogEntry(
     slug: 'honda-cb650r',
     brand: 'Honda',

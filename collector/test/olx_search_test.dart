@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:collector/collector.dart';
 import 'package:test/test.dart';
 
+import 'helpers.dart';
+
 Map<String, dynamic> param(String key, String value, [String? normalized]) => {
   'key': key,
   'value': value,
@@ -77,25 +79,7 @@ String searchPage(
 
 final adapter = OlxSearchAdapter('unused');
 final mapper = OlxMapper(
-  Catalog(const [
-    CatalogEntry(
-      slug: 'yamaha-mt-07',
-      brand: 'Yamaha',
-      model: 'MT-07',
-      minYear: 2023,
-      excludedWords: ['tracer'],
-      engineCcMin: 680,
-      engineCcMax: 710,
-    ),
-    CatalogEntry(
-      slug: 'yamaha-r7',
-      brand: 'Yamaha',
-      model: 'R7',
-      minYear: 2023,
-      engineCcMin: 680,
-      engineCcMax: 710,
-    ),
-  ]),
+  Catalog(const [mt07Entry, r7Entry]),
   currentYear: 2026,
 );
 
