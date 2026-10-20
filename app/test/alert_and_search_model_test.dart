@@ -34,6 +34,10 @@ void main() {
         ListingAlertModel.fromJson(row('listing_removed')).type,
         AlertType.listingRemoved,
       );
+      expect(
+        ListingAlertModel.fromJson(row('back_on_market')).type,
+        AlertType.backOnMarket,
+      );
     });
 
     test('an unknown or missing type becomes unknown', () {

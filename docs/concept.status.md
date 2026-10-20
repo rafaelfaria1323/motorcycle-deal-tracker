@@ -151,7 +151,7 @@ Private sellers' names and all phone numbers are never stored; saved pages and f
 
 Comparison ✅ (listings side by side), buying assistant, checklists, cost calculators, price prediction, weekly ranking, smart alerts, model price history, imports, dealer integration. ➕ Depreciation tracking ✅ (per-model rates fitted from data).
 
-Planned in roadmap Sprint 15 ("Deciding and buying"): ➕ favourites with private notes ✅ (15.1; a favourite always alerts on price drops and removal), price to offer (buying assistant, 15.2) ✅, ➕ message to the seller (15.12) ✅, viewing checklist (15.3) ✅, cost of ownership (cost calculator, 15.4) ✅, relists as a risk signal (15.5) ✅, text contradictions as risk signals (15.6) ✅, dealer reliability (15.7) 🟡 (figures shown, not scored yet), price trends (model price history, 15.8) ⬜, more sources and imports (15.9) ⬜, web push (15.10) ⬜.
+Planned in roadmap Sprint 15 ("Deciding and buying"): ➕ favourites with private notes ✅ (15.1; a favourite always alerts on price drops and removal), price to offer (buying assistant, 15.2) ✅, ➕ "back on the market" alert for followed bikes (15.14) ✅, ➕ message to the seller (15.12) ✅, viewing checklist (15.3) ✅, cost of ownership (cost calculator, 15.4) ✅, relists as a risk signal (15.5) ✅, text contradictions as risk signals (15.6) ✅, dealer reliability (15.7) 🟡 (figures shown, not scored yet), price trends (model price history, 15.8) ⬜, more sources and imports (15.9) ⬜, web push (15.10) ⬜.
 
 ## 24. Product Philosophy ✅
 

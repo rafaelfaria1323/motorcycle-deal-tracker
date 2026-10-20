@@ -52,7 +52,9 @@ has the model), or typed by hand.
   code on `main` before the merge. `make db-push` still works by hand.
 - You cannot reach Supabase from the sandbox. SQL tests live in
   `supabase/tests/*_test.sql` (`make db-test`, also run by `check.yml`):
-  `tool/db_test.sh` applies every migration to a fresh Postgres after
+  `tool/db_test.sh` applies every migration (each in one transaction, as
+  the merge does: a new enum value can't be used in the file that adds it)
+  to a fresh Postgres after
   `supabase/tests/stubs.sql` (roles, `auth`, pg_cron/pg_net/Vault
   stand-ins, Supabase's default grants), then runs each test in a
   transaction that is rolled back; a test fails by raising (`assert`).
@@ -388,7 +390,9 @@ functions for manual work.
 Types: `new_listing`, `price_reduction` (>= 1% drop, one per price-history
 row), `excellent_opportunity` (score >= 80, risk < 50, one per user/listing,
 `excellent_since`), `listing_removed` (only for listings the user was already
-alerted about). Only events after the saved search was created. Saved
+alerted about), `back_on_market` (a relist of an ad the person followed:
+favourite or alerted by an active saved search; once per person and new
+ad; relists first seen in the last 14 days). Only events after the saved search was created. Saved
 searches can also require a minimum Deal Score / maximum Risk Score,
 a maximum distance from the owner's home and equipment (`extras`, all
 required; `listing_extras` codes); all in `saved_search_matches`.

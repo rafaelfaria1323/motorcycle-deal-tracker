@@ -18,6 +18,7 @@ class AlertsPage extends StatelessWidget {
     AlertType.priceReduction => Icons.trending_down,
     AlertType.excellentOpportunity => Icons.local_fire_department_outlined,
     AlertType.listingRemoved => Icons.block,
+    AlertType.backOnMarket => Icons.replay,
     AlertType.unknown => Icons.notifications_none,
   };
 
@@ -146,7 +147,7 @@ class _AlertTile extends StatelessWidget {
         scheme.surfaceContainerHighest,
         scheme.onSurfaceVariant,
       ),
-      AlertType.newListing => (
+      AlertType.newListing || AlertType.backOnMarket => (
         scheme.primaryContainer,
         scheme.onPrimaryContainer,
       ),

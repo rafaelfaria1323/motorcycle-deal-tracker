@@ -104,6 +104,14 @@ void main() {
     expect(text.split('\n')[1], '7 200 € → 6 800 €');
   });
 
+  test('back on the market shows the new price and the earlier one', () {
+    final text = formatAlert(
+      alert('back_on_market', oldPrice: 7200, newPrice: 6800),
+    );
+    expect(text.split('\n')[0], '🔁 Voltou ao mercado: Yamaha MT-07 2024');
+    expect(text.split('\n')[1], '6 800 € (antes 7 200 €)');
+  });
+
   test('a removed listing shows no score', () {
     final text = formatAlert(alert('listing_removed', newPrice: 6800));
     expect(text, isNot(contains('Pontuação')));
