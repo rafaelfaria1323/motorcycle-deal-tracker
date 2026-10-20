@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/entities/listing.dart';
@@ -54,6 +56,14 @@ class SupabaseListingsRepository implements ListingsRepository {
     }
     if (filters.maxDistanceKm != null) {
       query = query.lte('distance_km', filters.maxDistanceKm!);
+    }
+    if (filters.extras.isNotEmpty) {
+      // jsonb containment: the ad mentions every one of them.
+      query = query.filter(
+        'score_breakdown->extras',
+        'cs',
+        jsonEncode(filters.extras),
+      );
     }
     if (filters.activeOnly) {
       query = query.inFilter('status', ['active', 'price_changed']);

@@ -20,6 +20,7 @@ class SavedSearchModel {
         minDealScore: json['min_deal_score'] as int?,
         maxRiskScore: json['max_risk_score'] as int?,
         maxDistanceKm: json['max_distance_km'] as int?,
+        extras: List<String>.from(json['extras'] as List? ?? const []),
       ),
       createdAt: DateTime.parse(json['created_at'] as String),
       notifyNewListing: json['notify_new_listing'] as bool? ?? true,
@@ -39,6 +40,7 @@ class SavedSearchModel {
     'min_deal_score': filters.minDealScore,
     'max_risk_score': filters.maxRiskScore,
     'max_distance_km': filters.maxDistanceKm,
+    'extras': filters.extras,
   };
 
   /// The row to insert. `user_id` is filled in by the database

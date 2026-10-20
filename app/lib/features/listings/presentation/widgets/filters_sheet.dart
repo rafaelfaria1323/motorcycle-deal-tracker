@@ -6,6 +6,7 @@ import '../../domain/entities/motorcycle_option.dart';
 import '../filter_fields_text.dart';
 import '../saved_search_summary.dart';
 import '../score_criteria.dart';
+import '../score_explanation.dart';
 
 class FiltersSheet extends StatefulWidget {
   const FiltersSheet({
@@ -28,6 +29,7 @@ class _FiltersSheetState extends State<FiltersSheet> {
   late int? _minDealScore = widget.initial.minDealScore;
   late int? _maxRiskScore = widget.initial.maxRiskScore;
   late int? _maxDistanceKm = widget.initial.maxDistanceKm;
+  late final Set<String> _extras = {...widget.initial.extras};
 
   late final _year = TextEditingController(
     text: widget.initial.minYear?.toString() ?? '',
@@ -62,6 +64,11 @@ class _FiltersSheetState extends State<FiltersSheet> {
       minDealScore: _minDealScore,
       maxRiskScore: _maxRiskScore,
       maxDistanceKm: _maxDistanceKm,
+      // In the order of the options, so equal choices compare equal.
+      extras: [
+        for (final code in extraLabels.keys)
+          if (_extras.contains(code)) code,
+      ],
       activeOnly: _activeOnly,
     );
   }
@@ -163,6 +170,24 @@ class _FiltersSheetState extends State<FiltersSheet> {
                 ),
             ],
             onChanged: (value) => setState(() => _maxRiskScore = value),
+          ),
+          const SizedBox(height: 16),
+          Text('Equipamento', style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final MapEntry(key: code, value: label)
+                  in extraLabels.entries)
+                FilterChip(
+                  label: Text(label),
+                  selected: _extras.contains(code),
+                  onSelected: (selected) => setState(
+                    () => selected ? _extras.add(code) : _extras.remove(code),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 16),
           SegmentedButton<SellerType?>(
