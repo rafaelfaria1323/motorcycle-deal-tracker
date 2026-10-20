@@ -350,6 +350,10 @@ functions for manual work.
   3 % (dealer) below it, more for long on sale (+3/5/7 % past 1x/2x/3x the
   model's typical time), relisted (+2 %), a model whose sellers often
   drop, high risk; less after a drop; 1-15 %, rounded down to 50 €.
+- Dealer figures (`dealer_reliability` view, per dealer name trimmed and
+  case-folded, both sites; shown as "O stand" on dealer listings): bikes,
+  live, relisted, sharp price changes, missing mileage, repeated used
+  bikes on the same site, price dropped. Not in the Deal Score yet (15.7).
 - Cost of ownership (`ownership_cost.dart`, app only): per year =
   average depreciation over the years kept (model's curve at the owner's
   km/year) + IUC (category E table by the model's engine size, nothing

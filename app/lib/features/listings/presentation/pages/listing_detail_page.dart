@@ -17,6 +17,7 @@ import '../listing_dates_text.dart';
 import '../listing_detail_text.dart';
 import '../widgets/also_listed_section.dart';
 import '../widgets/deal_score_badge.dart';
+import '../widgets/dealer_card.dart';
 import '../widgets/facts_card.dart';
 import '../widgets/favourite_widgets.dart';
 import '../widgets/market_behaviour_section.dart';
@@ -211,6 +212,7 @@ class _Content extends StatelessWidget {
                   ScoreExplanationCard(listing: listing),
                   OfferCard(listing: listing),
                   AlsoListedSection(listing: listing),
+                  DealerCard(listing: listing),
                   NewPriceCard(listing: listing),
                   OwnershipCostCard(listing: listing),
                   FactsCard(title: 'A mota', facts: bikeFacts(listing)),
