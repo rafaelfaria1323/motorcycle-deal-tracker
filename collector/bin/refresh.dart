@@ -43,45 +43,37 @@ Future<void> main(List<String> args) async {
   if (sites.isEmpty) sites.addAll([FetchSite.standvirtual, FetchSite.olx]);
 
   final watch = Stopwatch()..start();
-  SupabaseClient? client;
   var failed = 0;
   try {
-    final config = SupabaseConfig.fromEnvironment();
-    client = SupabaseClient(config.url, config.serviceKey);
-    final store = ListingStore(client);
-    final catalog = await loadCatalog(client);
+    await withServiceClient((client) async {
+      final store = ListingStore(client);
+      final catalog = await loadCatalog(client);
 
-    for (final site in sites) {
-      final name = FetchSite.byName.entries
-          .firstWhere((e) => e.value == site)
-          .key;
-      stdout.writeln('== $name ==');
-      final code = await _refreshSite(
-        site,
-        name,
-        catalog,
-        store,
-        full: full,
-        force: force,
-        enrichMax: enrichMax,
-      );
-      if (code != 0) {
-        failed++;
-        exitCode = code;
+      for (final site in sites) {
+        final name = FetchSite.byName.entries
+            .firstWhere((e) => e.value == site)
+            .key;
+        stdout.writeln('== $name ==');
+        final code = await _refreshSite(
+          site,
+          name,
+          catalog,
+          store,
+          full: full,
+          force: force,
+          enrichMax: enrichMax,
+        );
+        if (code != 0) {
+          failed++;
+          exitCode = code;
+        }
+        stdout.writeln('($name done at ${watch.elapsed.inSeconds} s)');
       }
-      stdout.writeln('($name done at ${watch.elapsed.inSeconds} s)');
-    }
 
-    stdout.writeln('== all sites ==');
-    await finishRun(store);
-  } on ConfigException catch (e) {
-    stderr.writeln('Configuration error: $e');
-    exitCode = 78;
-  } on PostgrestException catch (e) {
-    stderr.writeln('Database error: ${e.message}');
-    exitCode = 70;
+      stdout.writeln('== all sites ==');
+      await finishRun(store);
+    });
   } finally {
-    await client?.dispose();
     stdout.writeln(
       'Refresh finished in ${watch.elapsed.inSeconds} s'
       '${failed > 0 ? ', $failed site(s) failed' : ''}.',

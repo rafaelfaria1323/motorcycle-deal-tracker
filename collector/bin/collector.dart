@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:collector/collector.dart';
-import 'package:supabase/supabase.dart';
 
 const _knownFlags = {'--dry-run', '--full', '--force'};
 
@@ -29,30 +28,12 @@ Future<void> main(List<String> args) async {
   final full = flags.contains('--full');
   final force = flags.contains('--force');
 
-  SupabaseClient? client;
-  try {
-    final config = SupabaseConfig.fromEnvironment();
-    client = SupabaseClient(config.url, config.serviceKey);
-
+  await withServiceClient((client) async {
     final catalog = await loadCatalog(client);
     final batch = await loadBatch(positional.first, positional[1], catalog);
 
     final store = dryRun ? null : ListingStore(client);
     await importBatch(batch, catalog, store: store, full: full, force: force);
     if (store != null) await finishRun(store);
-  } on ConfigException catch (e) {
-    stderr.writeln('Configuration error: $e');
-    exitCode = 78;
-  } on FileSystemException catch (e) {
-    stderr.writeln('Cannot read input: ${e.message} (${e.path})');
-    exitCode = 66;
-  } on FormatException catch (e) {
-    stderr.writeln('Invalid input: ${e.message}');
-    exitCode = 65;
-  } on PostgrestException catch (e) {
-    stderr.writeln('Database error: ${e.message}');
-    exitCode = 70;
-  } finally {
-    await client?.dispose();
-  }
+  });
 }
