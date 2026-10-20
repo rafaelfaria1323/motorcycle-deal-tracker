@@ -38,9 +38,14 @@ has the model), or typed by hand.
   `feat(alerts): push new alerts to Telegram after each run (11.1)`.
 - Flow: push to the `claude/...` branch, open a PR, Rafael merges. Once a PR
   is merged, start the next work from a fresh `origin/main`.
-- **Migrations:** Rafael runs `make db-push`. When the new collector code
-  needs the new schema, say "run `make db-push` before merging" and keep the
-  migration compatible with the code still on `main`.
+- **Migrations** are applied on merge: `deploy-web.yml`'s `migrate` job
+  (skipped when the merge adds none) runs `make db-test` again, then
+  `supabase db push` (secret `SUPABASE_DB_URL`), and only then deploys the
+  app. Never change, rename or delete a migration already on `main` (it
+  may be live; add a new one); new ones must sort after main's latest
+  (`tool/check_migrations.sh`, also run by `check.yml`). The collector runs
+  from `main` on its own schedule, so keep a migration compatible with the
+  code on `main` before the merge. `make db-push` still works by hand.
 - You cannot reach Supabase from the sandbox. SQL tests live in
   `supabase/tests/*_test.sql` (`make db-test`, also run by `check.yml`):
   `tool/db_test.sh` applies every migration to a fresh Postgres after
@@ -71,8 +76,11 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
 .github/workflows/check.yml       `make check` (with Flutter) and `make
                                   db-test` (Postgres service) on every pull
                                   request to main
-.github/workflows/deploy-web.yml  Test, build and publish the app to
-                                  Cloudflare Pages on merges touching app/
+.github/workflows/deploy-web.yml  On merges touching app/ or adding
+                                  migrations: apply new migrations
+                                  (tested again first; skipped if none),
+                                  then test, build and publish the app to
+                                  Cloudflare Pages
 .github/workflows/code-quality.yml  Claude pass on docs/code-quality.md: how
                                   the code is written (duplication, dead
                                   code, structure, theme, names); one PR
@@ -104,7 +112,7 @@ Makefile    All commands (`make help`)
 ```
 make check                     analyze + test app and collector (before every commit)
 make app-run                   run the app in Chrome (app/env/dev.json)
-make db-new NAME=x / db-push   create / apply migrations
+make db-new NAME=x / db-push   create / apply migrations (merging applies them too)
 make db-test                   migrations + SQL tests on a local Postgres
 make searches SITE=olx|standvirtual   write the tracked models' searches
 make fetch-dry|fetch SITE=...  download those search pages (polite, capped)
@@ -122,7 +130,8 @@ Local secrets live in `collector/.env` (gitignored, loaded by the Makefile):
 `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN`,
 `TELEGRAM_CHAT_ID`. GitHub Actions uses repository secrets with the same
 names, plus `SUPABASE_PUBLISHABLE_KEY`, `CLOUDFLARE_API_TOKEN` and
-`CLOUDFLARE_ACCOUNT_ID` for the web deploy, and `CLAUDE_CODE_OAUTH_TOKEN`
+`CLOUDFLARE_ACCOUNT_ID` for the web deploy, `SUPABASE_DB_URL` (Session
+pooler connection string) for the migrations, and `CLAUDE_CODE_OAUTH_TOKEN`
 for the code-quality review. Supabase's Vault holds `github_dispatch_token`
 (starts the scheduled workflows) and `telegram_bot_token` /
 `telegram_chat_id` (the watchdog's messages).
