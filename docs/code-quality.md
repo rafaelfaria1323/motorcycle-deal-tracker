@@ -16,6 +16,9 @@ the database schema, secrets or workflows goes to "Needs Rafael".
 
 ## To do
 
+- The three file-reading adapters repeat the same folder scan (exists check, `.html` filter, sort by path), the same decode of each file, and the two search adapters also the same "saved N h ago" staleness issue: `olx_search_adapter.dart:59-72` and `:98-107`, `standvirtual_search_adapter.dart:59-72` and `:94-103`, `standvirtual_page_adapter.dart:26-39`; move them to shared helpers next to `json_blob.dart` (`listHtmlFiles`, `staleIssue`), tested, messages unchanged.
+- The presentation layer talks to Supabase directly, against the clean-architecture split: `Supabase.instance.client.auth` in `features/settings/presentation/more_page.dart:18` and `features/collector_status/presentation/collector_status_banner.dart:28` (own auth-stream subscription); expose the signed-in state through the existing account cubit or an auth repository in `domain/` + `data/`, so the widgets only read state.
+- Error-coloured text is styled by hand in four places (`TextStyle(color: colorScheme.error)` in `core/auth/account_sheet.dart:139` and `edit_saved_search_sheet.dart:133`, `colorScheme.error` in `tracked_models_page.dart:197`, `delete_saved_search_dialog.dart:25`); one shared helper or theme text style would keep the error look in `app_theme.dart`.
 
 ## Needs Rafael
 
