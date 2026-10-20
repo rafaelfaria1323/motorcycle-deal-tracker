@@ -268,6 +268,7 @@ jobs:
           show_full_output: true
 
       - name: Open the PR
+        id: open
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -289,3 +290,44 @@ jobs:
             --body "$body"$'\n\n'"Opened by the $LABEL workflow ($MODE run ${{ github.run_id }})."
           # A PR opened with this token starts no pull_request workflows.
           gh workflow run check.yml --ref "$(git branch --show-current)"
+          echo "opened=true" >> "$GITHUB_OUTPUT"
+
+      # Rafael's choice (2026-10-20): a backlog PR merges itself once its
+      # check passes, unless it touches what needs a person (migrations,
+      # workflows, tool/, the Makefile) or the repository variable
+      # AUTO_MERGE_BACKLOG is "false"; then it waits for a manual merge.
+      # A merge made with this job's token starts no push workflows, so the
+      # app deploy is started here (mutation testing waits for the next
+      # ordinary merge).
+      - name: Merge when the check passes
+        if: steps.open.outputs.opened == 'true' && vars.AUTO_MERGE_BACKLOG != 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          branch=$(git branch --show-current)
+          sha=$(git rev-parse HEAD)
+          blocked=$(git diff --name-only origin/main...HEAD \
+            | grep -E '^(supabase/|\.github/|tool/|Makefile$)' || true)
+          if [ -n "$blocked" ]; then
+            echo "::notice::Left for a manual merge: it changes $(echo $blocked)"
+            exit 0
+          fi
+          # The check run started above, for this exact commit.
+          run=""
+          for _ in $(seq 1 30); do
+            run=$(gh run list --workflow check.yml --branch "$branch" \
+              --event workflow_dispatch --json databaseId,headSha \
+              --jq "map(select(.headSha == \"$sha\")) | .[0].databaseId // empty")
+            [ -n "$run" ] && break
+            sleep 10
+          done
+          [ -n "$run" ] || { echo "::warning::Check run not found; left for a manual merge"; exit 0; }
+          if ! gh run watch "$run" --exit-status --interval 30 >/dev/null; then
+            echo "::warning::The check failed; left for a manual merge"
+            exit 0
+          fi
+          # --match-head-commit: never merge a commit the check didn't see.
+          gh pr merge "$branch" --merge --match-head-commit "$sha"
+          if git diff --name-only origin/main...HEAD | grep -q '^app/'; then
+            gh workflow run deploy-web.yml --ref main
+          fi

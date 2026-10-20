@@ -80,6 +80,12 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
 .github/workflows/check.yml       `make check` (with Flutter) and `make
                                   db-test` (Postgres service) on every pull
                                   request to main
+.github/workflows/preview-web.yml Every PR touching app/: the app built and
+                                  published to pr-<number>.<project>.pages.dev,
+                                  linked in one comment on the PR (real
+                                  database; the PR's migrations not applied);
+                                  older builds deleted on each push, the
+                                  preview deleted when the PR closes
 .github/workflows/deploy-web.yml  On merges touching app/ or adding
                                   migrations: apply new migrations
                                   (tested again first; skipped if none),
@@ -107,7 +113,14 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
                                   change; otherwise every 5 merges do up to
                                   3 items, find nothing.
                                   One pass at a time, none while one of
-                                  the same backlog is open
+                                  the same backlog is open. Its PR merges
+                                  itself when its check passes (not when it
+                                  touches supabase/, .github/, tool/ or the
+                                  Makefile; variable AUTO_MERGE_BACKLOG=false
+                                  turns it off) and starts the app deploy
+.claude/hooks/session-start.sh  Cloud sessions only: Dart SDK on PATH, collector
+                                  dependencies, local Postgres (PGHOST set), so
+                                  make collector-check / tool-check / db-test run
 Makefile    All commands (`make help`)
 ```
 
