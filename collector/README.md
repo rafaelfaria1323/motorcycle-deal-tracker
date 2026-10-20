@@ -21,6 +21,12 @@ For each site (Standvirtual, OLX):
 Then, once for both sites: find duplicates, recalculate the scores,
 generate the alerts and send the new ones to Telegram.
 
+After each scheduled run `bin/report_run.dart` records it in `collector_runs`
+and, when its status differs from the previous run's (ok, blocked, failed),
+sends one Telegram message: what went wrong on which site
+(`notify/run_health.dart`), or that the collection works again. The same
+problem is not repeated every 4 hours.
+
 Every Monday `bin/weekly_summary.dart` (workflow `weekly-summary.yml`) sends
 one Telegram message about the tracked models' last 7 days: new listings per
 model, price drops (1 % or more, biggest first), listings gone, and the 5
