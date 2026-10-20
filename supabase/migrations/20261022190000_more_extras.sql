@@ -1,5 +1,6 @@
 -- More equipment read from the ads (Rafael, 2026-10-20: short licence
--- plate holder, frame sliders called "cogumelos", tinted screen...): new
+-- plate holder, frame sliders called "cogumelos", tinted screen, original
+-- parts included...): new
 -- codes, and more of the words sellers use for the existing ones. Codes
 -- never change (saved searches store them); the app's extraLabels lists
 -- the same codes.
@@ -22,7 +23,7 @@ as $$
         '(akrapovi|termignoni|sc[\s-]?project|yoshimura|leovince|\mmivv\M|\marrow\M'
         '|\mgpr\M|bodis|\mzard\M|giannelli|\mremus\M|two\s+brothers|austin\s+racing'
         '|hp\s+corse|\mixil\M|scorpion|ponteiras?\s+(de\s+escape|desportiv)'
-        '|escape\s+(desportivo|racing|completo|de\s+competi|aftermarket))'),
+        '|escape\s+(\w+\s+)?(desportivo|racing|completo|de\s+competi|after\s*-?\s*market))'),
       ('luggage',
         '(top\s*-?\s*case|\mmalas\M|malas?\s+laterais|alforges|\mba[uú]\M'
         '|malas?\s+(de\s+)?dep[oó]sito|sacos?\s+de\s+dep[oó]sito|tank\s*-?\s*bag'
@@ -45,7 +46,8 @@ as $$
         '((bolha|viseira|para[\s-]*brisas?|ecr[aã])\s+(\w+\s+)?'
         '(fumad|fum[eê]|escurecid|escur|desportiv|alt[ao]|touring|racing|puig|ermax|\mmra\M))'),
       ('levers',
-        '(manetes?\s+(\w+\s+)?(ajust[aá]ve|regul[aá]ve|curt|desportiv|articulad|rizoma|puig|\mcnc\M))'),
+        -- also misspelt ("manteres curtas")
+        '(\mmane?te?r?e?s?\s+(\w+\s+)?(ajust[aá]ve|regul[aá]ve|curt|desportiv|articulad|rizoma|puig|\mcnc\M))'),
       ('mirrors',
         '(espelhos?\s+(\w+\s+)?(de\s+|na\s+)?(ponta|bar[\s-]*end|rizoma)'
         '|retrovisores?\s+(\w+\s+)?(de\s+|na\s+)?(ponta|bar[\s-]*end|rizoma))'),
@@ -60,7 +62,15 @@ as $$
       ('suspension',
         '([öo]hlins|k[\s-]?tech|wilbers|hyperpro|matris|andreani'
         '|suspens[aã]o\s+(\w+\s+)?(afinad|melhorad|upgrade|revista))'),
-      ('led_indicators', '((piscas?|indicadores)\s+(\w+\s+)?led\M)')
+      ('led_indicators', '((piscas?|indicadores)\s+(\w+\s+)?led\M)'),
+      ('passenger_grips',
+        '((suporte|pegas?|apoios?|al[cç]as?)\s+(\w+\s+){0,2}m[aã]os\s+(\w+\s+){0,2}pendura'
+        '|(pegas?|al[cç]as?)\s+(\w+\s+){0,2}pendura|grab\s*-?\s*rails?)'),
+      -- The parts taken off come with the bike, so it can go back to stock.
+      ('original_parts',
+        '((partes|pe[cç]as)\s+(\w+\s+)?(de\s+origem|originais)'
+        '|(inclui|acompanha|entrego|entrega|oferece|vai\s+com|com)\s+(\w+\s+){0,3}(de\s+origem|originais)'
+        '|\morigina(l|is)\s+(inclu|tamb[eé]m|acompanha))')
   )
   select coalesce(array_agg(r.code order by r.code), '{}'::text[])
   from rules r, t
@@ -76,4 +86,5 @@ alter table public.saved_searches
                            'protection', 'new_tyres', 'tail_tidy', 'screen',
                            'levers', 'mirrors', 'phone_mount', 'alarm',
                            'steering_damper', 'centre_stand', 'cruise_control',
-                           'suspension', 'led_indicators']);
+                           'suspension', 'led_indicators', 'passenger_grips',
+                           'original_parts']);

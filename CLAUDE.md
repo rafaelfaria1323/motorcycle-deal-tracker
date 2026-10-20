@@ -366,7 +366,8 @@ functions for manual work.
   protection (also "cogumelos"), new tyres, short plate holder, tinted or
   sport screen, adjustable levers, bar-end mirrors, phone mount/USB,
   alarm/tracker, steering damper, centre stand, cruise control, upgraded
-  suspension, LED indicators; codes never change, the app's `extraLabels`
+  suspension, LED indicators, passenger grab handles, original parts
+  included (so it can go back to stock); codes never change, the app's `extraLabels`
   and the saved-search check list the same; 70 for one, +10 each, max 100;
   none found = slice skipped, never a penalty). Missing slices are skipped.
 - Risk signals: price far below market, possible accident (text), missing

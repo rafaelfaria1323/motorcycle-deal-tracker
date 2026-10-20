@@ -39,7 +39,14 @@ declare
     ['ponteiras de guiador', ''],
     ['manoplas aquecidas', 'heated_grips'],
     ['up/down shifter', 'quickshifter'],
-    ['sem cogumelos', '']
+    ['sem cogumelos', ''],
+    -- An ad Rafael found (OLX, 2024, 6 000 km).
+    [E'tem todas as partes de origem\nVai com escape after market\nSuporte matricula curto\nProteções motor\nManteres curtas\nquickshift original\nSuporte maos pendura',
+     'exhaust,levers,original_parts,passenger_grips,protection,quickshifter,tail_tidy'],
+    ['escape original incluído', 'original_parts'],
+    ['entrego as peças originais', 'original_parts'],
+    ['pneus originais, mantém tudo de origem', ''],
+    ['pegas para o pendura', 'passenger_grips']
   ];
   i int;
   got text;

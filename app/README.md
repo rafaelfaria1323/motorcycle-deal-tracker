@@ -9,7 +9,7 @@ Cloudflare Pages on every merge that touches `app/`
 
 - **Ofertas:** listings of the tracked models, sorted by Deal Score (or
   newest, cheapest, most expensive, nearest), with filters shown as chips
-  (including "Distância máxima" from your home and equipment: 17 kinds,
+  (including "Distância máxima" from your home and equipment: 19 kinds,
   e.g. quickshifter, escape, malas, proteções, suporte de matrícula curto,
   bolha) and paged 40 at a time.
   Each card shows the place and its distance from your home.

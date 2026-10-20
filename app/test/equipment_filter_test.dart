@@ -25,6 +25,8 @@ void main() {
       'cruise_control',
       'suspension',
       'led_indicators',
+      'passenger_grips',
+      'original_parts',
     ]);
   });
 

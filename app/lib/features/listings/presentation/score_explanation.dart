@@ -56,6 +56,8 @@ const extraLabels = {
   'cruise_control': 'cruise control',
   'suspension': 'suspensão melhorada',
   'led_indicators': 'piscas LED',
+  'passenger_grips': 'pegas para o pendura',
+  'original_parts': 'peças de origem incluídas',
 };
 
 /// The extras found in the ad ("quickshifter, malas"), or null when none.
