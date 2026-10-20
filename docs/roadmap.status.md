@@ -161,7 +161,7 @@ Do not implement several unrelated features at once.
 # Sprint 11 — Quality 🟡
 
 ## 11.1 Unit tests 🟡
-*App: alerts, saved searches, score explainer, risk reasons, market behaviour, collector status, new-price text, catalog and tracked-models text. Collector (150 tests): import, enrich and notify steps (with fakes), JSON readers, adapters, mappers, model resolver (real OLX titles), search plan, removal plan, normalizers, store, fetcher, robots.txt, run status. SQL is verified on a local Postgres with all migrations, not with automated tests.*
+*App: alerts, saved searches, score explainer, risk reasons, market behaviour, collector status, new-price text, catalog, tracked-models and model-picker text. Collector (168 tests): import, enrich and notify steps (with fakes), JSON readers, adapters, mappers, model resolver (real OLX titles), search plan, removal plan, normalizers, store, fetcher, robots.txt, run status. SQL is verified on a local Postgres with all migrations, not with automated tests.*
 ## 11.2 Integration tests ⬜
 ## 11.3 Logging 🟡
 *Every scheduled run is recorded in `collector_runs` with a log tail; Actions keeps the full log for 7 days.*
@@ -179,6 +179,8 @@ Do not implement several unrelated features at once.
 ➕ **Mileage counts more** ✅ (4.4c): on the real MT-07 market (72 listings) asking prices fall only ~0.25 % per 1000 km, so a 2023 bike with 25 000 km was valued like its low-mileage peers (6 785 €). The fair value's mileage rate is now at least 0.5 % per 1000 km (6 466 € for that bike; low-mileage bikes barely change), comparables without year or mileage are left out, and the explanation says the estimate comes from asking prices.
 
 ➕ **Model re-check** ✅ (9.8b): a Forza 125 was stored as the Forza 350 (a model added in the app has no engine limits, so when the site's model field said only "Forza" the engine-size fallback accepted any size). The fallback now skips models without limits, and every import re-checks the model of the ads it read (`rematch_listings`), since `save` never updates a stored listing: wrong matches already stored are corrected on the next run.
+
+➕ **Brand and model picker** ✅ (9.9b): "Adicionar modelo" no longer needs addresses copied from the browser. The collector stores the brand and model lists in the filters of the search pages it already reads (`site_models`: Standvirtual lists every brand's models with ad counts, OLX only the searched brand's; no extra requests). The form picks the brand (most ads first) and the model, with an optional engine size: empty = every size; 350 names the model "Forza 350", searches Standvirtual for "350" and matches only bikes of 315-385 cc (`add_catalog_model` takes `engine_cc_min/max`). The OLX search is added only when OLX's own list has the model (by id or name; OLX's ids differ for some, and it has no list for brands never searched); otherwise only Standvirtual, or "Escrever à mão" for the old form.
 
 ➕ **Relisted ads** ✅ (20.2): when a bike is taken down and listed again as a new ad (same model and year, same similarity rule as duplicates, gone at most 90 days before the new ad appeared), the new listing links to the earlier one. The listing page shows "Anúncio publicado de novo: esteve à venda noutro anúncio desde … (há N dias), a última vez por … (agora menos …)" with "Ver anterior". Marked by `mark_relists` at the end of `mark_duplicates`, so the collector is unchanged.
 

@@ -15,7 +15,12 @@ pipeline, rules).
 Catalog (table `motorcycles`): 13 models, chosen in the app ("Modelos
 acompanhados"). Tracked by default: Yamaha MT-07, Yamaha R7, Honda CB650R,
 Honda CBR650R. Available, off by default: Tracer 7, R1, R3, R9, CB125R,
-CB300R, CBR500R, CB750 Hornet, CBR600RR. The owner can add more from the app.
+CB300R, CBR500R, CB750 Hornet, CBR600RR. The owner can add more from the app:
+brand and model picked from `site_models` (the sites' filter lists, stored
+by every import from the search pages; view `site_makes` for the brands),
+optional engine size (name "Forza 350", Standvirtual `q-350`, engine range
++-10 %), searches built from the sites' ids (OLX only when OLX's own list
+has the model), or typed by hand.
 
 ## How to work on this project
 
@@ -178,7 +183,7 @@ starts once, the catalog is loaded once). For each site:
 `planSearches` (tracked models) → `fetchSearches` saves the pages plus
 `searches.json` (planned searches, search of each page) → `importBatch`:
 save → markSeen → rematch → applyPriceChanges → setSearchKeys → applyPricesBeforeDrop
-→ applyListingDates → (if `--full`) markRemoved; Standvirtual then reads new listings' details
+→ applyListingDates → saveSiteModels → (if `--full`) markRemoved; Standvirtual then reads new listings' details
 (`enrichDetails`) with the same fetcher. Then once for all sites
 (`finishRun`): markDuplicates → recalculateScores → generateAlerts →
 Telegram notifications. The single-step commands (`fetch.dart`,

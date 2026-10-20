@@ -13,7 +13,9 @@ For each site (Standvirtual, OLX):
 2. **Fetch:** the search pages, politely (see the root README) and capped.
 3. **Import:** parse, match each listing to a model, store it, record price
    changes and dates, and mark listings that left the searches read in full
-   as removed (`--full`).
+   as removed (`--full`). The brand and model lists in the search pages'
+   filters are stored too (`site_models`, for the app's model picker; no
+   extra requests).
 4. **Details** (Standvirtual only): read the listing page of new listings.
 
 Then, once for both sites: find duplicates, recalculate the scores,

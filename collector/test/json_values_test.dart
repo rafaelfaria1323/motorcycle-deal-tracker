@@ -8,6 +8,12 @@ void main() {
     expect(asMap(null), isNull);
   });
 
+  test('asList keeps lists and gives an empty one otherwise', () {
+    expect(asList([1, 'a']), [1, 'a']);
+    expect(asList({'a': 1}), isEmpty);
+    expect(asList(null), isEmpty);
+  });
+
   test('asInt takes any number, truncating decimals', () {
     expect(asInt(7), 7);
     expect(asInt(7.9), 7);

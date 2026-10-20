@@ -21,7 +21,9 @@ Cloudflare Pages on every merge that touches `app/`
 - **Alertas:** new listings, price drops, excellent opportunities and
   removed listings, grouped by day; the tab shows the unread count.
 - **Mais:** account, "Modelos acompanhados" (switch models on/off, first
-  year, new-bike price, add models), the collection status and data quality
+  year, new-bike price, add models: brand and model picked from the sites'
+  lists, optional engine size, searches built automatically; or typed by
+  hand), the collection status and data quality
   per site (live listings, unmatched, duplicates, missing year/km/location).
 
 ## Running it

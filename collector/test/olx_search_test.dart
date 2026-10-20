@@ -54,6 +54,7 @@ String searchPage(
   List<Map<String, dynamic>> ads, {
   int page = 0,
   int totalPages = 1,
+  List<Map<String, Object?>>? models,
 }) {
   final state = {
     'listing': {
@@ -62,6 +63,13 @@ String searchPage(
         'totalPages': totalPages,
         'totalElements': ads.length * totalPages,
         'ads': ads,
+        if (models != null)
+          'metaData': {
+            'filters': [
+              {'name': 'filter_enum_cilindrada', 'values': <Object>[]},
+              {'name': 'filter_enum_modelo', 'values': models},
+            ],
+          },
         'requestParams': {
           'page': page,
           'categoryPath': 'carros-motos-e-barcos/motociclos-scooters/yamaha',
@@ -87,6 +95,51 @@ OlxRawListing one(Map<String, dynamic> a) =>
     adapter.parseSearchPage(searchPage([a])).records.single;
 
 void main() {
+  test('reads the models OLX offers for the brand of the page', () {
+    final page = adapter.parseSearchPage(
+      searchPage(
+        [ad()],
+        models: [
+          {'label': 'MT-07', 'value': 'mt-07'},
+          {'label': 'Ténéré 700', 'value': 'tenere-700'},
+          {'label': '', 'value': 'blank'},
+        ],
+      ),
+    );
+
+    expect(
+      [for (final m in page.models) '${m.makeId}/${m.modelId}/${m.modelName}'],
+      ['yamaha/mt-07/MT-07', 'yamaha/tenere-700/Ténéré 700'],
+    );
+    expect(page.models.first.ads, isNull);
+    expect(adapter.parseSearchPage(searchPage([ad()])).models, isEmpty);
+  });
+
+  test('uniqueSiteModels keeps one entry per brand and model', () {
+    const mt07 = SiteModel(
+      makeId: 'yamaha',
+      makeName: 'Yamaha',
+      modelId: 'mt-07',
+      modelName: 'MT-07',
+    );
+    const r = SiteModel(
+      makeId: 'yamaha',
+      makeName: 'Yamaha',
+      modelId: 'r',
+      modelName: 'R',
+    );
+
+    expect(uniqueSiteModels([mt07, r, mt07]), [mt07, r]);
+    expect(mt07.toRow('olx'), {
+      'source': 'olx',
+      'make_id': 'yamaha',
+      'make_name': 'Yamaha',
+      'model_id': 'mt-07',
+      'model_name': 'MT-07',
+      'ads': null,
+    });
+  });
+
   test('reads a result and maps it to the catalog model', () {
     final raw = one(ad());
 
