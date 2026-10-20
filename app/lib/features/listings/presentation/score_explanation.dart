@@ -34,7 +34,9 @@ class ScoreExplanation extends Equatable {
   List<Object?> get props => [score, label, lines, slicesUsed, slicesTotal];
 }
 
-const _extraLabels = {
+/// The equipment codes of `listing_extras`, in the order they are offered
+/// as filters, with their labels.
+const extraLabels = {
   'quickshifter': 'quickshifter',
   'exhaust': 'escape desportivo',
   'luggage': 'malas',
@@ -47,7 +49,7 @@ const _extraLabels = {
 String? extrasText(Map<String, dynamic>? breakdown) {
   final labels = [
     for (final code in (breakdown?['extras'] as List? ?? const []))
-      if (_extraLabels[code] case final label?) label,
+      if (extraLabels[code] case final label?) label,
   ];
   return labels.isEmpty ? null : labels.join(', ');
 }

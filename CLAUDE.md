@@ -376,7 +376,9 @@ Types: `new_listing`, `price_reduction` (>= 1% drop, one per price-history
 row), `excellent_opportunity` (score >= 80, risk < 50, one per user/listing,
 `excellent_since`), `listing_removed` (only for listings the user was already
 alerted about). Only events after the saved search was created. Saved
-searches can also require a minimum Deal Score / maximum Risk Score.
+searches can also require a minimum Deal Score / maximum Risk Score,
+a maximum distance from the owner's home and equipment (`extras`, all
+required; `listing_extras` codes); all in `saved_search_matches`.
 `notified_at` marks alerts already pushed to Telegram (only real accounts).
 Weekly summary (Mondays, `weekly_summary.dart`, pure logic in
 `notify/weekly_summary.dart`): tracked models, non-duplicates; new = first

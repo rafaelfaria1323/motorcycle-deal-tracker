@@ -124,7 +124,7 @@ All four types, each at most once per event, only for events after the search wa
 
 ## 17. Dashboard ✅
 
-✅ Best deals sorted by Deal Score (or newest, cheapest, most expensive); only tracked models; filters for model, price, mileage, year, location, seller type, Deal Score, Risk Score, active only, shown as removable chips. ➕ Distance from the owner's home on every listing, a maximum-distance filter (also for saved searches) and a nearest-first sort (15.11). ➕ Collection status (last run, duration, what it found, requests, next run; a warning card when a run failed or was blocked) in Mais. ➕ Favourites: a star on cards of starred listings; "Favoritos" (Ofertas app bar or Mais) lists them with the owner's notes.
+✅ Best deals sorted by Deal Score (or newest, cheapest, most expensive); only tracked models; filters for model, price, mileage, year, location, seller type, Deal Score, Risk Score, active only, shown as removable chips. ➕ Distance from the owner's home on every listing, a maximum-distance filter (also for saved searches) and a nearest-first sort (15.11). ➕ Equipment filter (quickshifter, exhaust, luggage, heated grips, protection, new tyres), also for saved searches (15.13). ➕ Collection status (last run, duration, what it found, requests, next run; a warning card when a run failed or was blocked) in Mais. ➕ Favourites: a star on cards of starred listings; "Favoritos" (Ofertas app bar or Mais) lists them with the owner's notes.
 
 ## 18. Listing Detail Page ✅
 
@@ -151,7 +151,7 @@ Private sellers' names and all phone numbers are never stored; saved pages and f
 
 Comparison ✅ (listings side by side), buying assistant, checklists, cost calculators, price prediction, weekly ranking, smart alerts, model price history, imports, dealer integration. ➕ Depreciation tracking ✅ (per-model rates fitted from data).
 
-Planned in roadmap Sprint 15 ("Deciding and buying"): ➕ favourites with private notes ✅ (15.1; a favourite always alerts on price drops and removal), price to offer (buying assistant, 15.2) ✅, viewing checklist (15.3) ✅, cost of ownership (cost calculator, 15.4) ✅, relists as a risk signal (15.5) ✅, text contradictions as risk signals (15.6) ✅, dealer reliability (15.7) 🟡 (figures shown, not scored yet), price trends (model price history, 15.8) ⬜, more sources and imports (15.9) ⬜, web push (15.10) ⬜.
+Planned in roadmap Sprint 15 ("Deciding and buying"): ➕ favourites with private notes ✅ (15.1; a favourite always alerts on price drops and removal), price to offer (buying assistant, 15.2) ✅, ➕ message to the seller (15.12) ✅, viewing checklist (15.3) ✅, cost of ownership (cost calculator, 15.4) ✅, relists as a risk signal (15.5) ✅, text contradictions as risk signals (15.6) ✅, dealer reliability (15.7) 🟡 (figures shown, not scored yet), price trends (model price history, 15.8) ⬜, more sources and imports (15.9) ⬜, web push (15.10) ⬜.
 
 ## 24. Product Philosophy ✅
 
