@@ -39,6 +39,12 @@ void main() {
       isNull,
     );
     expect(renewalToShow(listing(published: published)), isNull);
+    expect(
+      renewalToShow(
+        listing(published: published, renewed: DateTime(2026, 5, 19)),
+      ),
+      DateTime(2026, 5, 19),
+    );
   });
 
   group('relisted bikes', () {
@@ -76,6 +82,14 @@ void main() {
       );
       expect(
         relistText(relisted(before: 6500, price: 6500), now: now),
+        isNot(contains('agora')),
+      );
+      expect(
+        relistText(relisted(before: 6500, price: 6499), now: now),
+        contains('(agora menos '),
+      );
+      expect(
+        relistText(relisted(before: 6500, price: 6499.01), now: now),
         isNot(contains('agora')),
       );
       expect(

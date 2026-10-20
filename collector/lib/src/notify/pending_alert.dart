@@ -46,8 +46,9 @@ class PendingAlert {
 
 /// `7650` -> `7 650 €`
 String euros(num value) {
-  final digits = value.round().toString();
-  final out = StringBuffer();
+  final rounded = value.round();
+  final digits = rounded.abs().toString();
+  final out = StringBuffer(rounded < 0 ? '-' : '');
   for (var i = 0; i < digits.length; i++) {
     if (i > 0 && (digits.length - i) % 3 == 0) out.write(' ');
     out.write(digits[i]);
