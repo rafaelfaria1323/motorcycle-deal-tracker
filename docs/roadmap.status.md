@@ -227,8 +227,8 @@ Do not implement several unrelated features at once.
 ## 15.3 Viewing checklist ✅
 *"Para a visita" on the listing page, under "As suas notas", while the listing is a favourite: "N pontos para ver na visita", then "3 de 12 vistos · 1 problema" or "Tudo visto, sem problemas". It opens a sheet with 12 points in three groups, each with what to look for: Documentos (Documento Único: VIN and plate against the bike, the seller is the owner; certidão de registo automóvel for liens and finance; revisões; chaves), Estado da mota (sinais de queda, pneus with the DOT date, corrente e cremalheira, travões e discos, suspensões), A trabalhar (arranque a frio, luzes e elétrica, experimentar a andar). Each point is marked "Está bem" or "Problema" (tap again to clear) and can carry a short note (up to 300 characters, "DOT 2017"). Favoritos shows the problems ("Problemas: Pneus, Travões e discos") or the progress under each favourite.*
 *Data: `listing_favourites.checklist jsonb` (`{"tyres": {"mark": "issue", "note": "DOT 2017"}}`, an object of at most 32 kB; existing favourites get `{}`), same owner-only RLS. The list lives in the app (`viewing_checklist.dart`: stable keys, summary and problem texts); keys of items taken out later are ignored, so the list can change without a migration. Model-specific items and using the problems in "Quanto oferecer" can come later. Tests: `supabase/tests/favourite_checklist_test.sql`, `app/test/viewing_checklist_test.dart`, `app/test/favourites_test.dart`.*
-## 15.4 Cost of ownership ⬜
-*A yearly estimate on the listing page: IUC (by engine size and registration year, Portuguese table), insurance band (owner enters their own quote once; stored per account), tyres and services from km/year, and the depreciation already fitted per model (`model_depreciation`). Gives "custa cerca de X € por ano" and the total for the years the owner plans to keep it. Tables in one pure Dart file with tests; the IUC table needs checking each year.*
+## 15.4 Cost of ownership ✅
+*"Custo de ter esta mota" on the listing page (live listings with a price): "Custa cerca de X € por ano" and the total for the years the owner plans to keep it, with one line per part. Depreciation: the average yearly loss over those years on the model's own curve (`model_depreciation`, the same exp(-rate) as the fair price; the general rates without a matched model) at the owner's km per year. IUC: category E, registered after 1996, by the engine size of the model (middle of its catalog range, now loaded with the listing), nothing under 10 €. Insurance: the owner's own quote, left out (and said so) until entered. Tyres (one set per 6 000-12 000 km by size, at least one every 5 years), services (every 6 000-10 000 km, at least once a year) and chain kit (every 20 000 km), workshop prices by engine size (up to 400 cc, up to 800, larger). "Alterar" edits the owner's figures (insurance, km per year, default 5 000, years to keep, default 3), stored per account in `ownership_settings` (owner-only RLS). Tables and logic in `ownership_cost.dart` (pure, tested in `app/test/ownership_cost_test.dart`); SQL test `ownership_settings_test.sql`. **The IUC table (`iucBands`, 2024 values kept in 2025 and 2026) needs checking every January.**
 ## 15.5 Relisted as a risk signal ✅
 *Two risk reasons from the relist links of 20.2 (`mark_relists`): `relisted` (5 points) for a bike put up again after its ad went, `relisted_often` (10) when that happened twice (this ad's previous ad was itself a relist) or the bike has been on sale for over 90 days counting the earlier ads (`relisted_since`). A long time on sale without a relist is not a signal. `risk_assessment` takes two new parameters (`p_relists`, `p_on_sale_since`), so the function and `listing_risk_scores` are created again. The app explains them ("Já esteve à venda noutro anúncio e não foi vendida", "Posta à venda várias vezes ou há mais de 90 dias sem ser vendida"). Tests: `scoring_functions_test.sql` (thresholds), `relists_test.sql` (through the view), `app/test/risk_reasons_test.dart`.*
 ## 15.6 Consistency checks in the text ✅
@@ -281,12 +281,11 @@ Do not implement several unrelated features at once.
 
 # Next
 
-1. Cost of ownership (15.4).
-2. Dealer reliability (15.7): show the figures per dealer first.
-3. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history; price trends per model (10.3, 15.8).
-4. Saved ads from other sites: update the price or mark sold from their page (after #43).
+1. Dealer reliability (15.7): show the figures per dealer first.
+2. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history; price trends per model (10.3, 15.8).
+3. Saved ads from other sites: update the price or mark sold from their page (after #43).
 
-**Open items for Rafael:** read the Standvirtual/OLX terms and record the clauses in `docs/sources.md`; check the new-bike reference prices; make the repo private.
+**Open items for Rafael:** read the Standvirtual/OLX terms and record the clauses in `docs/sources.md`; check the new-bike reference prices; check the IUC table each January (`ownership_cost.dart`) and enter your insurance quote in "Custo de ter esta mota" → Alterar; make the repo private.
 
 # Definition of Done
 
