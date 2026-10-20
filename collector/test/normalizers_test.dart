@@ -24,6 +24,17 @@ void main() {
     });
   });
 
+  group('cleanDescription', () {
+    test('leaves numeric entities it cannot turn into a character as text', () {
+      expect(cleanDescription('a &#99999999; b'), 'a &#99999999; b');
+      expect(
+        cleanDescription('&#99999999999999999999;'),
+        '&#99999999999999999999;',
+      );
+      expect(cleanDescription('it&#39;s &#65;'), "it's A");
+    });
+  });
+
   group('parseSellerType', () {
     test('understands English and Portuguese words', () {
       expect(parseSellerType('Particular'), SellerType.private);
