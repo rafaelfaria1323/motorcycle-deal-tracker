@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'dart:io';
 
 import '../../fetch/search_manifest.dart';
 import '../json_blob.dart';
 import '../json_values.dart';
 import '../site_model.dart';
+import '../saved_pages.dart';
 import '../source_adapter.dart';
 import 'standvirtual_raw_listing.dart';
 
@@ -56,17 +56,7 @@ class StandvirtualSearchAdapter
 
   @override
   Future<ParseResult<StandvirtualRawListing>> read() async {
-    final dir = Directory(directory);
-    if (!await dir.exists()) {
-      throw FileSystemException('Folder not found', directory);
-    }
-
-    final files =
-        (await dir.list().toList())
-            .whereType<File>()
-            .where((f) => f.path.toLowerCase().endsWith('.html'))
-            .toList()
-          ..sort((a, b) => a.path.compareTo(b.path));
+    final files = await listHtmlFiles(directory);
     final manifest = await SearchManifest.readFrom(directory);
     final recordSearches = <String?>[];
 
@@ -98,16 +88,8 @@ class StandvirtualSearchAdapter
           );
         }
         final age = DateTime.now().difference(await files[i].lastModified());
-        if (age > maxAge) {
-          issues.add(
-            ParseIssue(
-              i,
-              '$name: saved ${age.inHours} h ago (older than '
-              '${maxAge.inHours} h), so it may be out of date',
-              search: search,
-            ),
-          );
-        }
+        final stale = staleIssue(i, name, age, maxAge, search: search);
+        if (stale != null) issues.add(stale);
       } on FormatException catch (e) {
         issues.add(ParseIssue(i, '$name: ${e.message}', search: search));
       }

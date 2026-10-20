@@ -15,6 +15,10 @@ abstract final class AppTheme {
   static const lightBackground = Color(0xFFF4F5F7);
   static const darkBackground = Color(0xFF0F1115);
 
+  /// How error messages and invalid-field hints look.
+  static TextStyle errorText(BuildContext context) =>
+      TextStyle(color: Theme.of(context).colorScheme.error);
+
   static ThemeData get light => _build(_lightScheme, AppColors.light);
 
   static ThemeData get dark => _build(_darkScheme, AppColors.dark);

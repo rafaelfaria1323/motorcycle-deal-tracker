@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/theme/app_theme.dart';
 import '../../domain/entities/listing_filters.dart';
 import '../../domain/entities/motorcycle_option.dart';
 import '../../domain/entities/saved_search.dart';
@@ -129,9 +130,7 @@ class _EditSavedSearchSheetState extends State<EditSavedSearchSheet> {
                   _criteriaMissing || summary.isEmpty
                       ? 'Escolha pelo menos um critério'
                       : summary,
-                  style: _criteriaMissing
-                      ? TextStyle(color: theme.colorScheme.error)
-                      : null,
+                  style: _criteriaMissing ? AppTheme.errorText(context) : null,
                 ),
                 trailing: TextButton(
                   onPressed: _editCriteria,
