@@ -26,6 +26,12 @@ class _Store implements ListingStore {
   }
 
   @override
+  Future<int> rematch(String s, List<NormalizedListing> l, Catalog c) async {
+    calls.add('rematch');
+    return 0;
+  }
+
+  @override
   Future<int> applyPriceChanges(String s, List<NormalizedListing> l) async {
     calls.add('applyPriceChanges');
     return 0;
@@ -95,6 +101,7 @@ void main() {
     expect(store.calls, [
       'save 2',
       'markSeen a,b',
+      'rematch',
       'applyPriceChanges',
       'setSearchKeys',
       'applyPricesBeforeDrop',

@@ -177,7 +177,7 @@ for the code-quality review. Supabase's Vault holds `github_dispatch_token`
 starts once, the catalog is loaded once). For each site:
 `planSearches` (tracked models) → `fetchSearches` saves the pages plus
 `searches.json` (planned searches, search of each page) → `importBatch`:
-save → markSeen → applyPriceChanges → setSearchKeys → applyPricesBeforeDrop
+save → markSeen → rematch → applyPriceChanges → setSearchKeys → applyPricesBeforeDrop
 → applyListingDates → (if `--full`) markRemoved; Standvirtual then reads new listings' details
 (`enrichDetails`) with the same fetcher. Then once for all sites
 (`finishRun`): markDuplicates → recalculateScores → generateAlerts →
@@ -216,8 +216,11 @@ functions for manual work.
   from the catalog: model name and `aliases` spelled within the first three
   words (also without closing letters: "CBR 650" = CBR650R), Honda code
   suffixes (A, AC), per-model `excluded_words` ("tracer" for the MT-07,
-  "650f", "125f"), `engine_cc_min/max` as tiebreaker and guard. Ambiguous
-  stays unmatched. Switching a model off unmatches its listings at once;
+  "650f", "125f"), `engine_cc_min/max` as tiebreaker and guard (a model
+  without limits, e.g. added in the app, is never picked by engine size
+  alone). Ambiguous stays unmatched. Every import re-checks the model of
+  the ads it read (`rematch_listings`), so a better rule also fixes
+  listings already stored. Switching a model off unmatches its listings at once;
   switching it on matches them again by their stored brand and model
   (a matched listing stores the catalog names), removed ones included.
 - Dealer boilerplate sentences are stripped from descriptions (they caused

@@ -69,6 +69,10 @@ Future<void> importBatch(
   final seen = await store.markSeen(batch.source, seenIds);
   log.writeln('Seen $seen listing(s).');
 
+  // 2a. Known listings get the model the current rules give them.
+  final rematched = await store.rematch(batch.source, unique, catalog);
+  if (rematched > 0) log.writeln('Model corrected: $rematched listing(s)');
+
   // 3. Known listings whose price moved get the new price and a history row.
   final changed = await store.applyPriceChanges(batch.source, unique);
   log.writeln('Price changes: $changed');

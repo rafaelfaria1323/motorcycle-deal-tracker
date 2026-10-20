@@ -156,4 +156,40 @@ void main() {
       'yamaha-r7',
     );
   });
+
+  test('a model without engine limits is never picked by engine size', () {
+    // Added in the app: no engine range. Standvirtual's model field says
+    // only "Forza" and the engine is 125 cc.
+    final added = ModelResolver(
+      Catalog(const [
+        CatalogEntry(
+          slug: 'honda-forza-350',
+          brand: 'Honda',
+          model: 'Forza 350',
+          minYear: 2021,
+        ),
+      ]),
+    );
+
+    expect(
+      added.resolve(
+        brand: 'Honda',
+        family: 'Forza',
+        text: 'Forza 125 ABS',
+        engineCc: 125,
+      ),
+      isNull,
+    );
+    expect(
+      added
+          .resolve(
+            brand: 'Honda',
+            family: 'Forza',
+            text: 'Forza 350 ABS',
+            engineCc: 330,
+          )
+          ?.model,
+      'Forza 350',
+    );
+  });
 }
