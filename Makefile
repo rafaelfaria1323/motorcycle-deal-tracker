@@ -116,7 +116,7 @@ check: app-check collector-check tool-check ## Run all checks (run before commit
 # Floors for `make coverage` (line coverage, %). Raise them as tests are
 # added; lower one only with a reason in the commit. The app's floor counts
 # its logic (texts, entities, models, cubits), not the widgets.
-APP_COVERAGE_MIN ?= 0
+APP_COVERAGE_MIN ?= 90
 COLLECTOR_COVERAGE_MIN ?= 70
 APP_LOGIC_FILES = _text\.dart$$|/domain/|/data/models/|/cubit/|ownership_cost\.dart$$|viewing_checklist\.dart$$
 
