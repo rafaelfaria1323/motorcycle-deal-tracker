@@ -19,6 +19,7 @@ lib/src/adapters/olx/olx_mapper.dart
 lib/src/adapters/site_model.dart
 lib/src/fetch/search_plan.dart
 lib/src/fetch/fetch_searches.dart
+lib/src/notify/run_health.dart
 lib/src/pipeline/run_status.dart
 lib/src/pipeline/enrich_steps.dart
 lib/src/fetch/search_manifest.dart
