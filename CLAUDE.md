@@ -111,7 +111,11 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
                                   change; otherwise every 5 merges do up to
                                   3 items, find nothing.
                                   One pass at a time, none while one of
-                                  the same backlog is open
+                                  the same backlog is open. Its PR merges
+                                  itself when its check passes (not when it
+                                  touches supabase/, .github/, tool/ or the
+                                  Makefile; variable AUTO_MERGE_BACKLOG=false
+                                  turns it off) and starts the app deploy
 .claude/hooks/session-start.sh  Cloud sessions only: Dart SDK on PATH, collector
                                   dependencies, local Postgres (PGHOST set), so
                                   make collector-check / tool-check / db-test run
