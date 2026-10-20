@@ -76,7 +76,7 @@ jobs:
       due: ${{ steps.count.outputs.due }}
       mode: ${{ steps.count.outputs.mode }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: main
 
@@ -133,7 +133,7 @@ jobs:
       LABEL: ${{ inputs.label }}
       TAG: ${{ inputs.tag }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: main
           fetch-depth: 0
