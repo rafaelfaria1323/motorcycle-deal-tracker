@@ -19,6 +19,27 @@ NormalizedListing _listing(String id) {
 }
 
 void main() {
+  test(
+    'motorcycleIdFor finds the id by slug, null when unknown or unmatched',
+    () {
+      final ids = {'yamaha-r7': 'id-r7'};
+      final unmatched = NormalizedListing(
+        source: 'manual',
+        sourceListingId: 'x',
+        url: 'https://example.com/x',
+        brand: 'Yamaha',
+        model: 'XSR',
+        price: 7000,
+        sellerType: SellerType.dealer,
+        images: const [],
+      );
+
+      expect(motorcycleIdFor(_listing('a'), ids), 'id-r7');
+      expect(motorcycleIdFor(_listing('a'), const {}), isNull);
+      expect(motorcycleIdFor(unmatched, ids), isNull);
+    },
+  );
+
   test('uniqueBySourceId keeps the first of each id', () {
     final listings = [_listing('a'), _listing('b'), _listing('a')];
 
