@@ -23,6 +23,22 @@ List<NormalizedListing> uniqueBySourceId(List<NormalizedListing> listings) {
   ];
 }
 
+/// Every row of a query, read [pageSize] rows at a time: the server returns
+/// at most that many per request (PostgREST `max_rows`), without saying it
+/// cut the rest. [page] reads rows [from] to [to] (inclusive) of a query
+/// with a stable order.
+Future<List<Map<String, dynamic>>> readAllPages(
+  Future<List<Map<String, dynamic>>> Function(int from, int to) page, {
+  int pageSize = 1000,
+}) async {
+  final rows = <Map<String, dynamic>>[];
+  for (var from = 0; ; from += pageSize) {
+    final batch = await page(from, from + pageSize - 1);
+    rows.addAll(batch);
+    if (batch.length < pageSize) return rows;
+  }
+}
+
 /// One `listings` row. Columns with database defaults (status, timestamps)
 /// and the scores are left out on purpose.
 Map<String, Object?> listingRow(NormalizedListing l, String? motorcycleId) {
@@ -275,10 +291,8 @@ class ListingStore {
   ) async {
     if (bikeNames.isEmpty) return const [];
     final from = since.toUtc().toIso8601String();
-    const page = 1000;
-    final result = <SummaryListing>[];
-    for (var offset = 0; ; offset += page) {
-      final rows = await _client
+    final rows = await readAllPages(
+      (start, end) => _client
           .from('listings')
           .select(
             'id, motorcycle_id, brand, model, url, status, first_seen_at, '
@@ -291,12 +305,9 @@ class ListingStore {
             'first_seen_at.gte."$from",last_checked_at.gte."$from"',
           )
           .order('id')
-          .range(offset, offset + page - 1);
-      result.addAll([
-        for (final r in rows) SummaryListing.fromRow(r, bikeNames),
-      ]);
-      if (rows.length < page) return result;
-    }
+          .range(start, end),
+    );
+    return [for (final r in rows) SummaryListing.fromRow(r, bikeNames)];
   }
 
   /// The whole price history of those of [listingIds] whose price was
@@ -305,10 +316,14 @@ class ListingStore {
     Set<String> listingIds,
     DateTime since,
   ) async {
-    final recent = await _client
-        .from('listing_price_history')
-        .select('listing_id')
-        .gte('observed_at', since.toUtc().toIso8601String());
+    final recent = await readAllPages(
+      (start, end) => _client
+          .from('listing_price_history')
+          .select('listing_id')
+          .gte('observed_at', since.toUtc().toIso8601String())
+          .order('id')
+          .range(start, end),
+    );
     final ids = {
       for (final r in recent)
         if (listingIds.contains(r['listing_id'])) r['listing_id'] as String,
@@ -317,13 +332,15 @@ class ListingStore {
     final points = <PricePoint>[];
     // A few ids per request keep the address short.
     for (var i = 0; i < ids.length; i += 100) {
-      final rows = await _client
-          .from('listing_price_history')
-          .select('listing_id, price, observed_at')
-          .inFilter(
-            'listing_id',
-            ids.sublist(i, (i + 100).clamp(0, ids.length)),
-          );
+      final chunk = ids.sublist(i, (i + 100).clamp(0, ids.length));
+      final rows = await readAllPages(
+        (start, end) => _client
+            .from('listing_price_history')
+            .select('listing_id, price, observed_at')
+            .inFilter('listing_id', chunk)
+            .order('id')
+            .range(start, end),
+      );
       points.addAll([for (final r in rows) PricePoint.fromRow(r)]);
     }
     return points;
