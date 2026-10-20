@@ -126,7 +126,8 @@ jobs:
       contents: write
       pull-requests: write
       id-token: write
-      actions: read
+      # read: the mutation summary; write: start check.yml on the new PR.
+      actions: write
     env:
       MODE: ${{ needs.count.outputs.mode }}
       LABEL: ${{ inputs.label }}
@@ -283,3 +284,5 @@ jobs:
           gh pr create --base main --head "$(git branch --show-current)" \
             --label "$LABEL" --title "$title" \
             --body "$body"$'\n\n'"Opened by the $LABEL workflow ($MODE run ${{ github.run_id }})."
+          # A PR opened with this token starts no pull_request workflows.
+          gh workflow run check.yml --ref "$(git branch --show-current)"

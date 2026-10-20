@@ -3,13 +3,18 @@ name: Check
 # Every pull request to main: the same checks as `make check` (app analyze
 # and tests with Flutter; collector format, analyze and tests), so a change
 # is proven before it is merged rather than when the deploy runs.
+# PRs opened by a workflow (code quality, test hardening) don't trigger
+# pull_request runs (GitHub's rule for GITHUB_TOKEN), so backlog-pass.yml
+# starts this by workflow_dispatch on the PR's branch; the result is
+# attached to the same commit, so it shows on the PR.
 on:
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 # A newer push to the same pull request replaces a check still running.
 concurrency:
-  group: check-${{ github.event.pull_request.number }}
+  group: check-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
