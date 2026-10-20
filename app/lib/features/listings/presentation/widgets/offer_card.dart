@@ -124,6 +124,7 @@ class _OfferCardState extends State<OfferCard> {
               visit,
               arguments,
               favourite,
+              sellerUrgency(listing, market: market, daysListed: days),
             );
           },
         );
@@ -137,7 +138,9 @@ class _OfferCardState extends State<OfferCard> {
     VisitFindings visit,
     List<String> arguments,
     Favourite? favourite,
+    SellerUrgency urgency,
   ) {
+    final listing = widget.listing;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final muted = theme.textTheme.bodySmall?.copyWith(
@@ -157,6 +160,8 @@ class _OfferCardState extends State<OfferCard> {
           offer.headline,
           style: theme.textTheme.titleMedium?.copyWith(color: scheme.primary),
         ),
+        const SizedBox(height: 4),
+        BulletLine(urgency.text, icon: Icons.speed),
         if (visit.blockers.isNotEmpty) ...[
           const SizedBox(height: 8),
           Text(
@@ -178,6 +183,21 @@ class _OfferCardState extends State<OfferCard> {
           const SizedBox(height: 4),
           for (final argument in arguments)
             BulletLine(argument, icon: Icons.chat_bubble_outline),
+        ],
+        if (listing.sellerType == SellerType.dealer) ...[
+          const SizedBox(height: 16),
+          Text('Num stand, peça também', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 4),
+          for (final ask in dealerAsks(listing))
+            BulletLine(ask, icon: Icons.add_task),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () => _copy(dealerMessage(listing, offer.opening)),
+              icon: const Icon(Icons.copy, size: 18),
+              label: const Text('Copiar mensagem para o stand'),
+            ),
+          ),
         ],
         const SizedBox(height: 16),
         TextField(

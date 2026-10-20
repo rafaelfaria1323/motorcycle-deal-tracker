@@ -32,7 +32,9 @@ Cloudflare Pages on every merge that touches `app/`
     refused, the most to pay, each with a message to copy; "Argumentos" to
     quote to the seller; "O vendedor pediu": type the seller's counter-offer
     and it says whether to accept or what to propose, with the message to
-    send; problems marked at the visit come off the offer; for a
+    send; problems marked at the visit come off the offer; how keen the
+    seller seems ("Pressa do vendedor"); for a dealer, what to ask for
+    besides the price, with a message; for a
     favourite, "O seu preço": an alert when the ad drops to it), "Mensagem para o vendedor" (a first message with the
     questions the ad leaves open, optionally with the suggested offer; one
     tap copies it), "Para a visita" for favourites (12 points to check when

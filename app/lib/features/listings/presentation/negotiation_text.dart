@@ -232,3 +232,133 @@ String acceptMessage(double amount) =>
 const walkAwayMessage =
     'Obrigado pelo seu tempo. Por esse valor não consigo; se baixar o '
     'preço, diga-me.';
+
+enum Urgency { low, medium, high }
+
+/// How keen the seller seems to be to sell, from what the ads show, with
+/// the reasons ("à venda há 90 dias", "já baixou o preço").
+class SellerUrgency {
+  const SellerUrgency(this.level, this.reasons);
+
+  final Urgency level;
+  final List<String> reasons;
+
+  /// "Pressa do vendedor: alta (à venda há 90 dias, já baixou o preço)".
+  String get text {
+    final label = switch (level) {
+      Urgency.high => 'alta',
+      Urgency.medium => 'média',
+      Urgency.low => 'baixa',
+    };
+    return reasons.isEmpty
+        ? 'Pressa do vendedor: $label'
+        : 'Pressa do vendedor: $label (${reasons.join(', ')})';
+  }
+}
+
+/// An ad renewed on the site this recently, and at least this long after it
+/// was published, is one the seller is still pushing.
+const recentRenewalDays = 30;
+
+/// Points: on sale past the model's typical time (1, 2 past twice it, 3
+/// past three times it: that alone is high), an earlier drop (1), put up
+/// again after an earlier ad (1, or 2 when often), an old ad renewed on the
+/// site in the last [recentRenewalDays] days (1). 3 or more is high, 1-2
+/// medium, none low.
+SellerUrgency sellerUrgency(
+  Listing listing, {
+  MarketBehaviour? market,
+  int? daysListed,
+  DateTime? today,
+}) {
+  var points = 0;
+  final reasons = <String>[];
+
+  final typical =
+      market != null &&
+          market.goneCount >= minMarketData &&
+          market.medianDaysToGone != null
+      ? market.medianDaysToGone!
+      : defaultLongListingDays;
+  if (daysListed != null && daysListed > typical) {
+    points += daysListed > 3 * typical
+        ? 3
+        : daysListed > 2 * typical
+        ? 2
+        : 1;
+    reasons.add('à venda há $daysListed dias');
+  }
+
+  final price = listing.price;
+  final before = [listing.initialPrice, listing.priceBeforeDrop]
+      .whereType<double>()
+      .fold<double?>(null, (a, b) => a == null || b > a ? b : a);
+  if (price != null && before != null && before > price) {
+    points += 1;
+    reasons.add('já baixou o preço');
+  }
+
+  final renewed = listing.siteRefreshedAt;
+  final published = listing.publishedAt;
+  if (renewed != null && published != null) {
+    final ago = (today ?? DateTime.now()).difference(renewed).inDays;
+    if (ago <= recentRenewalDays &&
+        renewed.difference(published).inDays >= recentRenewalDays) {
+      points += 1;
+      reasons.add(
+        ago == 0 ? 'renovou o anúncio hoje' : 'renovou o anúncio há $ago dias',
+      );
+    }
+  }
+
+  final risk = (listing.scoreBreakdown?['risk_reasons'] as List? ?? const [])
+      .toSet();
+  if (risk.contains('relisted_often')) {
+    points += 2;
+    reasons.add('posta à venda várias vezes');
+  } else if (risk.contains('relisted') || listing.relistedFrom != null) {
+    points += 1;
+    reasons.add('já esteve noutro anúncio');
+  }
+
+  final level = points >= 3
+      ? Urgency.high
+      : points >= 1
+      ? Urgency.medium
+      : Urgency.low;
+  return SellerUrgency(level, reasons);
+}
+
+/// A dealer rarely gives much off the price but often adds something: what
+/// to ask for instead of (or as well as) a discount. Tyres only on a bike
+/// old enough for them to be due, unless the ad says they are new.
+List<String> dealerAsks(Listing listing, {DateTime? today}) {
+  final year = listing.year;
+  final extras = listing.scoreBreakdown?['extras'] as List? ?? const [];
+  final tyresDue =
+      !extras.contains('new_tyres') &&
+      ((year != null && (today ?? DateTime.now()).year - year >= 3) ||
+          (listing.mileage ?? 0) >= 10000);
+  return [
+    'a revisão feita antes da entrega',
+    if (tyresDue) 'pneus novos',
+    'a garantia por escrito (numa usada vendida por um stand, a lei dá '
+        'pelo menos 18 meses)',
+    'o registo de propriedade pago por eles',
+  ];
+}
+
+/// Ready to send to a dealer: the price, and the extras to include.
+String dealerMessage(Listing listing, double amount, {DateTime? today}) {
+  final asks = dealerAsks(listing, today: today);
+  return [
+    'Olá, boa tarde.',
+    '',
+    'Tenho interesse na ${listing.brand} ${listing.model}'
+        '${listing.year == null ? '' : ' de ${listing.year}'}. Se fecharmos '
+        'por ${Formatters.price(amount)}, consegue incluir:',
+    for (final ask in asks) '- $ask;',
+    '',
+    'Obrigado.',
+  ].join('\n');
+}
