@@ -227,8 +227,11 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: >-
             --max-turns 150
-            --allowedTools "Read,Edit,Write,Glob,Grep,Bash(make check),Bash(make format),Bash(cd:*),Bash(flutter analyze:*),Bash(flutter test:*),Bash(dart format:*),Bash(dart analyze:*),Bash(dart test:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git add:*),Bash(git commit:*)${{ inputs.extra_tools != '' && format(',{0}', inputs.extra_tools) || '' }}"
+            --add-dir /tmp
+            --allowedTools "Read,Edit,Write,Glob,Grep,Bash(make check),Bash(make format),Bash(cd:*),Bash(ls:*),Bash(cat:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(find:*),Bash(grep:*),Bash(mkdir:*),Bash(rm:*),Bash(flutter analyze:*),Bash(flutter test:*),Bash(dart format:*),Bash(dart analyze:*),Bash(dart test:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git add:*),Bash(git commit:*)${{ inputs.extra_tools != '' && format(',{0}', inputs.extra_tools) || '' }}"
           prompt: ${{ steps.prompt.outputs.text }}
+          # Show Claude's steps in the log (what it ran, what was denied).
+          show_full_output: true
 
       - name: Open the PR
         env:

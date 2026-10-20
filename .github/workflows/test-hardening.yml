@@ -58,8 +58,13 @@ jobs:
         3. Redundant tests: tests that check exactly what another test
            already checks (same code path, same kind of input). An item
            names both and which one to drop.
-        SQL is not tested in CI (no database), so leave it out. When you
-        finish, `git status` must show no code or test changes.
+        Make each code change with the Edit tool. Throwaway tests go in
+        the package's test/ folder as tmp_<name>_test.dart and are deleted
+        with `rm` before you finish. SQL is not tested in CI (no
+        database), so leave it out. Work through all three parts before
+        deciding there is nothing to report; end with a short summary of
+        what you tried. When you finish, `git status` must show no code or
+        test changes.
       fix_prompt: |
         - A bug: first add the test that fails, then fix the code so it
           passes. The fix may only make the code do what CLAUDE.md, the
