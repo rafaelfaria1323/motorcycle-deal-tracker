@@ -18,7 +18,9 @@ Every pull request that changes `app/` also gets a preview
 (`preview-web.yml`): the same build published to
 `https://pr-<number>.motorcycle-deal-tracker.pages.dev`, linked in a
 comment on the PR, to try on the iPhone before merging. It uses the real
-database; the PR's migrations are applied only when it is merged.
+database; the PR's migrations are applied only when it is merged. Each
+push removes the PR's older builds, and closing or merging the PR removes
+its preview (`tool/pages_previews.py`). Previews cost nothing.
 
 ## One-time setup
 

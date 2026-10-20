@@ -83,7 +83,9 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
 .github/workflows/preview-web.yml Every PR touching app/: the app built and
                                   published to pr-<number>.<project>.pages.dev,
                                   linked in one comment on the PR (real
-                                  database; the PR's migrations not applied)
+                                  database; the PR's migrations not applied);
+                                  older builds deleted on each push, the
+                                  preview deleted when the PR closes
 .github/workflows/deploy-web.yml  On merges touching app/ or adding
                                   migrations: apply new migrations
                                   (tested again first; skipped if none),
