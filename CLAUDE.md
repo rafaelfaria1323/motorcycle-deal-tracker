@@ -182,7 +182,9 @@ for the code-quality review. Supabase's Vault holds `github_dispatch_token`
 - Pure scoring functions take plain values (testable with literals).
 - The service-role key is only ever used by the collector, never the app.
 - `source_data_quality` (view, readable by everyone) feeds "Qualidade dos
-  dados" in Mais.
+  dados" in Mais, including `last_seen_at` (stale after 24 h: "verifique a
+  recolha") and `sharp_price_changes` (live listings whose price moved by
+  50 % or more in one step in the last 30 days).
 - `collector_runs` is readable only by non-anonymous users. `requests` holds
   the requests each site used (from refresh.dart's "Requests used:" lines,
   parsed by report_run.dart).
