@@ -129,6 +129,19 @@ void main() {
       );
     });
 
+    test('a target price reached: the price and the target', () {
+      expect(
+        alertTitle(of(AlertType.targetPriceReached)),
+        'Chegou ao seu preço: Yamaha MT-07 · 2021',
+      );
+      expect(
+        alertDetailsLine(
+          of(AlertType.targetPriceReached, oldPrice: 6600, newPrice: 6500),
+        ),
+        '${Formatters.price(6500)} (o seu preço: ${Formatters.price(6600)})',
+      );
+    });
+
     test('the origin names the saved search, then the time', () {
       final withSearch = of(AlertType.newListing, search: 'MT-07 barata');
       expect(

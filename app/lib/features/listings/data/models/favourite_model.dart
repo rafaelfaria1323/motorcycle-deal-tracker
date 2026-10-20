@@ -6,7 +6,7 @@ class FavouriteModel {
 
   /// The columns `fromJson` reads, with the listing embedded.
   static const columns =
-      'listing_id, note, checklist, created_at, '
+      'listing_id, note, checklist, target_price, created_at, '
       'listings(${ListingModel.summaryColumns})';
 
   /// Expects the row with its listing embedded (`select(columns)`).
@@ -17,6 +17,7 @@ class FavouriteModel {
       createdAt: DateTime.parse(json['created_at'] as String).toLocal(),
       note: json['note'] as String?,
       checklist: checklistFromJson(json['checklist']),
+      targetPrice: (json['target_price'] as num?)?.toDouble(),
       listing: listing == null ? null : ListingModel.fromJson(listing),
     );
   }

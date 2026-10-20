@@ -70,6 +70,12 @@ class _FakeFavourites implements FavouritesRepository {
   }
 
   @override
+  Future<void> saveTargetPrice(String listingId, double? targetPrice) async {
+    if (fail || failWrites) throw StateError('offline');
+    calls.add('target $listingId $targetPrice');
+  }
+
+  @override
   Future<void> saveChecklist(
     String listingId,
     Map<String, ChecklistEntry> checklist,
@@ -92,6 +98,15 @@ void main() {
     expect(favourite.note, 'Liguei, ainda disponível');
     expect(favourite.createdAt, DateTime.utc(2026, 10, 15, 12).toLocal());
     expect(favourite.listing?.model, 'MT-07');
+    expect(favourite.targetPrice, isNull);
+    expect(
+      FavouriteModel.fromJson({
+        'listing_id': 'l1',
+        'target_price': 6800,
+        'created_at': '2026-10-15T12:00:00Z',
+      }).targetPrice,
+      6800,
+    );
   });
 
   test('the checklist is read leniently and written back the same', () {
@@ -244,6 +259,27 @@ void main() {
         isFalse,
       );
       expect(cubit.state.favouriteOf('l1')?.checklist, isEmpty);
+    });
+
+    test('a target price is set, cleared, and undone when it fails', () async {
+      final repo = _FakeFavourites([_favourite('l1')]);
+      final cubit = FavouritesCubit(repo);
+      await cubit.load();
+
+      expect(await cubit.saveTargetPrice('l1', 6800), isTrue);
+      expect(cubit.state.favouriteOf('l1')?.targetPrice, 6800);
+      expect(cubit.state.favouriteOf('l1')?.withNote('x').targetPrice, 6800);
+      expect(await cubit.saveTargetPrice('l1', null), isTrue);
+      expect(cubit.state.favouriteOf('l1')?.targetPrice, isNull);
+      expect(await cubit.saveTargetPrice('l9', 1), isFalse);
+      expect(repo.calls, ['target l1 6800.0', 'target l1 null']);
+
+      final failing = FavouritesCubit(
+        _FakeFavourites([_favourite('l1')], failWrites: true),
+      );
+      await failing.load();
+      expect(await failing.saveTargetPrice('l1', 6800), isFalse);
+      expect(failing.state.favouriteOf('l1')?.targetPrice, isNull);
     });
 
     test('a note that fails to save is undone', () async {

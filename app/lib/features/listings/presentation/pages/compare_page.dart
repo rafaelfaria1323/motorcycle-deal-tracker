@@ -29,10 +29,7 @@ class _ComparePageState extends State<ComparePage> {
   Future<List<Listing>> _load() async {
     final repository = getIt<ListingsRepository>();
     final found = await Future.wait(widget.ids.map(repository.getListingById));
-    return [
-      for (final l in found)
-        ?l,
-    ];
+    return [for (final l in found) ?l];
   }
 
   @override

@@ -145,6 +145,29 @@ class SupabaseListingsRepository implements ListingsRepository {
   }
 
   @override
+  Future<List<Listing>> getCheaperSimilar(Listing listing) async {
+    final model = listing.motorcycleId;
+    final price = listing.price;
+    if (model == null || price == null) return const [];
+    var query = _client
+        .from('listings')
+        .select(ListingModel.summaryColumns)
+        .eq('motorcycle_id', model)
+        .inFilter('status', ['active', 'price_changed'])
+        .isFilter('duplicate_of', null)
+        .neq('id', listing.id)
+        .lt('price', price);
+    if (listing.year case final year?) {
+      query = query.gte('year', year - 1).lte('year', year + 1);
+    }
+    if (listing.mileage case final km?) {
+      query = query.lte('mileage', km);
+    }
+    final rows = await query.order('price').limit(3);
+    return rows.map<Listing>(ListingModel.fromJson).toList();
+  }
+
+  @override
   Future<List<PricePoint>> getPriceHistory(String listingId) async {
     final rows = await _client
         .from('listing_price_history')

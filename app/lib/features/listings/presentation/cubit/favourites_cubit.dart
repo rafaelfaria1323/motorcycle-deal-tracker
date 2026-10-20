@@ -105,6 +105,29 @@ class FavouritesCubit extends Cubit<FavouritesState> {
   /// Saves one item of a favourite's viewing checklist: its mark (null:
   /// not looked at) and note (trimmed; empty clears it). Returns false when
   /// the listing is not a favourite or saving failed.
+  /// Sets the price to be alerted at (null clears it). Returns false when
+  /// it could not be saved; the change is undone then.
+  Future<bool> saveTargetPrice(String listingId, double? targetPrice) async {
+    final before = state.favourites;
+    if (!state.isFavourite(listingId)) return false;
+
+    emit(
+      state.copyWith(
+        favourites: [
+          for (final f in before)
+            f.listingId == listingId ? f.withTargetPrice(targetPrice) : f,
+        ],
+      ),
+    );
+    try {
+      await _repository.saveTargetPrice(listingId, targetPrice);
+      return true;
+    } catch (_) {
+      emit(state.copyWith(favourites: before));
+      return false;
+    }
+  }
+
   Future<bool> saveChecklistItem(
     String listingId,
     String key, {
