@@ -1,11 +1,12 @@
 name: Test hardening
 
 # Mutation-style testing (like Stryker) by Claude, through
-# backlog-pass.yml on docs/test-hardening.md. After every 5 merged PRs (or
-# "Run workflow"): when "To do" is empty the run only hunts (bugs, code
-# whose tests don't notice a change, redundant tests) and writes up to 10
-# items; while "To do" has items each run does up to 3 (failing test first,
-# then the fix; missing tests; dropping redundant ones). One PR labelled
+# backlog-pass.yml on docs/test-hardening.md. When "To do" is empty, after
+# 10 merged PRs, a run only hunts (bugs, the surviving mutants of
+# mutation.yml, redundant tests) and writes up to 10 items; while "To do"
+# has items, every 5 merged PRs a run does up to 3 (failing test first,
+# then the fix; missing tests; dropping redundant ones). "Run workflow"
+# starts one now. One PR labelled
 # "test-hardening" per run; no run starts while one is still open.
 on:
   workflow_dispatch: # manual "Run workflow" button: run now
@@ -53,15 +54,17 @@ jobs:
            latest report of mutation.yml (the mutation_test tool, no AI):
            start from its surviving mutants. Check each one, drop the
            equivalent ones (a change that makes no real difference), and
-           make the others items. Then, for files that report does not
-           cover, or with no report, make one small change at
+           make the others items. Only for logic files missing from
+           collector/mutation_targets.txt and app/mutation_targets.txt
+           (cubits, models), or when there is no report, make one small
+           change at
            a time to the code (flip a comparison, < to <=, + to -, drop a
            condition or a line, change a constant, return early, swap two
            arguments), run that package's tests (`cd collector && dart
            test`, `cd app && flutter test`), then undo it at once with
            `git checkout -- <file>`. A change no test notices is an item:
            the file, line, the change, and the test that would catch it.
-           Try about 30 changes, where a wrong result would matter most.
+           Try about 15 changes, where a wrong result would matter most.
         3. Redundant tests: tests that check exactly what another test
            already checks (same code path, same kind of input). An item
            names both and which one to drop.

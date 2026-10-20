@@ -6,10 +6,11 @@ name: Backlog pass
 #   left) and opens a PR with the changes. It does not look for new items.
 # - "To do" is empty: Claude only looks for new items (up to 10) and opens
 #   a PR that adds them to the backlog. It changes no code.
-# So a backlog alternates: find, fix, fix, ..., find. A run starts after
-# every 5 merged PRs (the backlogs' own PRs don't count; the tag marks
-# where the count restarts) or by hand, and never while a PR of the same
-# backlog is still open.
+# So a backlog alternates: find, fix, fix, ..., find. A fix run starts
+# after every 5 merged PRs, a find run (Claude exploring the code, the
+# costly part) after every 10 (the backlogs' own PRs don't count; the tag
+# marks where the count restarts), either by hand at any time, and never
+# while a PR of the same backlog is still open.
 on:
   workflow_call:
     inputs:
@@ -30,8 +31,13 @@ on:
         type: string
         required: true
       every:
+        description: Merges before a fix run
         type: number
         default: 5
+      every_find:
+        description: Merges before a find run
+        type: number
+        default: 10
       manual:
         type: boolean
         default: false
@@ -81,7 +87,8 @@ jobs:
           LABEL: ${{ inputs.label }}
           TAG: ${{ inputs.tag }}
           SINCE: ${{ inputs.count_from }}
-          EVERY: ${{ inputs.every }}
+          EVERY_FIX: ${{ inputs.every }}
+          EVERY_FIND: ${{ inputs.every_find }}
           MANUAL: ${{ inputs.manual }}
           BACKLOG: ${{ inputs.backlog }}
         run: |
@@ -94,11 +101,15 @@ jobs:
             --search "merged:>$since $AUTOMATED_LABELS" --json number --jq length)
           # Items are the "- " lines between "## To do" and the next heading.
           items=$(awk '/^## /{todo = ($0 == "## To do")} todo && /^- /' "$BACKLOG" | wc -l)
-          if [ "$items" -gt 0 ]; then mode=fix; else mode=find; fi
-          echo "Merged since $since: $merged (every $EVERY); open PRs: $open; to do: $items -> $mode"
+          if [ "$items" -gt 0 ]; then
+            mode=fix; every=$EVERY_FIX
+          else
+            mode=find; every=$EVERY_FIND
+          fi
+          echo "Merged since $since: $merged (every $every); open PRs: $open; to do: $items -> $mode"
           if [ "$open" -gt 0 ]; then
             due=false
-          elif [ "$MANUAL" = true ] || [ "$merged" -ge "$EVERY" ]; then
+          elif [ "$MANUAL" = true ] || [ "$merged" -ge "$every" ]; then
             due=true
           else
             due=false

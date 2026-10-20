@@ -66,13 +66,15 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
                                   request to main
 .github/workflows/deploy-web.yml  Test, build and publish the app to
                                   Cloudflare Pages on merges touching app/
-.github/workflows/code-quality.yml  After every 5 merged PRs, a Claude pass
-                                  on docs/code-quality.md (one PR labelled
-                                  code-quality; merges since the tag
-                                  code-quality-reviewed are counted)
+.github/workflows/code-quality.yml  Claude pass on docs/code-quality.md: how
+                                  the code is written (duplication, dead
+                                  code, structure, theme, names); one PR
+                                  labelled code-quality; merges since the
+                                  tag code-quality-reviewed are counted
 .github/workflows/test-hardening.yml  The same on docs/test-hardening.md:
                                   bugs, surviving mutants, redundant tests
-                                  (label test-hardening)
+                                  (label test-hardening); never overlaps
+                                  with code quality
 .github/workflows/mutation.yml    Mutation testing without AI (mutation_test,
                                   tool/mutation.py) on the files in
                                   */mutation_targets.txt: after merges only
@@ -80,9 +82,10 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
                                   parallel jobs). Report only (run summary,
                                   HTML artifacts); test hardening's find
                                   runs start from its surviving mutants
-.github/workflows/backlog-pass.yml  Shared by both: "To do" empty -> only
-                                  find up to 10 items, no code change;
-                                  otherwise do up to 3 items, find nothing.
+.github/workflows/backlog-pass.yml  Shared by both: "To do" empty -> after 10
+                                  merges, only find up to 10 items, no code
+                                  change; otherwise every 5 merges do up to
+                                  3 items, find nothing.
                                   One pass at a time, none while one of
                                   the same backlog is open
 Makefile    All commands (`make help`)
