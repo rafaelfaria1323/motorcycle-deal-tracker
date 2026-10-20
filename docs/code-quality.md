@@ -16,13 +16,13 @@ the database schema, secrets or workflows goes to "Needs Rafael".
 
 ## To do
 
-- The presentation layer talks to Supabase directly, against the clean-architecture split: `Supabase.instance.client.auth` in `features/settings/presentation/more_page.dart:18` and `features/collector_status/presentation/collector_status_banner.dart:28` (own auth-stream subscription); expose the signed-in state through the existing account cubit or an auth repository in `domain/` + `data/`, so the widgets only read state.
 - Error-coloured text is styled by hand in four places (`TextStyle(color: colorScheme.error)` in `core/auth/account_sheet.dart:139` and `edit_saved_search_sheet.dart:133`, `colorScheme.error` in `tracked_models_page.dart:197`, `delete_saved_search_dialog.dart:25`); one shared helper or theme text style would keep the error look in `app_theme.dart`.
 
 ## Needs Rafael
 
 ## Done
 
+- 2026-10-20: The Mais page and the collector status banner no longer use `Supabase.instance.client.auth`; a new lazy-singleton `SessionCubit` (`core/auth/session_cubit.dart`, tested) holds the signed-in state and email, and the widgets read it (the banner reloads when it changes).
 - 2026-10-20: The three file-reading adapters share `listHtmlFiles` (exists check, `.html` filter, sort) and `staleIssue` ("saved N h ago") from `adapters/saved_pages.dart`, tested; messages unchanged. (The per-file decode stayed in the adapters: one line each, with different parsers.)
 - 2026-10-20: `save` and `rematch` look up a listing's motorcycle id through `motorcycleIdFor` (`listing_store.dart`, tested); `save` keeps its own error for a catalog entry without an id.
 - 2026-10-20: The OLX and Standvirtual search adapters and the Standvirtual listing-page adapter read their embedded JSON through one `extractJsonBlob` (`adapters/json_blob.dart`, with the shared `nextDataBlock` pattern), tested for a missing block, a damaged one and OLX's JSON-in-a-string; error messages are unchanged.

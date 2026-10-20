@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../app/di/injection.dart';
 import '../../../app/router/app_routes.dart';
 import '../../../core/auth/account_sheet.dart';
+import '../../../core/auth/session_cubit.dart';
 import '../../collector_status/presentation/collection_details.dart';
 import '../../collector_status/presentation/collector_status_banner.dart';
 import '../../collector_status/presentation/data_quality_details.dart';
@@ -15,16 +17,13 @@ class MorePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final auth = Supabase.instance.client.auth;
-
     return Scaffold(
       appBar: AppBar(title: const Text('Mais')),
       // Rebuilt on sign-in and sign-out.
-      body: StreamBuilder<AuthState>(
-        stream: auth.onAuthStateChange,
-        builder: (context, _) {
-          final user = auth.currentUser;
-          final signedIn = user != null && !user.isAnonymous;
+      body: BlocBuilder<SessionCubit, SessionState>(
+        bloc: getIt<SessionCubit>(),
+        builder: (context, session) {
+          final signedIn = session.signedIn;
 
           return ListView(
             children: [
@@ -33,7 +32,9 @@ class MorePage extends StatelessWidget {
                 child: ListTile(
                   leading: const Icon(Icons.account_circle_outlined),
                   title: Text(
-                    signedIn ? user.email ?? 'Sessão iniciada' : 'Sem sessão',
+                    signedIn
+                        ? session.email ?? 'Sessão iniciada'
+                        : 'Sem sessão',
                   ),
                   subtitle: Text(
                     signedIn
