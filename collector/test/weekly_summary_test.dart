@@ -94,6 +94,34 @@ void main() {
     expect(s.drops.single.oldPrice, 9000);
   });
 
+  test('a drop of exactly 1 % counts', () {
+    final s = summary(
+      [listing('a')],
+      [PricePoint('a', 10000, lastWeek), PricePoint('a', 9900, thisWeek)],
+    );
+    expect(s.drops.single.newPrice, 9900);
+  });
+
+  test('the drop starts from the latest price before the week', () {
+    final s = summary(
+      [listing('a')],
+      [
+        PricePoint('a', 9000, lastWeek.subtract(const Duration(days: 3))),
+        PricePoint('a', 8000, lastWeek),
+        PricePoint('a', 7500, thisWeek),
+      ],
+    );
+    expect(s.drops.single.oldPrice, 8000);
+  });
+
+  test('best deals: risk exactly 50 is left out, 49 is kept', () {
+    final s = summary([
+      listing('r50', dealScore: 90, riskScore: 50),
+      listing('r49', dealScore: 80, riskScore: 49),
+    ]);
+    expect(s.bestDeals.map((l) => l.id), ['r49']);
+  });
+
   test('best deals: live, risk below 50, by score then price', () {
     final s = summary([
       listing('a', dealScore: 80, price: 7000),
