@@ -11,3 +11,6 @@ imports/
 # Written each run from the tracked models (make searches).
 /.searches.*.txt
 .env
+
+# Coverage data (make coverage)
+/coverage/

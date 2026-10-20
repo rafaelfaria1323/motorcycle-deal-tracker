@@ -295,6 +295,21 @@ Do not implement several unrelated features at once.
 ## T.8 Automatic merge of backlog PRs ✅
 *Rafael's go-ahead, 2026-10-20. After `backlog-pass.yml` opens a code-quality or test-hardening PR and starts its check, it waits for that check run (the one for the PR's exact commit) and merges the PR when it passes (`gh pr merge --match-head-commit`, so never a commit the check didn't see). It leaves the PR for a manual merge when the check fails or can't be found, when the PR touches migrations or anything under `supabase/`, workflows, `tool/` or the Makefile, or when the repository variable `AUTO_MERGE_BACKLOG` is `false` (the off switch). A merge made with the workflow's token starts no push workflows, so it starts "Deploy web app" itself when the PR changed `app/`; mutation testing of the changed files waits for the next ordinary merge.*
 
+# Checks without AI (N)
+
+*Rafael, 2026-10-20: AI is fine where it is free, but a fixed, free tool is preferred whenever it can do the same job. The app and the collector use no AI at all (every score, estimate and alert is rules and statistics in Dart and SQL). The only AI is the two Claude backlog passes (on Rafael's subscription), which now leave to the tools below what they catch.*
+
+## N.1 Stricter analyzer rules ✅
+*Both packages: strict casts, inference and raw types, plus rules for async mistakes (unawaited futures, async void), type safety (dynamic calls, return types, throwing non-errors), dead code and immutability (`*/analysis_options.yaml`). The collector also forbids catch-alls and redundant arguments; the app doesn't (screens catch every failure on purpose; `DateTime(2027, 3, 1)` reads better than the default left out). All findings fixed.*
+## N.2 Copy-paste check ✅
+*`make duplication` (jscpd via npx, also in `check.yml`): exact clones of 70+ tokens in app/lib and the collector; over 1 % of lines fails. Today 0.22 % (4 small clones).*
+## N.3 Coverage floors ✅
+*`make coverage` (also in `check.yml`, summary on the run page): line coverage of the collector (floor 70 %, today 74 %) and of the app's logic (texts, entities, models, cubits; floor 90 %, today 94.7 %), by `tool/lcov_summary.py` (tests: `tool/test_lcov_summary.py`). Raise a floor as tests are added; lower one only with a reason.*
+## N.4 Mutation score floor ⬜
+*Mutation testing already runs without AI after merges (`mutation.yml`); a minimum score comes once the next full run gives the current one.*
+## N.5 Dependabot ✅
+*`.github/dependabot.yml`: weekly PRs for the app's and the collector's packages and the GitHub Actions (minor and patch grouped), each checked like any PR (no preview: Dependabot's PRs get no secrets). Replaces deprecated action versions too.*
+
 # Security and privacy (later) ⬜
 
 *Not urgent while the app has one user, but to do before anyone else uses it or the data grows: make the repository private (old saved pages with phone numbers are in its git history); review what each table exposes to anonymous visitors (listings, places and dealer figures are public today; notes, checklists, homes, settings and searches are owner-only); encrypt the most personal data at rest (favourite notes, the viewing checklist, the home place) or keep it out of the database; rotate the secrets and the GitHub dispatch token on a schedule; consider Cloudflare Access in front of the site (see `docs/hosting.md`).*

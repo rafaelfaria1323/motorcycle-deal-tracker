@@ -1,0 +1,35 @@
+# Dependency updates without AI: one PR a week per ecosystem, minor and
+# patch updates grouped, each checked by check.yml (and previewed) like any
+# PR. Major versions come one by one. GitHub Actions too, so deprecated
+# action versions get replaced.
+version: 2
+updates:
+  - package-ecosystem: pub
+    directory: /app
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      app-minor:
+        update-types: [minor, patch]
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: pub
+    directory: /collector
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      collector-minor:
+        update-types: [minor, patch]
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      actions:
+        patterns: ['*']
+    open-pull-requests-limit: 3

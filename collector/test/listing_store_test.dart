@@ -97,7 +97,7 @@ void main() {
       location: 'Porto',
       description: 'Muito estimada.',
     );
-    final published = DateTime.utc(2026, 9, 1);
+    final published = DateTime.utc(2026, 9);
     final site = base.fromSite(
       source: 'olx',
       sourceListingId: '123',

@@ -82,9 +82,8 @@ class FetchState {
   };
 
   /// The count restarts each day; a block is remembered.
-  FetchState rolledTo(String today) => day == today
-      ? this
-      : FetchState(day: today, requests: 0, blockedAt: blockedAt);
+  FetchState rolledTo(String today) =>
+      day == today ? this : FetchState(day: today, blockedAt: blockedAt);
 }
 
 /// One website we fetch from: where we may go, how a normal page looks, and

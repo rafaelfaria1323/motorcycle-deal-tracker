@@ -143,7 +143,9 @@ class StandvirtualSearchAdapter
     if (edges is! List) {
       throw const FormatException('search results have no listings list');
     }
-    final topAds = search['topads'] is List ? search['topads'] as List : [];
+    final topAds = search['topads'] is List
+        ? search['topads'] as List
+        : const <Object?>[];
 
     final records = <StandvirtualRawListing>[];
     final problems = <String>[];

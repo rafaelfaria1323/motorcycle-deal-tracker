@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -45,7 +47,7 @@ class DashboardPage extends StatelessWidget {
         motorcycles: cubit.state.motorcycles,
       ),
     );
-    if (result != null) cubit.applyFilters(result);
+    if (result != null) unawaited(cubit.applyFilters(result));
   }
 
   Future<void> _saveSearch(BuildContext context) async {

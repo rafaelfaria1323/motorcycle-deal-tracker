@@ -60,6 +60,18 @@ jobs:
       - name: make check
         run: make check
 
+      # Checks without AI: copy-pasted code above 1 % fails; line coverage
+      # of the app's logic and of the collector below their floors (the
+      # Makefile's *_COVERAGE_MIN) fails. Both reports are on the run's
+      # summary page.
+      - name: make duplication
+        run: make duplication
+
+      - name: make coverage
+        run: |
+          dart pub global activate coverage >/dev/null
+          make coverage
+
       - name: make db-test
         env:
           PGHOST: localhost
