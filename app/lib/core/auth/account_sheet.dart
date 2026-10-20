@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../app/di/injection.dart';
+import '../../app/theme/app_theme.dart';
 import '../../features/listings/presentation/cubit/alerts_cubit.dart';
 import '../../features/listings/presentation/cubit/favourites_cubit.dart';
 import '../../features/listings/presentation/cubit/saved_searches_cubit.dart';
@@ -136,9 +137,6 @@ class _AccountSheetState extends State<_AccountSheet> {
 
   Widget _error(BuildContext context, String message) => Padding(
     padding: const EdgeInsets.only(bottom: 8),
-    child: Text(
-      message,
-      style: TextStyle(color: Theme.of(context).colorScheme.error),
-    ),
+    child: Text(message, style: AppTheme.errorText(context)),
   );
 }
