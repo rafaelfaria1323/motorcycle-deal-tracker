@@ -54,7 +54,7 @@ String alertTitle(ListingAlert alert) {
     if (listing.year != null) '${listing.year}',
   ].join(' · ');
   return switch (alert.type) {
-    AlertType.newListing => 'Nova oferta: $bike',
+    AlertType.newListing => 'Novo anúncio: $bike',
     AlertType.priceReduction => 'Preço reduzido: $bike',
     AlertType.excellentOpportunity => 'Excelente oportunidade: $bike',
     AlertType.listingRemoved => 'Anúncio removido: $bike',

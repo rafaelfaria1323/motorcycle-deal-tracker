@@ -9,7 +9,7 @@ String qualityTitle(SourceQuality q) =>
 /// What the site's live listings are: tracked, other models, duplicates.
 String qualityMixLine(SourceQuality q) {
   final parts = [
-    '${q.scoredCount} de modelos acompanhados',
+    '${q.scoredCount} dos modelos acompanhados',
     if (q.unmatchedCount > 0)
       '${q.unmatchedCount} sem modelo (${percent(q.unmatchedCount, q.liveCount)})',
     if (q.duplicateCount > 0)

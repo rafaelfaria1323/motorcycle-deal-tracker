@@ -42,15 +42,15 @@ void main() {
   });
 
   test('the mix line shows only what is there', () {
-    expect(qualityMixLine(quality()), '100 de modelos acompanhados');
+    expect(qualityMixLine(quality()), '100 dos modelos acompanhados');
     expect(
       qualityMixLine(quality(unmatched: 18, duplicates: 2)),
-      '100 de modelos acompanhados · 18 sem modelo (15 %) · '
+      '100 dos modelos acompanhados · 18 sem modelo (15 %) · '
       '2 duplicados (2 %)',
     );
     expect(
       qualityMixLine(quality(duplicates: 1)),
-      '100 de modelos acompanhados · 1 duplicado (<1 %)',
+      '100 dos modelos acompanhados · 1 duplicado (<1 %)',
     );
   });
 

@@ -40,7 +40,7 @@ void main() {
     );
     expect(
       lines,
-      contains('25% dos vendedores baixaram o preço (descida típica 4.2%)'),
+      contains('25 % dos vendedores baixaram o preço (descida típica 4,2 %)'),
     );
   });
 
@@ -87,7 +87,7 @@ void main() {
 
     expect(
       line,
-      'Desvalorização deste modelo: 5.1% por ano e 2.7% por 10 000 km '
+      'Desvalorização deste modelo: 5,1 % por ano e 2,7 % por 10 000 km '
       '(64 anúncios)',
     );
   });
@@ -105,7 +105,7 @@ void main() {
     expect(
       line,
       'Desvalorização: ainda poucos dados (12 de 30 anúncios); '
-      'usa-se a regra geral de 3.9% por ano e 2.0% por 10 000 km',
+      'usa-se a regra geral de 3,9 % por ano e 2,0 % por 10 000 km',
     );
   });
 

@@ -98,12 +98,12 @@ Map<String, String> newModelProblems({
   final sv = standvirtualSearch.trim();
 
   return {
-    if (brand.trim().isEmpty) 'brand': 'Indicar a marca',
-    if (model.trim().isEmpty) 'model': 'Indicar o modelo',
+    if (brand.trim().isEmpty) 'brand': 'Indique a marca',
+    if (model.trim().isEmpty) 'model': 'Indique o modelo',
     if (parsedYear == null || parsedYear < 1990 || parsedYear > maxYear)
       'year': 'Ano entre 1990 e $maxYear',
     if (olx.isEmpty && sv.isEmpty)
-      'olx': 'Indicar pelo menos uma pesquisa (OLX ou Standvirtual)',
+      'olx': 'Indique pelo menos uma pesquisa (OLX ou Standvirtual)',
     if (olx.isNotEmpty && !olx.startsWith(olxSearchPrefix))
       'olx': 'Tem de ser uma pesquisa de motociclos do OLX ($olxSearchPrefix…)',
     if (sv.isNotEmpty && !sv.startsWith(standvirtualSearchPrefix))

@@ -166,7 +166,7 @@ class _Content extends StatelessWidget {
                       color: theme.colorScheme.secondaryContainer,
                       child: ListTile(
                         leading: const Icon(Icons.content_copy),
-                        title: const Text('Anúncio repetido'),
+                        title: const Text('Anúncio duplicado'),
                         subtitle: const Text(
                           'Este anúncio parece ser a mesma mota de outro anúncio. '
                           'Não conta para o mercado nem tem pontuação.',
@@ -333,7 +333,7 @@ class _CompareButton extends StatelessWidget {
             final now = cubit.state;
             if (added) {
               messenger.showSnackBar(
-                const SnackBar(content: Text('Retirado da comparação.')),
+                const SnackBar(content: Text('Retirado da comparação')),
               );
             } else if (now.length < 2) {
               messenger.showSnackBar(
@@ -346,7 +346,7 @@ class _CompareButton extends StatelessWidget {
             } else {
               messenger.showSnackBar(
                 SnackBar(
-                  content: Text('Na comparação (${now.length}).'),
+                  content: Text('Na comparação (${now.length})'),
                   action: SnackBarAction(
                     label: 'Comparar',
                     onPressed: () => context.push(AppRoutes.compare(now)),

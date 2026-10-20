@@ -80,8 +80,8 @@ void main() {
     ]);
     expect(rowOf(rows, 'Face ao mercado').best, {0});
     expect(rowOf(rows, 'Ano').best, {0});
-    expect(rowOf(rows, 'Quilómetros').best, {1});
-    expect(rowOf(rows, 'Donos').best, {0});
+    expect(rowOf(rows, 'Quilometragem').best, {1});
+    expect(rowOf(rows, 'Registos (donos)').best, {0});
     expect(rowOf(rows, 'Livro de revisões').values, ['Completo', 'Não']);
     expect(rowOf(rows, 'Livro de revisões').best, {0});
     expect(rowOf(rows, 'Localização').best, isEmpty);

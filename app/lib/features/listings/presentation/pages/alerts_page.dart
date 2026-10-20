@@ -71,7 +71,7 @@ class AlertsPage extends StatelessWidget {
                 return StateMessage(
                   icon: Icons.notifications_none,
                   title: 'Ainda não tem alertas',
-                  message: 'Guarde uma pesquisa e avisamos quando surgir uma oferta nova.',
+                  message: 'Guarde uma pesquisa e avisamos quando surgir um anúncio novo.',
                   actionLabel: 'Ver pesquisas',
                   onAction: () => context.go(AppRoutes.searches),
                 );
