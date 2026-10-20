@@ -37,6 +37,7 @@ class ListingModel extends Listing {
     super.relistedPrice,
     super.newPrice,
     super.newPriceCheckedAt,
+    super.engineCc,
   });
 
   /// The columns lists need (cards, alerts, other sources of a bike); the
@@ -49,7 +50,7 @@ class ListingModel extends Listing {
       'last_seen_at';
 
   factory ListingModel.fromJson(Map<String, dynamic> json) {
-    // Present when the query embeds the matched model's new-bike price.
+    // Present when the query embeds the matched model (detail page).
     final bike = json['motorcycles'] as Map<String, dynamic>?;
     return ListingModel(
       id: json['id'] as String,
@@ -87,7 +88,17 @@ class ListingModel extends Listing {
       relistedPrice: (json['relisted_price'] as num?)?.toDouble(),
       newPrice: (bike?['new_price_reference'] as num?)?.toDouble(),
       newPriceCheckedAt: dateOf(bike?['new_price_checked_at']),
+      engineCc: engineCcOf(bike),
     );
+  }
+
+  /// The middle of the model's engine range ("680-710" -> 695), or the one
+  /// limit it has; null without either.
+  static int? engineCcOf(Map<String, dynamic>? bike) {
+    final min = (bike?['engine_cc_min'] as num?)?.toInt();
+    final max = (bike?['engine_cc_max'] as num?)?.toInt();
+    if (min == null || max == null) return min ?? max;
+    return ((min + max) / 2).round();
   }
 
   /// Shared with `SavedSearchModel`; anything unrecognised is `unknown`.

@@ -350,6 +350,12 @@ functions for manual work.
   3 % (dealer) below it, more for long on sale (+3/5/7 % past 1x/2x/3x the
   model's typical time), relisted (+2 %), a model whose sellers often
   drop, high risk; less after a drop; 1-15 %, rounded down to 50 €.
+- Cost of ownership (`ownership_cost.dart`, app only): per year =
+  average depreciation over the years kept (model's curve at the owner's
+  km/year) + IUC (category E table by the model's engine size, nothing
+  under 10 €; **check `iucBands` every January**) + the owner's insurance
+  (left out until entered) + tyres, services and chain kit by engine size.
+  The owner's figures live in `ownership_settings` (one row per account).
 - New-bike comparison: `motorcycles.new_price_reference` (+ checked date),
   shown on the detail page; hidden when the model has no reference price.
 

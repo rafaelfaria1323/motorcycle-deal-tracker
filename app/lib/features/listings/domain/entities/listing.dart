@@ -41,6 +41,7 @@ class Listing extends Equatable {
     this.relistedPrice,
     this.newPrice,
     this.newPriceCheckedAt,
+    this.engineCc,
   });
 
   final String id;
@@ -89,6 +90,10 @@ class Listing extends Equatable {
   /// checked. Only loaded on the detail page.
   final double? newPrice;
   final DateTime? newPriceCheckedAt;
+
+  /// Engine size of the matched model (the middle of its catalog range).
+  /// Only loaded on the detail page.
+  final int? engineCc;
 
   /// The price changes are measured from: the first price we saw, or a
   /// higher earlier price the site reported.

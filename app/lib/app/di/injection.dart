@@ -10,12 +10,14 @@ import '../../features/listings/data/repositories/supabase_catalog_repository.da
 import '../../features/listings/data/repositories/supabase_favourites_repository.dart';
 import '../../features/listings/data/repositories/supabase_listings_repository.dart';
 import '../../features/listings/data/repositories/supabase_market_behaviour_repository.dart';
+import '../../features/listings/data/repositories/supabase_ownership_settings_repository.dart';
 import '../../features/listings/data/repositories/supabase_saved_searches_repository.dart';
 import '../../features/listings/domain/repositories/alerts_repository.dart';
 import '../../features/listings/domain/repositories/catalog_repository.dart';
 import '../../features/listings/domain/repositories/favourites_repository.dart';
 import '../../features/listings/domain/repositories/listings_repository.dart';
 import '../../features/listings/domain/repositories/market_behaviour_repository.dart';
+import '../../features/listings/domain/repositories/ownership_settings_repository.dart';
 import '../../features/listings/domain/repositories/saved_searches_repository.dart';
 import '../../features/listings/presentation/cubit/alerts_cubit.dart';
 import '../../features/listings/presentation/cubit/compare_cubit.dart';
@@ -74,6 +76,9 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton<MarketBehaviourRepository>(
     () => SupabaseMarketBehaviourRepository(Supabase.instance.client),
+  );
+  getIt.registerLazySingleton<OwnershipSettingsRepository>(
+    () => SupabaseOwnershipSettingsRepository(Supabase.instance.client),
   );
   getIt.registerLazySingleton<CatalogRepository>(
     () => SupabaseCatalogRepository(Supabase.instance.client),
