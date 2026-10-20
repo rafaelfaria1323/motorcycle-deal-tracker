@@ -28,9 +28,9 @@ Tracked models (chosen in the app)
 |---|---|
 | [`app/`](app/README.md) | Flutter Web/PWA |
 | [`collector/`](collector/README.md) | Dart command line: fetches, parses and stores listings, then scores and alerts |
-| `supabase/` | Database migrations: tables, scoring, alerts, views, access rules |
+| `supabase/` | Database migrations: tables, scoring, alerts, views, access rules; `tests/`: SQL tests (`make db-test`) |
 | `docs/` | Progress and decisions (see below) |
-| `.github/workflows/` | `collect.yml` (every 4 hours, started by Supabase pg_cron), `check.yml` (`make check` on every pull request), `deploy-web.yml` (app on merge), `weekly-summary.yml` (Mondays, the week on Telegram), `notify-test.yml` (Telegram test), `mutation.yml` (mutation testing without AI: after merges the changed files, by hand all of them; report on the run's page), `code-quality.yml` and `test-hardening.yml` (Claude works through the backlogs, fixing every 5 merged PRs and finding new items after 10 in `docs/code-quality.md` and `docs/test-hardening.md`; shared steps in `backlog-pass.yml`) |
+| `.github/workflows/` | `collect.yml` (every 4 hours, started by Supabase pg_cron), `check.yml` (`make check` and `make db-test` on every pull request), `deploy-web.yml` (app on merge), `weekly-summary.yml` (Mondays, the week on Telegram), `notify-test.yml` (Telegram test), `mutation.yml` (mutation testing without AI: after merges the changed files, by hand all of them; report on the run's page), `code-quality.yml` and `test-hardening.yml` (Claude works through the backlogs, fixing every 5 merged PRs and finding new items after 10 in `docs/code-quality.md` and `docs/test-hardening.md`; shared steps in `backlog-pass.yml`) |
 
 ## Getting started
 
@@ -53,7 +53,8 @@ GitHub Actions uses repository secrets with the same names, plus
 for the code-quality review. Supabase's Vault holds `github_dispatch_token`,
 which the scheduled jobs use to start the workflows (`docs/hosting.md`).
 Database changes: `make db-new
-NAME=...`, then `make db-push`.
+NAME=...`, a test in `supabase/tests/` (`make db-test` runs them on a local
+Postgres; CI runs them on every pull request), then `make db-push`.
 
 ## Fetching rules
 

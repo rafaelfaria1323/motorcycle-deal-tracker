@@ -41,9 +41,15 @@ has the model), or typed by hand.
 - **Migrations:** Rafael runs `make db-push`. When the new collector code
   needs the new schema, say "run `make db-push` before merging" and keep the
   migration compatible with the code still on `main`.
-- You cannot reach Supabase from the sandbox. Test SQL on a local Postgres
-  with all migrations applied (stub the `auth` schema: `uid()`, `jwt()`,
-  `role()`, `users`; roles `anon`, `authenticated`, `service_role`).
+- You cannot reach Supabase from the sandbox. SQL tests live in
+  `supabase/tests/*_test.sql` (`make db-test`, also run by `check.yml`):
+  `tool/db_test.sh` applies every migration to a fresh Postgres after
+  `supabase/tests/stubs.sql` (roles, `auth`, pg_cron/pg_net/Vault
+  stand-ins, Supabase's default grants), then runs each test in a
+  transaction that is rolled back; a test fails by raising (`assert`).
+  `set local test.uid` / `test.jwt` act as a user. `now()` is fixed inside
+  a transaction, so date rows explicitly when their order matters. Add or
+  extend a test with every migration that changes behaviour.
 - Flutter is not installed in the sandbox and must not be downloaded: Rafael
   tests the app. Pure Dart logic in the app can be tested with plain Dart
   (`package:test`) on copies of the files. The deploy runs `flutter test`
@@ -54,7 +60,7 @@ has the model), or typed by hand.
 ```
 app/        Flutter Web/PWA (package name: motorcycle_deal_tracker)
 collector/  Pure Dart CLI: fetch, parse, store, score, alert (service-role key)
-supabase/   Migrations (Postgres: scoring, alerts, views, RLS)
+supabase/   Migrations (Postgres: scoring, alerts, views, RLS); tests/ SQL tests
 docs/       sources.md (data-source decisions, keep updated), hosting.md,
             roadmap.status.md, concept.status.md, code-quality.md and
             test-hardening.md (backlogs of the automatic passes)
@@ -62,7 +68,8 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
                                   started by Supabase pg_cron (see below)
 .github/workflows/weekly-summary.yml  Mondays 07:52 UTC (pg_cron): the week's summary
                                   on Telegram (bin/weekly_summary.dart)
-.github/workflows/check.yml       `make check` (with Flutter) on every pull
+.github/workflows/check.yml       `make check` (with Flutter) and `make
+                                  db-test` (Postgres service) on every pull
                                   request to main
 .github/workflows/deploy-web.yml  Test, build and publish the app to
                                   Cloudflare Pages on merges touching app/
@@ -98,6 +105,7 @@ Makefile    All commands (`make help`)
 make check                     analyze + test app and collector (before every commit)
 make app-run                   run the app in Chrome (app/env/dev.json)
 make db-new NAME=x / db-push   create / apply migrations
+make db-test                   migrations + SQL tests on a local Postgres
 make searches SITE=olx|standvirtual   write the tracked models' searches
 make fetch-dry|fetch SITE=...  download those search pages (polite, capped)
 make collect-dry|collect SOURCE=manual|standvirtual|standvirtual-search|olx-search FILE=... [ARGS=--full]
