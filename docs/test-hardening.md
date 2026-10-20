@@ -25,6 +25,15 @@ items by hand at any time.
 
 ## To do
 
+- Surviving mutant (confirmed by running `dart test`): `collector/lib/src/adapters/manual/manual_mapper.dart:22` `price <= 0` → `price == 0` passes; add a `manual_mapper_test.dart` case with `price_eur: -5` expecting `Rejected` (and keep the 0 case).
+- Surviving mutant (confirmed): `collector/lib/src/notify/weekly_summary.dart:53` `isGone` → `status == 'removed' || status != 'sold'` passes; add a `weekly_summary_test.dart` case with a `sold` listing counted as gone and an `active` one not counted.
+- Surviving mutant (confirmed): `collector/lib/src/fetch/fetch_searches.dart:66` `started + 1` → `started - 1` passes; test that a `FetchLimitReached` after some saved pages logs the exact "N of M search(es) not read in full" count.
+- Surviving mutants from the report, not yet checked by hand: `collector/lib/src/pipeline/source_batch.dart:182,199,220` (`liveId: raw.status == 'ACTIVE'` / `'active'` flipped; test that only active records get a live id) and `:141` (`complete.isEmpty || seen.isEmpty` → `&&`).
+- Surviving mutants in `collector/lib/src/adapters/olx/olx_mapper.dart:86,101` (brand lookup `key == category || words.contains(key)` and the `at < 0 || at > 1` title check): add mapper tests where only the category matches and where only the title word matches.
+- Surviving mutants in `collector/lib/src/catalog/catalog.dart:103` (`brand == b && model startsWith` → `||` or negations): test the lookup with the right brand and another model, and with the right model prefix under another brand.
+- Surviving mutants in `collector/lib/src/adapters/site_model.dart:35,63` (make/model key separator; `filter_enum_make && value != null` → `||`): test two models with colliding ids across makes and a make filter with a null value.
+- Surviving mutants in the app, not yet checked by hand: `new_price_text.dart:16`, `tracked_models_text.dart:43` (both under `features/listings/presentation/`) and `features/collector_status/presentation/data_quality_text.dart:45` (`<= 0` → `== 0`): add negative-input cases (fresh price -1, engine size -5, whole -3) expecting the same result as 0.
+
 
 ## Needs Rafael
 
