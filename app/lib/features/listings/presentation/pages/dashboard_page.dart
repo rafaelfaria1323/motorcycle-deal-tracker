@@ -11,6 +11,8 @@ import '../../domain/entities/listing_filters.dart';
 import '../../domain/entities/listing_sort.dart';
 import '../compare_text.dart';
 import '../cubit/compare_cubit.dart';
+import '../cubit/favourites_cubit.dart';
+import '../cubit/favourites_state.dart';
 import '../cubit/listings_cubit.dart';
 import '../cubit/listings_state.dart';
 import '../cubit/saved_searches_cubit.dart';
@@ -52,10 +54,7 @@ class DashboardPage extends StatelessWidget {
     final messenger = ScaffoldMessenger.of(context);
 
     if (!filters.hasCriteria) {
-      showMessage(
-        messenger,
-        'Escolha pelo menos um filtro antes de guardar.',
-      );
+      showMessage(messenger, 'Escolha pelo menos um filtro antes de guardar.');
       return;
     }
 
@@ -110,6 +109,11 @@ class DashboardPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Ofertas'),
         actions: [
+          IconButton(
+            tooltip: 'Favoritos',
+            icon: const Icon(Icons.star_border),
+            onPressed: () => context.push(AppRoutes.favourites),
+          ),
           BlocBuilder<ListingsCubit, ListingsState>(
             buildWhen: (previous, current) => previous.sort != current.sort,
             builder: (context, state) => PopupMenuButton<ListingSort>(
@@ -242,17 +246,37 @@ class DashboardPage extends StatelessWidget {
                               itemCount: state.listings.length,
                               itemBuilder: (context, index) {
                                 final listing = state.listings[index];
-                                return BlocBuilder<CompareCubit, List<String>>(
-                                  bloc: getIt<CompareCubit>(),
-                                  builder: (context, compared) => ListingCard(
-                                    listing: listing,
-                                    selected: compared.contains(listing.id),
-                                    onTap: () => context.go(
-                                      AppRoutes.listingDetail(listing.id),
-                                    ),
-                                    onLongPress: () =>
-                                        _toggleCompare(context, listing.id),
-                                  ),
+                                return BlocBuilder<
+                                  FavouritesCubit,
+                                  FavouritesState
+                                >(
+                                  bloc: getIt<FavouritesCubit>(),
+                                  buildWhen: (previous, current) =>
+                                      previous.isFavourite(listing.id) !=
+                                      current.isFavourite(listing.id),
+                                  builder: (context, favourites) =>
+                                      BlocBuilder<CompareCubit, List<String>>(
+                                        bloc: getIt<CompareCubit>(),
+                                        builder: (context, compared) =>
+                                            ListingCard(
+                                              listing: listing,
+                                              selected: compared.contains(
+                                                listing.id,
+                                              ),
+                                              favourite: favourites.isFavourite(
+                                                listing.id,
+                                              ),
+                                              onTap: () => context.go(
+                                                AppRoutes.listingDetail(
+                                                  listing.id,
+                                                ),
+                                              ),
+                                              onLongPress: () => _toggleCompare(
+                                                context,
+                                                listing.id,
+                                              ),
+                                            ),
+                                      ),
                                 );
                               },
                             ),

@@ -10,9 +10,14 @@ Cloudflare Pages on every merge that touches `app/`
 - **Ofertas:** listings of the tracked models, sorted by Deal Score (or
   newest, cheapest, most expensive), with filters shown as chips and paged
   40 at a time.
+- **Favoritos:** the listings you starred (star on a listing's page; star
+  in the Ofertas app bar or Mais opens the list), newest first, each with
+  your private note; removed ones stay, marked. A favourite always alerts
+  you about price drops and its removal.
 - **Comparar:** up to 3 listings side by side (long press a card in Ofertas,
   or "Comparar" on a listing's page), the best value of each row marked.
-- **Listing page:** photo gallery, price and score with the reasons behind
+- **Listing page:** photo gallery, price, your note when it is a favourite
+  ("As suas notas"), score with the reasons behind
   it, risks, the same bike on the other site, the comparison with a new one,
   market behaviour for the model (with where the asking price sits among
   the model's live listings) and the price history.

@@ -14,6 +14,7 @@ class ListingCard extends StatelessWidget {
     this.onTap,
     this.onLongPress,
     this.selected = false,
+    this.favourite = false,
     super.key,
   });
 
@@ -25,6 +26,9 @@ class ListingCard extends StatelessWidget {
 
   /// In the comparison: a primary border and a check mark.
   final bool selected;
+
+  /// In the favourites: a star on the photo.
+  final bool favourite;
 
   static const photoHeight = 180.0;
 
@@ -68,6 +72,20 @@ class ListingCard extends StatelessWidget {
                     ),
                   if (listing.isRemoved)
                     const Positioned(top: 10, left: 10, child: _RemovedPill()),
+                  if (favourite)
+                    Positioned(
+                      bottom: 10,
+                      right: 10,
+                      child: CircleAvatar(
+                        radius: 14,
+                        backgroundColor: AppColors.photoPillScrim,
+                        child: Icon(
+                          Icons.star,
+                          size: 16,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ),
                   if (selected)
                     Positioned(
                       bottom: 10,

@@ -6,6 +6,7 @@ abstract final class AppRoutes {
   static const models = '/models';
   static const modelMarket = '/market';
   static const comparePath = '/compare';
+  static const favourites = '/favourites';
 
   static String listingDetail(String id) => '$deals/$id';
 

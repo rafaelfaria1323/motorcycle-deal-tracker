@@ -1,4 +1,4 @@
-# Motorcycle Deal Tracker — Small Interaction Roadmap (status 2026-10-19)
+# Motorcycle Deal Tracker — Small Interaction Roadmap (status 2026-10-21)
 
 **Legend:** ✅ done · 🟡 partly done / in progress · ⬜ not started · ➕ added along the way (not in the original plan)
 
@@ -215,6 +215,32 @@ Do not implement several unrelated features at once.
 ## 13.6 One voice and polish ✅
 *All pt-PT text speaks to the user as "você" ("Indique", "a sua conta", "Toque…"); the few "tu" forms and bare infinitive instructions were changed, and `test/voice_test.dart` fails the build if a "tu" form comes back. Ofertas shows card-shaped placeholders while loading instead of a spinner; every page uses the same empty/error screen (`StateMessage`); the unused placeholder page was removed. Light/dark and safe areas were covered by 13.4b (themed colours, bottom bar and sheets inside the safe area). Fix after it: the status bar stayed dark in light mode on the iPhone (it ignored the light/dark `theme-color` tags and used the last one); now one tag, set by a script from the current mode. That was not enough: the real cause was every AppBar telling Flutter a transparent-black status bar colour, which Flutter writes into theme-color and Safari shows as black; the AppBar theme now gives the page background. Still black on iOS 26: Safari 26 ignores theme-color and samples a solid fixed element at the page's top/bottom edge (Flutter's page gave it black), so `index.html` now has two thin iOS-only strips, the top one following theme-color (so the photo viewer turns it black), the bottom one the tab bar colour. That fixed it; in the home-screen app the bottom strip then covered the tab labels and the labels sat under the home bar, so the strip is hidden there and the app adds a 24px bottom safe area on iPhones with a home bar. In a Safari tab the strip then covered the labels too, so there the app leaves 12px (the strip's height) under the tab bar.*
 
+# Sprint 15 — Deciding and buying 🟡
+
+*Goal: from "which listings are good" to "which bike do I buy, for how much". Proposed 2026-10-20 after the original concept was mostly built; each step is a small PR. Order: what works with today's data first, then the score, then what needs history or outside sources.*
+
+## 15.1 Favourites and notes ✅
+*A star on the listing page (app bar) adds the listing to the favourites; while it is one, "As suas notas" under the price holds a private note (what the seller said, what to check, what to offer; up to 2000 characters). Cards in Ofertas show a star on the photo. "Favoritos" (star in the Ofertas app bar, and in Mais) lists them newest first with the note and "Adicionado aos favoritos há N dias"; removed listings stay, marked "Removido", so the shortlist shows what sold. Taking out a favourite with a note asks first (the note goes too).*
+*Data: table `listing_favourites (user_id, listing_id, note, created_at, updated_at)`, owner-only RLS like saved searches (anonymous sessions too, but they lose them on sign-out; the account sheet reloads them on sign-in). Alerts: `generate_favourite_alerts()` (part of `generate_alerts()`) gives the owner every price drop of 1 % or more and the removal of a favourite, after it became one, with no saved search needed (`saved_search_id` null); the alerts' unique indexes keep one alert per price change and one removal, so a favourite also in a saved search alerts once. Telegram picks them up like any alert. App: `FavouritesCubit` (lazy singleton, loaded by the shell; changes show at once and are undone if saving fails), `favourites_text.dart`. Tests: `supabase/tests/favourites_test.sql`, `app/test/favourites_test.dart`.*
+## 15.2 Price to offer ⬜
+*On the listing page: an opening offer and a ceiling. From the estimated value (fair price), how long the ad has been up (`published_at`, relist dates), whether it already dropped (`price_before_drop`, price history) and how often the model drops and by how much (`model_market_behaviour`). Pure function with tests (`offer_text.dart` or SQL), explained in words like the score; says "estimativa a partir de preços pedidos". Hidden without a fair price (fewer than 2 comparables).*
+## 15.3 Viewing checklist ⬜
+*Per favourite, a checklist for seeing the bike: VIN and plate against the DUA/registration, service stamps and invoices, chain and sprockets, tyres (DOT date), brakes and discs, fork seals, signs of a fall (levers, pegs, bar ends, scratched tank/fairings), cold start, lights and electrics, keys, open finance (ask for the "certidão de registo automóvel"). Ticks and per-item notes stored with the favourite (e.g. a `checklist jsonb` column on `listing_favourites`); the list itself lives in the app (pure Dart, tested). Model-specific items can come later.*
+## 15.4 Cost of ownership ⬜
+*A yearly estimate on the listing page: IUC (by engine size and registration year, Portuguese table), insurance band (owner enters their own quote once; stored per account), tyres and services from km/year, and the depreciation already fitted per model (`model_depreciation`). Gives "custa cerca de X € por ano" and the total for the years the owner plans to keep it. Tables in one pure Dart file with tests; the IUC table needs checking each year.*
+## 15.5 Relisted as a risk signal ⬜
+*Relists are detected (20.2) but change no score. Add a risk reason when the bike has been relisted (more points for two or more, or more than 90 days on sale counting `relisted_since`), in `risk_assessment` with a SQL test, and its text in the app's risk reasons.*
+## 15.6 Consistency checks in the text ⬜
+*More risk signals from the description against the ad's fields: a year or mileage written in the text that differs from the fields (e.g. "2019" in the text, 2021 in the field; "30 mil km" vs 12 000), "importada" or "matrícula estrangeira" on a national ad, "sem livro" while the field says service book. Each a keyword rule in SQL like `possible_accident`, with literal tests; only clear contradictions count.*
+## 15.7 Seller / dealer reliability ⬜
+*Fills the empty 10 % "Seller / confidence" slice of the Deal Score (4.7). Per dealer (name kept only for dealers, never private sellers): how often their ads are relisted, sharp price changes, missing mileage, share of duplicates; a private seller gets the neutral value. Needs a few weeks of data per dealer; start by showing the figures, then score them.*
+## 15.8 Price trends and market slice ⬜
+*The same as 10.3 and the market slice of 4.7, listed here so the sprint shows everything planned: median asking price per model per week, and time on market / price drops in the Deal Score, once a few weeks of history exist.*
+## 15.9 More sources ⬜
+*Dealer websites (big Portuguese dealers that publish their stock), or one European site for imports (with the import costs: ISV, transport, legalisation). Each needs Rafael's check of its terms first (as 5.2) and follows the fetching rules; Facebook Marketplace and CustoJusto stay manual.*
+## 15.10 Web push ⬜
+*Alerts on the iPhone without Telegram: web push works for a web app added to the home screen (iOS 16.4+). Needs a service worker message handler, VAPID keys (secrets created by Rafael), a `push_subscriptions` table and a sender after each run. Low priority: Telegram already works.*
+
 # Sprint 14 — More than one person ⬜
 
 *Only needed if someone else will use the app. Today the tracked models are one shared list (`motorcycles.is_active`): any signed-in account changes it for everyone, and everyone sees the same listings.*
@@ -251,9 +277,11 @@ Do not implement several unrelated features at once.
 
 # Next
 
-1. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history.
-2. Price trends per model (10.3): median asking price per model by week, once a few weeks of history exist.
-3. Saved ads from other sites: update the price or mark sold from their page (after #43).
+1. Price to offer (15.2) on the listing page.
+2. Viewing checklist (15.3) for favourites, then the cost of ownership (15.4).
+3. Relisted ads and text contradictions as risk signals (15.5, 15.6).
+4. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history; price trends per model (10.3, 15.8).
+5. Saved ads from other sites: update the price or mark sold from their page (after #43).
 
 **Open items for Rafael:** read the Standvirtual/OLX terms and record the clauses in `docs/sources.md`; check the new-bike reference prices; make the repo private.
 

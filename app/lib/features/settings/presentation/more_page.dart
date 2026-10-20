@@ -50,6 +50,16 @@ class MorePage extends StatelessWidget {
                 child: Column(
                   children: [
                     ListTile(
+                      leading: const Icon(Icons.star_border),
+                      title: const Text('Favoritos'),
+                      subtitle: const Text(
+                        'Os anúncios que está a considerar, com as suas notas',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push(AppRoutes.favourites),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
                       leading: const Icon(Icons.two_wheeler),
                       title: const Text('Modelos acompanhados'),
                       subtitle: Text(

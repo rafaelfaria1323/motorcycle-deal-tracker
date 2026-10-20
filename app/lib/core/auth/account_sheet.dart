@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../app/di/injection.dart';
 import '../../features/listings/presentation/cubit/alerts_cubit.dart';
+import '../../features/listings/presentation/cubit/favourites_cubit.dart';
 import '../../features/listings/presentation/cubit/saved_searches_cubit.dart';
 import 'account_cubit.dart';
 
@@ -46,6 +47,7 @@ class _AccountSheetState extends State<_AccountSheet> {
         // The shared cubits hold the previous user's data: reload them.
         getIt<SavedSearchesCubit>().load();
         getIt<AlertsCubit>().load();
+        getIt<FavouritesCubit>().load();
         Navigator.of(context).pop();
       },
       builder: (context, state) {
