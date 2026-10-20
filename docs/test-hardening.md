@@ -25,13 +25,13 @@ items by hand at any time.
 
 ## To do
 
-- Bug (low): `euros` puts the space after the minus sign for negative values with 3 digits — `collector/lib/src/notify/pending_alert.dart:49-55`: `euros(-123)` -> `'- 123 €'` (expected `'-123 €'`); `euros(-1234)` happens to work. Format the absolute value and prepend the sign.
 - Bug (low): `agoText` shows negative minutes when the time is slightly in the future (clock skew between phone and server) — `collection_text.dart:51-52`: `agoText(now + 3 min, now: now)` -> `'há -3 min'`. Clamp to 0 (`'há 0 min'`).
 
 ## Needs Rafael
 
 ## Done
 
+- 2026-10-20: `euros` formats the absolute value and prepends the sign (`euros(-123)` was `'- 123 €'`); `-123` and `-1234` tested in `notify_test.dart`, the first failed before the fix.
 - 2026-10-20: `agoText` (exactly 48 h), `renewalToShow` (exactly 24 h) and `relistText` (1 € shown, 0.99 € not) boundary cases added to `collection_text_test.dart` and `listing_dates_text_test.dart`. Flutter is not in the sandbox, so they were checked by reading against each mutation, not run.
 - 2026-10-20: `normalizers.dart` mutants: four cases in `normalizers_test.dart` (a `//` path loses both slashes — the item's `/a/` could not tell the `> 2` mutant apart, so `//` is tested too; `ref` is tracking; `&quot;`; `<li></li>` gives null). Each mutation fails them. Removed the dead `&#39;` replacement (`_charCode` already handles it; `it&#39;s` stays tested).
 - 2026-10-20: `buildWeeklySummary` mutants: three cases in `weekly_summary_test.dart` (exactly 1 % drop counts, drop starts from the latest price before the week, risk 50 left out / 49 kept). Each mutation fails its test.
