@@ -4,7 +4,8 @@ import 'package:collector/collector.dart';
 
 /// Records one scheduled run in `collector_runs`, drops rows older than
 /// 90 days and tells Telegram when the collection breaks or recovers (a
-/// change from the previous run's status only). Usage: `report_run.dart <exit-code> <started-at> <log-file>`
+/// change from the previous run's status only).
+/// Usage: `report_run.dart <exit-code> <started-at> <log-file>`
 Future<void> main(List<String> args) async {
   if (args.length != 3) {
     stderr.writeln(
