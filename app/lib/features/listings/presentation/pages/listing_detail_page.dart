@@ -26,6 +26,7 @@ import '../widgets/photo_gallery.dart';
 import '../widgets/price_change_tag.dart';
 import '../widgets/price_history_section.dart';
 import '../widgets/score_explanation_card.dart';
+import '../widgets/viewing_checklist_card.dart';
 
 class ListingDetailPage extends StatelessWidget {
   const ListingDetailPage({required this.listingId, super.key});
@@ -160,6 +161,7 @@ class _Content extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   FavouriteNoteCard(listingId: listing.id),
+                  ViewingChecklistCard(listingId: listing.id),
                   if (listing.isRemoved)
                     Card(
                       color: theme.colorScheme.errorContainer,
