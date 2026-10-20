@@ -57,4 +57,47 @@ void main() {
     expect(row.containsKey('first_seen_at'), isFalse);
     expect(row.containsKey('deal_score'), isFalse);
   });
+
+  test('fromSite keeps every field but the site ones', () {
+    final base = NormalizedListing(
+      source: 'manual',
+      sourceListingId: 'x',
+      url: 'https://example.com/x',
+      brand: 'Yamaha',
+      model: 'MT-07',
+      variant: '35 kW',
+      price: 6500,
+      priceBeforeDrop: 7000,
+      sellerType: SellerType.private,
+      images: const ['a.jpg'],
+      motorcycleSlug: 'yamaha-mt-07',
+      year: 2021,
+      mileage: 9000,
+      location: 'Porto',
+      description: 'Muito estimada.',
+    );
+    final published = DateTime.utc(2026, 9, 1);
+    final site = base.fromSite(
+      source: 'olx',
+      sourceListingId: '123',
+      publishedAt: published,
+    );
+
+    expect(site.source, 'olx');
+    expect(site.sourceListingId, '123');
+    expect(site.publishedAt, published);
+    expect(site.siteRefreshedAt, isNull);
+    // Only the site says what the price was before a cut.
+    expect(site.priceBeforeDrop, isNull);
+    expect(
+      [site.url, site.brand, site.model, site.variant, site.price],
+      [base.url, base.brand, base.model, base.variant, base.price],
+    );
+    expect(
+      [site.year, site.mileage, site.location, site.description],
+      [base.year, base.mileage, base.location, base.description],
+    );
+    expect(site.images, base.images);
+    expect(site.motorcycleSlug, base.motorcycleSlug);
+  });
 }

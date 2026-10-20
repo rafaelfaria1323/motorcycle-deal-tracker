@@ -18,6 +18,7 @@ the database schema, secrets or workflows goes to "Needs Rafael".
 
 ## Done
 
+- 2026-10-20: The OLX and Standvirtual mappers no longer copy every `NormalizedListing` field by hand (`fromSite` keeps all fields and sets the site's own, tested), so a new field can't be dropped by one mapper; `cleanDescription` compiles its patterns once instead of per ad and per line; `bin/collector.dart` creates its store once.
 - 2026-10-20: UI text review: percentages written one way (`Formatters.percent`, "5,3 %"; some showed "5.3%"), "anúncio" for a listing everywhere ("Nova oferta" → "Novo anúncio", as in Telegram), "duplicado" instead of "repetido", the comparison's row names as on the listing page, imperative validation messages ("Indique…"), and a few awkward sentences.
 - 2026-10-19: Text built inside widgets moved to tested functions: the alert title, details and origin lines (`alertTitle`, `alertDetailsLine`, `alertOriginLine` in `alerts_text.dart`) and the price history's "Visto pela primeira vez" line (`seenLine` in `price_history_text.dart`).
 - 2026-10-19: Removed the unused `Formatters.formatDate`; `Formatters` got tests (dashes, price, mileage, date, `daysAgo`).

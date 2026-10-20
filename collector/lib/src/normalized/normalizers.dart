@@ -78,6 +78,16 @@ final _boilerplate = [
   ),
 ];
 
+// Compiled once: cleanDescription runs for every OLX ad and listing page.
+final _blockEnd = RegExp(
+  r'<br\s*/?>|</p>|</div>|</li>|</h\d>',
+  caseSensitive: false,
+);
+final _listItem = RegExp(r'<li[^>]*>', caseSensitive: false);
+final _tag = RegExp(r'<[^>]+>');
+final _charCode = RegExp(r'&#(\d+);');
+final _spaces = RegExp(r'[ \t]+');
+
 /// Plain text from a listing's HTML description, without the boilerplate
 /// sentences dealers' systems add; null when nothing is left.
 String? cleanDescription(Object? html) {
@@ -85,16 +95,10 @@ String? cleanDescription(Object? html) {
 
   var text = html
       // Block ends and line breaks become new lines; list items get a dash.
-      .replaceAll(
-        RegExp(r'<br\s*/?>|</p>|</div>|</li>|</h\d>', caseSensitive: false),
-        '\n',
-      )
-      .replaceAll(RegExp(r'<li[^>]*>', caseSensitive: false), '- ')
-      .replaceAll(RegExp(r'<[^>]+>'), '')
-      .replaceAllMapped(
-        RegExp(r'&#(\d+);'),
-        (m) => String.fromCharCode(int.parse(m[1]!)),
-      )
+      .replaceAll(_blockEnd, '\n')
+      .replaceAll(_listItem, '- ')
+      .replaceAll(_tag, '')
+      .replaceAllMapped(_charCode, (m) => String.fromCharCode(int.parse(m[1]!)))
       .replaceAll('&nbsp;', ' ')
       .replaceAll('&lt;', '<')
       .replaceAll('&gt;', '>')
@@ -108,7 +112,7 @@ String? cleanDescription(Object? html) {
 
   final lines = text
       .split('\n')
-      .map((l) => l.replaceAll(RegExp(r'[ \t]+'), ' ').trim())
+      .map((l) => l.replaceAll(_spaces, ' ').trim())
       .where((l) => l.isNotEmpty && l != '-')
       .toList();
   return lines.isEmpty ? null : lines.join('\n');

@@ -37,14 +37,9 @@ Future<void> main(List<String> args) async {
     final catalog = await loadCatalog(client);
     final batch = await loadBatch(positional.first, positional[1], catalog);
 
-    await importBatch(
-      batch,
-      catalog,
-      store: dryRun ? null : ListingStore(client),
-      full: full,
-      force: force,
-    );
-    if (!dryRun) await finishRun(ListingStore(client));
+    final store = dryRun ? null : ListingStore(client);
+    await importBatch(batch, catalog, store: store, full: full, force: force);
+    if (store != null) await finishRun(store);
   } on ConfigException catch (e) {
     stderr.writeln('Configuration error: $e');
     exitCode = 78;

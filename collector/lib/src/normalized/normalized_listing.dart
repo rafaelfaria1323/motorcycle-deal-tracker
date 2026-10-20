@@ -49,6 +49,36 @@ class NormalizedListing {
   /// renewed there; null when the source doesn't say.
   final DateTime? publishedAt;
   final DateTime? siteRefreshedAt;
+
+  /// The same listing as told by a site: its own source and id, and what
+  /// only the site knows (an earlier price, the ad's dates). Every other
+  /// field is kept, so a new field can't be dropped by one mapper.
+  NormalizedListing fromSite({
+    required String source,
+    required String sourceListingId,
+    double? priceBeforeDrop,
+    DateTime? publishedAt,
+    DateTime? siteRefreshedAt,
+  }) => NormalizedListing(
+    source: source,
+    sourceListingId: sourceListingId,
+    url: url,
+    motorcycleSlug: motorcycleSlug,
+    brand: brand,
+    model: model,
+    variant: variant,
+    year: year,
+    mileage: mileage,
+    price: price,
+    priceBeforeDrop: priceBeforeDrop,
+    sellerType: sellerType,
+    sellerName: sellerName,
+    location: location,
+    description: description,
+    images: images,
+    publishedAt: publishedAt,
+    siteRefreshedAt: siteRefreshedAt,
+  );
 }
 
 /// Result of mapping one raw record.

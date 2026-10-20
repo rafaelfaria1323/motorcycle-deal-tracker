@@ -56,24 +56,11 @@ class StandvirtualMapper {
 
     return switch (outcome) {
       Mapped(:final listing, :final warnings) => Mapped(
-        NormalizedListing(
+        listing.fromSite(
           source: 'standvirtual',
           // The numeric ad id survives the title being edited.
           sourceListingId: listingId(raw.id),
-          url: listing.url,
-          motorcycleSlug: listing.motorcycleSlug,
-          brand: listing.brand,
-          model: listing.model,
-          variant: listing.variant,
-          year: listing.year,
-          mileage: listing.mileage,
-          price: listing.price,
           priceBeforeDrop: raw.priceBeforeDrop?.toDouble(),
-          sellerType: listing.sellerType,
-          sellerName: listing.sellerName,
-          location: listing.location,
-          description: listing.description,
-          images: listing.images,
           publishedAt: raw.createdAt,
           siteRefreshedAt: raw.bumpedAt,
         ),
