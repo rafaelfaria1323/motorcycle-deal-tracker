@@ -291,6 +291,7 @@ Do not implement several unrelated features at once.
 *`.github/workflows/check.yml` runs `make check` with Flutter installed (app analyze and tests, collector format, analyze and tests) on every pull request to main, so app changes made where Flutter isn't installed are compiled and tested before merging, not only by the deploy afterwards.*
 
 ## T.3 Automatic test hardening ✅
+*Paused with T.1 on 2026-10-20 (Rafael): neither starts after merges until he says so; "Run workflow" still works.*
 *`.github/workflows/test-hardening.yml`, mutation testing in the spirit of Stryker, done by Claude: the same find-then-fix cycle on `docs/test-hardening.md`. A find run tries hostile inputs on the pure logic (a bug counts only when a throwaway test fails), makes about 30 small temporary changes to the code to find what the tests don't notice, and spots redundant tests; fix runs add the failing test then the fix, add the missing tests, and drop redundant ones. Both passes share `backlog-pass.yml` and run one at a time; their own PRs don't count towards the 5 merges. T.3b: the first run committed nothing after 7 permission denials (Claude couldn't write the PR title to /tmp or use read-only shell commands); it now may, and the log shows Claude's full transcript.*
 
 ## T.4 Mutation testing without AI ✅
