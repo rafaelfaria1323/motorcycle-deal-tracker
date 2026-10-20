@@ -50,9 +50,6 @@ has the model), or typed by hand.
   `set local test.uid` / `test.jwt` act as a user. `now()` is fixed inside
   a transaction, so date rows explicitly when their order matters. Add or
   extend a test with every migration that changes behaviour.
-- Flutter 3.44.0 is pinned (`flutter-version` in every workflow using
-  `subosito/flutter-action`, `environment` in `app/pubspec.yaml`): change
-  them together.
 - Flutter is not installed in the sandbox and must not be downloaded: Rafael
   tests the app. Pure Dart logic in the app can be tested with plain Dart
   (`package:test`) on copies of the files. The deploy runs `flutter test`
