@@ -333,7 +333,8 @@ functions for manual work.
   poucos dados" below 5 data points.
 - Price to offer (`offer_text.dart`, app only): ceiling = asking price or
   the estimated value when asking is > 2 % above it; opening 6 % (private) /
-  3 % (dealer) below it, more for long on sale, a model whose sellers often
+  3 % (dealer) below it, more for long on sale (+3/5/7 % past 1x/2x/3x the
+  model's typical time), relisted (+2 %), a model whose sellers often
   drop, high risk; less after a drop; 1-15 %, rounded down to 50 €.
 - New-bike comparison: `motorcycles.new_price_reference` (+ checked date),
   shown on the detail page; hidden when the model has no reference price.
