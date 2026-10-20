@@ -21,6 +21,7 @@ import '../widgets/facts_card.dart';
 import '../widgets/favourite_widgets.dart';
 import '../widgets/market_behaviour_section.dart';
 import '../widgets/new_price_card.dart';
+import '../widgets/offer_card.dart';
 import '../widgets/photo_gallery.dart';
 import '../widgets/price_change_tag.dart';
 import '../widgets/price_history_section.dart';
@@ -205,6 +206,7 @@ class _Content extends StatelessWidget {
                       ),
                     ),
                   ScoreExplanationCard(listing: listing),
+                  OfferCard(listing: listing),
                   AlsoListedSection(listing: listing),
                   NewPriceCard(listing: listing),
                   FactsCard(title: 'A mota', facts: bikeFacts(listing)),

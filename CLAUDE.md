@@ -326,6 +326,10 @@ functions for manual work.
   the market, share and size of price drops (measured from the higher of the
   first price seen and `price_before_drop`), depreciation rates. Show "ainda
   poucos dados" below 5 data points.
+- Price to offer (`offer_text.dart`, app only): ceiling = asking price or
+  the estimated value when asking is > 2 % above it; opening 6 % (private) /
+  3 % (dealer) below it, more for long on sale, a model whose sellers often
+  drop, high risk; less after a drop; 1-15 %, rounded down to 50 €.
 - New-bike comparison: `motorcycles.new_price_reference` (+ checked date),
   shown on the detail page; hidden when the model has no reference price.
 
