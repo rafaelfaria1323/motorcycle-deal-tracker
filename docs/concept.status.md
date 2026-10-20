@@ -86,9 +86,9 @@ Initial price, current price, every change with date, percentage, and time onlin
 
 | Factor | Weight | Status |
 |---|---:|---|
-| Price vs market | 35% | ✅ fair value adjusted for age and mileage (per-model rates) |
+| Price vs market | 35% | ✅ fair value adjusted for age and mileage (per-model rates, comparables within 3 years when enough), from 3 comparables; without it the score is at most 70 (15.18) |
 | Year / mileage | 20% | ✅ |
-| Version / equipment | 15% | ✅ extras named in the ad (no penalty when none); the version itself is not scored |
+| Version / equipment | 15% | 🔄 a bonus instead (15.18): +2 points per extra named in the ad, at most +10 (as a weighted slice it lowered good scores); the version itself is not scored |
 | Seller / confidence | 10% | ⬜ |
 | Market / listing behaviour | 10% | ⬜ data being collected |
 | Risk indicators | 10% | ✅ |

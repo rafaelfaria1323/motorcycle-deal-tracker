@@ -16,6 +16,7 @@ Listing _listing({
   DateTime? firstSeenAt,
   DateTime? relistedSince,
   String? relistedFrom,
+  int? comparables,
 }) => Listing(
   id: 'l1',
   source: 'olx',
@@ -34,7 +35,9 @@ Listing _listing({
   publishedAt: publishedAt,
   relistedSince: relistedSince,
   relistedFrom: relistedFrom,
-  scoreBreakdown: estimate == null ? null : {'market_price': estimate},
+  scoreBreakdown: estimate == null
+      ? null
+      : {'market_price': estimate, 'market_listing_count': ?comparables},
 );
 
 MarketBehaviour _market({
@@ -62,6 +65,9 @@ void main() {
         expect(suggestOffer(_listing(estimate: 0)), isNull);
         expect(suggestOffer(_listing(status: ListingStatus.removed)), isNull);
         expect(suggestOffer(_listing(duplicateOf: 'l0')), isNull);
+        // An estimate from fewer than 3 comparables sets no ceiling.
+        expect(suggestOffer(_listing(comparables: 2)), isNull);
+        expect(suggestOffer(_listing(comparables: 3)), isNotNull);
       },
     );
 

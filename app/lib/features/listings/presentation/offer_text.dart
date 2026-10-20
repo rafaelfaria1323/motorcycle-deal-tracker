@@ -101,12 +101,17 @@ const longListingMargins = [0.03, 0.05, 0.07];
 /// Extra room for a bike put up again after its earlier ad went.
 const relistedMargin = 0.02;
 
+/// The fewest comparable listings an estimate needs to set the most to pay
+/// (the database's price score needs the same).
+const minComparables = 3;
+
 /// Prices are rounded to this many euros.
 const offerStep = 50.0;
 
-/// Null without an asking price or an estimated value (fewer than two
-/// comparable listings), for a removed listing and for a repeat of another
-/// listing (it has no value of its own).
+/// Null without an asking price or an estimated value, when the estimate
+/// rests on fewer than 3 comparable listings (as the price score), for a
+/// removed listing and for a repeat of another listing (it has no value of
+/// its own).
 ///
 /// [daysListed] counts from when the bike went on sale (the site's date,
 /// earlier relists included), [market] is the model's behaviour (may be
@@ -123,6 +128,9 @@ OfferSuggestion? suggestOffer(
     return null;
   }
   if (listing.isRemoved || listing.duplicateOf != null) return null;
+  final comparables = (listing.scoreBreakdown?['market_listing_count'] as num?)
+      ?.toInt();
+  if (comparables != null && comparables < minComparables) return null;
 
   final reasons = <String>[];
 
