@@ -73,6 +73,13 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
 .github/workflows/test-hardening.yml  The same on docs/test-hardening.md:
                                   bugs, surviving mutants, redundant tests
                                   (label test-hardening)
+.github/workflows/mutation.yml    Mutation testing without AI (mutation_test,
+                                  tool/mutation.py) on the files in
+                                  */mutation_targets.txt: after merges only
+                                  the changed ones, "Run workflow" all (4+4
+                                  parallel jobs). Report only (run summary,
+                                  HTML artifacts); test hardening's find
+                                  runs start from its surviving mutants
 .github/workflows/backlog-pass.yml  Shared by both: "To do" empty -> only
                                   find up to 10 items, no code change;
                                   otherwise do up to 3 items, find nothing.
@@ -95,6 +102,8 @@ make refresh ARGS=--full       one process for both sites (bin/refresh.dart): se
                                -> import (with removal) -> enrich, then scores/alerts once
 make refresh-olx|refresh-standvirtual   the same for one site
 make weekly-summary [ARGS=--dry-run]   send (or print) the week's Telegram summary
+make mutation PKG=collector|app FILES="lib/..."   mutation testing of those files
+                               (needs `dart pub global activate mutation_test`)
 ```
 
 Local secrets live in `collector/.env` (gitignored, loaded by the Makefile):

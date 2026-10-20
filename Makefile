@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 .PHONY: help app-get app-run app-check app-build app-serve \
         collector-get collector-check collect-dry collect \
-        db-push db-new check format clean \
+        db-push db-new check format clean mutation \
         require-collector-env require-file
 
 # Which source the collector reads: manual (a JSON file), standvirtual
@@ -108,6 +108,10 @@ check: app-check collector-check ## Run all checks (run before committing)
 
 format: ## Format app and collector code
 	dart format app/lib app/test collector
+
+mutation: ## Mutation testing (needs `dart pub global activate mutation_test`): make mutation PKG=collector FILES="lib/src/catalog/model_resolver.dart"
+	python3 -I tool/mutation.py run $(PKG) .mutation-report $(FILES)
+	python3 -I tool/mutation.py summary .mutation-report
 
 clean: ## Remove build artifacts
 	cd app && flutter clean

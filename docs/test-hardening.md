@@ -6,8 +6,10 @@ mutation-testing tool such as Stryker) after every 5 merged PRs or by
 
 - **"To do" is empty → find run:** it only looks, and changes no code. It
   hunts for bugs with hostile inputs (proven by a failing throwaway test),
-  makes small temporary changes to the code to find code whose tests don't
-  notice a change ("surviving mutants"), and spots redundant tests. It
+  takes the surviving mutants of the latest `mutation.yml` run (the
+  `mutation_test` tool, no AI: changes to the code no test noticed),
+  drops the equivalent ones, tries its own changes on files that run
+  doesn't cover, and spots redundant tests. It
   writes up to 10 items, most valuable first.
 - **"To do" has items → fix run:** it does up to 3 of them (all if fewer
   are left): a bug gets its failing test first, then the fix; a surviving
