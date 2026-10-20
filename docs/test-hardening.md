@@ -25,7 +25,6 @@ items by hand at any time.
 
 ## To do
 
-- Surviving mutants in `collector/lib/src/normalized/normalizers.dart`: trailing-slash loop `path.length > 1` -> `> 2` (line ~12, `/a/` and `/ab/` must both lose the slash), dropping `'ref'` from the tracking parameters (line ~28; `?ref=x` must not change the id), dropping `&& l != '-'` (line ~114; `<li></li>` alone must give null), and removing `.replaceAll('&quot;', '"')` (line ~105). Add the four cases to `normalizers_test.dart`. Also `.replaceAll('&#39;', "'")` (line ~106) is dead code, since `_charCode` already turned `&#39;` into `'` — remove it.
 - Surviving mutants in the app: `agoText` `diff.inHours < 48` -> `<= 48` (`app/lib/features/collector_status/presentation/collection_text.dart:52`, exactly 48 h must read "há 2 dias"), `renewalToShow` `< Duration(days: 1)` -> `<=` (`listing_dates_text.dart:16`, renewal exactly 24 h after publication is shown), `relistText` `change.abs() < 1` -> `<= 1` (`listing_dates_text.dart:34`, a 1 € change is shown, 0.99 € is not). Add boundary cases to the matching `*_text` tests.
 - Bug (low): `euros` puts the space after the minus sign for negative values with 3 digits — `collector/lib/src/notify/pending_alert.dart:49-55`: `euros(-123)` -> `'- 123 €'` (expected `'-123 €'`); `euros(-1234)` happens to work. Format the absolute value and prepend the sign.
 - Bug (low): `agoText` shows negative minutes when the time is slightly in the future (clock skew between phone and server) — `collection_text.dart:51-52`: `agoText(now + 3 min, now: now)` -> `'há -3 min'`. Clamp to 0 (`'há 0 min'`).
@@ -34,6 +33,7 @@ items by hand at any time.
 
 ## Done
 
+- 2026-10-20: `normalizers.dart` mutants: four cases in `normalizers_test.dart` (a `//` path loses both slashes — the item's `/a/` could not tell the `> 2` mutant apart, so `//` is tested too; `ref` is tracking; `&quot;`; `<li></li>` gives null). Each mutation fails them. Removed the dead `&#39;` replacement (`_charCode` already handles it; `it&#39;s` stays tested).
 - 2026-10-20: `buildWeeklySummary` mutants: three cases in `weekly_summary_test.dart` (exactly 1 % drop counts, drop starts from the latest price before the week, risk 50 left out / 49 kept). Each mutation fails its test.
 - 2026-10-20: `ModelResolver` mutants: five boundary tests in `model_resolver_test.dart` (engine exactly at/outside the limits, model in the 4th word, model over four words, two family models fitting the engine, two models named). Each of the six mutations fails them.
 - 2026-10-20: `cleanDescription` keeps numeric entities that are not a valid code point (above 0x10FFFF or too big for an int) as text instead of throwing; both inputs tested in `normalizers_test.dart`.
