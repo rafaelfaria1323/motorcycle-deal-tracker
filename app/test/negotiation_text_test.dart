@@ -257,6 +257,17 @@ void main() {
       );
     });
 
+    test('three times the typical time is high on its own', () {
+      // A year on sale for a model that usually sells in a month.
+      final u = sellerUrgency(_listing(), market: _market(), daysListed: 365);
+      expect(u.level, Urgency.high);
+      expect(u.text, 'Pressa do vendedor: alta (à venda há 365 dias)');
+      expect(
+        sellerUrgency(_listing(), market: _market(), daysListed: 90).level,
+        Urgency.medium,
+      );
+    });
+
     test('relisted often counts twice', () {
       final u = sellerUrgency(
         _listing(

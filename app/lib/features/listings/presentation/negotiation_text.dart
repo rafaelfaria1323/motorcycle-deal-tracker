@@ -256,9 +256,10 @@ class SellerUrgency {
   }
 }
 
-/// Points: on sale past the model's typical time (1, or 2 past twice it),
-/// an earlier drop (1), put up again after an earlier ad (1, or 2 when
-/// often). 3 or more is high, 1-2 medium, none low.
+/// Points: on sale past the model's typical time (1, 2 past twice it, 3
+/// past three times it: that alone is high), an earlier drop (1), put up
+/// again after an earlier ad (1, or 2 when often). 3 or more is high, 1-2
+/// medium, none low.
 SellerUrgency sellerUrgency(
   Listing listing, {
   MarketBehaviour? market,
@@ -274,7 +275,11 @@ SellerUrgency sellerUrgency(
       ? market.medianDaysToGone!
       : defaultLongListingDays;
   if (daysListed != null && daysListed > typical) {
-    points += daysListed > 2 * typical ? 2 : 1;
+    points += daysListed > 3 * typical
+        ? 3
+        : daysListed > 2 * typical
+        ? 2
+        : 1;
     reasons.add('à venda há $daysListed dias');
   }
 

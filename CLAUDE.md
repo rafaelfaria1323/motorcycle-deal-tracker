@@ -415,8 +415,9 @@ functions for manual work.
   (`repairCost`, tyres/chain/service from the running costs) off the
   opening and the ceiling; documents, registry, cold start and test ride
   are blockers, not prices. Also shown: "Pressa do vendedor"
-  (`sellerUrgency`: past the model's typical time 1 point, twice it 2, an
-  earlier drop 1, relisted 1 / often 2; 3+ alta, 1-2 média, else baixa)
+  (`sellerUrgency`: past the model's typical time 1 point, twice it 2,
+  three times it 3, an earlier drop 1, relisted 1 / often 2; 3+ alta, 1-2
+  média, else baixa)
   and, for dealers, what to ask for besides the price (`dealerAsks`:
   service, tyres when due, written warranty, registration paid) with a
   message.
