@@ -40,9 +40,12 @@ has the model), or typed by hand.
   is merged, start the next work from a fresh `origin/main`.
 - **Migrations** are applied on merge: `deploy-web.yml`'s `migrate` job
   (skipped when the merge adds none) runs `make db-test` again, then
-  `supabase db push` (secrets `SUPABASE_DB_URL` + `SUPABASE_DB_PASSWORD`,
-  joined by `tool/db_url.py`), and only then deploys the
-  app. Never change, rename or delete a migration already on `main` (it
+  `tool/apply_migrations.sh` (psql through the Session pooler, each
+  migration in one transaction with its row in the CLI's
+  `supabase_migrations.schema_migrations`; not `supabase db push`, which
+  rewrites a pooler URL to the IPv6-only direct host; secrets
+  `SUPABASE_DB_URL` + `SUPABASE_DB_PASSWORD`, joined and TLS-required by
+  `tool/db_url.py`), and only then deploys the app. Never change, rename or delete a migration already on `main` (it
   may be live; add a new one); new ones must sort after main's latest
   (`tool/check_migrations.sh`, also run by `check.yml`). The collector runs
   from `main` on its own schedule, so keep a migration compatible with the

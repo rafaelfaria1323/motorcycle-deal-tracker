@@ -1,4 +1,4 @@
-"""Builds the database URL for `supabase db push` from two secrets.
+"""Builds the database URL for tool/apply_migrations.sh from two secrets.
 
 SUPABASE_DB_URL       Supabase > Connect > Session pooler string, as shown
                       ("[YOUR-PASSWORD]" in it), or with the password filled in.
@@ -70,6 +70,16 @@ def build_db_url(url, password=None):
             "(postgresql://user:password@host:port/postgres)")
     if port is None:
         raise DbUrlError("SUPABASE_DB_URL has no port (the Session pooler uses 5432)")
+    if parts.hostname.startswith("db.") and parts.hostname.endswith(".supabase.co"):
+        # The direct connection: IPv6 only, and GitHub's runners have no IPv6.
+        raise DbUrlError(
+            "SUPABASE_DB_URL is the Direct connection (db....supabase.co), which "
+            "GitHub cannot reach: in Supabase > Connect pick \"Session pooler\" "
+            "(host ...pooler.supabase.com, user postgres.<project>) and copy that")
+    # Always over TLS (psql's default would fall back to plain text).
+    if "sslmode=" not in parts.query:
+        query = f"{parts.query}&sslmode=require" if parts.query else "sslmode=require"
+        parts = parts._replace(query=query)
     return urlunsplit(parts)
 
 
