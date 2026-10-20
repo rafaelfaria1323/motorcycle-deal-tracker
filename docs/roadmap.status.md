@@ -222,8 +222,8 @@ Do not implement several unrelated features at once.
 ## 15.1 Favourites and notes ✅
 *A star on the listing page (app bar) adds the listing to the favourites; while it is one, "As suas notas" under the price holds a private note (what the seller said, what to check, what to offer; up to 2000 characters). Cards in Ofertas show a star on the photo. "Favoritos" (star in the Ofertas app bar, and in Mais) lists them newest first with the note and "Adicionado aos favoritos há N dias"; removed listings stay, marked "Removido", so the shortlist shows what sold. Taking out a favourite with a note asks first (the note goes too).*
 *Data: table `listing_favourites (user_id, listing_id, note, created_at, updated_at)`, owner-only RLS like saved searches (anonymous sessions too, but they lose them on sign-out; the account sheet reloads them on sign-in). Alerts: `generate_favourite_alerts()` (part of `generate_alerts()`) gives the owner every price drop of 1 % or more and the removal of a favourite, after it became one, with no saved search needed (`saved_search_id` null); the alerts' unique indexes keep one alert per price change and one removal, so a favourite also in a saved search alerts once. Telegram picks them up like any alert. App: `FavouritesCubit` (lazy singleton, loaded by the shell; changes show at once and are undone if saving fails), `favourites_text.dart`. Tests: `supabase/tests/favourites_test.sql`, `app/test/favourites_test.dart`.*
-## 15.2 Price to offer ⬜
-*On the listing page: an opening offer and a ceiling. From the estimated value (fair price), how long the ad has been up (`published_at`, relist dates), whether it already dropped (`price_before_drop`, price history) and how often the model drops and by how much (`model_market_behaviour`). Pure function with tests (`offer_text.dart` or SQL), explained in words like the score; says "estimativa a partir de preços pedidos". Hidden without a fair price (fewer than 2 comparables).*
+## 15.2 Price to offer ✅
+*"Quanto oferecer" on the listing page, under the score: "Comece por X e não passe de Y", with the reasons in words and "Estimativa a partir dos preços pedidos, não de vendas". The ceiling is the asking price, or the estimated value (`score_breakdown.market_price`) when the asking price is more than 2 % above it. The opening starts 6 % below the ceiling for a private seller and 3 % for a dealer (a rule of thumb, said as such), plus 3 % when the bike has been on sale longer than the model's typical time to leave the market (45 days without 5 gone listings; 5 % past twice that), plus half the model's typical drop (at most 4 %) when a third or more of its sellers drop and this one has not, minus 2 % when it already dropped, plus 3 % for a high risk (>= 50); between 1 % and 15 %, rounded down to 50 €. Days on sale count from the first relist, else the site's publication, else the first sighting. Hidden for removed listings, duplicates and listings without an estimated value. Pure logic in `offer_text.dart` (`suggestOffer`, `daysOnSale`, tested, mutation target), card in `widgets/offer_card.dart` (loads the model's market behaviour; works without it).*
 ## 15.3 Viewing checklist ⬜
 *Per favourite, a checklist for seeing the bike: VIN and plate against the DUA/registration, service stamps and invoices, chain and sprockets, tyres (DOT date), brakes and discs, fork seals, signs of a fall (levers, pegs, bar ends, scratched tank/fairings), cold start, lights and electrics, keys, open finance (ask for the "certidão de registo automóvel"). Ticks and per-item notes stored with the favourite (e.g. a `checklist jsonb` column on `listing_favourites`); the list itself lives in the app (pure Dart, tested). Model-specific items can come later.*
 ## 15.4 Cost of ownership ⬜
@@ -277,11 +277,10 @@ Do not implement several unrelated features at once.
 
 # Next
 
-1. Price to offer (15.2) on the listing page.
-2. Viewing checklist (15.3) for favourites, then the cost of ownership (15.4).
-3. Relisted ads and text contradictions as risk signals (15.5, 15.6).
-4. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history; price trends per model (10.3, 15.8).
-5. Saved ads from other sites: update the price or mark sold from their page (after #43).
+1. Viewing checklist (15.3) for favourites, then the cost of ownership (15.4).
+2. Relisted ads and text contradictions as risk signals (15.5, 15.6).
+3. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history; price trends per model (10.3, 15.8).
+4. Saved ads from other sites: update the price or mark sold from their page (after #43).
 
 **Open items for Rafael:** read the Standvirtual/OLX terms and record the clauses in `docs/sources.md`; check the new-bike reference prices; make the repo private.
 

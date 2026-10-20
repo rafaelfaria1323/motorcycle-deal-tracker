@@ -17,8 +17,8 @@ Cloudflare Pages on every merge that touches `app/`
 - **Comparar:** up to 3 listings side by side (long press a card in Ofertas,
   or "Comparar" on a listing's page), the best value of each row marked.
 - **Listing page:** photo gallery, price, your note when it is a favourite
-  ("As suas notas"), score with the reasons behind
-  it, risks, the same bike on the other site, the comparison with a new one,
+  ("As suas notas"), score with the reasons behind it, "Quanto oferecer"
+  (where to start and the most to pay, with the reasons), risks, the same bike on the other site, the comparison with a new one,
   market behaviour for the model (with where the asking price sits among
   the model's live listings) and the price history.
 - **Pesquisas:** saved searches, each with its "N ofertas" and alert
