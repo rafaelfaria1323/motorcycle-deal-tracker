@@ -235,10 +235,13 @@ Do not implement several unrelated features at once.
 # Tooling
 
 ## T.1 Automatic code-quality review ✅
-*`.github/workflows/code-quality.yml`: after every 5 merged PRs (or "Run workflow"), Claude Code reviews the code on GitHub Actions, with Flutter installed so `make check` really runs, and opens at most one small PR labelled `code-quality` (none if nothing is worth changing). It works from a backlog, `docs/code-quality.md`: up to 3 items per run; when the list is empty it reviews the code, writes up to 10 new items and does the first 3. The PR is pushed with the job's own token (the Claude step revokes its token when it ends; the first run failed on that). The tag `code-quality-reviewed` marks the last review; no review starts while one is open. Runs on Rafael's Claude plan through the `CLAUDE_CODE_OAUTH_TOKEN` secret.*
+*`.github/workflows/code-quality.yml`: after every 5 merged PRs (or "Run workflow"), Claude Code reviews the code on GitHub Actions, with Flutter installed so `make check` really runs, and opens at most one small PR labelled `code-quality` (none if nothing is worth changing). It works from a backlog, `docs/code-quality.md`. T.1b: each run does one thing: while the list has items it does up to 3 (all if fewer are left) and finds nothing; when the list is empty it only reviews the code and writes up to 10 new items, changing no code (before, the run that refilled the list also did 3 of them). The PR is pushed with the job's own token (the Claude step revokes its token when it ends; the first run failed on that). The tag `code-quality-reviewed` marks the last review; no review starts while one is open. Runs on Rafael's Claude plan through the `CLAUDE_CODE_OAUTH_TOKEN` secret.*
 
 ## T.2 Checks on pull requests ✅
 *`.github/workflows/check.yml` runs `make check` with Flutter installed (app analyze and tests, collector format, analyze and tests) on every pull request to main, so app changes made where Flutter isn't installed are compiled and tested before merging, not only by the deploy afterwards.*
+
+## T.3 Automatic test hardening ✅
+*`.github/workflows/test-hardening.yml`, mutation testing in the spirit of Stryker, done by Claude: the same find-then-fix cycle on `docs/test-hardening.md`. A find run tries hostile inputs on the pure logic (a bug counts only when a throwaway test fails), makes about 30 small temporary changes to the code to find what the tests don't notice, and spots redundant tests; fix runs add the failing test then the fix, add the missing tests, and drop redundant ones. Both passes share `backlog-pass.yml` and run one at a time; their own PRs don't count towards the 5 merges.*
 
 # Next
 

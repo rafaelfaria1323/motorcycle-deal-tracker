@@ -30,7 +30,7 @@ Tracked models (chosen in the app)
 | [`collector/`](collector/README.md) | Dart command line: fetches, parses and stores listings, then scores and alerts |
 | `supabase/` | Database migrations: tables, scoring, alerts, views, access rules |
 | `docs/` | Progress and decisions (see below) |
-| `.github/workflows/` | `collect.yml` (every 4 hours, started by Supabase pg_cron), `check.yml` (`make check` on every pull request), `deploy-web.yml` (app on merge), `weekly-summary.yml` (Mondays, the week on Telegram), `notify-test.yml` (Telegram test), `code-quality.yml` (after every 5 merged PRs, Claude works through the backlog in `docs/code-quality.md`) |
+| `.github/workflows/` | `collect.yml` (every 4 hours, started by Supabase pg_cron), `check.yml` (`make check` on every pull request), `deploy-web.yml` (app on merge), `weekly-summary.yml` (Mondays, the week on Telegram), `notify-test.yml` (Telegram test), `code-quality.yml` and `test-hardening.yml` (after every 5 merged PRs, Claude works through the backlogs in `docs/code-quality.md` and `docs/test-hardening.md`; shared steps in `backlog-pass.yml`) |
 
 ## Getting started
 
@@ -70,4 +70,5 @@ are never committed.
 - [`docs/sources.md`](docs/sources.md): data-source decisions.
 - [`docs/hosting.md`](docs/hosting.md): Cloudflare Pages and installing on the iPhone.
 - [`docs/code-quality.md`](docs/code-quality.md): code improvements to do and done (worked through automatically).
+- [`docs/test-hardening.md`](docs/test-hardening.md): bugs, missing and redundant tests found by the automatic mutation-style pass, to do and done.
 - [`CLAUDE.md`](CLAUDE.md): conventions and the detailed pipeline, scoring and alert rules.

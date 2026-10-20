@@ -1,0 +1,71 @@
+name: Test hardening
+
+# Mutation-style testing (like Stryker) by Claude, through
+# backlog-pass.yml on docs/test-hardening.md. After every 5 merged PRs (or
+# "Run workflow"): when "To do" is empty the run only hunts (bugs, code
+# whose tests don't notice a change, redundant tests) and writes up to 10
+# items; while "To do" has items each run does up to 3 (failing test first,
+# then the fix; missing tests; dropping redundant ones). One PR labelled
+# "test-hardening" per run; no run starts while one is still open.
+on:
+  workflow_dispatch: # manual "Run workflow" button: run now
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+# One backlog pass at a time (code quality and test hardening).
+concurrency:
+  group: backlog-pass
+  cancel-in-progress: false
+
+jobs:
+  pass:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    uses: ./.github/workflows/backlog-pass.yml
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+    with:
+      backlog: docs/test-hardening.md
+      label: test-hardening
+      tag: test-hardening-reviewed
+      count_from: '2026-10-20T00:00:00Z'
+      manual: ${{ github.event_name == 'workflow_dispatch' }}
+      # To undo the temporary mutations of a find run.
+      extra_tools: Bash(git checkout:*),Bash(git restore:*)
+      find_prompt: |
+        Hunt for weaknesses the tests miss, in this order:
+        1. Bugs. Read the pure logic (collector/lib: model resolver,
+           normalizers, mappers, search plan, removal plan, weekly summary,
+           JSON readers; app/lib: *_text.dart, formatters, models, cubits)
+           and try hostile inputs: empty, null, zero, negative, huge,
+           unicode and accents, extra spaces, duplicates, boundaries
+           (exactly at a limit, one either side), dates around midnight
+           and time zones. Write throwaway tests to prove it; a bug is an
+           item only when such a test fails. Put the input and the wrong
+           result in the item. Do not commit the throwaway tests.
+        2. Surviving mutants. In the same files, make one small change at
+           a time to the code (flip a comparison, < to <=, + to -, drop a
+           condition or a line, change a constant, return early, swap two
+           arguments), run that package's tests (`cd collector && dart
+           test`, `cd app && flutter test`), then undo it at once with
+           `git checkout -- <file>`. A change no test notices is an item:
+           the file, line, the change, and the test that would catch it.
+           Try about 30 changes, where a wrong result would matter most.
+        3. Redundant tests: tests that check exactly what another test
+           already checks (same code path, same kind of input). An item
+           names both and which one to drop.
+        SQL is not tested in CI (no database), so leave it out. When you
+        finish, `git status` must show no code or test changes.
+      fix_prompt: |
+        - A bug: first add the test that fails, then fix the code so it
+          passes. The fix may only make the code do what CLAUDE.md, the
+          comments or the function's name say it should; a fix that
+          changes a rule goes to "Needs Rafael".
+        - A missing test: add it, check it fails with the item's change
+          applied (then undo the change) and passes on the real code.
+        - A redundant test: drop it only after checking the other test
+          really covers the same; name the remaining test in "Done".
