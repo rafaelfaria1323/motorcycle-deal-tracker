@@ -54,7 +54,7 @@ on:
         type: string
         default: ''
       mutation_summary:
-        description: Find runs get the latest mutation.yml summary in /tmp/mutation-summary.md
+        description: Find runs get the latest full mutation.yml summary in /tmp/mutation-summary.md
         type: boolean
         default: false
     secrets:
@@ -162,7 +162,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          run=$(gh run list --workflow mutation.yml --status success --limit 1 \
+          # Only full runs ("Run workflow"): after a merge only the changed
+          # files are tested, so that summary is partial.
+          run=$(gh run list --workflow mutation.yml --event workflow_dispatch \
+            --status success --limit 1 \
             --json databaseId --jq '.[0].databaseId // empty')
           if [ -n "$run" ] && gh run download "$run" -n mutation-summary -D /tmp/mutation; then
             cp /tmp/mutation/mutation-summary.md /tmp/mutation-summary.md
