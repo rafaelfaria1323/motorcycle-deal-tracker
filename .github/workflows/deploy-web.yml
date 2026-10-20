@@ -70,17 +70,16 @@ jobs:
           PGPASSWORD: postgres
         run: make db-test
 
-      - uses: supabase/setup-cli@v1
-        if: steps.new.outputs.count != '0'
-        with:
-          version: latest
-
       # SUPABASE_DB_URL: Supabase > Connect > Session pooler connection
       # string exactly as shown, "[YOUR-PASSWORD]" included (GitHub's
       # runners have no IPv6 for the direct connection); SUPABASE_DB_PASSWORD:
       # the database password as typed. The password is URL-encoded here,
       # so any character works. (A URL with the password already in it and
-      # no SUPABASE_DB_PASSWORD also works.) The dry run lists what will run.
+      # no SUPABASE_DB_PASSWORD also works.)
+      # Applied with psql, not `supabase db push`: the CLI rewrites a pooler
+      # URL to the direct IPv6-only host. Same history table as the CLI;
+      # each migration in one transaction with its record. The dry run
+      # lists what will run.
       - name: Apply migrations to Supabase
         if: steps.new.outputs.count != '0'
         env:
@@ -89,8 +88,8 @@ jobs:
         run: |
           db_url=$(python3 tool/db_url.py) || exit 1
           echo "::add-mask::$db_url"
-          supabase db push --db-url "$db_url" --dry-run
-          supabase db push --db-url "$db_url" --yes
+          tool/apply_migrations.sh "$db_url" --dry-run
+          tool/apply_migrations.sh "$db_url"
 
   deploy:
     needs: migrate

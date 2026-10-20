@@ -37,7 +37,12 @@ class BuildDbUrlTest(unittest.TestCase):
 
     def test_a_url_with_an_encoded_password_alone_is_used_as_it_is(self):
         url = POOLER.replace("[YOUR-PASSWORD]", "Moto%21%3F")
-        self.assertEqual(build_db_url(url), url)
+        self.assertEqual(build_db_url(url), url + "?sslmode=require")
+
+    def test_tls_is_required_unless_the_url_says_otherwise(self):
+        self.assertEqual(urlsplit(build_db_url(POOLER, "pw")).query, "sslmode=require")
+        url = POOLER.replace("[YOUR-PASSWORD]", "pw") + "?sslmode=verify-full"
+        self.assertEqual(urlsplit(build_db_url(url)).query, "sslmode=verify-full")
 
     def test_quotes_spaces_and_newlines_from_pasting_are_dropped(self):
         url = build_db_url(f'  "{POOLER}"\n', "pw!\n")

@@ -7,8 +7,10 @@ The app is built and published to Cloudflare Pages by
 
 Database migrations are applied by the same workflow, before the app: when
 a merge adds files to `supabase/migrations/`, the `migrate` job tests every
-migration and SQL test again on an empty Postgres, then runs
-`supabase db push` against Supabase. A merge without new migrations skips
+migration and SQL test again on an empty Postgres, then applies the ones
+Supabase is missing with `tool/apply_migrations.sh` (psql through the
+Session pooler, each migration in one transaction with its record in the
+same history table `supabase db push` uses). A merge without new migrations skips
 it. A failure stops the app deploy (fix it with a new migration; "Run
 workflow" applies whatever is missing). `make db-push` still works by hand.
 
