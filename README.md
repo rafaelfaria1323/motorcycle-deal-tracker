@@ -9,8 +9,8 @@ keeps each listing's price and status history, and ranks the listings with
 an explainable **Deal Score** (price against similar bikes, year and
 mileage) and a separate **Risk Score** (missing details, possible accident,
 several owners, price too good to be true…). Saved searches and favourite
-listings (with private notes) raise alerts in the app and on the phone
-through Telegram.
+listings (with private notes and a viewing checklist) raise alerts in the
+app and on the phone through Telegram.
 
 The app is in Portuguese and installs on the iPhone from Safari
 ("Adicionar ao ecrã principal").

@@ -351,6 +351,8 @@ RLS) alert their owner without a saved search (`saved_search_id` null):
 `generate_favourite_alerts()` gives every `price_reduction` (>= 1%) and the
 `listing_removed` after the listing became a favourite; the alerts' unique
 indexes keep one alert per price change / removal when a saved search also
-covers it.
+covers it. A favourite also holds the viewing checklist's marks
+(`checklist jsonb`, `{"tyres": {"mark": "ok"|"issue", "note": ...}}`); the
+items live in the app (`viewing_checklist.dart`), keys never change.
 Reimporting everything after a reset: create saved searches AFTER the import,
 or every listing counts as new.

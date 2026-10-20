@@ -12,12 +12,15 @@ Cloudflare Pages on every merge that touches `app/`
   40 at a time.
 - **Favoritos:** the listings you starred (star on a listing's page; star
   in the Ofertas app bar or Mais opens the list), newest first, each with
-  your private note; removed ones stay, marked. A favourite always alerts
+  your private note and the problems found on the viewing checklist;
+  removed ones stay, marked. A favourite always alerts
   you about price drops and its removal.
 - **Comparar:** up to 3 listings side by side (long press a card in Ofertas,
   or "Comparar" on a listing's page), the best value of each row marked.
-- **Listing page:** photo gallery, price, your note when it is a favourite
-  ("As suas notas"), score with the reasons behind it, "Quanto oferecer"
+- **Listing page:** photo gallery, price, your note and the viewing
+  checklist when it is a favourite ("As suas notas", "Para a visita": 12
+  points to check when seeing the bike, each "Está bem" or "Problema" with
+  a note), score with the reasons behind it, "Quanto oferecer"
   (where to start and the most to pay, with the reasons), risks, the same bike on the other site, the comparison with a new one,
   market behaviour for the model (with where the asking price sits among
   the model's live listings) and the price history.

@@ -13,4 +13,11 @@ abstract interface class FavouritesRepository {
   /// Saves the note of a favourite (null clears it). Throws if the listing
   /// is not a favourite.
   Future<void> saveNote(String listingId, String? note);
+
+  /// Saves the viewing checklist of a favourite (all of it). Throws if the
+  /// listing is not a favourite.
+  Future<void> saveChecklist(
+    String listingId,
+    Map<String, ChecklistEntry> checklist,
+  );
 }

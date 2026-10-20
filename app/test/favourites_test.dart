@@ -68,6 +68,15 @@ class _FakeFavourites implements FavouritesRepository {
     if (fail || failWrites) throw StateError('offline');
     calls.add('note $listingId $note');
   }
+
+  @override
+  Future<void> saveChecklist(
+    String listingId,
+    Map<String, ChecklistEntry> checklist,
+  ) async {
+    if (fail || failWrites) throw StateError('offline');
+    calls.add('checklist $listingId ${checklist.keys.join(',')}');
+  }
 }
 
 void main() {
@@ -85,6 +94,31 @@ void main() {
     expect(favourite.listing?.model, 'MT-07');
   });
 
+  test('the checklist is read leniently and written back the same', () {
+    final checklist = FavouriteModel.checklistFromJson({
+      'tyres': {'mark': 'issue', 'note': 'DOT 2017'},
+      'documents': {'mark': 'ok'},
+      'chain': {'note': 'Folga a mais'},
+      'keys': {'mark': 'maybe'},
+      'brakes': 'ok',
+    });
+    expect(checklist, {
+      'tyres': const ChecklistEntry(
+        mark: ChecklistMark.issue,
+        note: 'DOT 2017',
+      ),
+      'documents': const ChecklistEntry(mark: ChecklistMark.ok),
+      'chain': const ChecklistEntry(note: 'Folga a mais'),
+    });
+    expect(FavouriteModel.checklistToJson(checklist), {
+      'tyres': {'mark': 'issue', 'note': 'DOT 2017'},
+      'documents': {'mark': 'ok'},
+      'chain': {'note': 'Folga a mais'},
+    });
+    expect(FavouriteModel.checklistFromJson(null), isEmpty);
+    expect(FavouriteModel.checklistFromJson(['tyres']), isEmpty);
+  });
+
   test('a row without its listing or note is handled', () {
     final favourite = FavouriteModel.fromJson({
       'listing_id': 'l1',
@@ -94,6 +128,7 @@ void main() {
     });
 
     expect(favourite.note, isNull);
+    expect(favourite.checklist, isEmpty);
     expect(favourite.listing, isNull);
   });
 
@@ -162,6 +197,55 @@ void main() {
       expect(repo.calls, isEmpty);
     });
 
+    test('a checklist item is marked, noted and cleared', () async {
+      final repo = _FakeFavourites([_favourite('l1', note: 'Antiga')]);
+      final cubit = FavouritesCubit(repo);
+      await cubit.load();
+
+      expect(
+        await cubit.saveChecklistItem('l1', 'tyres', mark: ChecklistMark.issue),
+        isTrue,
+      );
+      expect(
+        await cubit.saveChecklistItem(
+          'l1',
+          'chain',
+          mark: ChecklistMark.ok,
+          note: '  Nova  ',
+        ),
+        isTrue,
+      );
+      expect(cubit.state.favouriteOf('l1')?.checklist, {
+        'tyres': const ChecklistEntry(mark: ChecklistMark.issue),
+        'chain': const ChecklistEntry(mark: ChecklistMark.ok, note: 'Nova'),
+      });
+      expect(cubit.state.favouriteOf('l1')?.note, 'Antiga');
+
+      // No mark and a blank note: the item is gone.
+      expect(await cubit.saveChecklistItem('l1', 'tyres', note: ' '), isTrue);
+      expect(cubit.state.favouriteOf('l1')?.checklist.keys, ['chain']);
+      expect(repo.calls, [
+        'checklist l1 tyres',
+        'checklist l1 tyres,chain',
+        'checklist l1 chain',
+      ]);
+
+      expect(await cubit.saveChecklistItem('l9', 'tyres'), isFalse);
+    });
+
+    test('a checklist item that fails to save is undone', () async {
+      final cubit = FavouritesCubit(
+        _FakeFavourites([_favourite('l1')], failWrites: true),
+      );
+      await cubit.load();
+
+      expect(
+        await cubit.saveChecklistItem('l1', 'tyres', mark: ChecklistMark.ok),
+        isFalse,
+      );
+      expect(cubit.state.favouriteOf('l1')?.checklist, isEmpty);
+    });
+
     test('a note that fails to save is undone', () async {
       final cubit = FavouritesCubit(
         _FakeFavourites([_favourite('l1', note: 'Antiga')], failWrites: true),
@@ -178,6 +262,7 @@ void main() {
     expect(normalizeNote('\n '), isNull);
     final long = 'x' * (FavouritesCubit.maxNoteLength + 10);
     expect(normalizeNote(long)!.length, FavouritesCubit.maxNoteLength);
+    expect(normalizeNote('abc d', 4), 'abc');
   });
 
   test('favouriteSinceText says when it was added', () {

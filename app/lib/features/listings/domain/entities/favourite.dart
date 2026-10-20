@@ -2,12 +2,14 @@ import 'package:equatable/equatable.dart';
 
 import 'listing.dart';
 
-/// A listing the user is considering, with their own note about it.
+/// A listing the user is considering, with their own note about it and
+/// what they checked when they saw the bike.
 class Favourite extends Equatable {
   const Favourite({
     required this.listingId,
     required this.createdAt,
     this.note,
+    this.checklist = const {},
     this.listing,
   });
 
@@ -17,6 +19,10 @@ class Favourite extends Equatable {
   /// Private to the user ("Liguei, ainda disponível"); null when empty.
   final String? note;
 
+  /// The viewing checklist's marks by item key (`viewing_checklist.dart`);
+  /// items not looked at yet are missing.
+  final Map<String, ChecklistEntry> checklist;
+
   /// The listing itself, when it was loaded with the favourite.
   final Listing? listing;
 
@@ -24,9 +30,35 @@ class Favourite extends Equatable {
     listingId: listingId,
     createdAt: createdAt,
     note: note,
+    checklist: checklist,
+    listing: listing,
+  );
+
+  Favourite withChecklist(Map<String, ChecklistEntry> checklist) => Favourite(
+    listingId: listingId,
+    createdAt: createdAt,
+    note: note,
+    checklist: checklist,
     listing: listing,
   );
 
   @override
-  List<Object?> get props => [listingId, createdAt, note, listing];
+  List<Object?> get props => [listingId, createdAt, note, checklist, listing];
+}
+
+enum ChecklistMark { ok, issue }
+
+/// One item of the viewing checklist: looked at and fine, or a problem,
+/// with an optional note ("DOT 2017").
+class ChecklistEntry extends Equatable {
+  const ChecklistEntry({this.mark, this.note});
+
+  final ChecklistMark? mark;
+  final String? note;
+
+  /// Neither marked nor noted: the same as not there.
+  bool get isEmpty => mark == null && note == null;
+
+  @override
+  List<Object?> get props => [mark, note];
 }

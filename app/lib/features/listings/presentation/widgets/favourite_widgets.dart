@@ -86,7 +86,12 @@ class FavouriteNoteCard extends StatelessWidget {
     final messenger = ScaffoldMessenger.of(context);
     final text = await showDialog<String>(
       context: context,
-      builder: (_) => _NoteDialog(initial: note ?? ''),
+      builder: (_) => NoteDialog(
+        title: 'As suas notas',
+        initial: note ?? '',
+        hintText: 'Ex.: Liguei, ainda disponível. Revisão feita em março.',
+        maxLength: FavouritesCubit.maxNoteLength,
+      ),
     );
     if (text == null) return;
     final saved = await getIt<FavouritesCubit>().saveNote(listingId, text);
@@ -150,16 +155,27 @@ class FavouriteNoteCard extends StatelessWidget {
 }
 
 /// Edits a note; returns the text, or null if cancelled.
-class _NoteDialog extends StatefulWidget {
-  const _NoteDialog({required this.initial});
+class NoteDialog extends StatefulWidget {
+  const NoteDialog({
+    required this.title,
+    required this.initial,
+    required this.hintText,
+    required this.maxLength,
+    this.minLines = 3,
+    super.key,
+  });
 
+  final String title;
   final String initial;
+  final String hintText;
+  final int maxLength;
+  final int minLines;
 
   @override
-  State<_NoteDialog> createState() => _NoteDialogState();
+  State<NoteDialog> createState() => _NoteDialogState();
 }
 
-class _NoteDialogState extends State<_NoteDialog> {
+class _NoteDialogState extends State<NoteDialog> {
   late final _controller = TextEditingController(text: widget.initial);
 
   @override
@@ -171,19 +187,19 @@ class _NoteDialogState extends State<_NoteDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('As suas notas'),
+      title: Text(widget.title),
       content: SizedBox(
         width: 480,
         child: TextField(
           controller: _controller,
           autofocus: true,
-          minLines: 3,
+          minLines: widget.minLines,
           maxLines: 8,
-          maxLength: FavouritesCubit.maxNoteLength,
+          maxLength: widget.maxLength,
           textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(
-            hintText: 'Ex.: Liguei, ainda disponível. Revisão feita em março.',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            hintText: widget.hintText,
+            border: const OutlineInputBorder(),
           ),
         ),
       ),
