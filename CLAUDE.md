@@ -133,7 +133,8 @@ for the code-quality review. Supabase's Vault holds `github_dispatch_token`
 - Routing: go_router `StatefulShellRoute` (Ofertas / Pesquisas / Alertas /
   Mais). Account, "Modelos acompanhados" and collection status live in Mais.
   Use `context.go`, not `push`, so web URLs stay correct. Exception: full
-  pages outside the shell (`/models`, `/compare?ids=a,b,c`) are pushed.
+  pages outside the shell (`/models`, `/market`, `/compare?ids=a,b,c`)
+  are pushed.
   The comparison picks live in `CompareCubit` (lazy singleton, max 3);
   its table is `compare_text.dart` (`compareRows`, tested).
 - Formatting: `Formatters.price`, `.mileage`, `.date`, `.daysAgo`,

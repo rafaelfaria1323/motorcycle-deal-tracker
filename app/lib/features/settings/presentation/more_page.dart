@@ -47,18 +47,33 @@ class MorePage extends StatelessWidget {
               ),
               const _Header('Mercado'),
               _Group(
-                child: ListTile(
-                  leading: const Icon(Icons.two_wheeler),
-                  title: const Text('Modelos acompanhados'),
-                  subtitle: Text(
-                    signedIn
-                        ? 'Que modelos recolher, desde que ano e o preço de '
-                              'uma nova'
-                        : 'Disponível com sessão iniciada',
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  enabled: signedIn,
-                  onTap: () => context.push(AppRoutes.models),
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.two_wheeler),
+                      title: const Text('Modelos acompanhados'),
+                      subtitle: Text(
+                        signedIn
+                            ? 'Que modelos recolher, desde que ano e o preço '
+                                  'de uma nova'
+                            : 'Disponível com sessão iniciada',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      enabled: signedIn,
+                      onTap: () => context.push(AppRoutes.models),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.leaderboard_outlined),
+                      title: const Text('Comparar modelos'),
+                      subtitle: const Text(
+                        'Preços pedidos, tempo até sair do mercado e '
+                        'desvalorização dos modelos acompanhados',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push(AppRoutes.modelMarket),
+                    ),
+                  ],
                 ),
               ),
               const _Header('Recolha de dados'),
