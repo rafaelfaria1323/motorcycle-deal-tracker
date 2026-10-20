@@ -416,8 +416,9 @@ functions for manual work.
   opening and the ceiling; documents, registry, cold start and test ride
   are blockers, not prices. Also shown: "Pressa do vendedor"
   (`sellerUrgency`: past the model's typical time 1 point, twice it 2,
-  three times it 3, an earlier drop 1, relisted 1 / often 2; 3+ alta, 1-2
-  média, else baixa)
+  three times it 3, an earlier drop 1, relisted 1 / often 2, an ad 30+
+  days old renewed on the site in the last 30 days 1; 3+ alta, 1-2 média,
+  else baixa)
   and, for dealers, what to ask for besides the price (`dealerAsks`:
   service, tyres when due, written warranty, registration paid) with a
   message.

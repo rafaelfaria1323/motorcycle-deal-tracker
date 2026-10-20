@@ -256,14 +256,20 @@ class SellerUrgency {
   }
 }
 
+/// An ad renewed on the site this recently, and at least this long after it
+/// was published, is one the seller is still pushing.
+const recentRenewalDays = 30;
+
 /// Points: on sale past the model's typical time (1, 2 past twice it, 3
 /// past three times it: that alone is high), an earlier drop (1), put up
-/// again after an earlier ad (1, or 2 when often). 3 or more is high, 1-2
+/// again after an earlier ad (1, or 2 when often), an old ad renewed on the
+/// site in the last [recentRenewalDays] days (1). 3 or more is high, 1-2
 /// medium, none low.
 SellerUrgency sellerUrgency(
   Listing listing, {
   MarketBehaviour? market,
   int? daysListed,
+  DateTime? today,
 }) {
   var points = 0;
   final reasons = <String>[];
@@ -290,6 +296,19 @@ SellerUrgency sellerUrgency(
   if (price != null && before != null && before > price) {
     points += 1;
     reasons.add('já baixou o preço');
+  }
+
+  final renewed = listing.siteRefreshedAt;
+  final published = listing.publishedAt;
+  if (renewed != null && published != null) {
+    final ago = (today ?? DateTime.now()).difference(renewed).inDays;
+    if (ago <= recentRenewalDays &&
+        renewed.difference(published).inDays >= recentRenewalDays) {
+      points += 1;
+      reasons.add(
+        ago == 0 ? 'renovou o anúncio hoje' : 'renovou o anúncio há $ago dias',
+      );
+    }
   }
 
   final risk = (listing.scoreBreakdown?['risk_reasons'] as List? ?? const [])

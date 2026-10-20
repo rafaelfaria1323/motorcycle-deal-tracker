@@ -16,6 +16,8 @@ Listing _listing({
   int? engineCc = 689,
   SellerType sellerType = SellerType.private,
   Map<String, dynamic>? breakdown,
+  DateTime? publishedAt,
+  DateTime? siteRefreshedAt,
 }) => Listing(
   id: 'l1',
   source: 'olx',
@@ -30,6 +32,8 @@ Listing _listing({
   year: year,
   mileage: mileage,
   engineCc: engineCc,
+  publishedAt: publishedAt,
+  siteRefreshedAt: siteRefreshedAt,
   scoreBreakdown:
       breakdown ?? const {'market_price': 7000, 'market_listing_count': 8},
 );
@@ -264,6 +268,38 @@ void main() {
       expect(u.text, 'Pressa do vendedor: alta (à venda há 365 dias)');
       expect(
         sellerUrgency(_listing(), market: _market(), daysListed: 90).level,
+        Urgency.medium,
+      );
+    });
+
+    test('an old ad renewed lately: the seller is still pushing', () {
+      final u = sellerUrgency(
+        _listing(
+          publishedAt: DateTime(2025, 10, 1),
+          siteRefreshedAt: DateTime(2026, 10, 8),
+        ),
+        market: _market(),
+        daysListed: 384,
+        today: _today,
+      );
+      expect(u.level, Urgency.high);
+      expect(u.reasons, [
+        'à venda há 384 dias',
+        'renovou o anúncio há 12 dias',
+      ]);
+
+      // Renewed long ago, or right after publishing: no point.
+      Urgency renewed(DateTime published, DateTime refreshed) => sellerUrgency(
+        _listing(publishedAt: published, siteRefreshedAt: refreshed),
+        today: _today,
+      ).level;
+      expect(renewed(DateTime(2026, 5, 1), DateTime(2026, 8, 1)), Urgency.low);
+      expect(
+        renewed(DateTime(2026, 10, 1), DateTime(2026, 10, 15)),
+        Urgency.low,
+      );
+      expect(
+        renewed(DateTime(2026, 8, 1), DateTime(2026, 10, 20)),
         Urgency.medium,
       );
     });
