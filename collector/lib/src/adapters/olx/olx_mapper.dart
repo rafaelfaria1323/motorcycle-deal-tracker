@@ -63,22 +63,10 @@ class OlxMapper {
 
     return switch (outcome) {
       Mapped(:final listing, :final warnings) => Mapped(
-        NormalizedListing(
+        listing.fromSite(
           source: 'olx',
           // The numeric ad id survives the title being edited.
           sourceListingId: listingId(raw.id),
-          url: listing.url,
-          motorcycleSlug: listing.motorcycleSlug,
-          brand: listing.brand,
-          model: listing.model,
-          year: listing.year,
-          mileage: listing.mileage,
-          price: listing.price,
-          sellerType: listing.sellerType,
-          sellerName: listing.sellerName,
-          location: listing.location,
-          description: listing.description,
-          images: listing.images,
           publishedAt: raw.createdAt,
           siteRefreshedAt: raw.refreshedAt,
         ),
