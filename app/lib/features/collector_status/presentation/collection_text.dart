@@ -49,7 +49,10 @@ String nextCollectionText(DateTime now) {
 /// "há 3 h" (or minutes, or days).
 String agoText(DateTime time, {DateTime? now}) {
   final diff = (now ?? DateTime.now()).difference(time);
-  if (diff.inMinutes < 60) return 'há ${diff.inMinutes} min';
+  // A time slightly ahead (clock skew between phone and server) reads as now.
+  if (diff.inMinutes < 60) {
+    return 'há ${diff.inMinutes < 0 ? 0 : diff.inMinutes} min';
+  }
   if (diff.inHours < 48) return 'há ${diff.inHours} h';
   return 'há ${diff.inDays} dias';
 }

@@ -60,6 +60,26 @@ void main() {
     );
   });
 
+  test('a time slightly in the future (clock skew) reads as 0 min', () {
+    final now = DateTime.utc(2026, 10, 19, 12);
+    expect(
+      agoText(now.add(const Duration(minutes: 3)), now: now),
+      'há 0 min',
+    );
+  });
+
+  test('hours turn into days at exactly 48 h', () {
+    final now = DateTime.utc(2026, 10, 19, 12);
+    expect(
+      agoText(now.subtract(const Duration(hours: 47, minutes: 59)), now: now),
+      'há 47 h',
+    );
+    expect(
+      agoText(now.subtract(const Duration(hours: 48)), now: now),
+      'há 2 dias',
+    );
+  });
+
   test('durations read as minutes and seconds', () {
     expect(durationText(const Duration(seconds: 151)), '2 min 31 s');
     expect(durationText(const Duration(seconds: 42)), '42 s');

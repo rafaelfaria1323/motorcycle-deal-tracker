@@ -83,6 +83,8 @@ void main() {
     expect(euros(6800), '6 800 €');
     expect(euros(12500.4), '12 500 €');
     expect(euros(950), '950 €');
+    expect(euros(-123), '-123 €');
+    expect(euros(-1234), '-1 234 €');
   });
 
   test('a new listing shows price, facts, score and link', () {

@@ -150,7 +150,8 @@ for the code-quality review. Supabase's Vault holds `github_dispatch_token`
 - Text built from data lives in pure functions (`*_text.dart`) with tests.
 - State: flutter_bloc Cubits + Equatable states. DI: get_it. Shared cubits
   (`ListingsCubit`, `SavedSearchesCubit`, `AlertsCubit`, `CollectorStatusCubit`,
-  `FavouritesCubit`) are lazy singletons, provided in routes with
+  `FavouritesCubit`, and `SessionCubit` for the signed-in state: widgets never
+  read Supabase's auth directly) are lazy singletons, provided in routes with
   `BlocProvider.value`. The shell (`AppShell`) loads `AlertsCubit` at start
   and on app resume for the unread badge on Alertas, and `FavouritesCubit`
   at start for the stars on the cards; the account sheet reloads the shared
