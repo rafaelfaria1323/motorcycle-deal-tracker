@@ -11,12 +11,12 @@ the database schema, secrets or workflows goes to "Needs Rafael".
 
 ## To do
 
-- `collector/lib/src/store/catalog_loader.dart` has no test of its own (row to `Catalog` mapping); add one with fake rows.
-- `app/lib/core/platform/home_screen_app.dart` (`iosBottomInset`): check whether its decision logic can be a pure function with a test.
-
 ## Needs Rafael
 
 ## Done
+
+- 2026-10-20: The row-to-`Catalog` mapping of `loadCatalog` became `catalogFromRows` (`catalog_loader.dart`), with tests (order, null list columns, empty).
+- 2026-10-20: The `iosBottomInset` decision (Safari strip, home bar by screen size) became the pure `bottomInsetFor` (`ios_bottom_inset.dart`), tested; the web file only reads the browser values.
 
 - 2026-10-20: The command-line scripts share `withServiceClient` / `describeFailure` (`collector/lib/src/cli/command.dart`, tested) instead of each building its client and catching the same errors; exit codes no longer drift (`searches.dart` used 69 for a database error, the others 70). `fetch.dart` (no database) and `refresh.dart`'s per-site handling keep their own messages.
 - 2026-10-20: The OLX and Standvirtual mappers no longer copy every `NormalizedListing` field by hand (`fromSite` keeps all fields and sets the site's own, tested), so a new field can't be dropped by one mapper; `cleanDescription` compiles its patterns once instead of per ad and per line; `bin/collector.dart` creates its store once.
