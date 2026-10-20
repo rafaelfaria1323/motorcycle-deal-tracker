@@ -36,7 +36,7 @@ Tracked models (chosen in the app)
 
 ## Getting started
 
-Requirements: Flutter (stable), the Supabase CLI and `make`.
+Requirements: Flutter 3.44.0 (the version CI pins; Dart 3.12), the Supabase CLI and `make`.
 
 ```sh
 make help                 # every command
