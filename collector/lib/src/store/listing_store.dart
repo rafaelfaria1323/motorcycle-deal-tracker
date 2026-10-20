@@ -68,6 +68,13 @@ Map<String, String> _idBySlug(Catalog catalog) => {
     if (e.id != null) e.slug: e.id!,
 };
 
+/// The database id of [l]'s catalog model; null when it has no model or the
+/// catalog entry has no id.
+String? motorcycleIdFor(NormalizedListing l, Map<String, String> idBySlug) {
+  final slug = l.motorcycleSlug;
+  return slug == null ? null : idBySlug[slug];
+}
+
 /// The row count a counting RPC returns.
 int _count(Object? rpcResult) => (rpcResult as num).toInt();
 
@@ -141,7 +148,7 @@ class ListingStore {
           'Catalog entry "$slug" has no id; load the catalog from Supabase.',
         );
       }
-      rows.add(listingRow(l, slug == null ? null : idBySlug[slug]));
+      rows.add(listingRow(l, motorcycleIdFor(l, idBySlug)));
     }
 
     // Only the rows that were really inserted come back.
@@ -253,9 +260,7 @@ class ListingStore {
         'p_matches': {
           for (final l in listings)
             l.sourceListingId: {
-              'motorcycle_id': l.motorcycleSlug == null
-                  ? null
-                  : idBySlug[l.motorcycleSlug],
+              'motorcycle_id': motorcycleIdFor(l, idBySlug),
               'brand': l.brand,
               'model': l.model,
             },
