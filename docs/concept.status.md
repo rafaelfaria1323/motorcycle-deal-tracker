@@ -31,7 +31,7 @@ Unchanged.
 - ✅ Create saved searches. *Also by minimum Deal Score / maximum Risk Score.*
 - ✅ Send alerts. *In the app and on the phone via Telegram, plus a weekly summary on Mondays.*
 - ✅ Compare motorcycles. *Up to 3 listings side by side (long press in Ofertas or "Comparar" on a listing), best value per row highlighted.*
-- 🟡 Show market trends. *Time on market, price drops, depreciation and the spread of live asking prices per model; price trends need more history.*
+- 🟡 Show market trends. *Time on market, price drops, depreciation and the spread of live asking prices per model, and the tracked models compared side by side ("Comparar modelos"); price trends need more history.*
 
 ## 4. Motorcycle Models ✅
 

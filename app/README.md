@@ -24,7 +24,9 @@ Cloudflare Pages on every merge that touches `app/`
 - **Mais:** account, "Modelos acompanhados" (switch models on/off, first
   year, new-bike price, add models: brand and model picked from the sites'
   lists, optional engine size, searches built automatically; or typed by
-  hand), the collection status and data quality
+  hand), "Comparar modelos" (the tracked models side by side: typical asking
+  price and its spread, the typical bike, time until leaving the market,
+  price drops, depreciation; cheapest first), the collection status and data quality
   per site (live listings, unmatched, duplicates, missing year/km/location).
 
 ## Running it

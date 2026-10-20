@@ -11,6 +11,7 @@ import '../../features/listings/presentation/pages/alerts_page.dart';
 import '../../features/listings/presentation/pages/compare_page.dart';
 import '../../features/listings/presentation/pages/dashboard_page.dart';
 import '../../features/listings/presentation/pages/listing_detail_page.dart';
+import '../../features/listings/presentation/pages/model_market_page.dart';
 import '../../features/listings/presentation/pages/saved_searches_page.dart';
 import '../../features/listings/presentation/pages/tracked_models_page.dart';
 import '../../features/settings/presentation/more_page.dart';
@@ -98,6 +99,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.models,
       builder: (context, state) => const TrackedModelsPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.modelMarket,
+      builder: (context, state) => const ModelMarketPage(),
     ),
     GoRoute(
       path: AppRoutes.comparePath,
