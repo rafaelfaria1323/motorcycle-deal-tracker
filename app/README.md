@@ -27,7 +27,8 @@ Cloudflare Pages on every merge that touches `app/`
   hand), "Comparar modelos" (the tracked models side by side: typical asking
   price and its spread, the typical bike, time until leaving the market,
   price drops, depreciation; cheapest first), the collection status and data quality
-  per site (live listings, unmatched, duplicates, missing year/km/location).
+  per site (live listings, unmatched, duplicates, missing year/km/location,
+  when listings were last seen, sudden price changes).
 
 ## Running it
 
