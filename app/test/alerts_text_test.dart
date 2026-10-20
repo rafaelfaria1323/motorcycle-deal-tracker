@@ -112,6 +112,23 @@ void main() {
       );
     });
 
+    test('back on the market: the new price and the earlier one', () {
+      expect(
+        alertTitle(of(AlertType.backOnMarket)),
+        'Voltou ao mercado: Yamaha MT-07 · 2021',
+      );
+      expect(
+        alertDetailsLine(
+          of(AlertType.backOnMarket, oldPrice: 7000, newPrice: 6500),
+        ),
+        '${Formatters.price(6500)} (antes ${Formatters.price(7000)})',
+      );
+      expect(
+        alertDetailsLine(of(AlertType.backOnMarket, newPrice: 6500)),
+        Formatters.price(6500),
+      );
+    });
+
     test('the origin names the saved search, then the time', () {
       final withSearch = of(AlertType.newListing, search: 'MT-07 barata');
       expect(

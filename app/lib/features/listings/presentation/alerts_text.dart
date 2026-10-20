@@ -58,6 +58,7 @@ String alertTitle(ListingAlert alert) {
     AlertType.priceReduction => 'Preço reduzido: $bike',
     AlertType.excellentOpportunity => 'Excelente oportunidade: $bike',
     AlertType.listingRemoved => 'Anúncio removido: $bike',
+    AlertType.backOnMarket => 'Voltou ao mercado: $bike',
     AlertType.unknown => bike,
   };
 }
@@ -67,12 +68,14 @@ String alertTitle(ListingAlert alert) {
 String alertDetailsLine(ListingAlert alert) {
   final oldPrice = alert.oldPrice;
   final newPrice = alert.newPrice;
-  final price =
-      alert.type == AlertType.priceReduction &&
-          oldPrice != null &&
-          newPrice != null
-      ? '${Formatters.price(oldPrice)} → ${Formatters.price(newPrice)}'
-      : Formatters.price(newPrice ?? alert.listing.price);
+  final price = switch ((alert.type, oldPrice, newPrice)) {
+    (AlertType.priceReduction, final old?, final current?) =>
+      '${Formatters.price(old)} → ${Formatters.price(current)}',
+    // Back on the market: the new price, and what the earlier ad asked.
+    (AlertType.backOnMarket, final old?, final current?) =>
+      '${Formatters.price(current)} (antes ${Formatters.price(old)})',
+    _ => Formatters.price(newPrice ?? alert.listing.price),
+  };
   return [price, ?alert.listing.location].join(' · ');
 }
 

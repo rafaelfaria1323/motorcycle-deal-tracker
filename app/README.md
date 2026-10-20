@@ -37,7 +37,8 @@ Cloudflare Pages on every merge that touches `app/`
 - **Pesquisas:** saved searches, each with its "N ofertas" and alert
   preferences; "Nova pesquisa" creates one (Ofertas can also save its
   current filters).
-- **Alertas:** new listings, price drops, excellent opportunities and
+- **Alertas:** new listings, price drops, excellent opportunities, bikes
+  you followed back on the market in a new ad ("Voltou ao mercado") and
   removed listings, grouped by day; the tab shows the unread count.
 - **Mais:** account, "A sua localidade" (your home town: every listing
   shows its distance from it), "Modelos acompanhados" (switch models on/off, first
