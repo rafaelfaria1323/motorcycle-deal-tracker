@@ -128,7 +128,7 @@ All four types, each at most once per event, only for events after the search wa
 
 ## 18. Listing Detail Page ✅
 
-✅ Photos (gallery, full screen), price, year, mileage, location, seller, seller type, source, original link, Deal Score, Risk Score, explanation, estimated value, price history, first/last seen, status, new-motorcycle comparison. ➕ Owners, service book, origin, warranty, publication date, full description, market behaviour card (with depreciation and where the asking price sits among the model's live listings), "also listed as" duplicates. *Sections ordered for a decision (score and risks first, history last); the button to the ad stays at the bottom of the screen.*
+✅ Photos (gallery, full screen), price, year, mileage, location, seller, seller type, source, original link, Deal Score, Risk Score, explanation, estimated value, price history, first/last seen, status, new-motorcycle comparison. ➕ Owners, service book, origin, warranty, publication date, full description, market behaviour card (with depreciation and where the asking price sits among the model's live listings), "also listed as" duplicates. *The Deal Score and its verdict sit beside the price; below, four parts picked at the top (Avaliação, Negociar, Mercado, Detalhes, 15.17) instead of one long list of cards; the button to the ad stays at the bottom of the screen.*
 
 ## 19. New Motorcycle Comparison 🟡
 

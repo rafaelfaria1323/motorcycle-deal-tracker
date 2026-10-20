@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/widgets/section_card.dart';
 import '../../domain/entities/listing.dart';
 import '../score_explanation.dart';
-import 'deal_score_badge.dart';
 
 class ScoreExplanationCard extends StatelessWidget {
   const ScoreExplanationCard({required this.listing, super.key});
@@ -15,59 +15,22 @@ class ScoreExplanationCard extends StatelessWidget {
     final explanation = ScoreExplainer.explain(listing);
     if (explanation == null) return const SizedBox.shrink();
 
-    final theme = Theme.of(context);
     final risk = listing.riskScore;
     final used = explanation.slicesUsed;
     final total = explanation.slicesTotal;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                DealScoreBadge(score: explanation.score, large: true),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'DEAL SCORE',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                      Text(
-                        explanation.label,
-                        style: theme.textTheme.headlineSmall,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            for (final line in explanation.lines) _LineRow(line: line),
-            if (risk != null) ...[
-              const Divider(height: 28),
-              _RiskMeter(risk: risk),
-            ],
-            if (used != null && total != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                'Baseado em $used de $total fatores',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
+    return SectionCard(
+      title: 'Porquê esta pontuação',
+      footnote: used != null && total != null
+          ? 'Baseado em $used de $total fatores'
+          : null,
+      children: [
+        for (final line in explanation.lines) _LineRow(line: line),
+        if (risk != null) ...[
+          const Divider(height: 28),
+          _RiskMeter(risk: risk),
+        ],
+      ],
     );
   }
 }

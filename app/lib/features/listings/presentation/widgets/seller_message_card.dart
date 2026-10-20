@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../../../app/di/injection.dart';
 import '../../../../core/formatting/formatters.dart';
 import '../../../../core/widgets/show_message.dart';
+import '../../../../core/widgets/section_card.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/entities/market_behaviour.dart';
 import '../../domain/repositories/market_behaviour_repository.dart';
@@ -71,45 +72,35 @@ class _SellerMessageCardState extends State<SellerMessageCard> {
         );
         final theme = Theme.of(context);
 
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Mensagem para o vendedor',
-                  style: theme.textTheme.titleMedium,
+        return SectionCard(
+          title: 'Mensagem para o vendedor',
+          children: [
+            if (offer != null)
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                dense: true,
+                title: Text(
+                  'Incluir proposta de ${Formatters.price(offer.opening)}',
                 ),
-                if (offer != null)
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(
-                      'Incluir proposta de ${Formatters.price(offer.opening)}',
-                    ),
-                    value: _withOffer,
-                    onChanged: (value) => setState(() => _withOffer = value),
-                  )
-                else
-                  const SizedBox(height: 8),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: SelectableText(message),
-                ),
-                const SizedBox(height: 12),
-                FilledButton.tonalIcon(
-                  onPressed: () => _copy(message),
-                  icon: const Icon(Icons.copy),
-                  label: const Text('Copiar mensagem'),
-                ),
-              ],
+                value: _withOffer,
+                onChanged: (value) => setState(() => _withOffer = value),
+              ),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: SelectableText(message),
             ),
-          ),
+            const SizedBox(height: 12),
+            FilledButton.tonalIcon(
+              onPressed: () => _copy(message),
+              icon: const Icon(Icons.copy),
+              label: const Text('Copiar mensagem'),
+            ),
+          ],
         );
       },
     );

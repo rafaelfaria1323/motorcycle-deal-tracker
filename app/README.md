@@ -20,22 +20,29 @@ Cloudflare Pages on every merge that touches `app/`
   you about price drops and its removal.
 - **Comparar:** up to 3 listings side by side (long press a card in Ofertas,
   or "Comparar" on a listing's page), the best value of each row marked.
-- **Listing page:** photo gallery, price, your note and the viewing
-  checklist when it is a favourite ("As suas notas", "Para a visita": 12
-  points to check when seeing the bike, each "Está bem" or "Problema" with
-  a note), score with the reasons behind it, "Quanto oferecer"
-  (where to start, a second offer if refused, the most to pay, the
-  reasons, and "O vendedor pediu": type the seller's counter-offer and it
-  says whether to accept or what to propose), risks, the same bike on the other site, the comparison with a new one,
-  "Mensagem para o vendedor" (a first message with the questions the ad
-  leaves open, optionally with the suggested offer; one tap copies it),
-  "O stand" for dealers (what we have seen of its ads on both sites:
-  relists, sharp price changes, missing mileage, repeated ads, price drops),
-  "Custo de ter esta mota" (yearly cost: depreciation, IUC, your insurance,
-  tyres, services, chain; "Alterar" sets your insurance, km per year and
-  years to keep, saved to your account),
-  market behaviour for the model (with where the asking price sits among
-  the model's live listings) and the price history.
+- **Listing page:** photo gallery; model, price and facts with the Deal
+  Score and its verdict beside them; removed / duplicate / relisted notices;
+  your note when it is a favourite. Below, four parts picked at the top
+  (the last one picked stays open for the next listing):
+  - **Avaliação:** why this score (the reasons and the risk), the same bike
+    on the other site, "O stand" for dealers (what we have seen of its ads
+    on both sites: relists, sharp price changes, missing mileage, repeated
+    ads, price drops).
+  - **Negociar:** "Quanto oferecer" (where to start, a second offer if
+    refused, the most to pay, the reasons, and "O vendedor pediu": type the
+    seller's counter-offer and it says whether to accept or what to
+    propose), "Mensagem para o vendedor" (a first message with the
+    questions the ad leaves open, optionally with the suggested offer; one
+    tap copies it), "Para a visita" for favourites (12 points to check when
+    seeing the bike, each "Está bem" or "Problema" with a note).
+  - **Mercado:** market behaviour for the model (with where the asking
+    price sits among the model's live listings), the price history, the
+    comparison with a new one, "Custo de ter esta mota" (yearly cost:
+    depreciation, IUC, your insurance, tyres, services, chain; "Alterar"
+    sets your insurance, km per year and years to keep, saved to your
+    account).
+  - **Detalhes:** the bike's facts, the seller's description, the ad's
+    facts.
 - **Pesquisas:** saved searches, each with its "N ofertas" and alert
   preferences; "Nova pesquisa" creates one (Ofertas can also save its
   current filters).
