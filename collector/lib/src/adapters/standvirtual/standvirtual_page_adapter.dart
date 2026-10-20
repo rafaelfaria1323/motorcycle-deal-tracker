@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'dart:io';
 
 import '../../normalized/listing_details.dart';
 import '../../normalized/normalizers.dart';
 import '../json_blob.dart';
 import '../json_values.dart';
+import '../saved_pages.dart';
 import '../source_adapter.dart';
 import 'standvirtual_mapper.dart';
 import 'standvirtual_raw_listing.dart';
@@ -21,17 +21,7 @@ class StandvirtualPageAdapter implements SourceAdapter<StandvirtualRawListing> {
 
   @override
   Future<ParseResult<StandvirtualRawListing>> read() async {
-    final dir = Directory(directory);
-    if (!await dir.exists()) {
-      throw FileSystemException('Folder not found', directory);
-    }
-
-    final files =
-        (await dir.list().toList())
-            .whereType<File>()
-            .where((f) => f.path.toLowerCase().endsWith('.html'))
-            .toList()
-          ..sort((a, b) => a.path.compareTo(b.path));
+    final files = await listHtmlFiles(directory);
 
     final records = <StandvirtualRawListing>[];
     final issues = <ParseIssue>[];
