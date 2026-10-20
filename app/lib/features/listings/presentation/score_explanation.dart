@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:equatable/equatable.dart';
 
 import '../../../core/formatting/formatters.dart';
@@ -43,6 +45,19 @@ const extraLabels = {
   'heated_grips': 'punhos aquecidos',
   'protection': 'proteções',
   'new_tyres': 'pneus novos',
+  'tail_tidy': 'suporte de matrícula curto',
+  'screen': 'bolha fumada ou desportiva',
+  'levers': 'manetes ajustáveis',
+  'mirrors': 'espelhos de ponta de guiador',
+  'phone_mount': 'suporte de telemóvel ou USB',
+  'alarm': 'alarme ou localizador',
+  'steering_damper': 'amortecedor de direção',
+  'centre_stand': 'descanso central',
+  'cruise_control': 'cruise control',
+  'suspension': 'suspensão melhorada',
+  'led_indicators': 'piscas LED',
+  'passenger_grips': 'pegas para o pendura',
+  'original_parts': 'peças de origem incluídas',
 };
 
 /// The extras found in the ad ("quickshifter, malas"), or null when none.
@@ -52,6 +67,65 @@ String? extrasText(Map<String, dynamic>? breakdown) {
       if (extraLabels[code] case final label?) label,
   ];
   return labels.isEmpty ? null : labels.join(', ');
+}
+
+/// The kilometres a year that count as normal for a motorcycle (cars do
+/// 10-12 000). Keep in step with expected_mileage() in the database.
+const normalKmPerYear = 5000;
+
+/// [day] as a decimal year (2 July 2026 is about 2026.5), as
+/// decimal_year() in the database.
+double decimalYear(DateTime day) =>
+    day.year +
+    DateTime.utc(
+          day.year,
+          day.month,
+          day.day,
+        ).difference(DateTime.utc(day.year)).inDays /
+        365.25;
+
+/// The normal mileage of a bike of [year] at [reference] (a decimal year,
+/// [decimalYear]): from mid-year registration, never less than one year's.
+/// Counted in days, so it doesn't jump on 1 January.
+int expectedMileage(int year, num reference) =>
+    (max(reference - year - 0.5, 1) * normalKmPerYear).round();
+
+/// How [km] compares with the normal for a bike of [year]: low (half the
+/// normal or less), normal (up to 10 % over), high, very high (over twice).
+/// Without a year, only a low mileage is said.
+ExplanationLine? mileageForAge(int? km, int? year, num reference) {
+  if (km == null) return null;
+  final kmText = Formatters.mileage(km);
+  if (year == null) {
+    return km <= normalKmPerYear
+        ? ExplanationLine(ExplanationTone.positive, 'Poucos km ($kmText)')
+        : null;
+  }
+  final normal = expectedMileage(year, reference);
+  final ratio = km / normal;
+  final normalText = 'normal: cerca de ${Formatters.mileage(normal)}';
+  if (ratio <= 0.5) {
+    return ExplanationLine(
+      ExplanationTone.positive,
+      'Poucos km para o ano ($kmText; $normalText)',
+    );
+  }
+  if (ratio > 2) {
+    return ExplanationLine(
+      ExplanationTone.negative,
+      'Muitos km para o ano ($kmText; $normalText)',
+    );
+  }
+  if (ratio > 1.1) {
+    return ExplanationLine(
+      ExplanationTone.negative,
+      'Km acima do normal para o ano ($kmText; $normalText)',
+    );
+  }
+  return ExplanationLine(
+    ExplanationTone.neutral,
+    'Km normais para o ano ($kmText)',
+  );
 }
 
 /// Turns the stored score data into human-readable lines.
@@ -118,8 +192,6 @@ abstract final class ScoreExplainer {
 
   // Presentation thresholds for the wording only; the score itself is
   // calculated in the database.
-  static const _lowMileageKm = 5000;
-  static const _highMileageKm = 12000;
   static const _priceNoticePct = 3.0;
   static const _minReliableMarket = 3;
 
@@ -137,11 +209,12 @@ abstract final class ScoreExplainer {
     return 'Baixo';
   }
 
-  static ScoreExplanation? explain(Listing listing, {int? currentYear}) {
+  static ScoreExplanation? explain(Listing listing, {DateTime? today}) {
     final score = listing.dealScore;
     if (score == null) return null;
 
-    final thisYear = currentYear ?? DateTime.now().year;
+    final now = today ?? DateTime.now();
+    final thisYear = now.year;
     final data = listing.scoreBreakdown ?? const <String, dynamic>{};
     final lines = <ExplanationLine>[];
 
@@ -149,7 +222,11 @@ abstract final class ScoreExplainer {
     final pct = (data['pct_below_market'] as num?)?.toDouble();
     final market = (data['market_price'] as num?)?.toDouble();
     final price = listing.price;
-    if (pct != null && market != null && price != null) {
+    final marketCount = (data['market_listing_count'] as num?)?.toInt();
+    // Below 3 comparables the price is not scored, so it is not explained.
+    final priceScored =
+        marketCount == null || marketCount >= _minReliableMarket;
+    if (pct != null && market != null && price != null && priceScored) {
       final amount = Formatters.price((market - price).abs());
       final pctText = Formatters.percent(pct.abs());
       if (pct >= _priceNoticePct) {
@@ -183,32 +260,28 @@ abstract final class ScoreExplainer {
         ),
       );
     }
-    final marketCount = (data['market_listing_count'] as num?)?.toInt();
-    if (marketCount != null && marketCount < _minReliableMarket) {
+    if (!priceScored) {
       lines.add(
         ExplanationLine(
           ExplanationTone.neutral,
-          'Valor estimado com poucos anúncios comparáveis ($marketCount)',
+          'Ainda poucos anúncios comparáveis ($marketCount) para estimar '
+          'o valor: o preço não conta',
+        ),
+      );
+    }
+    if (data['capped_without_price'] == true) {
+      lines.add(
+        const ExplanationLine(
+          ExplanationTone.neutral,
+          'Sem comparação de preço, a pontuação fica no máximo em 70',
         ),
       );
     }
 
-    // Mileage
-    final km = listing.mileage;
-    if (km != null && km <= _lowMileageKm) {
-      lines.add(
-        ExplanationLine(
-          ExplanationTone.positive,
-          'Baixa quilometragem (${Formatters.mileage(km)})',
-        ),
-      );
-    } else if (km != null && km >= _highMileageKm) {
-      lines.add(
-        ExplanationLine(
-          ExplanationTone.negative,
-          'Quilometragem elevada (${Formatters.mileage(km)})',
-        ),
-      );
+    // Mileage, against what is normal for the bike's age
+    if (mileageForAge(listing.mileage, listing.year, decimalYear(now))
+        case final line?) {
+      lines.add(line);
     }
 
     // Year
@@ -226,8 +299,14 @@ abstract final class ScoreExplainer {
 
     // Version / equipment
     if (extrasText(data) case final extras?) {
+      final bonus = (data['equipment_bonus'] as num?)?.toInt();
       lines.add(
-        ExplanationLine(ExplanationTone.positive, 'Extras indicados: $extras'),
+        ExplanationLine(
+          ExplanationTone.positive,
+          bonus == null || bonus == 0
+              ? 'Extras indicados: $extras'
+              : 'Extras indicados (+$bonus): $extras',
+        ),
       );
     }
 

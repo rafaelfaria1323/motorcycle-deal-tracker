@@ -55,6 +55,14 @@ begin
   exception when invalid_parameter_value then refused := sqlerrm;
   end;
   assert refused like 'Engine size range%', 'a reversed engine range is refused';
+
+  -- Without an engine size, the one in the name counts, 10 % either way.
+  perform public.add_catalog_model('Honda', 'ADV 350', 2024, 'https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/honda/');
+  assert (select engine_cc_min = 315 and engine_cc_max = 385
+          from public.motorcycles where model = 'ADV 350'), 'ADV 350: 315-385 cc';
+  perform public.add_catalog_model('Honda', 'NT1100 Travel', 2024, 'https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/honda/');
+  assert (select engine_cc_min is null and engine_cc_max is null
+          from public.motorcycles where model = 'NT1100 Travel'), 'no size at the end of the name: none';
   refused := null;
   begin
     perform public.add_catalog_model('Honda', 'X', 2021, 'https://example.com/honda');

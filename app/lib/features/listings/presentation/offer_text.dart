@@ -22,6 +22,61 @@ class OfferSuggestion {
   String get headline =>
       'Comece por ${Formatters.price(opening)} e não passe de '
       '${Formatters.price(ceiling)}.';
+
+  /// The offers to make in turn: the opening, one halfway to the most to
+  /// pay when there is room for it, and the most to pay as the last.
+  List<OfferStep> get steps {
+    final middle = _roundDown((opening + ceiling) / 2);
+    return [
+      OfferStep('Primeira proposta', opening),
+      if (middle > opening && middle < ceiling) OfferStep('Se recusar', middle),
+      OfferStep('Última proposta', ceiling),
+    ];
+  }
+
+  /// What to answer when the seller asks [counter] instead.
+  String replyTo(double counter) {
+    final steps = this.steps;
+    // The offer before the last: below it, the seller is already close.
+    final second = steps[steps.length - 2].price;
+    final value = Formatters.price(counter);
+    if (counter <= opening) {
+      return 'Aceite: $value é menos do que a sua primeira proposta.';
+    }
+    if (counter <= second) {
+      return 'Aceite: $value está dentro do que vale a pena pagar.';
+    }
+    if (counter <= ceiling) {
+      final halfway = _roundDown((second + counter) / 2);
+      // Too close to haggle over: no halfway above your last offer, or
+      // one step from the seller's price.
+      if (halfway <= second || counter - halfway <= offerStep) {
+        return 'Aceite: $value está dentro do máximo '
+            '(${Formatters.price(ceiling)}).';
+      }
+      return 'Proponha ${Formatters.price(halfway)} (a meio caminho). Se não '
+          'baixar mais, $value ainda está dentro do máximo.';
+    }
+    return '$value passa do máximo: ofereça ${Formatters.price(ceiling)} '
+        'como última proposta e, se não aceitar, procure outra mota.';
+  }
+}
+
+/// The seller's counter-offer as typed: "8500", "8.500", "8 500 €". Null
+/// for anything that is not a price.
+double? parseCounterOffer(String text) {
+  final value = double.tryParse(
+    text.replaceAll(RegExp(r'[\s.€]'), '').replaceAll(',', '.'),
+  );
+  return value != null && value >= offerStep ? value : null;
+}
+
+/// One offer of the plan.
+class OfferStep {
+  const OfferStep(this.label, this.price);
+
+  final String label;
+  final double price;
 }
 
 /// Where the opening offer starts below the ceiling before anything else is
@@ -30,7 +85,11 @@ const privateMargin = 0.06;
 const dealerMargin = 0.03;
 
 /// Never suggest starting more than this far below the ceiling.
-const maxMargin = 0.15;
+const maxMargin = 0.10;
+
+/// Never suggest starting more than this far below the estimated value: a
+/// much lower offer on a fairly priced bike is rarely taken seriously.
+const maxBelowEstimate = 0.10;
 
 /// Up on the site this long without a model figure counts as long.
 const defaultLongListingDays = 45;
@@ -42,12 +101,17 @@ const longListingMargins = [0.03, 0.05, 0.07];
 /// Extra room for a bike put up again after its earlier ad went.
 const relistedMargin = 0.02;
 
+/// The fewest comparable listings an estimate needs to set the most to pay
+/// (the database's price score needs the same).
+const minComparables = 3;
+
 /// Prices are rounded to this many euros.
 const offerStep = 50.0;
 
-/// Null without an asking price or an estimated value (fewer than two
-/// comparable listings), for a removed listing and for a repeat of another
-/// listing (it has no value of its own).
+/// Null without an asking price or an estimated value, when the estimate
+/// rests on fewer than 3 comparable listings (as the price score), for a
+/// removed listing and for a repeat of another listing (it has no value of
+/// its own).
 ///
 /// [daysListed] counts from when the bike went on sale (the site's date,
 /// earlier relists included), [market] is the model's behaviour (may be
@@ -64,12 +128,18 @@ OfferSuggestion? suggestOffer(
     return null;
   }
   if (listing.isRemoved || listing.duplicateOf != null) return null;
+  final comparables = (listing.scoreBreakdown?['market_listing_count'] as num?)
+      ?.toInt();
+  if (comparables != null && comparables < minComparables) return null;
 
   final reasons = <String>[];
 
   // The most to pay: the asking price, or the estimated value when the
   // asking price is above it.
   final double ceiling;
+  // How far below the estimate the asking price already is: the seller has
+  // given that much already, so it comes off the room to negotiate.
+  final alreadyBelow = price < estimate ? 1 - price / estimate : 0.0;
   if (price > estimate * 1.02) {
     ceiling = _roundDown(estimate);
     reasons.add(
@@ -82,8 +152,9 @@ OfferSuggestion? suggestOffer(
     if (price < estimate * 0.98) {
       reasons.add(
         'O preço pedido já está '
-        '${Formatters.percent((1 - price / estimate) * 100)} abaixo do valor '
-        'estimado (${Formatters.price(estimate)}).',
+        '${Formatters.percent(alreadyBelow * 100)} abaixo do valor '
+        'estimado (${Formatters.price(estimate)}): há menos margem para '
+        'negociar.',
       );
     } else {
       reasons.add('O preço pedido está em linha com o valor estimado.');
@@ -162,10 +233,14 @@ OfferSuggestion? suggestOffer(
   }
 
   if (ceiling < offerStep) return null;
-  // At least 1 % (a dealer's 3 % less an earlier drop), so the opening is
-  // always below the ceiling.
-  margin = margin.clamp(0.01, maxMargin);
-  final opening = _roundDown(ceiling * (1 - margin));
+  // At least 1 % (a dealer's 3 % less an earlier drop, or a price already
+  // well below the estimate), so the opening is always below the ceiling.
+  margin = (margin - alreadyBelow).clamp(0.01, maxMargin);
+  final floor = _roundDown(estimate * (1 - maxBelowEstimate));
+  final opening = min(
+    max(_roundDown(ceiling * (1 - margin)), floor),
+    _roundDown(ceiling * 0.99),
+  );
   return OfferSuggestion(opening: opening, ceiling: ceiling, reasons: reasons);
 }
 

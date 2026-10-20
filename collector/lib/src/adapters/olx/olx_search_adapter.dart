@@ -1,8 +1,5 @@
-import 'dart:convert';
-
 import '../../normalized/normalized_listing.dart';
 import '../../normalized/normalizers.dart';
-import '../../fetch/search_manifest.dart';
 import '../json_blob.dart';
 import '../json_values.dart';
 import '../site_model.dart';
@@ -57,63 +54,37 @@ class OlxSearchAdapter implements SourceAdapter<OlxRawListing> {
   String get source => sourceId;
 
   @override
-  Future<ParseResult<OlxRawListing>> read() async {
-    final files = await listHtmlFiles(directory);
-    final manifest = await SearchManifest.readFrom(directory);
-    final recordSearches = <String?>[];
-
-    final records = <OlxRawListing>[];
-    final issues = <ParseIssue>[];
-    final models = <SiteModel>[];
+  Future<ParseResult<OlxRawListing>> read() {
     final pagesBySearch = <String, Set<int>>{};
     final totalPages = <String, int>{};
     final firstFile = <String, int>{};
     final manifestSearch = <String, String?>{};
 
-    for (var i = 0; i < files.length; i++) {
-      final name = files[i].uri.pathSegments.last;
-      final search = manifest?.files[name];
-      try {
-        final bytes = await files[i].readAsBytes();
-        final page = parseSearchPage(utf8.decode(bytes, allowMalformed: true));
-        records.addAll(page.records);
-        recordSearches.addAll([for (final _ in page.records) search]);
-        models.addAll(page.models);
+    return readSavedSearchPages<OlxRawListing, OlxSearchPage>(
+      directory,
+      maxAge,
+      parse: parseSearchPage,
+      parts: (page) => SearchPageParts(
+        records: page.records,
+        problems: page.problems,
+        models: page.models,
+      ),
+      onPage: (page, i, name, search) {
         (pagesBySearch[page.search] ??= {}).add(page.pageNumber);
         totalPages[page.search] = page.totalPages;
         firstFile.putIfAbsent(page.search, () => i);
         manifestSearch.putIfAbsent(page.search, () => search);
-
-        for (final problem in page.problems) {
-          issues.add(ParseIssue(i, '$name: $problem', search: search));
-        }
-        final age = DateTime.now().difference(await files[i].lastModified());
-        final stale = staleIssue(i, name, age, maxAge, search: search);
-        if (stale != null) issues.add(stale);
-      } on FormatException catch (e) {
-        issues.add(ParseIssue(i, '$name: ${e.message}', search: search));
-      }
-    }
-
-    for (final MapEntry(key: search, value: pages) in pagesBySearch.entries) {
-      final expected = totalPages[search]!;
-      if (pages.length < expected) {
-        issues.add(
-          ParseIssue(
-            firstFile[search]!,
-            '$search: ${pages.length} of $expected page(s) saved '
-            '(the others were not read)',
-            search: manifestSearch[search],
-          ),
-        );
-      }
-    }
-    return ParseResult(
-      records,
-      issues,
-      recordSearches: manifest == null ? null : recordSearches,
-      manifest: manifest,
-      siteModels: uniqueSiteModels(models),
+      },
+      finish: () => [
+        for (final MapEntry(key: search, value: pages) in pagesBySearch.entries)
+          if (pages.length < totalPages[search]!)
+            ParseIssue(
+              firstFile[search]!,
+              '$search: ${pages.length} of ${totalPages[search]} page(s) '
+              'saved (the others were not read)',
+              search: manifestSearch[search],
+            ),
+      ],
     );
   }
 

@@ -13,9 +13,14 @@ class PlannedSearch {
 /// tracked year, whatever the stored address says.
 const olxYearFrom = 'search[filter_float_year:from]';
 
+/// Standvirtual's "first registration from" filter, set the same way, so
+/// older bikes don't use up pages (a search spans pages of 32).
+const standvirtualYearFrom =
+    'search[filter_float_first_registration_year:from]';
+
 /// The searches for [site] of the models in [catalog], in catalog order. Models
-/// with the same address share one search; on OLX it asks for the earliest
-/// year any of them tracks. Unusable addresses are left out and reported in
+/// with the same address share one search, which asks for the earliest year
+/// any of them tracks. Unusable addresses are left out and reported in
 /// `problems`.
 ({List<PlannedSearch> searches, List<String> problems}) planSearches(
   Catalog catalog,
@@ -48,15 +53,13 @@ const olxYearFrom = 'search[filter_float_year:from]';
     searches: [
       for (final (base, entries) in groups.values)
         PlannedSearch(
-          site == FetchSite.olx
-              ? base.replace(
-                  queryParameters: {
-                    ...base.queryParameters,
-                    olxYearFrom:
-                        '${entries.map((e) => e.minYear).reduce(_min)}',
-                  },
-                )
-              : base,
+          base.replace(
+            queryParameters: {
+              ...base.queryParameters,
+              site == FetchSite.olx ? olxYearFrom : standvirtualYearFrom:
+                  '${entries.map((e) => e.minYear).reduce(_min)}',
+            },
+          ),
           [for (final e in entries) '${e.brand} ${e.model}'],
         ),
     ],
@@ -70,7 +73,8 @@ Uri _withoutPageOrYear(Uri url) {
   if (!url.hasQuery) return url;
   final params = {...url.queryParameters}
     ..remove('page')
-    ..remove(olxYearFrom);
+    ..remove(olxYearFrom)
+    ..remove(standvirtualYearFrom);
   return params.isEmpty
       ? Uri.parse(url.toString().split('?').first)
       : url.replace(queryParameters: params);

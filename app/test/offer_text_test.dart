@@ -16,6 +16,7 @@ Listing _listing({
   DateTime? firstSeenAt,
   DateTime? relistedSince,
   String? relistedFrom,
+  int? comparables,
 }) => Listing(
   id: 'l1',
   source: 'olx',
@@ -34,7 +35,9 @@ Listing _listing({
   publishedAt: publishedAt,
   relistedSince: relistedSince,
   relistedFrom: relistedFrom,
-  scoreBreakdown: estimate == null ? null : {'market_price': estimate},
+  scoreBreakdown: estimate == null
+      ? null
+      : {'market_price': estimate, 'market_listing_count': ?comparables},
 );
 
 MarketBehaviour _market({
@@ -62,6 +65,9 @@ void main() {
         expect(suggestOffer(_listing(estimate: 0)), isNull);
         expect(suggestOffer(_listing(status: ListingStatus.removed)), isNull);
         expect(suggestOffer(_listing(duplicateOf: 'l0')), isNull);
+        // An estimate from fewer than 3 comparables sets no ceiling.
+        expect(suggestOffer(_listing(comparables: 2)), isNull);
+        expect(suggestOffer(_listing(comparables: 3)), isNotNull);
       },
     );
 
@@ -97,6 +103,22 @@ void main() {
       final offer = suggestOffer(_listing(price: 6300, estimate: 7000))!;
       expect(offer.ceiling, 6300);
       expect(offer.reasons.first, contains('10 % abaixo do valor estimado'));
+      // 6 % less the 10 % already given: the 1 % minimum.
+      expect(offer.opening, 6200); // 6237
+    });
+
+    test('a fair price long on sale is not pushed far below its value', () {
+      // Rafael's case: about 6 % under the estimate, on sale three times the
+      // model's usual time, a model whose sellers often drop. Before: 15 %
+      // off the asking price (6 800 €).
+      final offer = suggestOffer(
+        _listing(price: 8000, estimate: 8500),
+        market: _market(droppedCount: 10, medianDropPct: 5),
+        daysListed: 100,
+      )!;
+      expect(offer.ceiling, 8000);
+      // 6 + 7 + 2.5 - 5.9 = 9.6 %: 7232, but never under 90 % of 8 500.
+      expect(offer.opening, 7650);
     });
 
     test('long on sale against the model, and very long', () {
@@ -113,7 +135,7 @@ void main() {
         market: market,
         daysListed: 61,
       )!;
-      expect(veryLong.opening, 6200); // 11 %: 6230
+      expect(veryLong.opening, 6300); // 11 %, capped at 10: 6300
       expect(
         veryLong.reasons.last,
         'À venda há 61 dias, mais do dobro do típico deste modelo (30 dias): '
@@ -121,7 +143,7 @@ void main() {
       );
 
       final longest = suggestOffer(_listing(), market: market, daysListed: 91)!;
-      expect(longest.opening, 6050); // 13 %: 6090
+      expect(longest.opening, 6300); // 13 %, capped at 10: 6300
       expect(longest.reasons.last, contains('mais do triplo do típico'));
 
       final atTypical = suggestOffer(
@@ -168,7 +190,7 @@ void main() {
       expect(
         suggestOffer(_listing(), market: big)!.opening,
         6300,
-      ); // capped at 4: 6300
+      ); // 6 + 4 (half the drop, at most 4): 6300
       final rare = _market(droppedCount: 6, medianDropPct: 5);
       expect(suggestOffer(_listing(), market: rare)!.opening, 6550);
       final unknown = _market(
@@ -179,7 +201,7 @@ void main() {
       expect(suggestOffer(_listing(), market: unknown)!.opening, 6550);
     });
 
-    test('a high risk adds room; everything together is capped at 15 %', () {
+    test('a high risk adds room; everything together is capped at 10 %', () {
       expect(suggestOffer(_listing(riskScore: 50))!.opening, 6350); // 9 %: 6370
       expect(suggestOffer(_listing(riskScore: 49))!.opening, 6550);
       final all = suggestOffer(
@@ -187,7 +209,7 @@ void main() {
         market: _market(droppedCount: 10, medianDropPct: 10),
         daysListed: 100,
       )!;
-      expect(all.opening, 5950); // 18 % capped at 15: 5950
+      expect(all.opening, 6300); // 18 % capped at 10: 6300
     });
 
     test('nothing for a price below one step', () {
@@ -222,5 +244,54 @@ void main() {
         0,
       );
     });
+  });
+
+  group('the plan and the reply to a counter-offer', () {
+    // Rafael's CB650R: 8 500 € asked, estimated at 8 842 €.
+    const offer = OfferSuggestion(opening: 7950, ceiling: 8500, reasons: []);
+
+    test('three offers: the opening, halfway, the most to pay', () {
+      expect(offer.steps.map((s) => (s.label, s.price)), [
+        ('Primeira proposta', 7950),
+        ('Se recusar', 8200), // 8225
+        ('Última proposta', 8500),
+      ]);
+    });
+
+    test('no middle step without room for one', () {
+      const close = OfferSuggestion(opening: 8450, ceiling: 8500, reasons: []);
+      expect(close.steps.map((s) => s.label), [
+        'Primeira proposta',
+        'Última proposta',
+      ]);
+      expect(close.replyTo(8500), startsWith('Aceite'));
+    });
+
+    test('the reply depends on where the counter-offer falls', () {
+      expect(offer.replyTo(7900), contains('menos do que a sua primeira'));
+      expect(offer.replyTo(8200), startsWith('Aceite'));
+      expect(
+        offer.replyTo(8400),
+        'Proponha ${Formatters.price(8300)} (a meio caminho). Se não baixar '
+        'mais, ${Formatters.price(8400)} ainda está dentro do máximo.',
+      );
+      expect(offer.replyTo(8250), startsWith('Aceite')); // halfway 8 200
+      expect(
+        offer.replyTo(8700),
+        '${Formatters.price(8700)} passa do máximo: ofereça '
+        '${Formatters.price(8500)} como última proposta e, se não aceitar, '
+        'procure outra mota.',
+      );
+    });
+  });
+
+  test('the counter-offer as typed', () {
+    expect(parseCounterOffer('8500'), 8500);
+    expect(parseCounterOffer('8.500'), 8500);
+    expect(parseCounterOffer(' 8 500 € '), 8500);
+    expect(parseCounterOffer('8500,50'), 8500.5);
+    expect(parseCounterOffer(''), isNull);
+    expect(parseCounterOffer('8'), isNull);
+    expect(parseCounterOffer('abc'), isNull);
   });
 }

@@ -193,6 +193,47 @@ void main() {
     );
   });
 
+  group('a Forza 350 with the engine limits its name gives (315-385 cc)', () {
+    final resolver = ModelResolver(
+      Catalog(const [
+        CatalogEntry(
+          slug: 'honda-forza-350',
+          brand: 'Honda',
+          model: 'Forza 350',
+          minYear: 2021,
+          engineCcMin: 315,
+          engineCcMax: 385,
+        ),
+        CatalogEntry(
+          slug: 'honda-adv-350',
+          brand: 'Honda',
+          model: 'ADV 350',
+          minYear: 2024,
+          engineCcMin: 315,
+          engineCcMax: 385,
+        ),
+      ]),
+    );
+
+    test('an ad named only "Forza" is picked by its 330 cc', () {
+      String? forza(int cc) => resolver
+          .resolve(brand: 'Honda', family: 'Forza', text: 'Forza', engineCc: cc)
+          ?.slug;
+      expect(forza(330), 'honda-forza-350');
+      expect(forza(125), isNull);
+      expect(forza(745), isNull);
+    });
+
+    test('"350cc" names the size', () {
+      expect(
+        resolver
+            .resolve(brand: 'Honda', family: '', text: 'modelo ADV 350cc')
+            ?.slug,
+        'honda-adv-350',
+      );
+    });
+  });
+
   group('boundaries', () {
     final resolver = ModelResolver(Catalog.mvp());
 

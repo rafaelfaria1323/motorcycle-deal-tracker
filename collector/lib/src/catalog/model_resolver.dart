@@ -74,9 +74,16 @@ class ModelResolver {
   static String _family(String key) =>
       key.replaceFirst(RegExp(r'[0-9].*$'), '');
 
+  /// The words of [text]; an engine size loses its unit ("350cc" -> "350",
+  /// so "ADV 350cc" names the ADV 350).
   static List<String> _tokens(String text) => text
       .toLowerCase()
       .split(RegExp(r'[^a-z0-9]+'))
+      .map(
+        (t) => RegExp(r'^[0-9]+cc$').hasMatch(t)
+            ? t.substring(0, t.length - 2)
+            : t,
+      )
       .where((t) => t.isNotEmpty)
       .toList();
 

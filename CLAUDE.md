@@ -19,7 +19,8 @@ CB300R, CBR500R, CB750 Hornet, CBR600RR. The owner can add more from the app:
 brand and model picked from `site_models` (the sites' filter lists, stored
 by every import from the search pages; view `site_makes` for the brands),
 optional engine size (name "Forza 350", Standvirtual `q-350`, engine range
-+-10 %), searches built from the sites' ids (OLX only when OLX's own list
++-10 %; a model named with a size but added without one gets that size's
+range, `engine_range_from_name`), searches built from the sites' ids (OLX only when OLX's own list
 has the model), or typed by hand.
 
 ## How to work on this project
@@ -117,6 +118,9 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
                                   HTML artifacts); test hardening's find
                                   runs start from the last full run's
                                   surviving mutants
+                                  Both PAUSED since 2026-10-20 (Rafael): no
+                                  runs after merges until he says so; only
+                                  "Run workflow" starts one
 .github/workflows/backlog-pass.yml  Shared by both: "To do" empty -> after 10
                                   merges, only find up to 10 items, no code
                                   change; otherwise every 5 merges do up to
@@ -275,22 +279,25 @@ functions for manual work.
 
 - **Searches** come from `motorcycles.olx_search` / `standvirtual_search` of
   the tracked models (`planSearches`). Models with the same address share one
-  search; OLX gets `search[filter_float_year:from]` = the earliest
-  `min_year` of those models. Oldest models first, so when the budget runs
+  search, asking for the earliest `min_year` of those models (OLX
+  `search[filter_float_year:from]`, Standvirtual
+  `search[filter_float_first_registration_year:from]`). Every page of a
+  search is read (OLX 40 listings each, Standvirtual 32, `?page=N`). Oldest models first, so when the budget runs
   out the newest models' searches wait.
 - **Removal is per search** (`removalPlan`): each listing stores the search
   that found it (`listings.search_key`); a run removes only listings of the
   searches it read in full. A search with a problem (unreadable page,
   missing pages, stale page, rejected record without an id) or not fetched
-  keeps its listings. Listings with no search key are covered only when
-  every planned search was read in full. Without a manifest (hand-saved
+  keeps its listings. Listings with no search key, or one no planned
+  search has any more (the address changed), are covered only when every
+  planned search was read in full; the latter only for a tracked model and
+  within its years (`in_removal_scope`). Without a manifest (hand-saved
   pages, manual JSON) the whole input must be clean. The database refuses
   to remove more than 50% at once unless forced.
 - **Standvirtual** search pages hold everything except the description
   (including `createdAt` -> `published_at` and the bump date ->
   `site_refreshed_at`; `apply_listing_dates` keeps the earliest publication
-  and latest renewal); one
-  page per search. Listing pages are read only for matched, non-duplicate
+  and latest renewal). Listing pages are read only for matched, non-duplicate
   listings without details (`details_checked_at is null`). The search
   result's `priceDrop` is stored as `price_before_drop` (highest seen, never
   creates alerts).
@@ -305,8 +312,8 @@ functions for manual work.
   words (also without closing letters: "CBR 650" = CBR650R), Honda code
   suffixes (A, AC), per-model `excluded_words` ("tracer" for the MT-07,
   "650f", "125f"), `engine_cc_min/max` as tiebreaker and guard (a model
-  without limits, e.g. added in the app, is never picked by engine size
-  alone). Ambiguous stays unmatched. Every import re-checks the model of
+  without limits is never picked by engine size alone; "350cc" reads as
+  "350"). Ambiguous stays unmatched. Every import re-checks the model of
   the ads it read (`rematch_listings`), so a better rule also fixes
   listings already stored. Switching a model off unmatches its listings at once;
   switching it on matches them again by their stored brand and model
@@ -342,7 +349,9 @@ functions for manual work.
 ## Scoring model
 
 - Fair value per listing (`listing_fair_prices`): median of the OTHER live
-  listings of the same model, each adjusted with `age_mileage_factor` using
+  listings of the same model (only those within 3 years of the listing's
+  when there are at least 5 of them; ads under 300 € never count), each
+  adjusted with `age_mileage_factor` (x0.35-2.5) using
   the model's own rates (`model_depreciation`): least-squares fit of
   ln(price) on year and mileage over its live listings, from 30 listings,
   clamped (0-15 %/year, 0-1 %/1000 km) and blended with the general rates
@@ -351,19 +360,36 @@ functions for manual work.
   prices understate mileage). Comparables without year or mileage are left
   out when the listing has them. The app says the estimate comes from
   asking prices.
-  Price score needs >= 2 comparables; risk price signal needs >= 3.
-- Deal score = weighted average of available slices: price 35, year/mileage 20
-  (70% mileage), risk 10 (inverted), equipment 15 (`listing_extras`: keywords
-  in variant/description for quickshifter, exhaust, luggage, heated grips,
-  protection, new tyres; 70 for one, +10 each, max 100; none found = slice
-  skipped, never a penalty). Missing slices are skipped.
-- Risk signals: price far below market, possible accident (text), missing
+  Price score (2.5 points per %: 0 / 100 at 20 % above / below) and the
+  risk's price signal need >= 3 comparables; so does the app's offer.
+- Deal score = weighted average of the available slices: price 35,
+  year/mileage 20 (70% mileage, judged against the bike's age:
+  `mileage_use_score`, normal = 5 000 km a year from mid-year registration,
+  at least one year's, age counted in days (`decimal_year`, so nothing
+  jumps on 1 January) (`expected_mileage`); 100 up to half the normal, 75
+  at it, 50 at 1.5x, 0 from 2.5x; no mileage but a year: 50; the app's
+  `mileageForAge` says the same in words, keep both in step), risk 10
+  (inverted); then + 2 points per extra found, at most + 10, never above
+  100 (`listing_extras`: keywords in variant/description for quickshifter,
+  exhaust, luggage, heated grips, protection (also "cogumelos"), new tyres,
+  short plate holder, tinted or sport screen, adjustable levers, bar-end
+  mirrors, phone mount/USB, alarm/tracker, steering damper, centre stand,
+  cruise control, upgraded suspension, LED indicators, passenger grab
+  handles, original parts included (so it can go back to stock); codes
+  never change, the app's `extraLabels` and the saved-search check list the
+  same). Extras are a bonus, not a slice: as a slice they lowered good
+  scores. Without the price slice the score is at most 70
+  (`capped_without_price`). Missing slices are skipped.
+- Risk signals: price far below market, possible accident (text,
+  `mentions_accident`: "nunca teve acidentes", "livre de sinistros" and
+  insurance wording don't count), missing
   mileage/year/location, thin description (only private sellers with details
   read), 3+ owners, no service book, imported, implausible mileage (under
   100 km on a bike 3+ years old, or over 25 000 km a year), relisted (5;
   `relisted_often` 10: twice, or on sale for over 90 days counting the
   earlier ads), the text contradicting the ad's fields
-  (`text_contradictions`: year 2+ apart, more km, imported, no service
+  (`text_contradictions`: year 2+ apart (not a year still to come or after
+  "até"), more km, imported, no service
   book; 10 each); reassuring: first owner,
   service book, factory warranty (negative points, floor 0).
 - Market behaviour per model (`model_market_behaviour`): time until leaving
@@ -374,7 +400,12 @@ functions for manual work.
   the estimated value when asking is > 2 % above it; opening 6 % (private) /
   3 % (dealer) below it, more for long on sale (+3/5/7 % past 1x/2x/3x the
   model's typical time), relisted (+2 %), a model whose sellers often
-  drop, high risk; less after a drop; 1-15 %, rounded down to 50 €.
+  drop, high risk; less after a drop and less by however far the asking
+  price is already below the estimate; 1-10 %, and never under 90 % of the
+  estimated value; rounded down to 50 €. The plan: the opening, one offer
+  halfway ("Se recusar") and the ceiling as the last; "O vendedor pediu"
+  answers a counter-offer (accept up to the second offer, propose halfway
+  up to the ceiling, above it offer the ceiling and walk away).
 - Distance from home: `places` (towns, municipalities, districts with
   coordinates; GeoNames CC BY 4.0), `user_home` (one place per account,
   set in Mais), `place_key()` (= the app's `placeKey`, keep them equal),

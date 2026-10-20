@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import '../../fetch/search_manifest.dart';
 import '../json_blob.dart';
 import '../json_values.dart';
 import '../site_model.dart';
@@ -16,6 +15,7 @@ class StandvirtualSearchPage {
     required this.total,
     required this.offset,
     required this.shown,
+    this.pageSize = 32,
     this.models = const [],
   });
 
@@ -31,14 +31,22 @@ class StandvirtualSearchPage {
   /// How many results this page holds.
   final int shown;
 
+  /// How many results a page of this search holds.
+  final int pageSize;
+
   /// The brands and models in the page's filters.
   final List<SiteModel> models;
 
   bool get isComplete => offset + shown >= total;
+
+  /// How many pages the whole search spans.
+  int get totalPages => total <= 0 ? 1 : (total + pageSize - 1) ~/ pageSize;
 }
 
 /// Reads search results pages (saved by `make fetch` or by hand) out of a
-/// folder. One page lists a whole model, so no listing pages are needed.
+/// folder. The pages hold everything but the description, so listing pages
+/// are only read for details; a search over 32 listings spans pages
+/// (`?page=N`), all of which must be saved for it to count as read.
 class StandvirtualSearchAdapter
     implements SourceAdapter<StandvirtualRawListing> {
   StandvirtualSearchAdapter(
@@ -55,53 +63,46 @@ class StandvirtualSearchAdapter
   String get source => 'standvirtual';
 
   @override
-  Future<ParseResult<StandvirtualRawListing>> read() async {
-    final files = await listHtmlFiles(directory);
-    final manifest = await SearchManifest.readFrom(directory);
-    final recordSearches = <String?>[];
+  Future<ParseResult<StandvirtualRawListing>> read() {
+    // Per search (the manifest's, or the file's own without one): listings
+    // the site says it has, listings on the pages saved, and the first file.
+    final totals = <String, int>{};
+    final shown = <String, int>{};
+    final firstFile = <String, (int, String, String?)>{};
 
-    final records = <StandvirtualRawListing>[];
-    final issues = <ParseIssue>[];
-    final models = <SiteModel>[];
-
-    for (var i = 0; i < files.length; i++) {
-      final name = files[i].uri.pathSegments.last;
-      final search = manifest?.files[name];
-      try {
-        final bytes = await files[i].readAsBytes();
-        final page = parseSearchPage(utf8.decode(bytes, allowMalformed: true));
-        records.addAll(page.records);
-        recordSearches.addAll([for (final _ in page.records) search]);
-        models.addAll(page.models);
-
-        for (final problem in page.problems) {
-          issues.add(ParseIssue(i, '$name: $problem', search: search));
-        }
-        if (!page.isComplete) {
-          issues.add(
+    return readSavedSearchPages<StandvirtualRawListing, StandvirtualSearchPage>(
+      directory,
+      maxAge,
+      parse: parseSearchPage,
+      parts: (page) => SearchPageParts(
+        records: page.records,
+        problems: page.problems,
+        models: page.models,
+      ),
+      onPage: (page, i, name, search) {
+        final key = search ?? name;
+        totals[key] = page.total;
+        shown[key] = (shown[key] ?? 0) + page.shown;
+        firstFile.putIfAbsent(key, () => (i, name, search));
+      },
+      finish: () => [
+        for (final MapEntry(:key, value: (i, name, search))
+            in firstFile.entries)
+          if (shown[key]! < totals[key]!)
             ParseIssue(
               i,
-              '$name: holds ${page.offset + page.shown} of ${page.total} '
-              'listings (more pages exist and were not read)',
+              '$name: holds ${shown[key]} of ${totals[key]} listings (more '
+              'pages exist and were not read)',
               search: search,
             ),
-          );
-        }
-        final age = DateTime.now().difference(await files[i].lastModified());
-        final stale = staleIssue(i, name, age, maxAge, search: search);
-        if (stale != null) issues.add(stale);
-      } on FormatException catch (e) {
-        issues.add(ParseIssue(i, '$name: ${e.message}', search: search));
-      }
-    }
-    return ParseResult(
-      records,
-      issues,
-      recordSearches: manifest == null ? null : recordSearches,
-      manifest: manifest,
-      siteModels: uniqueSiteModels(models),
+      ],
     );
   }
+
+  /// Page [page] of [search].
+  static Uri pageUrl(Uri search, int page) => search.replace(
+    queryParameters: {...search.queryParameters, 'page': '$page'},
+  );
 
   /// Pure parsing step, so it can be tested without files.
   /// Throws [FormatException] when the page is not a search results page.
@@ -169,6 +170,7 @@ class StandvirtualSearchAdapter
       total: asInt(search['totalCount']) ?? edges.length,
       offset: asInt(asMap(search['pageInfo'])?['currentOffset']) ?? 0,
       shown: edges.length + topAds.length,
+      pageSize: asInt(asMap(search['pageInfo'])?['pageSize']) ?? 32,
       models: models,
     );
   }

@@ -8,11 +8,14 @@ name: Code quality review
 # (none if nothing is worth it); no run starts while one is still open.
 # Needs the CLAUDE_CODE_OAUTH_TOKEN secret and "Allow GitHub Actions to
 # create and approve pull requests" in the repo settings.
+#
+# PAUSED (Rafael, 2026-10-20): no runs after merges until he says so; only
+# "Run workflow" starts one. To resume, put the trigger back:
+#   pull_request:
+#     types: [closed]
+#     branches: [main]
 on:
   workflow_dispatch: # manual "Run workflow" button: run now
-  pull_request:
-    types: [closed]
-    branches: [main]
 
 # One backlog pass at a time (code quality and test hardening).
 concurrency:

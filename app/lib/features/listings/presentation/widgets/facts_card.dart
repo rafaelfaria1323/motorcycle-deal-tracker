@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/widgets/section_card.dart';
 import '../listing_detail_text.dart';
 
 /// A titled card of label/value rows ("A mota", "O anúncio").
@@ -11,23 +12,14 @@ class FactsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-              child: Text(
-                title,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
-            for (final (label, value) in facts) _FactRow(label, value),
-          ],
-        ),
-      ),
+    return SectionCard(
+      title: title,
+      children: [
+        for (final (i, (label, value)) in facts.indexed) ...[
+          if (i > 0) const Divider(height: 1),
+          _FactRow(label, value),
+        ],
+      ],
     );
   }
 }
@@ -42,7 +34,7 @@ class _FactRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

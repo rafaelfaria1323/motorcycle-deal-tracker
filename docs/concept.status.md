@@ -42,7 +42,7 @@ Unchanged.
 
 ## 5. Sources 🟡
 
-- ✅ Standvirtual (search pages + listing pages for details, low-volume personal fetcher).
+- ✅ Standvirtual (every page of each search, from the first tracked year, + listing pages for details, low-volume personal fetcher).
 - ✅ OLX (search result pages, which hold the full description; Standvirtual copies skipped).
 - ⬜ Future: CustoJusto, dealerships, European marketplaces, imports.
 
@@ -86,9 +86,9 @@ Initial price, current price, every change with date, percentage, and time onlin
 
 | Factor | Weight | Status |
 |---|---:|---|
-| Price vs market | 35% | ✅ fair value adjusted for age and mileage (per-model rates) |
+| Price vs market | 35% | ✅ fair value adjusted for age and mileage (per-model rates, comparables within 3 years when enough), from 3 comparables; without it the score is at most 70 (15.18) |
 | Year / mileage | 20% | ✅ |
-| Version / equipment | 15% | ✅ extras named in the ad (no penalty when none); the version itself is not scored |
+| Version / equipment | 15% | 🔄 a bonus instead (15.18): +2 points per extra named in the ad, at most +10 (as a weighted slice it lowered good scores); the version itself is not scored |
 | Seller / confidence | 10% | ⬜ |
 | Market / listing behaviour | 10% | ⬜ data being collected |
 | Risk indicators | 10% | ✅ |
@@ -124,11 +124,11 @@ All four types, each at most once per event, only for events after the search wa
 
 ## 17. Dashboard ✅
 
-✅ Best deals sorted by Deal Score (or newest, cheapest, most expensive); only tracked models; filters for model, price, mileage, year, location, seller type, Deal Score, Risk Score, active only, shown as removable chips. ➕ Distance from the owner's home on every listing, a maximum-distance filter (also for saved searches) and a nearest-first sort (15.11). ➕ Equipment filter (quickshifter, exhaust, luggage, heated grips, protection, new tyres), also for saved searches (15.13). ➕ Collection status (last run, duration, what it found, requests, next run; a warning card when a run failed or was blocked) in Mais. ➕ Favourites: a star on cards of starred listings; "Favoritos" (Ofertas app bar or Mais) lists them with the owner's notes.
+✅ Best deals sorted by Deal Score (or newest, cheapest, most expensive); only tracked models; filters for model, price, mileage, year, location, seller type, Deal Score, Risk Score, active only, shown as removable chips. ➕ Distance from the owner's home on every listing, a maximum-distance filter (also for saved searches) and a nearest-first sort (15.11). ➕ Equipment filter (quickshifter, exhaust, luggage, heated grips, protection, new tyres and, since 15.15, short plate holder, screen, levers, mirrors, phone mount, alarm, steering damper, centre stand, cruise control, suspension, LED indicators, passenger grab handles, original parts included), also for saved searches (15.13). ➕ Collection status (last run, duration, what it found, requests, next run; a warning card when a run failed or was blocked) in Mais. ➕ Favourites: a star on cards of starred listings; "Favoritos" (Ofertas app bar or Mais) lists them with the owner's notes.
 
 ## 18. Listing Detail Page ✅
 
-✅ Photos (gallery, full screen), price, year, mileage, location, seller, seller type, source, original link, Deal Score, Risk Score, explanation, estimated value, price history, first/last seen, status, new-motorcycle comparison. ➕ Owners, service book, origin, warranty, publication date, full description, market behaviour card (with depreciation and where the asking price sits among the model's live listings), "also listed as" duplicates. *Sections ordered for a decision (score and risks first, history last); the button to the ad stays at the bottom of the screen.*
+✅ Photos (gallery, full screen), price, year, mileage, location, seller, seller type, source, original link, Deal Score, Risk Score, explanation, estimated value, price history, first/last seen, status, new-motorcycle comparison. ➕ Owners, service book, origin, warranty, publication date, full description, market behaviour card (with depreciation and where the asking price sits among the model's live listings), "also listed as" duplicates. *The Deal Score and its verdict sit beside the price; below, four parts picked at the top (Avaliação, Negociar, Mercado, Detalhes, 15.17) instead of one long list of cards; the button to the ad stays at the bottom of the screen.*
 
 ## 19. New Motorcycle Comparison 🟡
 
