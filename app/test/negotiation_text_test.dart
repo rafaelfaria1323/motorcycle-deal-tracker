@@ -14,6 +14,7 @@ Listing _listing({
   int? year = 2022,
   int? mileage = 20000,
   int? engineCc = 689,
+  SellerType sellerType = SellerType.private,
   Map<String, dynamic>? breakdown,
 }) => Listing(
   id: 'l1',
@@ -22,7 +23,7 @@ Listing _listing({
   brand: 'Yamaha',
   model: 'MT-07',
   status: ListingStatus.active,
-  sellerType: SellerType.private,
+  sellerType: sellerType,
   images: const [],
   price: price,
   initialPrice: initialPrice ?? price,
@@ -229,6 +230,82 @@ void main() {
       expect(offer.reply(7500).message, lastOfferMessage(7000));
       expect(offer.replyTo(7500), offer.reply(7500).advice);
       expect(walkAwayMessage, contains('se baixar o preço'));
+    });
+  });
+
+  group('seller urgency', () {
+    test('low without any sign', () {
+      final u = sellerUrgency(_listing(), market: _market(), daysListed: 10);
+      expect(u.level, Urgency.low);
+      expect(u.text, 'Pressa do vendedor: baixa');
+    });
+
+    test('long on sale and a drop: medium, then high', () {
+      expect(
+        sellerUrgency(_listing(), market: _market(), daysListed: 40).level,
+        Urgency.medium,
+      );
+      final u = sellerUrgency(
+        _listing(price: 6800, initialPrice: 7200),
+        market: _market(),
+        daysListed: 70,
+      );
+      expect(u.level, Urgency.high);
+      expect(
+        u.text,
+        'Pressa do vendedor: alta (à venda há 70 dias, já baixou o preço)',
+      );
+    });
+
+    test('relisted often counts twice', () {
+      final u = sellerUrgency(
+        _listing(
+          breakdown: const {
+            'risk_reasons': ['relisted_often'],
+          },
+        ),
+        daysListed: 50,
+      );
+      expect(u.level, Urgency.high);
+      expect(u.reasons, ['à venda há 50 dias', 'posta à venda várias vezes']);
+    });
+  });
+
+  group('dealer', () {
+    test('asks for extras; tyres only when due and not new', () {
+      expect(dealerAsks(_listing(year: 2025, mileage: 2000), today: _today), [
+        'a revisão feita antes da entrega',
+        'a garantia por escrito (numa usada vendida por um stand, a lei dá '
+            'pelo menos 18 meses)',
+        'o registo de propriedade pago por eles',
+      ]);
+      expect(
+        dealerAsks(_listing(year: 2020), today: _today),
+        contains('pneus novos'),
+      );
+      expect(
+        dealerAsks(
+          _listing(
+            year: 2020,
+            breakdown: const {
+              'extras': ['new_tyres'],
+            },
+          ),
+          today: _today,
+        ),
+        isNot(contains('pneus novos')),
+      );
+    });
+
+    test('the message names the bike, the price and the asks', () {
+      final message = dealerMessage(
+        _listing(sellerType: SellerType.dealer),
+        6800,
+        today: _today,
+      );
+      expect(message, contains('Yamaha MT-07 de 2022'));
+      expect(message, contains(Formatters.price(6800)));
+      expect(message, contains('- o registo de propriedade pago por eles;'));
     });
   });
 }

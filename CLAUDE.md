@@ -414,7 +414,12 @@ functions for manual work.
   Visit: a checklist item marked "Problema" takes its repair cost
   (`repairCost`, tyres/chain/service from the running costs) off the
   opening and the ceiling; documents, registry, cold start and test ride
-  are blockers, not prices.
+  are blockers, not prices. Also shown: "Pressa do vendedor"
+  (`sellerUrgency`: past the model's typical time 1 point, twice it 2, an
+  earlier drop 1, relisted 1 / often 2; 3+ alta, 1-2 média, else baixa)
+  and, for dealers, what to ask for besides the price (`dealerAsks`:
+  service, tyres when due, written warranty, registration paid) with a
+  message.
 - Distance from home: `places` (towns, municipalities, districts with
   coordinates; GeoNames CC BY 4.0), `user_home` (one place per account,
   set in Mais), `place_key()` (= the app's `placeKey`, keep them equal),
