@@ -75,6 +75,28 @@ String? requestsText(Map<String, int> requests) {
   ].join(' · ');
 }
 
+/// "3 anúncios novos, 2 preços alterados, 1 anúncio removido, 4 alertas";
+/// "Sem anúncios novos nem alterações" when all are zero; null when the run
+/// didn't say (older runs, or one that stopped before importing).
+String? runCountsText(Map<String, int> counts) {
+  if (counts.isEmpty) return null;
+  String part(String key, String one, String many) {
+    final n = counts[key] ?? 0;
+    return n == 1 ? '1 $one' : '$n $many';
+  }
+
+  final parts = [
+    if ((counts['new'] ?? 0) > 0) part('new', 'anúncio novo', 'anúncios novos'),
+    if ((counts['price_changes'] ?? 0) > 0)
+      part('price_changes', 'preço alterado', 'preços alterados'),
+    if ((counts['removed'] ?? 0) > 0)
+      part('removed', 'anúncio removido', 'anúncios removidos'),
+    if ((counts['alerts'] ?? 0) > 0) part('alerts', 'alerta', 'alertas'),
+  ];
+  if (parts.isEmpty) return 'Sem anúncios novos nem alterações';
+  return parts.join(', ');
+}
+
 /// GitHub bills each job in whole minutes, and a job also spends about
 /// half a minute setting up and saving its cache around the collection.
 int estimatedMinutes(CollectorRun run) =>

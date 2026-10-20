@@ -196,7 +196,9 @@ for the code-quality review. Supabase's Vault holds `github_dispatch_token`
   50 % or more in one step in the last 30 days).
 - `collector_runs` is readable only by non-anonymous users. `requests` holds
   the requests each site used (from refresh.dart's "Requests used:" lines,
-  parsed by report_run.dart). report_run.dart also sends a Telegram message
+  parsed by report_run.dart), `counts` what the run did over both sites
+  (`new`, `price_changes`, `removed`, `alerts`, from the log's own lines:
+  `runCounts`; keep those log lines' wording). report_run.dart also sends a Telegram message
   when a run's status differs from the previous run's (`run_health.dart`:
   the error lines of each site, or "voltou a funcionar"), never twice for
   the same problem.

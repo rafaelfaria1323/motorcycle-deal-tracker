@@ -65,6 +65,26 @@ void main() {
     expect(durationText(const Duration(seconds: 42)), '42 s');
   });
 
+  test('what the last run did, plural and singular, zeros left out', () {
+    expect(
+      runCountsText({'new': 3, 'price_changes': 2, 'removed': 4, 'alerts': 5}),
+      '3 anúncios novos, 2 preços alterados, 4 anúncios removidos, 5 alertas',
+    );
+    expect(
+      runCountsText({'new': 1, 'price_changes': 1, 'removed': 1, 'alerts': 1}),
+      '1 anúncio novo, 1 preço alterado, 1 anúncio removido, 1 alerta',
+    );
+    expect(
+      runCountsText({'new': 0, 'price_changes': 2, 'alerts': 0}),
+      '2 preços alterados',
+    );
+    expect(
+      runCountsText({'new': 0, 'removed': 0}),
+      'Sem anúncios novos nem alterações',
+    );
+    expect(runCountsText(const {}), isNull);
+  });
+
   test('requests per site against the limit', () {
     expect(
       requestsText({'standvirtual': 15, 'olx': 9}),
