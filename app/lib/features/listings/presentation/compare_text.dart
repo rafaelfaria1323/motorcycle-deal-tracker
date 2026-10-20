@@ -23,7 +23,7 @@ class CompareRow {
 Set<int> bestOf(List<num?> values, {required bool higherIsBetter}) {
   final known = [
     for (final v in values)
-      if (v != null) v,
+      ?v,
   ];
   if (known.length < 2) return const {};
   final top = known.reduce(

@@ -8,7 +8,7 @@ import 'listing_labels.dart';
 String keyFactsLine(Listing listing) => [
   if (listing.year != null) '${listing.year}',
   if (listing.mileage != null) Formatters.mileage(listing.mileage),
-  if (placeText(listing) case final place?) place,
+  ?placeText(listing),
   if (listing.sellerType != SellerType.unknown) listing.sellerType.label,
 ].join(' · ');
 
