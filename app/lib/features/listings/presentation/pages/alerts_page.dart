@@ -19,6 +19,7 @@ class AlertsPage extends StatelessWidget {
     AlertType.excellentOpportunity => Icons.local_fire_department_outlined,
     AlertType.listingRemoved => Icons.block,
     AlertType.backOnMarket => Icons.replay,
+    AlertType.targetPriceReached => Icons.flag_outlined,
     AlertType.unknown => Icons.notifications_none,
   };
 
@@ -139,7 +140,9 @@ class _AlertTile extends StatelessWidget {
 
     // Good news in green, a removal in grey, the rest in the accent.
     final (Color background, Color foreground) = switch (alert.type) {
-      AlertType.priceReduction || AlertType.excellentOpportunity => (
+      AlertType.priceReduction ||
+      AlertType.excellentOpportunity ||
+      AlertType.targetPriceReached => (
         colors.positive.withValues(alpha: 0.14),
         colors.positive,
       ),

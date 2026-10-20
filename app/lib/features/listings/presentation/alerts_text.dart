@@ -59,6 +59,7 @@ String alertTitle(ListingAlert alert) {
     AlertType.excellentOpportunity => 'Excelente oportunidade: $bike',
     AlertType.listingRemoved => 'Anúncio removido: $bike',
     AlertType.backOnMarket => 'Voltou ao mercado: $bike',
+    AlertType.targetPriceReached => 'Chegou ao seu preço: $bike',
     AlertType.unknown => bike,
   };
 }
@@ -74,6 +75,9 @@ String alertDetailsLine(ListingAlert alert) {
     // Back on the market: the new price, and what the earlier ad asked.
     (AlertType.backOnMarket, final old?, final current?) =>
       '${Formatters.price(current)} (antes ${Formatters.price(old)})',
+    // The target is stored as the old price.
+    (AlertType.targetPriceReached, final target?, final current?) =>
+      '${Formatters.price(current)} (o seu preço: ${Formatters.price(target)})',
     _ => Formatters.price(newPrice ?? alert.listing.price),
   };
   return [price, ?alert.listing.location].join(' · ');

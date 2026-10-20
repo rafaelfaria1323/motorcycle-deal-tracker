@@ -56,6 +56,22 @@ class SupabaseFavouritesRepository implements FavouritesRepository {
   }
 
   @override
+  Future<void> saveTargetPrice(String listingId, double? targetPrice) async {
+    // The database sets target_set_at, so only later prices alert.
+    final updated = await _client
+        .from(_table)
+        .update({
+          'target_price': targetPrice,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        })
+        .eq('listing_id', listingId)
+        .select('listing_id');
+    if (updated.isEmpty) {
+      throw StateError('Favourite $listingId has no target price to save.');
+    }
+  }
+
+  @override
   Future<void> saveChecklist(
     String listingId,
     Map<String, ChecklistEntry> checklist,

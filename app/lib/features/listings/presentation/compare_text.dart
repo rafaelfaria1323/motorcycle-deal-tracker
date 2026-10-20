@@ -21,10 +21,7 @@ class CompareRow {
 
 /// The indexes holding the best of [values] ([higherIsBetter] or lower).
 Set<int> bestOf(List<num?> values, {required bool higherIsBetter}) {
-  final known = [
-    for (final v in values)
-      ?v,
-  ];
+  final known = [for (final v in values) ?v];
   if (known.length < 2) return const {};
   final top = known.reduce(
     (a, b) => higherIsBetter ? (a >= b ? a : b) : (a <= b ? a : b),

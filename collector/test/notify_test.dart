@@ -112,6 +112,14 @@ void main() {
     expect(text.split('\n')[1], '6 800 € (antes 7 200 €)');
   });
 
+  test('a target price reached shows the price and the target', () {
+    final text = formatAlert(
+      alert('target_price_reached', oldPrice: 6600, newPrice: 6500),
+    );
+    expect(text.split('\n')[0], '🎯 Chegou ao seu preço: Yamaha MT-07 2024');
+    expect(text.split('\n')[1], '6 500 € (o seu preço: 6 600 €)');
+  });
+
   test('a removed listing shows no score', () {
     final text = formatAlert(alert('listing_removed', newPrice: 6800));
     expect(text, isNot(contains('Pontuação')));

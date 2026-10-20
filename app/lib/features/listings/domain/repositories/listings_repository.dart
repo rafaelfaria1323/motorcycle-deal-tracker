@@ -25,4 +25,9 @@ abstract interface class ListingsRepository {
   Future<List<Listing>> getAlsoListed(Listing listing);
 
   Future<List<PricePoint>> getPriceHistory(String listingId);
+
+  /// Up to three live listings of the same model that cost less, of a year
+  /// at most one apart and with no more km (cheapest first): arguments to
+  /// negotiate with. Empty without a model or a price.
+  Future<List<Listing>> getCheaperSimilar(Listing listing);
 }

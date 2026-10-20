@@ -101,8 +101,7 @@ final viewingChecklistItems = [
 /// The marks of the items still on the list (keys of items taken out
 /// later are ignored).
 Iterable<ChecklistMark> _marks(Map<String, ChecklistEntry> checklist) => [
-  for (final item in viewingChecklistItems)
-    ?checklist[item.key]?.mark,
+  for (final item in viewingChecklistItems) ?checklist[item.key]?.mark,
 ];
 
 /// "12 pontos para ver na visita", "3 de 12 vistos · 1 problema",

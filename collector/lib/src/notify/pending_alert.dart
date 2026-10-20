@@ -64,6 +64,7 @@ String formatAlert(PendingAlert a) {
     'excellent_opportunity' => '🔥 Excelente oportunidade',
     'listing_removed' => '🚫 Anúncio removido',
     'back_on_market' => '🔁 Voltou ao mercado',
+    'target_price_reached' => '🎯 Chegou ao seu preço',
     _ => '🔔 Alerta',
   };
   final bike = [a.brand, a.model, if (a.year != null) '${a.year}'].join(' ');
@@ -76,6 +77,9 @@ String formatAlert(PendingAlert a) {
       // Back on the market: the new price, and what the earlier ad asked.
       : a.type == 'back_on_market' && old != null && current != null
       ? '${euros(current)} (antes ${euros(old)})'
+      // The target price is stored as old_price.
+      : a.type == 'target_price_reached' && old != null && current != null
+      ? '${euros(current)} (o seu preço: ${euros(old)})'
       : current == null
       ? null
       : euros(current);

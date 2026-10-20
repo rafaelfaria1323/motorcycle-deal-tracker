@@ -4,6 +4,7 @@ import '../../../core/formatting/formatters.dart';
 import '../domain/entities/listing.dart';
 import '../domain/entities/market_behaviour.dart';
 import 'market_behaviour_text.dart';
+import 'negotiation_text.dart';
 
 /// What to offer for a listing: where to start and the most to pay, with
 /// the reasons in words. Built from asking prices, never from sales.
@@ -24,42 +25,86 @@ class OfferSuggestion {
       '${Formatters.price(ceiling)}.';
 
   /// The offers to make in turn: the opening, one halfway to the most to
-  /// pay when there is room for it, and the most to pay as the last.
+  /// pay when there is room for it, and the most to pay as the last; each
+  /// with the message to send.
   List<OfferStep> get steps {
     final middle = _roundDown((opening + ceiling) / 2);
     return [
-      OfferStep('Primeira proposta', opening),
-      if (middle > opening && middle < ceiling) OfferStep('Se recusar', middle),
-      OfferStep('Última proposta', ceiling),
+      OfferStep('Primeira proposta', opening, offerMessage(opening)),
+      if (middle > opening && middle < ceiling)
+        OfferStep('Se recusar', middle, offerMessage(middle)),
+      OfferStep('Última proposta', ceiling, lastOfferMessage(ceiling)),
     ];
   }
 
+  /// The same plan with [amount] off the opening and the most to pay (a
+  /// repair found at the visit), and [reason] added. The opening stays
+  /// below the most to pay; nothing goes under one rounding step.
+  OfferSuggestion lowerBy(double amount, String reason) {
+    final newCeiling = max(_roundDown(ceiling - amount), offerStep);
+    return OfferSuggestion(
+      opening: max(
+        min(_roundDown(opening - amount), _roundDown(newCeiling * 0.99)),
+        offerStep,
+      ),
+      ceiling: newCeiling,
+      reasons: [...reasons, reason],
+    );
+  }
+
   /// What to answer when the seller asks [counter] instead.
-  String replyTo(double counter) {
+  String replyTo(double counter) => reply(counter).advice;
+
+  /// What to do when the seller asks [counter] instead, and the message to
+  /// send for it.
+  OfferReply reply(double counter) {
     final steps = this.steps;
     // The offer before the last: below it, the seller is already close.
     final second = steps[steps.length - 2].price;
     final value = Formatters.price(counter);
     if (counter <= opening) {
-      return 'Aceite: $value é menos do que a sua primeira proposta.';
+      return OfferReply(
+        'Aceite: $value é menos do que a sua primeira proposta.',
+        acceptMessage(counter),
+      );
     }
     if (counter <= second) {
-      return 'Aceite: $value está dentro do que vale a pena pagar.';
+      return OfferReply(
+        'Aceite: $value está dentro do que vale a pena pagar.',
+        acceptMessage(counter),
+      );
     }
     if (counter <= ceiling) {
       final halfway = _roundDown((second + counter) / 2);
       // Too close to haggle over: no halfway above your last offer, or
       // one step from the seller's price.
       if (halfway <= second || counter - halfway <= offerStep) {
-        return 'Aceite: $value está dentro do máximo '
-            '(${Formatters.price(ceiling)}).';
+        return OfferReply(
+          'Aceite: $value está dentro do máximo '
+          '(${Formatters.price(ceiling)}).',
+          acceptMessage(counter),
+        );
       }
-      return 'Proponha ${Formatters.price(halfway)} (a meio caminho). Se não '
-          'baixar mais, $value ainda está dentro do máximo.';
+      return OfferReply(
+        'Proponha ${Formatters.price(halfway)} (a meio caminho). Se não '
+        'baixar mais, $value ainda está dentro do máximo.',
+        offerMessage(halfway),
+      );
     }
-    return '$value passa do máximo: ofereça ${Formatters.price(ceiling)} '
-        'como última proposta e, se não aceitar, procure outra mota.';
+    return OfferReply(
+      '$value passa do máximo: ofereça ${Formatters.price(ceiling)} '
+      'como última proposta e, se não aceitar, procure outra mota.',
+      lastOfferMessage(ceiling),
+    );
   }
+}
+
+/// What to do about the seller's counter-offer, and the message to send.
+class OfferReply {
+  const OfferReply(this.advice, this.message);
+
+  final String advice;
+  final String message;
 }
 
 /// The seller's counter-offer as typed: "8500", "8.500", "8 500 €". Null
@@ -73,10 +118,13 @@ double? parseCounterOffer(String text) {
 
 /// One offer of the plan.
 class OfferStep {
-  const OfferStep(this.label, this.price);
+  const OfferStep(this.label, this.price, this.message);
 
   final String label;
   final double price;
+
+  /// Ready to send to the seller with this offer.
+  final String message;
 }
 
 /// Where the opening offer starts below the ceiling before anything else is

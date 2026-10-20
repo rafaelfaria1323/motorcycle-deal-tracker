@@ -14,6 +14,10 @@ abstract interface class FavouritesRepository {
   /// is not a favourite.
   Future<void> saveNote(String listingId, String? note);
 
+  /// Saves the target price of a favourite (null clears it). Throws if the
+  /// listing is not a favourite.
+  Future<void> saveTargetPrice(String listingId, double? targetPrice);
+
   /// Saves the viewing checklist of a favourite (all of it). Throws if the
   /// listing is not a favourite.
   Future<void> saveChecklist(

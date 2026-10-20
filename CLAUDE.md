@@ -403,9 +403,18 @@ functions for manual work.
   drop, high risk; less after a drop and less by however far the asking
   price is already below the estimate; 1-10 %, and never under 90 % of the
   estimated value; rounded down to 50 €. The plan: the opening, one offer
-  halfway ("Se recusar") and the ceiling as the last; "O vendedor pediu"
-  answers a counter-offer (accept up to the second offer, propose halfway
-  up to the ceiling, above it offer the ceiling and walk away).
+  halfway ("Se recusar") and the ceiling as the last, each with a message
+  to copy; "O vendedor pediu" answers a counter-offer (accept up to the
+  second offer, propose halfway up to the ceiling, above it offer the
+  ceiling and walk away) with the message to send. Arguments to quote
+  (`negotiation_text.dart`, strongest first): problems marked at the visit,
+  price above the estimate, up to 3 cheaper live ads of the same model
+  (year +-1, no more km: `getCheaperSimilar`), km above normal, risk
+  reasons, long on sale, an earlier drop, tyres of a 5+ year-old bike.
+  Visit: a checklist item marked "Problema" takes its repair cost
+  (`repairCost`, tyres/chain/service from the running costs) off the
+  opening and the ceiling; documents, registry, cold start and test ride
+  are blockers, not prices.
 - Distance from home: `places` (towns, municipalities, districts with
   coordinates; GeoNames CC BY 4.0), `user_home` (one place per account,
   set in Mais), `place_key()` (= the app's `placeKey`, keep them equal),
@@ -427,7 +436,10 @@ functions for manual work.
 
 ## Alerts
 
-Types: `new_listing`, `price_reduction` (>= 1% drop, one per price-history
+Types: `target_price_reached` (a favourite's `target_price`, set from
+"Quanto oferecer": the listing is live at that price or less, at a price
+seen after `target_set_at` (stamped by a trigger); old_price = the target,
+one alert per target), `new_listing`, `price_reduction` (>= 1% drop, one per price-history
 row), `excellent_opportunity` (score >= 80, risk < 50, one per user/listing,
 `excellent_since`), `listing_removed` (only for listings the user was already
 alerted about), `back_on_market` (a relist of an ad the person followed:

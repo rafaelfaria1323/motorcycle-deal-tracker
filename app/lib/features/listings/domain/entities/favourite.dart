@@ -10,6 +10,7 @@ class Favourite extends Equatable {
     required this.createdAt,
     this.note,
     this.checklist = const {},
+    this.targetPrice,
     this.listing,
   });
 
@@ -23,6 +24,10 @@ class Favourite extends Equatable {
   /// items not looked at yet are missing.
   final Map<String, ChecklistEntry> checklist;
 
+  /// The price the user would pay: when the listing drops to it or below,
+  /// an alert says so ("Chegou ao seu preço"). Null when not set.
+  final double? targetPrice;
+
   /// The listing itself, when it was loaded with the favourite.
   final Listing? listing;
 
@@ -31,6 +36,7 @@ class Favourite extends Equatable {
     createdAt: createdAt,
     note: note,
     checklist: checklist,
+    targetPrice: targetPrice,
     listing: listing,
   );
 
@@ -39,11 +45,28 @@ class Favourite extends Equatable {
     createdAt: createdAt,
     note: note,
     checklist: checklist,
+    targetPrice: targetPrice,
+    listing: listing,
+  );
+
+  Favourite withTargetPrice(double? targetPrice) => Favourite(
+    listingId: listingId,
+    createdAt: createdAt,
+    note: note,
+    checklist: checklist,
+    targetPrice: targetPrice,
     listing: listing,
   );
 
   @override
-  List<Object?> get props => [listingId, createdAt, note, checklist, listing];
+  List<Object?> get props => [
+    listingId,
+    createdAt,
+    note,
+    checklist,
+    targetPrice,
+    listing,
+  ];
 }
 
 enum ChecklistMark { ok, issue }

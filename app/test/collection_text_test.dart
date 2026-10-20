@@ -62,10 +62,7 @@ void main() {
 
   test('a time slightly in the future (clock skew) reads as 0 min', () {
     final now = DateTime.utc(2026, 10, 19, 12);
-    expect(
-      agoText(now.add(const Duration(minutes: 3)), now: now),
-      'há 0 min',
-    );
+    expect(agoText(now.add(const Duration(minutes: 3)), now: now), 'há 0 min');
   });
 
   test('hours turn into days at exactly 48 h', () {
