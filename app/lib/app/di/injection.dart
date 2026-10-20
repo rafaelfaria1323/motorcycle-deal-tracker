@@ -66,33 +66,32 @@ void configureDependencies() {
     )
     ..registerLazySingleton<FavouritesCubit>(
       () => FavouritesCubit(getIt<FavouritesRepository>()),
+    )
+    ..registerFactory(() => AccountCubit(getIt<SupabaseClient>()))
+    ..registerLazySingleton(() => SessionCubit.of(getIt<SupabaseClient>()))
+    ..registerLazySingleton(CompareCubit.new)
+    ..registerLazySingleton<CollectorRunsRepository>(
+      () => SupabaseCollectorRunsRepository(getIt<SupabaseClient>()),
+    )
+    ..registerLazySingleton(
+      () => CollectorStatusCubit(getIt<CollectorRunsRepository>()),
+    )
+    ..registerLazySingleton<SourceQualityRepository>(
+      () => SupabaseSourceQualityRepository(getIt<SupabaseClient>()),
+    )
+    ..registerLazySingleton<MarketBehaviourRepository>(
+      () => SupabaseMarketBehaviourRepository(getIt<SupabaseClient>()),
+    )
+    ..registerLazySingleton<HomeRepository>(
+      () => SupabaseHomeRepository(getIt<SupabaseClient>()),
+    )
+    ..registerLazySingleton<DealerRepository>(
+      () => SupabaseDealerRepository(getIt<SupabaseClient>()),
+    )
+    ..registerLazySingleton<OwnershipSettingsRepository>(
+      () => SupabaseOwnershipSettingsRepository(getIt<SupabaseClient>()),
+    )
+    ..registerLazySingleton<CatalogRepository>(
+      () => SupabaseCatalogRepository(getIt<SupabaseClient>()),
     );
-
-  getIt.registerFactory(() => AccountCubit(Supabase.instance.client));
-  getIt.registerLazySingleton(() => SessionCubit.of(getIt<SupabaseClient>()));
-  getIt.registerLazySingleton(CompareCubit.new);
-  getIt.registerLazySingleton<CollectorRunsRepository>(
-    () => SupabaseCollectorRunsRepository(Supabase.instance.client),
-  );
-  getIt.registerLazySingleton(
-    () => CollectorStatusCubit(getIt<CollectorRunsRepository>()),
-  );
-  getIt.registerLazySingleton<SourceQualityRepository>(
-    () => SupabaseSourceQualityRepository(Supabase.instance.client),
-  );
-  getIt.registerLazySingleton<MarketBehaviourRepository>(
-    () => SupabaseMarketBehaviourRepository(Supabase.instance.client),
-  );
-  getIt.registerLazySingleton<HomeRepository>(
-    () => SupabaseHomeRepository(Supabase.instance.client),
-  );
-  getIt.registerLazySingleton<DealerRepository>(
-    () => SupabaseDealerRepository(Supabase.instance.client),
-  );
-  getIt.registerLazySingleton<OwnershipSettingsRepository>(
-    () => SupabaseOwnershipSettingsRepository(Supabase.instance.client),
-  );
-  getIt.registerLazySingleton<CatalogRepository>(
-    () => SupabaseCatalogRepository(Supabase.instance.client),
-  );
 }
