@@ -107,6 +107,33 @@ void main() {
       expect(plan.searches, [a]);
     });
 
+    test('a search read in full that returned no listing removes nothing', () {
+      final plan = removalPlan(
+        batch(
+          [],
+          manifest: const SearchManifest(planned: [a], files: {'a.html': a}),
+        ),
+      );
+
+      expect(plan.skipReason, 'no search was read in full');
+    });
+
+    test('a problem in a search outside the plan still keeps unkeyed ones', () {
+      final plan = removalPlan(
+        batch(
+          [mapped('1', search: a)],
+          issues: [const ParseIssue(0, 'missing page', search: b)],
+          manifest: const SearchManifest(
+            planned: [a],
+            files: {'a.html': a, 'b.html': b},
+          ),
+        ),
+      );
+
+      expect(plan.searches, [a]);
+      expect(plan.includeUnkeyed, isFalse);
+    });
+
     test('a problem no search owns stops all removal', () {
       final plan = removalPlan(
         batch(

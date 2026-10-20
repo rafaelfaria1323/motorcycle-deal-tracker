@@ -98,7 +98,13 @@ String? cleanDescription(Object? html) {
       .replaceAll(_blockEnd, '\n')
       .replaceAll(_listItem, '- ')
       .replaceAll(_tag, '')
-      .replaceAllMapped(_charCode, (m) => String.fromCharCode(int.parse(m[1]!)))
+      .replaceAllMapped(_charCode, (m) {
+        // Not a Unicode code point (or too big for an int): keep the text.
+        final code = int.tryParse(m[1]!);
+        return code == null || code > 0x10FFFF
+            ? m[0]!
+            : String.fromCharCode(code);
+      })
       .replaceAll('&nbsp;', ' ')
       .replaceAll('&lt;', '<')
       .replaceAll('&gt;', '>')

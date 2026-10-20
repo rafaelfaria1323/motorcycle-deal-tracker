@@ -18,6 +18,8 @@ void main() {
     expect(asInt(7), 7);
     expect(asInt(7.9), 7);
     expect(asInt('7'), isNull);
+    expect(asInt(double.infinity), isNull);
+    expect(asInt(double.nan), isNull);
   });
 
   test('asTime reads ISO 8601 as UTC and ignores the rest', () {
