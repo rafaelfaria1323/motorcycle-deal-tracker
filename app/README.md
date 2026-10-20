@@ -22,6 +22,8 @@ Cloudflare Pages on every merge that touches `app/`
   points to check when seeing the bike, each "Está bem" or "Problema" with
   a note), score with the reasons behind it, "Quanto oferecer"
   (where to start and the most to pay, with the reasons), risks, the same bike on the other site, the comparison with a new one,
+  "O stand" for dealers (what we have seen of its ads on both sites:
+  relists, sharp price changes, missing mileage, repeated ads, price drops),
   "Custo de ter esta mota" (yearly cost: depreciation, IUC, your insurance,
   tyres, services, chain; "Alterar" sets your insurance, km per year and
   years to keep, saved to your account),

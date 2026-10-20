@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/di/injection.dart';
+import '../../../../app/theme/app_theme.dart';
 import '../../../../core/widgets/show_message.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/entities/market_behaviour.dart';
@@ -209,7 +210,6 @@ class _SettingsDialogState extends State<_SettingsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return AlertDialog(
       title: const Text('Os seus valores'),
       content: SizedBox(
@@ -230,7 +230,7 @@ class _SettingsDialogState extends State<_SettingsDialog> {
                 Text(
                   'Use números inteiros: seguro até 20 000 €, até '
                   '100 000 km por ano, de 1 a 15 anos.',
-                  style: TextStyle(color: theme.colorScheme.error),
+                  style: AppTheme.errorText(context),
                 ),
             ],
           ),
