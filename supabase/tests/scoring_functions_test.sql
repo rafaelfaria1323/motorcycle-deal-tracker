@@ -11,6 +11,9 @@ begin
   assert public.price_score(9500, 10000) = 75, '5 % below';
   assert public.price_score(10500, 10000) = 25, '5 % above';
   assert public.price_score(9000, 10000) = 100, '10 % below is the top';
+  -- The views use 2.5 points per percent: the top at 20 % below.
+  assert public.price_score(9000, 10000, 2.5) = 75, '10 % below at 2.5 points';
+  assert public.price_score(8000, 10000, 2.5) = 100, '20 % below is the top';
   assert public.price_score(5000, 10000) = 100, 'clamped at 100';
   assert public.price_score(12000, 10000) = 0, 'clamped at 0';
   assert public.price_score(null, 10000) is null, 'no price';
@@ -40,11 +43,29 @@ begin
   assert (r.breakdown ->> 'slices_used')::int = 3, 'three slices used';
   assert (r.breakdown -> 'scores' ->> 'year_mileage')::numeric = 65, 'year/mileage blend';
   assert (r.breakdown -> 'scores' ->> 'risk')::numeric = 80, 'risk is inverted';
-  assert not (r.breakdown -> 'scores') ? 'equipment', 'no equipment, no slice';
+  assert (r.breakdown ->> 'slices_total')::int = 3, 'three slices exist';
+  assert (r.breakdown ->> 'equipment_bonus')::int = 0, 'no extras, no bonus';
 
-  select * into r from public.combine_deal_score(80, 50, 100, 20, 90);
-  assert r.deal_score = 78, format('with equipment, got %s', r.deal_score);
-  assert (r.breakdown -> 'weights' ->> 'equipment')::numeric = 15, 'equipment weight';
+  -- Extras add 2 points each, at most 10, after the average.
+  select * into r from public.combine_deal_score(80, 50, 100, 20, 2);
+  assert r.deal_score = 79, format('two extras, got %s', r.deal_score);
+  select * into r from public.combine_deal_score(80, 50, 100, 20, 9);
+  assert r.deal_score = 85, format('at most 10 points, got %s', r.deal_score);
+  -- An extra never lowers a good score (as a slice it did: 90 -> 87).
+  select * into r from public.combine_deal_score(100, 85, 30, 0);
+  assert r.deal_score = 90, format('without extras, got %s', r.deal_score);
+  select * into r from public.combine_deal_score(100, 85, 30, 0, 1);
+  assert r.deal_score = 92, format('one extra raises it, got %s', r.deal_score);
+  select * into r from public.combine_deal_score(100, 100, 100, 0, 5);
+  assert r.deal_score = 100, 'never above 100';
+
+  -- Without the price slice, at most 70.
+  select * into r from public.combine_deal_score(null, 100, 100, 0, 3);
+  assert r.deal_score = 70, format('no price, got %s', r.deal_score);
+  assert (r.breakdown ->> 'capped_without_price')::boolean, 'the cap is noted';
+  select * into r from public.combine_deal_score(null, 50, 50, 50);
+  assert r.deal_score = 50 and not (r.breakdown ->> 'capped_without_price')::boolean,
+    'under the cap nothing changes';
 
   select * into r from public.combine_deal_score(null, 40, null, null);
   assert r.deal_score = 40, 'mileage alone is the year/mileage slice';
@@ -54,14 +75,14 @@ begin
   assert r.deal_score is null, 'nothing known, no score';
   assert r.breakdown -> 'scores' = '{}'::jsonb, 'empty breakdown';
 
-  -- age_mileage_factor: 4 %/year, 0.2 %/1000 km, kept within 0.6..1.6.
+  -- age_mileage_factor: 4 %/year, 0.2 %/1000 km, kept within 0.35..2.5.
   assert public.age_mileage_factor(0, 0) = 1, 'same bike';
   assert public.age_mileage_factor(null, null) = 1, 'unknown differences';
   assert round(public.age_mileage_factor(1, 0), 4) = 1.0408, 'one year newer';
   assert round(public.age_mileage_factor(0, 10000), 4) = 0.9802, '10 000 km more';
   assert round(public.age_mileage_factor(0, 10000, 0.04, 0.01), 4) = 0.9048, 'own mileage rate';
-  assert public.age_mileage_factor(-100, 0) = 0.6, 'floor';
-  assert public.age_mileage_factor(100, 0) = 1.6, 'ceiling';
+  assert public.age_mileage_factor(-100, 0) = 0.35, 'floor';
+  assert public.age_mileage_factor(100, 0) = 2.5, 'ceiling';
 
   -- duplicate_similarity: mileage 40, price 20, place 20, text 30, dealer 10.
   assert public.duplicate_similarity(
@@ -90,6 +111,18 @@ begin
     'Teve um acidente ligeiro.', 'Lisboa');
   assert r.risk_score = 55 and r.reasons = array['possible_accident', 'price_below_market'],
     format('20 %% below and an accident, got %s %s', r.risk_score, r.reasons);
+
+  -- The usual ways of saying there was no accident.
+  for i in 1..9 loop
+    assert not public.mentions_accident((array[
+      'Nunca teve acidentes.', 'Sem quedas nem acidentes.', 'Não tem qualquer sinistro.',
+      'Nunca foi batida.', 'Sem qualquer acidente.', 'Livre de sinistros.',
+      'Sem historial de acidentes.', 'Seguro contra todos os riscos e sinistros.',
+      'Sem sinistros, sem danos.'])[i]), format('case %s is no accident', i);
+  end loop;
+  assert public.mentions_accident('Teve uma queda ligeira e um acidente em 2022.'), 'an accident';
+  assert public.mentions_accident('Bateu de frente, carenagem nova.'), 'bateu';
+  assert public.mentions_accident('Sem garantia. Teve um sinistro.'), 'a "sem" elsewhere does not hide it';
 
   select * into r from public.risk_assessment(null, null, null, null, null, null);
   assert r.risk_score = 30 and r.reasons = array['no_mileage', 'no_year', 'no_location'],
@@ -151,6 +184,10 @@ begin
          = '{}', 'one year off (built and registered) is fine';
   assert public.text_contradictions('Revisão feita em 2018.', 2021, null, null, null)
          = '{}', 'other years in the text are not the bike''s';
+  assert public.text_contradictions('IUC e inspeção pagos até ao ano de 2027.', 2019, null, null, null)
+         = '{}', 'a date still to come is no registration year';
+  assert public.text_contradictions('Ano 2099.', 2019, null, null, null)
+         = '{}', 'a future year is not the bike''s';
 
   assert public.text_contradictions('Tem 30 mil km, sempre na garagem.', 2021, 12000, null, null)
          = array['text_mileage_mismatch'], '30 mil km in the text, 12 000 in the field';

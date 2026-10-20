@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/di/injection.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/widgets/show_message.dart';
+import '../../../../core/widgets/section_card.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/entities/market_behaviour.dart';
 import '../../domain/entities/ownership_settings.dart';
@@ -82,65 +83,26 @@ class _OwnershipCostCardState extends State<OwnershipCostCard> {
         if (cost == null) return const SizedBox.shrink();
 
         final theme = Theme.of(context);
-        final muted = theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        );
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 8, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Custo de ter esta mota',
-                        style: theme.textTheme.titleMedium,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => _edit(settings),
-                      child: const Text('Alterar'),
-                    ),
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        ownershipHeadline(cost),
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(ownershipTotalLine(cost)),
-                      const SizedBox(height: 8),
-                      for (final line in ownershipLines(
-                        cost,
-                        year: listing.year,
-                      ))
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('•  '),
-                              Expanded(child: Text(line)),
-                            ],
-                          ),
-                        ),
-                      const SizedBox(height: 4),
-                      Text(ownershipFootnote(cost), style: muted),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+        return SectionCard(
+          title: 'Custo de ter esta mota',
+          action: TextButton(
+            onPressed: () => _edit(settings),
+            child: const Text('Alterar'),
           ),
+          footnote: ownershipFootnote(cost),
+          children: [
+            Text(
+              ownershipHeadline(cost),
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(ownershipTotalLine(cost)),
+            const SizedBox(height: 8),
+            for (final line in ownershipLines(cost, year: listing.year))
+              BulletLine(line),
+          ],
         );
       },
     );

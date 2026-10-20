@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/di/injection.dart';
+import '../../../../core/widgets/section_card.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/entities/market_behaviour.dart';
 import '../../../../core/formatting/formatters.dart';
@@ -60,80 +61,76 @@ class _OfferCardState extends State<OfferCard> {
         if (offer == null) return const SizedBox.shrink();
 
         final theme = Theme.of(context);
-        final muted = theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        );
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Quanto oferecer', style: theme.textTheme.titleMedium),
-                const SizedBox(height: 8),
-                Text(
-                  offer.headline,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                for (final (i, step) in offer.steps.indexed)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Row(
-                      children: [
-                        Expanded(child: Text('${i + 1}. ${step.label}')),
-                        Text(
-                          Formatters.price(step.price),
-                          style: theme.textTheme.titleSmall,
-                        ),
-                      ],
-                    ),
-                  ),
-                const SizedBox(height: 8),
-                for (final reason in offer.reasons)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('•  '),
-                        Expanded(child: Text(reason)),
-                      ],
-                    ),
-                  ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _counter,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'O vendedor pediu',
-                    suffixText: '€',
-                  ),
-                  onChanged: (_) => setState(() {}),
-                ),
-                if (parseCounterOffer(_counter.text) case final counter?)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      offer.replyTo(counter),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 8),
-                Text(
-                  'Estimativa a partir dos preços pedidos, não de vendas. '
-                  'Veja a mota antes de fazer uma proposta.',
-                  style: muted,
-                ),
-              ],
+        final reply = parseCounterOffer(_counter.text);
+        return SectionCard(
+          title: 'Quanto oferecer',
+          footnote:
+              'Estimativa a partir dos preços pedidos, não de vendas. '
+              'Veja a mota antes de fazer uma proposta.',
+          children: [
+            Text(
+              offer.headline,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.primary,
+              ),
             ),
-          ),
+            const SizedBox(height: 12),
+            for (final (i, step) in offer.steps.indexed)
+              _StepRow(number: i + 1, step: step),
+            const SizedBox(height: 8),
+            for (final reason in offer.reasons) BulletLine(reason),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _counter,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'O vendedor pediu',
+                suffixText: '€',
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
+            if (reply != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                offer.replyTo(reply),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ],
+          ],
         );
       },
+    );
+  }
+}
+
+/// "1  Primeira proposta ........ 7 950 €": one offer of the plan.
+class _StepRow extends StatelessWidget {
+  const _StepRow({required this.number, required this.step});
+
+  final int number;
+  final OfferStep step;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 11,
+            backgroundColor: theme.colorScheme.surfaceContainerHighest,
+            child: Text('$number', style: theme.textTheme.labelSmall),
+          ),
+          const SizedBox(width: 10),
+          Expanded(child: Text(step.label)),
+          Text(Formatters.price(step.price), style: theme.textTheme.titleSmall),
+        ],
+      ),
     );
   }
 }

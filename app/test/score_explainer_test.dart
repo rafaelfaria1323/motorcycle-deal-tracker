@@ -54,10 +54,10 @@ void main() {
           'market_listing_count': 5,
           'risk_reasons': <String>[],
           'slices_used': 3,
-          'slices_total': 6,
+          'slices_total': 3,
         },
       ),
-      currentYear: 2026,
+      today: DateTime(2026, 12, 31),
     )!;
 
     expect(explanation.label, 'Excelente');
@@ -86,7 +86,7 @@ void main() {
           'risk_reasons': ['possible_accident', 'no_mileage'],
         },
       ),
-      currentYear: 2026,
+      today: DateTime(2026, 12, 31),
     )!;
 
     expect(explanation.label, 'Fraco');
@@ -119,17 +119,36 @@ void main() {
         ),
       ),
     );
+    expect(
+      ScoreExplainer.explain(
+        _listing(
+          dealScore: 80,
+          breakdown: {
+            'extras': ['exhaust', 'heated_grips'],
+            'equipment_bonus': 4,
+          },
+        ),
+      )!.lines.single.text,
+      'Extras indicados (+4): escape desportivo, punhos aquecidos',
+    );
     expect(extrasText(const {'extras': <String>[]}), isNull);
     expect(extrasText(null), isNull);
   });
 
+  test('a score without the price comparison says it is capped', () {
+    final lines = ScoreExplainer.explain(
+      _listing(dealScore: 70, breakdown: {'capped_without_price': true}),
+    )!.lines;
+    expect(lines.single.text, contains('no máximo em 70'));
+  });
+
   group('mileage against the bike\'s age (5 000 km a year is normal)', () {
-    ExplanationLine? line(int? km, int? year) => mileageForAge(km, year, 2026);
+    ExplanationLine? line(int? km, int? year) => mileageForAge(km, year, 2027);
 
     test('the normal grows with age, at least one year\'s', () {
-      expect(expectedMileage(2026, 2026), 5000);
-      expect(expectedMileage(2025, 2026), 7500);
-      expect(expectedMileage(2016, 2026), 52500);
+      expect(expectedMileage(2026, 2027), 5000);
+      expect(expectedMileage(2025, 2027), 7500);
+      expect(expectedMileage(2016, 2027), 52500);
     });
 
     test('bands: low, normal, above, far above', () {
@@ -140,6 +159,19 @@ void main() {
       expect(line(10000, 2025)!.text, startsWith('Km acima do normal'));
       expect(line(20000, 2025)!.text, startsWith('Muitos km para o ano'));
       expect(line(20000, 2025)!.text, contains('normal: cerca de'));
+    });
+
+    test('counted in days: no jump on 1 January', () {
+      final dec31 = expectedMileage(2024, decimalYear(DateTime(2025, 12, 31)));
+      final jan1 = expectedMileage(2024, decimalYear(DateTime(2026)));
+      expect((jan1 - dec31).abs(), lessThan(20));
+      expect(decimalYear(DateTime(2026, 7, 2)), closeTo(2026.5, 0.01));
+    });
+
+    test('up to 10 % over the normal is still normal', () {
+      // 2022 at the start of 2027: 4.5 years, 22 500 km.
+      expect(line(24000, 2022)!.text, startsWith('Km normais'));
+      expect(line(27000, 2022)!.text, startsWith('Km acima do normal'));
     });
 
     test('without a year only a low mileage is said; nothing without km', () {

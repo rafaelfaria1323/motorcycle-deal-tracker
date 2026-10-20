@@ -346,7 +346,9 @@ functions for manual work.
 ## Scoring model
 
 - Fair value per listing (`listing_fair_prices`): median of the OTHER live
-  listings of the same model, each adjusted with `age_mileage_factor` using
+  listings of the same model (only those within 3 years of the listing's
+  when there are at least 5 of them; ads under 300 € never count), each
+  adjusted with `age_mileage_factor` (x0.35-2.5) using
   the model's own rates (`model_depreciation`): least-squares fit of
   ln(price) on year and mileage over its live listings, from 30 listings,
   clamped (0-15 %/year, 0-1 %/1000 km) and blended with the general rates
@@ -355,28 +357,36 @@ functions for manual work.
   prices understate mileage). Comparables without year or mileage are left
   out when the listing has them. The app says the estimate comes from
   asking prices.
-  Price score needs >= 2 comparables; risk price signal needs >= 3.
-- Deal score = weighted average of available slices: price 35, year/mileage 20
-  (70% mileage, judged against the bike's age: `mileage_use_score`, normal =
-  5 000 km a year from mid-year registration, at least one year's
-  (`expected_mileage`); 100 up to half the normal, 75 at it, 50 at 1.5x, 0
-  from 2.5x; the app's `mileageForAge` says the same in words, keep both in
-  step), risk 10 (inverted), equipment 15 (`listing_extras`: keywords
-  in variant/description for quickshifter, exhaust, luggage, heated grips,
-  protection (also "cogumelos"), new tyres, short plate holder, tinted or
-  sport screen, adjustable levers, bar-end mirrors, phone mount/USB,
-  alarm/tracker, steering damper, centre stand, cruise control, upgraded
-  suspension, LED indicators, passenger grab handles, original parts
-  included (so it can go back to stock); codes never change, the app's `extraLabels`
-  and the saved-search check list the same; 70 for one, +10 each, max 100;
-  none found = slice skipped, never a penalty). Missing slices are skipped.
-- Risk signals: price far below market, possible accident (text), missing
+  Price score (2.5 points per %: 0 / 100 at 20 % above / below) and the
+  risk's price signal need >= 3 comparables; so does the app's offer.
+- Deal score = weighted average of the available slices: price 35,
+  year/mileage 20 (70% mileage, judged against the bike's age:
+  `mileage_use_score`, normal = 5 000 km a year from mid-year registration,
+  at least one year's, age counted in days (`decimal_year`, so nothing
+  jumps on 1 January) (`expected_mileage`); 100 up to half the normal, 75
+  at it, 50 at 1.5x, 0 from 2.5x; no mileage but a year: 50; the app's
+  `mileageForAge` says the same in words, keep both in step), risk 10
+  (inverted); then + 2 points per extra found, at most + 10, never above
+  100 (`listing_extras`: keywords in variant/description for quickshifter,
+  exhaust, luggage, heated grips, protection (also "cogumelos"), new tyres,
+  short plate holder, tinted or sport screen, adjustable levers, bar-end
+  mirrors, phone mount/USB, alarm/tracker, steering damper, centre stand,
+  cruise control, upgraded suspension, LED indicators, passenger grab
+  handles, original parts included (so it can go back to stock); codes
+  never change, the app's `extraLabels` and the saved-search check list the
+  same). Extras are a bonus, not a slice: as a slice they lowered good
+  scores. Without the price slice the score is at most 70
+  (`capped_without_price`). Missing slices are skipped.
+- Risk signals: price far below market, possible accident (text,
+  `mentions_accident`: "nunca teve acidentes", "livre de sinistros" and
+  insurance wording don't count), missing
   mileage/year/location, thin description (only private sellers with details
   read), 3+ owners, no service book, imported, implausible mileage (under
   100 km on a bike 3+ years old, or over 25 000 km a year), relisted (5;
   `relisted_often` 10: twice, or on sale for over 90 days counting the
   earlier ads), the text contradicting the ad's fields
-  (`text_contradictions`: year 2+ apart, more km, imported, no service
+  (`text_contradictions`: year 2+ apart (not a year still to come or after
+  "até"), more km, imported, no service
   book; 10 each); reassuring: first owner,
   service book, factory warranty (negative points, floor 0).
 - Market behaviour per model (`model_market_behaviour`): time until leaving

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/di/injection.dart';
+import '../../../../core/widgets/section_card.dart';
 import '../../domain/entities/dealer_reliability.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/repositories/dealer_repository.dart';
@@ -45,40 +46,16 @@ class _DealerCardState extends State<DealerCard> {
         final dealer = snapshot.data;
         if (dealer == null) return const SizedBox.shrink();
 
-        final theme = Theme.of(context);
-        final muted = theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        );
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('O stand', style: theme.textTheme.titleMedium),
-                const SizedBox(height: 8),
-                Text(dealerHeadline(dealer)),
-                const SizedBox(height: 8),
-                for (final line in dealerLines(dealer))
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('•  '),
-                        Expanded(child: Text(line)),
-                      ],
-                    ),
-                  ),
-                const SizedBox(height: 4),
-                Text(
-                  'Dos anúncios deste stand que acompanhamos (só dos '
-                  'modelos seguidos), nos dois sites.',
-                  style: muted,
-                ),
-              ],
-            ),
-          ),
+        return SectionCard(
+          title: 'O stand',
+          footnote:
+              'Dos anúncios deste stand que acompanhamos (só dos modelos '
+              'seguidos), nos dois sites.',
+          children: [
+            Text(dealerHeadline(dealer)),
+            const SizedBox(height: 8),
+            for (final line in dealerLines(dealer)) BulletLine(line),
+          ],
         );
       },
     );

@@ -86,9 +86,9 @@ Initial price, current price, every change with date, percentage, and time onlin
 
 | Factor | Weight | Status |
 |---|---:|---|
-| Price vs market | 35% | ✅ fair value adjusted for age and mileage (per-model rates) |
+| Price vs market | 35% | ✅ fair value adjusted for age and mileage (per-model rates, comparables within 3 years when enough), from 3 comparables; without it the score is at most 70 (15.18) |
 | Year / mileage | 20% | ✅ |
-| Version / equipment | 15% | ✅ extras named in the ad (no penalty when none); the version itself is not scored |
+| Version / equipment | 15% | 🔄 a bonus instead (15.18): +2 points per extra named in the ad, at most +10 (as a weighted slice it lowered good scores); the version itself is not scored |
 | Seller / confidence | 10% | ⬜ |
 | Market / listing behaviour | 10% | ⬜ data being collected |
 | Risk indicators | 10% | ✅ |
@@ -128,7 +128,7 @@ All four types, each at most once per event, only for events after the search wa
 
 ## 18. Listing Detail Page ✅
 
-✅ Photos (gallery, full screen), price, year, mileage, location, seller, seller type, source, original link, Deal Score, Risk Score, explanation, estimated value, price history, first/last seen, status, new-motorcycle comparison. ➕ Owners, service book, origin, warranty, publication date, full description, market behaviour card (with depreciation and where the asking price sits among the model's live listings), "also listed as" duplicates. *Sections ordered for a decision (score and risks first, history last); the button to the ad stays at the bottom of the screen.*
+✅ Photos (gallery, full screen), price, year, mileage, location, seller, seller type, source, original link, Deal Score, Risk Score, explanation, estimated value, price history, first/last seen, status, new-motorcycle comparison. ➕ Owners, service book, origin, warranty, publication date, full description, market behaviour card (with depreciation and where the asking price sits among the model's live listings), "also listed as" duplicates. *The Deal Score and its verdict sit beside the price; below, four parts picked at the top (Avaliação, Negociar, Mercado, Detalhes, 15.17) instead of one long list of cards; the button to the ad stays at the bottom of the screen.*
 
 ## 19. New Motorcycle Comparison 🟡
 

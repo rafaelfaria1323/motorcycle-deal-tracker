@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/di/injection.dart';
 import '../../../../core/formatting/formatters.dart';
+import '../../../../core/widgets/section_card.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/repositories/listings_repository.dart';
 import '../listing_labels.dart';
@@ -28,28 +29,19 @@ class _AlsoListedSectionState extends State<AlsoListedSection> {
         final others = snapshot.data;
         if (others == null || others.isEmpty) return const SizedBox.shrink();
 
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Também anunciada em',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                for (final other in others)
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(sourceLabel(other.source)),
-                    subtitle: Text(other.location ?? 'Local não indicado'),
-                    trailing: Text(Formatters.price(other.price)),
-                    onTap: () => launchUrl(Uri.parse(other.url)),
-                  ),
-              ],
-            ),
-          ),
+        return SectionCard(
+          title: 'Também anunciada em',
+          children: [
+            for (final other in others)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                dense: true,
+                title: Text(sourceLabel(other.source)),
+                subtitle: Text(other.location ?? 'Local não indicado'),
+                trailing: Text(Formatters.price(other.price)),
+                onTap: () => launchUrl(Uri.parse(other.url)),
+              ),
+          ],
         );
       },
     );

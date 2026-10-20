@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/di/injection.dart';
+import '../../../../core/widgets/section_card.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/entities/market_behaviour.dart';
 import '../../domain/repositories/market_behaviour_repository.dart';
@@ -65,34 +66,23 @@ class _MarketBehaviourSectionState extends State<MarketBehaviourSection> {
         final days = since == null
             ? null
             : DateTime.now().difference(since).inDays;
-        final theme = Theme.of(context);
 
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Mercado deste modelo',
-                  style: theme.textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                if (priceLine != null) _Line(priceLine),
-                if (position != null) ...[
-                  const SizedBox(height: 4),
-                  PricePositionStrip(position: position),
-                  const SizedBox(height: 8),
-                ],
-                for (final line in marketLines(
-                  market,
-                  daysListed: days,
-                  firstSeenOnly: widget.listing.publishedAt == null,
-                ))
-                  _Line(line),
-              ],
-            ),
-          ),
+        return SectionCard(
+          title: 'Mercado deste modelo',
+          children: [
+            if (priceLine != null) _Line(priceLine),
+            if (position != null) ...[
+              const SizedBox(height: 4),
+              PricePositionStrip(position: position),
+              const SizedBox(height: 8),
+            ],
+            for (final line in marketLines(
+              market,
+              daysListed: days,
+              firstSeenOnly: widget.listing.publishedAt == null,
+            ))
+              _Line(line),
+          ],
         );
       },
     );
@@ -105,21 +95,6 @@ class _Line extends StatelessWidget {
   final String text;
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.insights_outlined,
-            size: 18,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(width: 8),
-          Expanded(child: Text(text)),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) =>
+      BulletLine(text, icon: Icons.insights_outlined);
 }
