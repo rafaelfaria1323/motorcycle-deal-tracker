@@ -230,8 +230,8 @@ Do not implement several unrelated features at once.
 *A yearly estimate on the listing page: IUC (by engine size and registration year, Portuguese table), insurance band (owner enters their own quote once; stored per account), tyres and services from km/year, and the depreciation already fitted per model (`model_depreciation`). Gives "custa cerca de X € por ano" and the total for the years the owner plans to keep it. Tables in one pure Dart file with tests; the IUC table needs checking each year.*
 ## 15.5 Relisted as a risk signal ✅
 *Two risk reasons from the relist links of 20.2 (`mark_relists`): `relisted` (5 points) for a bike put up again after its ad went, `relisted_often` (10) when that happened twice (this ad's previous ad was itself a relist) or the bike has been on sale for over 90 days counting the earlier ads (`relisted_since`). A long time on sale without a relist is not a signal. `risk_assessment` takes two new parameters (`p_relists`, `p_on_sale_since`), so the function and `listing_risk_scores` are created again. The app explains them ("Já esteve à venda noutro anúncio e não foi vendida", "Posta à venda várias vezes ou há mais de 90 dias sem ser vendida"). Tests: `scoring_functions_test.sql` (thresholds), `relists_test.sql` (through the view), `app/test/risk_reasons_test.dart`.*
-## 15.6 Consistency checks in the text ⬜
-*More risk signals from the description against the ad's fields: a year or mileage written in the text that differs from the fields (e.g. "2019" in the text, 2021 in the field; "30 mil km" vs 12 000), "importada" or "matrícula estrangeira" on a national ad, "sem livro" while the field says service book. Each a keyword rule in SQL like `possible_accident`, with literal tests; only clear contradictions count.*
+## 15.6 Consistency checks in the text ✅
+*`text_contradictions(description, year, mileage, origin, service_book)` (pure, immutable, tested with literals) finds clear contradictions between the description and the ad's own fields, each a risk reason of 10 points: `text_year_mismatch` ("ano 2018", "matrícula de 2018" 2 or more years from the year field; one year off is normal, built one year and registered the next; other years in the text such as a service date are not read), `text_mileage_mismatch` ("tem 30 mil km", "com 30.000 km" over 20 % and 2 000 km above the field; fewer km in the text are usually the tyres or a service and don't count), `text_origin_mismatch` ("importada", "matrícula estrangeira/espanhola…" on an ad that says national; "não é importada" doesn't count), `text_service_book_mismatch` ("sem livro" while the ad says service book). Called from `risk_assessment` (same signature). The app explains each one. Tests: `scoring_functions_test.sql`, `app/test/risk_reasons_test.dart`.*
 ## 15.7 Seller / dealer reliability ⬜
 *Fills the empty 10 % "Seller / confidence" slice of the Deal Score (4.7). Per dealer (name kept only for dealers, never private sellers): how often their ads are relisted, sharp price changes, missing mileage, share of duplicates; a private seller gets the neutral value. Needs a few weeks of data per dealer; start by showing the figures, then score them.*
 ## 15.8 Price trends and market slice ⬜
@@ -278,7 +278,7 @@ Do not implement several unrelated features at once.
 # Next
 
 1. Viewing checklist (15.3) for favourites, then the cost of ownership (15.4).
-2. Text contradictions as risk signals (15.6).
+2. Dealer reliability (15.7): show the figures per dealer first.
 3. Deal Score: add the market-behaviour slice (time on market, price drops) once there is enough history; price trends per model (10.3, 15.8).
 4. Saved ads from other sites: update the price or mark sold from their page (after #43).
 

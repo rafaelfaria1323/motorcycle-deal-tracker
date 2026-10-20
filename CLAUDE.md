@@ -323,7 +323,9 @@ functions for manual work.
   read), 3+ owners, no service book, imported, implausible mileage (under
   100 km on a bike 3+ years old, or over 25 000 km a year), relisted (5;
   `relisted_often` 10: twice, or on sale for over 90 days counting the
-  earlier ads); reassuring: first owner,
+  earlier ads), the text contradicting the ad's fields
+  (`text_contradictions`: year 2+ apart, more km, imported, no service
+  book; 10 each); reassuring: first owner,
   service book, factory warranty (negative points, floor 0).
 - Market behaviour per model (`model_market_behaviour`): time until leaving
   the market, share and size of price drops (measured from the higher of the
