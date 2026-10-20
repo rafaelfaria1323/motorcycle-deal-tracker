@@ -10,7 +10,8 @@ For each site (Standvirtual, OLX):
 
 1. **Plan:** the searches of the tracked models, read from the catalog
    (models that share a search share one request).
-2. **Fetch:** the search pages, politely (see the root README) and capped.
+2. **Fetch:** every page of each search (from the earliest tracked year),
+   politely (see the root README) and capped.
 3. **Import:** parse, match each listing to a model, store it, record price
    changes and dates, and mark listings that left the searches read in full
    as removed (`--full`). The brand and model lists in the search pages'

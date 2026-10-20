@@ -48,13 +48,14 @@ Map<String, dynamic> node({
 String searchPage(
   List<Map<String, dynamic>> nodes, {
   int? total,
+  int offset = 0,
   String? bumpDate,
   Map<String, dynamic>? filters,
 }) {
   final search = {
     'advertSearch': {
       'totalCount': total ?? nodes.length,
-      'pageInfo': {'pageSize': 32, 'currentOffset': 0},
+      'pageInfo': {'pageSize': 32, 'currentOffset': offset},
       'topads': <Object>[],
       'edges': [
         for (final n in nodes)
@@ -183,6 +184,40 @@ void main() {
 
     expect(page.isComplete, isFalse);
     expect(page.total, 40);
+    expect(page.totalPages, 2);
+  });
+
+  group('a search over several pages', () {
+    late Directory dir;
+    setUp(() => dir = Directory.systemTemp.createTempSync('standvirtual'));
+    tearDown(() => dir.deleteSync(recursive: true));
+
+    const url = 'https://www.standvirtual.com/motos/yamaha/mt-07';
+    final first = [for (var i = 1; i <= 32; i++) node(id: '$i')];
+
+    test('is incomplete until every page is saved', () async {
+      File(
+        '${dir.path}/p1.html',
+      ).writeAsStringSync(searchPage(first, total: 33));
+      await const SearchManifest(
+        planned: [url],
+        files: {'p1.html': url},
+      ).writeTo(dir.path);
+      final partial = await StandvirtualSearchAdapter(dir.path).read();
+      expect(partial.issues.single.message, contains('holds 32 of 33'));
+      expect(partial.issues.single.search, url);
+
+      File(
+        '${dir.path}/p2.html',
+      ).writeAsStringSync(searchPage([node(id: '33')], total: 33, offset: 32));
+      await const SearchManifest(
+        planned: [url],
+        files: {'p1.html': url, 'p2.html': url},
+      ).writeTo(dir.path);
+      final full = await StandvirtualSearchAdapter(dir.path).read();
+      expect(full.issues, isEmpty);
+      expect(full.records, hasLength(33));
+    });
   });
 
   test('a result without a price is a problem, not a crash', () {

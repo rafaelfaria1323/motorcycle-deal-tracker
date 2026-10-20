@@ -42,7 +42,7 @@ Unchanged.
 
 ## 5. Sources 🟡
 
-- ✅ Standvirtual (search pages + listing pages for details, low-volume personal fetcher).
+- ✅ Standvirtual (every page of each search, from the first tracked year, + listing pages for details, low-volume personal fetcher).
 - ✅ OLX (search result pages, which hold the full description; Standvirtual copies skipped).
 - ⬜ Future: CustoJusto, dealerships, European marketplaces, imports.
 

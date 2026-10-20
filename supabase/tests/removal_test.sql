@@ -52,3 +52,33 @@ begin
   assert (select status from public.listings where source = 'standvirtual') = 'active',
     'the other site''s listing with the same id stays';
 end $$;
+
+-- A listing still under a search address no run reads any more (the
+-- address changed) goes with a run that read every search in full, when its
+-- model is tracked and it is within the model's years.
+insert into public.listings (source, source_listing_id, url, motorcycle_id, brand, model, year, price, search_key)
+select 'standvirtual', v.sid, 'https://z/' || v.sid, m.id, m.brand, m.model, m.min_year - v.before, 6000, v.key
+from public.motorcycles m,
+     (values ('s1', 0, 'new'), ('s2', 0, 'old'), ('s3', 5, 'old')) v(sid, before, key)
+where m.slug = 'yamaha-mt-07';
+insert into public.listings (source, source_listing_id, url, brand, model, year, price, search_key)
+values ('standvirtual', 's4', 'https://z/s4', 'Yamaha', 'Tracer 7', 2024, 6000, 'old');
+
+do $$
+declare
+  removed int;
+begin
+  removed := public.mark_removed_listings('standvirtual', array['s1', 'r6'], 1.0, array['new'], false);
+  assert removed = 0, format('not when a search was cut short, got %s', removed);
+
+  removed := public.mark_removed_listings('standvirtual', array['s1', 'r6'], 1.0, array['new'], true);
+  assert removed = 1, format('only the old-address MT-07, got %s', removed);
+  assert (select status from public.listings where source_listing_id = 's2') = 'removed',
+    's2 (tracked model, old address) is removed';
+  assert (select status from public.listings where source_listing_id = 's3') = 'active',
+    's3 is older than the first tracked year: kept';
+  assert (select status from public.listings where source_listing_id = 's4') = 'active',
+    's4 has no tracked model: kept';
+  assert (select status from public.listings where source = 'standvirtual' and source_listing_id = 'r6') = 'active',
+    'r6 (another address, no model) is kept';
+end $$;

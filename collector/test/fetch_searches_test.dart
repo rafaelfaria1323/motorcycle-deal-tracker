@@ -45,12 +45,36 @@ String _page(int page, int totalPages) {
       '${jsonEncode(jsonEncode(state))};</script>';
 }
 
+/// A Standvirtual search page of a search with [total] listings.
+String _standvirtualPage(int total) {
+  final search = {
+    'advertSearch': {
+      'totalCount': total,
+      'pageInfo': {'pageSize': 32, 'currentOffset': 0},
+      'edges': <Object>[],
+    },
+  };
+  final data = {
+    'props': {
+      'pageProps': {
+        'urqlState': {
+          'a': {'data': jsonEncode(search)},
+        },
+      },
+    },
+  };
+  return '<script id="__NEXT_DATA__" type="application/json">'
+      '${jsonEncode(data)}</script>';
+}
+
 void main() {
   late HttpServer server;
   late Directory dir;
   late FetchSite site;
   final requestTimes = <DateTime>[];
   final paths = <String>[];
+  // What the server answers for a page other than robots.txt.
+  late String Function(int page) answer;
 
   setUp(() async {
     dir = Directory.systemTemp.createTempSync('fetch');
@@ -62,6 +86,7 @@ void main() {
     );
     requestTimes.clear();
     paths.clear();
+    answer = (page) => _page(page, 3);
     server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     server.listen((request) {
       requestTimes.add(DateTime.now());
@@ -71,7 +96,7 @@ void main() {
         ..write(
           request.uri.path == '/robots.txt'
               ? 'User-agent: *\nAllow: /\n'
-              : _page(page ?? 1, 3),
+              : answer(page ?? 1),
         )
         ..close();
     });
@@ -124,6 +149,46 @@ void main() {
     expect(manifest.files.values.toSet(), {'$search'});
     expect(paths.where((p) => p.contains('page=')), hasLength(2));
   });
+
+  test(
+    'a Standvirtual search over 32 listings has its pages fetched',
+    () async {
+      answer = (_) => _standvirtualPage(40);
+      final standvirtual = FetchSite(
+        host: FetchSite.standvirtual.host,
+        pathPrefix: FetchSite.standvirtual.pathPrefix,
+        pageMarker: FetchSite.standvirtual.pageMarker,
+        statePath: '${dir.path}/state.json',
+      );
+      final mt07 = Uri.parse('https://www.standvirtual.com/motos/yamaha/mt-07');
+      final outcome = await local(() async {
+        final fetcher = PoliteFetcher(
+          site: standvirtual,
+          policy: const FetchPolicy(
+            minDelay: Duration.zero,
+            jitter: Duration.zero,
+          ),
+        );
+        await fetcher.prepare();
+        try {
+          return await fetchSearches(
+            fetcher,
+            [mt07],
+            dir.path,
+            out: StringBuffer(),
+          );
+        } finally {
+          fetcher.close();
+        }
+      });
+
+      expect(outcome.saved, 2);
+      expect(paths.last, '/motos/yamaha/mt-07?page=2');
+      expect((await SearchManifest.readFrom(dir.path))!.files.values.toSet(), {
+        '$mt07',
+      });
+    },
+  );
 
   test('the request budget running out keeps what was saved', () async {
     final outcome = await local(() async {

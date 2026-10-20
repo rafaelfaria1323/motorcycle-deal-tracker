@@ -19,7 +19,8 @@ CB300R, CBR500R, CB750 Hornet, CBR600RR. The owner can add more from the app:
 brand and model picked from `site_models` (the sites' filter lists, stored
 by every import from the search pages; view `site_makes` for the brands),
 optional engine size (name "Forza 350", Standvirtual `q-350`, engine range
-+-10 %), searches built from the sites' ids (OLX only when OLX's own list
++-10 %; a model named with a size but added without one gets that size's
+range, `engine_range_from_name`), searches built from the sites' ids (OLX only when OLX's own list
 has the model), or typed by hand.
 
 ## How to work on this project
@@ -275,22 +276,25 @@ functions for manual work.
 
 - **Searches** come from `motorcycles.olx_search` / `standvirtual_search` of
   the tracked models (`planSearches`). Models with the same address share one
-  search; OLX gets `search[filter_float_year:from]` = the earliest
-  `min_year` of those models. Oldest models first, so when the budget runs
+  search, asking for the earliest `min_year` of those models (OLX
+  `search[filter_float_year:from]`, Standvirtual
+  `search[filter_float_first_registration_year:from]`). Every page of a
+  search is read (OLX 40 listings each, Standvirtual 32, `?page=N`). Oldest models first, so when the budget runs
   out the newest models' searches wait.
 - **Removal is per search** (`removalPlan`): each listing stores the search
   that found it (`listings.search_key`); a run removes only listings of the
   searches it read in full. A search with a problem (unreadable page,
   missing pages, stale page, rejected record without an id) or not fetched
-  keeps its listings. Listings with no search key are covered only when
-  every planned search was read in full. Without a manifest (hand-saved
+  keeps its listings. Listings with no search key, or one no planned
+  search has any more (the address changed), are covered only when every
+  planned search was read in full; the latter only for a tracked model and
+  within its years (`in_removal_scope`). Without a manifest (hand-saved
   pages, manual JSON) the whole input must be clean. The database refuses
   to remove more than 50% at once unless forced.
 - **Standvirtual** search pages hold everything except the description
   (including `createdAt` -> `published_at` and the bump date ->
   `site_refreshed_at`; `apply_listing_dates` keeps the earliest publication
-  and latest renewal); one
-  page per search. Listing pages are read only for matched, non-duplicate
+  and latest renewal). Listing pages are read only for matched, non-duplicate
   listings without details (`details_checked_at is null`). The search
   result's `priceDrop` is stored as `price_before_drop` (highest seen, never
   creates alerts).
@@ -305,8 +309,8 @@ functions for manual work.
   words (also without closing letters: "CBR 650" = CBR650R), Honda code
   suffixes (A, AC), per-model `excluded_words` ("tracer" for the MT-07,
   "650f", "125f"), `engine_cc_min/max` as tiebreaker and guard (a model
-  without limits, e.g. added in the app, is never picked by engine size
-  alone). Ambiguous stays unmatched. Every import re-checks the model of
+  without limits is never picked by engine size alone; "350cc" reads as
+  "350"). Ambiguous stays unmatched. Every import re-checks the model of
   the ads it read (`rematch_listings`), so a better rule also fixes
   listings already stored. Switching a model off unmatches its listings at once;
   switching it on matches them again by their stored brand and model

@@ -73,14 +73,19 @@ void main() {
     });
   });
 
-  test('Standvirtual searches are used as they are', () {
+  test('Standvirtual searches ask for the first tracked year', () {
     const url = 'https://www.standvirtual.com/motos/yamaha/mt-07';
     final plan = planSearches(
-      Catalog([model('MT-07', 2023, olx: olxYamaha, standvirtual: url)]),
+      Catalog([
+        model('MT-07', 2023, olx: olxYamaha, standvirtual: '$url?page=2'),
+      ]),
       FetchSite.standvirtual,
     );
 
-    expect(plan.searches.single.url.toString(), url);
+    final search = plan.searches.single.url;
+    expect(search.path, '/motos/yamaha/mt-07');
+    expect(search.queryParameters, {standvirtualYearFrom: '2023'});
+    expect(urlProblem(search, site: FetchSite.standvirtual), isNull);
   });
 
   test('an address the fetcher would refuse is reported, not used', () {
