@@ -86,8 +86,24 @@ class _FiltersSheetState extends State<FiltersSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Filtros', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Filtros',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              // The sheet fills the screen on a phone, so there is no
+              // backdrop to tap: closing keeps the current filters.
+              IconButton(
+                tooltip: 'Fechar',
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           DropdownButtonFormField<String?>(
             initialValue: _motorcycleId,
             decoration: const InputDecoration(
