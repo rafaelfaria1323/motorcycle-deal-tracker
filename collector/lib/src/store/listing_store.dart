@@ -62,6 +62,15 @@ Map<String, Object?> listingRow(NormalizedListing l, String? motorcycleId) {
   };
 }
 
+/// The database id of each catalog entry that has one, by slug.
+Map<String, String> _idBySlug(Catalog catalog) => {
+  for (final e in catalog.entries)
+    if (e.id != null) e.slug: e.id!,
+};
+
+/// The row count a counting RPC returns.
+int _count(Object? rpcResult) => (rpcResult as num).toInt();
+
 class ListingStore {
   ListingStore(this._client);
 
@@ -103,7 +112,7 @@ class ListingStore {
         'p_details': [for (final d in details) d.toJson()],
       },
     );
-    return (result as num).toInt();
+    return _count(result);
   }
 
   /// Inserts listings that are not stored yet. Existing ones (same source and
@@ -122,10 +131,7 @@ class ListingStore {
       );
     }
 
-    final idBySlug = {
-      for (final e in catalog.entries)
-        if (e.id != null) e.slug: e.id!,
-    };
+    final idBySlug = _idBySlug(catalog);
 
     final rows = <Map<String, Object?>>[];
     for (final l in unique) {
@@ -158,13 +164,13 @@ class ListingStore {
   /// Recomputes the stored deal and risk scores (see `recalculate_deal_scores`).
   Future<int> recalculateScores() async {
     final result = await _client.rpc('recalculate_deal_scores');
-    return (result as num).toInt();
+    return _count(result);
   }
 
   /// Flags likely duplicates (see `mark_duplicates`); returns how many.
   Future<int> markDuplicates() async {
     final result = await _client.rpc('mark_duplicates');
-    return (result as num).toInt();
+    return _count(result);
   }
 
   /// Marks listings as seen now (updates last_seen_at); returns how many.
@@ -174,7 +180,7 @@ class ListingStore {
       'mark_listings_seen',
       params: {'p_source': source, 'p_ids': sourceListingIds},
     );
-    return (result as num).toInt();
+    return _count(result);
   }
 
   /// Applies new prices to listings already stored; returns how many changed.
@@ -190,7 +196,7 @@ class ListingStore {
       'apply_price_updates',
       params: {'p_source': source, 'p_prices': prices},
     );
-    return (result as num).toInt();
+    return _count(result);
   }
 
   /// Records what the source says the price was before its last cut (the
@@ -207,7 +213,7 @@ class ListingStore {
       'apply_prices_before_drop',
       params: {'p_source': source, 'p_prices': prices},
     );
-    return (result as num).toInt();
+    return _count(result);
   }
 
   /// Re-checks the model of listings already stored: `save` never updates
@@ -220,10 +226,7 @@ class ListingStore {
     Catalog catalog,
   ) async {
     if (listings.isEmpty) return 0;
-    final idBySlug = {
-      for (final e in catalog.entries)
-        if (e.id != null) e.slug: e.id!,
-    };
+    final idBySlug = _idBySlug(catalog);
     final result = await _client.rpc(
       'rematch_listings',
       params: {
@@ -240,7 +243,7 @@ class ListingStore {
         },
       },
     );
-    return (result as num).toInt();
+    return _count(result);
   }
 
   /// For a complete import: marks live listings missing from [seenIds] as
@@ -263,7 +266,7 @@ class ListingStore {
         'p_include_unkeyed': includeUnkeyed,
       },
     );
-    return (result as num).toInt();
+    return _count(result);
   }
 
   /// Stores the publication and renewal dates the source shows; returns how
@@ -285,7 +288,7 @@ class ListingStore {
       'apply_listing_dates',
       params: {'p_source': source, 'p_dates': dates},
     );
-    return (result as num).toInt();
+    return _count(result);
   }
 
   /// Records the search each stored listing was found by; returns how many
@@ -296,13 +299,13 @@ class ListingStore {
       'set_search_keys',
       params: {'p_source': source, 'p_keys': keys},
     );
-    return (result as num).toInt();
+    return _count(result);
   }
 
   /// Creates the alerts that are due (see `generate_alerts`); returns how many.
   Future<int> generateAlerts() async {
     final result = await _client.rpc('generate_alerts');
-    return (result as num).toInt();
+    return _count(result);
   }
 
   /// Alerts of real accounts not pushed yet, oldest first.
@@ -385,6 +388,6 @@ class ListingStore {
       'mark_alerts_notified',
       params: {'p_ids': alertIds},
     );
-    return (result as num).toInt();
+    return _count(result);
   }
 }
