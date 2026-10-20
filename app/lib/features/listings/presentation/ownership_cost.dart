@@ -187,7 +187,7 @@ String ownershipTotalLine(OwnershipCost c) =>
 /// One line per part of the cost, in the order they are added up.
 List<String> ownershipLines(OwnershipCost c, {int? year}) {
   final t = c.table;
-  final km = Formatters.mileage;
+  const km = Formatters.mileage;
   return [
     'Desvalorização: ${roughPrice(c.depreciation)} por ano '
         '(média de ${c.years} ${c.years == 1 ? 'ano' : 'anos'})',

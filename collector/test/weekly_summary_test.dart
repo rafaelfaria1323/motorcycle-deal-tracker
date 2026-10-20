@@ -2,7 +2,7 @@ import 'package:collector/collector.dart';
 import 'package:test/test.dart';
 
 final until = DateTime.utc(2026, 10, 19, 8);
-final lastWeek = DateTime.utc(2026, 10, 1);
+final lastWeek = DateTime.utc(2026, 10);
 final thisWeek = DateTime.utc(2026, 10, 15);
 
 SummaryListing listing(

@@ -143,7 +143,7 @@ void main() {
   test('reads every listing of a search page', () {
     final page = adapter.parseSearchPage(
       searchPage([
-        node(id: '1', version: 'Abs'),
+        node(version: 'Abs'),
         node(
           id: '2',
           seller: 'PrivateSeller',
@@ -178,7 +178,7 @@ void main() {
 
   test('a page showing fewer listings than the search has is incomplete', () {
     final page = adapter.parseSearchPage(
-      searchPage([node(id: '1'), node(id: '2')], total: 40),
+      searchPage([node(), node(id: '2')], total: 40),
     );
 
     expect(page.isComplete, isFalse);
@@ -186,8 +186,8 @@ void main() {
   });
 
   test('a result without a price is a problem, not a crash', () {
-    final bad = node(id: '3')..['price'] = {'amount': {}};
-    final page = adapter.parseSearchPage(searchPage([node(id: '1'), bad]));
+    final bad = node(id: '3')..['price'] = {'amount': <String, Object?>{}};
+    final page = adapter.parseSearchPage(searchPage([node(), bad]));
 
     expect(page.records.length, 1);
     expect(page.problems.length, 1);
@@ -209,7 +209,7 @@ void main() {
   test('maps through the same rules as a listing page', () {
     final mapper = StandvirtualMapper(catalog, currentYear: 2026);
     final page = adapter.parseSearchPage(
-      searchPage([node(id: '1'), node(id: '2', version: 'tracer')]),
+      searchPage([node(), node(id: '2', version: 'tracer')]),
     );
 
     final slugs = [
@@ -224,7 +224,7 @@ void main() {
     final mapper = StandvirtualMapper(catalog, currentYear: 2026);
     final page = adapter.parseSearchPage(
       searchPage([
-        node(id: '1')..['createdAt'] = '2026-10-08T18:31:14Z',
+        node()..['createdAt'] = '2026-10-08T18:31:14Z',
         node(id: '2'),
       ], bumpDate: '2026-10-18T18:30:00Z'),
     );
@@ -256,7 +256,7 @@ void main() {
       final mapper = StandvirtualMapper(catalog, currentYear: 2026);
       final page = adapter.parseSearchPage(
         searchPage([
-          node(id: '1', price: '6500')..['priceDrop'] = drop(680000),
+          node(price: '6500')..['priceDrop'] = drop(680000),
           node(id: '2')..['priceDrop'] = null,
         ]),
       );

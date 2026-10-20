@@ -213,7 +213,7 @@ void main() {
     test('is incomplete until every page is saved', () async {
       File(
         '${dir.path}/p1.html',
-      ).writeAsStringSync(searchPage([ad(id: 1)], totalPages: 2));
+      ).writeAsStringSync(searchPage([ad()], totalPages: 2));
       final partial = await OlxSearchAdapter(dir.path).read();
       expect(partial.issues.single.message, contains('1 of 2 page(s)'));
 
@@ -229,7 +229,7 @@ void main() {
       const url = 'https://www.olx.pt/carros-motos-e-barcos/x/';
       File(
         '${dir.path}/p1.html',
-      ).writeAsStringSync(searchPage([ad(id: 1)], totalPages: 2));
+      ).writeAsStringSync(searchPage([ad()], totalPages: 2));
       await const SearchManifest(
         planned: [url],
         files: {'p1.html': url},
@@ -243,7 +243,7 @@ void main() {
     });
 
     test('without a manifest nothing is tied to a search', () async {
-      File('${dir.path}/p1.html').writeAsStringSync(searchPage([ad(id: 1)]));
+      File('${dir.path}/p1.html').writeAsStringSync(searchPage([ad()]));
 
       final result = await OlxSearchAdapter(dir.path).read();
 

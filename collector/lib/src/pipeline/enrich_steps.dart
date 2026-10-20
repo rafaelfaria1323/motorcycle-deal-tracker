@@ -22,7 +22,7 @@ Future<int> enrichDetails(
   final adapter = StandvirtualPageAdapter('unused');
   final details = <ListingDetails>[];
   var skipped = 0;
-  Object? stop;
+  FetchBlocked? stop;
 
   try {
     for (final p in pending) {

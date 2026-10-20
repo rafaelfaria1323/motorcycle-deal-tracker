@@ -112,7 +112,7 @@ class ListingStore {
   /// Saves what listing pages added; returns how many listings were updated.
   Future<int> applyDetails(String source, List<ListingDetails> details) async {
     if (details.isEmpty) return 0;
-    final result = await _client.rpc(
+    final result = await _client.rpc<Object?>(
       'apply_listing_details',
       params: {
         'p_source': source,
@@ -189,20 +189,20 @@ class ListingStore {
 
   /// Recomputes the stored deal and risk scores (see `recalculate_deal_scores`).
   Future<int> recalculateScores() async {
-    final result = await _client.rpc('recalculate_deal_scores');
+    final result = await _client.rpc<Object?>('recalculate_deal_scores');
     return _count(result);
   }
 
   /// Flags likely duplicates (see `mark_duplicates`); returns how many.
   Future<int> markDuplicates() async {
-    final result = await _client.rpc('mark_duplicates');
+    final result = await _client.rpc<Object?>('mark_duplicates');
     return _count(result);
   }
 
   /// Marks listings as seen now (updates last_seen_at); returns how many.
   Future<int> markSeen(String source, List<String> sourceListingIds) async {
     if (sourceListingIds.isEmpty) return 0;
-    final result = await _client.rpc(
+    final result = await _client.rpc<Object?>(
       'mark_listings_seen',
       params: {'p_source': source, 'p_ids': sourceListingIds},
     );
@@ -218,7 +218,7 @@ class ListingStore {
     final prices = <String, num>{
       for (final l in listings) l.sourceListingId: l.price,
     };
-    final result = await _client.rpc(
+    final result = await _client.rpc<Object?>(
       'apply_price_updates',
       params: {'p_source': source, 'p_prices': prices},
     );
@@ -235,7 +235,7 @@ class ListingStore {
       for (final l in listings) l.sourceListingId: ?l.priceBeforeDrop,
     };
     if (prices.isEmpty) return 0;
-    final result = await _client.rpc(
+    final result = await _client.rpc<Object?>(
       'apply_prices_before_drop',
       params: {'p_source': source, 'p_prices': prices},
     );
@@ -253,7 +253,7 @@ class ListingStore {
   ) async {
     if (listings.isEmpty) return 0;
     final idBySlug = _idBySlug(catalog);
-    final result = await _client.rpc(
+    final result = await _client.rpc<Object?>(
       'rematch_listings',
       params: {
         'p_source': source,
@@ -280,7 +280,7 @@ class ListingStore {
     List<String>? searches,
     bool includeUnkeyed = true,
   }) async {
-    final result = await _client.rpc(
+    final result = await _client.rpc<Object?>(
       'mark_removed_listings',
       params: {
         'p_source': source,
@@ -308,7 +308,7 @@ class ListingStore {
           },
     };
     if (dates.isEmpty) return 0;
-    final result = await _client.rpc(
+    final result = await _client.rpc<Object?>(
       'apply_listing_dates',
       params: {'p_source': source, 'p_dates': dates},
     );
@@ -319,7 +319,7 @@ class ListingStore {
   /// changed.
   Future<int> setSearchKeys(String source, Map<String, String> keys) async {
     if (keys.isEmpty) return 0;
-    final result = await _client.rpc(
+    final result = await _client.rpc<Object?>(
       'set_search_keys',
       params: {'p_source': source, 'p_keys': keys},
     );
@@ -328,14 +328,17 @@ class ListingStore {
 
   /// Creates the alerts that are due (see `generate_alerts`); returns how many.
   Future<int> generateAlerts() async {
-    final result = await _client.rpc('generate_alerts');
+    final result = await _client.rpc<Object?>('generate_alerts');
     return _count(result);
   }
 
   /// Alerts of real accounts not pushed yet, oldest first.
   Future<List<PendingAlert>> pendingNotifications({int limit = 20}) async {
     final rows =
-        await _client.rpc('pending_notifications', params: {'p_limit': limit})
+        await _client.rpc<Object?>(
+              'pending_notifications',
+              params: {'p_limit': limit},
+            )
             as List<dynamic>;
     return [
       for (final row in rows) PendingAlert.fromRow(row as Map<String, dynamic>),
@@ -408,7 +411,7 @@ class ListingStore {
 
   Future<int> markNotified(List<String> alertIds) async {
     if (alertIds.isEmpty) return 0;
-    final result = await _client.rpc(
+    final result = await _client.rpc<Object?>(
       'mark_alerts_notified',
       params: {'p_ids': alertIds},
     );

@@ -20,7 +20,7 @@ CatalogEntry model(
 
 void main() {
   test('models with the same search share it, from the earliest year', () {
-    final rSearch = '$olxYamaha?search%5Bfilter_enum_modelo%5D%5B0%5D=r';
+    const rSearch = '$olxYamaha?search%5Bfilter_enum_modelo%5D%5B0%5D=r';
     final plan = planSearches(
       Catalog([
         model(
