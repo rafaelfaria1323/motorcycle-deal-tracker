@@ -115,3 +115,43 @@ begin
   assert (select motorcycle_id from public.listings where source = 'olx' and source_listing_id = 'i1') is null,
     'on: a listing of another model stays unmatched';
 end $$;
+
+-- mark_listings_seen dates the listings it is given and brings a removed one
+-- back; apply_listing_details fills what the listing page said, never
+-- erasing what it left out.
+update public.listings set last_seen_at = now() - interval '2 days',
+                           last_checked_at = now() - interval '2 days';
+do $$
+declare
+  n int;
+begin
+  n := public.mark_listings_seen('olx', array['i2', 'i3', 'zz']);
+  assert n = 2, format('two listings seen, got %s', n);
+  assert (select status from public.listings where source = 'olx' and source_listing_id = 'i3') = 'active',
+    'a removed listing seen again is live';
+  assert (select status from public.listings where source = 'olx' and source_listing_id = 'i2') = 'active',
+    'a live one stays live';
+  assert (select last_seen_at = now() and last_checked_at = now()
+          from public.listings where source = 'olx' and source_listing_id = 'i2'), 'seen now';
+  assert (select last_seen_at < now() from public.listings where source = 'olx' and source_listing_id = 'i1'),
+    'a listing not given keeps its date';
+  assert (select last_seen_at < now() from public.listings where source = 'standvirtual'),
+    'nor the other site''s with the same id';
+
+  update public.listings set description = 'Old text', registrations = 2
+  where source = 'olx' and source_listing_id = 'i1';
+  n := public.apply_listing_details('olx', '[
+    {"source_listing_id": "i1", "service_book": true, "origin": "national",
+     "warranty_until": "2027-05-01", "dealer_warranty_months": 18,
+     "published_at": "2026-09-15T00:00:00Z"},
+    {"source_listing_id": "zz", "description": "Nobody"}]');
+  assert n = 1, format('one listing with details, got %s', n);
+  assert (select description = 'Old text' and registrations = 2 and service_book
+                 and origin = 'national' and warranty_until = '2027-05-01'
+                 and dealer_warranty_months = 18 and published_at = '2026-09-15T00:00:00Z'
+                 and details_checked_at = now()
+          from public.listings where source = 'olx' and source_listing_id = 'i1'),
+    'details filled, missing ones kept, checked now';
+  assert (select details_checked_at is null from public.listings where source = 'standvirtual'),
+    'the other site''s listing is not checked';
+end $$;
