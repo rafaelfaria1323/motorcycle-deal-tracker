@@ -47,7 +47,7 @@ class FavouriteModel {
       if (!value.isEmpty)
         key: {
           if (value.mark case final mark?) 'mark': mark.name,
-          if (value.note case final note?) 'note': note,
+          'note': ?value.note,
         },
   };
 }

@@ -31,7 +31,7 @@ class _ComparePageState extends State<ComparePage> {
     final found = await Future.wait(widget.ids.map(repository.getListingById));
     return [
       for (final l in found)
-        if (l != null) l,
+        ?l,
     ];
   }
 

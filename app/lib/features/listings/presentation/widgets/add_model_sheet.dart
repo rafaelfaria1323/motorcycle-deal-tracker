@@ -163,7 +163,7 @@ class _AddModelSheetState extends State<_AddModelSheet> {
             ? (picked?.standvirtual ?? '')
             : _standvirtual.text,
       ),
-      if (engine.error case final error?) 'cc': error,
+      'cc': ?engine.error,
     };
     if (_usePicker) {
       // The picker always gives a Standvirtual search once a model is

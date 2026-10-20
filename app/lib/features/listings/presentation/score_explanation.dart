@@ -64,7 +64,7 @@ const extraLabels = {
 String? extrasText(Map<String, dynamic>? breakdown) {
   final labels = [
     for (final code in (breakdown?['extras'] as List? ?? const []))
-      if (extraLabels[code] case final label?) label,
+      ?extraLabels[code],
   ];
   return labels.isEmpty ? null : labels.join(', ');
 }
