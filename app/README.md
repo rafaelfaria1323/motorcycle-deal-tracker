@@ -9,9 +9,9 @@ Cloudflare Pages on every merge that touches `app/`
 
 - **Ofertas:** listings of the tracked models, sorted by Deal Score (or
   newest, cheapest, most expensive, nearest), with filters shown as chips
-  (including "Distância máxima" from your home and equipment: quickshifter,
-  escape, malas, punhos aquecidos, proteções, pneus novos) and paged 40 at
-  a time.
+  (including "Distância máxima" from your home and equipment: 19 kinds,
+  e.g. quickshifter, escape, malas, proteções, suporte de matrícula curto,
+  bolha) and paged 40 at a time.
   Each card shows the place and its distance from your home.
 - **Favoritos:** the listings you starred (star on a listing's page; star
   in the Ofertas app bar or Mais opens the list), newest first, each with
@@ -24,7 +24,9 @@ Cloudflare Pages on every merge that touches `app/`
   checklist when it is a favourite ("As suas notas", "Para a visita": 12
   points to check when seeing the bike, each "Está bem" or "Problema" with
   a note), score with the reasons behind it, "Quanto oferecer"
-  (where to start and the most to pay, with the reasons), risks, the same bike on the other site, the comparison with a new one,
+  (where to start, a second offer if refused, the most to pay, the
+  reasons, and "O vendedor pediu": type the seller's counter-offer and it
+  says whether to accept or what to propose), risks, the same bike on the other site, the comparison with a new one,
   "Mensagem para o vendedor" (a first message with the questions the ad
   leaves open, optionally with the suggested offer; one tap copies it),
   "O stand" for dealers (what we have seen of its ads on both sites:

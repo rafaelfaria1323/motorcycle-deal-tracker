@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import '../../../../app/di/injection.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/entities/market_behaviour.dart';
+import '../../../../core/formatting/formatters.dart';
 import '../../domain/repositories/market_behaviour_repository.dart';
 import '../offer_text.dart';
 
-/// "Quanto oferecer": where to start and the most to pay, with the reasons.
-/// Hidden when the listing has no estimated value.
+/// "Quanto oferecer": where to start and the most to pay, the offers to
+/// make in turn, the reasons, and what to answer to the seller's
+/// counter-offer. Hidden when the listing has no estimated value.
 class OfferCard extends StatefulWidget {
   const OfferCard({required this.listing, super.key});
 
@@ -19,6 +21,13 @@ class OfferCard extends StatefulWidget {
 
 class _OfferCardState extends State<OfferCard> {
   late final Future<MarketBehaviour?> _market = _load();
+  final _counter = TextEditingController();
+
+  @override
+  void dispose() {
+    _counter.dispose();
+    super.dispose();
+  }
 
   Future<MarketBehaviour?> _load() async {
     final id = widget.listing.motorcycleId;
@@ -69,6 +78,20 @@ class _OfferCardState extends State<OfferCard> {
                   ),
                 ),
                 const SizedBox(height: 8),
+                for (final (i, step) in offer.steps.indexed)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Row(
+                      children: [
+                        Expanded(child: Text('${i + 1}. ${step.label}')),
+                        Text(
+                          Formatters.price(step.price),
+                          style: theme.textTheme.titleSmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: 8),
                 for (final reason in offer.reasons)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 4),
@@ -80,7 +103,27 @@ class _OfferCardState extends State<OfferCard> {
                       ],
                     ),
                   ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _counter,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'O vendedor pediu',
+                    suffixText: '€',
+                  ),
+                  onChanged: (_) => setState(() {}),
+                ),
+                if (parseCounterOffer(_counter.text) case final counter?)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      offer.replyTo(counter),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 8),
                 Text(
                   'Estimativa a partir dos preços pedidos, não de vendas. '
                   'Veja a mota antes de fazer uma proposta.',

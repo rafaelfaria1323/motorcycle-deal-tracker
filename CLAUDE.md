@@ -357,10 +357,19 @@ functions for manual work.
   asking prices.
   Price score needs >= 2 comparables; risk price signal needs >= 3.
 - Deal score = weighted average of available slices: price 35, year/mileage 20
-  (70% mileage), risk 10 (inverted), equipment 15 (`listing_extras`: keywords
+  (70% mileage, judged against the bike's age: `mileage_use_score`, normal =
+  5 000 km a year from mid-year registration, at least one year's
+  (`expected_mileage`); 100 up to half the normal, 75 at it, 50 at 1.5x, 0
+  from 2.5x; the app's `mileageForAge` says the same in words, keep both in
+  step), risk 10 (inverted), equipment 15 (`listing_extras`: keywords
   in variant/description for quickshifter, exhaust, luggage, heated grips,
-  protection, new tyres; 70 for one, +10 each, max 100; none found = slice
-  skipped, never a penalty). Missing slices are skipped.
+  protection (also "cogumelos"), new tyres, short plate holder, tinted or
+  sport screen, adjustable levers, bar-end mirrors, phone mount/USB,
+  alarm/tracker, steering damper, centre stand, cruise control, upgraded
+  suspension, LED indicators, passenger grab handles, original parts
+  included (so it can go back to stock); codes never change, the app's `extraLabels`
+  and the saved-search check list the same; 70 for one, +10 each, max 100;
+  none found = slice skipped, never a penalty). Missing slices are skipped.
 - Risk signals: price far below market, possible accident (text), missing
   mileage/year/location, thin description (only private sellers with details
   read), 3+ owners, no service book, imported, implausible mileage (under
@@ -378,7 +387,12 @@ functions for manual work.
   the estimated value when asking is > 2 % above it; opening 6 % (private) /
   3 % (dealer) below it, more for long on sale (+3/5/7 % past 1x/2x/3x the
   model's typical time), relisted (+2 %), a model whose sellers often
-  drop, high risk; less after a drop; 1-15 %, rounded down to 50 €.
+  drop, high risk; less after a drop and less by however far the asking
+  price is already below the estimate; 1-10 %, and never under 90 % of the
+  estimated value; rounded down to 50 €. The plan: the opening, one offer
+  halfway ("Se recusar") and the ceiling as the last; "O vendedor pediu"
+  answers a counter-offer (accept up to the second offer, propose halfway
+  up to the ceiling, above it offer the ceiling and walk away).
 - Distance from home: `places` (towns, municipalities, districts with
   coordinates; GeoNames CC BY 4.0), `user_home` (one place per account,
   set in Mais), `place_key()` (= the app's `placeKey`, keep them equal),

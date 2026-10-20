@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:equatable/equatable.dart';
 
 import '../../../core/formatting/formatters.dart';
@@ -43,6 +45,19 @@ const extraLabels = {
   'heated_grips': 'punhos aquecidos',
   'protection': 'proteções',
   'new_tyres': 'pneus novos',
+  'tail_tidy': 'suporte de matrícula curto',
+  'screen': 'bolha fumada ou desportiva',
+  'levers': 'manetes ajustáveis',
+  'mirrors': 'espelhos de ponta de guiador',
+  'phone_mount': 'suporte de telemóvel ou USB',
+  'alarm': 'alarme ou localizador',
+  'steering_damper': 'amortecedor de direção',
+  'centre_stand': 'descanso central',
+  'cruise_control': 'cruise control',
+  'suspension': 'suspensão melhorada',
+  'led_indicators': 'piscas LED',
+  'passenger_grips': 'pegas para o pendura',
+  'original_parts': 'peças de origem incluídas',
 };
 
 /// The extras found in the ad ("quickshifter, malas"), or null when none.
@@ -52,6 +67,53 @@ String? extrasText(Map<String, dynamic>? breakdown) {
       if (extraLabels[code] case final label?) label,
   ];
   return labels.isEmpty ? null : labels.join(', ');
+}
+
+/// The kilometres a year that count as normal for a motorcycle (cars do
+/// 10-12 000). Keep in step with expected_mileage() in the database.
+const normalKmPerYear = 5000;
+
+/// The normal mileage of a bike of [year] in [currentYear]: from mid-year
+/// registration, never less than one year's.
+int expectedMileage(int year, int currentYear) =>
+    (max(currentYear - year + 0.5, 1) * normalKmPerYear).round();
+
+/// How [km] compares with the normal for a bike of [year]: low (half the
+/// normal or less), normal, high (over 1.3 times), very high (over twice).
+/// Without a year, only a low mileage is said.
+ExplanationLine? mileageForAge(int? km, int? year, int currentYear) {
+  if (km == null) return null;
+  final kmText = Formatters.mileage(km);
+  if (year == null) {
+    return km <= normalKmPerYear
+        ? ExplanationLine(ExplanationTone.positive, 'Poucos km ($kmText)')
+        : null;
+  }
+  final normal = expectedMileage(year, currentYear);
+  final ratio = km / normal;
+  final normalText = 'normal: cerca de ${Formatters.mileage(normal)}';
+  if (ratio <= 0.5) {
+    return ExplanationLine(
+      ExplanationTone.positive,
+      'Poucos km para o ano ($kmText; $normalText)',
+    );
+  }
+  if (ratio > 2) {
+    return ExplanationLine(
+      ExplanationTone.negative,
+      'Muitos km para o ano ($kmText; $normalText)',
+    );
+  }
+  if (ratio > 1.3) {
+    return ExplanationLine(
+      ExplanationTone.negative,
+      'Km acima do normal para o ano ($kmText; $normalText)',
+    );
+  }
+  return ExplanationLine(
+    ExplanationTone.neutral,
+    'Km normais para o ano ($kmText)',
+  );
 }
 
 /// Turns the stored score data into human-readable lines.
@@ -118,8 +180,6 @@ abstract final class ScoreExplainer {
 
   // Presentation thresholds for the wording only; the score itself is
   // calculated in the database.
-  static const _lowMileageKm = 5000;
-  static const _highMileageKm = 12000;
   static const _priceNoticePct = 3.0;
   static const _minReliableMarket = 3;
 
@@ -193,22 +253,10 @@ abstract final class ScoreExplainer {
       );
     }
 
-    // Mileage
-    final km = listing.mileage;
-    if (km != null && km <= _lowMileageKm) {
-      lines.add(
-        ExplanationLine(
-          ExplanationTone.positive,
-          'Baixa quilometragem (${Formatters.mileage(km)})',
-        ),
-      );
-    } else if (km != null && km >= _highMileageKm) {
-      lines.add(
-        ExplanationLine(
-          ExplanationTone.negative,
-          'Quilometragem elevada (${Formatters.mileage(km)})',
-        ),
-      );
+    // Mileage, against what is normal for the bike's age
+    if (mileageForAge(listing.mileage, listing.year, thisYear)
+        case final line?) {
+      lines.add(line);
     }
 
     // Year
