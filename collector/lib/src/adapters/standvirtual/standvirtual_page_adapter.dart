@@ -3,6 +3,7 @@ import 'dart:io';
 
 import '../../normalized/listing_details.dart';
 import '../../normalized/normalizers.dart';
+import '../json_blob.dart';
 import '../json_values.dart';
 import '../source_adapter.dart';
 import 'standvirtual_mapper.dart';
@@ -47,27 +48,15 @@ class StandvirtualPageAdapter implements SourceAdapter<StandvirtualRawListing> {
     return ParseResult(records, issues);
   }
 
-  static final _nextData = RegExp(
-    r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>',
-    dotAll: true,
-  );
-
   /// The listing object inside the page.
   /// Throws [FormatException] when the page is not a listing page.
   Map<String, dynamic> _advert(String html) {
-    final match = _nextData.firstMatch(html);
-    if (match == null) {
-      throw const FormatException(
-        'no __NEXT_DATA__ block (is this a Standvirtual listing page?)',
-      );
-    }
-
-    final Object? data;
-    try {
-      data = jsonDecode(match.group(1)!);
-    } on FormatException {
-      throw const FormatException('__NEXT_DATA__ is not valid JSON');
-    }
+    final data = extractJsonBlob(
+      html,
+      nextDataBlock,
+      '__NEXT_DATA__',
+      hint: ' (is this a Standvirtual listing page?)',
+    );
 
     final advert = asMap(asMap(asMap(data)?['props'])?['pageProps'])?['advert'];
     if (advert is! Map<String, dynamic>) {

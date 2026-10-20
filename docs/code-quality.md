@@ -13,13 +13,13 @@ the database schema, secrets or workflows goes to "Needs Rafael".
 
 ## To do
 
-- `collector/lib/src/adapters/{olx,standvirtual}/*_search_adapter.dart`: both pull a JSON blob out of a page with their own regex and decode it; check whether a shared `extractJsonBlob` fits, with tests for a missing or damaged blob.
 - `collector/lib/src/store/listing_store.dart`: `save` and `rematch` both look up a listing's motorcycle id by slug; a `motorcycleIdFor(listing)` helper would remove the repeated null checks (test with a fake catalog).
 
 ## Needs Rafael
 
 ## Done
 
+- 2026-10-20: The OLX and Standvirtual search adapters and the Standvirtual listing-page adapter read their embedded JSON through one `extractJsonBlob` (`adapters/json_blob.dart`, with the shared `nextDataBlock` pattern), tested for a missing block, a damaged one and OLX's JSON-in-a-string; error messages are unchanged.
 - 2026-10-20: Plain-text snack bars of the saved searches, listing, dashboard and tracked models pages use one `showMessage(messenger, text)` (`core/widgets/show_message.dart`); the one with an action keeps its own `SnackBar`.
 - 2026-10-20: `ListingStore` reads the RPC row count through one `_count` helper (12 copies of `(result as num).toInt()`) and builds the catalog id map in one `_idBySlug` (copied in `save` and `rematch`).
 
