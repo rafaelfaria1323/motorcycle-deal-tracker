@@ -2,8 +2,15 @@
 
 The app is built and published to Cloudflare Pages by
 `.github/workflows/deploy-web.yml` on every merge to `main` that touches
-`app/`, and from the Actions tab ("Deploy web app" → "Run workflow").
-Tests must pass before anything is published.
+`app/` or adds a migration, and from the Actions tab ("Deploy web app" →
+"Run workflow"). Tests must pass before anything is published.
+
+Database migrations are applied by the same workflow, before the app: when
+a merge adds files to `supabase/migrations/`, the `migrate` job tests every
+migration and SQL test again on an empty Postgres, then runs
+`supabase db push` against Supabase. A merge without new migrations skips
+it. A failure stops the app deploy (fix it with a new migration; "Run
+workflow" applies whatever is missing). `make db-push` still works by hand.
 
 ## One-time setup
 
@@ -19,6 +26,14 @@ Tests must pass before anything is published.
    - `SUPABASE_PUBLISHABLE_KEY` — Supabase dashboard → Project Settings →
      API Keys, the publishable key (the same value as in `app/env/dev.json`).
    - `SUPABASE_URL` already exists for the collector.
+   - `SUPABASE_DB_URL` — for the migrations: Supabase dashboard → Connect
+     → "Session pooler" connection string (GitHub's runners have no IPv6,
+     so not the direct one), with `[YOUR-PASSWORD]` replaced by the
+     database password (Project Settings → Database; reset it there if
+     unknown). Characters other than letters, digits and `-._~` in the
+     password must be URL-encoded: `@` `%40`, `#` `%23`, `/` `%2F`, `%`
+     `%25`, `?` `%3F`, `!` `%21`, `*` `%2A`, `:` `%3A` (or reset it to
+     letters and digits only).
 5. Run "Deploy web app" once. The first run creates the Pages project
    `motorcycle-deal-tracker`; the log ends with the address
    (`https://motorcycle-deal-tracker.pages.dev`, or with a suffix if the

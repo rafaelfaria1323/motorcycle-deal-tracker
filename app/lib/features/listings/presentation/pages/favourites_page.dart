@@ -8,6 +8,7 @@ import '../../../../core/widgets/state_message.dart';
 import '../cubit/favourites_cubit.dart';
 import '../cubit/favourites_state.dart';
 import '../favourites_text.dart';
+import '../viewing_checklist.dart';
 import '../widgets/listing_card.dart';
 
 /// The shortlist: the listings the user starred, newest first, each with
@@ -90,6 +91,14 @@ class FavouritesPage extends StatelessWidget {
                                 if (f.note != null) ...[
                                   Text(
                                     f.note!,
+                                    style: theme.textTheme.bodyMedium,
+                                  ),
+                                  const SizedBox(height: 4),
+                                ],
+                                if (f.checklist.isNotEmpty) ...[
+                                  Text(
+                                    checklistIssuesText(f.checklist) ??
+                                        checklistSummaryText(f.checklist),
                                     style: theme.textTheme.bodyMedium,
                                   ),
                                   const SizedBox(height: 4),

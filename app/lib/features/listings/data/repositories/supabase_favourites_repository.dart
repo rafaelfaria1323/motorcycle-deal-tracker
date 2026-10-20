@@ -3,7 +3,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/favourite.dart';
 import '../../domain/repositories/favourites_repository.dart';
 import '../models/favourite_model.dart';
-import '../models/listing_model.dart';
 
 class SupabaseFavouritesRepository implements FavouritesRepository {
   SupabaseFavouritesRepository(this._client);
@@ -17,10 +16,7 @@ class SupabaseFavouritesRepository implements FavouritesRepository {
     // Row-level security returns only the current user's favourites.
     final rows = await _client
         .from(_table)
-        .select(
-          'listing_id, note, created_at, '
-          'listings(${ListingModel.summaryColumns})',
-        )
+        .select(FavouriteModel.columns)
         .order('created_at', ascending: false);
     return rows.map<Favourite>(FavouriteModel.fromJson).toList();
   }
@@ -56,6 +52,24 @@ class SupabaseFavouritesRepository implements FavouritesRepository {
         .select('listing_id');
     if (updated.isEmpty) {
       throw StateError('Favourite $listingId has no note to save.');
+    }
+  }
+
+  @override
+  Future<void> saveChecklist(
+    String listingId,
+    Map<String, ChecklistEntry> checklist,
+  ) async {
+    final updated = await _client
+        .from(_table)
+        .update({
+          'checklist': FavouriteModel.checklistToJson(checklist),
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        })
+        .eq('listing_id', listingId)
+        .select('listing_id');
+    if (updated.isEmpty) {
+      throw StateError('Favourite $listingId has no checklist to save.');
     }
   }
 }

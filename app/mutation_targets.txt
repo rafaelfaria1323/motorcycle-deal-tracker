@@ -17,3 +17,4 @@ lib/features/listings/presentation/compare_text.dart
 lib/core/formatting/formatters.dart
 lib/core/auth/account_text.dart
 lib/features/listings/presentation/offer_text.dart
+lib/features/listings/presentation/viewing_checklist.dart
