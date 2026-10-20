@@ -151,7 +151,8 @@ abstract final class ScoreExplainer {
       lines.add(
         ExplanationLine(
           ExplanationTone.neutral,
-          'Valor estimado para este ano e quilometragem: '
+          'Valor estimado para este ano e quilometragem (pelos preços '
+          'pedidos de motas comparáveis): '
           '${Formatters.price(market)}',
         ),
       );

@@ -258,6 +258,10 @@ functions for manual work.
   ln(price) on year and mileage over its live listings, from 30 listings,
   clamped (0-15 %/year, 0-1 %/1000 km) and blended with the general rates
   (4 %/year, 0.2 %/1000 km) weighted by count; below 30 the general rates.
+  The mileage rate is never below 0.5 %/1000 km (a buyer's minimum: asking
+  prices understate mileage). Comparables without year or mileage are left
+  out when the listing has them. The app says the estimate comes from
+  asking prices.
   Price score needs >= 2 comparables; risk price signal needs >= 3.
 - Deal score = weighted average of available slices: price 35, year/mileage 20
   (70% mileage), risk 10 (inverted), equipment 15 (`listing_extras`: keywords
