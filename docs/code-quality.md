@@ -11,12 +11,17 @@ the database schema, secrets or workflows goes to "Needs Rafael".
 
 ## To do
 
+- `collector/lib/src/store/catalog_loader.dart` has no test of its own (row to `Catalog` mapping); add one with fake rows.
+- `app/lib/core/platform/home_screen_app.dart` (`iosBottomInset`): check whether its decision logic can be a pure function with a test.
+
 ## Needs Rafael
 
 ## Done
 
 - 2026-10-20: UI text review: percentages written one way (`Formatters.percent`, "5,3 %"; some showed "5.3%"), "anúncio" for a listing everywhere ("Nova oferta" → "Novo anúncio", as in Telegram), "duplicado" instead of "repetido", the comparison's row names as on the listing page, imperative validation messages ("Indique…"), and a few awkward sentences.
 - 2026-10-19: Text built inside widgets moved to tested functions: the alert title, details and origin lines (`alertTitle`, `alertDetailsLine`, `alertOriginLine` in `alerts_text.dart`) and the price history's "Visto pela primeira vez" line (`seenLine` in `price_history_text.dart`).
+- 2026-10-19: Removed the unused `Formatters.formatDate`; `Formatters` got tests (dashes, price, mileage, date, `daysAgo`).
+- 2026-10-19: `SearchManifest` got tests (round trip, missing file, invalid JSON, wrong shape).
 - 2026-10-19: The listing page's "A mota" and "O anúncio" rows became `bikeFacts` / `adFacts` in `listing_detail_text.dart` (tested), drawn by a shared `FactsCard` widget; the page lost ~110 lines.
 - 2026-10-19: `enrichDetails` (skips a gone or unreadable page; running out of requests or a block still stores what was read, a block is rethrown) and `notifyPending` (a failed send stops and marks only what went out) got tests with fakes.
 - 2026-10-19: `importBatch` got tests with a fake store (step order, no removal without `--full`, a damaged input removes nothing unless forced, rejected bikes count as seen); `json_values.dart` got tests.
