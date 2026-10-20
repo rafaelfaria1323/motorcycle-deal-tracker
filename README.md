@@ -21,7 +21,7 @@ Tracked models (chosen in the app)
   → collector (GitHub Actions, started every 4 hours by Supabase pg_cron): searches → polite fetch → parse → store
   → Supabase / Postgres: price history, duplicates, fair value, scores, alerts
   → app (Flutter Web on Cloudflare Pages): Ofertas · Pesquisas · Alertas · Mais
-  → Telegram: new alerts after each run, a message when the collection breaks or recovers,
+  → Telegram: new alerts after each run, a message when the collection breaks, stops starting or recovers,
     and a summary of the week every Monday
 ```
 

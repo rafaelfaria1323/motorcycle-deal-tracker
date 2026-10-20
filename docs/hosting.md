@@ -47,6 +47,25 @@ When the token expires, make a new one and replace it:
 `select vault.update_secret(id, 'github_pat_...') from vault.secrets where name = 'github_dispatch_token';`.
 The app's "Mais" shows a warning when no run happened recently.
 
+### Warning on Telegram when no run starts
+
+Every hour (minute 20) the pg_cron job `collection-watchdog` checks the
+last recorded run. When none started in 9 hours (an expired token, for
+example) it sends a Telegram message, again once a day while it lasts,
+and "As recolhas de anúncios voltaram a começar" after the next run. It
+needs the bot's token and chat id in the Vault too (the same values as the
+`TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` repository secrets), saved once
+in the SQL Editor:
+
+```sql
+select vault.create_secret('<bot token>', 'telegram_bot_token');
+select vault.create_secret('<chat id>', 'telegram_chat_id');
+```
+
+Check it with `select public.send_telegram('Teste');` (the message arrives
+on the phone). If pg_cron itself stops, this check stops too; the app's
+warning is then the only sign.
+
 ## On the iPhone
 
 Open the address in Safari → Share → "Adicionar ao ecrã principal". The app

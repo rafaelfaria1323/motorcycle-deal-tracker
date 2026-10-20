@@ -124,7 +124,8 @@ Local secrets live in `collector/.env` (gitignored, loaded by the Makefile):
 names, plus `SUPABASE_PUBLISHABLE_KEY`, `CLOUDFLARE_API_TOKEN` and
 `CLOUDFLARE_ACCOUNT_ID` for the web deploy, and `CLAUDE_CODE_OAUTH_TOKEN`
 for the code-quality review. Supabase's Vault holds `github_dispatch_token`
-(starts the scheduled workflows).
+(starts the scheduled workflows) and `telegram_bot_token` /
+`telegram_chat_id` (the watchdog's messages).
 
 ## App conventions (Flutter)
 
@@ -206,6 +207,11 @@ for the code-quality review. Supabase's Vault holds `github_dispatch_token`
   the Vault secret `github_dispatch_token` (fine-grained, this repo only,
   Actions read/write; created by Rafael, see `docs/hosting.md`). Change a
   schedule with a migration calling `cron.schedule` with the same job name.
+- Watchdog: pg_cron job `collection-watchdog` (`20 * * * *`) runs
+  `check_collection_runs()`: no run recorded for 9 h sends a Telegram
+  message (`send_telegram()`, pg_net, Vault secrets `telegram_bot_token`
+  and `telegram_chat_id`), repeated once a day; the next run sends the
+  recovery. State in `collection_watchdog` (one row, no API access).
 - The app's next-run time (`collection_text.dart`) mirrors the
   `collect-listings` job: change both together.
 - Watch out: `greatest`/`least` ignore nulls.
