@@ -118,6 +118,9 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
                                   HTML artifacts); test hardening's find
                                   runs start from the last full run's
                                   surviving mutants
+                                  Both PAUSED since 2026-10-20 (Rafael): no
+                                  runs after merges until he says so; only
+                                  "Run workflow" starts one
 .github/workflows/backlog-pass.yml  Shared by both: "To do" empty -> after 10
                                   merges, only find up to 10 items, no code
                                   change; otherwise every 5 merges do up to
