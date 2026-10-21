@@ -9,6 +9,7 @@ const yamahaR =
 CatalogModel model(
   String name, {
   bool tracked = true,
+  bool collected = false,
   String? olx,
   String? standvirtual,
 }) => CatalogModel(
@@ -17,6 +18,7 @@ CatalogModel model(
   model: name,
   minYear: 2023,
   isTracked: tracked,
+  isCollected: collected,
   olxSearch: olx,
   standvirtualSearch: standvirtual,
 );
@@ -46,6 +48,15 @@ void main() {
 
     expect(counts.olx, 1);
     expect(counts.standvirtual, 1);
+  });
+
+  test('models only other accounts follow count too', () {
+    final counts = searchCounts([
+      model('R7', olx: yamahaR, tracked: false, collected: true),
+      model('R9', olx: '${olxSearchPrefix}yamaha/', tracked: false),
+    ]);
+
+    expect(counts.olx, 1);
   });
 
   test('many OLX searches bring a warning', () {

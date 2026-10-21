@@ -5,7 +5,11 @@ insert into auth.users (id) values ('00000000-0000-0000-0000-0000000000a1'),  --
                                    ('00000000-0000-0000-0000-0000000000a2'),  -- search alert
                                    ('00000000-0000-0000-0000-0000000000a3'),  -- both
                                    ('00000000-0000-0000-0000-0000000000a4'),  -- inactive search
-                                   ('00000000-0000-0000-0000-0000000000a5');  -- nothing
+                                   ('00000000-0000-0000-0000-0000000000a5');
+-- Every account here follows every collected model.
+insert into public.user_models (user_id, motorcycle_id, min_year)
+select u.id, m.id, m.min_year from auth.users u cross join public.motorcycles m
+where m.is_active;  -- nothing
 
 insert into public.listings (source, source_listing_id, url, motorcycle_id, brand, model,
                              price, status, first_seen_at)

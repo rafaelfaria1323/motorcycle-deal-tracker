@@ -42,7 +42,7 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
     final models = await _client
         .from('motorcycles')
         .select('id, brand, model')
-        .eq('is_active', true);
+        .eq('tracked_by_me', true);
     final ids = [for (final m in models) m['id'] as String];
     if (ids.isEmpty) return const [];
 

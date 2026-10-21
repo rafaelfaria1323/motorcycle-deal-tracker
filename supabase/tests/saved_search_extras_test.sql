@@ -1,6 +1,10 @@
 -- A saved search asking for equipment matches only listings whose ad
 -- mentions all of it; unknown codes are refused.
 insert into auth.users (id) values ('00000000-0000-0000-0000-0000000000b1');
+-- Every account here follows every collected model.
+insert into public.user_models (user_id, motorcycle_id, min_year)
+select u.id, m.id, m.min_year from auth.users u cross join public.motorcycles m
+where m.is_active;
 
 insert into public.listings (source, source_listing_id, url, motorcycle_id, brand, model,
                              price, score_breakdown)

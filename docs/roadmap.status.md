@@ -266,16 +266,16 @@ Do not implement several unrelated features at once.
 ## 15.20 Negotiation: seller urgency and dealer asks ✅
 *Rafael, 2026-10-20 (from the 15.19 follow-ups). "Pressa do vendedor: alta / média / baixa", with the reasons, under the offer: points for being on sale past the model's typical time (2 past twice it, 3 past three times it, so a bike a year on sale is alta by itself), an earlier drop, a relist (2 when often), and an old ad (30+ days) renewed on the site in the last 30 days (the seller is still pushing it); 3+ is alta. For dealers ("os stands negociam pouco o preço"), "Num stand, peça também": the service done before delivery, new tyres when due (3+ years or 10 000+ km, unless the ad says new), the warranty in writing (a dealer's used bike has at least 18 months by law), the registration paid; with a message to copy. Not done: a log of offers made per favourite (15.19 idea 7), left until Rafael negotiates several bikes at once. Tests: `negotiation_text_test.dart`.*
 
-# Sprint 14 — More than one person ⬜
+# Sprint 14 — More than one person 🟡
 
-*Only needed if someone else will use the app. Today the tracked models are one shared list (`motorcycles.is_active`): any signed-in account changes it for everyone, and everyone sees the same listings.*
+*Rafael, 2026-10-21: each account has its own models, searches and alerts, while one collection fetches for everyone (A follows the MT-07 from 2026, B the CBR650R from 2025: one run fetches both and fills the database for both).*
 
-## 14.1 Per-person model selection ⬜
-*`user_models (user_id, motorcycle_id)`; "Modelos acompanhados" edits your own list; Ofertas, filters and saved searches show your models only.*
-## 14.2 Collector follows the union ⬜
-*A model is searched while at least one person tracks it; `is_active` becomes "someone tracks it". Scores and market data stay shared (the market is the same for everyone).*
+## 14.1 Per-person model selection ✅
+*`user_models (user_id, motorcycle_id, tracked, min_year)`, readable by its owner only, written by the catalog RPCs: "Modelos acompanhados" switches and years are your own (a year can be kept for a model you don't follow); a model you add is followed by you. Ofertas (`listings.in_my_models`), the model filter and the market page (`motorcycles.tracked_by_me`, `my_min_year`) show your models from your years; saved searches, and so every alert built on them, find only their owner's models (`owner_tracks` in `saved_search_matches`). A new account starts with no models (Ofertas says so and links to "Modelos acompanhados"); anonymous sessions see every collected model. The existing accounts kept the models collected at the merge. Tests: `models_per_account_test.sql`, `tracked_models_text_test.dart`.*
+## 14.2 Collector follows the union ✅
+*`motorcycles.is_active` / `min_year` now mean "followed by some account" / "the earliest year any of them asks for", kept by `refresh_collected_model()` on every change, so the collector and its searches are unchanged. When nobody follows a model any more its listings lose it (as switching it off did); when someone follows it again they get it back. Scores, fair prices and market figures stay shared (the market is the same for everyone). The request budget shown in "Modelos acompanhados" counts every account's models.*
 ## 14.3 Accounts ⬜
-*Today accounts are created by hand in Supabase; a second person needs an invite or sign-up path, and Telegram per person (own chat id).*
+*Today accounts are created by hand in Supabase; a second person needs an invite or sign-up path, and Telegram per person (own chat id). Until then every real account's alerts, and the weekly summary of all collected models, go to the owner's Telegram chat.*
 
 # Sprint 12 — Flutter iOS ⬜
 
