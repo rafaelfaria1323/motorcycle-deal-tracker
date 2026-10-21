@@ -4,7 +4,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/app.dart';
 import 'app/di/injection.dart';
+import 'app/router/notification_taps.dart';
 import 'core/auth/session_bootstrap.dart';
+import 'core/platform/push.dart';
 
 const _supabaseUrl = String.fromEnvironment('SUPABASE_URL');
 const _supabasePublishableKey = String.fromEnvironment(
@@ -29,4 +31,8 @@ Future<void> main() async {
   await initializeDateFormatting('pt_PT');
 
   runApp(const App());
+  // The Android app: a tapped notification opens its page.
+  WidgetsBinding.instance.addPostFrameCallback(
+    (_) => DevicePush.listenToTaps(openNotification),
+  );
 }

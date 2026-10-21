@@ -19,7 +19,10 @@ Future<void> main() async {
   }
   await withServiceClient((client) async {
     final store = ListingStore(client);
-    final push = WebPushSender(await store.pushKeys());
+    final push = WebPushSender(
+      await store.pushKeys(),
+      fcm: FcmSender.fromEnvironment(),
+    );
     final result = await sendTestPush(
       store,
       push,

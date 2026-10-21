@@ -13,6 +13,7 @@ on:
       - 'app/pubspec.lock'
       - 'tool/android_build.sh'
       - 'tool/android_manifest.py'
+      - 'tool/firebase_values.py'
       - '.github/workflows/android-check.yml'
 
 concurrency:
@@ -40,4 +41,13 @@ jobs:
           cache: true
 
       - name: Build APK
+        env:
+          # Made-up Firebase settings: the build with notifications is
+          # checked without the real project.
+          FIREBASE_ANDROID_CONFIG: >-
+            {"project_info": {"project_number": "1", "project_id": "check"},
+            "client": [{"client_info": {"mobilesdk_app_id": "1:1:android:1",
+            "android_client_info": {"package_name":
+            "io.github.rafaelfaria1323.motorcycle_deal_tracker"}},
+            "api_key": [{"current_key": "check"}]}]}
         run: tool/android_build.sh 1

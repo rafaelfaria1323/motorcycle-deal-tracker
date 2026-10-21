@@ -10,7 +10,8 @@ an explainable **Deal Score** (price against similar bikes, year and
 mileage) and a separate **Risk Score** (missing details, possible accident,
 several owners, price too good to be true…). Saved searches and favourite
 listings (with private notes and a viewing checklist) raise alerts in the
-app and as notifications on each account's phone (Web Push).
+app and as notifications on each account's phone (Web Push; Firebase Cloud
+Messaging in the Android app).
 
 The app is in Portuguese and installs on the iPhone from Safari
 ("Adicionar ao ecrã principal").
@@ -22,7 +23,7 @@ Tracked models (chosen in the app)
   → collector (GitHub Actions, started every 4 hours by Supabase pg_cron): searches → polite fetch → parse → store
   → Supabase / Postgres: price history, duplicates, fair value, scores, alerts
   → app (Flutter Web on Cloudflare Pages): Ofertas · Pesquisas · Alertas · Mais
-  → phones (Web Push): each account's new alerts after each run (a tap opens the listing), its
+  → phones (Web Push; FCM in the Android app): each account's new alerts after each run (a tap opens the listing), its
     summary of the week every Monday (a tap opens "Resumo da semana"), and the admins' when the
     collection breaks or recovers
   → Telegram: a message when no collection starts or the GitHub token is ending (sent by the database,
@@ -56,7 +57,9 @@ GitHub Actions uses repository secrets with the same names, plus
 `SUPABASE_PUBLISHABLE_KEY`, `CLOUDFLARE_API_TOKEN` and
 `CLOUDFLARE_ACCOUNT_ID` for the web deploy, `ANDROID_KEYSTORE_BASE64`
 and `ANDROID_KEYSTORE_PASSWORD` for the Android app's signing key,
-`SUPABASE_DB_URL` and `SUPABASE_DB_PASSWORD` for the migrations, and `CLAUDE_CODE_OAUTH_TOKEN`
+`SUPABASE_DB_URL` and `SUPABASE_DB_PASSWORD` for the migrations,
+`FIREBASE_ANDROID_CONFIG` and `FIREBASE_SERVICE_ACCOUNT` for the Android
+app's notifications, and `CLAUDE_CODE_OAUTH_TOKEN`
 for the code-quality review. Supabase's Vault holds `github_dispatch_token`,
 which the scheduled jobs use to start the workflows (`docs/hosting.md`).
 Database changes: `make db-new

@@ -3,6 +3,7 @@ import 'dart:io';
 import '../catalog/catalog.dart';
 import '../normalized/normalized_listing.dart';
 import '../notify/notify_pending.dart';
+import '../notify/fcm.dart';
 import '../notify/web_push.dart';
 import '../store/listing_store.dart';
 import 'source_batch.dart';
@@ -160,7 +161,10 @@ Future<void> finishRun(ListingStore store, {StringSink? out}) async {
   // 7. Tell the phones: each account's devices (Web Push).
   WebPushSender? push;
   try {
-    push = WebPushSender(await store.pushKeys());
+    push = WebPushSender(
+      await store.pushKeys(),
+      fcm: FcmSender.fromEnvironment(),
+    );
   } on Object catch (e) {
     log.writeln('Web Push not available, alerts kept for the next run: $e');
   }

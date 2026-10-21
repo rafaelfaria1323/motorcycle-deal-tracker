@@ -43,7 +43,10 @@ Future<void> main(List<String> args) async {
       }
       return;
     }
-    final push = WebPushSender(await store.pushKeys());
+    final push = WebPushSender(
+      await store.pushKeys(),
+      fcm: FcmSender.fromEnvironment(),
+    );
     final result = await sendWeeklySummaries(store, push, summaries);
     stdout.writeln(
       'Weekly summary made for ${result.accounts} account(s), sent to '

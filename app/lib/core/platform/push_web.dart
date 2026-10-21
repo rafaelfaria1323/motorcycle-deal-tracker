@@ -26,3 +26,6 @@ Future<String?> disablePush() async {
   final endpoint = (await _disable().toDart).toDart;
   return endpoint.isEmpty ? null : endpoint;
 }
+
+/// The browser opens a tapped notification's page itself (web/push.js).
+Future<void> listenToTaps(void Function(String url) open) async {}

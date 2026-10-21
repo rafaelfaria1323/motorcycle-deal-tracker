@@ -29,7 +29,7 @@ Unchanged.
 - ✅ Calculate an explainable Deal Score.
 - ✅ Calculate a separate Risk Score.
 - ✅ Create saved searches. *Also by minimum Deal Score / maximum Risk Score.*
-- ✅ Send alerts. *In the app and as notifications on each account's phone (Web Push), plus each account's weekly summary on Mondays (a notification that opens "Resumo da semana" in the app). An alert whose push fails is tried again on the next runs (for a day); signing out stops a device's notifications. Only events of the last day alert (following a model doesn't bring old news), and a listing that goes, comes back and goes again alerts each time.*
+- ✅ Send alerts. *In the app and as notifications on each account's phone (Web Push; FCM in the Android app), plus each account's weekly summary on Mondays (a notification that opens "Resumo da semana" in the app). An alert whose push fails is tried again on the next runs (for a day); signing out stops a device's notifications. Only events of the last day alert (following a model doesn't bring old news), and a listing that goes, comes back and goes again alerts each time.*
 - ✅ Compare motorcycles. *Up to 3 listings side by side (long press in Ofertas or "Comparar" on a listing), best value per row highlighted.*
 - 🟡 Show market trends. *Time on market, price drops, depreciation and the spread of live asking prices per model, and the tracked models compared side by side ("Comparar modelos"); price trends need more history.*
 
@@ -51,7 +51,7 @@ Unchanged.
 ## 6. Platform
 
 - Phase 1 — Flutter Web/PWA ✅ *Hosted on Cloudflare Pages, installed on the iPhone Home Screen; deployed on every merge. UI/UX redesign done (roadmap Sprint 13: Mais tab, Ofertas, listing page, Pesquisas/Alertas, its own look and fonts, one voice in pt-PT); models per account (Sprint 14); accounts from invite links made in the app (14.3), Telegram only for admins' alerts; admins can start a collection from Mais (14.5), any account its own weekly summary (14.4d) and see each run's errors, the sites' budgets and pauses and the GitHub token's expiry in "Estado da recolha" (14.6; checked from the app since 14.6b, with the database's size too).*
-- Phase 2 — Flutter iOS/Android 🟡 *Android ✅: every deploy builds a signed APK and replaces it on the GitHub release `android`; Mais offers it on Android phones, and the app updates itself from there (it says when a newer build is out, downloads it and opens Android's installer; roadmap 12.5). No notifications in it yet (Web Push is the browser's; Chrome keeps them). iPhone: not needed, a native build requires a paid Apple Developer account.*
+- Phase 2 — Flutter iOS/Android 🟡 *Android ✅: every deploy builds a signed APK and replaces it on the GitHub release `android`; Mais offers it on Android phones, and the app updates itself from there (it says when a newer build is out, downloads it and opens Android's installer; roadmap 12.5). Notifications too, through Firebase Cloud Messaging (roadmap 12.6), a tap opening the page in the app. iPhone: not needed, a native build requires a paid Apple Developer account.*
 
 ## 7. Stack
 
@@ -59,13 +59,13 @@ Unchanged.
 - Backend: Supabase, PostgreSQL ✅, Supabase Auth ✅ *(anonymous + owner email/password)*; scheduled jobs ➕ *on GitHub Actions instead of Edge Functions (a Dart CLI collector, one process per run, every 4 hours), started by Supabase pg_cron (GitHub's own scheduler never started them).*
 - Hosting: Cloudflare Pages ✅
 - Repository: GitHub ✅ *(stays public, Rafael 2026-10-21: free Actions minutes for the whole pipeline)*; ➕ automatic code-quality review by Claude after every 5 merged PRs
-- Notifications: Web push ✅ *(each account's alerts on its devices, the admins' when the collection breaks or recovers, sent by the collector itself; a tap opens the listing in the app; "Enviar notificação de teste" in Mais checks a device with an example of any notification; stays on after the app is closed; the weekly summary on Mondays, kept in the app's "Resumo da semana")*; ➕ Telegram bot ✅ (alerts until 2026-10-21, the weekly summary until 14.4d; now only the database's warnings when no run starts or the GitHub token is ending)
+- Notifications: Web push ✅ *(each account's alerts on its devices (in the Android app through Firebase Cloud Messaging), the admins' when the collection breaks or recovers, sent by the collector itself; a tap opens the listing in the app; "Enviar notificação de teste" in Mais checks a device with an example of any notification; stays on after the app is closed; the weekly summary on Mondays, kept in the app's "Resumo da semana")*; ➕ Telegram bot ✅ (alerts until 2026-10-21, the weekly summary until 14.4d; now only the database's warnings when no run starts or the GitHub token is ending)
 
 ## 8. Architecture ✅
 
 ```text
 Tracked models (catalog) → searches → Collectors / Adapters → Normalization → PostgreSQL / Supabase
-   → Deal Engine · Price History · Status Tracking → Flutter Web/PWA → Alerts (app + Web Push)
+   → Deal Engine · Price History · Status Tracking → Flutter Web/PWA → Alerts (app + Web Push / FCM)
 ```
 
 *Each source has its own adapter + mapper (`manual`, `standvirtual`, `standvirtual-search`, `olx-search`); model matching (`ModelResolver`) and everything after normalization are shared.*
