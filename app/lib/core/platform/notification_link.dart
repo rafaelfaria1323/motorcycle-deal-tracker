@@ -6,10 +6,12 @@ typedef NotificationLink = ({String? location, Uri? external});
 
 NotificationLink? notificationLink(String url) {
   final text = url.trim();
-  if (text.startsWith('/#/'))
+  if (text.startsWith('/#/')) {
     return (location: text.substring(2), external: null);
-  if (text.startsWith('#/'))
+  }
+  if (text.startsWith('#/')) {
     return (location: text.substring(1), external: null);
+  }
   if (text.startsWith('/')) return (location: text, external: null);
   final uri = Uri.tryParse(text);
   if (uri != null && (uri.scheme == 'https' || uri.scheme == 'http')) {
