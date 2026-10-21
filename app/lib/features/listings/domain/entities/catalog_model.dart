@@ -8,6 +8,7 @@ class CatalogModel extends Equatable {
     required this.model,
     required this.minYear,
     required this.isTracked,
+    this.isCollected = false,
     this.olxSearch,
     this.standvirtualSearch,
     this.newPrice,
@@ -17,11 +18,17 @@ class CatalogModel extends Equatable {
   final String id;
   final String brand;
   final String model;
+
+  /// The account's own first year (the catalog's when it never chose one).
   final int minYear;
 
-  /// The collector matches, scores and alerts only on tracked models, and
-  /// runs only their searches.
+  /// Followed by this account: its listings are in Ofertas, the alerts and
+  /// the market figures.
   final bool isTracked;
+
+  /// Followed by some account (this one or another): the collector runs
+  /// its searches, matches and scores its listings.
+  final bool isCollected;
 
   /// The search address that lists the model on each site, if any.
   final String? olxSearch;
@@ -38,6 +45,7 @@ class CatalogModel extends Equatable {
     model: model,
     minYear: minYear ?? this.minYear,
     isTracked: isTracked ?? this.isTracked,
+    isCollected: isCollected,
     olxSearch: olxSearch,
     standvirtualSearch: standvirtualSearch,
     newPrice: newPrice,
@@ -51,6 +59,7 @@ class CatalogModel extends Equatable {
     model: model,
     minYear: minYear,
     isTracked: isTracked,
+    isCollected: isCollected,
     olxSearch: olxSearch,
     standvirtualSearch: standvirtualSearch,
     newPrice: price,
@@ -64,6 +73,7 @@ class CatalogModel extends Equatable {
     model,
     minYear,
     isTracked,
+    isCollected,
     olxSearch,
     standvirtualSearch,
     newPrice,

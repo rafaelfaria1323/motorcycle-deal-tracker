@@ -219,13 +219,23 @@ class DashboardPage extends StatelessWidget {
                             : 'Ainda não há ofertas',
                         message: hasFilters
                             ? 'Experimente alargar os critérios de pesquisa.'
-                            : 'Volte mais tarde, estamos a acompanhar o mercado.',
-                        actionLabel: hasFilters ? 'Limpar filtros' : null,
+                            : 'Escolha os modelos que quer acompanhar, ou '
+                                  'volte depois da próxima recolha.',
+                        actionLabel: hasFilters
+                            ? 'Limpar filtros'
+                            : 'Escolher modelos',
                         onAction: hasFilters
                             ? () => context.read<ListingsCubit>().applyFilters(
                                 ListingFilters.empty,
                               )
-                            : null,
+                            : () {
+                                final cubit = context.read<ListingsCubit>();
+                                unawaited(
+                                  context
+                                      .push<void>(AppRoutes.models)
+                                      .then((_) => cubit.load()),
+                                );
+                              },
                       );
                     }
 

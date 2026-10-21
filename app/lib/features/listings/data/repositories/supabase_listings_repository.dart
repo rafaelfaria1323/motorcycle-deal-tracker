@@ -22,12 +22,12 @@ class SupabaseListingsRepository implements ListingsRepository {
     int offset = 0,
     int limit = 40,
   }) async {
-    // Only listings of tracked models: switched-off models' listings are
-    // no longer checked, and unmatched ones have no score.
+    // Only listings of the account's own models, from its own years
+    // (in_my_models; anonymous sessions: every collected model).
     var query = _client
         .from('listings')
-        .select('${ListingModel.summaryColumns}, motorcycles!inner(is_active)')
-        .eq('motorcycles.is_active', true);
+        .select(ListingModel.summaryColumns)
+        .eq('in_my_models', true);
     query = query.isFilter('duplicate_of', null);
 
     if (filters.motorcycleId != null) {
@@ -117,7 +117,7 @@ class SupabaseListingsRepository implements ListingsRepository {
     final rows = await _client
         .from('motorcycles')
         .select('id, brand, model')
-        .eq('is_active', true)
+        .eq('tracked_by_me', true)
         .order('brand')
         .order('model');
 

@@ -7,7 +7,7 @@ Cloudflare Pages on every merge that touches `app/`
 
 ## Screens
 
-- **Ofertas:** listings of the tracked models, sorted by Deal Score (or
+- **Ofertas:** listings of your models (from your years), sorted by Deal Score (or
   newest, cheapest, most expensive, nearest), with filters shown as chips
   (including "Distância máxima" from your home and equipment: 19 kinds,
   e.g. quickshifter, escape, malas, proteções, suporte de matrícula curto,
@@ -54,10 +54,10 @@ Cloudflare Pages on every merge that touches `app/`
   you followed back on the market in a new ad ("Voltou ao mercado") and
   removed listings, grouped by day; the tab shows the unread count.
 - **Mais:** account, "A sua localidade" (your home town: every listing
-  shows its distance from it), "Modelos acompanhados" (switch models on/off, first
+  shows its distance from it), "Modelos acompanhados" (your own models: switch on/off, first
   year, new-bike price, add models: brand and model picked from the sites'
   lists, optional engine size, searches built automatically; or typed by
-  hand), "Comparar modelos" (the tracked models side by side: typical asking
+  hand), "Comparar modelos" (your models side by side: typical asking
   price and its spread, the typical bike, time until leaving the market,
   price drops, depreciation; cheapest first), the collection status (last run, what it found, requests, next run) and data quality
   per site (live listings, unmatched, duplicates, missing year/km/location,

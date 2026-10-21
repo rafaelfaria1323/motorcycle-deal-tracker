@@ -18,3 +18,9 @@ authenticated_security_definer_function_executable_public_add_catalog_model_p_br
 authenticated_security_definer_function_executable_public_set_model_min_year_p_motorcycle_id uuid, p_min_year integer
 authenticated_security_definer_function_executable_public_set_model_new_price_p_motorcycle_id uuid, p_price numeric, p_checked_at date
 authenticated_security_definer_function_executable_public_set_model_tracked_p_motorcycle_id uuid, p_tracked boolean
+
+# saved_search_matches asks whether each search's owner follows the
+# listing's model; the function reads auth.users (is the owner anonymous?),
+# which the API roles can't. It answers only about the caller itself
+# (false for any other account), so nothing about other accounts leaks.
+authenticated_security_definer_function_executable_public_owner_tracks_p_user uuid, p_motorcycle_id uuid, p_year integer

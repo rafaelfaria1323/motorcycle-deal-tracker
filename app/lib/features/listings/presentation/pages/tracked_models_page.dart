@@ -9,8 +9,9 @@ import '../../domain/repositories/catalog_repository.dart';
 import '../tracked_models_text.dart';
 import '../widgets/add_model_sheet.dart';
 
-/// Lets the owner choose which catalog models are tracked, from which year,
-/// and add new ones. The collector runs the searches of the tracked models.
+/// Lets the account choose which catalog models it follows, from which
+/// year, and add new ones. The collector runs the searches of the models
+/// any account follows.
 class TrackedModelsPage extends StatefulWidget {
   const TrackedModelsPage({super.key});
 
@@ -55,6 +56,8 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
     });
     try {
       await save();
+      // Other accounts' models count in the searches: show what is stored.
+      await _load();
     } catch (e) {
       if (!mounted) return;
       setState(() => _replace(model));
@@ -174,10 +177,11 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
           child: Text(
-            'A recolha só pesquisa os modelos ativos e atribui-lhes pontuação, '
-            'alertas e dados de mercado. As alterações contam a partir da '
-            'próxima recolha (até 4 horas). Toque num modelo para mudar o ano '
-            'ou o preço de uma nova.',
+            'Escolha os modelos que quer acompanhar e desde que ano: só esses '
+            'aparecem em Ofertas, nos alertas e no mercado. A recolha pesquisa '
+            'os modelos de todas as contas, por isso um modelo novo pode já '
+            'ter anúncios. Os anúncios novos chegam na próxima recolha (até 4 '
+            'horas). Toque num modelo para mudar o ano ou o preço de uma nova.',
             style: muted,
           ),
         ),

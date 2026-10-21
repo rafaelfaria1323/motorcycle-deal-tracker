@@ -8,7 +8,7 @@ Supabase service-role key, which the app never sees.
 
 For each site (Standvirtual, OLX):
 
-1. **Plan:** the searches of the tracked models, read from the catalog
+1. **Plan:** the searches of the models any account follows, read from the catalog
    (models that share a search share one request).
 2. **Fetch:** every page of each search (from the earliest tracked year),
    politely (see the root README) and capped.
