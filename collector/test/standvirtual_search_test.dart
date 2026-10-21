@@ -51,12 +51,15 @@ String searchPage(
   int offset = 0,
   String? bumpDate,
   Map<String, dynamic>? filters,
+  List<Map<String, dynamic>> topAds = const [],
 }) {
   final search = {
     'advertSearch': {
       'totalCount': total ?? nodes.length,
       'pageInfo': {'pageSize': 32, 'currentOffset': offset},
-      'topads': <Object>[],
+      'topads': [
+        for (final n in topAds) {'node': n},
+      ],
       'edges': [
         for (final n in nodes)
           {
@@ -217,6 +220,46 @@ void main() {
       final full = await StandvirtualSearchAdapter(dir.path).read();
       expect(full.issues, isEmpty);
       expect(full.records, hasLength(33));
+    });
+
+    test('promoted ads never make a search cut short look read', () async {
+      // 32 results and 2 promoted ads on page 1 of a 34-listing search.
+      File('${dir.path}/p1.html').writeAsStringSync(
+        searchPage(
+          first,
+          total: 34,
+          topAds: [
+            node(id: '1'),
+            node(id: '2'),
+          ],
+        ),
+      );
+      await const SearchManifest(
+        planned: [url],
+        files: {'p1.html': url},
+      ).writeTo(dir.path);
+
+      final partial = await StandvirtualSearchAdapter(dir.path).read();
+
+      expect(partial.issues.single.message, contains('holds 32 of 34'));
+    });
+
+    test('every page saved is read in full, whatever the count', () async {
+      // The site's count may include listings shown on no page.
+      File(
+        '${dir.path}/p1.html',
+      ).writeAsStringSync(searchPage(first, total: 34));
+      File(
+        '${dir.path}/p2.html',
+      ).writeAsStringSync(searchPage([node(id: '33')], total: 34, offset: 32));
+      await const SearchManifest(
+        planned: [url],
+        files: {'p1.html': url, 'p2.html': url},
+      ).writeTo(dir.path);
+
+      final full = await StandvirtualSearchAdapter(dir.path).read();
+
+      expect(full.issues, isEmpty);
     });
   });
 

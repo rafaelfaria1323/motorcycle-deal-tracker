@@ -55,6 +55,7 @@ String searchPage(
   int page = 0,
   int totalPages = 1,
   List<Map<String, Object?>>? models,
+  String brand = 'yamaha',
 }) {
   final state = {
     'listing': {
@@ -72,7 +73,7 @@ String searchPage(
           },
         'requestParams': {
           'page': page,
-          'categoryPath': 'carros-motos-e-barcos/motociclos-scooters/yamaha',
+          'categoryPath': 'carros-motos-e-barcos/motociclos-scooters/$brand',
           'params': {
             'search[filter_enum_modelo][0]': 'mt-07',
             if (page > 0) 'page': '$page',
@@ -258,6 +259,25 @@ void main() {
       expect(result.recordSearches, [url]);
       expect(result.issues.single.search, url);
       expect(result.manifest!.fetched, {url});
+    });
+
+    test('pages are grouped by the search asked for', () async {
+      // OLX describes page 2 with another address than page 1.
+      const url = 'https://www.olx.pt/carros-motos-e-barcos/x/';
+      File(
+        '${dir.path}/p1.html',
+      ).writeAsStringSync(searchPage([ad()], totalPages: 2));
+      File('${dir.path}/p2.html').writeAsStringSync(
+        searchPage([ad(id: 2)], page: 2, totalPages: 2, brand: 'motos'),
+      );
+      await const SearchManifest(
+        planned: [url],
+        files: {'p1.html': url, 'p2.html': url},
+      ).writeTo(dir.path);
+
+      final result = await OlxSearchAdapter(dir.path).read();
+
+      expect(result.issues, isEmpty);
     });
 
     test('without a manifest nothing is tied to a search', () async {
