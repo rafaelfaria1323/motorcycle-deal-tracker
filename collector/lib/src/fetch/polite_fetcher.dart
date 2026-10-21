@@ -276,7 +276,10 @@ class PoliteFetcher {
       throw FetchFailed('$url: timed out');
     } on SocketException catch (e) {
       throw FetchFailed('$url: ${e.message}');
-    } on HandshakeException catch (e) {
+    } on TlsException catch (e) {
+      throw FetchFailed('$url: ${e.message}');
+    } on HttpException catch (e) {
+      // e.g. the connection closed while the page was coming in.
       throw FetchFailed('$url: ${e.message}');
     } finally {
       _lastRequestAt = DateTime.now();
