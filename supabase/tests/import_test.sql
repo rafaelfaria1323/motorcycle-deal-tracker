@@ -84,6 +84,7 @@ end $$;
 
 -- Switching a model off unmatches its listings; on again matches them back
 -- by their stored brand and model (any case, removed ones included).
+insert into auth.users (id) values ('00000000-0000-0000-0000-0000000000c1');
 set local role authenticated;
 set local test.uid = '00000000-0000-0000-0000-0000000000c1';
 set local test.jwt = '{"is_anonymous": false}';

@@ -14,8 +14,9 @@ class SupabaseCatalogRepository implements CatalogRepository {
     final rows = await _client
         .from('motorcycles')
         .select(
-          'id, brand, model, min_year, is_active, olx_search, '
-          'standvirtual_search, new_price_reference, new_price_checked_at',
+          'id, brand, model, my_min_year, tracked_by_me, is_active, '
+          'olx_search, standvirtual_search, new_price_reference, '
+          'new_price_checked_at',
         );
     return [
       for (final row in rows)
@@ -23,8 +24,9 @@ class SupabaseCatalogRepository implements CatalogRepository {
           id: row['id'] as String,
           brand: row['brand'] as String,
           model: row['model'] as String,
-          minYear: row['min_year'] as int,
-          isTracked: row['is_active'] as bool,
+          minYear: row['my_min_year'] as int,
+          isTracked: row['tracked_by_me'] as bool,
+          isCollected: row['is_active'] as bool,
           olxSearch: row['olx_search'] as String?,
           standvirtualSearch: row['standvirtual_search'] as String?,
           newPrice: (row['new_price_reference'] as num?)?.toDouble(),

@@ -13,10 +13,15 @@ the same PR as the work.** Also keep the READMEs (`README.md`,
 when a change affects what they say (screens, commands, secrets, layout,
 pipeline, rules).
 
-Catalog (table `motorcycles`): 13 models, chosen in the app ("Modelos
-acompanhados"). Tracked by default: Yamaha MT-07, Yamaha R7, Honda CB650R,
-Honda CBR650R. Available, off by default: Tracer 7, R1, R3, R9, CB125R,
-CB300R, CBR500R, CB750 Hornet, CBR600RR. The owner can add more from the app:
+Catalog (table `motorcycles`): 13 models. Each account chooses its own
+models and first years in the app ("Modelos acompanhados", table
+`user_models`); the collector searches every model any account follows
+(`motorcycles.is_active` = someone follows it, `min_year` = the earliest
+year asked, kept by `refresh_collected_model()`), so one collection fills
+the database for every account. Collected at the switch: Yamaha MT-07,
+Yamaha R7, Honda CB650R, Honda CBR650R. Available: Tracer 7, R1, R3, R9,
+CB125R, CB300R, CBR500R, CB750 Hornet, CBR600RR. Any account can add more
+from the app (it then follows them):
 brand and model picked from `site_models` (the sites' filter lists, stored
 by every import from the search pages; view `site_makes` for the brands),
 optional engine size (name "Forza 350", Standvirtual `q-350`, engine range
@@ -212,7 +217,12 @@ for the code-quality review. Supabase's Vault holds `github_dispatch_token`
 - Auth: anonymous session on first visit; the owner signs in with
   email + password (user created by hand in Supabase, no SMTP). Catalog
   changes go through RPCs that call `require_account()` (signed in, not
-  anonymous).
+  anonymous). Models per account: lists read `listings.in_my_models` and
+  `motorcycles.tracked_by_me` / `my_min_year` (computed fields: the
+  caller's own list, or every collected model for an anonymous session; a
+  new account follows nothing). Saved searches match only their owner's
+  models (`owner_tracks`). Notifications reach each account's own devices
+  (Web Push, see Alerts); Telegram still goes to the owner's one chat.
 - Photos: `Image.network` with `WebHtmlElementStrategy.prefer` (the photo
   CDNs don't send CORS headers, so an `<img>` element is the only way).
 - Lists load `ListingModel.summaryColumns`, never `*` (descriptions are big);
@@ -330,9 +340,10 @@ functions for manual work.
   without limits is never picked by engine size alone; "350cc" reads as
   "350"). Ambiguous stays unmatched. Every import re-checks the model of
   the ads it read (`rematch_listings`), so a better rule also fixes
-  listings already stored. Switching a model off unmatches its listings at once;
-  switching it on matches them again by their stored brand and model
-  (a matched listing stores the catalog names), removed ones included.
+  listings already stored. When the last account stops following a model
+  its listings are unmatched at once; when one follows it again they are
+  matched by their stored brand and model (a matched listing stores the
+  catalog names), removed ones included.
 - Dealer boilerplate sentences are stripped from descriptions (they caused
   false duplicates). Duplicates are detected across sources too.
 - Relisted ads (`mark_relists`, called at the end of `mark_duplicates`): a

@@ -1,5 +1,6 @@
 -- Catalog changes from the app: adding a model (checked, trimmed, tracked at
 -- once, never twice), its earliest year and its new-bike price.
+insert into auth.users (id) values ('00000000-0000-0000-0000-0000000000c1');
 set local role authenticated;
 set local test.uid = '00000000-0000-0000-0000-0000000000c1';
 set local test.jwt = '{"is_anonymous": false}';
@@ -71,7 +72,8 @@ begin
   assert refused = 'refused', 'a search on another site is refused';
   assert (select count(*) from public.motorcycles where model = 'X') = 0, 'nothing refused was added';
 
-  -- set_model_min_year
+  -- set_model_min_year (of a model the account follows)
+  perform public.set_model_tracked(mt07, true);
   perform public.set_model_min_year(mt07, 2022);
   assert (select min_year from public.motorcycles where id = mt07) = 2022, 'earliest year changed';
   refused := null;

@@ -1,6 +1,10 @@
 -- Alerts for a saved search: only events after it was created, price drops
 -- of at least 1 %, and never twice for the same event.
 insert into auth.users (id) values ('00000000-0000-0000-0000-0000000000a1');
+-- Every account here follows every collected model.
+insert into public.user_models (user_id, motorcycle_id, min_year)
+select u.id, m.id, m.min_year from auth.users u cross join public.motorcycles m
+where m.is_active;
 
 insert into public.saved_searches (id, user_id, motorcycle_id, created_at)
 select '00000000-0000-0000-0000-0000000000b1', '00000000-0000-0000-0000-0000000000a1',

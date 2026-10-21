@@ -23,3 +23,9 @@ authenticated_security_definer_function_executable_public_set_model_tracked_p_mo
 # require_account() (signed in, not anonymous) and writes only the caller's
 # own row (a device signed in to another account moves to it).
 authenticated_security_definer_function_executable_public_save_push_subscription_p_endpoint text, p_p256dh text, p_auth text
+
+# saved_search_matches asks whether each search's owner follows the
+# listing's model; the function reads auth.users (is the owner anonymous?),
+# which the API roles can't. It answers only about the caller itself
+# (false for any other account), so nothing about other accounts leaks.
+authenticated_security_definer_function_executable_public_owner_tracks_p_user uuid, p_motorcycle_id uuid, p_year integer

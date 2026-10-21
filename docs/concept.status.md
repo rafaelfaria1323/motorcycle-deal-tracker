@@ -38,7 +38,7 @@ Unchanged.
 - Tracked: Yamaha MT-07, Yamaha R7, Honda CB650R, Honda CBR650R.
 - ➕ Available in the app, off by default: Tracer 7, R1, R3, R9, CB125R, CB300R, CBR500R, CB750 Hornet, CBR600RR.
 
-*The owner switches models on or off, changes each model's first year, and adds new models, all in the app ("Modelos acompanhados"). New models are picked from the brands and models the sites list (with Standvirtual's ad counts), with an optional engine size ("Forza" + 350 = only the Forza 350); the searches are built automatically, or typed by hand. The collector searches only the tracked models.*
+*Each account switches its own models on or off, changes each model's first year, and adds new models, all in the app ("Modelos acompanhados"); the collection searches every model any account follows, so all accounts share the listings. New models are picked from the brands and models the sites list (with Standvirtual's ad counts), with an optional engine size ("Forza" + 350 = only the Forza 350); the searches are built automatically, or typed by hand. The collector searches only the models someone follows.*
 
 ## 5. Sources 🟡
 
@@ -50,7 +50,7 @@ Unchanged.
 
 ## 6. Platform
 
-- Phase 1 — Flutter Web/PWA ✅ *Hosted on Cloudflare Pages, installed on the iPhone Home Screen; deployed on every merge. UI/UX redesign done (roadmap Sprint 13: Mais tab, Ofertas, listing page, Pesquisas/Alertas, its own look and fonts, one voice in pt-PT); single-user for now (Sprint 14 if someone else joins).*
+- Phase 1 — Flutter Web/PWA ✅ *Hosted on Cloudflare Pages, installed on the iPhone Home Screen; deployed on every merge. UI/UX redesign done (roadmap Sprint 13: Mais tab, Ofertas, listing page, Pesquisas/Alertas, its own look and fonts, one voice in pt-PT); models per account (Sprint 14); accounts created by hand and Telegram to the owner only, for now.*
 - Phase 2 — Flutter iOS/Android ⬜ *Not needed for now: a native iPhone build requires a paid Apple Developer account.*
 
 ## 7. Stack
