@@ -101,6 +101,16 @@
     navigator.serviceWorker.startMessages();
   }
 
+  // The push worker controls no page, so opening the app never makes the
+  // browser look for a new push_sw.js (it would wait for a push a day
+  // later): ask for it on each start, so a deploy reaches it at once.
+  async function updateWorker() {
+    if (!supported()) return;
+    const registration = await navigator.serviceWorker.getRegistration(SCOPE);
+    if (registration) await registration.update();
+  }
+
   followNotifications();
+  updateWorker().catch(() => {});
   window.mdtPush = { state, enable, disable };
 })();
