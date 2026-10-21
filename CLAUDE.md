@@ -478,7 +478,8 @@ functions for manual work.
   the market, share and size of price drops (measured from the higher of the
   first price seen and `price_before_drop`), depreciation rates. Show "ainda
   poucos dados" below 5 data points.
-- Price to offer (`offer_text.dart`, app only): ceiling = asking price or
+- Price to offer (`offer_text.dart`, app only; none for asking prices under
+  300 €, placeholders): ceiling = asking price or
   the estimated value when asking is > 2 % above it; opening 6 % (private) /
   3 % (dealer) below it, more for long on sale (+3/5/7 % past 1x/2x/3x the
   model's typical time), relisted (+2 %), a model whose sellers often
@@ -537,9 +538,12 @@ ad; relists first seen in the last 14 days). Only events after the saved search 
 searches can also require a minimum Deal Score / maximum Risk Score,
 a maximum distance from the owner's home and equipment (`extras`, all
 required; `listing_extras` codes); all in `saved_search_matches`.
-`notified_at` marks alerts already sent (only real accounts): to the
-account's devices by Web Push (`push_subscriptions`, saved from Mais ›
-"Notificações neste aparelho"; on the iPhone only in the home-screen app;
+`notified_at` marks alerts already sent (only real accounts; up to 200
+a run, oldest first; kept for the next run when the push keys can't be
+read, and while no device took a push that failed, for 24 h; older ones
+are marked without a push): to the account's devices by Web Push (`push_subscriptions`, saved from Mais ›
+"Notificações neste aparelho", saved again on each visit, removed on
+sign-out; on the iPhone only in the home-screen app;
 no longer to Telegram since 2026-10-21, `pending_notifications.to_telegram`
 is unused). The collector sends them itself
 (`notify/web_push.dart`: RFC 8291 encryption and RFC 8292 VAPID with

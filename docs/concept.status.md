@@ -29,7 +29,7 @@ Unchanged.
 - ✅ Calculate an explainable Deal Score.
 - ✅ Calculate a separate Risk Score.
 - ✅ Create saved searches. *Also by minimum Deal Score / maximum Risk Score.*
-- ✅ Send alerts. *In the app and as notifications on each account's phone (Web Push), plus each account's weekly summary on Mondays (a notification that opens "Resumo da semana" in the app).*
+- ✅ Send alerts. *In the app and as notifications on each account's phone (Web Push), plus each account's weekly summary on Mondays (a notification that opens "Resumo da semana" in the app). An alert whose push fails is tried again on the next runs (for a day); signing out stops a device's notifications.*
 - ✅ Compare motorcycles. *Up to 3 listings side by side (long press in Ofertas or "Comparar" on a listing), best value per row highlighted.*
 - 🟡 Show market trends. *Time on market, price drops, depreciation and the spread of live asking prices per model, and the tracked models compared side by side ("Comparar modelos"); price trends need more history.*
 

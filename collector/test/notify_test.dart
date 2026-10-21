@@ -35,8 +35,12 @@ class _Store implements ListingStore {
   ) async => summaries[userId] = json;
 
   @override
-  Future<List<PendingAlert>> pendingNotifications({int limit = 20}) async =>
-      pending;
+  Future<List<PendingAlert>> pendingNotifications({int limit = 20}) async {
+    limits.add(limit);
+    return pending;
+  }
+
+  final limits = <int>[];
 
   @override
   Future<Map<String, List<PushTarget>>> pushTargets() async => devices;
@@ -82,8 +86,15 @@ class _Push implements WebPushSender {
 PushTarget _device(String endpoint) =>
     PushTarget(endpoint: endpoint, p256dh: 'k', auth: 'a');
 
-PendingAlert _withId(String id, {String user = 'u1'}) => PendingAlert(
+final _now = DateTime.utc(2026, 10, 21, 12);
+
+PendingAlert _withId(
+  String id, {
+  String user = 'u1',
+  Duration age = Duration.zero,
+}) => PendingAlert(
   alertId: id,
+  createdAt: _now.subtract(age),
   userId: user,
   listingId: 'l-$id',
   type: 'new_listing',
@@ -101,11 +112,45 @@ void main() {
 
     expect(await notifyPending(store, push: _Push()), (alerts: 2, pushes: 1));
     expect(store.notified, ['a', 'b']);
+    expect(store.limits, [pendingPerRun]);
   });
 
-  test('without Web Push the alerts are still marked', () async {
+  test('without Web Push nothing is marked: the next run sends', () async {
     final store = _Store([_withId('a')]);
-    expect(await notifyPending(store), (alerts: 1, pushes: 0));
+    expect(await notifyPending(store), (alerts: 0, pushes: 0));
+    expect(store.notified, isNull);
+  });
+
+  test('an alert no device got is tried again, for a day', () async {
+    final store =
+        _Store([
+            _withId('fresh'),
+            _withId('old', age: const Duration(hours: 25)),
+          ])
+          ..devices = {
+            'u1': [_device('https://p/down')],
+          };
+    final push = _Push({'https://p/down': PushResult.failed});
+
+    final result = await notifyPending(store, push: push, now: _now);
+
+    expect(result, (alerts: 1, pushes: 0));
+    expect(store.notified, ['old']);
+    // The old one is old news: not pushed at all.
+    expect(push.sent, hasLength(1));
+  });
+
+  test('one device failing does not repeat it on the others', () async {
+    final store = _Store([_withId('a')])
+      ..devices = {
+        'u1': [_device('https://p/down'), _device('https://p/up')],
+      };
+    final push = _Push({'https://p/down': PushResult.failed});
+
+    expect(await notifyPending(store, push: push, now: _now), (
+      alerts: 1,
+      pushes: 1,
+    ));
     expect(store.notified, ['a']);
   });
 
