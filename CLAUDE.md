@@ -94,8 +94,11 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
                                   published to pr-<number>.<project>.pages.dev,
                                   linked in one comment on the PR (real
                                   database; the PR's migrations not applied);
-                                  older builds deleted on each push, the
-                                  preview deleted when the PR closes
+                                  Lighthouse (mobile) scores and load times
+                                  in that comment (report only,
+                                  tool/lighthouse_summary.py); older builds
+                                  deleted on each push, the preview deleted
+                                  when the PR closes
 .github/workflows/deploy-web.yml  On merges touching app/ or adding
                                   migrations: apply new migrations
                                   (tested again first; skipped if none),

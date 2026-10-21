@@ -328,6 +328,8 @@ Do not implement several unrelated features at once.
 *One dashboard for coverage, duplication and code smells. Not now: the checks above already run free in `check.yml`, and Rafael found no free plan that fits; revisit if that changes.*
 ## N.7 Workflow and script lint ✅
 *Rafael's go-ahead for free tools that don't overlap, 2026-10-21. `make lint-scripts` (also in `check.yml`): actionlint on the 10 workflows (expressions, inputs, secrets, and shellcheck on every `run:` step) and shellcheck on `tool/*.sh` and the session hook. The first run found 6 small things, all fixed (an unquoted `find` read as a command, `$(echo $x)` used to join lines, `A && B || C` used as if-then-else, a disable comment outside the script it was meant for, `ls | wc -l`).*
+## N.10 Lighthouse on every preview ✅
+*`preview-web.yml` runs Lighthouse 13.5 (mobile defaults: a mid-range phone on a slow 4G connection, the runner's Chrome) on each PR's preview: performance, accessibility and best-practice scores, first and largest contentful paint, blocking time, layout shift and the size of the download, plus up to 5 failed accessibility checks, on the run's summary and in the preview comment (`tool/lighthouse_summary.py`, tests `tool/test_lighthouse_summary.py`). Report only: a score never fails a PR (Flutter's web start is heavy, so a floor would only be noise until the numbers are known). Each run opens the app, so it signs in anonymously like any visitor.*
 
 # Security and privacy (later) ⬜
 
