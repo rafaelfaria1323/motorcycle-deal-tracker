@@ -15,8 +15,26 @@ void main() {
     expect(workflowText(AppWorkflow.pushTest).title, contains('teste'));
   });
 
+  test('each test notification kind has its code and a name', () {
+    expect(PushTestKind.values.map((k) => k.code), [
+      'test',
+      'new_listing',
+      'price_reduction',
+      'excellent_opportunity',
+      'target_price_reached',
+      'listing_removed',
+      'back_on_market',
+      'run_failed',
+      'run_blocked',
+      'run_recovered',
+    ]);
+    final names = PushTestKind.values.map(pushTestKindText).toSet();
+    expect(names, hasLength(PushTestKind.values.length));
+    expect(pushTestKindText(PushTestKind.priceReduction), 'Baixa de preço');
+  });
+
   test('refusals are explained by their code', () {
-    expect(startErrorText('55006'), contains('há poucos minutos'));
+    expect(startErrorText('55006'), contains('há pouco'));
     expect(startErrorText('55000'), contains('token'));
     expect(startErrorText('58000'), contains('GitHub recusou'));
     expect(startErrorText('42501'), contains('administrador'));

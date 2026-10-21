@@ -2,16 +2,38 @@ name: Test notification
 
 # Sends one test notification (Web Push) to the devices of the account that
 # asked for it in the app (Mais › "Notificações neste aparelho", through
-# start_workflow) or, started from the Actions tab, to every admin's
-# devices. Uses the collector's push keys.
+# start_workflow, which passes `account` and `kind`) or, started from the
+# Actions tab without an account, to every admin's devices. `kind` picks
+# which notification to show an example of (an alert of each type, the
+# collection's health; collector/lib/src/notify/push_test.dart). Uses the
+# collector's push keys. No concurrency group: runs may overlap (one per
+# kind tried in a row), and a queued one would cancel the one before.
 on:
   workflow_dispatch:
+    inputs:
+      account:
+        description: Only this account (user id); empty for every admin
+        required: false
+        type: string
+      kind:
+        description: Which notification to send an example of
+        required: false
+        type: choice
+        default: test
+        options:
+          - test
+          - new_listing
+          - price_reduction
+          - excellent_opportunity
+          - listing_removed
+          - back_on_market
+          - target_price_reached
+          - run_failed
+          - run_blocked
+          - run_recovered
 
 permissions:
   contents: read
-
-concurrency:
-  group: push-test
 
 jobs:
   test:
@@ -20,6 +42,8 @@ jobs:
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      PUSH_ACCOUNT: ${{ inputs.account }}
+      PUSH_KIND: ${{ inputs.kind }}
 
     steps:
       - uses: actions/checkout@v7

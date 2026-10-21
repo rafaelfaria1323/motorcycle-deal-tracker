@@ -501,6 +501,37 @@ class ListingStore {
     return byUser;
   }
 
+  /// A live listing for an example alert (the app's test notifications):
+  /// the best Deal Score among [userId]'s models, or among all when the
+  /// account follows none (or isn't given).
+  Future<Map<String, dynamic>?> sampleListing(String? userId) async {
+    final models = userId == null
+        ? const <String>[]
+        : [
+            for (final r
+                in await _client
+                    .from('user_models')
+                    .select('motorcycle_id')
+                    .eq('user_id', userId)
+                    .eq('tracked', true))
+              r['motorcycle_id'] as String,
+          ];
+    var query = _client
+        .from('listings')
+        .select(
+          'id, brand, model, url, year, mileage, price, deal_score, location',
+        )
+        .inFilter('status', ['active', 'price_changed'])
+        .isFilter('duplicate_of', null)
+        .not('motorcycle_id', 'is', null)
+        .not('price', 'is', null);
+    if (models.isNotEmpty) query = query.inFilter('motorcycle_id', models);
+    final rows = await query
+        .order('deal_score', ascending: false, nullsFirst: false)
+        .limit(1);
+    return rows.isEmpty ? null : rows.single;
+  }
+
   /// The account that last started [workflow] from the app since [since].
   Future<String?> lastWorkflowStarter(String workflow, DateTime since) async {
     final rows = await _client

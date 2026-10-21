@@ -133,3 +133,47 @@ set local role authenticated;
 set local test.jwt = '{"is_anonymous": false}';
 select public.start_workflow('push-test.yml');
 reset role;
+
+-- The test notification carries the asking account and the kind of
+-- notification to send (the test one by default); an unknown kind, or a
+-- kind for another workflow, is refused. The 30-second wait is per account.
+do $$
+declare
+  v_inputs jsonb;
+begin
+  select content::jsonb -> 'inputs' into v_inputs from extensions.http_calls
+  where uri like '%push-test.yml%' order by uri limit 1;
+  assert v_inputs = '{"account": "00000000-0000-0000-0000-0000000000b1", "kind": "test"}'::jsonb,
+    v_inputs::text;
+  delete from extensions.http_calls;
+end $$;
+
+set local role authenticated;
+set local test.uid = '00000000-0000-0000-0000-0000000000a1';
+do $$
+begin
+  begin
+    perform public.start_workflow('push-test.yml', 'drop_table');
+    assert false, 'an unknown kind was sent';
+  exception when sqlstate '22023' then null;
+  end;
+  begin
+    perform public.start_workflow('collect.yml', 'price_reduction');
+    assert false, 'a kind went to another workflow';
+  exception when sqlstate '22023' then null;
+  end;
+  -- Another account's start a moment ago doesn't hold this one back.
+  assert public.start_workflow('push-test.yml', 'price_reduction') = now();
+  begin
+    perform public.start_workflow('push-test.yml', 'run_failed');
+    assert false, 'push test started twice by the same account';
+  exception when sqlstate '55006' then null;
+  end;
+end $$;
+reset role;
+
+do $$
+begin
+  assert (select content::jsonb -> 'inputs' from extensions.http_calls)
+    = '{"account": "00000000-0000-0000-0000-0000000000a1", "kind": "price_reduction"}'::jsonb;
+end $$;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/di/injection.dart';
+import '../../../core/widgets/page_back_button.dart';
 import '../../../core/widgets/show_message.dart';
 import '../../../core/widgets/state_message.dart';
 import '../domain/accounts_repository.dart';
@@ -134,7 +135,10 @@ class _AccountsPageState extends State<AccountsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Contas e convites')),
+      appBar: AppBar(
+        leading: const PageBackButton(),
+        title: const Text('Contas e convites'),
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _busy ? null : _newInvite,
         icon: const Icon(Icons.person_add_alt),

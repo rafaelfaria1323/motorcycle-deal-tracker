@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../app/di/injection.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/formatting/formatters.dart';
+import '../../../core/widgets/page_back_button.dart';
 import '../../../core/widgets/section_card.dart';
 import '../../../core/widgets/state_message.dart';
 import '../data/collector_runs_repository.dart';
@@ -53,7 +54,10 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Estado da recolha')),
+      appBar: AppBar(
+        leading: const PageBackButton(),
+        title: const Text('Estado da recolha'),
+      ),
       body: FutureBuilder<List<CollectorRun>>(
         future: _recent,
         builder: (context, snapshot) {

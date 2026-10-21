@@ -8,10 +8,16 @@ class SupabaseWorkflowsRepository implements WorkflowsRepository {
   final SupabaseClient _client;
 
   @override
-  Future<DateTime> start(AppWorkflow workflow) async => DateTime.parse(
+  Future<DateTime> start(
+    AppWorkflow workflow, {
+    PushTestKind? kind,
+  }) async => DateTime.parse(
     await _client.rpc<Object?>(
       'start_workflow',
-      params: {'p_workflow': workflow.file},
+      params: {
+        'p_workflow': workflow.file,
+        if (kind != null) 'p_kind': kind.code,
+      },
     ) as String,
   );
 }
