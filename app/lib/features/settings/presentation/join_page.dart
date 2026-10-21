@@ -79,10 +79,10 @@ class _JoinPageState extends State<JoinPage> {
       return;
     }
     // The shared cubits hold the anonymous session's data: reload them.
-    unawaited(getIt<ListingsCubit>().load());
+    unawaited(getIt<ListingsCubit>().load(models: true));
     unawaited(getIt<SavedSearchesCubit>().load());
     unawaited(getIt<AlertsCubit>().load());
-    unawaited(getIt<FavouritesCubit>().load());
+    unawaited(getIt<FavouritesCubit>().load(otherAccount: true));
     if (mounted) context.go(AppRoutes.deals);
   }
 

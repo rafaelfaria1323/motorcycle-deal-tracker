@@ -2,6 +2,8 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../features/settings/domain/push_repository.dart';
+import '../platform/push.dart';
 import 'account_text.dart';
 import 'session_bootstrap.dart';
 
@@ -17,9 +19,10 @@ class AccountState extends Equatable {
 }
 
 class AccountCubit extends Cubit<AccountState> {
-  AccountCubit(this._client) : super(const AccountState());
+  AccountCubit(this._client, this._push) : super(const AccountState());
 
   final SupabaseClient _client;
+  final PushRepository _push;
 
   GoTrueClient get _auth => _client.auth;
 
@@ -48,9 +51,17 @@ class AccountCubit extends Cubit<AccountState> {
     }
   }
 
-  /// Back to a fresh anonymous session so the app keeps working.
+  /// Back to a fresh anonymous session so the app keeps working. This
+  /// device stops receiving the account's notifications first, while the
+  /// account may still remove its subscription.
   Future<void> signOut() async {
     emit(const AccountState(busy: true));
+    try {
+      final endpoint = await DevicePush.disable();
+      if (endpoint != null) await _push.remove(endpoint);
+    } on Object catch (_) {
+      // No Web Push here, or already gone: nothing to stop.
+    }
     try {
       await _auth.signOut();
       await ensureSession(_client);

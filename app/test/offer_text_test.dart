@@ -61,6 +61,9 @@ void main() {
       'nothing without a price, an estimate, or for removed and repeats',
       () {
         expect(suggestOffer(_listing(price: null)), isNull);
+        // A placeholder price would open at 0 €.
+        expect(suggestOffer(_listing(price: 80, estimate: 6000)), isNull);
+        expect(suggestOffer(_listing(price: 300, estimate: 320)), isNotNull);
         expect(suggestOffer(_listing(estimate: null)), isNull);
         expect(suggestOffer(_listing(estimate: 0)), isNull);
         expect(suggestOffer(_listing(status: ListingStatus.removed)), isNull);

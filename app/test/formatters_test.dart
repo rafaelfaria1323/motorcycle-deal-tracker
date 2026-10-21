@@ -41,4 +41,23 @@ void main() {
     expect(Formatters.percent(5.25, decimals: 1), '5,3 %');
     expect(Formatters.percent(4.04, decimals: 1), '4,0 %');
   });
+
+  test('calendar days count local days, not 24-hour spans', () {
+    // Late evening to just after midnight: the next day.
+    expect(
+      Formatters.calendarDays(
+        DateTime(2026, 3, 29, 23, 30),
+        DateTime(2026, 3, 30, 1, 40),
+      ),
+      1,
+    );
+    expect(
+      Formatters.calendarDays(DateTime(2026, 3, 29, 8), DateTime(2026, 3, 29)),
+      0,
+    );
+    expect(
+      Formatters.calendarDays(DateTime(2026, 2, 27), DateTime(2026, 3, 2)),
+      3,
+    );
+  });
 }

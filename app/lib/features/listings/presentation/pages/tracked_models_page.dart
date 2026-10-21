@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -7,6 +9,7 @@ import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/catalog_model.dart';
 import '../../domain/repositories/catalog_repository.dart';
+import '../cubit/listings_cubit.dart';
 import '../tracked_models_text.dart';
 import '../widgets/add_model_sheet.dart';
 
@@ -28,10 +31,19 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
   /// Models with a change on its way, so a switch can't be flipped twice.
   final _saving = <String>{};
 
+  /// Something was saved: Ofertas' models and listings change with it.
+  bool _changed = false;
+
   @override
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void dispose() {
+    if (_changed) unawaited(getIt<ListingsCubit>().load(models: true));
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -57,6 +69,7 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
     });
     try {
       await save();
+      _changed = true;
       // Other accounts' models count in the searches: show what is stored.
       await _load();
     } catch (e) {
@@ -120,6 +133,7 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
         engineCcMin: added.engineCcMin,
         engineCcMax: added.engineCcMax,
       );
+      _changed = true;
       showMessage(
         messenger,
         '${added.brand} ${added.model} adicionado: entra na próxima recolha',

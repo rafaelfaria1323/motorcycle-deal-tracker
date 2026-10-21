@@ -76,7 +76,9 @@ void configureDependencies() {
     ..registerLazySingleton<FavouritesCubit>(
       () => FavouritesCubit(getIt<FavouritesRepository>()),
     )
-    ..registerFactory(() => AccountCubit(getIt<SupabaseClient>()))
+    ..registerFactory(
+      () => AccountCubit(getIt<SupabaseClient>(), getIt<PushRepository>()),
+    )
     ..registerLazySingleton(() => SessionCubit.of(getIt<SupabaseClient>()))
     ..registerLazySingleton(CompareCubit.new)
     ..registerLazySingleton<CollectorRunsRepository>(
