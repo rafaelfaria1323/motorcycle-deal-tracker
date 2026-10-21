@@ -213,7 +213,8 @@ for the code-quality review. Supabase's Vault holds `github_dispatch_token`
   racing-orange primary, white cards with a hairline border, no shadows or
   tints) and `app_colors.dart` (`AppColors.of(context)`: positive/negative
   and Deal Score band colours, light and dark). Never hard-code colours in
-  widgets. Fonts are bundled (`assets/fonts`, Latin subset): Barlow for
+  widgets. `theme_contrast_test.dart` checks the WCAG contrast of the
+  colours (text 4.5:1, score badges 3:1): keep it green when changing them. Fonts are bundled (`assets/fonts`, Latin subset): Barlow for
   text, Barlow Semi Condensed (`AppTheme.displayFont`) for titles, prices
   and scores; prices use tabular figures.
 - Hosting: Cloudflare Pages, installed on the iPhone from Safari ("Adicionar

@@ -36,7 +36,7 @@ class AppColors extends ThemeExtension<AppColors> {
   static const badgeShadow = Color(0x33000000);
 
   static const light = AppColors(
-    positive: Color(0xFF0B8A5E),
+    positive: Color(0xFF0A7F57),
     negative: Color(0xFFD12B2B),
     scoreExcellent: Color(0xFF0B8A5E),
     scoreVeryGood: Color(0xFF4A8C12),
