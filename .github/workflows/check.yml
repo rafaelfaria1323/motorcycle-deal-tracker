@@ -47,6 +47,15 @@ jobs:
       - name: Check migrations against main
         run: tool/check_migrations.sh "$(git merge-base origin/main HEAD)" HEAD
 
+      # Workflows and shell scripts: actionlint (expressions, inputs,
+      # secrets, and shellcheck on every run: step) and shellcheck on
+      # tool/*.sh. A typo there would otherwise show only when the
+      # workflow runs. shellcheck is on the runner image.
+      - name: make lint-scripts
+        run: |
+          bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.12/scripts/download-actionlint.bash) 1.7.12 "$RUNNER_TEMP"
+          PATH="$RUNNER_TEMP:$PATH" make lint-scripts
+
       - uses: subosito/flutter-action@v2
         with:
           channel: stable

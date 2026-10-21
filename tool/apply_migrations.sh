@@ -30,7 +30,7 @@ local_versions=$(for f in "$dir"/*.sql; do basename "$f" | cut -d_ -f1; done | s
 
 unknown=$(comm -23 <(echo "$applied" | sed '/^$/d' | sort) <(echo "$local_versions"))
 if [ -n "$unknown" ]; then
-  echo "::error::The database has migrations that are not in supabase/migrations: $(echo $unknown). Add them to the repository (or repair the history) before applying more."
+  echo "::error::The database has migrations that are not in supabase/migrations: ${unknown//$'\n'/ }. Add them to the repository (or repair the history) before applying more."
   exit 1
 fi
 

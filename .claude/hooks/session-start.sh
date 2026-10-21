@@ -41,6 +41,12 @@ dart --version
   fi
 )
 
+# make lint-scripts: actionlint is on the image, shellcheck may not be.
+if ! command -v shellcheck >/dev/null 2>&1; then
+  apt-get install -y -q shellcheck >/dev/null 2>&1 \
+    || { apt-get update -q >/dev/null 2>&1 && apt-get install -y -q shellcheck >/dev/null 2>&1; } || true
+fi
+
 # make sql-lint: plpgsql_check for the local Postgres, and squawk.
 if ! ls /usr/share/postgresql/*/extension/plpgsql_check.control >/dev/null 2>&1; then
   pkg="postgresql-$(psql --version | grep -oE '[0-9]+' | head -1)-plpgsql-check"

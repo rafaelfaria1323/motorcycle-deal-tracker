@@ -92,8 +92,9 @@ jobs:
           PACKAGE: ${{ matrix.package }}
           FILES: ${{ matrix.files }}
         # FILES is a space-separated list of paths without spaces.
-        # shellcheck disable=SC2086
-        run: python3 -I tool/mutation.py run "$PACKAGE" "$RUNNER_TEMP/mutation" $FILES
+        run: |
+          # shellcheck disable=SC2086
+          python3 -I tool/mutation.py run "$PACKAGE" "$RUNNER_TEMP/mutation" $FILES
 
       - uses: actions/upload-artifact@v7
         with:

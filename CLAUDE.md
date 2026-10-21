@@ -34,9 +34,9 @@ has the model), or typed by hand.
   collector use no AI (scores, estimates and alerts are rules and
   statistics). Checks: analyzer rules (`*/analysis_options.yaml`),
   `make duplication` (jscpd), `make coverage` (floors in the Makefile),
-  `make sql-lint` (plpgsql_check, splinter, squawk), mutation testing,
-  Dependabot; the Claude backlog passes only look for
-  what needs judgment.
+  `make lint-scripts` (actionlint, shellcheck), `make sql-lint`
+  (plpgsql_check, splinter, squawk), mutation testing, Dependabot; the
+  Claude backlog passes only look for what needs judgment.
 - Work in small verifiable steps: implement → test → commit. Each step ends
   with a definition of done.
 - Answers to Rafael in English; **all UI text in Portuguese (pt-PT)**,
@@ -146,6 +146,7 @@ Makefile    All commands (`make help`)
 ```
 make check                     analyze + test app and collector, test tool/ (before every commit)
 make coverage / duplication    coverage floors and copy-paste check (also in CI)
+make lint-scripts              actionlint on the workflows, shellcheck on tool/*.sh (also in CI)
 make app-run                   run the app in Chrome (app/env/dev.json)
 make db-new NAME=x / db-push   create / apply migrations (merging applies them too)
 make db-test                   migrations + SQL tests on a local Postgres
