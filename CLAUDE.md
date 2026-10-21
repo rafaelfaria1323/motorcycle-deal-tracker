@@ -4,7 +4,8 @@ Personal web app/PWA (single owner: Rafael) that watches the Portuguese used
 and semi-new motorcycle market, tracks price and status history, and ranks
 listings with an explainable **Deal Score** plus a separate **Risk Score**.
 Alerts go to the app, to each account's devices as notifications (Web
-Push) and to the owner's Telegram chat.
+Push) and, an admin's, to the owner's Telegram chat. Others join through
+invite links made in the app.
 
 Progress lives in `docs/roadmap.status.md` (step by step) and
 `docs/concept.status.md` (against the original concept). **Update both in
@@ -185,8 +186,10 @@ names, plus `SUPABASE_PUBLISHABLE_KEY`, `CLOUDFLARE_API_TOKEN` and
 pooler connection string, `[YOUR-PASSWORD]` left in) and
 `SUPABASE_DB_PASSWORD` for the migrations, and `CLAUDE_CODE_OAUTH_TOKEN`
 for the code-quality review. Supabase's Vault holds `github_dispatch_token`
-(starts the scheduled workflows) and `telegram_bot_token` /
-`telegram_chat_id` (the watchdog's messages).
+(starts the scheduled workflows), `telegram_bot_token` /
+`telegram_chat_id` (the watchdog's messages), `vapid_private_key` (Web
+Push) and `service_url` / `service_role_key` (Auth's admin API, for
+invites; written by the collector on each run).
 
 ## App conventions (Flutter)
 
@@ -214,8 +217,20 @@ for the code-quality review. Supabase's Vault holds `github_dispatch_token`
   `.percent` ("5,3 %": decimal comma, space before the sign)
   (`core/formatting/formatters.dart`). A listing is an "anúncio" (Ofertas
   is only the tab's name); a repeat of another listing is "duplicado".
-- Auth: anonymous session on first visit; the owner signs in with
-  email + password (user created by hand in Supabase, no SMTP). Catalog
+- Auth: anonymous session on first visit; accounts sign in with email +
+  password. Accounts come from invites (no SMTP, no open sign-up): an
+  admin (`app_admins`, `is_admin()`, `require_admin()`; the oldest account
+  was the first) creates one in Mais › "Contas e convites" (`create_invite`,
+  table `invites`: one account, 14 days) and shares the link
+  (`/#/join?code=…`, `core/platform/share.dart`: the phone's share sheet,
+  else the link is copied); the invite page calls `redeem_invite`, which
+  makes the account, already confirmed, through Supabase Auth's admin API
+  (`auth_admin_request`: the `http` extension with the URL and
+  service-role key the collector stores in the Vault each run,
+  `store_service_access`; never writes `auth.users`), then signs in.
+  Admins also list accounts (`admin_accounts`), make or unmake admins
+  (`set_admin`, never themselves) and remove accounts (`remove_account`).
+  Catalog
   changes go through RPCs that call `require_account()` (signed in, not
   anonymous). Models per account: lists read `listings.in_my_models` and
   `motorcycles.tracked_by_me` / `my_min_year` (computed fields: the
@@ -489,7 +504,8 @@ required; `listing_extras` codes); all in `saved_search_matches`.
 `notified_at` marks alerts already sent (only real accounts): to the
 account's devices by Web Push (`push_subscriptions`, saved from Mais ›
 "Notificações neste aparelho"; on the iPhone only in the home-screen app)
-and to the owner's Telegram chat. The collector sends them itself
+and, admins' only (`pending_notifications.to_telegram`), to the owner's
+Telegram chat. The collector sends them itself
 (`notify/web_push.dart`: RFC 8291 encryption and RFC 8292 VAPID with
 pointycastle, no third party); its key pair is made on the first run
 (`store_push_keys`: public key in `push_config`, private in Vault

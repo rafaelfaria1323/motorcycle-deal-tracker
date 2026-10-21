@@ -16,10 +16,10 @@ psql -X -q -d postgres -c "drop database if exists $db" -c "create database $db"
 psql_db -f "$root/supabase/tests/stubs.sql"
 
 for f in "$root"/supabase/migrations/*.sql; do
-  # pg_cron and pg_net exist only on Supabase; stubs.sql stands in for them.
+  # pg_cron, pg_net and http exist only on Supabase; stubs.sql stands in for them.
   # One transaction per file, as tool/apply_migrations.sh applies them (so
   # e.g. a new enum value used in the same file fails here too).
-  sed -E '/create extension if not exists (pg_cron|pg_net)/d' "$f" \
+  sed -E '/create extension if not exists (pg_cron|pg_net|http)/d' "$f" \
     | psql_db --single-transaction -f - >/dev/null || { echo "FAILED migration: $(basename "$f")"; exit 1; }
 done
 migrations=("$root"/supabase/migrations/*.sql)

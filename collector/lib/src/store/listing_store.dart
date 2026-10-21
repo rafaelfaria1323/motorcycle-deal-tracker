@@ -409,6 +409,16 @@ class ListingStore {
     return points;
   }
 
+  /// Lets the database call Supabase Auth's admin API (accounts made from
+  /// invites in the app) with this run's address and key; stored in the
+  /// Vault, only when they changed.
+  Future<void> storeServiceAccess(String url, String key) async {
+    await _client.rpc<Object?>(
+      'store_service_access',
+      params: {'p_url': url, 'p_key': key},
+    );
+  }
+
   /// Our Web Push key pair; made and stored on the first run.
   Future<VapidKeys> pushKeys() async {
     Future<VapidKeys?> read() async {

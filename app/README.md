@@ -53,7 +53,7 @@ Cloudflare Pages on every merge that touches `app/`
 - **Alertas:** new listings, price drops, excellent opportunities, bikes
   you followed back on the market in a new ad ("Voltou ao mercado") and
   removed listings, grouped by day; the tab shows the unread count.
-- **Mais:** account, "A sua localidade" (your home town: every listing
+- **Mais:** account, sharing (the app's link; admins: "Contas e convites"), "A sua localidade" (your home town: every listing
   shows its distance from it), "Modelos acompanhados" (your own models: switch on/off, first
   year, new-bike price, add models: brand and model picked from the sites'
   lists, optional engine size, searches built automatically; or typed by
@@ -72,8 +72,12 @@ make app-check                         # analyze and test
 make app-serve                         # release build on http://localhost:8080
 ```
 
-Visitors get an anonymous session; the owner signs in with email and
-password (created by hand in Supabase) to change the catalog.
+Visitors get an anonymous session. Accounts come from invites: an admin
+(Mais › Partilhar › "Contas e convites") creates a link and shares it, and
+whoever opens it (`/#/join?code=…`) chooses an email and password; the
+account is made at once (Supabase Auth's admin API, called by the
+database). Admins also see the accounts, make other admins and remove
+accounts. "Partilhar a app" sends the app's link to anyone.
 
 ## Code layout
 

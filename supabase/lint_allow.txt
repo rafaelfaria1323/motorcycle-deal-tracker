@@ -29,3 +29,20 @@ authenticated_security_definer_function_executable_public_save_push_subscription
 # which the API roles can't. It answers only about the caller itself
 # (false for any other account), so nothing about other accounts leaks.
 authenticated_security_definer_function_executable_public_owner_tracks_p_user uuid, p_motorcycle_id uuid, p_year integer
+
+# Accounts (20261023170000): the admin RPCs each start with require_admin()
+# (the caller is in app_admins, else 42501), so other accounts can call
+# them but get nothing.
+authenticated_security_definer_function_executable_public_admin_accounts_
+authenticated_security_definer_function_executable_public_create_invite_p_note text
+authenticated_security_definer_function_executable_public_remove_account_p_user uuid
+authenticated_security_definer_function_executable_public_set_admin_p_user uuid, p_admin boolean
+
+# The invite page, opened by a visitor's anonymous session (anon before the
+# session starts): invite_status says only ok / used / expired / unknown
+# for a code, and redeem_invite needs a valid unused code (122 random bits)
+# to make one account through Auth's admin API.
+anon_security_definer_function_executable_public_invite_status_p_code text
+authenticated_security_definer_function_executable_public_invite_status_p_code text
+anon_security_definer_function_executable_public_redeem_invite_p_code text, p_email text, p_password text
+authenticated_security_definer_function_executable_public_redeem_invite_p_code text, p_email text, p_password text
