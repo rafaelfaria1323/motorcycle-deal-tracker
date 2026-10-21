@@ -86,19 +86,51 @@
   }
 
   // A tapped notification while the app is open: push_sw.js can't navigate
-  // a page it doesn't control, so it sends the address here. The app's
+  // a page it doesn't control, so it leaves the address in Cache Storage
+  // (read when the app is shown) and also sends it as a message. The app's
   // routes live in the hash (Flutter's hash strategy follows its change).
+  const TAP_CACHE = 'mdt-push-tap';
+  const TAP_KEY = '/push/last-tap';
+  const TAP_FRESH_MS = 2 * 60 * 1000;
+
+  function go(url) {
+    const target = new URL(url, location.href);
+    if (target.origin !== location.origin) return;
+    if (target.hash && target.hash !== location.hash) location.hash = target.hash;
+  }
+
+  // Follows the last tap once (and only a recent one: an old entry, from a
+  // tap that opened a new window, must not move the app later).
+  async function followTap() {
+    const cache = await caches.open(TAP_CACHE);
+    const response = await cache.match(TAP_KEY);
+    if (!response) return;
+    await cache.delete(TAP_KEY);
+    const tap = await response.json();
+    if (typeof tap.url === 'string' && Date.now() - tap.at < TAP_FRESH_MS) go(tap.url);
+  }
+
   function followNotifications() {
     if (!('serviceWorker' in navigator)) return;
     navigator.serviceWorker.addEventListener('message', (event) => {
       const data = event.data || {};
-      if (data.type !== 'mdt-open' || typeof data.url !== 'string') return;
-      const target = new URL(data.url, location.href);
-      if (target.origin !== location.origin) return;
-      if (target.hash && target.hash !== location.hash) location.hash = target.hash;
+      if (data.type === 'mdt-open' && typeof data.url === 'string') go(data.url);
     });
     // Messages wait until this is called (addEventListener alone doesn't).
     navigator.serviceWorker.startMessages();
+    if (!('caches' in window)) return;
+    // The phone can show the app before the worker has stored the tap, so
+    // look again shortly after.
+    const check = () => {
+      for (const delay of [0, 700, 2000]) {
+        setTimeout(() => followTap().catch(() => {}), delay);
+      }
+    };
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') check();
+    });
+    window.addEventListener('focus', check);
+    check();
   }
 
   // The push worker controls no page, so opening the app never makes the
