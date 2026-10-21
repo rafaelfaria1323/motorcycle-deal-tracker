@@ -81,9 +81,18 @@ jobs:
           dart pub global activate coverage >/dev/null
           make coverage
 
-      - name: make db-test
+      # make sql-lint runs make db-test first, then checks the database it
+      # leaves (plpgsql_check, splinter) and squawk on this PR's new
+      # migrations. plpgsql_check goes into the Postgres container (the
+      # official image has the PostgreSQL apt repository).
+      - name: make sql-lint (with make db-test)
         env:
           PGHOST: localhost
           PGUSER: postgres
           PGPASSWORD: postgres
-        run: make db-test
+          POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+        run: |
+          docker exec "$POSTGRES_CONTAINER" sh -c \
+            'apt-get update -qq && apt-get install -y -qq postgresql-16-plpgsql-check' >/dev/null
+          pipx install squawk-cli==2.70.0 >/dev/null
+          make sql-lint

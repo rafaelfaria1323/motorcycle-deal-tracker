@@ -34,8 +34,9 @@ has the model), or typed by hand.
   collector use no AI (scores, estimates and alerts are rules and
   statistics). Checks: analyzer rules (`*/analysis_options.yaml`),
   `make duplication` (jscpd), `make coverage` (floors in the Makefile),
-  `make lint-scripts` (actionlint, shellcheck), mutation testing, Dependabot; the Claude backlog passes only look for
-  what needs judgment.
+  `make lint-scripts` (actionlint, shellcheck), `make sql-lint`
+  (plpgsql_check, splinter, squawk), mutation testing, Dependabot; the
+  Claude backlog passes only look for what needs judgment.
 - Work in small verifiable steps: implement → test → commit. Each step ends
   with a definition of done.
 - Answers to Rafael in English; **all UI text in Portuguese (pt-PT)**,
@@ -68,7 +69,9 @@ has the model), or typed by hand.
   transaction that is rolled back; a test fails by raising (`assert`).
   `set local test.uid` / `test.jwt` act as a user. `now()` is fixed inside
   a transaction, so date rows explicitly when their order matters. Add or
-  extend a test with every migration that changes behaviour.
+  extend a test with every migration that changes behaviour. `make sql-lint`
+  must stay clean: fix a splinter finding, or allow it in
+  `supabase/lint_allow.txt` with the reason.
 - Flutter is not installed in the sandbox and must not be downloaded: Rafael
   tests the app. Pure Dart logic in the app can be tested with plain Dart
   (`package:test`) on copies of the files. The deploy runs `flutter test`
@@ -147,6 +150,8 @@ make lint-scripts              actionlint on the workflows, shellcheck on tool/*
 make app-run                   run the app in Chrome (app/env/dev.json)
 make db-new NAME=x / db-push   create / apply migrations (merging applies them too)
 make db-test                   migrations + SQL tests on a local Postgres
+make sql-lint                  db-test, then plpgsql_check, splinter (supabase/lint_allow.txt)
+                               and squawk on new migrations (.squawk.toml); also in CI
 make searches SITE=olx|standvirtual   write the tracked models' searches
 make fetch-dry|fetch SITE=...  download those search pages (polite, capped)
 make collect-dry|collect SOURCE=manual|standvirtual|standvirtual-search|olx-search FILE=... [ARGS=--full]
