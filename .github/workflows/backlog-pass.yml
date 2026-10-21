@@ -104,7 +104,7 @@ jobs:
           if [ "$items" -gt 0 ]; then
             mode=fix; every=$EVERY_FIX
           else
-            mode=find; every=$EVERY_FIND
+            mode="find"; every=$EVERY_FIND
           fi
           echo "Merged since $since: $merged (every $every); open PRs: $open; to do: $items -> $mode"
           if [ "$open" -gt 0 ]; then
@@ -309,7 +309,7 @@ jobs:
           blocked=$(git diff --name-only origin/main...HEAD \
             | grep -E '^(supabase/|\.github/|tool/|Makefile$)' || true)
           if [ -n "$blocked" ]; then
-            echo "::notice::Left for a manual merge: it changes $(echo $blocked)"
+            echo "::notice::Left for a manual merge: it changes ${blocked//$'\n'/ }"
             exit 0
           fi
           # The check run started above, for this exact commit.

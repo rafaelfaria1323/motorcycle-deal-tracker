@@ -326,6 +326,8 @@ Do not implement several unrelated features at once.
 *`.github/dependabot.yml`: weekly PRs for the app's and the collector's packages and the GitHub Actions (minor and patch grouped), each checked like any PR (no preview: Dependabot's PRs get no secrets). Replaces deprecated action versions too.*
 ## N.6 SonarQube Cloud (maybe later) ⬜
 *One dashboard for coverage, duplication and code smells. Not now: the checks above already run free in `check.yml`, and Rafael found no free plan that fits; revisit if that changes.*
+## N.7 Workflow and script lint ✅
+*Rafael's go-ahead for free tools that don't overlap, 2026-10-21. `make lint-scripts` (also in `check.yml`): actionlint on the 10 workflows (expressions, inputs, secrets, and shellcheck on every `run:` step) and shellcheck on `tool/*.sh` and the session hook. The first run found 6 small things, all fixed (an unquoted `find` read as a command, `$(echo $x)` used to join lines, `A && B || C` used as if-then-else, a disable comment outside the script it was meant for, `ls | wc -l`).*
 
 # Security and privacy (later) ⬜
 
