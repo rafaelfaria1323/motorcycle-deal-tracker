@@ -5,37 +5,41 @@ here. Robots.txt is not permission; the source's terms of use decide.
 
 ## Decision log
 
-### 2026-10-20: Facebook Marketplace and CustoJusto are not collected; ads from them are saved by hand
+### 2026-10-20: place coordinates from GeoNames (15.11)
 
-**Facebook Marketplace: no collector.** robots.txt opens with "Collection
-of data on Facebook through automated means is prohibited unless you have
-express written permission from Facebook" and ends with `User-agent: *`
-`Disallow: /`. Browsing Marketplace needs a signed-in account; running a
-bot on the owner's account would break Facebook's terms, get the account
-checkpointed or locked (logins from GitHub's servers are flagged), and need
-bot-detection evasion, which we do not build. Sellers are mostly private
-people shown by name.
+The distance from home needs coordinates for the place names the sites
+give. Source: GeoNames (geonames.org, CC BY 4.0: free use with credit),
+taken from the npm package `cities.json` 1.1.65 (Portuguese towns over
+1 000 people, the municipalities and districts). It is a one-off copy in
+the migration `20261022150000_listing_distance.sql` (table `places`); no
+site is read at run time. Credit: "Place coordinates: GeoNames
+(geonames.org), CC BY 4.0".
 
-**CustoJusto: no collector.** robots.txt (pasted by the owner on
-2026-10-20) opens with "It is expressly forbidden to use spiders or other
-automated methods to access CustoJusto.pt. Only if custojusto.pt has given
-special permit such access is allowed." Category pages are not in its
-Disallow list, but the notice covers the whole site, and pagination
-(`/*?o=*`, `/*&o=*`) is disallowed. Collecting would need written
-permission from CustoJusto.
+### 2026-10-21: OLX searches ask for the engine size (9.13)
 
-**Instead: "Adicionar anúncio".** The owner saves single ads from these
-sites (or any other) in the app: a form (Mais › Adicionar anúncio, route
-`/add`), optionally filled by an iPhone Shortcut run from Safari's share
-sheet on the ad the owner is viewing. The Shortcut's script reads only
-what that page shows (title, price, description, place, photo; never the
-seller's name) and opens `/#/add?u=&t=&p=&d=&l=&i=` (the app uses hash URLs); the owner checks and
-saves. Nothing is fetched by us. The listing is stored through the RPC
-`add_shared_listing` (signed-in accounts only) with source `facebook`,
-`custojusto` or `other`, the catalog's brand and model, no seller name,
-and is scored at once. The collector never removes these (it reads only
-OLX and Standvirtual); OLX and Standvirtual links are refused there because
-they are collected.
+**Why.** OLX's model filter is a family: "R" holds the R125, R3, R6, R7, R1
+and R9; "CB"/"CBR" every Honda CB and CBR from 125 to 1000 cc. A search for
+the R7 or the CB650R also read every other model of the family, so more
+than 100 stored OLX ads matched no followed model (Rafael, 2026-10-21):
+pages and storage spent on bikes nobody follows.
+
+**Decision.** When every model of an OLX search has an engine size inside
+one of OLX's engine-size bands, the search asks for that band only
+(`search[filter_enum_cilindrada][0]`). The bands are the values of OLX's
+own filter list in its search pages (`ate-50-cc`, `51-125-cc`,
+`126-500-cc`, `501-1000-cc`, `mais-de-1000-cc`; the last four added on
+2026-10-21 for word searches such as the Forza 350 and ADV 350, which
+brought every Honda: 2 pages each); an unknown value would make OLX return nothing, so a banded search whose
+first page has no ads is not saved: it isn't read in full and removes
+nothing, and the log says so. A model without an engine
+size, or models in different bands, keep the search as it was. Standvirtual
+searches already name the engine size (`q-650`, `q-7`). An ad whose seller
+left the engine size empty, or chose the wrong band, is no longer found on
+OLX (Standvirtual still lists dealer ads).
+
+**Cleanup.** The unmatched ads already stored were set to removed once
+(migration `20261023160000`, not those with an alert or a favourite); the
+next run makes the ones its searches still bring live again.
 
 ### 2026-10-19: searches come from the tracked models (9.9)
 
@@ -44,8 +48,8 @@ that lists it (`motorcycles.olx_search`, `standvirtual_search`); the
 `sources/*_searches.txt` files are gone. Every run, `make searches` writes
 the searches of the tracked models (switched on in the app), one per
 address: models that share one (R7, R1, R3, R9 under OLX "R/YZF") share
-the requests, and OLX gets a "year from" filter of the earliest year any of
-them tracks. Models can be added from the app with a search address copied
+the requests, and each search gets a "year from" filter of the earliest
+year any of them tracks (Standvirtual's since 2026-10-20, see below). Models can be added from the app with a search address copied
 from the site.
 
 **Limits unchanged.** The same fetch rules and budget apply (20 requests
@@ -60,6 +64,25 @@ only listings of searches it read in full: a search cut short, with an
 unreadable page, or no longer run (its models switched off) keeps its
 listings. Listings not yet tied to a search are covered only when every
 planned search was read in full.
+
+### 2026-10-20: every page of a Standvirtual search, and fewer missed ads
+
+**Decision.** Standvirtual searches ask for the first tracked year
+(`search[filter_float_first_registration_year:from]`) and every page of a
+search is read (32 listings per page, `?page=N`, the same path robots.txt
+allows), as on OLX. Until now only the first page was read; a search over
+32 listings was reported incomplete and the rest never collected.
+
+**Also.** A model named with its engine size ("Forza 350", "ADV 350") but
+added without one now gets that size's range, so ads named only "Forza" or
+"ADV" are matched by the engine size the ad states (14 Standvirtual ads
+were left unmatched in the run of 2026-10-20 16:40); "350cc" in a title
+reads as "350". Listings under a search address no planned search uses any
+more are removed by a run that read every search in full (tracked model,
+within its years); before, they stayed live for good.
+
+**Limits unchanged.** Same requests budget; the year filter keeps the page
+count down (the 2026-10-20 run used 5 of 20 Standvirtual requests).
 
 ### 2026-10-19: OLX search pages as a second source (9.7)
 

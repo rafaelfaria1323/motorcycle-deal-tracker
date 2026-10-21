@@ -32,21 +32,27 @@ class ListingModel extends Listing {
     super.dealerWarrantyMonths,
     super.publishedAt,
     super.siteRefreshedAt,
+    super.relistedFrom,
+    super.relistedSince,
+    super.relistedPrice,
     super.newPrice,
     super.newPriceCheckedAt,
+    super.engineCc,
+    super.distanceKm,
   });
 
   /// The columns lists need (cards, alerts, other sources of a bike); the
-  /// detail page loads the whole row. Leaves out the description and score
+  /// detail page loads the whole row. `distance_km` is a computed field
+  /// (from the caller's home), never part of `*`. Leaves out the description and score
   /// breakdown, the bulk of a row.
   static const summaryColumns =
       'id, source, url, brand, model, motorcycle_id, duplicate_of, year, '
       'mileage, price, initial_price, price_before_drop, deal_score, '
       'risk_score, seller_type, location, images, status, first_seen_at, '
-      'last_seen_at';
+      'last_seen_at, distance_km';
 
   factory ListingModel.fromJson(Map<String, dynamic> json) {
-    // Present when the query embeds the matched model's new-bike price.
+    // Present when the query embeds the matched model (detail page).
     final bike = json['motorcycles'] as Map<String, dynamic>?;
     return ListingModel(
       id: json['id'] as String,
@@ -79,9 +85,23 @@ class ListingModel extends Listing {
       dealerWarrantyMonths: json['dealer_warranty_months'] as int?,
       publishedAt: dateOf(json['published_at']),
       siteRefreshedAt: dateOf(json['site_refreshed_at']),
+      relistedFrom: json['relisted_from'] as String?,
+      relistedSince: dateOf(json['relisted_since']),
+      relistedPrice: (json['relisted_price'] as num?)?.toDouble(),
       newPrice: (bike?['new_price_reference'] as num?)?.toDouble(),
       newPriceCheckedAt: dateOf(bike?['new_price_checked_at']),
+      engineCc: engineCcOf(bike),
+      distanceKm: (json['distance_km'] as num?)?.toInt(),
     );
+  }
+
+  /// The middle of the model's engine range ("680-710" -> 695), or the one
+  /// limit it has; null without either.
+  static int? engineCcOf(Map<String, dynamic>? bike) {
+    final min = (bike?['engine_cc_min'] as num?)?.toInt();
+    final max = (bike?['engine_cc_max'] as num?)?.toInt();
+    if (min == null || max == null) return min ?? max;
+    return ((min + max) / 2).round();
   }
 
   /// Shared with `SavedSearchModel`; anything unrecognised is `unknown`.

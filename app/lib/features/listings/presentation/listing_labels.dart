@@ -7,6 +7,7 @@ extension ListingSortLabel on ListingSort {
     ListingSort.newest => 'Mais recentes',
     ListingSort.priceAsc => 'Preço mais baixo',
     ListingSort.priceDesc => 'Preço mais alto',
+    ListingSort.nearest => 'Mais perto',
   };
 }
 
@@ -33,8 +34,5 @@ String sourceLabel(String source) => switch (source) {
   'standvirtual' => 'Standvirtual',
   'olx' => 'OLX',
   'manual' => 'Importação manual',
-  'facebook' => 'Facebook Marketplace',
-  'custojusto' => 'CustoJusto',
-  'other' => 'Outro site',
   _ => source,
 };

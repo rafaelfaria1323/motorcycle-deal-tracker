@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:collector/collector.dart';
 import 'package:test/test.dart';
 
+import 'helpers.dart';
+
 Map<String, dynamic> param(String key, String value, [String? normalized]) => {
   'key': key,
   'value': value,
@@ -52,6 +54,8 @@ String searchPage(
   List<Map<String, dynamic>> ads, {
   int page = 0,
   int totalPages = 1,
+  List<Map<String, Object?>>? models,
+  String brand = 'yamaha',
 }) {
   final state = {
     'listing': {
@@ -60,9 +64,16 @@ String searchPage(
         'totalPages': totalPages,
         'totalElements': ads.length * totalPages,
         'ads': ads,
+        if (models != null)
+          'metaData': {
+            'filters': [
+              {'name': 'filter_enum_cilindrada', 'values': <Object>[]},
+              {'name': 'filter_enum_modelo', 'values': models},
+            ],
+          },
         'requestParams': {
           'page': page,
-          'categoryPath': 'carros-motos-e-barcos/motociclos-scooters/yamaha',
+          'categoryPath': 'carros-motos-e-barcos/motociclos-scooters/$brand',
           'params': {
             'search[filter_enum_modelo][0]': 'mt-07',
             if (page > 0) 'page': '$page',
@@ -77,25 +88,7 @@ String searchPage(
 
 final adapter = OlxSearchAdapter('unused');
 final mapper = OlxMapper(
-  Catalog(const [
-    CatalogEntry(
-      slug: 'yamaha-mt-07',
-      brand: 'Yamaha',
-      model: 'MT-07',
-      minYear: 2023,
-      excludedWords: ['tracer'],
-      engineCcMin: 680,
-      engineCcMax: 710,
-    ),
-    CatalogEntry(
-      slug: 'yamaha-r7',
-      brand: 'Yamaha',
-      model: 'R7',
-      minYear: 2023,
-      engineCcMin: 680,
-      engineCcMax: 710,
-    ),
-  ]),
+  Catalog(const [mt07Entry, r7Entry]),
   currentYear: 2026,
 );
 
@@ -103,6 +96,51 @@ OlxRawListing one(Map<String, dynamic> a) =>
     adapter.parseSearchPage(searchPage([a])).records.single;
 
 void main() {
+  test('reads the models OLX offers for the brand of the page', () {
+    final page = adapter.parseSearchPage(
+      searchPage(
+        [ad()],
+        models: [
+          {'label': 'MT-07', 'value': 'mt-07'},
+          {'label': 'Ténéré 700', 'value': 'tenere-700'},
+          {'label': '', 'value': 'blank'},
+        ],
+      ),
+    );
+
+    expect(
+      [for (final m in page.models) '${m.makeId}/${m.modelId}/${m.modelName}'],
+      ['yamaha/mt-07/MT-07', 'yamaha/tenere-700/Ténéré 700'],
+    );
+    expect(page.models.first.ads, isNull);
+    expect(adapter.parseSearchPage(searchPage([ad()])).models, isEmpty);
+  });
+
+  test('uniqueSiteModels keeps one entry per brand and model', () {
+    const mt07 = SiteModel(
+      makeId: 'yamaha',
+      makeName: 'Yamaha',
+      modelId: 'mt-07',
+      modelName: 'MT-07',
+    );
+    const r = SiteModel(
+      makeId: 'yamaha',
+      makeName: 'Yamaha',
+      modelId: 'r',
+      modelName: 'R',
+    );
+
+    expect(uniqueSiteModels([mt07, r, mt07]), [mt07, r]);
+    expect(mt07.toRow('olx'), {
+      'source': 'olx',
+      'make_id': 'yamaha',
+      'make_name': 'Yamaha',
+      'model_id': 'mt-07',
+      'model_name': 'MT-07',
+      'ads': null,
+    });
+  });
+
   test('reads a result and maps it to the catalog model', () {
     final raw = one(ad());
 
@@ -121,6 +159,24 @@ void main() {
     expect(listing.brand, 'Yamaha');
     expect(listing.price, 7400);
     expect(listing.sellerType, SellerType.private);
+  });
+
+  test('the brand of the search beats another brand in the title', () {
+    const raw = OlxRawListing(
+      id: '1',
+      url: 'https://www.olx.pt/d/anuncio/x.html',
+      status: 'active',
+      title: 'Honda CB650R 2025 (troca por Yamaha)',
+      price: 7000,
+      currency: 'EUR',
+      categoryBrand: 'honda',
+      model: 'CB650R',
+      year: 2025,
+    );
+    final listing = (mapper.map(raw) as Mapped).listing;
+    expect(listing.brand, 'Honda');
+    // Not taken for a Yamaha of the catalog.
+    expect(listing.motorcycleSlug, isNull);
   });
 
   test("a private seller's name is never read", () {
@@ -176,7 +232,7 @@ void main() {
     test('is incomplete until every page is saved', () async {
       File(
         '${dir.path}/p1.html',
-      ).writeAsStringSync(searchPage([ad(id: 1)], totalPages: 2));
+      ).writeAsStringSync(searchPage([ad()], totalPages: 2));
       final partial = await OlxSearchAdapter(dir.path).read();
       expect(partial.issues.single.message, contains('1 of 2 page(s)'));
 
@@ -192,7 +248,7 @@ void main() {
       const url = 'https://www.olx.pt/carros-motos-e-barcos/x/';
       File(
         '${dir.path}/p1.html',
-      ).writeAsStringSync(searchPage([ad(id: 1)], totalPages: 2));
+      ).writeAsStringSync(searchPage([ad()], totalPages: 2));
       await const SearchManifest(
         planned: [url],
         files: {'p1.html': url},
@@ -205,8 +261,27 @@ void main() {
       expect(result.manifest!.fetched, {url});
     });
 
+    test('pages are grouped by the search asked for', () async {
+      // OLX describes page 2 with another address than page 1.
+      const url = 'https://www.olx.pt/carros-motos-e-barcos/x/';
+      File(
+        '${dir.path}/p1.html',
+      ).writeAsStringSync(searchPage([ad()], totalPages: 2));
+      File('${dir.path}/p2.html').writeAsStringSync(
+        searchPage([ad(id: 2)], page: 2, totalPages: 2, brand: 'motos'),
+      );
+      await const SearchManifest(
+        planned: [url],
+        files: {'p1.html': url, 'p2.html': url},
+      ).writeTo(dir.path);
+
+      final result = await OlxSearchAdapter(dir.path).read();
+
+      expect(result.issues, isEmpty);
+    });
+
     test('without a manifest nothing is tied to a search', () async {
-      File('${dir.path}/p1.html').writeAsStringSync(searchPage([ad(id: 1)]));
+      File('${dir.path}/p1.html').writeAsStringSync(searchPage([ad()]));
 
       final result = await OlxSearchAdapter(dir.path).read();
 

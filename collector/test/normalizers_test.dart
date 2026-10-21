@@ -22,6 +22,35 @@ void main() {
         'example.com/ad?b=2&id=7',
       );
     });
+
+    test('strips every trailing slash, down to the bare host', () {
+      expect(canonicalListingId('https://example.com//'), 'example.com');
+      expect(canonicalListingId('https://example.com/a/'), 'example.com/a');
+      expect(canonicalListingId('https://example.com/ab/'), 'example.com/ab');
+    });
+
+    test('a ref parameter is tracking, not part of the id', () {
+      expect(
+        canonicalListingId('https://example.com/ad?ref=home'),
+        'example.com/ad',
+      );
+    });
+  });
+
+  group('cleanDescription', () {
+    test('turns &quot; into a quote and an empty list item into nothing', () {
+      expect(cleanDescription('a &quot;b&quot;'), 'a "b"');
+      expect(cleanDescription('<li></li>'), isNull);
+    });
+
+    test('leaves numeric entities it cannot turn into a character as text', () {
+      expect(cleanDescription('a &#99999999; b'), 'a &#99999999; b');
+      expect(
+        cleanDescription('&#99999999999999999999;'),
+        '&#99999999999999999999;',
+      );
+      expect(cleanDescription('it&#39;s &#65;'), "it's A");
+    });
   });
 
   group('parseSellerType', () {

@@ -48,7 +48,10 @@ class TelegramNotifier {
       final response = await request.close().timeout(
         const Duration(seconds: 15),
       );
-      final body = await response.transform(utf8.decoder).join();
+      final body = await response
+          .transform(utf8.decoder)
+          .join()
+          .timeout(const Duration(seconds: 15));
       if (response.statusCode != 200) {
         // The body is Telegram's error description; it never contains the token.
         throw NotifyFailed('Telegram HTTP ${response.statusCode}: $body');
@@ -56,6 +59,11 @@ class TelegramNotifier {
     } on TimeoutException {
       throw const NotifyFailed('Telegram timed out');
     } on SocketException catch (e) {
+      throw NotifyFailed('Telegram unreachable: ${e.message}');
+    } on TlsException catch (e) {
+      throw NotifyFailed('Telegram unreachable: ${e.message}');
+    } on HttpException catch (e) {
+      // Only the message: the exception's address holds the bot token.
       throw NotifyFailed('Telegram unreachable: ${e.message}');
     } finally {
       client.close(force: true);

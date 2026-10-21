@@ -1,0 +1,26 @@
+# Files mutated by `make mutation` / mutation.yml (biggest first, so the
+# parallel jobs get similar shares). Each mutation runs the whole test
+# suite. Pure logic only: thin I/O wrappers (store, Telegram, config, CLI)
+# are left out.
+lib/src/fetch/polite_fetcher.dart
+lib/src/adapters/standvirtual/standvirtual_search_adapter.dart
+lib/src/adapters/standvirtual/standvirtual_page_adapter.dart
+lib/src/notify/weekly_summary.dart
+lib/src/adapters/olx/olx_search_adapter.dart
+lib/src/adapters/manual/manual_mapper.dart
+lib/src/pipeline/import_steps.dart
+lib/src/normalized/normalizers.dart
+lib/src/pipeline/source_batch.dart
+lib/src/notify/pending_alert.dart
+lib/src/catalog/catalog.dart
+lib/src/fetch/robots.dart
+lib/src/catalog/model_resolver.dart
+lib/src/adapters/olx/olx_mapper.dart
+lib/src/adapters/site_model.dart
+lib/src/fetch/search_plan.dart
+lib/src/fetch/fetch_searches.dart
+lib/src/notify/run_health.dart
+lib/src/pipeline/run_status.dart
+lib/src/pipeline/enrich_steps.dart
+lib/src/fetch/search_manifest.dart
+lib/src/adapters/standvirtual/standvirtual_mapper.dart

@@ -156,4 +156,137 @@ void main() {
       'yamaha-r7',
     );
   });
+
+  test('a model without engine limits is never picked by engine size', () {
+    // Added in the app: no engine range. Standvirtual's model field says
+    // only "Forza" and the engine is 125 cc.
+    final added = ModelResolver(
+      Catalog(const [
+        CatalogEntry(
+          slug: 'honda-forza-350',
+          brand: 'Honda',
+          model: 'Forza 350',
+          minYear: 2021,
+        ),
+      ]),
+    );
+
+    expect(
+      added.resolve(
+        brand: 'Honda',
+        family: 'Forza',
+        text: 'Forza 125 ABS',
+        engineCc: 125,
+      ),
+      isNull,
+    );
+    expect(
+      added
+          .resolve(
+            brand: 'Honda',
+            family: 'Forza',
+            text: 'Forza 350 ABS',
+            engineCc: 330,
+          )
+          ?.model,
+      'Forza 350',
+    );
+  });
+
+  group('a Forza 350 with the engine limits its name gives (315-385 cc)', () {
+    final resolver = ModelResolver(
+      Catalog(const [
+        CatalogEntry(
+          slug: 'honda-forza-350',
+          brand: 'Honda',
+          model: 'Forza 350',
+          minYear: 2021,
+          engineCcMin: 315,
+          engineCcMax: 385,
+        ),
+        CatalogEntry(
+          slug: 'honda-adv-350',
+          brand: 'Honda',
+          model: 'ADV 350',
+          minYear: 2024,
+          engineCcMin: 315,
+          engineCcMax: 385,
+        ),
+      ]),
+    );
+
+    test('an ad named only "Forza" is picked by its 330 cc', () {
+      String? forza(int cc) => resolver
+          .resolve(brand: 'Honda', family: 'Forza', text: 'Forza', engineCc: cc)
+          ?.slug;
+      expect(forza(330), 'honda-forza-350');
+      expect(forza(125), isNull);
+      expect(forza(745), isNull);
+    });
+
+    test('"350cc" names the size', () {
+      expect(
+        resolver
+            .resolve(brand: 'Honda', family: '', text: 'modelo ADV 350cc')
+            ?.slug,
+        'honda-adv-350',
+      );
+    });
+  });
+
+  group('boundaries', () {
+    final resolver = ModelResolver(Catalog.mvp());
+
+    test('an engine exactly at the limits fits, one cc outside does not', () {
+      String? at(int cc) => resolver
+          .resolve(brand: 'Honda', family: 'CB', text: 'CB650R', engineCc: cc)
+          ?.slug;
+
+      expect(at(640), 'honda-cb650r');
+      expect(at(660), 'honda-cb650r');
+      expect(at(639), isNull);
+      expect(at(661), isNull);
+    });
+
+    test('the model counts only when it starts in the first three words', () {
+      expect(slugOf(Catalog.mvp(), 'Honda', '', 'a b CB650R'), 'honda-cb650r');
+      expect(slugOf(Catalog.mvp(), 'Honda', '', 'a b c CB650R'), isNull);
+    });
+
+    test('a model spread over four words is found', () {
+      expect(slugOf(Catalog.mvp(), 'Honda', '', 'C B 6 50R'), 'honda-cb650r');
+    });
+
+    test('two models of the family fitting the engine stay unmatched', () {
+      final two = ModelResolver(
+        Catalog(const [
+          CatalogEntry(
+            slug: 'x-x1',
+            brand: 'X',
+            model: 'X1',
+            minYear: 2023,
+            engineCcMin: 100,
+            engineCcMax: 200,
+          ),
+          CatalogEntry(
+            slug: 'x-x2',
+            brand: 'X',
+            model: 'X2',
+            minYear: 2023,
+            engineCcMin: 100,
+            engineCcMax: 200,
+          ),
+        ]),
+      );
+
+      expect(
+        two.resolve(brand: 'X', family: 'X', text: 'X', engineCc: 150),
+        isNull,
+      );
+    });
+
+    test('a text naming two catalog models is unmatched', () {
+      expect(slugOf(Catalog.mvp(), 'Honda', '', 'CB650R CBR650R'), isNull);
+    });
+  });
 }

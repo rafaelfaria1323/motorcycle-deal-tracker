@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../app/di/injection.dart';
+import '../../app/theme/app_theme.dart';
 import '../../features/listings/presentation/cubit/alerts_cubit.dart';
+import '../../features/listings/presentation/cubit/favourites_cubit.dart';
+import '../../features/listings/presentation/cubit/listings_cubit.dart';
 import '../../features/listings/presentation/cubit/saved_searches_cubit.dart';
 import 'account_cubit.dart';
 
@@ -46,6 +49,8 @@ class _AccountSheetState extends State<_AccountSheet> {
         // The shared cubits hold the previous user's data: reload them.
         getIt<SavedSearchesCubit>().load();
         getIt<AlertsCubit>().load();
+        getIt<FavouritesCubit>().load(otherAccount: true);
+        getIt<ListingsCubit>().load(models: true);
         Navigator.of(context).pop();
       },
       builder: (context, state) {
@@ -97,8 +102,8 @@ class _AccountSheetState extends State<_AccountSheet> {
       Text('Iniciar sessão', style: Theme.of(context).textTheme.titleLarge),
       const SizedBox(height: 8),
       const Text(
-        'Com a sua conta, as pesquisas e alertas ficam iguais em qualquer '
-        'dispositivo ou browser.',
+        'Com a sua conta, as suas pesquisas e alertas ficam sincronizados '
+        'em qualquer dispositivo ou browser.',
       ),
       const SizedBox(height: 16),
       TextField(
@@ -134,9 +139,6 @@ class _AccountSheetState extends State<_AccountSheet> {
 
   Widget _error(BuildContext context, String message) => Padding(
     padding: const EdgeInsets.only(bottom: 8),
-    child: Text(
-      message,
-      style: TextStyle(color: Theme.of(context).colorScheme.error),
-    ),
+    child: Text(message, style: AppTheme.errorText(context)),
   );
 }

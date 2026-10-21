@@ -43,45 +43,44 @@ Future<void> main(List<String> args) async {
   if (sites.isEmpty) sites.addAll([FetchSite.standvirtual, FetchSite.olx]);
 
   final watch = Stopwatch()..start();
-  SupabaseClient? client;
   var failed = 0;
   try {
-    final config = SupabaseConfig.fromEnvironment();
-    client = SupabaseClient(config.url, config.serviceKey);
-    final store = ListingStore(client);
-    final catalog = await loadCatalog(client);
-
-    for (final site in sites) {
-      final name = FetchSite.byName.entries
-          .firstWhere((e) => e.value == site)
-          .key;
-      stdout.writeln('== $name ==');
-      final code = await _refreshSite(
-        site,
-        name,
-        catalog,
-        store,
-        full: full,
-        force: force,
-        enrichMax: enrichMax,
-      );
-      if (code != 0) {
-        failed++;
-        exitCode = code;
+    await withServiceClient((client) async {
+      final store = ListingStore(client);
+      final catalog = await loadCatalog(client);
+      final config = SupabaseConfig.fromEnvironment();
+      try {
+        await store.storeServiceAccess(config.url, config.serviceKey);
+      } on PostgrestException catch (e) {
+        // Only invites need it; the collection goes on.
+        stdout.writeln('Accounts access not stored: ${e.message}');
       }
-      stdout.writeln('($name done at ${watch.elapsed.inSeconds} s)');
-    }
 
-    stdout.writeln('== all sites ==');
-    await finishRun(store);
-  } on ConfigException catch (e) {
-    stderr.writeln('Configuration error: $e');
-    exitCode = 78;
-  } on PostgrestException catch (e) {
-    stderr.writeln('Database error: ${e.message}');
-    exitCode = 70;
+      for (final site in sites) {
+        final name = FetchSite.byName.entries
+            .firstWhere((e) => e.value == site)
+            .key;
+        stdout.writeln('== $name ==');
+        final code = await _refreshSite(
+          site,
+          name,
+          catalog,
+          store,
+          full: full,
+          force: force,
+          enrichMax: enrichMax,
+        );
+        if (code != 0) {
+          failed++;
+          exitCode = code;
+        }
+        stdout.writeln('($name done at ${watch.elapsed.inSeconds} s)');
+      }
+
+      stdout.writeln('== all sites ==');
+      await finishRun(store);
+    });
   } finally {
-    await client?.dispose();
     stdout.writeln(
       'Refresh finished in ${watch.elapsed.inSeconds} s'
       '${failed > 0 ? ', $failed site(s) failed' : ''}.',
@@ -118,12 +117,14 @@ Future<int> _refreshSite(
   final fetcher = PoliteFetcher(site: site);
   try {
     await fetcher.prepare();
-    await fetchSearches(fetcher, [
+    final outcome = await fetchSearches(fetcher, [
       for (final s in plan.searches) s.url,
     ], directory);
 
     final batch = await loadBatch('$name-search', directory, catalog);
     await importBatch(batch, catalog, store: store, full: full, force: force);
+    // Stopped by a failure after some pages: imported, still a failed run.
+    if (outcome.failure case final failure?) throw failure;
 
     if (site == FetchSite.standvirtual && enrichMax > 0) {
       // New listings may be duplicates; those are never read.
@@ -134,8 +135,10 @@ Future<int> _refreshSite(
     }
     return 0;
   } on FetchLimitReached catch (e) {
-    stderr.writeln('Not fetched: $e');
-    return 75;
+    // The budget is spent (e.g. the day's last requests went to the run
+    // before): nothing is wrong, the next run carries on.
+    stdout.writeln('Nothing fetched: $e; the next run carries on.');
+    return 0;
   } on FetchRefused catch (e) {
     stderr.writeln('Not fetched: $e');
     return 75;

@@ -15,13 +15,17 @@ abstract final class AppTheme {
   static const lightBackground = Color(0xFFF4F5F7);
   static const darkBackground = Color(0xFF0F1115);
 
+  /// How error messages and invalid-field hints look.
+  static TextStyle errorText(BuildContext context) =>
+      TextStyle(color: Theme.of(context).colorScheme.error);
+
   static ThemeData get light => _build(_lightScheme, AppColors.light);
 
   static ThemeData get dark => _build(_darkScheme, AppColors.dark);
 
   static const _lightScheme = ColorScheme(
     brightness: Brightness.light,
-    primary: Color(0xFFEB4F12),
+    primary: Color(0xFFC5420F),
     onPrimary: Colors.white,
     primaryContainer: Color(0xFFFFE4D8),
     onPrimaryContainer: Color(0xFF5C1A00),
@@ -29,7 +33,7 @@ abstract final class AppTheme {
     onSecondary: Colors.white,
     secondaryContainer: Color(0xFFE4E8EE),
     onSecondaryContainer: Color(0xFF1B2129),
-    tertiary: Color(0xFF0B8A5E),
+    tertiary: Color(0xFF0A7F57),
     onTertiary: Colors.white,
     tertiaryContainer: Color(0xFFD5F5E7),
     onTertiaryContainer: Color(0xFF003D27),
@@ -91,7 +95,7 @@ abstract final class AppTheme {
     scrim: Colors.black,
     inverseSurface: Color(0xFFECEEF1),
     onInverseSurface: Color(0xFF14181E),
-    inversePrimary: Color(0xFFEB4F12),
+    inversePrimary: Color(0xFFB73D0E),
     surfaceTint: Colors.transparent,
   );
 

@@ -12,6 +12,8 @@ SourceQuality quality({
   int mileage = 0,
   int location = 0,
   int pending = 0,
+  DateTime? seen,
+  int sharp = 0,
 }) => SourceQuality(
   source: source,
   liveCount: live,
@@ -22,6 +24,8 @@ SourceQuality quality({
   missingMileage: mileage,
   missingLocation: location,
   detailsPending: pending,
+  lastSeenAt: seen,
+  sharpPriceChanges: sharp,
 );
 
 void main() {
@@ -42,15 +46,15 @@ void main() {
   });
 
   test('the mix line shows only what is there', () {
-    expect(qualityMixLine(quality()), '100 de modelos acompanhados');
+    expect(qualityMixLine(quality()), '100 dos modelos acompanhados');
     expect(
       qualityMixLine(quality(unmatched: 18, duplicates: 2)),
-      '100 de modelos acompanhados · 18 sem modelo (15 %) · '
+      '100 dos modelos acompanhados · 18 sem modelo (15 %) · '
       '2 duplicados (2 %)',
     );
     expect(
       qualityMixLine(quality(duplicates: 1)),
-      '100 de modelos acompanhados · 1 duplicado (<1 %)',
+      '100 dos modelos acompanhados · 1 duplicado (<1 %)',
     );
   });
 
@@ -74,6 +78,49 @@ void main() {
     );
   });
 
+  test('when the site\'s listings were last seen, stale after a day', () {
+    final now = DateTime.utc(2026, 10, 20, 12);
+    expect(qualitySeenLine(quality(), now), isNull);
+    expect(
+      qualitySeenLine(
+        quality(seen: now.subtract(const Duration(hours: 3))),
+        now,
+      ),
+      'Último anúncio visto no site há 3 h',
+    );
+    expect(
+      qualitySeenLine(quality(seen: now.subtract(staleAfter)), now),
+      'Último anúncio visto no site há 24 h',
+    );
+    expect(
+      qualitySeenLine(
+        quality(seen: now.subtract(const Duration(hours: 24, minutes: 1))),
+        now,
+      ),
+      'Nenhum anúncio visto no site há 24 h: verifique a recolha',
+    );
+    expect(
+      qualitySeenLine(
+        quality(seen: now.subtract(const Duration(days: 3))),
+        now,
+      ),
+      'Nenhum anúncio visto no site há 3 dias: verifique a recolha',
+    );
+  });
+
+  test('sudden price changes', () {
+    expect(qualitySharpPricesLine(quality()), isNull);
+    expect(
+      qualitySharpPricesLine(quality(sharp: 1)),
+      '1 anúncio com o preço alterado em 50 % ou mais de uma só vez nos '
+      'últimos 30 dias (possível erro de leitura)',
+    );
+    expect(
+      qualitySharpPricesLine(quality(sharp: 3)),
+      startsWith('3 anúncios com o preço alterado'),
+    );
+  });
+
   test('reads the view row', () {
     final q = SourceQuality.fromJson({
       'source': 'standvirtual',
@@ -85,6 +132,8 @@ void main() {
       'missing_mileage': 2,
       'missing_location': null,
       'details_pending': 4,
+      'last_seen_at': '2026-10-20T09:00:00+00:00',
+      'sharp_price_changes': 2,
     });
     expect(
       q,
@@ -96,7 +145,15 @@ void main() {
         scored: 36,
         mileage: 2,
         pending: 4,
+        seen: DateTime.utc(2026, 10, 20, 9),
+        sharp: 2,
       ),
     );
+  });
+
+  test('a view without the newer columns still reads', () {
+    final q = SourceQuality.fromJson({'source': 'olx', 'live_count': 3});
+    expect(q.lastSeenAt, isNull);
+    expect(q.sharpPriceChanges, 0);
   });
 }

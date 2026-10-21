@@ -82,9 +82,40 @@ class FetchState {
   };
 
   /// The count restarts each day; a block is remembered.
-  FetchState rolledTo(String today) => day == today
-      ? this
-      : FetchState(day: today, requests: 0, blockedAt: blockedAt);
+  FetchState rolledTo(String today) =>
+      day == today ? this : FetchState(day: today, blockedAt: blockedAt);
+
+  /// What the app shows for the site at [now]: requests used today (UTC)
+  /// out of the daily limit, and until when it is paused after a block.
+  Map<String, Object?> report(FetchPolicy policy, DateTime now) {
+    final utc = now.toUtc();
+    final until = blockedAt?.add(policy.cooldownAfterBlock);
+    return {
+      'requests_today': day == utc.toIso8601String().substring(0, 10)
+          ? requests
+          : 0,
+      'daily_limit': policy.maxRequestsPerDay,
+      'paused_until': until != null && until.isAfter(utc)
+          ? until.toUtc().toIso8601String()
+          : null,
+    };
+  }
+}
+
+/// The state a site's fetcher saved at [path]; null when there is none or
+/// it is damaged (the fetcher then takes today's budget as spent).
+Future<FetchState?> readFetchState(String path) async {
+  final file = File(path);
+  try {
+    if (await file.exists()) {
+      return FetchState.fromJson(
+        jsonDecode(await file.readAsString()) as Map<String, dynamic>,
+      );
+    }
+  } on Object {
+    // A damaged state file is treated as a fresh one.
+  }
+  return null;
 }
 
 /// One website we fetch from: where we may go, how a normal page looks, and
@@ -277,7 +308,10 @@ class PoliteFetcher {
       throw FetchFailed('$url: timed out');
     } on SocketException catch (e) {
       throw FetchFailed('$url: ${e.message}');
-    } on HandshakeException catch (e) {
+    } on TlsException catch (e) {
+      throw FetchFailed('$url: ${e.message}');
+    } on HttpException catch (e) {
+      // e.g. the connection closed while the page was coming in.
       throw FetchFailed('$url: ${e.message}');
     } finally {
       _lastRequestAt = DateTime.now();
@@ -290,21 +324,23 @@ class PoliteFetcher {
   }
 
   Future<FetchState> _loadState() async {
-    final file = File(site.statePath);
-    try {
-      if (await file.exists()) {
-        return FetchState.fromJson(
-          jsonDecode(await file.readAsString()) as Map<String, dynamic>,
-        );
-      }
-    } on Object {
-      // A damaged state file is treated as a fresh one.
-    }
-    return FetchState(day: _today());
+    final saved = await readFetchState(site.statePath);
+    if (saved != null) return saved;
+    if (!await File(site.statePath).exists()) return FetchState(day: _today());
+    // Damaged: today's count is unknown, so today's budget counts as spent
+    // (written back, so tomorrow starts afresh).
+    _state = FetchState(day: _today(), requests: policy.maxRequestsPerDay);
+    await _saveState();
+    return _state;
   }
 
-  Future<void> _saveState() async =>
-      File(site.statePath).writeAsString(jsonEncode(_state.toJson()));
+  /// Written to a temporary file and renamed over the old one, so a run
+  /// stopped halfway never leaves a damaged file.
+  Future<void> _saveState() async {
+    final temp = File('${site.statePath}.tmp');
+    await temp.writeAsString(jsonEncode(_state.toJson()), flush: true);
+    await temp.rename(site.statePath);
+  }
 
   void close() => _client.close(force: true);
 }

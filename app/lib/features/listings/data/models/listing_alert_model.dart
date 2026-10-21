@@ -25,6 +25,8 @@ class ListingAlertModel {
     'price_reduction' => AlertType.priceReduction,
     'excellent_opportunity' => AlertType.excellentOpportunity,
     'listing_removed' => AlertType.listingRemoved,
+    'back_on_market' => AlertType.backOnMarket,
+    'target_price_reached' => AlertType.targetPriceReached,
     _ => AlertType.unknown,
   };
 }

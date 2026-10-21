@@ -1,10 +1,13 @@
 import 'dart:io';
 
 import 'package:collector/collector.dart';
-import 'package:supabase/supabase.dart';
 
-/// Records one scheduled run in `collector_runs` and drops rows older than
-/// 90 days. Usage: `report_run.dart <exit-code> <started-at> <log-file>`
+/// Records one scheduled run in `collector_runs` (with its problems, each
+/// site's request budget and pause, and the GitHub run's address), drops
+/// rows older than
+/// 90 days and tells the admins' devices (Web Push) when the collection
+/// breaks or recovers (a change from the previous run's status only).
+/// Usage: `report_run.dart <exit-code> <started-at> <log-file>`
 Future<void> main(List<String> args) async {
   if (args.length != 3) {
     stderr.writeln(
@@ -18,17 +21,29 @@ Future<void> main(List<String> args) async {
   final startedAt = DateTime.tryParse(args[1]) ?? DateTime.now().toUtc();
   final log = await File(args[2]).readAsString().catchError((_) => '');
 
-  SupabaseClient? client;
-  try {
-    final config = SupabaseConfig.fromEnvironment();
-    client = SupabaseClient(config.url, config.serviceKey);
-
+  await withServiceClient((client) async {
     final status = runStatus(code, log);
+    final previous = await client
+        .from('collector_runs')
+        .select('status')
+        .order('started_at', ascending: false)
+        .limit(1)
+        .maybeSingle();
+    final now = DateTime.now();
     await client.from('collector_runs').insert({
       'started_at': startedAt.toUtc().toIso8601String(),
       'status': status,
       'summary': logTail(log),
       'requests': requestsUsed(log),
+      'counts': runCounts(log),
+      'problems': status == 'ok' ? <String>[] : runProblems(log),
+      'sites': {
+        for (final MapEntry(key: name, value: site) in FetchSite.byName.entries)
+          // No state yet: nothing used, no pause.
+          name: (await readFetchState(site.statePath) ?? FetchState(day: ''))
+              .report(const FetchPolicy(), now),
+      },
+      'run_url': githubRunUrl(Platform.environment),
     });
 
     final cutoff = DateTime.now().toUtc().subtract(const Duration(days: 90));
@@ -38,13 +53,28 @@ Future<void> main(List<String> args) async {
         .lt('started_at', cutoff.toIso8601String());
 
     stdout.writeln('Run recorded: $status');
-  } on ConfigException catch (e) {
-    stderr.writeln('Configuration error: $e');
-    exitCode = 78;
-  } on PostgrestException catch (e) {
-    stderr.writeln('Database error: ${e.message}');
-    exitCode = 70;
-  } finally {
-    await client?.dispose();
-  }
+
+    final message = runHealthMessage(
+      previous: previous?['status'] as String?,
+      current: status,
+      log: log,
+    );
+    if (message == null) return;
+    // The run is recorded; a missed message must not fail the job.
+    try {
+      final store = ListingStore(client);
+      final push = WebPushSender(await store.pushKeys());
+      final result = await pushToUsers(
+        store,
+        push,
+        await store.adminIds(),
+        message,
+      );
+      stdout.writeln(
+        'Run health sent to ${result.sent} of ${result.devices} device(s).',
+      );
+    } on Object catch (e) {
+      stderr.writeln('Run health not sent: $e');
+    }
+  });
 }

@@ -45,12 +45,40 @@ String _page(int page, int totalPages) {
       '${jsonEncode(jsonEncode(state))};</script>';
 }
 
+/// A Standvirtual search page of a search with [total] listings.
+String _standvirtualPage(int total) {
+  final search = {
+    'advertSearch': {
+      'totalCount': total,
+      'pageInfo': {'pageSize': 32, 'currentOffset': 0},
+      'edges': <Object>[],
+    },
+  };
+  final data = {
+    'props': {
+      'pageProps': {
+        'urqlState': {
+          'a': {'data': jsonEncode(search)},
+        },
+      },
+    },
+  };
+  return '<script id="__NEXT_DATA__" type="application/json">'
+      '${jsonEncode(data)}</script>';
+}
+
 void main() {
   late HttpServer server;
   late Directory dir;
   late FetchSite site;
   final requestTimes = <DateTime>[];
   final paths = <String>[];
+  // What the server answers for a page other than robots.txt.
+  late String Function(int page) answer;
+  // Its status, and how long it waits before answering.
+  late int Function(int page) status;
+  late Duration Function(int page) delay;
+  late String robotsTxt;
 
   setUp(() async {
     dir = Directory.systemTemp.createTempSync('fetch');
@@ -62,18 +90,26 @@ void main() {
     );
     requestTimes.clear();
     paths.clear();
+    answer = (page) => _page(page, 3);
+    status = (_) => 200;
+    delay = (_) => Duration.zero;
+    robotsTxt = 'User-agent: *\nAllow: /\n';
     server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
-    server.listen((request) {
+    server.listen((request) async {
       requestTimes.add(DateTime.now());
       paths.add(request.uri.toString());
       final page = int.tryParse(request.uri.queryParameters['page'] ?? '');
-      request.response
-        ..write(
-          request.uri.path == '/robots.txt'
-              ? 'User-agent: *\nAllow: /\n'
-              : _page(page ?? 1, 3),
-        )
-        ..close();
+      final robots = request.uri.path == '/robots.txt';
+      if (!robots) {
+        await Future<void>.delayed(delay(page ?? 1));
+        request.response.statusCode = status(page ?? 1);
+      }
+      request.response.write(robots ? robotsTxt : answer(page ?? 1));
+      try {
+        await request.response.close();
+      } on Object catch (_) {
+        // The fetcher gave up waiting (the timeout test).
+      }
     });
   });
 
@@ -125,6 +161,46 @@ void main() {
     expect(paths.where((p) => p.contains('page=')), hasLength(2));
   });
 
+  test(
+    'a Standvirtual search over 32 listings has its pages fetched',
+    () async {
+      answer = (_) => _standvirtualPage(40);
+      final standvirtual = FetchSite(
+        host: FetchSite.standvirtual.host,
+        pathPrefix: FetchSite.standvirtual.pathPrefix,
+        pageMarker: FetchSite.standvirtual.pageMarker,
+        statePath: '${dir.path}/state.json',
+      );
+      final mt07 = Uri.parse('https://www.standvirtual.com/motos/yamaha/mt-07');
+      final outcome = await local(() async {
+        final fetcher = PoliteFetcher(
+          site: standvirtual,
+          policy: const FetchPolicy(
+            minDelay: Duration.zero,
+            jitter: Duration.zero,
+          ),
+        );
+        await fetcher.prepare();
+        try {
+          return await fetchSearches(
+            fetcher,
+            [mt07],
+            dir.path,
+            out: StringBuffer(),
+          );
+        } finally {
+          fetcher.close();
+        }
+      });
+
+      expect(outcome.saved, 2);
+      expect(paths.last, '/motos/yamaha/mt-07?page=2');
+      expect((await SearchManifest.readFrom(dir.path))!.files.values.toSet(), {
+        '$mt07',
+      });
+    },
+  );
+
   test('the request budget running out keeps what was saved', () async {
     final outcome = await local(() async {
       final fetcher = PoliteFetcher(
@@ -153,8 +229,136 @@ void main() {
     expect((await SearchManifest.readFrom(dir.path))!.files, hasLength(2));
   });
 
+  Future<FetchOutcome> fetchWith(FetchPolicy policy) => local(() async {
+    final fetcher = PoliteFetcher(site: site, policy: policy);
+    await fetcher.prepare();
+    try {
+      return await fetchSearches(
+        fetcher,
+        [search],
+        dir.path,
+        out: StringBuffer(),
+      );
+    } finally {
+      fetcher.close();
+    }
+  });
+
+  test('a request that times out keeps what was saved, as a failure', () async {
+    delay = (page) => page == 3 ? const Duration(seconds: 2) : Duration.zero;
+
+    final outcome = await fetchWith(
+      const FetchPolicy(
+        minDelay: Duration.zero,
+        jitter: Duration.zero,
+        timeout: Duration(milliseconds: 300),
+      ),
+    );
+
+    expect(outcome.saved, 2);
+    expect(outcome.failure, isA<FetchFailed>());
+    expect(outcome.stoppedBy, contains('timed out'));
+    // Page 3 is missing, so the search is not read in full: nothing of it
+    // is removed.
+    expect((await SearchManifest.readFrom(dir.path))!.files, hasLength(2));
+  });
+
+  test('a block after a page keeps that page, as a failure', () async {
+    status = (page) => page == 2 ? 503 : 200;
+
+    final outcome = await fetchWith(
+      const FetchPolicy(minDelay: Duration.zero, jitter: Duration.zero),
+    );
+
+    expect(outcome.saved, 1);
+    expect(outcome.failure, isA<FetchBlocked>());
+  });
+
+  test('a page our rules refuse keeps what was saved, as a failure', () async {
+    robotsTxt = 'User-agent: *\nDisallow: /*page=2\n';
+
+    final outcome = await fetchWith(
+      const FetchPolicy(minDelay: Duration.zero, jitter: Duration.zero),
+    );
+
+    expect(outcome.saved, 1);
+    expect(outcome.failure, isA<FetchRefused>());
+    expect((await SearchManifest.readFrom(dir.path))!.files, hasLength(1));
+  });
+
+  test('a damaged state file spends today\'s budget', () async {
+    File(site.statePath).writeAsStringSync('{"day": "2026-');
+
+    await expectLater(
+      local(() async {
+        final fetcher = PoliteFetcher(site: site);
+        try {
+          await fetcher.prepare();
+        } finally {
+          fetcher.close();
+        }
+      }),
+      throwsA(isA<FetchLimitReached>()),
+    );
+    expect(paths, isEmpty);
+    // Written back whole, so tomorrow starts afresh.
+    final state = (await readFetchState(site.statePath))!;
+    expect(state.requests, const FetchPolicy().maxRequestsPerDay);
+  });
+
+  test('a failure before any page throws', () async {
+    status = (_) => 503;
+
+    await expectLater(
+      fetchWith(
+        const FetchPolicy(minDelay: Duration.zero, jitter: Duration.zero),
+      ),
+      throwsA(isA<FetchBlocked>()),
+    );
+  });
+
+  test('an OLX search with an engine band and no ads is not saved', () async {
+    answer = (page) => _page(page, 1); // no ads
+    final banded = search.replace(
+      queryParameters: {
+        ...search.queryParameters,
+        olxEngineSize: '501-1000-cc',
+      },
+    );
+    final log = StringBuffer();
+
+    final outcome = await local(() async {
+      final fetcher = PoliteFetcher(
+        site: site,
+        policy: const FetchPolicy(
+          minDelay: Duration.zero,
+          jitter: Duration.zero,
+        ),
+      );
+      await fetcher.prepare();
+      try {
+        return await fetchSearches(
+          fetcher,
+          [banded, search],
+          dir.path,
+          out: log,
+        );
+      } finally {
+        fetcher.close();
+      }
+    });
+
+    // The plain search's empty page is saved (no band: it can be empty).
+    expect(outcome.saved, 1);
+    final manifest = (await SearchManifest.readFrom(dir.path))!;
+    expect(manifest.planned, ['$banded', '$search']);
+    expect(manifest.files.values, ['$search']);
+    expect('$log', contains('OLX found no ads'));
+  });
+
   test('the pause between requests counts the time spent in between', () async {
-    const pause = Duration(milliseconds: 400);
+    // Wide margins: a loaded CI machine can be slow by a few hundred ms.
+    const pause = Duration(milliseconds: 1000);
     await local(() async {
       final fetcher = PoliteFetcher(
         site: site,
@@ -163,13 +367,15 @@ void main() {
       await fetcher.prepare(); // robots.txt
       final page = search.replace(path: '${search.path}x');
       await fetcher.get(page); // waits the whole pause
-      await Future<void>.delayed(const Duration(milliseconds: 300));
+      await Future<void>.delayed(const Duration(milliseconds: 700));
       final before = DateTime.now();
       await fetcher.get(page); // only the rest of the pause is left
       final waited = DateTime.now().difference(before);
       fetcher.close();
 
-      expect(waited, lessThan(const Duration(milliseconds: 250)));
+      // About 300 ms are left; without counting the time in between it
+      // would be the whole 1000 ms.
+      expect(waited, lessThan(const Duration(milliseconds: 800)));
     });
 
     for (var i = 1; i < requestTimes.length; i++) {

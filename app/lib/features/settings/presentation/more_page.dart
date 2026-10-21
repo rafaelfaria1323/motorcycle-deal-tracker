@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../app/di/injection.dart';
 import '../../../app/router/app_routes.dart';
 import '../../../core/auth/account_sheet.dart';
+import '../../../core/auth/session_cubit.dart';
 import '../../collector_status/presentation/collection_details.dart';
 import '../../collector_status/presentation/collector_status_banner.dart';
 import '../../collector_status/presentation/data_quality_details.dart';
+import 'home_place_tile.dart';
+import 'push_tile.dart';
+import 'run_now_tiles.dart';
+import 'share_tiles.dart';
 
 /// Everything that is not a list of offers: the account, the tracked
 /// models and how the data collection is doing.
@@ -15,16 +21,13 @@ class MorePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final auth = Supabase.instance.client.auth;
-
     return Scaffold(
       appBar: AppBar(title: const Text('Mais')),
       // Rebuilt on sign-in and sign-out.
-      body: StreamBuilder<AuthState>(
-        stream: auth.onAuthStateChange,
-        builder: (context, _) {
-          final user = auth.currentUser;
-          final signedIn = user != null && !user.isAnonymous;
+      body: BlocBuilder<SessionCubit, SessionState>(
+        bloc: getIt<SessionCubit>(),
+        builder: (context, session) {
+          final signedIn = session.signedIn;
 
           return ListView(
             children: [
@@ -33,7 +36,9 @@ class MorePage extends StatelessWidget {
                 child: ListTile(
                   leading: const Icon(Icons.account_circle_outlined),
                   title: Text(
-                    signedIn ? user.email ?? 'Sessão iniciada' : 'Sem sessão',
+                    signedIn
+                        ? session.email ?? 'Sessão iniciada'
+                        : 'Sem sessão',
                   ),
                   subtitle: Text(
                     signedIn
@@ -45,35 +50,77 @@ class MorePage extends StatelessWidget {
                   onTap: () => showAccountSheet(context),
                 ),
               ),
-              const _Header('Mercado'),
+              const _Header('Partilhar'),
               _Group(
-                child: ListTile(
-                  leading: const Icon(Icons.two_wheeler),
-                  title: const Text('Modelos acompanhados'),
-                  subtitle: Text(
-                    signedIn
-                        ? 'Que modelos recolher, desde que ano e o preço de '
-                              'uma nova'
-                        : 'Disponível com sessão iniciada',
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  enabled: signedIn,
-                  onTap: () => context.push(AppRoutes.models),
+                child: ShareTiles(
+                  // Asked again after sign-in or sign-out.
+                  key: ValueKey(signedIn),
+                  signedIn: signedIn,
                 ),
               ),
-              const SizedBox(height: 12),
+              const _Header('Notificações'),
               _Group(
-                child: ListTile(
-                  leading: const Icon(Icons.add_link),
-                  title: const Text('Adicionar anúncio'),
-                  subtitle: Text(
-                    signedIn
-                        ? 'De outro site: Facebook Marketplace, CustoJusto…'
-                        : 'Disponível com sessão iniciada',
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  enabled: signedIn,
-                  onTap: () => context.push(AppRoutes.addListing),
+                child: PushTile(
+                  // A new state after sign-in or sign-out.
+                  key: ValueKey(signedIn),
+                  signedIn: signedIn,
+                ),
+              ),
+              const _Header('Mercado'),
+              _Group(
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.star_border),
+                      title: const Text('Favoritos'),
+                      subtitle: const Text(
+                        'Os anúncios que está a considerar, com as suas notas',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push(AppRoutes.favourites),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.summarize_outlined),
+                      title: const Text('Resumo da semana'),
+                      subtitle: Text(
+                        signedIn
+                            ? 'Novos anúncios, baixas de preço e os melhores '
+                                  'negócios dos últimos 7 dias'
+                            : 'Disponível com sessão iniciada',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      enabled: signedIn,
+                      onTap: () => context.push(AppRoutes.summary),
+                    ),
+                    const Divider(height: 1),
+                    const HomePlaceTile(),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.two_wheeler),
+                      title: const Text('Modelos acompanhados'),
+                      subtitle: Text(
+                        signedIn
+                            ? 'Que modelos recolher, desde que ano e o preço '
+                                  'de uma nova'
+                            : 'Disponível com sessão iniciada',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      enabled: signedIn,
+                      onTap: () => context.push(AppRoutes.models),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.leaderboard_outlined),
+                      title: const Text('Comparar modelos'),
+                      subtitle: const Text(
+                        'Preços pedidos, tempo até sair do mercado e '
+                        'desvalorização dos modelos acompanhados',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push(AppRoutes.modelMarket),
+                    ),
+                  ],
                 ),
               ),
               const _Header('Recolha de dados'),
@@ -87,6 +134,11 @@ class MorePage extends StatelessWidget {
                   child: Column(
                     children: [
                       CollectionDetails(signedIn: signedIn),
+                      RunNowTiles(
+                        // Asked again after sign-in or sign-out.
+                        key: ValueKey(signedIn),
+                        signedIn: signedIn,
+                      ),
                       if (!signedIn)
                         const Padding(
                           padding: EdgeInsets.fromLTRB(16, 0, 16, 12),

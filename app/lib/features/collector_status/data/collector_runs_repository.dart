@@ -8,6 +8,9 @@ abstract interface class CollectorRunsRepository {
 
   /// The runs started since [since], newest first; empty without access.
   Future<List<CollectorRun>> getSince(DateTime since);
+
+  /// The last [limit] runs with their problems and sites, newest first.
+  Future<List<CollectorRun>> getRecent(int limit);
 }
 
 class SupabaseCollectorRunsRepository implements CollectorRunsRepository {
@@ -15,7 +18,7 @@ class SupabaseCollectorRunsRepository implements CollectorRunsRepository {
 
   final SupabaseClient _client;
 
-  static const _columns = 'status, started_at, finished_at, requests';
+  static const _columns = 'status, started_at, finished_at, requests, counts';
 
   @override
   Future<CollectorRun?> getLatest() async {
@@ -25,6 +28,16 @@ class SupabaseCollectorRunsRepository implements CollectorRunsRepository {
         .order('started_at', ascending: false)
         .limit(1);
     return rows.isEmpty ? null : _run(rows.first);
+  }
+
+  @override
+  Future<List<CollectorRun>> getRecent(int limit) async {
+    final rows = await _client
+        .from('collector_runs')
+        .select('$_columns, problems, sites, run_url')
+        .order('started_at', ascending: false)
+        .limit(limit);
+    return rows.map(_run).toList();
   }
 
   @override
@@ -41,10 +54,22 @@ class SupabaseCollectorRunsRepository implements CollectorRunsRepository {
     status: row['status'] as String,
     startedAt: DateTime.parse(row['started_at'] as String),
     finishedAt: DateTime.parse(row['finished_at'] as String),
-    requests: {
+    requests: _ints(row['requests']),
+    counts: _ints(row['counts']),
+    problems: [
+      for (final p in row['problems'] as List<dynamic>? ?? const []) '$p',
+    ],
+    sites: {
       for (final MapEntry(:key, :value)
-          in (row['requests'] as Map<String, dynamic>? ?? const {}).entries)
-        if (value is num) key: value.toInt(),
+          in (row['sites'] as Map<String, dynamic>? ?? const {}).entries)
+        if (value is Map<String, dynamic>) key: SiteBudget.fromJson(value),
     },
+    runUrl: row['run_url'] as String?,
   );
+
+  static Map<String, int> _ints(Object? json) => {
+    for (final MapEntry(:key, :value)
+        in (json as Map<String, dynamic>? ?? const {}).entries)
+      if (value is num) key: value.toInt(),
+  };
 }

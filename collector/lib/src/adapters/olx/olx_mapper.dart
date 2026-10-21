@@ -63,22 +63,10 @@ class OlxMapper {
 
     return switch (outcome) {
       Mapped(:final listing, :final warnings) => Mapped(
-        NormalizedListing(
+        listing.fromSite(
           source: 'olx',
           // The numeric ad id survives the title being edited.
           sourceListingId: listingId(raw.id),
-          url: listing.url,
-          motorcycleSlug: listing.motorcycleSlug,
-          brand: listing.brand,
-          model: listing.model,
-          year: listing.year,
-          mileage: listing.mileage,
-          price: listing.price,
-          sellerType: listing.sellerType,
-          sellerName: listing.sellerName,
-          location: listing.location,
-          description: listing.description,
-          images: listing.images,
           publishedAt: raw.createdAt,
           siteRefreshedAt: raw.refreshedAt,
         ),
@@ -100,8 +88,10 @@ class OlxMapper {
     return rest.isEmpty ? title.trim() : rest;
   }
 
-  /// The catalog brand named by the search's category or the title,
-  /// otherwise the category or the title's first word as written.
+  /// The brand of the search's category (spelled as in the catalog when
+  /// it is there): it wins over the title, so "Honda CB650R (troca por
+  /// Yamaha)" is a Honda. Without a category, the catalog brand named in
+  /// the title, otherwise the title's first word as written.
   String _brand(OlxRawListing raw) {
     final category = normalizeKey(raw.categoryBrand ?? '');
     final words = {
@@ -110,7 +100,9 @@ class OlxMapper {
     };
     for (final e in catalog.entries) {
       final key = normalizeKey(e.brand);
-      if (key == category || words.contains(key)) return e.brand;
+      if (category.isEmpty ? words.contains(key) : key == category) {
+        return e.brand;
+      }
     }
     final fallback = raw.categoryBrand ?? raw.title.split(' ').first;
     return fallback.isEmpty

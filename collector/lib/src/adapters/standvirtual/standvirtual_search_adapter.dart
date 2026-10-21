@@ -1,7 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
 
-import '../../fetch/search_manifest.dart';
+import '../json_blob.dart';
+import '../json_values.dart';
+import '../site_model.dart';
+import '../saved_pages.dart';
 import '../source_adapter.dart';
 import 'standvirtual_raw_listing.dart';
 
@@ -13,6 +15,8 @@ class StandvirtualSearchPage {
     required this.total,
     required this.offset,
     required this.shown,
+    this.pageSize = 32,
+    this.models = const [],
   });
 
   final List<StandvirtualRawListing> records;
@@ -24,14 +28,27 @@ class StandvirtualSearchPage {
   final int total;
   final int offset;
 
-  /// How many results this page holds.
+  /// How many results this page holds (promoted ads, shown above them and
+  /// also among a search's results, don't count: with them a search cut
+  /// short could look read in full).
   final int shown;
 
+  /// How many results a page of this search holds.
+  final int pageSize;
+
+  /// The brands and models in the page's filters.
+  final List<SiteModel> models;
+
   bool get isComplete => offset + shown >= total;
+
+  /// How many pages the whole search spans.
+  int get totalPages => total <= 0 ? 1 : (total + pageSize - 1) ~/ pageSize;
 }
 
 /// Reads search results pages (saved by `make fetch` or by hand) out of a
-/// folder. One page lists a whole model, so no listing pages are needed.
+/// folder. The pages hold everything but the description, so listing pages
+/// are only read for details; a search over 32 listings spans pages
+/// (`?page=N`), all of which must be saved for it to count as read.
 class StandvirtualSearchAdapter
     implements SourceAdapter<StandvirtualRawListing> {
   StandvirtualSearchAdapter(
@@ -48,99 +65,72 @@ class StandvirtualSearchAdapter
   String get source => 'standvirtual';
 
   @override
-  Future<ParseResult<StandvirtualRawListing>> read() async {
-    final dir = Directory(directory);
-    if (!await dir.exists()) {
-      throw FileSystemException('Folder not found', directory);
-    }
+  Future<ParseResult<StandvirtualRawListing>> read() {
+    // Per search (the manifest's, or the file's own without one): listings
+    // the site says it has, listings on the pages saved, the pages saved,
+    // and the first file.
+    final totals = <String, int>{};
+    final shown = <String, int>{};
+    final pages = <String, Set<int>>{};
+    final pageCount = <String, int>{};
+    final firstFile = <String, (int, String, String?)>{};
 
-    final files =
-        (await dir.list().toList())
-            .whereType<File>()
-            .where((f) => f.path.toLowerCase().endsWith('.html'))
-            .toList()
-          ..sort((a, b) => a.path.compareTo(b.path));
-    final manifest = await SearchManifest.readFrom(directory);
-    final recordSearches = <String?>[];
-
-    final records = <StandvirtualRawListing>[];
-    final issues = <ParseIssue>[];
-
-    for (var i = 0; i < files.length; i++) {
-      final name = files[i].uri.pathSegments.last;
-      final search = manifest?.files[name];
-      try {
-        final bytes = await files[i].readAsBytes();
-        final page = parseSearchPage(utf8.decode(bytes, allowMalformed: true));
-        records.addAll(page.records);
-        recordSearches.addAll([for (final _ in page.records) search]);
-
-        for (final problem in page.problems) {
-          issues.add(ParseIssue(i, '$name: $problem', search: search));
-        }
-        if (!page.isComplete) {
-          issues.add(
+    return readSavedSearchPages<StandvirtualRawListing, StandvirtualSearchPage>(
+      directory,
+      maxAge,
+      parse: parseSearchPage,
+      parts: (page) => SearchPageParts(
+        records: page.records,
+        problems: page.problems,
+        models: page.models,
+      ),
+      onPage: (page, i, name, search) {
+        final key = search ?? name;
+        totals[key] = page.total;
+        shown[key] = (shown[key] ?? 0) + page.shown;
+        (pages[key] ??= {}).add(page.offset ~/ page.pageSize);
+        pageCount[key] = page.totalPages;
+        firstFile.putIfAbsent(key, () => (i, name, search));
+      },
+      finish: () => [
+        for (final MapEntry(:key, value: (i, name, search))
+            in firstFile.entries)
+          if (shown[key]! < totals[key]! &&
+              pages[key]!.length < pageCount[key]!)
             ParseIssue(
               i,
-              '$name: holds ${page.offset + page.shown} of ${page.total} '
-              'listings (more pages exist and were not read)',
+              '$name: holds ${shown[key]} of ${totals[key]} listings (more '
+              'pages exist and were not read)',
               search: search,
             ),
-          );
-        }
-        final age = DateTime.now().difference(await files[i].lastModified());
-        if (age > maxAge) {
-          issues.add(
-            ParseIssue(
-              i,
-              '$name: saved ${age.inHours} h ago (older than '
-              '${maxAge.inHours} h), so it may be out of date',
-              search: search,
-            ),
-          );
-        }
-      } on FormatException catch (e) {
-        issues.add(ParseIssue(i, '$name: ${e.message}', search: search));
-      }
-    }
-    return ParseResult(
-      records,
-      issues,
-      recordSearches: manifest == null ? null : recordSearches,
-      manifest: manifest,
+      ],
     );
   }
 
-  static final _nextData = RegExp(
-    r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>',
-    dotAll: true,
+  /// Page [page] of [search].
+  static Uri pageUrl(Uri search, int page) => search.replace(
+    queryParameters: {...search.queryParameters, 'page': '$page'},
   );
 
   /// Pure parsing step, so it can be tested without files.
   /// Throws [FormatException] when the page is not a search results page.
   StandvirtualSearchPage parseSearchPage(String html) {
-    final match = _nextData.firstMatch(html);
-    if (match == null) {
-      throw const FormatException('no __NEXT_DATA__ block');
-    }
+    final data = extractJsonBlob(html, nextDataBlock, '__NEXT_DATA__');
 
-    final Object? data;
-    try {
-      data = jsonDecode(match.group(1)!);
-    } on FormatException {
-      throw const FormatException('__NEXT_DATA__ is not valid JSON');
-    }
-
-    final urql = _map(_map(_map(data)?['props'])?['pageProps'])?['urqlState'];
+    final urql = asMap(
+      asMap(asMap(data)?['props'])?['pageProps'],
+    )?['urqlState'];
     if (urql is! Map<String, dynamic>) {
       throw const FormatException('no search data (is this a search page?)');
     }
 
-    // The search results are one cache entry among several; its payload is
-    // JSON inside JSON.
+    // The search results are one cache entry among several (the filters,
+    // with the brand and model lists, are another); its payload is JSON
+    // inside JSON.
     Map<String, dynamic>? search;
+    var models = const <SiteModel>[];
     for (final entry in urql.values) {
-      Object? payload = _map(entry)?['data'];
+      Object? payload = asMap(entry)?['data'];
       if (payload is String) {
         try {
           payload = jsonDecode(payload);
@@ -148,10 +138,10 @@ class StandvirtualSearchAdapter
           continue;
         }
       }
-      final found = _map(_map(payload)?['advertSearch']);
-      if (found != null) {
-        search = found;
-        break;
+      search ??= asMap(asMap(payload)?['advertSearch']);
+      if (asMap(asMap(payload)?['filters']) case final filters?
+          when models.isEmpty) {
+        models = standvirtualSiteModels(filters);
       }
     }
     if (search == null) {
@@ -162,18 +152,17 @@ class StandvirtualSearchAdapter
     if (edges is! List) {
       throw const FormatException('search results have no listings list');
     }
-    final topAds = search['topads'] is List ? search['topads'] as List : [];
-
     final records = <StandvirtualRawListing>[];
     final problems = <String>[];
     for (final edge in edges) {
-      final node = _map(_map(edge)?['node']);
+      final node = asMap(asMap(edge)?['node']);
+      final bump = asMap(asMap(edge)?['vas'])?['bumpDate'];
       if (node == null) {
         problems.add('a result had no data');
         continue;
       }
       try {
-        records.add(_fromNode(node));
+        records.add(_fromNode(node, bumpDate: bump));
       } on FormatException catch (e) {
         problems.add(e.message);
       }
@@ -182,14 +171,19 @@ class StandvirtualSearchAdapter
     return StandvirtualSearchPage(
       records: records,
       problems: problems,
-      total: _int(search['totalCount']) ?? edges.length,
-      offset: _int(_map(search['pageInfo'])?['currentOffset']) ?? 0,
-      shown: edges.length + topAds.length,
+      total: asInt(search['totalCount']) ?? edges.length,
+      offset: asInt(asMap(search['pageInfo'])?['currentOffset']) ?? 0,
+      shown: edges.length,
+      pageSize: asInt(asMap(search['pageInfo'])?['pageSize']) ?? 32,
+      models: models,
     );
   }
 }
 
-StandvirtualRawListing _fromNode(Map<String, dynamic> node) {
+StandvirtualRawListing _fromNode(
+  Map<String, dynamic> node, {
+  Object? bumpDate,
+}) {
   final id = node['id']?.toString();
   final url = node['url'];
   if (id == null || id.isEmpty || url is! String) {
@@ -200,7 +194,7 @@ StandvirtualRawListing _fromNode(Map<String, dynamic> node) {
   final list = node['parameters'];
   if (list is List) {
     for (final p in list) {
-      final map = _map(p);
+      final map = asMap(p);
       final key = map?['key'];
       if (key is String) params[key] = map!;
     }
@@ -214,12 +208,12 @@ StandvirtualRawListing _fromNode(Map<String, dynamic> node) {
     throw FormatException('$id: no make or model');
   }
 
-  final amount = _map(_map(node['price'])?['amount']);
+  final amount = asMap(asMap(node['price'])?['amount']);
   final price = num.tryParse('${amount?['value']}');
   if (price == null) throw FormatException('$id: no price');
 
-  final sellerName = _map(node['sellerLink'])?['name'];
-  final thumbnail = _map(node['thumbnail'])?['x2'];
+  final sellerName = asMap(node['sellerLink'])?['name'];
+  final thumbnail = asMap(node['thumbnail'])?['x2'];
 
   return StandvirtualRawListing(
     id: id,
@@ -235,27 +229,25 @@ StandvirtualRawListing _fromNode(Map<String, dynamic> node) {
     year: int.tryParse(value('first_registration_year') ?? ''),
     mileageKm: int.tryParse(value('mileage') ?? ''),
     engineCc: int.tryParse(value('engine_capacity') ?? ''),
-    sellerType: switch (_map(node['seller'])?['__typename']) {
+    sellerType: switch (asMap(node['seller'])?['__typename']) {
       'ProfessionalSeller' => 'dealer',
       'PrivateSeller' => 'private',
       _ => null,
     },
     sellerName: sellerName is String ? sellerName : null,
-    location: _location(_map(node['location'])),
+    location: _location(asMap(node['location'])),
     images: [if (thumbnail is String) thumbnail],
+    createdAt: asTime(node['createdAt']),
+    bumpedAt: asTime(bumpDate),
   );
 }
 
 /// The city, unless the site spells out a long list of parishes; then the
 /// district.
 String? _location(Map<String, dynamic>? location) {
-  final city = _map(location?['city'])?['name'];
-  final region = _map(location?['region'])?['name'];
+  final city = asMap(location?['city'])?['name'];
+  final region = asMap(location?['region'])?['name'];
   if (city is String && city.isNotEmpty && !city.contains(',')) return city;
   if (region is String && region.isNotEmpty) return region;
   return city is String && city.isNotEmpty ? city : null;
 }
-
-Map<String, dynamic>? _map(Object? o) => o is Map<String, dynamic> ? o : null;
-
-int? _int(Object? o) => o is num ? o.toInt() : null;

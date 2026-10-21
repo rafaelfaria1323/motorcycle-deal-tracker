@@ -46,8 +46,9 @@ String newPriceSubtitle(CatalogModel m) {
   return (price: value, error: null);
 }
 
-/// The searches the collector will run for the tracked models: models that
-/// share an address (ignoring year and page) share a search.
+/// The searches the collector will run: for the models followed by this
+/// account or another. Models that share an address (ignoring year and
+/// page) share a search.
 ({int olx, int standvirtual}) searchCounts(List<CatalogModel> models) {
   String key(String url) {
     final uri = Uri.tryParse(url);
@@ -58,7 +59,7 @@ String newPriceSubtitle(CatalogModel m) {
     return '${uri.replace(queryParameters: params)}';
   }
 
-  final tracked = models.where((m) => m.isTracked);
+  final tracked = models.where((m) => m.isTracked || m.isCollected);
   return (
     olx: {
       for (final m in tracked)
@@ -68,12 +69,13 @@ String newPriceSubtitle(CatalogModel m) {
   );
 }
 
-/// What the tracked models cost in requests, and a warning when the budget
-/// may run out.
+/// What the collected models (of every account) cost in requests, and a
+/// warning when the budget may run out.
 List<String> budgetLines(List<CatalogModel> models) {
   final counts = searchCounts(models);
   return [
-    'Pesquisas em cada recolha: ${counts.olx} no OLX e '
+    'Pesquisas em cada recolha (modelos de todas as contas): '
+        '${counts.olx} no OLX e '
         '${counts.standvirtual} no Standvirtual (limite de $requestsPerRun '
         'pedidos por site).',
     if (counts.olx > comfortableOlxSearches)
@@ -98,12 +100,12 @@ Map<String, String> newModelProblems({
   final sv = standvirtualSearch.trim();
 
   return {
-    if (brand.trim().isEmpty) 'brand': 'Indicar a marca',
-    if (model.trim().isEmpty) 'model': 'Indicar o modelo',
+    if (brand.trim().isEmpty) 'brand': 'Indique a marca',
+    if (model.trim().isEmpty) 'model': 'Indique o modelo',
     if (parsedYear == null || parsedYear < 1990 || parsedYear > maxYear)
       'year': 'Ano entre 1990 e $maxYear',
     if (olx.isEmpty && sv.isEmpty)
-      'olx': 'Indicar pelo menos uma pesquisa (OLX ou Standvirtual)',
+      'olx': 'Indique pelo menos uma pesquisa (OLX ou Standvirtual)',
     if (olx.isNotEmpty && !olx.startsWith(olxSearchPrefix))
       'olx': 'Tem de ser uma pesquisa de motociclos do OLX ($olxSearchPrefix…)',
     if (sv.isNotEmpty && !sv.startsWith(standvirtualSearchPrefix))

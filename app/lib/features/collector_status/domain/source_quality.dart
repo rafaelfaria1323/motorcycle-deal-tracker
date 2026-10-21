@@ -14,6 +14,8 @@ class SourceQuality extends Equatable {
     required this.missingMileage,
     required this.missingLocation,
     required this.detailsPending,
+    this.lastSeenAt,
+    this.sharpPriceChanges = 0,
   });
 
   factory SourceQuality.fromJson(Map<String, dynamic> json) {
@@ -28,6 +30,8 @@ class SourceQuality extends Equatable {
       missingMileage: n('missing_mileage'),
       missingLocation: n('missing_location'),
       detailsPending: n('details_pending'),
+      lastSeenAt: DateTime.tryParse(json['last_seen_at'] as String? ?? ''),
+      sharpPriceChanges: n('sharp_price_changes'),
     );
   }
 
@@ -45,6 +49,14 @@ class SourceQuality extends Equatable {
   /// Standvirtual listing pages not read yet.
   final int detailsPending;
 
+  /// The latest time any live listing was seen on the site: stale when the
+  /// site stops answering (its listings stay live).
+  final DateTime? lastSeenAt;
+
+  /// Live listings whose price halved or rose by half or more in one step
+  /// in the last 30 days: likely misreads.
+  final int sharpPriceChanges;
+
   @override
   List<Object?> get props => [
     source,
@@ -56,5 +68,7 @@ class SourceQuality extends Equatable {
     missingMileage,
     missingLocation,
     detailsPending,
+    lastSeenAt,
+    sharpPriceChanges,
   ];
 }

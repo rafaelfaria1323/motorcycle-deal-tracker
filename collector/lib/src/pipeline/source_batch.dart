@@ -2,6 +2,7 @@ import '../adapters/manual/manual_adapter.dart';
 import '../adapters/manual/manual_mapper.dart';
 import '../adapters/olx/olx_mapper.dart';
 import '../adapters/olx/olx_search_adapter.dart';
+import '../adapters/site_model.dart';
 import '../adapters/source_adapter.dart';
 import '../adapters/standvirtual/standvirtual_mapper.dart';
 import '../adapters/standvirtual/standvirtual_page_adapter.dart';
@@ -47,7 +48,13 @@ List<String>? liveIds(SourceBatch batch) {
 
 /// Everything one run read from one source, already mapped.
 class SourceBatch {
-  const SourceBatch(this.source, this.issues, this.records, {this.manifest});
+  const SourceBatch(
+    this.source,
+    this.issues,
+    this.records, {
+    this.manifest,
+    this.siteModels = const [],
+  });
 
   final String source;
   final List<ParseIssue> issues;
@@ -55,6 +62,9 @@ class SourceBatch {
 
   /// What the fetch run planned and saved; null for inputs without one.
   final SearchManifest? manifest;
+
+  /// The brands and models the site offers (search pages only).
+  final List<SiteModel> siteModels;
 }
 
 /// What a complete import may mark as removed.
@@ -178,30 +188,44 @@ Future<SourceBatch> loadBatch(String kind, String path, Catalog catalog) async {
       final adapter = StandvirtualSearchAdapter(path);
       final mapper = StandvirtualMapper(catalog);
       final result = await adapter.read();
-      return SourceBatch(adapter.source, result.issues, [
-        for (final (i, raw) in result.records.indexed)
-          MappedRecord(
-            raw.url,
-            mapper.map(raw),
-            liveId: raw.status == 'ACTIVE'
-                ? StandvirtualMapper.listingId(raw.id)
-                : null,
-            search: result.recordSearches?[i],
-          ),
-      ], manifest: result.manifest);
+      return SourceBatch(
+        adapter.source,
+        result.issues,
+        [
+          for (final (i, raw) in result.records.indexed)
+            MappedRecord(
+              raw.url,
+              mapper.map(raw),
+              liveId: raw.status == 'ACTIVE'
+                  ? StandvirtualMapper.listingId(raw.id)
+                  : null,
+              search: result.recordSearches?[i],
+            ),
+        ],
+        manifest: result.manifest,
+        siteModels: result.siteModels,
+      );
     case 'olx-search':
       final adapter = OlxSearchAdapter(path);
       final mapper = OlxMapper(catalog);
       final result = await adapter.read();
-      return SourceBatch(adapter.source, result.issues, [
-        for (final (i, raw) in result.records.indexed)
-          MappedRecord(
-            raw.url,
-            mapper.map(raw),
-            liveId: raw.status == 'active' ? OlxMapper.listingId(raw.id) : null,
-            search: result.recordSearches?[i],
-          ),
-      ], manifest: result.manifest);
+      return SourceBatch(
+        adapter.source,
+        result.issues,
+        [
+          for (final (i, raw) in result.records.indexed)
+            MappedRecord(
+              raw.url,
+              mapper.map(raw),
+              liveId: raw.status == 'active'
+                  ? OlxMapper.listingId(raw.id)
+                  : null,
+              search: result.recordSearches?[i],
+            ),
+        ],
+        manifest: result.manifest,
+        siteModels: result.siteModels,
+      );
     default:
       throw ArgumentError('Unknown source "$kind"');
   }

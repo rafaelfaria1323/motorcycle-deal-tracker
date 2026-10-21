@@ -81,7 +81,9 @@ extension ListingFiltersCriteria on ListingFilters {
       location != null ||
       sellerType != null ||
       minDealScore != null ||
-      maxRiskScore != null;
+      maxRiskScore != null ||
+      maxDistanceKm != null ||
+      extras.isNotEmpty;
 
   /// The same criteria without the live-only switch, which is not saved.
   ListingFilters get criteriaOnly => ListingFilters(
@@ -93,5 +95,7 @@ extension ListingFiltersCriteria on ListingFilters {
     sellerType: sellerType,
     minDealScore: minDealScore,
     maxRiskScore: maxRiskScore,
+    maxDistanceKm: maxDistanceKm,
+    extras: extras,
   );
 }

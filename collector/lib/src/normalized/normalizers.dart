@@ -78,6 +78,16 @@ final _boilerplate = [
   ),
 ];
 
+// Compiled once: cleanDescription runs for every OLX ad and listing page.
+final _blockEnd = RegExp(
+  r'<br\s*/?>|</p>|</div>|</li>|</h\d>',
+  caseSensitive: false,
+);
+final _listItem = RegExp(r'<li[^>]*>', caseSensitive: false);
+final _tag = RegExp(r'<[^>]+>');
+final _charCode = RegExp(r'&#(\d+);');
+final _spaces = RegExp(r'[ \t]+');
+
 /// Plain text from a listing's HTML description, without the boilerplate
 /// sentences dealers' systems add; null when nothing is left.
 String? cleanDescription(Object? html) {
@@ -85,21 +95,20 @@ String? cleanDescription(Object? html) {
 
   var text = html
       // Block ends and line breaks become new lines; list items get a dash.
-      .replaceAll(
-        RegExp(r'<br\s*/?>|</p>|</div>|</li>|</h\d>', caseSensitive: false),
-        '\n',
-      )
-      .replaceAll(RegExp(r'<li[^>]*>', caseSensitive: false), '- ')
-      .replaceAll(RegExp(r'<[^>]+>'), '')
-      .replaceAllMapped(
-        RegExp(r'&#(\d+);'),
-        (m) => String.fromCharCode(int.parse(m[1]!)),
-      )
+      .replaceAll(_blockEnd, '\n')
+      .replaceAll(_listItem, '- ')
+      .replaceAll(_tag, '')
+      .replaceAllMapped(_charCode, (m) {
+        // Not a Unicode code point (or too big for an int): keep the text.
+        final code = int.tryParse(m[1]!);
+        return code == null || code > 0x10FFFF
+            ? m[0]!
+            : String.fromCharCode(code);
+      })
       .replaceAll('&nbsp;', ' ')
       .replaceAll('&lt;', '<')
       .replaceAll('&gt;', '>')
       .replaceAll('&quot;', '"')
-      .replaceAll('&#39;', "'")
       .replaceAll('&amp;', '&');
 
   for (final sentence in _boilerplate) {
@@ -108,7 +117,7 @@ String? cleanDescription(Object? html) {
 
   final lines = text
       .split('\n')
-      .map((l) => l.replaceAll(RegExp(r'[ \t]+'), ' ').trim())
+      .map((l) => l.replaceAll(_spaces, ' ').trim())
       .where((l) => l.isNotEmpty && l != '-')
       .toList();
   return lines.isEmpty ? null : lines.join('\n');

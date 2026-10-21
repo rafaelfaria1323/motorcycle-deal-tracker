@@ -15,6 +15,12 @@ Future<Catalog> loadCatalog(SupabaseClient client) async {
       .order('created_at')
       .order('slug');
 
+  return catalogFromRows(rows);
+}
+
+/// Maps `motorcycles` rows, in the order given, to a [Catalog]; null list
+/// columns become empty lists.
+Catalog catalogFromRows(Iterable<Map<String, dynamic>> rows) {
   return Catalog([
     for (final row in rows)
       CatalogEntry(

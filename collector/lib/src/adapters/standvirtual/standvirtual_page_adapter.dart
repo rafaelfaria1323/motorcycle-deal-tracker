@@ -1,8 +1,10 @@
 import 'dart:convert';
-import 'dart:io';
 
 import '../../normalized/listing_details.dart';
 import '../../normalized/normalizers.dart';
+import '../json_blob.dart';
+import '../json_values.dart';
+import '../saved_pages.dart';
 import '../source_adapter.dart';
 import 'standvirtual_mapper.dart';
 import 'standvirtual_raw_listing.dart';
@@ -19,17 +21,7 @@ class StandvirtualPageAdapter implements SourceAdapter<StandvirtualRawListing> {
 
   @override
   Future<ParseResult<StandvirtualRawListing>> read() async {
-    final dir = Directory(directory);
-    if (!await dir.exists()) {
-      throw FileSystemException('Folder not found', directory);
-    }
-
-    final files =
-        (await dir.list().toList())
-            .whereType<File>()
-            .where((f) => f.path.toLowerCase().endsWith('.html'))
-            .toList()
-          ..sort((a, b) => a.path.compareTo(b.path));
+    final files = await listHtmlFiles(directory);
 
     final records = <StandvirtualRawListing>[];
     final issues = <ParseIssue>[];
@@ -46,29 +38,17 @@ class StandvirtualPageAdapter implements SourceAdapter<StandvirtualRawListing> {
     return ParseResult(records, issues);
   }
 
-  static final _nextData = RegExp(
-    r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>',
-    dotAll: true,
-  );
-
   /// The listing object inside the page.
   /// Throws [FormatException] when the page is not a listing page.
   Map<String, dynamic> _advert(String html) {
-    final match = _nextData.firstMatch(html);
-    if (match == null) {
-      throw const FormatException(
-        'no __NEXT_DATA__ block (is this a Standvirtual listing page?)',
-      );
-    }
+    final data = extractJsonBlob(
+      html,
+      nextDataBlock,
+      '__NEXT_DATA__',
+      hint: ' (is this a Standvirtual listing page?)',
+    );
 
-    final Object? data;
-    try {
-      data = jsonDecode(match.group(1)!);
-    } on FormatException {
-      throw const FormatException('__NEXT_DATA__ is not valid JSON');
-    }
-
-    final advert = _map(_map(_map(data)?['props'])?['pageProps'])?['advert'];
+    final advert = asMap(asMap(asMap(data)?['props'])?['pageProps'])?['advert'];
     if (advert is! Map<String, dynamic>) {
       throw const FormatException(
         'no listing data (a search page, or a removed listing?)',
@@ -87,20 +67,20 @@ class StandvirtualPageAdapter implements SourceAdapter<StandvirtualRawListing> {
       throw const FormatException('listing has no id or url');
     }
 
-    final params = _map(advert['parametersDict']) ?? const {};
+    final params = asMap(advert['parametersDict']) ?? const {};
     final brand = _label(params, 'make');
     final model = _label(params, 'model');
     if (brand == null || model == null) {
       throw const FormatException('listing has no make or model');
     }
 
-    final price = _map(advert['price']);
+    final price = asMap(advert['price']);
     final priceValue = num.tryParse('${price?['value']}');
     if (priceValue == null) {
       throw const FormatException('listing has no price');
     }
 
-    final seller = _map(advert['seller']);
+    final seller = asMap(advert['seller']);
 
     return StandvirtualRawListing(
       id: id,
@@ -136,7 +116,7 @@ class StandvirtualPageAdapter implements SourceAdapter<StandvirtualRawListing> {
       throw const FormatException('listing has no id');
     }
 
-    final params = _map(advert['parametersDict']) ?? const {};
+    final params = asMap(advert['parametersDict']) ?? const {};
     final warranty = _value(params, 'maker_warranty_valid_until_date');
     final published = advert['originalCreatedAt'] ?? advert['createdAt'];
 
@@ -164,11 +144,9 @@ class StandvirtualPageAdapter implements SourceAdapter<StandvirtualRawListing> {
   }
 }
 
-Map<String, dynamic>? _map(Object? o) => o is Map<String, dynamic> ? o : null;
-
 Map<String, dynamic>? _first(Map<String, dynamic> params, String key) {
-  final values = _map(params[key])?['values'];
-  if (values is List && values.isNotEmpty) return _map(values.first);
+  final values = asMap(params[key])?['values'];
+  if (values is List && values.isNotEmpty) return asMap(values.first);
   return null;
 }
 
@@ -180,7 +158,7 @@ String? _label(Map<String, dynamic> params, String key) =>
 
 /// The dealer's municipality ("concelho X"), falling back to the city text.
 String? _location(Map<String, dynamic>? seller) {
-  final location = _map(seller?['location']);
+  final location = asMap(seller?['location']);
   if (location == null) return null;
   final short = location['shortAddress'];
   if (short is String) {
@@ -192,10 +170,10 @@ String? _location(Map<String, dynamic>? seller) {
 }
 
 List<String> _images(Object? images) {
-  final photos = _map(images)?['photos'];
+  final photos = asMap(images)?['photos'];
   if (photos is! List) return const [];
   return [
     for (final p in photos)
-      if (_map(p)?['url'] is String) _map(p)!['url'] as String,
+      if (asMap(p)?['url'] is String) asMap(p)!['url'] as String,
   ].take(10).toList();
 }

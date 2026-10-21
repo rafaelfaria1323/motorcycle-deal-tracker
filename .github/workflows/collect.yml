@@ -1,14 +1,15 @@
 name: Collect listings
 
 on:
-  workflow_dispatch: # manual "Run workflow" button
-  # Every 4 hours, GitHub uses UTC: 00:40, 04:40, ... 20:40 UTC.
+  # Started every 4 hours (minute 40, UTC) by Supabase: the pg_cron job
+  # 'collect-listings' calls the workflow_dispatch API (GitHub's own
+  # scheduler never started this workflow). Also the manual "Run workflow"
+  # button.
   # Each site has its own caps (20 per run, 120 per day). A run uses about
   # 15 Standvirtual requests (robots.txt, 4 search pages, up to 10 listing
   # pages) and about 10-12 OLX requests (robots.txt, every page of the
   # tracked models' searches).
-  schedule:
-    - cron: '40 */4 * * *'
+  workflow_dispatch:
 
 # Never two runs at once: they would share the request budget.
 concurrency:
@@ -25,11 +26,9 @@ jobs:
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: dart-lang/setup-dart@v1
         with:
@@ -42,7 +41,7 @@ jobs:
       # per site); each run saves a new copy and the next run restores the
       # latest.
       - name: Restore fetch state
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: |
             collector/.fetch_state.json
@@ -70,7 +69,7 @@ jobs:
 
       - name: Save fetch state
         if: always()
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: |
             collector/.fetch_state.json
@@ -79,7 +78,7 @@ jobs:
 
       - name: Keep the log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: run-log
           path: run.log

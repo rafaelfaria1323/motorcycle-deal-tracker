@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/di/injection.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/formatting/formatters.dart';
+import '../../../../core/widgets/section_card.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/entities/price_point.dart';
 import '../../domain/repositories/listings_repository.dart';
@@ -24,100 +25,88 @@ class _PriceHistorySectionState extends State<PriceHistorySection> {
   late final Future<List<PricePoint>> _future = getIt<ListingsRepository>()
       .getPriceHistory(widget.listing.id);
 
-  String? _seenLine() {
-    final first = widget.listing.firstSeenAt;
-    final last = widget.listing.lastSeenAt;
-    if (first == null) return null;
-    final firstText = 'Visto pela primeira vez em ${Formatters.date(first)}';
-    if (last == null) return firstText;
-    return '$firstText · última vez ${Formatters.daysAgo(last)}';
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final seenLine = _seenLine();
+    final seen = seenLine(widget.listing);
     final siteLine = siteDropLine(widget.listing);
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Histórico de preço', style: theme.textTheme.titleMedium),
-            if (seenLine != null) ...[
-              const SizedBox(height: 4),
-              Text(seenLine, style: theme.textTheme.bodySmall),
-            ],
-            if (siteLine != null) ...[
-              const SizedBox(height: 8),
-              Text(siteLine, style: theme.textTheme.bodyMedium),
-            ],
-            const SizedBox(height: 12),
-            FutureBuilder<List<PricePoint>>(
-              future: _future,
-              builder: (context, snapshot) {
-                final points = snapshot.data;
-                if (points == null) {
-                  return const SizedBox(height: 24);
-                }
-                if (points.length < 2) {
-                  return Text(
-                    'O preço ainda não mudou desde que foi visto pela primeira vez.',
-                    style: theme.textTheme.bodyMedium,
-                  );
-                }
-                final chart = priceChart(
-                  points,
-                  now: DateTime.now(),
-                  siteBefore: widget.listing.referenceIsFromSite
-                      ? widget.listing.priceBeforeDrop
-                      : null,
-                );
-                final labelStyle =
-                    (theme.textTheme.labelSmall ?? const TextStyle()).copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    );
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (chart != null) ...[
-                      SizedBox(
-                        height: 160,
-                        width: double.infinity,
-                        child: CustomPaint(
-                          painter: _PriceChartPainter(
-                            chart: chart,
-                            lineColor: theme.colorScheme.primary,
-                            gridColor: theme.colorScheme.outlineVariant,
-                            labelStyle: labelStyle,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Text(Formatters.date(chart.start), style: labelStyle),
-                          const Spacer(),
-                          Text('Hoje', style: labelStyle),
-                        ],
-                      ),
-                    ],
-                    const SizedBox(height: 12),
-                    for (var i = points.length - 1; i >= 0; i--)
-                      _ChangeRow(
-                        point: points[i],
-                        previous: i == 0 ? null : points[i - 1],
-                      ),
-                  ],
-                );
-              },
+    return SectionCard(
+      title: 'Histórico de preço',
+      children: [
+        if (seen != null)
+          Text(
+            seen,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
-          ],
+          ),
+        if (siteLine != null) ...[
+          const SizedBox(height: 8),
+          Text(siteLine, style: theme.textTheme.bodyMedium),
+        ],
+        const SizedBox(height: 12),
+        FutureBuilder<List<PricePoint>>(
+          future: _future,
+          builder: (context, snapshot) {
+            final points = snapshot.data;
+            if (points == null) {
+              return const SizedBox(height: 24);
+            }
+            if (points.length < 2) {
+              return Text(
+                'O preço ainda não mudou desde que foi visto pela primeira vez.',
+                style: theme.textTheme.bodyMedium,
+              );
+            }
+            final chart = priceChart(
+              points,
+              now: DateTime.now(),
+              siteBefore: widget.listing.referenceIsFromSite
+                  ? widget.listing.priceBeforeDrop
+                  : null,
+            );
+            final labelStyle = (theme.textTheme.labelSmall ?? const TextStyle())
+                .copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                );
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (chart != null) ...[
+                  SizedBox(
+                    height: 160,
+                    width: double.infinity,
+                    child: CustomPaint(
+                      painter: _PriceChartPainter(
+                        chart: chart,
+                        lineColor: theme.colorScheme.primary,
+                        gridColor: theme.colorScheme.outlineVariant,
+                        labelStyle: labelStyle,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(Formatters.date(chart.start), style: labelStyle),
+                      const Spacer(),
+                      Text('Hoje', style: labelStyle),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 12),
+                for (var i = points.length - 1; i >= 0; i--)
+                  _ChangeRow(
+                    point: points[i],
+                    previous: i == 0 ? null : points[i - 1],
+                  ),
+              ],
+            );
+          },
         ),
-      ),
+      ],
     );
   }
 }

@@ -2,8 +2,25 @@
 
 The app is built and published to Cloudflare Pages by
 `.github/workflows/deploy-web.yml` on every merge to `main` that touches
-`app/`, and from the Actions tab ("Deploy web app" → "Run workflow").
-Tests must pass before anything is published.
+`app/` or adds a migration, and from the Actions tab ("Deploy web app" →
+"Run workflow"). Tests must pass before anything is published.
+
+Database migrations are applied by the same workflow, before the app: when
+a merge adds files to `supabase/migrations/`, the `migrate` job tests every
+migration and SQL test again on an empty Postgres, then applies the ones
+Supabase is missing with `tool/apply_migrations.sh` (psql through the
+Session pooler, each migration in one transaction with its record in the
+same history table `supabase db push` uses). A merge without new migrations skips
+it. A failure stops the app deploy (fix it with a new migration; "Run
+workflow" applies whatever is missing). `make db-push` still works by hand.
+
+Every pull request that changes `app/` also gets a preview
+(`preview-web.yml`): the same build published to
+`https://pr-<number>.motorcycle-deal-tracker.pages.dev`, linked in a
+comment on the PR, to try on the iPhone before merging. It uses the real
+database; the PR's migrations are applied only when it is merged. Each
+push removes the PR's older builds, and closing or merging the PR removes
+its preview (`tool/pages_previews.py`). Previews cost nothing.
 
 ## One-time setup
 
@@ -19,10 +36,66 @@ Tests must pass before anything is published.
    - `SUPABASE_PUBLISHABLE_KEY` — Supabase dashboard → Project Settings →
      API Keys, the publishable key (the same value as in `app/env/dev.json`).
    - `SUPABASE_URL` already exists for the collector.
+   - `SUPABASE_DB_URL` and `SUPABASE_DB_PASSWORD` — for the migrations:
+     the URL is Supabase dashboard → Connect → "Session pooler" connection
+     string, copied **exactly as shown, `[YOUR-PASSWORD]` included**
+     (GitHub's runners have no IPv6, so not the direct one); the password
+     is the database password as you type it (Project Settings → Database;
+     reset it there if unknown). The workflow puts the password into the
+     URL and encodes it (`tool/db_url.py`), so characters such as `! * ? @
+     #` need nothing special. A URL with the password already in it, encoded,
+     also works without `SUPABASE_DB_PASSWORD`.
 5. Run "Deploy web app" once. The first run creates the Pages project
    `motorcycle-deal-tracker`; the log ends with the address
    (`https://motorcycle-deal-tracker.pages.dev`, or with a suffix if the
    name was taken).
+
+## Scheduled runs (Supabase starts them)
+
+GitHub's own scheduler never started `collect.yml`, so Supabase does:
+pg_cron jobs `collect-listings` (every 4 hours, minute 40 UTC) and
+`weekly-summary` (Mondays 07:52 UTC; each account's summary to its devices)
+call GitHub's "Run workflow" API.
+They need one token, created once:
+
+1. GitHub → Settings → Developer settings → Personal access tokens →
+   Fine-grained tokens → Generate new token. Repository access: *Only
+   select repositories* → `motorcycle-deal-tracker`. Permissions:
+   *Actions: Read and write* (nothing else). Pick the longest expiry you
+   are comfortable with and note the date.
+2. Supabase → SQL Editor, run (with your token in place of the dots):
+   `select vault.create_secret('github_pat_...', 'github_dispatch_token');`
+3. Check it: `select public.dispatch_workflow('collect.yml');` starts a
+   run (Actions tab), and
+   `select status_code from net._http_response order by created desc limit 1;`
+   shows 204.
+
+When the token expires, make a new one and replace it:
+`select vault.update_secret(id, 'github_pat_...') from vault.secrets where name = 'github_dispatch_token';`.
+The app's "Mais" shows a warning when no run happened recently.
+Admins' "Recolher agora" in Mais uses the same token (an expired one
+shows "O GitHub recusou o pedido"). Mais › "Estado da recolha" shows the
+token's expiry date, and from 14 days before it Telegram reminds you once
+a day (pg_cron `github-token-check`).
+
+### Warning on Telegram when no run starts
+
+Every hour (minute 20) the pg_cron job `collection-watchdog` checks the
+last recorded run. When none started in 9 hours (an expired token, for
+example) it sends a Telegram message, again once a day while it lasts,
+and "As recolhas de anúncios voltaram a começar" after the next run. It
+needs the bot's token and chat id in the Vault too (the same values as the
+`TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` repository secrets), saved once
+in the SQL Editor:
+
+```sql
+select vault.create_secret('<bot token>', 'telegram_bot_token');
+select vault.create_secret('<chat id>', 'telegram_chat_id');
+```
+
+Check it with `select public.send_telegram('Teste');` (the message arrives
+on the phone). If pg_cron itself stops, this check stops too; the app's
+warning is then the only sign.
 
 ## On the iPhone
 

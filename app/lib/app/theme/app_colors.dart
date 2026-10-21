@@ -27,8 +27,16 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color scoreNormal;
   final Color scorePoor;
 
+  // Overlays on photos and score badges: the same in light and dark mode.
+  static const onPhoto = Color(0xFFFFFFFF);
+  static const photoBackdrop = Color(0xFF000000);
+  static const photoCounterScrim = Color(0x8A000000);
+  static const photoControlScrim = Color(0x73000000);
+  static const photoPillScrim = Color(0xB3000000);
+  static const badgeShadow = Color(0x33000000);
+
   static const light = AppColors(
-    positive: Color(0xFF0B8A5E),
+    positive: Color(0xFF0A7F57),
     negative: Color(0xFFD12B2B),
     scoreExcellent: Color(0xFF0B8A5E),
     scoreVeryGood: Color(0xFF4A8C12),

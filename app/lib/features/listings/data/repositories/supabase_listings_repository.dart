@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/entities/listing.dart';
@@ -20,12 +22,12 @@ class SupabaseListingsRepository implements ListingsRepository {
     int offset = 0,
     int limit = 40,
   }) async {
-    // Only listings of tracked models: switched-off models' listings are
-    // no longer checked, and unmatched ones have no score.
+    // Only listings of the account's own models, from its own years
+    // (in_my_models; anonymous sessions: every collected model).
     var query = _client
         .from('listings')
-        .select('${ListingModel.summaryColumns}, motorcycles!inner(is_active)')
-        .eq('motorcycles.is_active', true);
+        .select(ListingModel.summaryColumns)
+        .eq('in_my_models', true);
     query = query.isFilter('duplicate_of', null);
 
     if (filters.motorcycleId != null) {
@@ -52,6 +54,17 @@ class SupabaseListingsRepository implements ListingsRepository {
     if (filters.maxRiskScore != null) {
       query = query.lte('risk_score', filters.maxRiskScore!);
     }
+    if (filters.maxDistanceKm != null) {
+      query = query.lte('distance_km', filters.maxDistanceKm!);
+    }
+    if (filters.extras.isNotEmpty) {
+      // jsonb containment: the ad mentions every one of them.
+      query = query.filter(
+        'score_breakdown->extras',
+        'cs',
+        jsonEncode(filters.extras),
+      );
+    }
     if (filters.activeOnly) {
       query = query.inFilter('status', ['active', 'price_changed']);
     }
@@ -73,6 +86,11 @@ class SupabaseListingsRepository implements ListingsRepository {
         ascending: false,
         nullsFirst: false,
       ),
+      ListingSort.nearest => query.order(
+        'distance_km',
+        ascending: true,
+        nullsFirst: false,
+      ),
     };
 
     // The id breaks ties, so pages never repeat or skip a listing.
@@ -84,7 +102,10 @@ class SupabaseListingsRepository implements ListingsRepository {
   Future<Listing?> getListingById(String id) async {
     final row = await _client
         .from('listings')
-        .select('*, motorcycles(new_price_reference, new_price_checked_at)')
+        .select(
+          '*, distance_km, motorcycles(new_price_reference, new_price_checked_at, '
+          'engine_cc_min, engine_cc_max)',
+        )
         .eq('id', id)
         .maybeSingle();
 
@@ -96,7 +117,7 @@ class SupabaseListingsRepository implements ListingsRepository {
     final rows = await _client
         .from('motorcycles')
         .select('id, brand, model')
-        .eq('is_active', true)
+        .eq('tracked_by_me', true)
         .order('brand')
         .order('model');
 
@@ -120,6 +141,29 @@ class SupabaseListingsRepository implements ListingsRepository {
         .or('id.eq.$originalId,duplicate_of.eq.$originalId')
         .neq('id', listing.id)
         .order('first_seen_at');
+    return rows.map<Listing>(ListingModel.fromJson).toList();
+  }
+
+  @override
+  Future<List<Listing>> getCheaperSimilar(Listing listing) async {
+    final model = listing.motorcycleId;
+    final price = listing.price;
+    if (model == null || price == null) return const [];
+    var query = _client
+        .from('listings')
+        .select(ListingModel.summaryColumns)
+        .eq('motorcycle_id', model)
+        .inFilter('status', ['active', 'price_changed'])
+        .isFilter('duplicate_of', null)
+        .neq('id', listing.id)
+        .lt('price', price);
+    if (listing.year case final year?) {
+      query = query.gte('year', year - 1).lte('year', year + 1);
+    }
+    if (listing.mileage case final km?) {
+      query = query.lte('mileage', km);
+    }
+    final rows = await query.order('price').limit(3);
     return rows.map<Listing>(ListingModel.fromJson).toList();
   }
 

@@ -1,8 +1,10 @@
 import '../../../core/formatting/formatters.dart';
 import '../domain/collector_run.dart';
 
-/// The collection runs at minute 40 of every 4th hour, UTC (cron
-/// '40 */4 * * *' in .github/workflows/collect.yml; keep them in step).
+/// The collection starts at minute 40 of every 4th hour, UTC (the pg_cron
+/// job 'collect-listings', '40 */4 * * *', in
+/// supabase/migrations/20261020140000_schedule_workflows_with_pg_cron.sql;
+/// keep them in step).
 const _hourStep = 4;
 const _minute = 40;
 
@@ -25,14 +27,11 @@ DateTime nextCollection(DateTime now) {
   return next;
 }
 
-/// "Próxima recolha: hoje às 20:40" (local time). GitHub starts scheduled
-/// runs late when it is busy, hence the note.
+/// "Próxima recolha: hoje às 20:40" (local time). The run itself waits for
+/// a free GitHub runner, hence the note.
 String nextCollectionText(DateTime now) {
   final next = nextCollection(now).toLocal();
-  final local = now.toLocal();
-  final today = DateTime(local.year, local.month, local.day);
-  final day = DateTime(next.year, next.month, next.day);
-  final when = switch (day.difference(today).inDays) {
+  final when = switch (Formatters.calendarDays(now, next)) {
     0 => 'hoje',
     1 => 'amanhã',
     _ => Formatters.date(next),
@@ -47,7 +46,10 @@ String nextCollectionText(DateTime now) {
 /// "há 3 h" (or minutes, or days).
 String agoText(DateTime time, {DateTime? now}) {
   final diff = (now ?? DateTime.now()).difference(time);
-  if (diff.inMinutes < 60) return 'há ${diff.inMinutes} min';
+  // A time slightly ahead (clock skew between phone and server) reads as now.
+  if (diff.inMinutes < 60) {
+    return 'há ${diff.inMinutes < 0 ? 0 : diff.inMinutes} min';
+  }
   if (diff.inHours < 48) return 'há ${diff.inHours} h';
   return 'há ${diff.inDays} dias';
 }
@@ -71,6 +73,28 @@ String? requestsText(Map<String, int> requests) {
     for (final MapEntry(:key, :value) in requests.entries)
       '${names[key] ?? key} $value de $requestsPerRunLimit',
   ].join(' · ');
+}
+
+/// "3 anúncios novos, 2 preços alterados, 1 anúncio removido, 4 alertas";
+/// "Sem anúncios novos nem alterações" when all are zero; null when the run
+/// didn't say (older runs, or one that stopped before importing).
+String? runCountsText(Map<String, int> counts) {
+  if (counts.isEmpty) return null;
+  String part(String key, String one, String many) {
+    final n = counts[key] ?? 0;
+    return n == 1 ? '1 $one' : '$n $many';
+  }
+
+  final parts = [
+    if ((counts['new'] ?? 0) > 0) part('new', 'anúncio novo', 'anúncios novos'),
+    if ((counts['price_changes'] ?? 0) > 0)
+      part('price_changes', 'preço alterado', 'preços alterados'),
+    if ((counts['removed'] ?? 0) > 0)
+      part('removed', 'anúncio removido', 'anúncios removidos'),
+    if ((counts['alerts'] ?? 0) > 0) part('alerts', 'alerta', 'alertas'),
+  ];
+  if (parts.isEmpty) return 'Sem anúncios novos nem alterações';
+  return parts.join(', ');
 }
 
 /// GitHub bills each job in whole minutes, and a job also spends about

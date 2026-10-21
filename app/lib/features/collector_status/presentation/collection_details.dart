@@ -58,6 +58,8 @@ class _CollectionDetailsState extends State<CollectionDetails> {
               'Última recolha ${agoText(last.finishedAt)}, demorou '
                   '${durationText(last.duration)}',
             ),
+            if (runCountsText(last.counts) case final counts?)
+              (Icons.fiber_new_outlined, counts),
             if (requestsText(last.requests) case final requests?)
               (Icons.swap_vert, 'Pedidos: $requests'),
           ]);

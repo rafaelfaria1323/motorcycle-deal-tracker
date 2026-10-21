@@ -8,10 +8,9 @@ Every 4 hours it reads Standvirtual and OLX for the models being tracked,
 keeps each listing's price and status history, and ranks the listings with
 an explainable **Deal Score** (price against similar bikes, year and
 mileage) and a separate **Risk Score** (missing details, possible accident,
-several owners, price too good to be true…). Saved searches raise alerts in
-the app and on the phone through Telegram. Ads from sites that forbid
-collection (Facebook Marketplace, CustoJusto) can be saved by hand or with
-an iPhone share button, and are scored like the rest.
+several owners, price too good to be true…). Saved searches and favourite
+listings (with private notes and a viewing checklist) raise alerts in the
+app and as notifications on each account's phone (Web Push).
 
 The app is in Portuguese and installs on the iPhone from Safari
 ("Adicionar ao ecrã principal").
@@ -20,19 +19,23 @@ The app is in Portuguese and installs on the iPhone from Safari
 
 ```text
 Tracked models (chosen in the app)
-  → collector (GitHub Actions, every 4 hours): searches → polite fetch → parse → store
+  → collector (GitHub Actions, started every 4 hours by Supabase pg_cron): searches → polite fetch → parse → store
   → Supabase / Postgres: price history, duplicates, fair value, scores, alerts
   → app (Flutter Web on Cloudflare Pages): Ofertas · Pesquisas · Alertas · Mais
-  → Telegram: new alerts after each run, and a summary of the week every Monday
+  → phones (Web Push): each account's new alerts after each run (a tap opens the listing), its
+    summary of the week every Monday (a tap opens "Resumo da semana"), and the admins' when the
+    collection breaks or recovers
+  → Telegram: a message when no collection starts or the GitHub token is ending (sent by the database,
+    so it works when GitHub doesn't)
 ```
 
 | Folder | What it is |
 |---|---|
 | [`app/`](app/README.md) | Flutter Web/PWA |
 | [`collector/`](collector/README.md) | Dart command line: fetches, parses and stores listings, then scores and alerts |
-| `supabase/` | Database migrations: tables, scoring, alerts, views, access rules |
+| `supabase/` | Database migrations: tables, scoring, alerts, views, access rules; `tests/`: SQL tests (`make db-test`) |
 | `docs/` | Progress and decisions (see below) |
-| `.github/workflows/` | `collect.yml` (every 4 hours), `deploy-web.yml` (app on merge), `weekly-summary.yml` (Mondays, the week on Telegram), `notify-test.yml` (Telegram test), `code-quality.yml` (after every 5 merged PRs, Claude works through the backlog in `docs/code-quality.md`) |
+| `.github/workflows/` | `collect.yml` (every 4 hours, started by Supabase pg_cron), `check.yml` (`make check` and `make db-test` on every pull request), `deploy-web.yml` (new migrations, then the app, on merge), `weekly-summary.yml` (Mondays, each account's week in the app and on its devices; or one account's when asked in the app), `notify-test.yml` (Telegram test), `push-test.yml` (a test notification to the devices of whoever asked in the app), `mutation.yml` (mutation testing without AI: after merges the changed files, by hand all of them; report on the run's page), `code-quality.yml` and `test-hardening.yml` (Claude works through the backlogs, fixing every 5 merged PRs and finding new items after 10 in `docs/code-quality.md` and `docs/test-hardening.md`; shared steps in `backlog-pass.yml`) |
 
 ## Getting started
 
@@ -51,9 +54,15 @@ make check                # analyze and test everything (before each commit)
 `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`.
 GitHub Actions uses repository secrets with the same names, plus
 `SUPABASE_PUBLISHABLE_KEY`, `CLOUDFLARE_API_TOKEN` and
-`CLOUDFLARE_ACCOUNT_ID` for the web deploy, and `CLAUDE_CODE_OAUTH_TOKEN`
-for the code-quality review. Database changes: `make db-new
-NAME=...`, then `make db-push`.
+`CLOUDFLARE_ACCOUNT_ID` for the web deploy, `SUPABASE_DB_URL` and
+`SUPABASE_DB_PASSWORD` for the migrations, and `CLAUDE_CODE_OAUTH_TOKEN`
+for the code-quality review. Supabase's Vault holds `github_dispatch_token`,
+which the scheduled jobs use to start the workflows (`docs/hosting.md`).
+Database changes: `make db-new
+NAME=...`, a test in `supabase/tests/` (`make db-test` runs them on a local
+Postgres; CI runs them on every pull request). Merging applies new
+migrations to Supabase before the app deploys (`deploy-web.yml`);
+`make db-push` does the same by hand.
 
 ## Fetching rules
 
@@ -70,4 +79,9 @@ are never committed.
 - [`docs/sources.md`](docs/sources.md): data-source decisions.
 - [`docs/hosting.md`](docs/hosting.md): Cloudflare Pages and installing on the iPhone.
 - [`docs/code-quality.md`](docs/code-quality.md): code improvements to do and done (worked through automatically).
+- [`docs/test-hardening.md`](docs/test-hardening.md): bugs, missing and redundant tests found by the automatic mutation-style pass, to do and done.
 - [`CLAUDE.md`](CLAUDE.md): conventions and the detailed pipeline, scoring and alert rules.
+
+## Credits
+
+Place coordinates (distance from home): [GeoNames](https://www.geonames.org), CC BY 4.0.

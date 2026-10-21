@@ -1,4 +1,4 @@
-# Motorcycle Deal Tracker — Concept & Architecture (status 2026-10-19)
+# Motorcycle Deal Tracker — Concept & Architecture (status 2026-10-22)
 
 **Legend:** ✅ done · 🟡 partly done · ⬜ not started · ➕ added along the way
 
@@ -29,44 +29,43 @@ Unchanged.
 - ✅ Calculate an explainable Deal Score.
 - ✅ Calculate a separate Risk Score.
 - ✅ Create saved searches. *Also by minimum Deal Score / maximum Risk Score.*
-- ✅ Send alerts. *In the app and on the phone via Telegram, plus a weekly summary on Mondays.*
-- ⬜ Compare motorcycles.
-- 🟡 Show market trends. *Time on market, price drops and depreciation per model; price trends need more history.*
+- ✅ Send alerts. *In the app and as notifications on each account's phone (Web Push), plus each account's weekly summary on Mondays (a notification that opens "Resumo da semana" in the app). An alert whose push fails is tried again on the next runs (for a day); signing out stops a device's notifications. Only events of the last day alert (following a model doesn't bring old news), and a listing that goes, comes back and goes again alerts each time.*
+- ✅ Compare motorcycles. *Up to 3 listings side by side (long press in Ofertas or "Comparar" on a listing), best value per row highlighted.*
+- 🟡 Show market trends. *Time on market, price drops, depreciation and the spread of live asking prices per model, and the tracked models compared side by side ("Comparar modelos"); price trends need more history.*
 
 ## 4. Motorcycle Models ✅
 
 - Tracked: Yamaha MT-07, Yamaha R7, Honda CB650R, Honda CBR650R.
 - ➕ Available in the app, off by default: Tracer 7, R1, R3, R9, CB125R, CB300R, CBR500R, CB750 Hornet, CBR600RR.
 
-*The owner switches models on or off, changes each model's first year, and adds new models with their search address, all in the app ("Modelos acompanhados"). The collector searches only the tracked models.*
+*Each account switches its own models on or off, changes each model's first year, and adds new models, all in the app ("Modelos acompanhados"); the collection searches every model any account follows, so all accounts share the listings. New models are picked from the brands and models the sites list (with Standvirtual's ad counts), with an optional engine size ("Forza" + 350 = only the Forza 350); the searches are built automatically, or typed by hand. The collector searches only the models someone follows.*
 
 ## 5. Sources 🟡
 
-- ✅ Standvirtual (search pages + listing pages for details, low-volume personal fetcher).
-- ✅ OLX (search result pages, which hold the full description; Standvirtual copies skipped).
-- ➕ Facebook Marketplace and CustoJusto: both forbid automated access (robots.txt notices), so ads from them, or from any other site, are saved by the owner ("Adicionar anúncio", iPhone share button) ✅.
-- ⬜ Future: dealerships, European marketplaces, imports.
+- ✅ Standvirtual (every page of each search, from the first tracked year, + listing pages for details, low-volume personal fetcher).
+- ✅ OLX (search result pages, which hold the full description; Standvirtual copies skipped; each search asks for the engine-size band of its models, so other models' ads aren't read).
+- ⬜ Future: CustoJusto, dealerships, European marketplaces, imports.
 
 *robots.txt checked and read every run; same polite limits per site (20 requests per run, 120 per day). **Terms of use still to be read and recorded** in `docs/sources.md`.*
 
 ## 6. Platform
 
-- Phase 1 — Flutter Web/PWA ✅ *Hosted on Cloudflare Pages, installed on the iPhone Home Screen; deployed on every merge. UI/UX redesign done (roadmap Sprint 13: Mais tab, Ofertas, listing page, Pesquisas/Alertas, its own look and fonts, one voice in pt-PT); single-user for now (Sprint 14 if someone else joins).*
+- Phase 1 — Flutter Web/PWA ✅ *Hosted on Cloudflare Pages, installed on the iPhone Home Screen; deployed on every merge. UI/UX redesign done (roadmap Sprint 13: Mais tab, Ofertas, listing page, Pesquisas/Alertas, its own look and fonts, one voice in pt-PT); models per account (Sprint 14); accounts from invite links made in the app (14.3), Telegram only for admins' alerts; admins can start a collection from Mais (14.5), any account its own weekly summary (14.4d) and see each run's errors, the sites' budgets and pauses and the GitHub token's expiry in "Estado da recolha" (14.6; checked from the app since 14.6b, with the database's size too).*
 - Phase 2 — Flutter iOS/Android ⬜ *Not needed for now: a native iPhone build requires a paid Apple Developer account.*
 
 ## 7. Stack
 
 - Frontend: Flutter Web, Dart ✅
-- Backend: Supabase, PostgreSQL ✅, Supabase Auth ✅ *(anonymous + owner email/password)*; scheduled jobs ➕ *on GitHub Actions instead of Edge Functions (a Dart CLI collector, one process per run, every 4 hours).*
+- Backend: Supabase, PostgreSQL ✅, Supabase Auth ✅ *(anonymous + owner email/password)*; scheduled jobs ➕ *on GitHub Actions instead of Edge Functions (a Dart CLI collector, one process per run, every 4 hours), started by Supabase pg_cron (GitHub's own scheduler never started them).*
 - Hosting: Cloudflare Pages ✅
 - Repository: GitHub ✅ *(should become private)*; ➕ automatic code-quality review by Claude after every 5 merged PRs
-- Notifications: ➕ Telegram bot ✅ (alerts after each run, weekly summary on Mondays); Web push / FCM ⬜
+- Notifications: Web push ✅ *(each account's alerts on its devices, the admins' when the collection breaks or recovers, sent by the collector itself; a tap opens the listing in the app; "Enviar notificação de teste" in Mais checks a device with an example of any notification; stays on after the app is closed; the weekly summary on Mondays, kept in the app's "Resumo da semana")*; ➕ Telegram bot ✅ (alerts until 2026-10-21, the weekly summary until 14.4d; now only the database's warnings when no run starts or the GitHub token is ending)
 
 ## 8. Architecture ✅
 
 ```text
 Tracked models (catalog) → searches → Collectors / Adapters → Normalization → PostgreSQL / Supabase
-   → Deal Engine · Price History · Status Tracking → Flutter Web/PWA → Alerts (app + Telegram)
+   → Deal Engine · Price History · Status Tracking → Flutter Web/PWA → Alerts (app + Web Push)
 ```
 
 *Each source has its own adapter + mapper (`manual`, `standvirtual`, `standvirtual-search`, `olx-search`); model matching (`ModelResolver`) and everything after normalization are shared.*
@@ -87,10 +86,10 @@ Initial price, current price, every change with date, percentage, and time onlin
 
 | Factor | Weight | Status |
 |---|---:|---|
-| Price vs market | 35% | ✅ fair value adjusted for age and mileage (per-model rates) |
+| Price vs market | 35% | ✅ fair value adjusted for age and mileage (per-model rates, comparables within 3 years when enough), from 3 comparables; without it the score is at most 70 (15.18) |
 | Year / mileage | 20% | ✅ |
-| Version / equipment | 15% | ⬜ |
-| Seller / confidence | 10% | ⬜ |
+| Version / equipment | 15% | 🔄 a bonus instead (15.18): +2 points per extra named in the ad, at most +10 (as a weighted slice it lowered good scores); the version itself is not scored |
+| Seller / confidence | 10% | ✅ dealers with 5+ bikes, from their ads' warning signs (15.7); private sellers and small dealers skip the slice |
 | Market / listing behaviour | 10% | ⬜ data being collected |
 | Risk indicators | 10% | ✅ |
 
@@ -103,12 +102,13 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 ## 14. Risk Score 🟡
 
 - ✅ Price significantly below market.
-- ⬜ Suspicious mileage.
-- 🟡 Inconsistent description. *Only "possible accident" keywords.*
+- ✅ Suspicious mileage. *Under 100 km on a bike three or more years old (a placeholder), or more than 25 000 km a year.*
+- ➕ ✅ The text contradicts the ad (15.6). *The year, mileage, origin or service book written in the description against the ad's fields; only clear cases (two or more years apart, more km in the text, "importada" on a national ad, "sem livro" with a service book).*
+- 🟡 Inconsistent description. *Only "possible accident" keywords; contradictions between text and fields planned (15.6).*
 - ✅ Missing information.
 - ✅ Possible accident.
 - 🟡 Duplicate listing. *Detected (across sources too) and excluded from scoring, not a risk signal.*
-- ⬜ Suspicious seller behaviour.
+- ✅ Suspicious seller behaviour. *Relisted ads are detected (the same bike taken down and listed again), shown with the first date on sale and the earlier price, and count as risk (15.5): 5 points, 10 when relisted twice or on sale for over 90 days counting the earlier ads. Each dealer's figures (relisted, sharp price changes, missing mileage, repeated ads, price drops) are shown on its listings (15.7) and score the Deal Score's seller slice.*
 - ✅ Unclear ownership/history. *3+ owners, no service book, imported.*
 - ⬜ Excessively edited or reused images.
 
@@ -120,15 +120,15 @@ All criteria (➕ plus minimum Deal Score and maximum Risk Score) and all four n
 
 ## 16. Alerts ✅
 
-All four types, each at most once per event, only for events after the search was created. Pushed to Telegram ✅ (confirmed on the phone). In the app: grouped by day, unread count on the Alertas tab.
+All four types, each at most once per event, only for events after the search was created. ➕ Favourites alert their owner about price drops and removal without a saved search (once per event, also when a search covers the listing). ➕ "Chegou ao seu preço": a favourite's target price reached (15.19). Pushed to Telegram ✅ (confirmed on the phone). In the app: grouped by day, unread count on the Alertas tab.
 
 ## 17. Dashboard ✅
 
-✅ Best deals sorted by Deal Score (or newest, cheapest, most expensive); only tracked models; filters for model, price, mileage, year, location, seller type, Deal Score, Risk Score, active only, shown as removable chips. ➕ Collection status (last run, duration, requests, next run; a warning card when a run failed or was blocked) in Mais.
+✅ Best deals sorted by Deal Score (or newest, cheapest, most expensive); only tracked models; filters for model, price, mileage, year, location, seller type, Deal Score, Risk Score, active only, shown as removable chips. ➕ Distance from the owner's home on every listing, a maximum-distance filter (also for saved searches) and a nearest-first sort (15.11). ➕ Equipment filter (quickshifter, exhaust, luggage, heated grips, protection, new tyres and, since 15.15, short plate holder, screen, levers, mirrors, phone mount, alarm, steering damper, centre stand, cruise control, suspension, LED indicators, passenger grab handles, original parts included), also for saved searches (15.13). ➕ Collection status (last run, duration, what it found, requests, next run; a warning card when a run failed or was blocked) in Mais. ➕ Favourites: a star on cards of starred listings; "Favoritos" (Ofertas app bar or Mais) lists them with the owner's notes.
 
 ## 18. Listing Detail Page ✅
 
-✅ Photos (gallery, full screen), price, year, mileage, location, seller, seller type, source, original link, Deal Score, Risk Score, explanation, estimated value, price history, first/last seen, status, new-motorcycle comparison. ➕ Owners, service book, origin, warranty, publication date, full description, market behaviour card (with depreciation), "also listed as" duplicates. *Sections ordered for a decision (score and risks first, history last); the button to the ad stays at the bottom of the screen.*
+✅ Photos (gallery, full screen), price, year, mileage, location, seller, seller type, source, original link, Deal Score, Risk Score, explanation, estimated value, price history, first/last seen, status, new-motorcycle comparison. ➕ Owners, service book, origin, warranty, publication date, full description, market behaviour card (with depreciation and where the asking price sits among the model's live listings), "also listed as" duplicates. *The Deal Score and its verdict sit beside the price; below, four parts picked at the top (Avaliação, Negociar, Mercado, Detalhes, 15.17) instead of one long list of cards; the button to the ad stays at the bottom of the screen.*
 
 ## 19. New Motorcycle Comparison 🟡
 
@@ -141,7 +141,7 @@ Shown on the detail page. Reference prices are edited in the app; set for the or
 
 ## 21. Data Quality 🟡
 
-✅ Collection runs and blocks are tracked. ✅ Requests used per run, run duration, next run and monthly usage shown in the app (Mais). ✅ Per site in Mais: live listings, tracked/unmatched/duplicate shares, missing year, mileage and location, Standvirtual pages still to read (view `source_data_quality`). ⬜ Per-field confidence.
+✅ Collection runs and blocks are tracked. ✅ Requests used per run, run duration, next run and monthly usage shown in the app (Mais). ✅ Per site in Mais: live listings, tracked/unmatched/duplicate shares, missing year, mileage and location, Standvirtual pages still to read, when listings were last seen on each site (warns after 24 h) and sudden price changes of 50 % or more in the last 30 days (view `source_data_quality`). ⬜ Per-field confidence.
 
 ## 22. Privacy 🟡
 
@@ -149,11 +149,13 @@ Private sellers' names and all phone numbers are never stored; saved pages and f
 
 ## 23. Future Features ⬜
 
-Comparison, buying assistant, checklists, cost calculators, price prediction, weekly ranking, smart alerts, model price history, imports, dealer integration. ➕ Depreciation tracking ✅ (per-model rates fitted from data).
+Comparison ✅ (listings side by side), buying assistant, checklists, cost calculators, price prediction, weekly ranking ✅ (the weekly summary's best deals, 14.4d), smart alerts, model price history, imports, dealer integration. ➕ Depreciation tracking ✅ (per-model rates fitted from data).
+
+Planned in roadmap Sprint 15 ("Deciding and buying"): ➕ favourites with private notes ✅ (15.1; a favourite always alerts on price drops and removal), price to offer (buying assistant, 15.2) ✅, ➕ negotiation arguments, visit repairs off the offer, messages per step and a target price alert (15.19) ✅, ➕ "back on the market" alert for followed bikes (15.14) ✅, ➕ message to the seller (15.12) ✅, viewing checklist (15.3) ✅, cost of ownership (cost calculator, 15.4) ✅, relists as a risk signal (15.5) ✅, text contradictions as risk signals (15.6) ✅, dealer reliability (15.7) ✅ (figures shown and scored), price trends (model price history, 15.8) ⬜, more sources and imports (15.9) ⬜, web push (15.10) ✅.
 
 ## 24. Product Philosophy ✅
 
-Simple, explainable, incremental, testable, data-driven. The core idea is validated on real data from two sources.
+Simple, explainable, incremental, testable (Dart unit tests, mutation testing, and SQL tests on a real Postgres in CI), data-driven. The core idea is validated on real data from two sources.
 
 ## 25. Final Vision
 

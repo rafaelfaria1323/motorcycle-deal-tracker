@@ -3,7 +3,7 @@ import 'dart:io';
 import '../catalog/catalog.dart';
 import '../normalized/normalized_listing.dart';
 import '../notify/notify_pending.dart';
-import '../notify/telegram_notifier.dart';
+import '../notify/web_push.dart';
 import '../store/listing_store.dart';
 import 'source_batch.dart';
 
@@ -49,6 +49,9 @@ Future<void> importBatch(
     }
   }
   log.writeln('Mapped ${listings.length}, rejected $rejected.');
+  if (batch.siteModels.isNotEmpty) {
+    log.writeln('Brands and models on offer: ${batch.siteModels.length}');
+  }
 
   if (store == null) {
     log.writeln('Dry run: nothing was written.');
@@ -69,6 +72,10 @@ Future<void> importBatch(
   final seen = await store.markSeen(batch.source, seenIds);
   log.writeln('Seen $seen listing(s).');
 
+  // 2a. Known listings get the model the current rules give them.
+  final rematched = await store.rematch(batch.source, unique, catalog);
+  if (rematched > 0) log.writeln('Model corrected: $rematched listing(s)');
+
   // 3. Known listings whose price moved get the new price and a history row.
   final changed = await store.applyPriceChanges(batch.source, unique);
   log.writeln('Price changes: $changed');
@@ -88,9 +95,14 @@ Future<void> importBatch(
   final drops = await store.applyPricesBeforeDrop(batch.source, unique);
   log.writeln('Site-reported price cuts updated: $drops');
 
-  // 3c. Publication and renewal dates the source shows (OLX).
+  // 3c. Publication and renewal dates the source shows.
   final dated = await store.applyListingDates(batch.source, unique);
   if (dated > 0) log.writeln('Listing dates updated: $dated');
+
+  // 3d. The site's brand and model lists, for the app's model picker.
+  if (batch.siteModels.isNotEmpty) {
+    await store.saveSiteModels(batch.source, batch.siteModels);
+  }
 
   // 4. Only for a complete import: what is missing has been removed.
   //    Rejected records still count as on the site (an old bike is still
@@ -139,12 +151,16 @@ Future<void> finishRun(ListingStore store, {StringSink? out}) async {
   final alerts = await store.generateAlerts();
   log.writeln('Alerts created: $alerts');
 
-  // 7. Push what's new to the phone, when Telegram is configured.
-  final notifier = TelegramNotifier.fromEnvironment();
-  if (notifier != null) {
-    final pushed = await notifyPending(store, notifier);
-    log.writeln('Notifications sent: $pushed');
-  } else {
-    log.writeln('Notifications: Telegram not configured');
+  // 7. Tell the phones: each account's devices (Web Push).
+  WebPushSender? push;
+  try {
+    push = WebPushSender(await store.pushKeys());
+  } on Object catch (e) {
+    log.writeln('Web Push not available, alerts kept for the next run: $e');
   }
+  final notified = await notifyPending(store, push: push);
+  log.writeln(
+    'Notifications sent: ${notified.alerts} '
+    '(${notified.pushes} to devices)',
+  );
 }

@@ -12,6 +12,8 @@ class ListingFilters extends Equatable {
     this.sellerType,
     this.minDealScore,
     this.maxRiskScore,
+    this.maxDistanceKm,
+    this.extras = const [],
     this.activeOnly = true,
   });
 
@@ -27,6 +29,12 @@ class ListingFilters extends Equatable {
   /// Listings without a score never match a set score criterion.
   final int? minDealScore;
   final int? maxRiskScore;
+
+  /// Km from the person's home; listings whose place is unknown never match.
+  final int? maxDistanceKm;
+
+  /// Equipment codes the ad must all mention (`listing_extras`); empty: any.
+  final List<String> extras;
   final bool activeOnly;
 
   /// How many filters differ from the defaults (shown on the filter button).
@@ -39,6 +47,8 @@ class ListingFilters extends Equatable {
     sellerType != null,
     minDealScore != null,
     maxRiskScore != null,
+    maxDistanceKm != null,
+    extras.isNotEmpty,
     !activeOnly,
   ].where((applied) => applied).length;
 
@@ -52,6 +62,8 @@ class ListingFilters extends Equatable {
     sellerType,
     minDealScore,
     maxRiskScore,
+    maxDistanceKm,
+    extras,
     activeOnly,
   ];
 }

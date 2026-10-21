@@ -1,15 +1,21 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/di/injection.dart';
+import '../../../../core/widgets/page_back_button.dart';
+import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/catalog_model.dart';
 import '../../domain/repositories/catalog_repository.dart';
+import '../cubit/listings_cubit.dart';
 import '../tracked_models_text.dart';
 import '../widgets/add_model_sheet.dart';
 
-/// Lets the owner choose which catalog models are tracked, from which year,
-/// and add new ones. The collector runs the searches of the tracked models.
+/// Lets the account choose which catalog models it follows, from which
+/// year, and add new ones. The collector runs the searches of the models
+/// any account follows.
 class TrackedModelsPage extends StatefulWidget {
   const TrackedModelsPage({super.key});
 
@@ -25,10 +31,19 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
   /// Models with a change on its way, so a switch can't be flipped twice.
   final _saving = <String>{};
 
+  /// Something was saved: Ofertas' models and listings change with it.
+  bool _changed = false;
+
   @override
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void dispose() {
+    if (_changed) unawaited(getIt<ListingsCubit>().load(models: true));
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -54,10 +69,13 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
     });
     try {
       await save();
+      _changed = true;
+      // Other accounts' models count in the searches: show what is stored.
+      await _load();
     } catch (e) {
       if (!mounted) return;
       setState(() => _replace(model));
-      messenger.showSnackBar(SnackBar(content: Text(_errorText(e))));
+      showMessage(messenger, _errorText(e));
       // Part of a change may have been saved: show what is stored.
       await _load();
     } finally {
@@ -102,7 +120,7 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
 
   Future<void> _add() async {
     final messenger = ScaffoldMessenger.of(context);
-    final added = await showAddModelSheet(context);
+    final added = await showAddModelSheet(context, _repository);
     if (added == null) return;
     try {
       await _repository.addModel(
@@ -112,18 +130,17 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
         olxSearch: added.olxSearch,
         standvirtualSearch: added.standvirtualSearch,
         aliases: added.aliases,
+        engineCcMin: added.engineCcMin,
+        engineCcMax: added.engineCcMax,
       );
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            '${added.brand} ${added.model} adicionado: entra na próxima '
-            'recolha',
-          ),
-        ),
+      _changed = true;
+      showMessage(
+        messenger,
+        '${added.brand} ${added.model} adicionado: entra na próxima recolha',
       );
       await _load();
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(_errorText(e))));
+      showMessage(messenger, _errorText(e));
     }
   }
 
@@ -137,7 +154,10 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Modelos acompanhados')),
+      appBar: AppBar(
+        leading: const PageBackButton(),
+        title: const Text('Modelos acompanhados'),
+      ),
       floatingActionButton: _models == null
           ? null
           : FloatingActionButton.extended(
@@ -175,10 +195,11 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
           child: Text(
-            'O recolhedor pesquisa só os modelos ligados e dá-lhes pontuação, '
-            'alertas e dados de mercado. As alterações contam a partir da '
-            'próxima recolha (até 4 horas). Toque num modelo para mudar o ano '
-            'ou o preço de uma nova.',
+            'Escolha os modelos que quer acompanhar e desde que ano: só esses '
+            'aparecem em Ofertas, nos alertas e no mercado. A recolha pesquisa '
+            'os modelos de todas as contas, por isso um modelo novo pode já '
+            'ter anúncios. Os anúncios novos chegam na próxima recolha (até 4 '
+            'horas). Toque num modelo para mudar o ano ou o preço de uma nova.',
             style: muted,
           ),
         ),
@@ -304,8 +325,8 @@ class _ModelDialogState extends State<_ModelDialog> {
               decoration: InputDecoration(
                 labelText: 'Preço de uma nova (€)',
                 helperText:
-                    'Preço de tabela no site da marca. Fica com a data de '
-                    'hoje; vazio para apagar.',
+                    'Preço de tabela no site da marca. Fica registado com a '
+                    'data de hoje; deixe vazio para apagar.',
                 helperMaxLines: 3,
                 errorText: _priceError,
                 border: const OutlineInputBorder(),

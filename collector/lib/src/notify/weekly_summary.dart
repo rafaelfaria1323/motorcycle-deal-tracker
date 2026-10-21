@@ -9,6 +9,7 @@ class SummaryListing {
     required this.status,
     required this.firstSeenAt,
     required this.lastCheckedAt,
+    this.motorcycleId,
     this.year,
     this.mileage,
     this.price,
@@ -26,6 +27,7 @@ class SummaryListing {
     status: row['status'] as String,
     firstSeenAt: DateTime.parse(row['first_seen_at'] as String),
     lastCheckedAt: DateTime.parse(row['last_checked_at'] as String),
+    motorcycleId: row['motorcycle_id'] as String?,
     year: (row['year'] as num?)?.toInt(),
     mileage: (row['mileage'] as num?)?.toInt(),
     price: (row['price'] as num?)?.toDouble(),
@@ -43,6 +45,9 @@ class SummaryListing {
 
   /// For a removed listing, when it was found missing.
   final DateTime lastCheckedAt;
+
+  /// The catalog model, to pick each account's own models.
+  final String? motorcycleId;
   final int? year;
   final int? mileage;
   final double? price;
@@ -181,15 +186,33 @@ String _count(int n, String one, String many) => '$n ${n == 1 ? one : many}';
 String _bikeAndYear(SummaryListing l) =>
     [l.bike, if (l.year != null) '${l.year}'].join(' ');
 
-/// The Telegram message (plain text).
-String formatWeeklySummary(WeeklySummary s, {int dropCount = 3}) {
-  final lastDay = s.until.subtract(const Duration(days: 1));
-  final out = <String>[
-    '📊 Resumo da semana · ${_day(s.since)} a ${_day(lastDay)}',
-    '',
-  ];
+/// The listings of the models an account follows ([models]: catalog id
+/// -> first year), as the app's `in_my_models` picks them.
+List<SummaryListing> listingsFollowed(
+  List<SummaryListing> listings,
+  Map<String, int> models,
+) => [
+  for (final l in listings)
+    if (models[l.motorcycleId] case final from?
+        when l.year == null || l.year! >= from)
+      l,
+];
 
-  // New listings per model, most first.
+String _iso(DateTime t) => t.toUtc().toIso8601String();
+
+Map<String, Object?> _deal(SummaryListing l) => {
+  'id': l.id,
+  'bike': l.bike,
+  'year': l.year,
+  'price': l.price,
+  'mileage': l.mileage,
+  'deal_score': l.dealScore,
+};
+
+/// What the app's "Resumo da semana" page shows (`weekly_summaries.summary`):
+/// counts, new listings per model (most first), the biggest drops and the
+/// best deals, each with the listing's id so a tap opens it.
+Map<String, Object?> weeklySummaryJson(WeeklySummary s, {int dropCount = 5}) {
   final perModel = <String, int>{};
   for (final l in s.newListings) {
     perModel[l.bike] = (perModel[l.bike] ?? 0) + 1;
@@ -199,52 +222,44 @@ String formatWeeklySummary(WeeklySummary s, {int dropCount = 3}) {
       final byCount = b.value.compareTo(a.value);
       return byCount != 0 ? byCount : a.key.compareTo(b.key);
     });
-  final newLine = _count(
-    s.newListings.length,
-    'anúncio novo',
-    'anúncios novos',
-  );
-  out
-    ..add(
-      models.isEmpty
-          ? '🆕 $newLine'
-          : '🆕 $newLine (${models.map((e) => '${e.key} ${e.value}').join(', ')})',
-    )
-    ..add('📉 ${_count(s.drops.length, 'baixa de preço', 'baixas de preço')}')
-    ..add('🚫 ${_count(s.goneCount, 'saiu do mercado', 'saíram do mercado')}')
-    ..add('📋 ${_count(s.liveCount, 'anúncio ativo', 'anúncios ativos')}');
+  return {
+    'since': _iso(s.since),
+    'until': _iso(s.until),
+    'live': s.liveCount,
+    'new': s.newListings.length,
+    'gone': s.goneCount,
+    'drops': s.drops.length,
+    'new_by_model': [
+      for (final e in models) {'bike': e.key, 'count': e.value},
+    ],
+    'biggest_drops': [
+      for (final d in s.drops.take(dropCount))
+        {..._deal(d.listing), 'old_price': d.oldPrice, 'price': d.newPrice},
+    ],
+    'best': [for (final l in s.bestDeals) _deal(l)],
+  };
+}
 
-  if (s.bestDeals.isNotEmpty) {
-    out
-      ..add('')
-      ..add('🏆 Melhores negócios');
-    for (final (i, l) in s.bestDeals.indexed) {
-      final facts = [
-        _bikeAndYear(l),
-        if (l.price != null) euros(l.price!),
-        if (l.mileage != null) '${euros(l.mileage!).replaceAll(' €', '')} km',
-        'Pontuação ${l.dealScore}',
-      ].join(' · ');
-      out
-        ..add('${i + 1}. $facts')
-        ..add(l.url);
-    }
-  }
-
-  if (s.drops.isNotEmpty) {
-    out
-      ..add('')
-      ..add('📉 Maiores baixas');
-    for (final d in s.drops.take(dropCount)) {
-      final percent = (d.fraction * 100).round();
-      out
-        ..add(
-          '${_bikeAndYear(d.listing)}: ${euros(d.oldPrice)} → '
-          '${euros(d.newPrice)} (−$percent %)',
-        )
-        ..add(d.listing.url);
-    }
-  }
-
-  return out.join('\n');
+/// The Monday notification: the week in one line, and the best deal; a tap
+/// opens the summary in the app.
+Map<String, Object?> weeklySummaryPush(WeeklySummary s) {
+  final lastDay = s.until.subtract(const Duration(days: 1));
+  final best = s.bestDeals.firstOrNull;
+  final counts = [
+    _count(s.newListings.length, 'anúncio novo', 'anúncios novos'),
+    _count(s.drops.length, 'baixa de preço', 'baixas de preço'),
+    _count(s.goneCount, 'saiu do mercado', 'saíram do mercado'),
+  ].join(' · ');
+  return {
+    'title': '📊 Resumo da semana · ${_day(s.since)} a ${_day(lastDay)}',
+    'body': [
+      counts,
+      if (best != null)
+        'Melhor: ${_bikeAndYear(best)} · '
+            '${best.price == null ? '' : '${euros(best.price!)} · '}'
+            'Pontuação ${best.dealScore}',
+    ].join('\n'),
+    'url': '/#/summary',
+    'tag': 'weekly-summary',
+  };
 }

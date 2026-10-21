@@ -1,0 +1,131 @@
+name: Mutation testing
+
+# Mutation testing like Stryker, without AI (`mutation_test`, run by
+# tool/mutation.py): small changes are made to the files listed in
+# collector/mutation_targets.txt and app/mutation_targets.txt, one at a
+# time, and the tests run after each; a change no test notices is a gap in
+# the tests. Report only: it never fails a merge. The summary (score per
+# file and every surviving mutant) is on the run's page; the full HTML
+# reports are the run's artifacts.
+# - After a merge: only the target files (or, in the app, their tests) the
+#   merge changed.
+# - "Run workflow": every target, in parallel jobs.
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [closed]
+    branches: [main]
+    paths:
+      - 'app/lib/**'
+      - 'app/test/**'
+      - 'collector/lib/**'
+      - 'collector/test/**'
+      - '**/mutation_targets.txt'
+
+concurrency:
+  group: mutation
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      any: ${{ steps.plan.outputs.any }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
+          fetch-depth: 2
+
+      - id: plan
+        env:
+          MERGED: ${{ github.event_name == 'pull_request' }}
+        run: |
+          if [ "$MERGED" = true ]; then
+            matrix=$(python3 -I tool/mutation.py plan --changed-from HEAD^1)
+          else
+            matrix=$(python3 -I tool/mutation.py plan --shards 4)
+          fi
+          echo "$matrix"
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+          if [ "$(echo "$matrix" | jq '.include | length')" -gt 0 ]; then
+            echo "any=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No mutation target changed."
+            echo "any=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  mutate:
+    needs: plan
+    if: needs.plan.outputs.any == 'true'
+    name: mutate (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies and mutation_test
+        run: |
+          (cd "${{ matrix.package }}" && flutter pub get)
+          dart pub global activate mutation_test 1.8.1
+          echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+
+      - name: Mutate
+        env:
+          PACKAGE: ${{ matrix.package }}
+          FILES: ${{ matrix.files }}
+        # FILES is a space-separated list of paths without spaces.
+        run: |
+          # shellcheck disable=SC2086
+          python3 -I tool/mutation.py run "$PACKAGE" "$RUNNER_TEMP/mutation" $FILES
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: mutation-${{ strategy.job-index }}
+          path: ${{ runner.temp }}/mutation
+          retention-days: 14
+
+  report:
+    needs: [plan, mutate]
+    if: always() && needs.plan.outputs.any == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: mutation-*
+          path: reports
+
+      - name: Summary
+        run: |
+          python3 -I tool/mutation.py summary reports > mutation-summary.md
+          cat mutation-summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: mutation-summary
+          path: mutation-summary.md
+          retention-days: 30

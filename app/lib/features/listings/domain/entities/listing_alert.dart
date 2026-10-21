@@ -7,6 +7,13 @@ enum AlertType {
   priceReduction,
   excellentOpportunity,
   listingRemoved,
+
+  /// A followed bike (favourite or alerted by a saved search) is on sale
+  /// again in a new ad.
+  backOnMarket,
+
+  /// A favourite is on sale at the user's target price or less.
+  targetPriceReached,
   unknown,
 }
 

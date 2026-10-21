@@ -1,0 +1,104 @@
+name: Check
+
+# Every pull request to main: the same checks as `make check` (app analyze
+# and tests with Flutter; collector format, analyze and tests) and
+# `make db-test` (migrations and SQL tests on Postgres), so a change is
+# proven before it is merged rather than when the deploy runs.
+# PRs opened by a workflow (code quality, test hardening) don't trigger
+# pull_request runs (GitHub's rule for GITHUB_TOKEN), so backlog-pass.yml
+# starts this by workflow_dispatch on the PR's branch; the result is
+# attached to the same commit, so it shows on the PR.
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# A newer push to the same pull request replaces a check still running.
+concurrency:
+  group: check-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Plain Postgres for `make db-test`: every migration applied to an
+    # empty database, then the SQL tests in supabase/tests.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # Merging applies new migrations to Supabase (deploy-web.yml), so
+      # catch here what would fail there: a change to a migration already
+      # on main, or a new one that doesn't sort after them.
+      - name: Check migrations against main
+        run: tool/check_migrations.sh "$(git merge-base origin/main HEAD)" HEAD
+
+      # Workflows and shell scripts: actionlint (expressions, inputs,
+      # secrets, and shellcheck on every run: step) and shellcheck on
+      # tool/*.sh. A typo there would otherwise show only when the
+      # workflow runs. shellcheck is on the runner image.
+      - name: make lint-scripts
+        run: |
+          bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.12/scripts/download-actionlint.bash) 1.7.12 "$RUNNER_TEMP"
+          PATH="$RUNNER_TEMP:$PATH" make lint-scripts
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          cd app && flutter pub get
+          cd ../collector && dart pub get
+
+      - name: make check
+        run: make check
+
+      # Checks without AI: copy-pasted code above 1 % fails; line coverage
+      # of the app's logic and of the collector below their floors (the
+      # Makefile's *_COVERAGE_MIN) fails. Both reports are on the run's
+      # summary page.
+      - name: make duplication
+        run: make duplication
+
+      # Unused code and unused files in the app (dart_code_linter).
+      - name: make dead-code
+        run: |
+          dart pub global activate dart_code_linter 4.4.2 >/dev/null
+          make dead-code
+
+      - name: make coverage
+        run: |
+          dart pub global activate coverage >/dev/null
+          make coverage
+
+      # make sql-lint runs make db-test first, then checks the database it
+      # leaves (plpgsql_check, splinter) and squawk on this PR's new
+      # migrations. plpgsql_check goes into the Postgres container (the
+      # official image has the PostgreSQL apt repository).
+      - name: make sql-lint (with make db-test)
+        env:
+          PGHOST: localhost
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+        run: |
+          docker exec "$POSTGRES_CONTAINER" sh -c \
+            'apt-get update -qq && apt-get install -y -qq postgresql-16-plpgsql-check' >/dev/null
+          pipx install squawk-cli==2.70.0 >/dev/null
+          make sql-lint

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_filters.dart';
@@ -48,6 +50,29 @@ class _PagedListings implements ListingsRepository {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// The first request waits for [first]; later ones answer at once.
+class _SlowFirst extends _PagedListings {
+  _SlowFirst() : super(10);
+
+  final first = Completer<List<Listing>>();
+  var calls = 0;
+
+  @override
+  Future<List<Listing>> getListings({
+    ListingFilters filters = ListingFilters.empty,
+    ListingSort sort = ListingSort.newest,
+    int offset = 0,
+    int limit = 40,
+  }) => calls++ == 0
+      ? first.future
+      : super.getListings(
+          filters: filters,
+          sort: sort,
+          offset: offset,
+          limit: limit,
+        );
 }
 
 void main() {
@@ -106,5 +131,27 @@ void main() {
     expect(cubit.state.listings, hasLength(ListingsCubit.pageSize));
     expect(repository.sorts.last, ListingSort.priceAsc);
     expect(repository.offsets.last, 0);
+  });
+
+  test('an older answer never replaces a newer load', () async {
+    final repository = _SlowFirst();
+    final cubit = ListingsCubit(repository);
+    final older = cubit.load();
+    await cubit.load();
+    repository.first.complete([_listing(99)]);
+    await older;
+
+    expect(cubit.state.listings, hasLength(10));
+  });
+
+  test('models are read again when asked (another account)', () async {
+    final repository = _PagedListings(5);
+    final cubit = ListingsCubit(repository);
+    await cubit.load();
+    await cubit.load();
+    expect(repository.optionCalls, 1);
+
+    await cubit.load(models: true);
+    expect(repository.optionCalls, 2);
   });
 }

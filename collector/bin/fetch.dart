@@ -25,10 +25,10 @@ Future<void> main(List<String> args) async {
   if (positional.length != 2 ||
       site == null ||
       maxRequests < 1 ||
-      maxRequests > 50) {
+      maxRequests > const FetchPolicy().maxRequestsPerRun) {
     stderr.writeln(
       'Usage: dart run bin/fetch.dart <${FetchSite.byName.keys.join('|')}> '
-      '<urls-file> [--dry-run] [--out=<dir>] [--max=<1-50>]\n'
+      '<urls-file> [--dry-run] [--out=<dir>] [--max=<1-20>]\n'
       '  <urls-file>  one search address per line (# starts a comment)\n'
       '  --dry-run    check the addresses and limits; nothing is requested\n'
       '  OLX searches span pages; the following pages are fetched too.',
@@ -81,7 +81,8 @@ Future<void> main(List<String> args) async {
   );
   try {
     await fetcher.prepare();
-    await fetchSearches(fetcher, urls, out);
+    final outcome = await fetchSearches(fetcher, urls, out);
+    if (outcome.failure case final failure?) throw failure;
     stdout.writeln('Done.');
   } on FetchRefused catch (e) {
     stderr.writeln('Not fetched: $e');

@@ -48,4 +48,35 @@ void main() {
 
     expect(siteDropLine(l), isNull);
   });
+
+  test('the seen line: first seen, then last seen', () {
+    const base = Listing(
+      id: '2',
+      source: 'olx',
+      url: 'https://example.com/2',
+      brand: 'Yamaha',
+      model: 'R7',
+      status: ListingStatus.active,
+      sellerType: SellerType.private,
+      images: [],
+    );
+    expect(seenLine(base), isNull);
+
+    final seen = Listing(
+      id: '3',
+      source: 'olx',
+      url: 'https://example.com/3',
+      brand: 'Yamaha',
+      model: 'R7',
+      status: ListingStatus.active,
+      sellerType: SellerType.private,
+      images: const [],
+      firstSeenAt: DateTime(2026, 10, 3, 12),
+      lastSeenAt: DateTime(2026, 10, 17, 12),
+    );
+    expect(
+      seenLine(seen, now: DateTime(2026, 10, 19, 12)),
+      'Visto pela primeira vez em 03/10/2026 · última vez há 2 dias',
+    );
+  });
 }

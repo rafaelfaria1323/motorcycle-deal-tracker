@@ -1,0 +1,26 @@
+# squawk (tool/sql_lint.sh, on the migrations a branch adds). Kept: the
+# rules for changes that break the code still running on main until the
+# deploy (dropping or renaming a column or table, changing a column's type,
+# adding a required column, ...). Left out: rules about long locks and
+# online index builds, which matter on big, busy tables (ours are small,
+# and each migration runs in one transaction, where CONCURRENTLY can't),
+# and style preferences.
+assume_in_transaction = true
+excluded_rules = [
+  "prefer-robust-stmts",
+  "require-statement-timeout",
+  "require-lock-timeout",
+  "require-concurrent-index-creation",
+  "require-concurrent-index-deletion",
+  "constraint-missing-not-valid",
+  "adding-foreign-key-constraint",
+  "adding-serial-primary-key-field",
+  "disallowed-unique-constraint",
+  "prefer-bigint-over-int",
+  "prefer-bigint-over-smallint",
+  "prefer-identity",
+  "ban-drop-function",
+  "ban-drop-view",
+  "ban-drop-constraint",
+  "require-enum-value-ordering",
+]

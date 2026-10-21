@@ -1,0 +1,149 @@
+name: Preview web app
+
+# Every pull request that touches app/: the app built from the PR and
+# published to its own Cloudflare Pages address (pr-<number>), linked in a
+# comment on the PR, so it can be tried on the phone before merging. The
+# comment is updated on every push. The preview reads the real database,
+# but migrations in the PR are only applied on merge: a screen that needs
+# them works only after the merge. Fork PRs get no secrets, so no preview.
+# Each push leaves only the newest build (older ones had their own
+# addresses); closing or merging the PR deletes its preview altogether
+# (tool/pages_previews.py). Cloudflare Pages costs nothing for this.
+# Lighthouse measures each preview (load time, download size,
+# accessibility) and the comment shows the result.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches: [main]
+    paths:
+      - 'app/**'
+      - '.github/workflows/preview-web.yml'
+
+# A newer push replaces a preview still building.
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  PAGES_PROJECT: motorcycle-deal-tracker
+
+jobs:
+  preview:
+    # Dependabot's PRs get no repository secrets, so no preview either.
+    if: >-
+      github.event.action != 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      PR: ${{ github.event.pull_request.number }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Build
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          cd app && flutter pub get
+          flutter build web --release --wasm \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
+
+      # A branch other than main is a preview: production stays as it is.
+      - name: Publish the preview
+        id: deploy
+        run: |
+          npx --yes wrangler@4 pages deploy app/build/web \
+            --project-name="$PAGES_PROJECT" --branch="pr-$PR" \
+            --commit-dirty=true | tee /tmp/deploy.log
+          # The alias (pr-N.<project>.pages.dev) stays the same on every push.
+          url=$(grep -o 'https://pr-[^ ]*\.pages\.dev' /tmp/deploy.log | tail -n 1 || true)
+          [ -n "$url" ] || url=$(grep -o 'https://[^ ]*\.pages\.dev' /tmp/deploy.log | tail -n 1 || true)
+          [ -n "$url" ] || { echo "::error::No address in the deploy output"; exit 1; }
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      # The older builds of this PR stay reachable at their own addresses.
+      - name: Remove the older builds
+        run: python3 tool/pages_previews.py "pr-$PR" --keep-latest
+
+      # Load time, download size and accessibility of the preview as a
+      # phone sees it (Lighthouse's mobile defaults, the runner's Chrome).
+      # Report only: on the run's summary and in the comment below; a low
+      # score never fails the PR. Each run opens the app, so it signs in
+      # anonymously like any visitor.
+      - name: Lighthouse
+        continue-on-error: true
+        env:
+          URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          npx --yes lighthouse@13.5.0 "$URL" --quiet --output=json \
+            --output-path="$RUNNER_TEMP/lighthouse.json" --chrome-flags="--headless=new"
+          python3 -I tool/lighthouse_summary.py "$RUNNER_TEMP/lighthouse.json" \
+            | tee "$RUNNER_TEMP/lighthouse.md" >> "$GITHUB_STEP_SUMMARY"
+
+      # One comment per PR, edited on every push.
+      - name: Link it on the PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          URL: ${{ steps.deploy.outputs.url }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          marker='<!-- preview-web -->'
+          body="$marker
+          **Preview:** $URL
+
+          Built from ${SHA:0:7}. Open it on the iPhone in Safari to try the change before merging. It uses the real database; migrations in this PR are applied only when it is merged."
+          body=$(printf '%s\n' "$body" | sed 's/^          //')
+          if [ -s "$RUNNER_TEMP/lighthouse.md" ]; then
+            body="$body"$'\n\n'"$(sed 's/$/  /' "$RUNNER_TEMP/lighthouse.md")"
+          fi
+          id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate \
+            --jq ".[] | select(.body | startswith(\"$marker\")) | .id" | head -n 1)
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" -f body="$body" >/dev/null
+          else
+            gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" -f body="$body" >/dev/null
+          fi
+
+  # Closed or merged: the preview goes, and the comment says so.
+  remove:
+    if: >-
+      github.event.action == 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      PR: ${{ github.event.pull_request.number }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: tool
+
+      - name: Delete the preview
+        run: python3 tool/pages_previews.py "pr-$PR"
+
+      - name: Update the PR comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          marker='<!-- preview-web -->'
+          id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate \
+            --jq ".[] | select(.body | startswith(\"$marker\")) | .id" | head -n 1)
+          [ -n "$id" ] || exit 0
+          gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" \
+            -f body="$marker"$'\n'"**Preview:** removed (the PR was closed)." >/dev/null

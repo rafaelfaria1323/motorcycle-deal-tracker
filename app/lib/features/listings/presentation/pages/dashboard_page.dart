@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -5,9 +7,14 @@ import 'package:motorcycle_deal_tracker/features/listings/domain/entities/saved_
 
 import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
+import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/listing_filters.dart';
 import '../../domain/entities/listing_sort.dart';
+import '../compare_text.dart';
+import '../cubit/compare_cubit.dart';
+import '../cubit/favourites_cubit.dart';
+import '../cubit/favourites_state.dart';
 import '../cubit/listings_cubit.dart';
 import '../cubit/listings_state.dart';
 import '../cubit/saved_searches_cubit.dart';
@@ -40,7 +47,7 @@ class DashboardPage extends StatelessWidget {
         motorcycles: cubit.state.motorcycles,
       ),
     );
-    if (result != null) cubit.applyFilters(result);
+    if (result != null) unawaited(cubit.applyFilters(result));
   }
 
   Future<void> _saveSearch(BuildContext context) async {
@@ -49,11 +56,7 @@ class DashboardPage extends StatelessWidget {
     final messenger = ScaffoldMessenger.of(context);
 
     if (!filters.hasCriteria) {
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Escolha pelo menos um filtro antes de guardar.'),
-        ),
-      );
+      showMessage(messenger, 'Escolha pelo menos um filtro antes de guardar.');
       return;
     }
 
@@ -64,21 +67,55 @@ class DashboardPage extends StatelessWidget {
     if (name == null) return;
 
     final saved = await getIt<SavedSearchesCubit>().create(name, filters);
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          saved ? 'Pesquisa guardada' : 'Não foi possível guardar a pesquisa',
-        ),
-      ),
+    showMessage(
+      messenger,
+      saved ? 'Pesquisa guardada' : 'Não foi possível guardar a pesquisa',
     );
+  }
+
+  void _toggleCompare(BuildContext context, String id) {
+    if (!getIt<CompareCubit>().toggle(id)) {
+      final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
+      showMessage(
+        messenger,
+        'Já tem $maxCompared anúncios na comparação. Retire um primeiro.',
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: BlocBuilder<CompareCubit, List<String>>(
+        bloc: getIt<CompareCubit>(),
+        builder: (context, compared) {
+          if (compared.isEmpty) return const SizedBox.shrink();
+          return FloatingActionButton.extended(
+            icon: const Icon(Icons.compare_arrows),
+            label: Text('Comparar (${compared.length})'),
+            onPressed: () {
+              if (compared.length >= 2) {
+                context.push(AppRoutes.compare(compared));
+                return;
+              }
+              final messenger = ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar();
+              showMessage(
+                messenger,
+                'Mantenha premido outro anúncio para o comparar.',
+              );
+            },
+          );
+        },
+      ),
       appBar: AppBar(
         title: const Text('Ofertas'),
         actions: [
+          IconButton(
+            tooltip: 'Favoritos',
+            icon: const Icon(Icons.star_border),
+            onPressed: () => context.push(AppRoutes.favourites),
+          ),
           BlocBuilder<ListingsCubit, ListingsState>(
             buildWhen: (previous, current) => previous.sort != current.sort,
             builder: (context, state) => PopupMenuButton<ListingSort>(
@@ -182,13 +219,23 @@ class DashboardPage extends StatelessWidget {
                             : 'Ainda não há ofertas',
                         message: hasFilters
                             ? 'Experimente alargar os critérios de pesquisa.'
-                            : 'Volte mais tarde, estamos a acompanhar o mercado.',
-                        actionLabel: hasFilters ? 'Limpar filtros' : null,
+                            : 'Escolha os modelos que quer acompanhar, ou '
+                                  'volte depois da próxima recolha.',
+                        actionLabel: hasFilters
+                            ? 'Limpar filtros'
+                            : 'Escolher modelos',
                         onAction: hasFilters
                             ? () => context.read<ListingsCubit>().applyFilters(
                                 ListingFilters.empty,
                               )
-                            : null,
+                            : () {
+                                final cubit = context.read<ListingsCubit>();
+                                unawaited(
+                                  context
+                                      .push<void>(AppRoutes.models)
+                                      .then((_) => cubit.load()),
+                                );
+                              },
                       );
                     }
 
@@ -211,11 +258,37 @@ class DashboardPage extends StatelessWidget {
                               itemCount: state.listings.length,
                               itemBuilder: (context, index) {
                                 final listing = state.listings[index];
-                                return ListingCard(
-                                  listing: listing,
-                                  onTap: () => context.go(
-                                    AppRoutes.listingDetail(listing.id),
-                                  ),
+                                return BlocBuilder<
+                                  FavouritesCubit,
+                                  FavouritesState
+                                >(
+                                  bloc: getIt<FavouritesCubit>(),
+                                  buildWhen: (previous, current) =>
+                                      previous.isFavourite(listing.id) !=
+                                      current.isFavourite(listing.id),
+                                  builder: (context, favourites) =>
+                                      BlocBuilder<CompareCubit, List<String>>(
+                                        bloc: getIt<CompareCubit>(),
+                                        builder: (context, compared) =>
+                                            ListingCard(
+                                              listing: listing,
+                                              selected: compared.contains(
+                                                listing.id,
+                                              ),
+                                              favourite: favourites.isFavourite(
+                                                listing.id,
+                                              ),
+                                              onTap: () => context.go(
+                                                AppRoutes.listingDetail(
+                                                  listing.id,
+                                                ),
+                                              ),
+                                              onLongPress: () => _toggleCompare(
+                                                context,
+                                                listing.id,
+                                              ),
+                                            ),
+                                      ),
                                 );
                               },
                             ),

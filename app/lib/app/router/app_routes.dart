@@ -4,7 +4,16 @@ abstract final class AppRoutes {
   static const alerts = '/alerts';
   static const more = '/more';
   static const models = '/models';
-  static const addListing = '/add';
+  static const modelMarket = '/market';
+  static const comparePath = '/compare';
+  static const favourites = '/favourites';
+  static const accounts = '/accounts';
+  static const join = '/join';
+  static const collectionStatus = '/collection-status';
+  static const summary = '/summary';
 
   static String listingDetail(String id) => '$deals/$id';
+
+  static String compare(List<String> ids) =>
+      '$comparePath?ids=${ids.join(',')}';
 }

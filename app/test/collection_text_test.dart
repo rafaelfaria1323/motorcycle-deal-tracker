@@ -60,9 +60,46 @@ void main() {
     );
   });
 
+  test('a time slightly in the future (clock skew) reads as 0 min', () {
+    final now = DateTime.utc(2026, 10, 19, 12);
+    expect(agoText(now.add(const Duration(minutes: 3)), now: now), 'há 0 min');
+  });
+
+  test('hours turn into days at exactly 48 h', () {
+    final now = DateTime.utc(2026, 10, 19, 12);
+    expect(
+      agoText(now.subtract(const Duration(hours: 47, minutes: 59)), now: now),
+      'há 47 h',
+    );
+    expect(
+      agoText(now.subtract(const Duration(hours: 48)), now: now),
+      'há 2 dias',
+    );
+  });
+
   test('durations read as minutes and seconds', () {
     expect(durationText(const Duration(seconds: 151)), '2 min 31 s');
     expect(durationText(const Duration(seconds: 42)), '42 s');
+  });
+
+  test('what the last run did, plural and singular, zeros left out', () {
+    expect(
+      runCountsText({'new': 3, 'price_changes': 2, 'removed': 4, 'alerts': 5}),
+      '3 anúncios novos, 2 preços alterados, 4 anúncios removidos, 5 alertas',
+    );
+    expect(
+      runCountsText({'new': 1, 'price_changes': 1, 'removed': 1, 'alerts': 1}),
+      '1 anúncio novo, 1 preço alterado, 1 anúncio removido, 1 alerta',
+    );
+    expect(
+      runCountsText({'new': 0, 'price_changes': 2, 'alerts': 0}),
+      '2 preços alterados',
+    );
+    expect(
+      runCountsText({'new': 0, 'removed': 0}),
+      'Sem anúncios novos nem alterações',
+    );
+    expect(runCountsText(const {}), isNull);
   });
 
   test('requests per site against the limit', () {

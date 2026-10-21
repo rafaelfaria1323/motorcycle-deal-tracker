@@ -8,21 +8,38 @@ Supabase service-role key, which the app never sees.
 
 For each site (Standvirtual, OLX):
 
-1. **Plan:** the searches of the tracked models, read from the catalog
+1. **Plan:** the searches of the models any account follows, read from the catalog
    (models that share a search share one request).
-2. **Fetch:** the search pages, politely (see the root README) and capped.
+2. **Fetch:** every page of each search (from the earliest tracked year),
+   politely (see the root README) and capped.
 3. **Import:** parse, match each listing to a model, store it, record price
    changes and dates, and mark listings that left the searches read in full
-   as removed (`--full`).
+   as removed (`--full`). The brand and model lists in the search pages'
+   filters are stored too (`site_models`, for the app's model picker; no
+   extra requests).
 4. **Details** (Standvirtual only): read the listing page of new listings.
 
 Then, once for both sites: find duplicates, recalculate the scores,
-generate the alerts and send the new ones to Telegram.
+generate the alerts and send the new ones to each account's devices (Web
+Push).
 
-Every Monday `bin/weekly_summary.dart` (workflow `weekly-summary.yml`) sends
-one Telegram message about the tracked models' last 7 days: new listings per
+After each scheduled run `bin/report_run.dart` records it in `collector_runs`
+(with the error lines of a run that was not ok, each site's requests today
+and pause from its fetch state file, and the GitHub run's address; shown
+in the app's "Estado da recolha") and, when its status differs from the previous run's (ok, blocked, failed),
+sends one notification to the admins' devices (Web Push; a tap opens
+"Estado da recolha"): what went wrong on which site
+(`notify/run_health.dart`), or that the collection works again. The same
+problem is not repeated every 4 hours.
+
+Every Monday `bin/weekly_summary.dart` (workflow `weekly-summary.yml`) makes
+each account's summary of its own models' last 7 days: new listings per
 model, price drops (1 % or more, biggest first), listings gone, and the 5
-best live deals with a Risk Score below 50. It only reads the database.
+best live deals with a Risk Score below 50. It keeps it in
+`weekly_summaries` (the app's "Resumo da semana") and sends it to the
+account's devices (Web Push; a tap opens that page). Asked for in the app,
+the workflow gets the account as its input (`SUMMARY_ACCOUNT`) and makes
+only that one. It only reads the listings.
 
 ## Commands
 
@@ -35,7 +52,8 @@ best live deals with a Risk Score below 50. It only reads the database.
 | `make collect-dry` / `collect SOURCE=... FILE=...` | Import saved pages or a JSON file |
 | `make enrich-dry` / `enrich` | Standvirtual listing details |
 | `make notify-test` | Send a test message to Telegram |
-| `make weekly-summary [ARGS=--dry-run]` | Send (or print) the week's summary |
+| `make push-test` | Send a test notification (Web Push) to the admins' devices (`push-test.yml` from the app: to the asking account's; `PUSH_KIND=price_reduction` etc. sends an example of that notification, `pushTestKinds`) |
+| `make weekly-summary [ARGS=--dry-run]` | Make and send (or print) each account's summary of the week |
 | `make collector-check` | Format check, analyze and test |
 
 Secrets go in `collector/.env` (gitignored): `SUPABASE_URL`,

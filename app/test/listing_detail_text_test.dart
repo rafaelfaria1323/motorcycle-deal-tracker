@@ -37,8 +37,66 @@ void main() {
     expect(originalLinkLabel('olx'), 'Ver no OLX');
     expect(originalLinkLabel('standvirtual'), 'Ver no Standvirtual');
     expect(originalLinkLabel('manual'), 'Ver anúncio original');
-    expect(originalLinkLabel('facebook'), 'Ver no Facebook');
-    expect(originalLinkLabel('custojusto'), 'Ver no CustoJusto');
-    expect(originalLinkLabel('other'), 'Ver anúncio original');
+  });
+
+  test('the bike: year and km always, the rest only when known', () {
+    expect(bikeFacts(listing()), [('Ano', '—'), ('Quilometragem', '—')]);
+
+    const full = Listing(
+      id: 'l2',
+      source: 'standvirtual',
+      url: 'https://www.standvirtual.com/motos/anuncio/x.html',
+      brand: 'Honda',
+      model: 'CB650R',
+      status: ListingStatus.active,
+      sellerType: SellerType.dealer,
+      images: [],
+      year: 2023,
+      registrations: 1,
+      serviceBook: false,
+      origin: 'imported',
+      dealerWarrantyMonths: 18,
+    );
+    expect(bikeFacts(full).map((f) => f.$1), [
+      'Ano',
+      'Quilometragem',
+      'Registos (donos)',
+      'Livro de revisões',
+      'Origem',
+      'Garantia do vendedor',
+    ]);
+    expect(bikeFacts(full), contains(('Livro de revisões', 'Não')));
+    expect(bikeFacts(full), contains(('Origem', 'Importada')));
+    expect(bikeFacts(full), contains(('Garantia do vendedor', '18 meses')));
+  });
+
+  test('the ad: dashes for the unknown, dates only when known', () {
+    final facts = adFacts(listing());
+
+    expect(facts.map((f) => f.$1), [
+      'Localização',
+      'Vendedor',
+      'Tipo de vendedor',
+      'Fonte',
+      'Estado',
+    ]);
+    expect(facts.first, ('Localização', '—'));
+    expect(facts, contains(('Fonte', 'OLX')));
+
+    final published = Listing(
+      id: 'l3',
+      source: 'olx',
+      url: 'https://www.olx.pt/d/anuncio/y.html',
+      brand: 'Yamaha',
+      model: 'MT-07',
+      status: ListingStatus.active,
+      sellerType: SellerType.private,
+      images: const [],
+      publishedAt: DateTime(2026, 10, 9),
+    );
+    expect(
+      adFacts(published, now: DateTime(2026, 10, 19)),
+      contains(('Publicado', '09/10/2026 (há 10 dias)')),
+    );
   });
 }

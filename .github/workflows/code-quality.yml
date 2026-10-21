@@ -1,166 +1,60 @@
 name: Code quality review
 
-# After every 5 merged PRs, Claude works through docs/code-quality.md: it
-# does up to 3 items of the to-do list, or, when the list is empty, reviews
-# the whole code, writes up to 10 new items and does the first 3. The
-# result is one PR labelled "code-quality" (none if nothing is worth
-# changing). The
-# count restarts at each review (the tag code-quality-reviewed marks where
-# it happened) and skips the review PRs themselves; no review starts while
-# one is still open. Needs the CLAUDE_CODE_OAUTH_TOKEN secret and "Allow
-# GitHub Actions to create and approve pull requests" in the repo settings.
+# Claude works on docs/code-quality.md through backlog-pass.yml: while
+# "To do" has items, every 5 merged PRs it does up to 3; when "To do" is
+# empty, after 10 merged PRs a run only finds new items (up to 10) and
+# changes no code. "Run workflow" starts one now. Bugs and tests belong to
+# test-hardening.yml, so the two passes never look for the same things. One PR labelled "code-quality" per run
+# (none if nothing is worth it); no run starts while one is still open.
+# Needs the CLAUDE_CODE_OAUTH_TOKEN secret and "Allow GitHub Actions to
+# create and approve pull requests" in the repo settings.
+#
+# PAUSED (Rafael, 2026-10-20): no runs after merges until he says so; only
+# "Run workflow" starts one. To resume, put the trigger back:
+#   pull_request:
+#     types: [closed]
+#     branches: [main]
 on:
-  workflow_dispatch: # manual "Run workflow" button: review now
-  pull_request:
-    types: [closed]
-    branches: [main]
+  workflow_dispatch: # manual "Run workflow" button: run now
 
+# One backlog pass at a time (code quality and test hardening).
 concurrency:
-  group: code-quality
+  group: backlog-pass
   cancel-in-progress: false
 
-env:
-  EVERY: 5
-  LABEL: code-quality
-  TAG: code-quality-reviewed
-  # Before the first review, merges before this date don't count.
-  COUNT_FROM: '2026-10-19T00:00:00Z'
-
 jobs:
-  count:
+  pass:
     if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      pull-requests: read
-    outputs:
-      due: ${{ steps.count.outputs.due }}
-    steps:
-      - id: count
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          MANUAL: ${{ github.event_name == 'workflow_dispatch' }}
-        run: |
-          open=$(gh pr list --state open --label "$LABEL" --json number --jq length)
-          since=$COUNT_FROM
-          if sha=$(gh api "repos/$GH_REPO/git/ref/tags/$TAG" --jq .object.sha 2>/dev/null); then
-            since=$(gh api "repos/$GH_REPO/commits/$sha" --jq .commit.committer.date)
-          fi
-          merged=$(gh pr list --state merged --limit 200 \
-            --search "merged:>$since -label:$LABEL" --json number --jq length)
-          echo "Merged since $since: $merged (every $EVERY); open reviews: $open"
-          if [ "$open" -gt 0 ]; then
-            due=false
-          elif [ "$MANUAL" = true ] || [ "$merged" -ge "$EVERY" ]; then
-            due=true
-          else
-            due=false
-          fi
-          echo "due=$due" >> "$GITHUB_OUTPUT"
-
-  review:
-    needs: count
-    if: needs.count.outputs.due == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
     permissions:
       contents: write
       pull-requests: write
       id-token: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
-
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: Install dependencies
-        run: |
-          cd app && flutter pub get
-          cd ../collector && dart pub get
-
-      - name: Prepare the branch
-        run: |
-          git config user.name "claude[bot]"
-          git config user.email "claude[bot]@users.noreply.github.com"
-          # Restart the count here, whatever the review finds.
-          git tag -f "$TAG" HEAD
-          git push -f origin "refs/tags/$TAG"
-          git switch -c "claude/code-quality-${{ github.run_number }}"
-
-      - uses: anthropics/claude-code-action@v1
-        with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: >-
-            --max-turns 120
-            --allowedTools "Read,Edit,Write,Glob,Grep,Bash(make check),Bash(make format),Bash(cd:*),Bash(flutter analyze:*),Bash(flutter test:*),Bash(dart format:*),Bash(dart analyze:*),Bash(dart test:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git add:*),Bash(git commit:*)"
-          prompt: |
-            You are doing a periodic code-quality pass on this repository
-            (a Flutter web app in app/, a Dart collector in collector/,
-            Supabase migrations in supabase/). Read CLAUDE.md first and
-            follow it: it holds the conventions and the rules you must not
-            break. Then read docs/code-quality.md, the backlog of
-            improvements.
-
-            1. If its "To do" list has items: do the first 3 (fewer if one
-               turns out bigger than expected). Skip an item that is no
-               longer true, moving it to "Done" with "(no longer needed)".
-            2. If "To do" is empty: review the code and add up to 10 new
-               items to "To do", most valuable first, each one line saying
-               what, where (file paths) and why. Look for, in this order:
-               bugs you can prove with a test; duplicated code; dead code;
-               missing tests for pure logic (*_text.dart, cubits,
-               parsers); hard-coded colours or styles that bypass the
-               theme; inefficient queries or rebuilds; unclear names or
-               comments that no longer match the code. Don't add items
-               already in "Done". Then do the first 3.
-            3. Move each item you did to "Done" with today's date.
-
-            Rules:
-            - Each item must make the code better without changing what the
-              app or the collector does. Keep the diff easy to review; do
-              not reformat files you don't otherwise change.
-            - Never change the fetching rules, the scoring or alert rules,
-              or the database schema (no new migrations). Never touch
-              secrets, workflows, collector/pubspec.lock or saved pages.
-              An item that would need any of these goes to "Needs Rafael"
-              instead of "To do".
-            - UI text stays in pt-PT; code, comments and commits in English.
-            - If a change affects what README.md, app/README.md,
-              collector/README.md, CLAUDE.md or docs/*.status.md say,
-              update them in the same commit.
-            - Run `make check` before committing; it must pass. If an item
-              can't be made to pass, undo it and note why in "To do".
-            - Commit on the current branch with git (do not push), one
-              commit per item plus docs/code-quality.md, message style
-              `refactor(scope): what` or `test(scope): what`.
-            - Then write the PR title (one line) to /tmp/pr-title.txt and
-              the PR body (the items done and why, items added to the
-              list, how it was tested; in English) to /tmp/pr-body.md.
-            - If there is nothing worth doing, make no commit.
-
-      - name: Open the PR
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          if [ "$(git rev-list --count origin/main..HEAD)" = 0 ]; then
-            echo "Nothing worth changing this time."
-            exit 0
-          fi
-          # The Claude step revokes the token git was set up with, so push
-          # with this job's own token.
-          git config --local --unset-all http.https://github.com/.extraheader || true
-          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
-            "HEAD:refs/heads/$(git branch --show-current)"
-          gh label create "$LABEL" --color 5319E7 \
-            --description "Periodic code-quality review" --force
-          title=$(cat /tmp/pr-title.txt 2>/dev/null || echo "refactor: code-quality review")
-          body=$(cat /tmp/pr-body.md 2>/dev/null || echo "Periodic code-quality review.")
-          gh pr create --base main --head "$(git branch --show-current)" \
-            --label "$LABEL" --title "$title" \
-            --body "$body"$'\n\n'"Opened by the code-quality workflow (run ${{ github.run_id }})."
+      actions: write
+    uses: ./.github/workflows/backlog-pass.yml
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+    with:
+      backlog: docs/code-quality.md
+      label: code-quality
+      tag: code-quality-reviewed
+      count_from: '2026-10-19T00:00:00Z'
+      manual: ${{ github.event_name == 'workflow_dispatch' }}
+      find_prompt: |
+        Tools without AI already check what they can: the analyzer rules in
+        */analysis_options.yaml, exact copy-paste (`make duplication`,
+        jscpd) and coverage floors (`make coverage`). Don't list what they
+        catch; look for what needs judgment.
+        Review how the code is written, in this order: duplicated code
+        (near-duplicates the copy-paste check misses);
+        dead code; code in the wrong place (logic in widgets that belongs
+        in a tested *_text.dart or cubit, layers mixed up); hard-coded
+        colours or styles that bypass the theme; inefficient queries or
+        rebuilds; unclear names or comments that no longer match the code.
+        Leave bugs, missing tests and redundant tests out: the
+        test-hardening pass (docs/test-hardening.md) looks for those.
+        Items must make the code better without changing what the app or
+        the collector does.
+      fix_prompt: |
+        Each item must make the code better without changing what the app
+        or the collector does. Keep the diff easy to review; do not
+        reformat files you don't otherwise change.

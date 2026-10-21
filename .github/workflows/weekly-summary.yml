@@ -1,14 +1,23 @@
 name: Weekly summary
 
-# Every Monday morning, one Telegram message about the tracked models' last
-# 7 days: new listings, price drops, listings gone and the best deals now.
-# It only reads the database (no site is fetched). "Run workflow" sends one
-# now.
+# Every Monday morning, each account's summary of its own models' last 7
+# days (new listings, price drops, listings gone and the best deals now):
+# kept for the app's "Resumo da semana" page and sent to the account's
+# devices as a notification (Web Push) that opens it. It only reads the
+# database (no site is fetched).
+#
+# Started on Mondays at 07:52 UTC (08:52 in Lisbon in summer) by the
+# Supabase pg_cron job 'weekly-summary', like collect.yml, for every
+# account. "Enviar o resumo da semana" in the app starts it with that
+# account as `account` (start_workflow), for that account only; "Run
+# workflow" here without an account makes everyone's.
 on:
   workflow_dispatch:
-  # GitHub uses UTC: 08:52 in Lisbon in summer, 07:52 in winter.
-  schedule:
-    - cron: '52 7 * * 1'
+    inputs:
+      account:
+        description: Only this account (user id); empty for every account
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -20,11 +29,10 @@ jobs:
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      SUMMARY_ACCOUNT: ${{ inputs.account }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: dart-lang/setup-dart@v1
         with:

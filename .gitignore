@@ -4,3 +4,9 @@
 *.log
 app/env/*.json
 !app/env/*.example.json
+# make mutation's reports
+/.mutation-report/
+mutation-test-report/
+
+# Python bytecode (make tool-check)
+__pycache__/

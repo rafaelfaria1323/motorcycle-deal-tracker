@@ -56,4 +56,99 @@ void main() {
   test('an alert shows its local time', () {
     expect(Formatters.time(DateTime(2026, 10, 19, 9, 5)), '09:05');
   });
+
+  group('alert lines', () {
+    ListingAlert of(
+      AlertType type, {
+      double? oldPrice,
+      double? newPrice,
+      String? search,
+      String? location,
+    }) => ListingAlert(
+      id: 'a',
+      type: type,
+      createdAt: DateTime(2026, 10, 19, 21, 4),
+      searchName: search,
+      oldPrice: oldPrice,
+      newPrice: newPrice,
+      listing: Listing(
+        id: 'l1',
+        source: 'olx',
+        url: 'https://www.olx.pt/d/anuncio/x.html',
+        brand: 'Yamaha',
+        model: 'MT-07',
+        status: ListingStatus.active,
+        sellerType: SellerType.private,
+        images: const [],
+        year: 2021,
+        price: 6500,
+        location: location,
+      ),
+    );
+
+    test('the title names the event and the bike', () {
+      expect(
+        alertTitle(of(AlertType.priceReduction)),
+        'Preço reduzido: Yamaha MT-07 · 2021',
+      );
+      expect(alertTitle(of(AlertType.unknown)), 'Yamaha MT-07 · 2021');
+    });
+
+    test('a reduction shows both prices, the rest the price', () {
+      expect(
+        alertDetailsLine(
+          of(
+            AlertType.priceReduction,
+            oldPrice: 7000,
+            newPrice: 6500,
+            location: 'Lisboa',
+          ),
+        ),
+        '${Formatters.price(7000)} → ${Formatters.price(6500)} · Lisboa',
+      );
+      expect(
+        alertDetailsLine(of(AlertType.newListing)),
+        Formatters.price(6500),
+      );
+    });
+
+    test('back on the market: the new price and the earlier one', () {
+      expect(
+        alertTitle(of(AlertType.backOnMarket)),
+        'Voltou ao mercado: Yamaha MT-07 · 2021',
+      );
+      expect(
+        alertDetailsLine(
+          of(AlertType.backOnMarket, oldPrice: 7000, newPrice: 6500),
+        ),
+        '${Formatters.price(6500)} (antes ${Formatters.price(7000)})',
+      );
+      expect(
+        alertDetailsLine(of(AlertType.backOnMarket, newPrice: 6500)),
+        Formatters.price(6500),
+      );
+    });
+
+    test('a target price reached: the price and the target', () {
+      expect(
+        alertTitle(of(AlertType.targetPriceReached)),
+        'Chegou ao seu preço: Yamaha MT-07 · 2021',
+      );
+      expect(
+        alertDetailsLine(
+          of(AlertType.targetPriceReached, oldPrice: 6600, newPrice: 6500),
+        ),
+        '${Formatters.price(6500)} (o seu preço: ${Formatters.price(6600)})',
+      );
+    });
+
+    test('the origin names the saved search, then the time', () {
+      final withSearch = of(AlertType.newListing, search: 'MT-07 barata');
+      expect(
+        alertOriginLine(withSearch),
+        '"MT-07 barata" · ${Formatters.time(withSearch.createdAt)}',
+      );
+      expect(alertOriginLine(of(AlertType.newListing)), isNot(contains('"')));
+    });
+  });
 }

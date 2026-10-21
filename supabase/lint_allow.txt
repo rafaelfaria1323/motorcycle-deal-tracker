@@ -1,0 +1,68 @@
+# splinter findings that are on purpose (tool/sql_lint.sh, make sql-lint).
+# One cache key per line, each under its reason. A key that no longer
+# matches anything fails the check, so this list can't go stale.
+
+# The watchdog's state: no API access at all, only check_collection_runs()
+# (security definer) reads and writes it.
+rls_enabled_no_policy_public_collection_watchdog
+
+# The GitHub token check's state: likewise, only check_github_token()
+# reads and writes it.
+rls_enabled_no_policy_public_github_token_check
+
+# The policy already reads the JWT once per query: auth.jwt() sits inside
+# a scalar subquery, (select auth.jwt() ->> 'is_anonymous'). splinter only
+# recognises the form (select auth.jwt()) ->> ...
+auth_rls_init_plan_public_collector_runs_account users read runs
+
+# The catalog RPCs the app calls when the owner edits "Modelos
+# acompanhados": each starts with require_account() (signed in, not
+# anonymous); anon can't execute them.
+authenticated_security_definer_function_executable_public_add_catalog_model_p_brand text, p_model text, p_min_year integer, p_olx_search text, p_standvirtual_search text, p_aliases text[], p_engine_cc_min integer, p_engine_cc_max integer
+authenticated_security_definer_function_executable_public_set_model_min_year_p_motorcycle_id uuid, p_min_year integer
+authenticated_security_definer_function_executable_public_set_model_new_price_p_motorcycle_id uuid, p_price numeric, p_checked_at date
+authenticated_security_definer_function_executable_public_set_model_tracked_p_motorcycle_id uuid, p_tracked boolean
+
+# The app saves this device's push subscription: it starts with
+# require_account() (signed in, not anonymous) and writes only the caller's
+# own row (a device signed in to another account moves to it).
+authenticated_security_definer_function_executable_public_save_push_subscription_p_endpoint text, p_p256dh text, p_auth text
+
+# saved_search_matches asks whether each search's owner follows the
+# listing's model; the function reads auth.users (is the owner anonymous?),
+# which the API roles can't. It answers only about the caller itself
+# (false for any other account), so nothing about other accounts leaks.
+authenticated_security_definer_function_executable_public_owner_tracks_p_user uuid, p_motorcycle_id uuid, p_year integer
+
+# Accounts (20261023170000): the admin RPCs each start with require_admin()
+# (the caller is in app_admins, else 42501), so other accounts can call
+# them but get nothing.
+authenticated_security_definer_function_executable_public_admin_accounts_
+authenticated_security_definer_function_executable_public_create_invite_p_note text
+authenticated_security_definer_function_executable_public_remove_account_p_user uuid
+authenticated_security_definer_function_executable_public_set_admin_p_user uuid, p_admin boolean
+
+# The invite page, opened by a visitor's anonymous session (anon before the
+# session starts): invite_status says only ok / used / expired / unknown
+# for a code, and redeem_invite needs a valid unused code (122 random bits)
+# to make one account through Auth's admin API.
+anon_security_definer_function_executable_public_invite_status_p_code text
+authenticated_security_definer_function_executable_public_invite_status_p_code text
+anon_security_definer_function_executable_public_redeem_invite_p_code text, p_email text, p_password text
+authenticated_security_definer_function_executable_public_redeem_invite_p_code text, p_email text, p_password text
+
+# The app starts the collection (admins: require_admin() first, else 42501),
+# a test notification or the account's own weekly summary: start_workflow
+# starts only those three workflows, each with a rate limit, and checks
+# p_kind against a fixed list.
+authenticated_security_definer_function_executable_public_start_workflow_p_workflow text, p_kind text
+
+# "Estado da recolha" (admins): github_token_status calls require_admin()
+# first (else 42501) and says only whether GitHub accepts the token and
+# when it expires, never the token.
+authenticated_security_definer_function_executable_public_github_token_status_
+
+# "Estado da recolha" (admins): database_usage calls require_admin() first
+# (else 42501) and says only the database's size and its 5 biggest tables'
+# names and sizes (pg_database_size needs a role allowed to connect).
+authenticated_security_definer_function_executable_public_database_usage_

@@ -3,23 +3,35 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/formatting/formatters.dart';
+import '../../../../core/widgets/section_card.dart';
+import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/listing.dart';
+import '../compare_text.dart';
+import '../cubit/compare_cubit.dart';
 import '../cubit/listing_detail_cubit.dart';
 import '../cubit/listing_detail_state.dart';
 import '../listing_dates_text.dart';
 import '../listing_detail_text.dart';
-import '../listing_labels.dart';
+import '../score_explanation.dart';
 import '../widgets/also_listed_section.dart';
 import '../widgets/deal_score_badge.dart';
+import '../widgets/dealer_card.dart';
+import '../widgets/facts_card.dart';
+import '../widgets/favourite_widgets.dart';
 import '../widgets/market_behaviour_section.dart';
 import '../widgets/new_price_card.dart';
+import '../widgets/offer_card.dart';
+import '../widgets/ownership_cost_card.dart';
 import '../widgets/photo_gallery.dart';
 import '../widgets/price_change_tag.dart';
 import '../widgets/price_history_section.dart';
 import '../widgets/score_explanation_card.dart';
+import '../widgets/seller_message_card.dart';
+import '../widgets/viewing_checklist_card.dart';
 
 class ListingDetailPage extends StatelessWidget {
   const ListingDetailPage({required this.listingId, super.key});
@@ -35,6 +47,15 @@ class ListingDetailPage extends StatelessWidget {
               context.canPop() ? context.pop() : context.go(AppRoutes.deals),
         ),
         title: const Text('Detalhe'),
+        actions: [
+          // The star needs the listing (the favourites page shows it).
+          BlocBuilder<ListingDetailCubit, ListingDetailState>(
+            builder: (context, state) => state.listing == null
+                ? const SizedBox.shrink()
+                : FavouriteButton(listing: state.listing!),
+          ),
+          _CompareButton(listingId: listingId),
+        ],
       ),
       body: BlocBuilder<ListingDetailCubit, ListingDetailState>(
         builder: (context, state) {
@@ -67,10 +88,45 @@ class ListingDetailPage extends StatelessWidget {
   }
 }
 
-class _Content extends StatelessWidget {
+/// The four parts of the page, picked at the top so the page stays short:
+/// the verdict, negotiating, the market and the ad's own details.
+enum _Section {
+  verdict('Avaliação'),
+  negotiate('Negociar'),
+  market('Mercado'),
+  details('Detalhes');
+
+  const _Section(this.label);
+
+  final String label;
+}
+
+class _Content extends StatefulWidget {
   const _Content({required this.listing});
 
   final Listing listing;
+
+  @override
+  State<_Content> createState() => _ContentState();
+}
+
+class _ContentState extends State<_Content> {
+  // Kept while the app runs, so going from one listing to the next opens
+  // the part that was being compared.
+  static var _lastSection = _Section.verdict;
+
+  var _section = _lastSection;
+  // Parts are built when first opened and then kept (offstage), so a
+  // counter-offer being typed or a loaded chart survives switching.
+  final _opened = {_lastSection};
+
+  Listing get listing => widget.listing;
+
+  void _select(_Section section) => setState(() {
+    _section = section;
+    _lastSection = section;
+    _opened.add(section);
+  });
 
   Future<void> _openOriginal(BuildContext context) async {
     final uri = Uri.tryParse(listing.url);
@@ -81,22 +137,51 @@ class _Content extends StatelessWidget {
         canOpen && await launchUrl(uri, mode: LaunchMode.externalApplication);
 
     if (!opened && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Não foi possível abrir o anúncio')),
+      showMessage(
+        ScaffoldMessenger.of(context),
+        'Não foi possível abrir o anúncio',
       );
     }
+  }
+
+  List<Widget> _cards(_Section section) {
+    final description = listing.description;
+    return switch (section) {
+      _Section.verdict => [
+        if (listing.dealScore == null)
+          const SectionCard(
+            title: 'Porquê esta pontuação',
+            children: [Text('Este anúncio ainda não tem pontuação.')],
+          )
+        else
+          ScoreExplanationCard(listing: listing),
+        AlsoListedSection(listing: listing),
+        DealerCard(listing: listing),
+      ],
+      _Section.negotiate => [
+        OfferCard(listing: listing),
+        SellerMessageCard(listing: listing),
+        ViewingChecklistCard(listingId: listing.id),
+      ],
+      _Section.market => [
+        MarketBehaviourSection(listing: listing),
+        PriceHistorySection(listing: listing),
+        NewPriceCard(listing: listing),
+        OwnershipCostCard(listing: listing),
+      ],
+      _Section.details => [
+        FactsCard(title: 'A mota', facts: bikeFacts(listing)),
+        if (description != null && description.isNotEmpty)
+          _DescriptionCard(description: description),
+        FactsCard(title: 'O anúncio', facts: adFacts(listing)),
+      ],
+    };
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final description = listing.description;
-    final lastSeenAt = listing.lastSeenAt;
 
-    // Ordered by what matters for a decision: the bike and its price, the
-    // score and its risks, then the facts, the seller's text, the market
-    // and the history.
     return Column(
       children: [
         Expanded(
@@ -109,132 +194,42 @@ class _Content extends StatelessWidget {
                 children: [
                   PhotoGallery(images: listing.images),
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '${listing.brand} ${listing.model}',
-                          style: textTheme.headlineSmall,
+                  _Header(listing: listing),
+                  const SizedBox(height: 12),
+                  ..._statusCards(context),
+                  FavouriteNoteCard(listingId: listing.id),
+                  const SizedBox(height: 8),
+                  SegmentedButton<_Section>(
+                    segments: [
+                      for (final section in _Section.values)
+                        ButtonSegment(
+                          value: section,
+                          label: Text(section.label),
                         ),
-                      ),
-                      if (listing.dealScore != null)
-                        DealScoreBadge(score: listing.dealScore!),
                     ],
-                  ),
-                  const SizedBox(height: 4),
-                  Wrap(
-                    spacing: 12,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      Text(
-                        Formatters.price(listing.price),
-                        style: textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      PriceChangeTag(listing: listing),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    keyFactsLine(listing),
-                    style: textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  if (listing.isRemoved)
-                    Card(
-                      color: theme.colorScheme.errorContainer,
-                      child: ListTile(
-                        leading: const Icon(Icons.block),
-                        title: const Text('Anúncio removido'),
-                        subtitle: Text(
-                          lastSeenAt == null
-                              ? 'Este anúncio já não está disponível.'
-                              : 'Este anúncio já não está disponível. '
-                                    'Visto pela última vez ${Formatters.daysAgo(lastSeenAt)}.',
-                        ),
+                    selected: {_section},
+                    showSelectedIcon: false,
+                    // Room for four labels on a phone.
+                    style: const ButtonStyle(
+                      padding: WidgetStatePropertyAll(
+                        EdgeInsets.symmetric(horizontal: 4),
                       ),
                     ),
-                  if (listing.duplicateOf != null)
-                    Card(
-                      color: theme.colorScheme.secondaryContainer,
-                      child: ListTile(
-                        leading: const Icon(Icons.content_copy),
-                        title: const Text('Anúncio repetido'),
-                        subtitle: const Text(
-                          'Este anúncio parece ser a mesma mota de outro anúncio. '
-                          'Não conta para o mercado nem tem pontuação.',
-                        ),
-                        trailing: TextButton(
-                          onPressed: () =>
-                              context.go('/deals/${listing.duplicateOf}'),
-                          child: const Text('Ver original'),
+                    onSelectionChanged: (selected) => _select(selected.first),
+                  ),
+                  const SizedBox(height: 8),
+                  for (final section in _Section.values)
+                    if (_opened.contains(section))
+                      Offstage(
+                        offstage: section != _section,
+                        child: TickerMode(
+                          enabled: section == _section,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: _cards(section),
+                          ),
                         ),
                       ),
-                    ),
-                  ScoreExplanationCard(listing: listing),
-                  AlsoListedSection(listing: listing),
-                  NewPriceCard(listing: listing),
-                  _FactsCard(
-                    title: 'A mota',
-                    rows: [
-                      _FactRow('Ano', listing.year?.toString() ?? '—'),
-                      _FactRow(
-                        'Quilometragem',
-                        Formatters.mileage(listing.mileage),
-                      ),
-                      if (listing.registrations != null)
-                        _FactRow(
-                          'Registos (donos)',
-                          '${listing.registrations}',
-                        ),
-                      if (listing.serviceBook != null)
-                        _FactRow(
-                          'Livro de revisões',
-                          listing.serviceBook! ? 'Completo' : 'Não',
-                        ),
-                      if (listing.origin != null)
-                        _FactRow(
-                          'Origem',
-                          listing.origin == 'national'
-                              ? 'Nacional'
-                              : 'Importada',
-                        ),
-                      if (listing.warrantyUntil != null)
-                        _FactRow(
-                          'Garantia de fábrica até',
-                          Formatters.date(listing.warrantyUntil!),
-                        ),
-                      if (listing.dealerWarrantyMonths != null)
-                        _FactRow(
-                          'Garantia do vendedor',
-                          '${listing.dealerWarrantyMonths} meses',
-                        ),
-                    ],
-                  ),
-                  if (description != null && description.isNotEmpty)
-                    _DescriptionCard(description: description),
-                  MarketBehaviourSection(listing: listing),
-                  PriceHistorySection(listing: listing),
-                  _FactsCard(
-                    title: 'O anúncio',
-                    rows: [
-                      _FactRow('Localização', listing.location ?? '—'),
-                      _FactRow('Vendedor', listing.sellerName ?? '—'),
-                      _FactRow('Tipo de vendedor', listing.sellerType.label),
-                      _FactRow('Fonte', sourceLabel(listing.source)),
-                      if (listing.publishedAt != null)
-                        _FactRow(
-                          'Publicado',
-                          dateWithAge(listing.publishedAt!),
-                        ),
-                      if (renewalToShow(listing) case final renewed?)
-                        _FactRow('Renovado no site', dateWithAge(renewed)),
-                      _FactRow('Estado', listing.status.label),
-                    ],
-                  ),
                 ],
               ),
             ),
@@ -269,32 +264,149 @@ class _Content extends StatelessWidget {
       ],
     );
   }
+
+  /// Removed, duplicate, relisted: shown before anything else, since they
+  /// change how the rest reads.
+  List<Widget> _statusCards(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final lastSeenAt = listing.lastSeenAt;
+    final duplicateOf = listing.duplicateOf;
+    return [
+      if (listing.isRemoved)
+        _StatusCard(
+          color: scheme.errorContainer,
+          icon: Icons.block,
+          title: 'Anúncio removido',
+          text: lastSeenAt == null
+              ? 'Este anúncio já não está disponível.'
+              : 'Este anúncio já não está disponível. '
+                    'Visto pela última vez ${Formatters.daysAgo(lastSeenAt)}.',
+        ),
+      if (duplicateOf != null)
+        _StatusCard(
+          color: scheme.secondaryContainer,
+          icon: Icons.content_copy,
+          title: 'Anúncio duplicado',
+          text:
+              'Parece ser a mesma mota de outro anúncio. '
+              'Não conta para o mercado nem tem pontuação.',
+          actionLabel: 'Ver original',
+          onAction: () => context.go('/deals/$duplicateOf'),
+        ),
+      if (relistText(listing) case final relist?)
+        _StatusCard(
+          color: scheme.secondaryContainer,
+          icon: Icons.history,
+          title: 'Anúncio publicado de novo',
+          text: relist,
+          actionLabel: 'Ver anterior',
+          onAction: () => context.go('/deals/${listing.relistedFrom}'),
+        ),
+    ];
+  }
 }
 
-class _FactsCard extends StatelessWidget {
-  const _FactsCard({required this.title, required this.rows});
+/// Model, price and the main facts on the left; the Deal Score and its
+/// verdict on the right, visible whichever part is open below.
+class _Header extends StatelessWidget {
+  const _Header({required this.listing});
 
-  final String title;
-  final List<Widget> rows;
+  final Listing listing;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-              child: Text(
-                title,
-                style: Theme.of(context).textTheme.titleMedium,
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final score = listing.dealScore;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${listing.brand} ${listing.model}',
+                style: textTheme.titleLarge,
               ),
-            ),
-            ...rows,
-          ],
+              const SizedBox(height: 2),
+              Wrap(
+                spacing: 12,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    Formatters.price(listing.price),
+                    style: textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  PriceChangeTag(listing: listing),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Text(
+                keyFactsLine(listing),
+                style: textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
         ),
+        if (score != null) ...[
+          const SizedBox(width: 12),
+          Column(
+            children: [
+              DealScoreBadge(score: score, large: true),
+              const SizedBox(height: 4),
+              SizedBox(
+                width: 84,
+                child: Text(
+                  ScoreExplainer.label(score),
+                  textAlign: TextAlign.center,
+                  style: textTheme.labelMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _StatusCard extends StatelessWidget {
+  const _StatusCard({
+    required this.color,
+    required this.icon,
+    required this.title,
+    required this.text,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  final Color color;
+  final IconData icon;
+  final String title;
+  final String text;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final actionLabel = this.actionLabel;
+    return Card(
+      color: color,
+      child: ListTile(
+        leading: Icon(icon),
+        title: Text(title),
+        subtitle: Text(text),
+        trailing: actionLabel == null
+            ? null
+            : TextButton(onPressed: onAction, child: Text(actionLabel)),
       ),
     );
   }
@@ -316,13 +428,12 @@ class _DescriptionCardState extends State<_DescriptionCard> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final style = textTheme.bodyMedium;
+    final style = Theme.of(context).textTheme.bodyMedium;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-        child: LayoutBuilder(
+    return SectionCard(
+      title: 'Descrição',
+      children: [
+        LayoutBuilder(
           builder: (context, constraints) {
             final painter = TextPainter(
               text: TextSpan(text: widget.description, style: style),
@@ -335,8 +446,6 @@ class _DescriptionCardState extends State<_DescriptionCard> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Descrição', style: textTheme.titleMedium),
-                const SizedBox(height: 8),
                 Text(
                   widget.description,
                   style: style,
@@ -349,50 +458,67 @@ class _DescriptionCardState extends State<_DescriptionCard> {
                   TextButton(
                     onPressed: () => setState(() => _expanded = !_expanded),
                     child: Text(_expanded ? 'Mostrar menos' : 'Mostrar tudo'),
-                  )
-                else
-                  const SizedBox(height: 8),
+                  ),
               ],
             );
           },
         ),
-      ),
+      ],
     );
   }
 }
 
-class _FactRow extends StatelessWidget {
-  const _FactRow(this.label, this.value);
+/// Adds the listing to the comparison or takes it out; offers to open the
+/// comparison once there are two or more.
+class _CompareButton extends StatelessWidget {
+  const _CompareButton({required this.listingId});
 
-  final String label;
-  final String value;
+  final String listingId;
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Flexible(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: textTheme.bodyMedium,
-            ),
-          ),
-        ],
-      ),
+    final cubit = getIt<CompareCubit>();
+    return BlocBuilder<CompareCubit, List<String>>(
+      bloc: cubit,
+      builder: (context, compared) {
+        final added = compared.contains(listingId);
+        return IconButton(
+          tooltip: added ? 'Retirar da comparação' : 'Comparar',
+          isSelected: added,
+          icon: const Icon(Icons.compare_arrows),
+          onPressed: () {
+            final messenger = ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar();
+            if (!cubit.toggle(listingId)) {
+              showMessage(
+                messenger,
+                'Já tem $maxCompared anúncios na comparação. '
+                'Retire um primeiro.',
+              );
+              return;
+            }
+            final now = cubit.state;
+            if (added) {
+              showMessage(messenger, 'Retirado da comparação');
+            } else if (now.length < 2) {
+              showMessage(
+                messenger,
+                'Na comparação. Escolha outro anúncio para comparar.',
+              );
+            } else {
+              messenger.showSnackBar(
+                SnackBar(
+                  content: Text('Na comparação (${now.length})'),
+                  action: SnackBarAction(
+                    label: 'Comparar',
+                    onPressed: () => context.push(AppRoutes.compare(now)),
+                  ),
+                ),
+              );
+            }
+          },
+        );
+      },
     );
   }
 }

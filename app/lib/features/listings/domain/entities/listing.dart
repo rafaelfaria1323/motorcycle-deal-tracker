@@ -36,8 +36,13 @@ class Listing extends Equatable {
     this.dealerWarrantyMonths,
     this.publishedAt,
     this.siteRefreshedAt,
+    this.relistedFrom,
+    this.relistedSince,
+    this.relistedPrice,
     this.newPrice,
     this.newPriceCheckedAt,
+    this.engineCc,
+    this.distanceKm,
   });
 
   final String id;
@@ -76,10 +81,24 @@ class Listing extends Equatable {
   /// When the site last renewed (bumped) the ad; OLX shows this date.
   final DateTime? siteRefreshedAt;
 
+  /// The earlier ad of the same bike when it was taken down and listed
+  /// again, when the bike first went on sale, and that ad's last price.
+  final String? relistedFrom;
+  final DateTime? relistedSince;
+  final double? relistedPrice;
+
   /// Official new-bike list price of the matched model, and when it was last
   /// checked. Only loaded on the detail page.
   final double? newPrice;
   final DateTime? newPriceCheckedAt;
+
+  /// Engine size of the matched model (the middle of its catalog range).
+  /// Only loaded on the detail page.
+  final int? engineCc;
+
+  /// Straight-line km from the signed-in person's home (the computed field
+  /// `distance_km`); null without a home or a known place.
+  final int? distanceKm;
 
   /// The price changes are measured from: the first price we saw, or a
   /// higher earlier price the site reported.

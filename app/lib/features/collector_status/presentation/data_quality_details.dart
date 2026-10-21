@@ -6,7 +6,8 @@ import '../domain/source_quality.dart';
 import 'data_quality_text.dart';
 
 /// Per site: live listings, how many are tracked models, unmatched or
-/// duplicates, and the facts the scored ones miss.
+/// duplicates, the facts the scored ones miss, when its listings were last
+/// seen and prices that jumped suspiciously.
 class DataQualityDetails extends StatefulWidget {
   const DataQualityDetails({super.key});
 
@@ -23,6 +24,7 @@ class _DataQualityDetailsState extends State<DataQualityDetails> {
   @override
   Widget build(BuildContext context) {
     final muted = Theme.of(context).colorScheme.onSurfaceVariant;
+    final now = DateTime.now();
 
     return FutureBuilder<List<SourceQuality>>(
       future: _future,
@@ -46,6 +48,8 @@ class _DataQualityDetailsState extends State<DataQualityDetails> {
                     qualityMixLine(q),
                     ?qualityMissingLine(q),
                     ?qualityDetailsLine(q),
+                    ?qualitySeenLine(q, now),
+                    ?qualitySharpPricesLine(q),
                   ].join('\n'),
                 ),
               ),

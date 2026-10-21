@@ -1,7 +1,8 @@
 .DEFAULT_GOAL := help
 .PHONY: help app-get app-run app-check app-build app-serve \
         collector-get collector-check collect-dry collect \
-        db-push db-new check format clean \
+        db-push db-new db-test sql-lint check tool-check lint-scripts format clean mutation \
+        coverage duplication dead-code \
         require-collector-env require-file
 
 # Which source the collector reads: manual (a JSON file), standvirtual
@@ -39,7 +40,7 @@ app-check: ## Analyze and test the app
 	cd app && flutter analyze && flutter test
 
 app-build: ## Release web build
-	cd app && flutter build web --dart-define-from-file=env/dev.json
+	cd app && flutter build web --wasm --dart-define-from-file=env/dev.json
 
 app-serve: app-build ## Serve the release build on http://localhost:8080 (PWA test)
 	cd app/build/web && python3 -m http.server 8080
@@ -70,13 +71,16 @@ fetch: searches ## Download the search pages, slowly and capped: make fetch [SIT
 notify-test: require-collector-env ## Send a test message to Telegram
 	cd collector && dart run bin/notify_test.dart
 
-weekly-summary: require-collector-env ## Send the week's summary to Telegram: make weekly-summary [ARGS=--dry-run]
+push-test: require-collector-env ## Send a test notification to the admins' devices (Web Push)
+	cd collector && dart run bin/push_test.dart
+
+weekly-summary: require-collector-env ## Make and send each account's weekly summary (Web Push): make weekly-summary [ARGS=--dry-run]
 	cd collector && dart run bin/weekly_summary.dart $(ARGS)
 
 enrich-dry: require-collector-env ## List the listings that still need details, requests nothing
 	cd collector && dart run bin/enrich.dart --dry-run
 
-enrich: require-collector-env ## Read details of up to 15 new listings: make enrich [ARGS=--max=10]
+enrich: require-collector-env ## Read details of up to 10 new listings: make enrich [ARGS=--max=5]
 	cd collector && dart run bin/enrich.dart $(ARGS)
 
 # One process for the whole collection (bin/refresh.dart): each site's
@@ -102,12 +106,58 @@ db-new: ## Create a migration: make db-new NAME=add_something
 	@test -n "$(NAME)" || (echo "Usage: make db-new NAME=add_something"; exit 1)
 	supabase migration new $(NAME)
 
+db-test: ## Apply every migration to a fresh local Postgres and run supabase/tests (PGHOST, PGUSER, ...)
+	tool/db_test.sh
+
+sql-lint: db-test ## Static checks of the database: plpgsql_check, splinter, squawk on new migrations, safeupdate
+	tool/sql_lint.sh
+
 # ---- Everything ------------------------------------------------------------
 
-check: app-check collector-check ## Run all checks (run before committing)
+tool-check: ## Test the helper scripts in tool/ (Python)
+	python3 -m unittest discover -s tool -p 'test_*.py'
+
+lint-scripts: ## Lint the workflows (actionlint, with shellcheck on their run: steps) and the shell scripts
+	actionlint
+	shellcheck tool/*.sh .claude/hooks/*.sh
+
+check: app-check collector-check tool-check ## Run all checks (run before committing)
+
+# Floors for `make coverage` (line coverage, %). Raise them as tests are
+# added; lower one only with a reason in the commit. The app's floor counts
+# its logic (texts, entities, models, cubits), not the widgets.
+APP_COVERAGE_MIN ?= 90
+COLLECTOR_COVERAGE_MIN ?= 70
+APP_LOGIC_FILES = _text\.dart$$|/domain/|/data/models/|/cubit/|ownership_cost\.dart$$|viewing_checklist\.dart$$
+
+coverage: ## Test coverage of app logic and collector, with floors (needs `dart pub global activate coverage`)
+	cd app && flutter test --coverage
+	cd collector && dart test --coverage=coverage && dart pub global run coverage:format_coverage \
+	  --lcov --in=coverage --out=coverage/lcov.info --report-on=lib --package=.
+	python3 tool/lcov_summary.py app/coverage/lcov.info --name app \
+	  --only '$(APP_LOGIC_FILES)' --min $(APP_COVERAGE_MIN)
+	python3 tool/lcov_summary.py collector/coverage/lcov.info --name collector \
+	  --min $(COLLECTOR_COVERAGE_MIN)
+
+duplication: ## Copy-pasted code above 1 % of the lines fails (jscpd, via npx)
+	npx --yes jscpd@4 --min-tokens 70 --format dart --threshold 1 \
+	  --reporters console --ignore '**/*.g.dart' app/lib collector/lib collector/bin
+
+# Unused code (declarations nothing in lib uses) and unused files in the
+# app: dart_code_linter, pinned. Not the collector: lib/collector.dart
+# exports every file, and exported code counts as used (public API).
+DCL = dart pub global run dart_code_linter:metrics
+
+dead-code: ## Unused code and files in the app (needs Flutter and `dart pub global activate dart_code_linter 4.4.2`)
+	cd app && $(DCL) check-unused-code lib --fatal-unused --no-congratulate
+	cd app && $(DCL) check-unused-files lib test --fatal-unused --no-congratulate
 
 format: ## Format app and collector code
 	dart format app/lib app/test collector
+
+mutation: ## Mutation testing (needs `dart pub global activate mutation_test`): make mutation PKG=collector FILES="lib/src/catalog/model_resolver.dart"
+	python3 -I tool/mutation.py run $(PKG) .mutation-report $(FILES)
+	python3 -I tool/mutation.py summary .mutation-report
 
 clean: ## Remove build artifacts
 	cd app && flutter clean

@@ -11,6 +11,10 @@ abstract final class Formatters {
   static String price(double? value) =>
       value == null ? '—' : _price.format(value);
 
+  /// "5,3 %": decimal comma and a space before the sign, as in pt-PT.
+  static String percent(num value, {int decimals = 0}) =>
+      '${value.toStringAsFixed(decimals).replaceAll('.', ',')} %';
+
   static String mileage(int? value) =>
       value == null ? '—' : '${_number.format(value)} km';
 
@@ -23,13 +27,22 @@ abstract final class Formatters {
   /// "09:05", local time.
   static String time(DateTime value) => _time.format(value.toLocal());
 
+  /// Calendar days from [from]'s local day to [to]'s (1 = the next day),
+  /// right across a change to or from summer time, when a day has 23 or
+  /// 25 hours.
+  static int calendarDays(DateTime from, DateTime to) {
+    DateTime day(DateTime t) {
+      final local = t.toLocal();
+      return DateTime.utc(local.year, local.month, local.day);
+    }
+
+    return day(to).difference(day(from)).inDays;
+  }
+
   static String daysAgo(DateTime value, {DateTime? now}) {
     final days = (now ?? DateTime.now()).difference(value).inDays;
     if (days <= 0) return 'hoje';
     if (days == 1) return 'ontem';
     return 'há $days dias';
   }
-
-  static String formatDate(DateTime date) =>
-      DateFormat.yMMMd('pt_PT').format(date);
 }

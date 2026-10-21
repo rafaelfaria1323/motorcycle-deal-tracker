@@ -1,17 +1,35 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/formatting/formatters.dart';
 import '../../domain/entities/listing.dart';
+import '../listing_detail_text.dart';
 import 'deal_score_badge.dart';
 import 'listing_photo.dart';
 import 'price_change_tag.dart';
 
 class ListingCard extends StatelessWidget {
-  const ListingCard({required this.listing, this.onTap, super.key});
+  const ListingCard({
+    required this.listing,
+    this.onTap,
+    this.onLongPress,
+    this.selected = false,
+    this.favourite = false,
+    super.key,
+  });
 
   final Listing listing;
   final VoidCallback? onTap;
+
+  /// Picks the listing for the comparison.
+  final VoidCallback? onLongPress;
+
+  /// In the comparison: a primary border and a check mark.
+  final bool selected;
+
+  /// In the favourites: a star on the photo.
+  final bool favourite;
 
   static const photoHeight = 180.0;
 
@@ -24,11 +42,18 @@ class ListingCard extends StatelessWidget {
     final textTheme = theme.textTheme;
     final muted = theme.colorScheme.onSurfaceVariant;
 
+    final shape = theme.cardTheme.shape;
     return Card(
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
+      shape: selected && shape is RoundedRectangleBorder
+          ? shape.copyWith(
+              side: BorderSide(color: theme.colorScheme.primary, width: 2),
+            )
+          : null,
       child: InkWell(
         onTap: onTap,
+        onLongPress: onLongPress,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -48,6 +73,34 @@ class ListingCard extends StatelessWidget {
                     ),
                   if (listing.isRemoved)
                     const Positioned(top: 10, left: 10, child: _RemovedPill()),
+                  if (favourite)
+                    Positioned(
+                      bottom: 10,
+                      right: 10,
+                      child: CircleAvatar(
+                        radius: 14,
+                        backgroundColor: AppColors.photoPillScrim,
+                        child: Icon(
+                          Icons.star,
+                          size: 16,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  if (selected)
+                    Positioned(
+                      bottom: 10,
+                      left: 10,
+                      child: CircleAvatar(
+                        radius: 14,
+                        backgroundColor: theme.colorScheme.primary,
+                        child: Icon(
+                          Icons.compare_arrows,
+                          size: 16,
+                          color: theme.colorScheme.onPrimary,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -91,13 +144,13 @@ class ListingCard extends StatelessWidget {
                           const Icon(Icons.speed),
                           const SizedBox(width: 4),
                           Text(Formatters.mileage(listing.mileage)),
-                          if (listing.location != null) ...[
+                          if (placeText(listing) case final place?) ...[
                             const SizedBox(width: 12),
                             const Icon(Icons.place_outlined),
                             const SizedBox(width: 2),
                             Flexible(
                               child: Text(
-                                listing.location!,
+                                place,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -124,7 +177,7 @@ class _RemovedPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.7),
+        color: AppColors.photoPillScrim,
         borderRadius: BorderRadius.circular(8),
       ),
       child: const Padding(
@@ -134,7 +187,7 @@ class _RemovedPill extends StatelessWidget {
           style: TextStyle(
             fontFamily: AppTheme.bodyFont,
             fontWeight: FontWeight.w600,
-            color: Colors.white,
+            color: AppColors.onPhoto,
           ),
         ),
       ),

@@ -23,6 +23,22 @@ List<NormalizedListing> uniqueBySourceId(List<NormalizedListing> listings) {
   ];
 }
 
+/// Every row of a query, read [pageSize] rows at a time: the server returns
+/// at most that many per request (PostgREST `max_rows`), without saying it
+/// cut the rest. [page] reads rows [from] to [to] (inclusive) of a query
+/// with a stable order.
+Future<List<Map<String, dynamic>>> readAllPages(
+  Future<List<Map<String, dynamic>>> Function(int from, int to) page, {
+  int pageSize = 1000,
+}) async {
+  final rows = <Map<String, dynamic>>[];
+  for (var from = 0; ; from += pageSize) {
+    final batch = await page(from, from + pageSize - 1);
+    rows.addAll(batch);
+    if (batch.length < pageSize) return rows;
+  }
+}
+
 /// One `listings` row. Columns with database defaults (status, timestamps)
 /// and the scores are left out on purpose.
 Map<String, Object?> listingRow(NormalizedListing l, String? motorcycleId) {
@@ -46,6 +62,22 @@ Map<String, Object?> listingRow(NormalizedListing l, String? motorcycleId) {
   };
 }
 
+/// The database id of each catalog entry that has one, by slug.
+Map<String, String> _idBySlug(Catalog catalog) => {
+  for (final e in catalog.entries)
+    if (e.id != null) e.slug: e.id!,
+};
+
+/// The database id of [l]'s catalog model; null when it has no model or the
+/// catalog entry has no id.
+String? motorcycleIdFor(NormalizedListing l, Map<String, String> idBySlug) {
+  final slug = l.motorcycleSlug;
+  return slug == null ? null : idBySlug[slug];
+}
+
+/// The row count a counting RPC returns.
+int _count(Object? rpcResult) => (rpcResult as num).toInt();
+
 class ListingStore {
   ListingStore(this._client);
 
@@ -66,6 +98,8 @@ class ListingStore {
         .not('motorcycle_id', 'is', null)
         .isFilter('duplicate_of', null)
         .inFilter('status', ['active', 'price_changed'])
+        // Pages that failed before wait behind the ones never tried.
+        .order('details_failed_at', ascending: true, nullsFirst: true)
         .order('first_seen_at', ascending: false)
         .limit(limit);
     return [
@@ -80,14 +114,25 @@ class ListingStore {
   /// Saves what listing pages added; returns how many listings were updated.
   Future<int> applyDetails(String source, List<ListingDetails> details) async {
     if (details.isEmpty) return 0;
-    final result = await _client.rpc(
+    final result = await _client.rpc<Object?>(
       'apply_listing_details',
       params: {
         'p_source': source,
         'p_details': [for (final d in details) d.toJson()],
       },
     );
-    return (result as num).toInt();
+    return _count(result);
+  }
+
+  /// Marks listings whose page could not be read, so the next runs try the
+  /// others first; returns how many were marked.
+  Future<int> markDetailsFailed(String source, List<String> ids) async {
+    if (ids.isEmpty) return 0;
+    final result = await _client.rpc<Object?>(
+      'mark_details_failed',
+      params: {'p_source': source, 'p_ids': ids},
+    );
+    return _count(result);
   }
 
   /// Inserts listings that are not stored yet. Existing ones (same source and
@@ -106,10 +151,7 @@ class ListingStore {
       );
     }
 
-    final idBySlug = {
-      for (final e in catalog.entries)
-        if (e.id != null) e.slug: e.id!,
-    };
+    final idBySlug = _idBySlug(catalog);
 
     final rows = <Map<String, Object?>>[];
     for (final l in unique) {
@@ -119,7 +161,7 @@ class ListingStore {
           'Catalog entry "$slug" has no id; load the catalog from Supabase.',
         );
       }
-      rows.add(listingRow(l, slug == null ? null : idBySlug[slug]));
+      rows.add(listingRow(l, motorcycleIdFor(l, idBySlug)));
     }
 
     // Only the rows that were really inserted come back.
@@ -139,26 +181,45 @@ class ListingStore {
     );
   }
 
+  /// Stores the brands and models a site offers (for the app's model
+  /// picker), updating the ones already stored. Returns how many.
+  Future<int> saveSiteModels(String source, List<SiteModel> models) async {
+    final now = DateTime.now().toUtc().toIso8601String();
+    final rows = [
+      for (final m in uniqueSiteModels(models))
+        {...m.toRow(source), 'seen_at': now},
+    ];
+    for (var i = 0; i < rows.length; i += 500) {
+      await _client
+          .from('site_models')
+          .upsert(
+            rows.sublist(i, i + 500 > rows.length ? rows.length : i + 500),
+            onConflict: 'source,make_id,model_id',
+          );
+    }
+    return rows.length;
+  }
+
   /// Recomputes the stored deal and risk scores (see `recalculate_deal_scores`).
   Future<int> recalculateScores() async {
-    final result = await _client.rpc('recalculate_deal_scores');
-    return (result as num).toInt();
+    final result = await _client.rpc<Object?>('recalculate_deal_scores');
+    return _count(result);
   }
 
   /// Flags likely duplicates (see `mark_duplicates`); returns how many.
   Future<int> markDuplicates() async {
-    final result = await _client.rpc('mark_duplicates');
-    return (result as num).toInt();
+    final result = await _client.rpc<Object?>('mark_duplicates');
+    return _count(result);
   }
 
   /// Marks listings as seen now (updates last_seen_at); returns how many.
   Future<int> markSeen(String source, List<String> sourceListingIds) async {
     if (sourceListingIds.isEmpty) return 0;
-    final result = await _client.rpc(
+    final result = await _client.rpc<Object?>(
       'mark_listings_seen',
       params: {'p_source': source, 'p_ids': sourceListingIds},
     );
-    return (result as num).toInt();
+    return _count(result);
   }
 
   /// Applies new prices to listings already stored; returns how many changed.
@@ -170,11 +231,11 @@ class ListingStore {
     final prices = <String, num>{
       for (final l in listings) l.sourceListingId: l.price,
     };
-    final result = await _client.rpc(
+    final result = await _client.rpc<Object?>(
       'apply_price_updates',
       params: {'p_source': source, 'p_prices': prices},
     );
-    return (result as num).toInt();
+    return _count(result);
   }
 
   /// Records what the source says the price was before its last cut (the
@@ -187,11 +248,39 @@ class ListingStore {
       for (final l in listings) l.sourceListingId: ?l.priceBeforeDrop,
     };
     if (prices.isEmpty) return 0;
-    final result = await _client.rpc(
+    final result = await _client.rpc<Object?>(
       'apply_prices_before_drop',
       params: {'p_source': source, 'p_prices': prices},
     );
-    return (result as num).toInt();
+    return _count(result);
+  }
+
+  /// Re-checks the model of listings already stored: `save` never updates
+  /// a stored row, so without this a wrong match made by an older rule
+  /// would stay. Only listings whose model changes are touched; returns how
+  /// many.
+  Future<int> rematch(
+    String source,
+    List<NormalizedListing> listings,
+    Catalog catalog,
+  ) async {
+    if (listings.isEmpty) return 0;
+    final idBySlug = _idBySlug(catalog);
+    final result = await _client.rpc<Object?>(
+      'rematch_listings',
+      params: {
+        'p_source': source,
+        'p_matches': {
+          for (final l in listings)
+            l.sourceListingId: {
+              'motorcycle_id': motorcycleIdFor(l, idBySlug),
+              'brand': l.brand,
+              'model': l.model,
+            },
+        },
+      },
+    );
+    return _count(result);
   }
 
   /// For a complete import: marks live listings missing from [seenIds] as
@@ -204,7 +293,7 @@ class ListingStore {
     List<String>? searches,
     bool includeUnkeyed = true,
   }) async {
-    final result = await _client.rpc(
+    final result = await _client.rpc<Object?>(
       'mark_removed_listings',
       params: {
         'p_source': source,
@@ -214,7 +303,7 @@ class ListingStore {
         'p_include_unkeyed': includeUnkeyed,
       },
     );
-    return (result as num).toInt();
+    return _count(result);
   }
 
   /// Stores the publication and renewal dates the source shows; returns how
@@ -232,34 +321,37 @@ class ListingStore {
           },
     };
     if (dates.isEmpty) return 0;
-    final result = await _client.rpc(
+    final result = await _client.rpc<Object?>(
       'apply_listing_dates',
       params: {'p_source': source, 'p_dates': dates},
     );
-    return (result as num).toInt();
+    return _count(result);
   }
 
   /// Records the search each stored listing was found by; returns how many
   /// changed.
   Future<int> setSearchKeys(String source, Map<String, String> keys) async {
     if (keys.isEmpty) return 0;
-    final result = await _client.rpc(
+    final result = await _client.rpc<Object?>(
       'set_search_keys',
       params: {'p_source': source, 'p_keys': keys},
     );
-    return (result as num).toInt();
+    return _count(result);
   }
 
   /// Creates the alerts that are due (see `generate_alerts`); returns how many.
   Future<int> generateAlerts() async {
-    final result = await _client.rpc('generate_alerts');
-    return (result as num).toInt();
+    final result = await _client.rpc<Object?>('generate_alerts');
+    return _count(result);
   }
 
   /// Alerts of real accounts not pushed yet, oldest first.
   Future<List<PendingAlert>> pendingNotifications({int limit = 20}) async {
     final rows =
-        await _client.rpc('pending_notifications', params: {'p_limit': limit})
+        await _client.rpc<Object?>(
+              'pending_notifications',
+              params: {'p_limit': limit},
+            )
             as List<dynamic>;
     return [
       for (final row in rows) PendingAlert.fromRow(row as Map<String, dynamic>),
@@ -275,10 +367,8 @@ class ListingStore {
   ) async {
     if (bikeNames.isEmpty) return const [];
     final from = since.toUtc().toIso8601String();
-    const page = 1000;
-    final result = <SummaryListing>[];
-    for (var offset = 0; ; offset += page) {
-      final rows = await _client
+    final rows = await readAllPages(
+      (start, end) => _client
           .from('listings')
           .select(
             'id, motorcycle_id, brand, model, url, status, first_seen_at, '
@@ -291,12 +381,9 @@ class ListingStore {
             'first_seen_at.gte."$from",last_checked_at.gte."$from"',
           )
           .order('id')
-          .range(offset, offset + page - 1);
-      result.addAll([
-        for (final r in rows) SummaryListing.fromRow(r, bikeNames),
-      ]);
-      if (rows.length < page) return result;
-    }
+          .range(start, end),
+    );
+    return [for (final r in rows) SummaryListing.fromRow(r, bikeNames)];
   }
 
   /// The whole price history of those of [listingIds] whose price was
@@ -305,10 +392,14 @@ class ListingStore {
     Set<String> listingIds,
     DateTime since,
   ) async {
-    final recent = await _client
-        .from('listing_price_history')
-        .select('listing_id')
-        .gte('observed_at', since.toUtc().toIso8601String());
+    final recent = await readAllPages(
+      (start, end) => _client
+          .from('listing_price_history')
+          .select('listing_id')
+          .gte('observed_at', since.toUtc().toIso8601String())
+          .order('id')
+          .range(start, end),
+    );
     final ids = {
       for (final r in recent)
         if (listingIds.contains(r['listing_id'])) r['listing_id'] as String,
@@ -317,24 +408,186 @@ class ListingStore {
     final points = <PricePoint>[];
     // A few ids per request keep the address short.
     for (var i = 0; i < ids.length; i += 100) {
-      final rows = await _client
-          .from('listing_price_history')
-          .select('listing_id, price, observed_at')
-          .inFilter(
-            'listing_id',
-            ids.sublist(i, (i + 100).clamp(0, ids.length)),
-          );
+      final chunk = ids.sublist(i, (i + 100).clamp(0, ids.length));
+      final rows = await readAllPages(
+        (start, end) => _client
+            .from('listing_price_history')
+            .select('listing_id, price, observed_at')
+            .inFilter('listing_id', chunk)
+            .order('id')
+            .range(start, end),
+      );
       points.addAll([for (final r in rows) PricePoint.fromRow(r)]);
     }
     return points;
   }
 
+  /// The models each account follows: account -> catalog id -> first year.
+  Future<Map<String, Map<String, int>>> followedModels() async {
+    final rows = await readAllPages(
+      (start, end) => _client
+          .from('user_models')
+          .select('user_id, motorcycle_id, min_year')
+          .eq('tracked', true)
+          .order('user_id')
+          .order('motorcycle_id')
+          .range(start, end),
+    );
+    final byUser = <String, Map<String, int>>{};
+    for (final r in rows) {
+      byUser.putIfAbsent(r['user_id'] as String, () => {})[r['motorcycle_id']
+          as String] = (r['min_year'] as num)
+          .toInt();
+    }
+    return byUser;
+  }
+
+  /// Keeps [summary] as [userId]'s latest weekly summary (the app's
+  /// "Resumo da semana").
+  Future<void> saveWeeklySummary(
+    String userId,
+    WeeklySummary summary,
+    Map<String, Object?> json,
+  ) async {
+    await _client.from('weekly_summaries').upsert({
+      'user_id': userId,
+      'since': summary.since.toUtc().toIso8601String(),
+      'until': summary.until.toUtc().toIso8601String(),
+      'summary': json,
+      'made_at': DateTime.now().toUtc().toIso8601String(),
+    }, onConflict: 'user_id');
+  }
+
+  /// Lets the database call Supabase Auth's admin API (accounts made from
+  /// invites in the app) with this run's address and key; stored in the
+  /// Vault, only when they changed.
+  Future<void> storeServiceAccess(String url, String key) async {
+    await _client.rpc<Object?>(
+      'store_service_access',
+      params: {'p_url': url, 'p_key': key},
+    );
+  }
+
+  /// Our Web Push key pair; made and stored on the first run.
+  Future<VapidKeys> pushKeys() async {
+    Future<VapidKeys?> read() async {
+      final rows = await _client.rpc<Object?>('push_keys') as List<dynamic>;
+      if (rows.isEmpty) return null;
+      final row = rows.first as Map<String, dynamic>;
+      return VapidKeys.fromBase64(
+        row['private_key'] as String,
+        row['public_key'] as String,
+      );
+    }
+
+    final stored = await read();
+    if (stored != null) return stored;
+    final keys = VapidKeys.generate();
+    await _client.rpc<Object?>(
+      'store_push_keys',
+      params: {
+        'p_public_key': keys.publicBase64,
+        'p_private_key': keys.privateBase64,
+      },
+    );
+    // Another run may have stored its pair first: use the stored one.
+    return await read() ?? keys;
+  }
+
+  /// Every account's devices, by account.
+  Future<Map<String, List<PushTarget>>> pushTargets() async {
+    final rows = await _client
+        .from('push_subscriptions')
+        .select('endpoint, user_id, p256dh, auth');
+    final byUser = <String, List<PushTarget>>{};
+    for (final r in rows) {
+      byUser
+          .putIfAbsent(r['user_id'] as String, () => [])
+          .add(
+            PushTarget(
+              endpoint: r['endpoint'] as String,
+              p256dh: r['p256dh'] as String,
+              auth: r['auth'] as String,
+            ),
+          );
+    }
+    return byUser;
+  }
+
+  /// A live listing for an example alert (the app's test notifications):
+  /// the best Deal Score among [userId]'s models, or among all when the
+  /// account follows none (or isn't given).
+  Future<Map<String, dynamic>?> sampleListing(String? userId) async {
+    final models = userId == null
+        ? const <String>[]
+        : [
+            for (final r
+                in await _client
+                    .from('user_models')
+                    .select('motorcycle_id')
+                    .eq('user_id', userId)
+                    .eq('tracked', true))
+              r['motorcycle_id'] as String,
+          ];
+    var query = _client
+        .from('listings')
+        .select(
+          'id, brand, model, url, year, mileage, price, deal_score, location',
+        )
+        .inFilter('status', ['active', 'price_changed'])
+        .isFilter('duplicate_of', null)
+        .not('motorcycle_id', 'is', null)
+        .not('price', 'is', null);
+    if (models.isNotEmpty) query = query.inFilter('motorcycle_id', models);
+    final rows = await query
+        .order('deal_score', ascending: false, nullsFirst: false)
+        .limit(1);
+    return rows.isEmpty ? null : rows.single;
+  }
+
+  /// The account that last started [workflow] from the app since [since].
+  Future<String?> lastWorkflowStarter(String workflow, DateTime since) async {
+    final rows = await _client
+        .from('workflow_starts')
+        .select('started_by')
+        .eq('workflow', workflow)
+        .gte('started_at', since.toUtc().toIso8601String())
+        .not('started_by', 'is', null)
+        .order('started_at', ascending: false)
+        .limit(1);
+    return rows.isEmpty ? null : rows.single['started_by'] as String;
+  }
+
+  /// The admins' accounts.
+  Future<List<String>> adminIds() async {
+    final rows = await _client.from('app_admins').select('user_id');
+    return [for (final r in rows) r['user_id'] as String];
+  }
+
+  /// Devices whose push service says they no longer exist.
+  Future<void> forgetPushTargets(List<String> endpoints) async {
+    if (endpoints.isEmpty) return;
+    await _client
+        .from('push_subscriptions')
+        .delete()
+        .inFilter('endpoint', endpoints);
+  }
+
+  /// Devices that received a push now.
+  Future<void> markPushTargetsUsed(List<String> endpoints) async {
+    if (endpoints.isEmpty) return;
+    await _client
+        .from('push_subscriptions')
+        .update({'last_sent_at': DateTime.now().toUtc().toIso8601String()})
+        .inFilter('endpoint', endpoints);
+  }
+
   Future<int> markNotified(List<String> alertIds) async {
     if (alertIds.isEmpty) return 0;
-    final result = await _client.rpc(
+    final result = await _client.rpc<Object?>(
       'mark_alerts_notified',
       params: {'p_ids': alertIds},
     );
-    return (result as num).toInt();
+    return _count(result);
   }
 }
