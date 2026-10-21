@@ -14,6 +14,11 @@
 #      columns); .squawk.toml leaves out the locking rules, which matter
 #      for big tables, not ours. A drop that is safe (nothing on main reads
 #      it) gets `-- squawk-ignore ban-drop-column` above it.
+#   4. safeupdate: Supabase refuses an UPDATE or DELETE without a WHERE
+#      clause in requests through its API (pg-safeupdate), also inside the
+#      functions they call, and no local Postgres has it; so every function
+#      in public must give each UPDATE and DELETE a WHERE (`where id` for
+#      the one-row tables, `where true` when every row is meant).
 #
 # Uses the usual libpq variables, like db_test.sh. Needs the
 # postgresql-16-plpgsql-check package and squawk (pip install squawk-cli).
@@ -98,5 +103,17 @@ if [ -n "$base" ]; then
   else
     echo "ok   squawk (no new migrations)"
   fi
+fi
+# 4. safeupdate: an UPDATE or DELETE without WHERE in a function body
+# (comments and string literals left out; ON CONFLICT's DO UPDATE is not
+# its own statement).
+unsafe=$(psql_db --csv -c "select f.oid::regprocedure as name, f.prosrc as body
+  from pg_catalog.pg_proc f where f.pronamespace = 'public'::regnamespace" \
+  | python3 -I "$root/tool/safe_updates.py")
+if [ -n "$unsafe" ]; then
+  echo "FAIL safeupdate (add a WHERE; Supabase's API refuses these):"
+  indent <<<"$unsafe"; failed=1
+else
+  echo "ok   safeupdate"
 fi
 exit $failed
