@@ -120,10 +120,10 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
         run: |
-          test -n "$SUPABASE_URL" && test -n "$SUPABASE_PUBLISHABLE_KEY" || {
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_PUBLISHABLE_KEY" ]; then
             echo "::error::Set the SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY secrets"
             exit 1
-          }
+          fi
           cd app && flutter build web --release \
             --dart-define=SUPABASE_URL="$SUPABASE_URL" \
             --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"

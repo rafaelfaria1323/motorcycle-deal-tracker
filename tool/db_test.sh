@@ -22,7 +22,8 @@ for f in "$root"/supabase/migrations/*.sql; do
   sed -E '/create extension if not exists (pg_cron|pg_net)/d' "$f" \
     | psql_db --single-transaction -f - >/dev/null || { echo "FAILED migration: $(basename "$f")"; exit 1; }
 done
-echo "Applied $(ls "$root"/supabase/migrations/*.sql | wc -l) migrations"
+migrations=("$root"/supabase/migrations/*.sql)
+echo "Applied ${#migrations[@]} migrations"
 
 shopt -s nullglob
 err=$(mktemp)

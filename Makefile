@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 .PHONY: help app-get app-run app-check app-build app-serve \
         collector-get collector-check collect-dry collect \
-        db-push db-new check tool-check format clean mutation \
+        db-push db-new check tool-check lint-scripts format clean mutation \
         coverage duplication \
         require-collector-env require-file
 
@@ -110,6 +110,10 @@ db-test: ## Apply every migration to a fresh local Postgres and run supabase/tes
 
 tool-check: ## Test the helper scripts in tool/ (Python)
 	python3 -m unittest discover -s tool -p 'test_*.py'
+
+lint-scripts: ## Lint the workflows (actionlint, with shellcheck on their run: steps) and the shell scripts
+	actionlint
+	shellcheck tool/*.sh .claude/hooks/*.sh
 
 check: app-check collector-check tool-check ## Run all checks (run before committing)
 

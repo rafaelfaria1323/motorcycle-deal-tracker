@@ -41,6 +41,12 @@ dart --version
   fi
 )
 
+# make lint-scripts: actionlint is on the image, shellcheck may not be.
+if ! command -v shellcheck >/dev/null 2>&1; then
+  apt-get install -y -q shellcheck >/dev/null 2>&1 \
+    || { apt-get update -q >/dev/null 2>&1 && apt-get install -y -q shellcheck >/dev/null 2>&1; } || true
+fi
+
 # make db-test: Postgres through its socket, as a superuser named like us.
 if command -v pg_ctlcluster >/dev/null 2>&1 || command -v service >/dev/null 2>&1; then
   service postgresql start >/dev/null 2>&1 || true
