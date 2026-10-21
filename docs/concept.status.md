@@ -29,7 +29,7 @@ Unchanged.
 - ✅ Calculate an explainable Deal Score.
 - ✅ Calculate a separate Risk Score.
 - ✅ Create saved searches. *Also by minimum Deal Score / maximum Risk Score.*
-- ✅ Send alerts. *In the app and as notifications on each account's phone (Web Push), plus a weekly summary on Mondays (Telegram).*
+- ✅ Send alerts. *In the app and as notifications on each account's phone (Web Push), plus each account's weekly summary on Mondays (a notification that opens "Resumo da semana" in the app).*
 - ✅ Compare motorcycles. *Up to 3 listings side by side (long press in Ofertas or "Comparar" on a listing), best value per row highlighted.*
 - 🟡 Show market trends. *Time on market, price drops, depreciation and the spread of live asking prices per model, and the tracked models compared side by side ("Comparar modelos"); price trends need more history.*
 
@@ -50,7 +50,7 @@ Unchanged.
 
 ## 6. Platform
 
-- Phase 1 — Flutter Web/PWA ✅ *Hosted on Cloudflare Pages, installed on the iPhone Home Screen; deployed on every merge. UI/UX redesign done (roadmap Sprint 13: Mais tab, Ofertas, listing page, Pesquisas/Alertas, its own look and fonts, one voice in pt-PT); models per account (Sprint 14); accounts from invite links made in the app (14.3), Telegram only for admins' alerts; admins can start a collection or the weekly summary from Mais (14.5) and see each run's errors, the sites' budgets and pauses and the GitHub token's expiry in "Estado da recolha" (14.6).*
+- Phase 1 — Flutter Web/PWA ✅ *Hosted on Cloudflare Pages, installed on the iPhone Home Screen; deployed on every merge. UI/UX redesign done (roadmap Sprint 13: Mais tab, Ofertas, listing page, Pesquisas/Alertas, its own look and fonts, one voice in pt-PT); models per account (Sprint 14); accounts from invite links made in the app (14.3), Telegram only for admins' alerts; admins can start a collection from Mais (14.5), any account its own weekly summary (14.4d) and see each run's errors, the sites' budgets and pauses and the GitHub token's expiry in "Estado da recolha" (14.6).*
 - Phase 2 — Flutter iOS/Android ⬜ *Not needed for now: a native iPhone build requires a paid Apple Developer account.*
 
 ## 7. Stack
@@ -59,7 +59,7 @@ Unchanged.
 - Backend: Supabase, PostgreSQL ✅, Supabase Auth ✅ *(anonymous + owner email/password)*; scheduled jobs ➕ *on GitHub Actions instead of Edge Functions (a Dart CLI collector, one process per run, every 4 hours), started by Supabase pg_cron (GitHub's own scheduler never started them).*
 - Hosting: Cloudflare Pages ✅
 - Repository: GitHub ✅ *(should become private)*; ➕ automatic code-quality review by Claude after every 5 merged PRs
-- Notifications: Web push ✅ *(each account's alerts on its devices, the admins' when the collection breaks or recovers, sent by the collector itself; a tap opens the listing in the app; "Enviar notificação de teste" in Mais checks a device; stays on after the app is closed)*; ➕ Telegram bot ✅ (alerts until 2026-10-21; now the weekly summary on Mondays and the database's warnings when no run starts or the GitHub token is ending)
+- Notifications: Web push ✅ *(each account's alerts on its devices, the admins' when the collection breaks or recovers, sent by the collector itself; a tap opens the listing in the app; "Enviar notificação de teste" in Mais checks a device; stays on after the app is closed; the weekly summary on Mondays, kept in the app's "Resumo da semana")*; ➕ Telegram bot ✅ (alerts until 2026-10-21, the weekly summary until 14.4d; now only the database's warnings when no run starts or the GitHub token is ending)
 
 ## 8. Architecture ✅
 
@@ -149,7 +149,7 @@ Private sellers' names and all phone numbers are never stored; saved pages and f
 
 ## 23. Future Features ⬜
 
-Comparison ✅ (listings side by side), buying assistant, checklists, cost calculators, price prediction, weekly ranking, smart alerts, model price history, imports, dealer integration. ➕ Depreciation tracking ✅ (per-model rates fitted from data).
+Comparison ✅ (listings side by side), buying assistant, checklists, cost calculators, price prediction, weekly ranking ✅ (the weekly summary's best deals, 14.4d), smart alerts, model price history, imports, dealer integration. ➕ Depreciation tracking ✅ (per-model rates fitted from data).
 
 Planned in roadmap Sprint 15 ("Deciding and buying"): ➕ favourites with private notes ✅ (15.1; a favourite always alerts on price drops and removal), price to offer (buying assistant, 15.2) ✅, ➕ negotiation arguments, visit repairs off the offer, messages per step and a target price alert (15.19) ✅, ➕ "back on the market" alert for followed bikes (15.14) ✅, ➕ message to the seller (15.12) ✅, viewing checklist (15.3) ✅, cost of ownership (cost calculator, 15.4) ✅, relists as a risk signal (15.5) ✅, text contradictions as risk signals (15.6) ✅, dealer reliability (15.7) 🟡 (figures shown, not scored yet), price trends (model price history, 15.8) ⬜, more sources and imports (15.9) ⬜, web push (15.10) ⬜.
 

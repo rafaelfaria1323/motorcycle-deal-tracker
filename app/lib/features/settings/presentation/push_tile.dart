@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/di/injection.dart';
 import '../../../core/platform/push.dart';
@@ -7,12 +6,13 @@ import '../../../core/widgets/show_message.dart';
 import '../domain/push_repository.dart';
 import '../domain/workflows_repository.dart';
 import 'push_text.dart';
+import 'start_workflow.dart';
 import 'workflows_text.dart';
 
 /// "Notificações neste aparelho" in Mais: the account's alerts as
 /// notifications on this phone or computer (Web Push). When they are on,
-/// a test notification can be asked for (sent by the collector, so it
-/// checks the whole path to the device).
+/// a test notification or the weekly summary can be asked for now (sent by
+/// the collector, so it checks the whole path to the device).
 class PushTile extends StatefulWidget {
   const PushTile({required this.signedIn, super.key});
 
@@ -26,7 +26,9 @@ class _PushTileState extends State<PushTile> {
   final _repository = getIt<PushRepository>();
   PushState? _state;
   bool _busy = false;
-  bool _testing = false;
+
+  /// The workflow being started from here (test, weekly summary).
+  AppWorkflow? _starting;
 
   /// Read ahead: Safari asks for permission only straight after a tap, so
   /// nothing may be awaited between the tap and the request.
@@ -88,20 +90,12 @@ class _PushTileState extends State<PushTile> {
     }
   }
 
-  Future<void> _sendTest() async {
+  Future<void> _send(AppWorkflow workflow) async {
     final messenger = ScaffoldMessenger.of(context);
-    setState(() => _testing = true);
-    String message;
-    try {
-      await getIt<WorkflowsRepository>().start(AppWorkflow.pushTest);
-      message = workflowText(AppWorkflow.pushTest).started;
-    } on PostgrestException catch (e) {
-      message = startErrorText(e.code);
-    } on Exception {
-      message = startErrorText(null);
-    }
+    setState(() => _starting = workflow);
+    final message = await startWorkflow(workflow);
     if (!mounted) return;
-    setState(() => _testing = false);
+    setState(() => _starting = null);
     showMessage(messenger, message);
   }
 
@@ -112,7 +106,6 @@ class _PushTileState extends State<PushTile> {
         state != null &&
         !_busy &&
         pushSwitchEnabled(state, signedIn: widget.signedIn);
-    final test = workflowText(AppWorkflow.pushTest);
     return Column(
       children: [
         ListTile(
@@ -128,22 +121,26 @@ class _PushTileState extends State<PushTile> {
             onChanged: enabled ? _set : null,
           ),
         ),
-        if (widget.signedIn && state == PushState.on) ...[
-          const Divider(height: 1),
-          ListTile(
-            leading: const Icon(Icons.send_outlined),
-            title: Text(test.title),
-            subtitle: Text(test.subtitle),
-            trailing: _testing
-                ? const SizedBox.square(
-                    dimension: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : null,
-            enabled: !_testing && !_busy,
-            onTap: _sendTest,
-          ),
-        ],
+        if (widget.signedIn && state == PushState.on)
+          for (final (workflow, icon) in const [
+            (AppWorkflow.pushTest, Icons.send_outlined),
+            (AppWorkflow.weeklySummary, Icons.summarize_outlined),
+          ]) ...[
+            const Divider(height: 1),
+            ListTile(
+              leading: Icon(icon),
+              title: Text(workflowText(workflow).title),
+              subtitle: Text(workflowText(workflow).subtitle),
+              trailing: _starting == workflow
+                  ? const SizedBox.square(
+                      dimension: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : null,
+              enabled: _starting == null && !_busy,
+              onTap: () => _send(workflow),
+            ),
+          ],
       ],
     );
   }

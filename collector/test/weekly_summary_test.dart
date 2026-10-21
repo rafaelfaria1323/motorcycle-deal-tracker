@@ -14,6 +14,8 @@ SummaryListing listing(
   double? price = 6800,
   int? dealScore,
   int? riskScore,
+  String? motorcycleId,
+  int? year = 2021,
 }) => SummaryListing(
   id: id,
   bike: bike,
@@ -21,7 +23,8 @@ SummaryListing listing(
   status: status,
   firstSeenAt: firstSeenAt ?? lastWeek,
   lastCheckedAt: lastCheckedAt ?? until,
-  year: 2021,
+  motorcycleId: motorcycleId,
+  year: year,
   mileage: 12000,
   price: price,
   dealScore: dealScore,
@@ -134,7 +137,7 @@ void main() {
     expect(s.bestDeals.map((l) => l.id), ['c', 'a', 'f']);
   });
 
-  test('the message', () {
+  test('the summary for the app', () {
     final s = summary(
       [
         listing('a', dealScore: 88, price: 6900),
@@ -148,34 +151,93 @@ void main() {
         PricePoint('n1', 7200, thisWeek.add(const Duration(days: 1))),
       ],
     );
-    expect(
-      formatWeeklySummary(s),
-      '📊 Resumo da semana · 12/10 a 18/10\n'
-      '\n'
-      '🆕 3 anúncios novos (Yamaha MT-07 2, Honda CB650R 1)\n'
-      '📉 1 baixa de preço\n'
-      '🚫 1 saiu do mercado\n'
-      '📋 4 anúncios ativos\n'
-      '\n'
-      '🏆 Melhores negócios\n'
-      '1. Yamaha MT-07 2021 · 6 900 € · 12 000 km · Pontuação 88\n'
-      'https://www.olx.pt/d/anuncio/a.html\n'
-      '\n'
-      '📉 Maiores baixas\n'
-      'Honda CB650R 2021: 7 500 € → 7 200 € (−4 %)\n'
-      'https://www.olx.pt/d/anuncio/n1.html',
-    );
+    const deal = {'year': 2021, 'mileage': 12000};
+    expect(weeklySummaryJson(s), {
+      'since': '2026-10-12T08:00:00.000Z',
+      'until': '2026-10-19T08:00:00.000Z',
+      'live': 4,
+      'new': 3,
+      'gone': 1,
+      'drops': 1,
+      'new_by_model': [
+        {'bike': 'Yamaha MT-07', 'count': 2},
+        {'bike': 'Honda CB650R', 'count': 1},
+      ],
+      'biggest_drops': [
+        {
+          'id': 'n1',
+          'bike': 'Honda CB650R',
+          ...deal,
+          'price': 7200.0,
+          'deal_score': null,
+          'old_price': 7500.0,
+        },
+      ],
+      'best': [
+        {
+          'id': 'a',
+          'bike': 'Yamaha MT-07',
+          ...deal,
+          'price': 6900.0,
+          'deal_score': 88,
+        },
+      ],
+    });
+    expect(weeklySummaryPush(s), {
+      'title': '📊 Resumo da semana · 12/10 a 18/10',
+      'body':
+          '3 anúncios novos · 1 baixa de preço · 1 saiu do mercado\n'
+          'Melhor: Yamaha MT-07 2021 · 6 900 € · Pontuação 88',
+      'url': '/#/summary',
+      'tag': 'weekly-summary',
+    });
   });
 
   test('a quiet week still says so', () {
     expect(
-      formatWeeklySummary(summary(const [])),
-      '📊 Resumo da semana · 12/10 a 18/10\n'
-      '\n'
-      '🆕 0 anúncios novos\n'
-      '📉 0 baixas de preço\n'
-      '🚫 0 saíram do mercado\n'
-      '📋 0 anúncios ativos',
+      weeklySummaryPush(summary(const []))['body'],
+      '0 anúncios novos · 0 baixas de preço · 0 saíram do mercado',
     );
+  });
+
+  group('per account', () {
+    final listings = [
+      listing('mt07-2021', motorcycleId: 'mt07'),
+      listing('mt07-2019', motorcycleId: 'mt07', year: 2019),
+      listing('mt07-no-year', motorcycleId: 'mt07', year: null),
+      listing('r7', motorcycleId: 'r7', firstSeenAt: thisWeek),
+      listing('unmatched'),
+    ];
+
+    test('each account sees its own models from its first year', () {
+      expect(listingsFollowed(listings, {'mt07': 2020}).map((l) => l.id), [
+        'mt07-2021',
+        'mt07-no-year',
+      ]);
+      expect(listingsFollowed(listings, {}), isEmpty);
+    });
+
+    test('every account, or only the one that asked', () {
+      final follows = {
+        'u1': {'mt07': 2015},
+        'u2': {'r7': 2021},
+      };
+      Map<String, WeeklySummary> summaries([String? account]) =>
+          summariesByAccount(
+            follows: follows,
+            listings: listings,
+            history: const [],
+            until: until,
+            account: account,
+          );
+
+      final all = summaries();
+      expect(all.keys, ['u1', 'u2']);
+      expect(all['u1']!.liveCount, 3);
+      expect(all['u2']!.newListings.map((l) => l.id), ['r7']);
+
+      expect(summaries('u2').keys, ['u2']);
+      expect(summaries('u3')['u3']!.liveCount, 0);
+    });
   });
 }

@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/di/injection.dart';
 import '../../../app/router/app_routes.dart';
 import '../../../core/widgets/show_message.dart';
 import '../domain/accounts_repository.dart';
 import '../domain/workflows_repository.dart';
+import 'start_workflow.dart';
 import 'workflows_text.dart';
 
 /// For admins, in "Recolha de dados": the "Estado da recolha" page, and
-/// starting the collection or the weekly summary now. Nothing for anyone
-/// else.
+/// starting the collection now. Nothing for anyone else.
 class RunNowTiles extends StatefulWidget {
   const RunNowTiles({required this.signedIn, super.key});
 
@@ -26,9 +25,10 @@ class _RunNowTilesState extends State<RunNowTiles> {
       ? getIt<AccountsRepository>().isAdmin().catchError((Object _) => false)
       : Future.value(false);
 
-  AppWorkflow? _starting;
+  bool _starting = false;
 
-  Future<void> _start(AppWorkflow workflow) async {
+  Future<void> _start() async {
+    const workflow = AppWorkflow.collect;
     final text = workflowText(workflow);
     final ok =
         await showDialog<bool>(
@@ -52,18 +52,10 @@ class _RunNowTilesState extends State<RunNowTiles> {
     if (!ok || !mounted) return;
 
     final messenger = ScaffoldMessenger.of(context);
-    setState(() => _starting = workflow);
-    String message;
-    try {
-      await getIt<WorkflowsRepository>().start(workflow);
-      message = text.started;
-    } on PostgrestException catch (e) {
-      message = startErrorText(e.code);
-    } on Exception {
-      message = startErrorText(null);
-    }
+    setState(() => _starting = true);
+    final message = await startWorkflow(workflow);
     if (!mounted) return;
-    setState(() => _starting = null);
+    setState(() => _starting = false);
     showMessage(messenger, message);
   }
 
@@ -85,25 +77,20 @@ class _RunNowTilesState extends State<RunNowTiles> {
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.push(AppRoutes.collectionStatus),
             ),
-            for (final (workflow, icon) in const [
-              (AppWorkflow.collect, Icons.play_circle_outline),
-              (AppWorkflow.weeklySummary, Icons.summarize_outlined),
-            ]) ...[
-              const Divider(height: 1),
-              ListTile(
-                leading: Icon(icon),
-                title: Text(workflowText(workflow).title),
-                subtitle: Text(workflowText(workflow).subtitle),
-                trailing: _starting == workflow
-                    ? const SizedBox.square(
-                        dimension: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : null,
-                enabled: _starting == null,
-                onTap: () => _start(workflow),
-              ),
-            ],
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.play_circle_outline),
+              title: Text(workflowText(AppWorkflow.collect).title),
+              subtitle: Text(workflowText(AppWorkflow.collect).subtitle),
+              trailing: _starting
+                  ? const SizedBox.square(
+                      dimension: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : null,
+              enabled: !_starting,
+              onTap: _start,
+            ),
           ],
         );
       },

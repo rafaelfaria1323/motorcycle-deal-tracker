@@ -25,6 +25,14 @@ class _Store implements ListingStore {
   Map<String, List<PushTarget>> devices = const {};
   List<String> forgotten = const [];
   List<String> used = const [];
+  final summaries = <String, Map<String, Object?>>{};
+
+  @override
+  Future<void> saveWeeklySummary(
+    String userId,
+    WeeklySummary summary,
+    Map<String, Object?> json,
+  ) async => summaries[userId] = json;
 
   @override
   Future<List<PendingAlert>> pendingNotifications({int limit = 20}) async =>
@@ -206,5 +214,31 @@ void main() {
   test('a removed listing shows no score', () {
     final message = pushMessage(alert('listing_removed', newPrice: 6800));
     expect(message['body'], isNot(contains('Pontuação')));
+  });
+
+  test('each weekly summary is kept and sent to its own devices', () async {
+    final store = _Store([])
+      ..devices = {
+        'u1': [_device('https://p/1')],
+        'u2': [_device('https://p/2')],
+      };
+    final push = _Push();
+    final until = DateTime.utc(2026, 10, 19, 8);
+    final week = buildWeeklySummary(
+      listings: const [],
+      history: const [],
+      until: until,
+    );
+
+    final result = await sendWeeklySummaries(store, push, {
+      'u1': week,
+      'u3': week,
+    });
+
+    expect(result, (accounts: 2, devices: 1, sent: 1));
+    expect(store.summaries.keys, ['u1', 'u3']);
+    expect(store.summaries['u1']!['new'], 0);
+    expect(push.sent.single.$1, 'https://p/1');
+    expect(push.sent.single.$2['url'], '/#/summary');
   });
 }

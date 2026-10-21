@@ -15,6 +15,7 @@ import '../../features/listings/data/repositories/supabase_listings_repository.d
 import '../../features/listings/data/repositories/supabase_market_behaviour_repository.dart';
 import '../../features/listings/data/repositories/supabase_ownership_settings_repository.dart';
 import '../../features/listings/data/repositories/supabase_saved_searches_repository.dart';
+import '../../features/listings/data/repositories/supabase_weekly_summary_repository.dart';
 import '../../features/listings/domain/repositories/alerts_repository.dart';
 import '../../features/listings/domain/repositories/catalog_repository.dart';
 import '../../features/listings/domain/repositories/dealer_repository.dart';
@@ -23,6 +24,7 @@ import '../../features/listings/domain/repositories/listings_repository.dart';
 import '../../features/listings/domain/repositories/market_behaviour_repository.dart';
 import '../../features/listings/domain/repositories/ownership_settings_repository.dart';
 import '../../features/listings/domain/repositories/saved_searches_repository.dart';
+import '../../features/listings/domain/repositories/weekly_summary_repository.dart';
 import '../../features/listings/presentation/cubit/alerts_cubit.dart';
 import '../../features/listings/presentation/cubit/compare_cubit.dart';
 import '../../features/listings/presentation/cubit/favourites_cubit.dart';
@@ -112,5 +114,8 @@ void configureDependencies() {
     )
     ..registerLazySingleton<CatalogRepository>(
       () => SupabaseCatalogRepository(getIt<SupabaseClient>()),
+    )
+    ..registerLazySingleton<WeeklySummaryRepository>(
+      () => SupabaseWeeklySummaryRepository(getIt<SupabaseClient>()),
     );
 }

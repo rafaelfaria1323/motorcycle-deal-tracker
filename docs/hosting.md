@@ -54,7 +54,8 @@ its preview (`tool/pages_previews.py`). Previews cost nothing.
 
 GitHub's own scheduler never started `collect.yml`, so Supabase does:
 pg_cron jobs `collect-listings` (every 4 hours, minute 40 UTC) and
-`weekly-summary` (Mondays 07:52 UTC) call GitHub's "Run workflow" API.
+`weekly-summary` (Mondays 07:52 UTC; each account's summary to its devices)
+call GitHub's "Run workflow" API.
 They need one token, created once:
 
 1. GitHub → Settings → Developer settings → Personal access tokens →

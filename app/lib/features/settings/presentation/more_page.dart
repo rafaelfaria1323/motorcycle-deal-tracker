@@ -80,6 +80,20 @@ class MorePage extends StatelessWidget {
                       onTap: () => context.push(AppRoutes.favourites),
                     ),
                     const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.summarize_outlined),
+                      title: const Text('Resumo da semana'),
+                      subtitle: Text(
+                        signedIn
+                            ? 'Novos anúncios, baixas de preço e os melhores '
+                                  'negócios dos últimos 7 dias'
+                            : 'Disponível com sessão iniciada',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      enabled: signedIn,
+                      onTap: () => context.push(AppRoutes.summary),
+                    ),
+                    const Divider(height: 1),
                     const HomePlaceTile(),
                     const Divider(height: 1),
                     ListTile(
