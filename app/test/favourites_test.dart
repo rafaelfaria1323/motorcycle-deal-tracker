@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/features/listings/data/models/favourite_model.dart';
 import 'package:motorcycle_deal_tracker/features/listings/data/models/listing_model.dart';
@@ -34,6 +36,28 @@ Favourite _favourite(String id, {String? note, String status = 'active'}) =>
       note: note,
       listing: _listing(id, status: status),
     );
+
+/// Saving l1's note waits for [l1Save]; the rest save at once.
+class _SlowNotes extends _FakeFavourites {
+  _SlowNotes(super.items);
+
+  final l1Save = Completer<void>();
+
+  @override
+  Future<void> saveNote(String listingId, String? note) =>
+      listingId == 'l1' ? l1Save.future : super.saveNote(listingId, note);
+}
+
+/// Loads work until [down].
+class _GoesDown extends _FakeFavourites {
+  _GoesDown(super.items);
+
+  var down = false;
+
+  @override
+  Future<List<Favourite>> getAll() =>
+      down ? Future.error(StateError('offline')) : super.getAll();
+}
 
 class _FakeFavourites implements FavouritesRepository {
   _FakeFavourites(this.items, {this.fail = false, this.failWrites = false});
@@ -290,6 +314,33 @@ void main() {
 
       expect(await cubit.saveNote('l1', 'Nova'), isFalse);
       expect(cubit.state.favouriteOf('l1')?.note, 'Antiga');
+    });
+
+    test('undoing a failed save keeps a later change to another', () async {
+      final repo = _SlowNotes([_favourite('l1'), _favourite('l2')]);
+      final cubit = FavouritesCubit(repo);
+      await cubit.load();
+
+      final first = cubit.saveNote('l1', 'Primeira');
+      expect(await cubit.saveNote('l2', 'Segunda'), isTrue);
+      repo.l1Save.completeError(StateError('offline'));
+
+      expect(await first, isFalse);
+      expect(cubit.state.favouriteOf('l1')?.note, isNull);
+      expect(cubit.state.favouriteOf('l2')?.note, 'Segunda');
+    });
+
+    test("another account's favourites go even if loading fails", () async {
+      final repo = _GoesDown([_favourite('l1', note: 'Privada')]);
+      final cubit = FavouritesCubit(repo);
+      await cubit.load();
+      repo.down = true;
+
+      await cubit.load(); // a refresh that fails keeps them
+      expect(cubit.state.isFavourite('l1'), isTrue);
+      await cubit.load(otherAccount: true);
+      expect(cubit.state.favourites, isEmpty);
+      expect(cubit.state.status, FavouritesStatus.failure);
     });
   });
 

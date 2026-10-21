@@ -13,20 +13,26 @@ class ListingsCubit extends Cubit<ListingsState> {
   /// Listings per request; the list asks for more as it scrolls.
   static const pageSize = 40;
 
-  /// Loads the first page (and the model list, the first time).
-  Future<void> load() async {
+  /// Bumped by each [load]: an answer to an older one is dropped.
+  var _generation = 0;
+
+  /// Loads the first page (and the model list, the first time or when
+  /// [models]: another account, or its models changed).
+  Future<void> load({bool models = false}) async {
+    final generation = ++_generation;
     emit(state.copyWith(status: ListingsStatus.loading, loadingMore: false));
     final filters = state.filters;
     final sort = state.sort;
     try {
       final (motorcycles, listings) = await (
-        state.motorcycles.isEmpty
+        models || state.motorcycles.isEmpty
             ? _repository.getMotorcycleOptions()
             : Future.value(state.motorcycles),
         _repository.getListings(filters: filters, sort: sort, limit: pageSize),
       ).wait;
-      // Filters changed while loading: that newer load wins.
-      if (state.filters != filters || state.sort != sort) return;
+      // Filters changed or a reload started while loading: that newer
+      // load wins.
+      if (generation != _generation) return;
       emit(
         state.copyWith(
           status: ListingsStatus.success,
@@ -36,7 +42,7 @@ class ListingsCubit extends Cubit<ListingsState> {
         ),
       );
     } catch (_) {
-      if (state.filters != filters || state.sort != sort) return;
+      if (generation != _generation) return;
       emit(state.copyWith(status: ListingsStatus.failure));
     }
   }
@@ -49,6 +55,7 @@ class ListingsCubit extends Cubit<ListingsState> {
         state.loadingMore) {
       return;
     }
+    final generation = _generation;
     final filters = state.filters;
     final sort = state.sort;
     emit(state.copyWith(loadingMore: true));
@@ -59,11 +66,7 @@ class ListingsCubit extends Cubit<ListingsState> {
         offset: state.listings.length,
         limit: pageSize,
       );
-      if (state.filters != filters ||
-          state.sort != sort ||
-          state.status != ListingsStatus.success) {
-        return;
-      }
+      if (generation != _generation) return;
       emit(
         state.copyWith(
           listings: [...state.listings, ...page],
@@ -73,9 +76,7 @@ class ListingsCubit extends Cubit<ListingsState> {
       );
     } catch (_) {
       // Keep what is shown; scrolling again retries.
-      if (state.filters == filters && state.sort == sort) {
-        emit(state.copyWith(loadingMore: false));
-      }
+      if (generation == _generation) emit(state.copyWith(loadingMore: false));
     }
   }
 

@@ -45,6 +45,16 @@ class _PushTileState extends State<PushTile> {
       (Object _) => PushState.unsupported,
     );
     final key = await _repository.publicKey().catchError((Object _) => null);
+    // The browser's subscription is what the switch shows: store it again
+    // for this account, in case the database lost it (a failed save, a
+    // device the collector forgot, another account signed in here).
+    if (state == PushState.on && key != null && widget.signedIn) {
+      try {
+        await _repository.save(await DevicePush.enable(key));
+      } on Object catch (_) {
+        // Shown as on; the next visit tries again.
+      }
+    }
     if (!mounted) return;
     setState(() {
       _state = state;

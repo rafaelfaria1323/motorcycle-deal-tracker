@@ -31,10 +31,7 @@ DateTime nextCollection(DateTime now) {
 /// a free GitHub runner, hence the note.
 String nextCollectionText(DateTime now) {
   final next = nextCollection(now).toLocal();
-  final local = now.toLocal();
-  final today = DateTime(local.year, local.month, local.day);
-  final day = DateTime(next.year, next.month, next.day);
-  final when = switch (day.difference(today).inDays) {
+  final when = switch (Formatters.calendarDays(now, next)) {
     0 => 'hoje',
     1 => 'amanhã',
     _ => Formatters.date(next),

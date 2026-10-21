@@ -156,7 +156,7 @@ Future<void> finishRun(ListingStore store, {StringSink? out}) async {
   try {
     push = WebPushSender(await store.pushKeys());
   } on Object catch (e) {
-    log.writeln('Web Push not available: $e');
+    log.writeln('Web Push not available, alerts kept for the next run: $e');
   }
   final notified = await notifyPending(store, push: push);
   log.writeln(
