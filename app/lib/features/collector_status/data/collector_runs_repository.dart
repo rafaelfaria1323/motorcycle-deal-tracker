@@ -8,6 +8,9 @@ abstract interface class CollectorRunsRepository {
 
   /// The runs started since [since], newest first; empty without access.
   Future<List<CollectorRun>> getSince(DateTime since);
+
+  /// The last [limit] runs with their problems and sites, newest first.
+  Future<List<CollectorRun>> getRecent(int limit);
 }
 
 class SupabaseCollectorRunsRepository implements CollectorRunsRepository {
@@ -28,6 +31,16 @@ class SupabaseCollectorRunsRepository implements CollectorRunsRepository {
   }
 
   @override
+  Future<List<CollectorRun>> getRecent(int limit) async {
+    final rows = await _client
+        .from('collector_runs')
+        .select('$_columns, problems, sites, run_url')
+        .order('started_at', ascending: false)
+        .limit(limit);
+    return rows.map(_run).toList();
+  }
+
+  @override
   Future<List<CollectorRun>> getSince(DateTime since) async {
     final rows = await _client
         .from('collector_runs')
@@ -43,6 +56,15 @@ class SupabaseCollectorRunsRepository implements CollectorRunsRepository {
     finishedAt: DateTime.parse(row['finished_at'] as String),
     requests: _ints(row['requests']),
     counts: _ints(row['counts']),
+    problems: [
+      for (final p in row['problems'] as List<dynamic>? ?? const []) '$p',
+    ],
+    sites: {
+      for (final MapEntry(:key, :value)
+          in (row['sites'] as Map<String, dynamic>? ?? const {}).entries)
+        if (value is Map<String, dynamic>) key: SiteBudget.fromJson(value),
+    },
+    runUrl: row['run_url'] as String?,
   );
 
   static Map<String, int> _ints(Object? json) => {

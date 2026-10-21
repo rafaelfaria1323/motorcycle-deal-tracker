@@ -84,6 +84,38 @@ class FetchState {
   /// The count restarts each day; a block is remembered.
   FetchState rolledTo(String today) =>
       day == today ? this : FetchState(day: today, blockedAt: blockedAt);
+
+  /// What the app shows for the site at [now]: requests used today (UTC)
+  /// out of the daily limit, and until when it is paused after a block.
+  Map<String, Object?> report(FetchPolicy policy, DateTime now) {
+    final utc = now.toUtc();
+    final until = blockedAt?.add(policy.cooldownAfterBlock);
+    return {
+      'requests_today': day == utc.toIso8601String().substring(0, 10)
+          ? requests
+          : 0,
+      'daily_limit': policy.maxRequestsPerDay,
+      'paused_until': until != null && until.isAfter(utc)
+          ? until.toUtc().toIso8601String()
+          : null,
+    };
+  }
+}
+
+/// The state a site's fetcher saved at [path]; null when there is none or
+/// it is damaged (the fetcher then starts afresh).
+Future<FetchState?> readFetchState(String path) async {
+  final file = File(path);
+  try {
+    if (await file.exists()) {
+      return FetchState.fromJson(
+        jsonDecode(await file.readAsString()) as Map<String, dynamic>,
+      );
+    }
+  } on Object {
+    // A damaged state file is treated as a fresh one.
+  }
+  return null;
 }
 
 /// One website we fetch from: where we may go, how a normal page looks, and
@@ -291,19 +323,8 @@ class PoliteFetcher {
     await _saveState();
   }
 
-  Future<FetchState> _loadState() async {
-    final file = File(site.statePath);
-    try {
-      if (await file.exists()) {
-        return FetchState.fromJson(
-          jsonDecode(await file.readAsString()) as Map<String, dynamic>,
-        );
-      }
-    } on Object {
-      // A damaged state file is treated as a fresh one.
-    }
-    return FetchState(day: _today());
-  }
+  Future<FetchState> _loadState() async =>
+      await readFetchState(site.statePath) ?? FetchState(day: _today());
 
   Future<void> _saveState() async =>
       File(site.statePath).writeAsString(jsonEncode(_state.toJson()));

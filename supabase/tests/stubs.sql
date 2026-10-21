@@ -64,7 +64,8 @@ $$;
 
 -- The http extension (pgsql-http), synchronous: each request is recorded
 -- in extensions.http_calls and answered by the first row a test put in
--- extensions.http_replies for its method and address (else 200 '{}').
+-- extensions.http_replies for its method and address (else 200 '{}'),
+-- with that row's headers.
 create domain extensions.http_method as text;
 create type extensions.http_header as (field varchar, value varchar);
 create type extensions.http_request as (method extensions.http_method, uri varchar,
@@ -74,7 +75,8 @@ create type extensions.http_response as (status integer, content_type varchar,
                                          headers extensions.http_header[], content varchar);
 create table extensions.http_calls (method text, uri text, headers extensions.http_header[],
                                     content text);
-create table extensions.http_replies (method text, uri text, status integer, content text);
+create table extensions.http_replies (method text, uri text, status integer, content text,
+                                      headers extensions.http_header[]);
 create function extensions.http_header(field varchar, value varchar)
 returns extensions.http_header language sql as $$ select row(field, value)::extensions.http_header $$;
 create function extensions.http_set_curlopt(curlopt varchar, value varchar)
@@ -83,7 +85,7 @@ create function extensions.http(request extensions.http_request)
 returns extensions.http_response language sql as $$
   insert into extensions.http_calls
   values (request.method, request.uri, request.headers, request.content);
-  select row(coalesce(r.status, 200), 'application/json', null, coalesce(r.content, '{}'))
+  select row(coalesce(r.status, 200), 'application/json', r.headers, coalesce(r.content, '{}'))
            ::extensions.http_response
   from (select 1) one
   left join lateral (select * from extensions.http_replies x

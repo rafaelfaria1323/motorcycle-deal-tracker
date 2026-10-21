@@ -24,7 +24,9 @@ generate the alerts and send the new ones to each account's devices (Web
 Push) and to Telegram.
 
 After each scheduled run `bin/report_run.dart` records it in `collector_runs`
-and, when its status differs from the previous run's (ok, blocked, failed),
+(with the error lines of a run that was not ok, each site's requests today
+and pause from its fetch state file, and the GitHub run's address; shown
+in the app's "Estado da recolha") and, when its status differs from the previous run's (ok, blocked, failed),
 sends one Telegram message: what went wrong on which site
 (`notify/run_health.dart`), or that the collection works again. The same
 problem is not repeated every 4 hours.

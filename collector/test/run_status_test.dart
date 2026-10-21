@@ -67,4 +67,16 @@ void main() {
     expect(requestsUsed(log), {'standvirtual': 15, 'olx': 9});
     expect(requestsUsed('no counts here'), isEmpty);
   });
+
+  test('the GitHub run page comes from the job\'s variables', () {
+    expect(
+      githubRunUrl({
+        'GITHUB_SERVER_URL': 'https://github.com',
+        'GITHUB_REPOSITORY': 'rafael/tracker',
+        'GITHUB_RUN_ID': '42',
+      }),
+      'https://github.com/rafael/tracker/actions/runs/42',
+    );
+    expect(githubRunUrl({}), isNull);
+  });
 }
