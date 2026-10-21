@@ -4,6 +4,8 @@
 //   mdtPush.enable(publicKey)  asks for permission (must follow a tap), subscribes
 //                              with our VAPID key, resolves to the subscription as JSON
 //   mdtPush.disable()          unsubscribes; resolves to the endpoint removed, or ''
+// It also follows taps on notifications while the app is open (see
+// followNotifications).
 //
 // push_sw.js gets its own scope (SCOPE), apart from Flutter's worker at the
 // root: Flutter's loader registers flutter_service_worker.js at "/" on every
@@ -83,5 +85,22 @@
     return endpoint;
   }
 
+  // A tapped notification while the app is open: push_sw.js can't navigate
+  // a page it doesn't control, so it sends the address here. The app's
+  // routes live in the hash (Flutter's hash strategy follows its change).
+  function followNotifications() {
+    if (!('serviceWorker' in navigator)) return;
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      const data = event.data || {};
+      if (data.type !== 'mdt-open' || typeof data.url !== 'string') return;
+      const target = new URL(data.url, location.href);
+      if (target.origin !== location.origin) return;
+      if (target.hash && target.hash !== location.hash) location.hash = target.hash;
+    });
+    // Messages wait until this is called (addEventListener alone doesn't).
+    navigator.serviceWorker.startMessages();
+  }
+
+  followNotifications();
   window.mdtPush = { state, enable, disable };
 })();
