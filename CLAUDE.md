@@ -44,7 +44,7 @@ has the model), or typed by hand.
   `make duplication` (jscpd), `make coverage` (floors in the Makefile),
   `make lint-scripts` (actionlint, shellcheck), `make dead-code`
   (dart_code_linter, app only), `make sql-lint`
-  (plpgsql_check, splinter, squawk), mutation testing, Dependabot; the
+  (plpgsql_check, splinter, squawk, safeupdate), mutation testing, Dependabot; the
   Claude backlog passes only look for what needs judgment.
 - Work in small verifiable steps: implement → test → commit. Each step ends
   with a definition of done.
@@ -171,8 +171,9 @@ make dead-code                 unused code and files in the app (dart_code_linte
 make app-run                   run the app in Chrome (app/env/dev.json)
 make db-new NAME=x / db-push   create / apply migrations (merging applies them too)
 make db-test                   migrations + SQL tests on a local Postgres
-make sql-lint                  db-test, then plpgsql_check, splinter (supabase/lint_allow.txt)
-                               and squawk on new migrations (.squawk.toml); also in CI
+make sql-lint                  db-test, then plpgsql_check, splinter (supabase/lint_allow.txt),
+                               squawk on new migrations (.squawk.toml) and safeupdate
+                               (tool/safe_updates.py); also in CI
 make searches SITE=olx|standvirtual   write the tracked models' searches
 make fetch-dry|fetch SITE=...  download those search pages (polite, capped)
 make collect-dry|collect SOURCE=manual|standvirtual|standvirtual-search|olx-search FILE=... [ARGS=--full]
@@ -296,6 +297,10 @@ invites; written by the collector on each run).
 - Functions: `security definer`, `set search_path = ''`, fully qualified
   names, and `revoke all ... from public, anon, authenticated` unless the app
   must call them. Views: `with (security_invoker = true)`.
+- Every UPDATE and DELETE in a function has a WHERE (`where id` on the
+  one-row tables, `where true` for all rows): Supabase's API loads
+  pg-safeupdate, which refuses them otherwise, also inside functions the
+  app or the collector calls (`make sql-lint`'s safeupdate check).
 - Pure scoring functions take plain values (testable with literals).
 - The service-role key is only ever used by the collector, never the app.
 - `source_data_quality` (view, readable by everyone) feeds "Qualidade dos
