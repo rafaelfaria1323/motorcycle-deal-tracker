@@ -58,7 +58,7 @@ Unchanged.
 - Frontend: Flutter Web, Dart ✅
 - Backend: Supabase, PostgreSQL ✅, Supabase Auth ✅ *(anonymous + owner email/password)*; scheduled jobs ➕ *on GitHub Actions instead of Edge Functions (a Dart CLI collector, one process per run, every 4 hours), started by Supabase pg_cron (GitHub's own scheduler never started them).*
 - Hosting: Cloudflare Pages ✅
-- Repository: GitHub ✅ *(should become private)*; ➕ automatic code-quality review by Claude after every 5 merged PRs
+- Repository: GitHub ✅ *(stays public, Rafael 2026-10-21: free Actions minutes for the whole pipeline)*; ➕ automatic code-quality review by Claude after every 5 merged PRs
 - Notifications: Web push ✅ *(each account's alerts on its devices, the admins' when the collection breaks or recovers, sent by the collector itself; a tap opens the listing in the app; "Enviar notificação de teste" in Mais checks a device with an example of any notification; stays on after the app is closed; the weekly summary on Mondays, kept in the app's "Resumo da semana")*; ➕ Telegram bot ✅ (alerts until 2026-10-21, the weekly summary until 14.4d; now only the database's warnings when no run starts or the GitHub token is ending)
 
 ## 8. Architecture ✅
@@ -141,11 +141,11 @@ Shown on the detail page. Reference prices are edited in the app; set for the or
 
 ## 21. Data Quality 🟡
 
-✅ Collection runs and blocks are tracked. ✅ Requests used per run, run duration, next run and monthly usage shown in the app (Mais). ✅ Per site in Mais: live listings, tracked/unmatched/duplicate shares, missing year, mileage and location, Standvirtual pages still to read, when listings were last seen on each site (warns after 24 h) and sudden price changes of 50 % or more in the last 30 days (view `source_data_quality`). ⬜ Per-field confidence.
+✅ Collection runs and blocks are tracked. ✅ Requests used per run, run duration, next run and monthly usage shown in the app (Mais). ✅ Per site in Mais: live listings, tracked/unmatched/duplicate shares, missing year, mileage and location, Standvirtual pages still to read, when listings were last seen on each site (warns after 24 h) and sudden price changes of 50 % or more in the last 30 days (view `source_data_quality`). ⬜ Per-field confidence. ✅ Each run's log says, per search, how many of the ads it read are a followed model (9.10c), so searches that spend requests on other bikes show up.
 
 ## 22. Privacy 🟡
 
-Private sellers' names and all phone numbers are never stored; saved pages and fetch state are no longer committed. ⬜ The repo is public and old saved pages with phone numbers remain in its git history: make it private.
+Private sellers' names and all phone numbers are never stored; saved pages and fetch state are no longer committed. The repo stays public (Rafael, 2026-10-21: the free pipeline is worth more); old saved pages with phone numbers remain in its git history.
 
 ## 23. Future Features ⬜
 

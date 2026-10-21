@@ -16,7 +16,9 @@ For each site (Standvirtual, OLX):
    changes and dates, and mark listings that left the searches read in full
    as removed (`--full`). The brand and model lists in the search pages'
    filters are stored too (`site_models`, for the app's model picker; no
-   extra requests).
+   extra requests). The log says, per search, how many of the ads it read
+   are a followed model ("Search yield"), so a search that spends requests
+   on other bikes shows up.
 4. **Details** (Standvirtual only): read the listing page of new listings.
 
 Then, once for both sites: find duplicates, recalculate the scores,

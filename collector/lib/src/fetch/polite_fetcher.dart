@@ -48,6 +48,7 @@ class FetchPolicy {
     this.maxRequestsPerRun = 20,
     this.maxRequestsPerDay = 120,
     this.timeout = const Duration(seconds: 20),
+    this.readTimeout = const Duration(seconds: 60),
     this.cooldownAfterBlock = const Duration(hours: 24),
   });
 
@@ -55,7 +56,13 @@ class FetchPolicy {
   final Duration jitter;
   final int maxRequestsPerRun;
   final int maxRequestsPerDay;
+
+  /// For connecting and the response's headers.
   final Duration timeout;
+
+  /// For reading the page once it is coming in: OLX's pages are 2 MB, and
+  /// one took longer than [timeout] on a slow runner (it adds no request).
+  final Duration readTimeout;
   final Duration cooldownAfterBlock;
 }
 
@@ -293,7 +300,7 @@ class PoliteFetcher {
       final body = await response
           .transform(const Utf8Decoder(allowMalformed: true))
           .join()
-          .timeout(policy.timeout);
+          .timeout(policy.readTimeout);
 
       if ({403, 429, 503}.contains(response.statusCode)) {
         await _markBlocked();

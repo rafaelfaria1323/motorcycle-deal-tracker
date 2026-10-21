@@ -26,8 +26,10 @@ NormalizedListing testListing(
   String source = 'olx',
   double price = 7000,
   SellerType sellerType = SellerType.private,
+  String? motorcycleSlug,
 }) => NormalizedListing(
   source: source,
+  motorcycleSlug: motorcycleSlug,
   sourceListingId: id,
   url: 'https://example.com/$id',
   brand: 'Yamaha',
