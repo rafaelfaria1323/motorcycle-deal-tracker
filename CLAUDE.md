@@ -539,7 +539,9 @@ is unused). The collector sends them itself
 pointycastle, no third party); its key pair is made on the first run
 (`store_push_keys`: public key in `push_config`, private in Vault
 `vapid_private_key`). The app's `web/push.js` (subscribe, state) and
-`web/push_sw.js` (shows the notification; a tap opens `/#/deals/<id>`;
+`web/push_sw.js` (shows the notification; a tap opens `/#/deals/<id>`: an
+open app is focused and sent the address, which `push.js` puts in the hash,
+since the worker can't navigate a page it doesn't control;
 registered in its own scope `/push/`: Flutter's worker at `/` unregisters
 itself on each start and would take the subscription with it) are plain JS called from `core/platform/push.dart`; gone devices (404/410)
 are deleted.
