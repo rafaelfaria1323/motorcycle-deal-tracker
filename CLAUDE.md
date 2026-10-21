@@ -532,8 +532,9 @@ Telegram chat. The collector sends them itself
 pointycastle, no third party); its key pair is made on the first run
 (`store_push_keys`: public key in `push_config`, private in Vault
 `vapid_private_key`). The app's `web/push.js` (subscribe, state) and
-`web/push_sw.js` (shows the notification; a tap opens `/#/deals/<id>`)
-are plain JS called from `core/platform/push.dart`; gone devices (404/410)
+`web/push_sw.js` (shows the notification; a tap opens `/#/deals/<id>`;
+registered in its own scope `/push/`: Flutter's worker at `/` unregisters
+itself on each start and would take the subscription with it) are plain JS called from `core/platform/push.dart`; gone devices (404/410)
 are deleted.
 Weekly summary (Mondays, `weekly_summary.dart`, pure logic in
 `notify/weekly_summary.dart`): tracked models, non-duplicates; new = first

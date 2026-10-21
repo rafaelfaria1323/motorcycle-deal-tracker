@@ -4,7 +4,17 @@
 //   mdtPush.enable(publicKey)  asks for permission (must follow a tap), subscribes
 //                              with our VAPID key, resolves to the subscription as JSON
 //   mdtPush.disable()          unsubscribes; resolves to the endpoint removed, or ''
+//
+// push_sw.js gets its own scope (SCOPE), apart from Flutter's worker at the
+// root: Flutter's loader registers flutter_service_worker.js at "/" on every
+// start, and since Flutter 3.41 that worker unregisters itself, which took
+// a push worker sharing "/" (and with it the subscription) along when the
+// app was closed and opened again. The push worker controls no page, so
+// `navigator.serviceWorker.ready` never resolves for it: wait for it to
+// activate instead.
 (function () {
+  const SCOPE = 'push/';
+
   function supported() {
     return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
   }
@@ -23,8 +33,19 @@
   }
 
   async function subscription() {
-    const registration = await navigator.serviceWorker.getRegistration();
+    const registration = await navigator.serviceWorker.getRegistration(SCOPE);
     return registration ? registration.pushManager.getSubscription() : null;
+  }
+
+  // Resolves once the registration has an active worker (subscribe needs one).
+  function activated(registration) {
+    const worker = registration.installing || registration.waiting;
+    if (registration.active || !worker) return Promise.resolve();
+    return new Promise((resolve) => {
+      worker.addEventListener('statechange', () => {
+        if (worker.state === 'activated') resolve();
+      });
+    });
   }
 
   async function state() {
@@ -38,8 +59,8 @@
     // First, while the tap still counts as a user gesture (Safari asks for one).
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') throw new Error('permission ' + permission);
-    const registration = await navigator.serviceWorker.register('push_sw.js');
-    await navigator.serviceWorker.ready;
+    const registration = await navigator.serviceWorker.register('push_sw.js', { scope: SCOPE });
+    await activated(registration);
     const key = bytes(publicKey);
     let sub = await registration.pushManager.getSubscription();
     const current = sub && sub.options.applicationServerKey;
