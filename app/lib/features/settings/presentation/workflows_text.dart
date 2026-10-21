@@ -20,7 +20,7 @@ import '../domain/workflows_repository.dart';
   ),
   AppWorkflow.pushTest => (
     title: 'Enviar notificação de teste',
-    subtitle: 'Confirma que os alertas chegam aos seus aparelhos',
+    subtitle: 'Para confirmar que os alertas chegam aos seus aparelhos',
     started:
         'Notificação de teste pedida. Chega dentro de 1 a 2 minutos; se '
         'não chegar, desative e volte a ativar as notificações.',
