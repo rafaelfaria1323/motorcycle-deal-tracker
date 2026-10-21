@@ -78,6 +78,16 @@ shows "O GitHub recusou o pedido"). Mais › "Estado da recolha" shows the
 token's expiry date, and from 14 days before it Telegram reminds you once
 a day (pg_cron `github-token-check`).
 
+### Space: old listings of models nobody follows
+
+The free plan allows 500 MB. Every night (03:37 UTC) the pg_cron job
+`prune-unfollowed-listings` checks the database's size; only from 400 MB
+does it delete listings of models no account follows that left the sites
+30+ days ago (never favourites, alerted ones or the earlier ad of a
+relist), and says so on Telegram. Postgres reuses the freed space without
+shrinking the file, so the size shown in "Estado da recolha" stops growing
+rather than falling.
+
 ### Warning on Telegram when no run starts
 
 Every hour (minute 20) the pg_cron job `collection-watchdog` checks the
