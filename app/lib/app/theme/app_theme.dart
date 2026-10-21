@@ -33,7 +33,7 @@ abstract final class AppTheme {
     onSecondary: Colors.white,
     secondaryContainer: Color(0xFFE4E8EE),
     onSecondaryContainer: Color(0xFF1B2129),
-    tertiary: Color(0xFF0B8A5E),
+    tertiary: Color(0xFF0A7F57),
     onTertiary: Colors.white,
     tertiaryContainer: Color(0xFFD5F5E7),
     onTertiaryContainer: Color(0xFF003D27),
