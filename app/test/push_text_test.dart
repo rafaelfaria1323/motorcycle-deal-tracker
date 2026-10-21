@@ -32,6 +32,14 @@ void main() {
     );
   });
 
+  test('the Android app points to the browser', () {
+    expect(
+      pushSubtitle(PushState.nativeApp, signedIn: true),
+      contains('abra a app no Chrome'),
+    );
+    expect(pushSwitchEnabled(PushState.nativeApp, signedIn: true), isFalse);
+  });
+
   test("reads the browser's subscription", () {
     expect(
       parseSubscription(

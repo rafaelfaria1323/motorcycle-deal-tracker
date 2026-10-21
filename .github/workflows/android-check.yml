@@ -1,0 +1,43 @@
+name: Android build
+
+# Pull requests that change what the Android app is built from (its
+# plugins, the dependencies, the build script): the APK built as the
+# deploy builds it, but not signed with the app's key nor published, so a
+# broken Android build shows before the merge rather than in the deploy.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app/packages/**'
+      - 'app/pubspec.yaml'
+      - 'app/pubspec.lock'
+      - 'tool/android_build.sh'
+      - 'tool/android_manifest.py'
+      - '.github/workflows/android-check.yml'
+
+concurrency:
+  group: android-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Build APK
+        run: tool/android_build.sh 1

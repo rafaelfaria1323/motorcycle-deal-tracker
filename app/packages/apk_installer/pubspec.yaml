@@ -1,0 +1,21 @@
+name: apk_installer
+description: The Android app's own updater (Deal Tracker only).
+publish_to: 'none'
+version: 1.0.0
+
+environment:
+  sdk: ^3.9.2
+  flutter: ">=3.35.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+# Android only, no Dart code: the app calls the channel itself
+# (lib/core/platform/apk_installer.dart).
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: io.github.rafaelfaria1323.apk_installer
+        pluginClass: ApkInstallerPlugin

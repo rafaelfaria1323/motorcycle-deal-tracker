@@ -51,7 +51,7 @@ Unchanged.
 ## 6. Platform
 
 - Phase 1 — Flutter Web/PWA ✅ *Hosted on Cloudflare Pages, installed on the iPhone Home Screen; deployed on every merge. UI/UX redesign done (roadmap Sprint 13: Mais tab, Ofertas, listing page, Pesquisas/Alertas, its own look and fonts, one voice in pt-PT); models per account (Sprint 14); accounts from invite links made in the app (14.3), Telegram only for admins' alerts; admins can start a collection from Mais (14.5), any account its own weekly summary (14.4d) and see each run's errors, the sites' budgets and pauses and the GitHub token's expiry in "Estado da recolha" (14.6; checked from the app since 14.6b, with the database's size too).*
-- Phase 2 — Flutter iOS/Android ⬜ *Not needed for now: a native iPhone build requires a paid Apple Developer account.*
+- Phase 2 — Flutter iOS/Android 🟡 *Android ✅: every deploy builds a signed APK and replaces it on the GitHub release `android`; Mais offers it on Android phones, and the app updates itself from there (it says when a newer build is out, downloads it and opens Android's installer; roadmap 12.5). No notifications in it yet (Web Push is the browser's; Chrome keeps them). iPhone: not needed, a native build requires a paid Apple Developer account.*
 
 ## 7. Stack
 

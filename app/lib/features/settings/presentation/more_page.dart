@@ -9,6 +9,7 @@ import '../../../core/auth/session_cubit.dart';
 import '../../collector_status/presentation/collection_details.dart';
 import '../../collector_status/presentation/collector_status_banner.dart';
 import '../../collector_status/presentation/data_quality_details.dart';
+import 'android_app_tile.dart';
 import 'home_place_tile.dart';
 import 'push_tile.dart';
 import 'run_now_tiles.dart';
@@ -58,6 +59,10 @@ class MorePage extends StatelessWidget {
                   signedIn: signedIn,
                 ),
               ),
+              if (AndroidAppTile.shown) ...[
+                const _Header('App Android'),
+                const _Group(child: AndroidAppTile()),
+              ],
               const _Header('Notificações'),
               _Group(
                 child: PushTile(

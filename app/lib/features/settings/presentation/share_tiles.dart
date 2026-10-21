@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/di/injection.dart';
 import '../../../app/router/app_routes.dart';
+import '../../../core/platform/app_build.dart';
 import '../domain/accounts_repository.dart';
 import 'accounts_text.dart';
 import 'share_link.dart';
@@ -42,7 +43,7 @@ class _ShareTilesState extends State<ShareTiles> {
               ScaffoldMessenger.of(context),
               title: appName,
               text: appShareText,
-              url: appLink(Uri.base.origin),
+              url: appLink(webOrigin),
             ),
           ),
           if (snapshot.data == true) ...[

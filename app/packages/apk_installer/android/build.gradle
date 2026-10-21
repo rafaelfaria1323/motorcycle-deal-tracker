@@ -1,0 +1,24 @@
+group 'io.github.rafaelfaria1323.apk_installer'
+version '1.0.0'
+
+// The app's own build (made by `flutter create`) brings the Android Gradle
+// plugin and the repositories.
+apply plugin: 'com.android.library'
+
+android {
+    namespace 'io.github.rafaelfaria1323.apk_installer'
+    compileSdk 36
+
+    defaultConfig {
+        minSdk 21
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core:1.13.1'
+}

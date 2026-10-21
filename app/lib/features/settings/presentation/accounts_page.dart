@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/di/injection.dart';
+import '../../../core/platform/app_build.dart';
 import '../../../core/widgets/page_back_button.dart';
 import '../../../core/widgets/show_message.dart';
 import '../../../core/widgets/state_message.dart';
@@ -69,7 +70,7 @@ class _AccountsPageState extends State<AccountsPage> {
   }
 
   Future<void> _showLink(String code) {
-    final link = inviteLink(Uri.base.origin, code);
+    final link = inviteLink(webOrigin, code);
     return showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -196,7 +197,7 @@ class _AccountsPageState extends State<AccountsPage> {
                             ScaffoldMessenger.of(context),
                             title: appName,
                             text: inviteShareText,
-                            url: inviteLink(Uri.base.origin, invite.code),
+                            url: inviteLink(webOrigin, invite.code),
                           ),
                         ),
                       IconButton(
