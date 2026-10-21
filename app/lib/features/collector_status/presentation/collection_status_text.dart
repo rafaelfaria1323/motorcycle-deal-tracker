@@ -1,5 +1,6 @@
 import '../../../core/formatting/formatters.dart';
 import '../domain/collector_run.dart';
+import '../domain/database_usage.dart';
 import '../domain/github_token.dart';
 
 /// Warn this many days before the GitHub token expires (the database's
@@ -46,6 +47,43 @@ const tokenWarningDays = 14;
         warning: days < tokenWarningDays,
       );
   }
+}
+
+/// Supabase's free plan: the project turns read-only above this size.
+const databaseLimitBytes = 500 * _megabyte;
+
+/// Warn from this share of [databaseLimitBytes].
+const databaseWarningShare = 0.8;
+
+const _megabyte = 1024 * 1024;
+
+/// "42,3 MB".
+String megabytes(int bytes) =>
+    '${(bytes / _megabyte).toStringAsFixed(1).replaceAll('.', ',')} MB';
+
+/// "A base de dados ocupa 42,3 MB de 500 MB (8 %)", red from 80 %.
+({String text, bool warning}) databaseUsageText(DatabaseUsage usage) {
+  final share = usage.bytes / databaseLimitBytes;
+  final warning = share >= databaseWarningShare;
+  return (
+    text:
+        'A base de dados ocupa ${megabytes(usage.bytes)} de '
+        '${databaseLimitBytes ~/ _megabyte} MB '
+        '(${Formatters.percent(share * 100)}).'
+        '${warning ? ' Perto do limite do plano gratuito: acima dele o '
+                  'Supabase só deixa ler.' : ''}',
+    warning: warning,
+  );
+}
+
+/// "Maiores tabelas: listings 30,1 MB, listing_price_history 4,2 MB", or
+/// null when there are none.
+String? biggestTablesText(DatabaseUsage usage) {
+  if (usage.tables.isEmpty) return null;
+  final tables = [
+    for (final t in usage.tables) '${t.name} ${megabytes(t.bytes)}',
+  ];
+  return 'Maiores tabelas: ${tables.join(', ')}';
 }
 
 const siteNames = {'standvirtual': 'Standvirtual', 'olx': 'OLX'};

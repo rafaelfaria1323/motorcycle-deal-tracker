@@ -10,15 +10,18 @@ import '../../../core/widgets/page_back_button.dart';
 import '../../../core/widgets/section_card.dart';
 import '../../../core/widgets/state_message.dart';
 import '../data/collector_runs_repository.dart';
+import '../data/database_usage_repository.dart';
 import '../data/github_token_repository.dart';
 import '../domain/collector_run.dart';
+import '../domain/database_usage.dart';
 import '../domain/github_token.dart';
 import 'collection_status_text.dart';
 import 'collection_text.dart';
 
 /// "Estado da recolha" (admins, from Mais): whether the GitHub token still
-/// starts the runs, each site's requests today and pause, and the last runs
-/// with what went wrong and a link to each one on GitHub.
+/// starts the runs, how much database space is used, each site's requests
+/// today and pause, and the last runs with what went wrong and a link to
+/// each one on GitHub.
 class CollectionStatusPage extends StatefulWidget {
   const CollectionStatusPage({super.key});
 
@@ -31,6 +34,7 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
 
   late Future<List<CollectorRun>> _recent;
   late Future<GithubToken?> _token;
+  late Future<DatabaseUsage?> _usage;
 
   @override
   void initState() {
@@ -44,11 +48,15 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
       (t) => t,
       onError: (Object _) => null,
     );
+    _usage = getIt<DatabaseUsageRepository>().get().then<DatabaseUsage?>(
+      (u) => u,
+      onError: (Object _) => null,
+    );
   }
 
   Future<void> _reload() async {
     setState(_load);
-    await (_recent, _token).wait;
+    await (_recent, _token, _usage).wait;
   }
 
   @override
@@ -90,6 +98,14 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
                       'resumo semanal. Avisa também no Telegram 14 dias antes '
                       'de terminar.',
                   children: [_TokenLine(token: _token, now: now)],
+                ),
+                const SizedBox(height: 12),
+                SectionCard(
+                  title: 'Base de dados',
+                  footnote:
+                      'O plano gratuito do Supabase permite 500 MB; acima '
+                      'disso o projeto passa a só leitura.',
+                  children: [_UsageLines(usage: _usage)],
                 ),
                 const SizedBox(height: 12),
                 SectionCard(
@@ -156,6 +172,36 @@ class _TokenLine extends StatelessWidget {
           );
         }
         return _WarningLine(tokenText(token, now));
+      },
+    );
+  }
+}
+
+class _UsageLines extends StatelessWidget {
+  const _UsageLines({required this.usage});
+
+  final Future<DatabaseUsage?> usage;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<DatabaseUsage?>(
+      future: usage,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const BulletLine('A medir a base de dados…');
+        }
+        final usage = snapshot.data;
+        if (usage == null) {
+          return const BulletLine('Não foi possível medir a base de dados.');
+        }
+        final tables = biggestTablesText(usage);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _WarningLine(databaseUsageText(usage)),
+            if (tables != null) BulletLine(tables),
+          ],
+        );
       },
     );
   }
