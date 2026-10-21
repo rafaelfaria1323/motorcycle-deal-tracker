@@ -341,6 +341,13 @@ invites; written by the collector on each run).
   message (`send_telegram()`, pg_net, Vault secrets `telegram_bot_token`
   and `telegram_chat_id`), repeated once a day; the next run sends the
   recovery. State in `collection_watchdog` (one row, no API access).
+- Space: pg_cron job `prune-unfollowed-listings` (`37 3 * * *`) runs
+  `prune_unfollowed_listings()`: only once the database reaches 400 MB
+  (80 % of the free 500 MB), it deletes listings of models nobody follows
+  that are gone (removed/sold) for 30+ days, from the sites, and not a
+  favourite, alerted, or the earlier ad of a relist or duplicate; a
+  deletion is told on Telegram. The file doesn't shrink (the space is
+  reused), so it keeps pruning daily while above.
 - The app's next-run time (`collection_text.dart`) mirrors the
   `collect-listings` job: change both together.
 - Watch out: `greatest`/`least` ignore nulls.
