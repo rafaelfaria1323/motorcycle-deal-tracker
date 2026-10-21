@@ -51,10 +51,11 @@ authenticated_security_definer_function_executable_public_invite_status_p_code t
 anon_security_definer_function_executable_public_redeem_invite_p_code text, p_email text, p_password text
 authenticated_security_definer_function_executable_public_redeem_invite_p_code text, p_email text, p_password text
 
-# Admins start the collection or the weekly summary from the app:
-# start_workflow calls require_admin() first (else 42501) and starts only
-# those two workflows, once each per 15 minutes.
-authenticated_security_definer_function_executable_public_start_workflow_p_workflow text
+# The app starts the collection (admins: require_admin() first, else 42501),
+# a test notification or the account's own weekly summary: start_workflow
+# starts only those three workflows, each with a rate limit, and checks
+# p_kind against a fixed list.
+authenticated_security_definer_function_executable_public_start_workflow_p_workflow text, p_kind text
 
 # "Estado da recolha" (admins): github_token_status calls require_admin()
 # first (else 42501) and says only whether GitHub accepts the token and

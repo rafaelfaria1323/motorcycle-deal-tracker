@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/di/injection.dart';
+import '../../../../core/widgets/page_back_button.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/model_market.dart';
 import '../../domain/repositories/market_behaviour_repository.dart';
@@ -26,7 +27,10 @@ class _ModelMarketPageState extends State<ModelMarketPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Comparar modelos')),
+      appBar: AppBar(
+        leading: const PageBackButton(),
+        title: const Text('Comparar modelos'),
+      ),
       body: FutureBuilder<List<ModelMarket>>(
         future: _future,
         builder: (context, snapshot) {

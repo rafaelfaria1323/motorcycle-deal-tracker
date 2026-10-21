@@ -104,7 +104,9 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
                                   pushed to its devices (bin/weekly_summary.dart);
                                   input `account`: only that one
 .github/workflows/push-test.yml   A test notification (bin/push_test.dart) to the
-                                  devices of whoever asked in the app
+                                  devices of whoever asked in the app; input
+                                  `kind`: an example of one alert or
+                                  collection message (`pushTestKinds`)
 .github/workflows/check.yml       `make check` (with Flutter) and `make
                                   db-test` (Postgres service) on every pull
                                   request to main
@@ -239,13 +241,18 @@ invites; written by the collector on each run).
   and start `collect.yml` now from Mais › Recolha de dados
   (`start_workflow`: GitHub's dispatch API through `http` with the Vault
   token, at most once per 15 minutes, `workflow_starts`; the collector's
-  caps still apply). Any signed-in account can also start, once per 2
-  minutes, `push-test.yml` (Mais › "Notificações neste aparelho" ›
-  "Enviar notificação de teste"; `bin/push_test.dart` sends a test push to
-  that account's devices, who asked: `workflow_starts`) and
+  caps still apply). Any signed-in account can also start `push-test.yml`
+  (once per 30 seconds per account; Mais › "Notificações neste aparelho" ›
+  "Enviar notificação de teste", which asks which: `start_workflow`'s
+  `p_kind`, the workflow's input `kind`; `bin/push_test.dart` sends that
+  account's devices an example of that notification, built by the real
+  builders on one of its live listings and marked as a test) and
   `weekly-summary.yml` for itself ("Enviar o resumo da semana", there and
   on the summary page; the account goes as the workflow's input
-  `account`). The app's start calls share `start_workflow.dart`.
+  `account`, once per 2 minutes). The app's start calls share
+  `start_workflow.dart`. Full pages outside the shell show
+  `PageBackButton` (`core/widgets/`): pops, or, opened from a notification
+  with nothing beneath, goes to Mais (Ofertas for Favoritos).
   Catalog
   changes go through RPCs that call `require_account()` (signed in, not
   anonymous). Models per account: lists read `listings.in_my_models` and

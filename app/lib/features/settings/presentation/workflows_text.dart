@@ -22,16 +22,32 @@ import '../domain/workflows_repository.dart';
   ),
   AppWorkflow.pushTest => (
     title: 'Enviar notificação de teste',
-    subtitle: 'Para confirmar que os alertas chegam aos seus aparelhos',
+    subtitle:
+        'Escolha qual, para confirmar que os alertas chegam aos seus '
+        'aparelhos e abrem a página certa',
     started:
         'Notificação de teste pedida. Chega dentro de 1 a 2 minutos; se '
         'não chegar, desative e volte a ativar as notificações.',
   ),
 };
 
+/// How the test notification picker names each example.
+String pushTestKindText(PushTestKind kind) => switch (kind) {
+  PushTestKind.test => 'Notificação de teste simples',
+  PushTestKind.newListing => 'Novo anúncio',
+  PushTestKind.priceReduction => 'Baixa de preço',
+  PushTestKind.excellentOpportunity => 'Excelente oportunidade',
+  PushTestKind.targetPriceReached => 'Chegou ao seu preço',
+  PushTestKind.listingRemoved => 'Anúncio removido',
+  PushTestKind.backOnMarket => 'Voltou ao mercado',
+  PushTestKind.runFailed => 'A recolha falhou (administradores)',
+  PushTestKind.runBlocked => 'Um site recusou a recolha (administradores)',
+  PushTestKind.runRecovered => 'A recolha voltou a funcionar (administradores)',
+};
+
 /// Why `start_workflow` refused, from its error code.
 String startErrorText(String? code) => switch (code) {
-  '55006' => 'Já foi pedido há poucos minutos. Tente mais tarde.',
+  '55006' => 'Já foi pedido há pouco. Aguarde um momento e tente novamente.',
   '55000' => 'Falta o token do GitHub no Vault do Supabase.',
   '58000' =>
     'O GitHub recusou o pedido. Verifique o token do GitHub (Actions: '

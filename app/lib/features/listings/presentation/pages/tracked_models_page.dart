@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/di/injection.dart';
+import '../../../../core/widgets/page_back_button.dart';
 import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/catalog_model.dart';
@@ -139,7 +140,10 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Modelos acompanhados')),
+      appBar: AppBar(
+        leading: const PageBackButton(),
+        title: const Text('Modelos acompanhados'),
+      ),
       floatingActionButton: _models == null
           ? null
           : FloatingActionButton.extended(

@@ -6,6 +6,8 @@ class _Store implements ListingStore {
 
   final String? requester;
   (String, DateTime)? asked;
+  Map<String, dynamic>? listing;
+  String? sampleFor;
   Map<String, List<PushTarget>> devices = const {};
   List<String> forgotten = const [];
   List<String> used = const [];
@@ -14,6 +16,12 @@ class _Store implements ListingStore {
   Future<String?> lastWorkflowStarter(String workflow, DateTime since) async {
     asked = (workflow, since);
     return requester;
+  }
+
+  @override
+  Future<Map<String, dynamic>?> sampleListing(String? userId) async {
+    sampleFor = userId;
+    return listing;
   }
 
   @override
@@ -102,5 +110,95 @@ void main() {
   test('the test notification opens Mais', () {
     expect(testPushMessage['url'], '/#/more');
     expect(testPushMessage['title'], 'Notificação de teste');
+  });
+
+  group('examples of each notification', () {
+    const listing = {
+      'id': 'l1',
+      'brand': 'Honda',
+      'model': 'CB650R',
+      'url': 'https://www.olx.pt/d/anuncio/x',
+      'year': 2022,
+      'mileage': 8000,
+      'price': 7000,
+      'deal_score': 81,
+      'location': 'Porto',
+    };
+
+    test('the asking account (the workflow input) gets the kind it chose, '
+        'on one of its listings', () async {
+      final store = _Store(requester: 'someone else')
+        ..devices = _devices
+        ..listing = listing;
+      final push = _Push();
+
+      final result = await sendTestPush(
+        store,
+        push,
+        account: 'u1',
+        kind: 'price_reduction',
+      );
+
+      expect(result, (devices: 1, sent: 1));
+      expect(store.asked, isNull);
+      expect(store.sampleFor, 'u1');
+      final (endpoint, message) = push.sent.single;
+      expect(endpoint, 'https://p/u1');
+      expect(message, {
+        'title': '📉 Baixa de preço: Honda CB650R 2022',
+        'body':
+            '7 400 € → 7 000 €\n8 000 km · Porto · Pontuação 81\n'
+            'Exemplo de teste: nada mudou.',
+        'url': '/#/deals/l1',
+        'tag': 'push-test',
+      });
+    });
+
+    test('each alert type has its own heading and opens the listing', () {
+      for (final (kind, heading) in [
+        ('new_listing', '🆕 Novo anúncio'),
+        ('excellent_opportunity', '🔥 Excelente oportunidade'),
+        ('listing_removed', '🚫 Anúncio removido'),
+        ('back_on_market', '🔁 Voltou ao mercado'),
+        ('target_price_reached', '🎯 Chegou ao seu preço'),
+      ]) {
+        final m = samplePushMessage(kind, listing);
+        expect(m['title'], startsWith(heading), reason: kind);
+        expect(m['url'], '/#/deals/l1', reason: kind);
+      }
+      expect(
+        (samplePushMessage('target_price_reached', listing)['body']! as String)
+            .split('\n')
+            .first,
+        '7 000 € (o seu preço: 7 150 €)',
+      );
+    });
+
+    test('without a listing, an example bike that opens Ofertas', () {
+      final m = samplePushMessage('new_listing', null);
+      expect(m['title'], '🆕 Novo anúncio: Yamaha MT-07 2021');
+      expect(m['url'], '/#/deals');
+    });
+
+    test('the collection\'s health opens Estado da recolha', () {
+      for (final kind in ['run_failed', 'run_blocked', 'run_recovered']) {
+        final m = samplePushMessage(kind, null);
+        expect(m['url'], '/#/collection-status', reason: kind);
+        expect(m['body'], endsWith('Exemplo de teste: nada mudou.'));
+      }
+      expect(
+        samplePushMessage('run_failed', null)['body'],
+        startsWith('olx: Failed: TimeoutException (exemplo)'),
+      );
+      expect(
+        samplePushMessage('run_recovered', null)['title'],
+        '✅ A recolha de anúncios voltou a funcionar.',
+      );
+    });
+
+    test('the test kind, or an unknown one, is the test notification', () {
+      expect(samplePushMessage('test', listing), testPushMessage);
+      expect(samplePushMessage('nope', listing), testPushMessage);
+    });
   });
 }

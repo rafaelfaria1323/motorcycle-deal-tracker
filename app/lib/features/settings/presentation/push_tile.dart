@@ -92,12 +92,47 @@ class _PushTileState extends State<PushTile> {
 
   Future<void> _send(AppWorkflow workflow) async {
     final messenger = ScaffoldMessenger.of(context);
+    PushTestKind? kind;
+    if (workflow == AppWorkflow.pushTest) {
+      kind = await _pickKind();
+      if (kind == null || !mounted) return;
+    }
     setState(() => _starting = workflow);
-    final message = await startWorkflow(workflow);
+    final message = await startWorkflow(workflow, kind: kind);
     if (!mounted) return;
     setState(() => _starting = null);
     showMessage(messenger, message);
   }
+
+  /// Which example to send: one of each alert and collection message, as
+  /// the real one would look (marked as a test).
+  Future<PushTestKind?> _pickKind() => showModalBottomSheet<PushTestKind>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    constraints: const BoxConstraints(maxWidth: 560),
+    builder: (context) => SafeArea(
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const ListTile(
+              title: Text('Que notificação enviar?'),
+              subtitle: Text(
+                'Um exemplo de cada tipo, com um dos seus anúncios; os seus '
+                'alertas ficam como estão.',
+              ),
+            ),
+            for (final kind in PushTestKind.values)
+              ListTile(
+                title: Text(pushTestKindText(kind)),
+                onTap: () => Navigator.of(context).pop(kind),
+              ),
+          ],
+        ),
+      ),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {

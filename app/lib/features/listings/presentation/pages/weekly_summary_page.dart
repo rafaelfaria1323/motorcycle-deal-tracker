@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/auth/session_cubit.dart';
+import '../../../../core/widgets/page_back_button.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
@@ -60,6 +61,7 @@ class _WeeklySummaryPageState extends State<WeeklySummaryPage> {
     final ask = workflowText(AppWorkflow.weeklySummary);
     return Scaffold(
       appBar: AppBar(
+        leading: const PageBackButton(),
         title: const Text('Resumo da semana'),
         actions: [
           if (_signedIn)
