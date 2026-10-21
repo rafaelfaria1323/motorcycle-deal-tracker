@@ -100,6 +100,8 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
                                   started by Supabase pg_cron (see below)
 .github/workflows/weekly-summary.yml  Mondays 07:52 UTC (pg_cron): the week's summary
                                   on Telegram (bin/weekly_summary.dart)
+.github/workflows/push-test.yml   A test notification (bin/push_test.dart) to the
+                                  devices of whoever asked in the app
 .github/workflows/check.yml       `make check` (with Flutter) and `make
                                   db-test` (Postgres service) on every pull
                                   request to main
@@ -173,6 +175,7 @@ make enrich-dry|enrich         read Standvirtual listing pages for details (max 
 make refresh ARGS=--full       one process for both sites (bin/refresh.dart): searches -> fetch
                                -> import (with removal) -> enrich, then scores/alerts once
 make refresh-olx|refresh-standvirtual   the same for one site
+make push-test                 send a test notification to the admins' devices (Web Push)
 make weekly-summary [ARGS=--dry-run]   send (or print) the week's Telegram summary
 make mutation PKG=collector|app FILES="lib/..."   mutation testing of those files
                                (needs `dart pub global activate mutation_test`)
@@ -233,7 +236,10 @@ invites; written by the collector on each run).
   and start `collect.yml` or `weekly-summary.yml` now from Mais › Recolha
   de dados (`start_workflow`: GitHub's dispatch API through `http` with
   the Vault token, each at most once per 15 minutes, `workflow_starts`;
-  the collector's caps still apply).
+  the collector's caps still apply). Any signed-in account can also start
+  `push-test.yml` (Mais › "Notificações neste aparelho" › "Enviar
+  notificação de teste", once per 2 minutes): `bin/push_test.dart` sends a
+  test push to that account's devices (who asked: `workflow_starts`).
   Catalog
   changes go through RPCs that call `require_account()` (signed in, not
   anonymous). Models per account: lists read `listings.in_my_models` and

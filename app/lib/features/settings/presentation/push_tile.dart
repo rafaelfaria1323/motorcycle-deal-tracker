@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/di/injection.dart';
 import '../../../core/platform/push.dart';
 import '../../../core/widgets/show_message.dart';
 import '../domain/push_repository.dart';
+import '../domain/workflows_repository.dart';
 import 'push_text.dart';
+import 'workflows_text.dart';
 
 /// "Notificações neste aparelho" in Mais: the account's alerts as
-/// notifications on this phone or computer (Web Push).
+/// notifications on this phone or computer (Web Push). When they are on,
+/// a test notification can be asked for (sent by the collector, so it
+/// checks the whole path to the device).
 class PushTile extends StatefulWidget {
   const PushTile({required this.signedIn, super.key});
 
@@ -21,6 +26,7 @@ class _PushTileState extends State<PushTile> {
   final _repository = getIt<PushRepository>();
   PushState? _state;
   bool _busy = false;
+  bool _testing = false;
 
   /// Read ahead: Safari asks for permission only straight after a tap, so
   /// nothing may be awaited between the tap and the request.
@@ -82,6 +88,23 @@ class _PushTileState extends State<PushTile> {
     }
   }
 
+  Future<void> _sendTest() async {
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _testing = true);
+    String message;
+    try {
+      await getIt<WorkflowsRepository>().start(AppWorkflow.pushTest);
+      message = workflowText(AppWorkflow.pushTest).started;
+    } on PostgrestException catch (e) {
+      message = startErrorText(e.code);
+    } on Exception {
+      message = startErrorText(null);
+    }
+    if (!mounted) return;
+    setState(() => _testing = false);
+    showMessage(messenger, message);
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = _state;
@@ -89,18 +112,39 @@ class _PushTileState extends State<PushTile> {
         state != null &&
         !_busy &&
         pushSwitchEnabled(state, signedIn: widget.signedIn);
-    return ListTile(
-      leading: const Icon(Icons.notifications_outlined),
-      title: const Text('Notificações neste aparelho'),
-      subtitle: Text(
-        state == null
-            ? 'A verificar…'
-            : pushSubtitle(state, signedIn: widget.signedIn),
-      ),
-      trailing: Switch(
-        value: state == PushState.on,
-        onChanged: enabled ? _set : null,
-      ),
+    final test = workflowText(AppWorkflow.pushTest);
+    return Column(
+      children: [
+        ListTile(
+          leading: const Icon(Icons.notifications_outlined),
+          title: const Text('Notificações neste aparelho'),
+          subtitle: Text(
+            state == null
+                ? 'A verificar…'
+                : pushSubtitle(state, signedIn: widget.signedIn),
+          ),
+          trailing: Switch(
+            value: state == PushState.on,
+            onChanged: enabled ? _set : null,
+          ),
+        ),
+        if (widget.signedIn && state == PushState.on) ...[
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(Icons.send_outlined),
+            title: Text(test.title),
+            subtitle: Text(test.subtitle),
+            trailing: _testing
+                ? const SizedBox.square(
+                    dimension: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : null,
+            enabled: !_testing && !_busy,
+            onTap: _sendTest,
+          ),
+        ],
+      ],
     );
   }
 }

@@ -59,7 +59,7 @@ Unchanged.
 - Backend: Supabase, PostgreSQL ✅, Supabase Auth ✅ *(anonymous + owner email/password)*; scheduled jobs ➕ *on GitHub Actions instead of Edge Functions (a Dart CLI collector, one process per run, every 4 hours), started by Supabase pg_cron (GitHub's own scheduler never started them).*
 - Hosting: Cloudflare Pages ✅
 - Repository: GitHub ✅ *(should become private)*; ➕ automatic code-quality review by Claude after every 5 merged PRs
-- Notifications: ➕ Telegram bot ✅ (alerts after each run, a message when the collection breaks, stops starting or recovers, weekly summary on Mondays); Web push ✅ *(each account's alerts on its devices, sent by the collector itself; a tap opens the listing in the app)*
+- Notifications: ➕ Telegram bot ✅ (alerts after each run, a message when the collection breaks, stops starting or recovers, weekly summary on Mondays); Web push ✅ *(each account's alerts on its devices, sent by the collector itself; a tap opens the listing in the app; "Enviar notificação de teste" in Mais checks a device)*
 
 ## 8. Architecture ✅
 

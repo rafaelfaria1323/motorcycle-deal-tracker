@@ -47,6 +47,7 @@ best live deals with a Risk Score below 50. It only reads the database.
 | `make collect-dry` / `collect SOURCE=... FILE=...` | Import saved pages or a JSON file |
 | `make enrich-dry` / `enrich` | Standvirtual listing details |
 | `make notify-test` | Send a test message to Telegram |
+| `make push-test` | Send a test notification (Web Push) to the admins' devices (`push-test.yml` from the app: to the asking account's) |
 | `make weekly-summary [ARGS=--dry-run]` | Send (or print) the week's summary |
 | `make collector-check` | Format check, analyze and test |
 
