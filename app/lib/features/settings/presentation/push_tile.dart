@@ -119,8 +119,8 @@ class _PushTileState extends State<PushTile> {
             const ListTile(
               title: Text('Que notificação enviar?'),
               subtitle: Text(
-                'Um exemplo de cada tipo, com um dos seus anúncios. Nada '
-                'muda nos seus alertas.',
+                'Um exemplo de cada tipo, com um dos seus anúncios; os seus '
+                'alertas ficam como estão.',
               ),
             ),
             for (final kind in PushTestKind.values)
