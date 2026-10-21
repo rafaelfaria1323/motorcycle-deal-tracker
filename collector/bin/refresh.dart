@@ -135,8 +135,10 @@ Future<int> _refreshSite(
     }
     return 0;
   } on FetchLimitReached catch (e) {
-    stderr.writeln('Not fetched: $e');
-    return 75;
+    // The budget is spent (e.g. the day's last requests went to the run
+    // before): nothing is wrong, the next run carries on.
+    stdout.writeln('Nothing fetched: $e; the next run carries on.');
+    return 0;
   } on FetchRefused catch (e) {
     stderr.writeln('Not fetched: $e');
     return 75;

@@ -10,7 +10,9 @@ const _source = 'standvirtual';
 /// Reads the Standvirtual listing page of each of [pending] with [fetcher]
 /// (prepared) and stores the details they add; returns how many listings
 /// were updated. A page that is gone, unreadable or refused by our own
-/// rules (e.g. a redirect off /motos/) is skipped. Running out of requests
+/// rules (e.g. a redirect off /motos/) is skipped and marked failed, and so
+/// is one that turns out to be another ad, so the next runs try the
+/// listings never read first. Running out of requests
 /// stops quietly; a block stops too, and is rethrown once what was read is
 /// stored.
 Future<int> enrichDetails(
@@ -22,26 +24,36 @@ Future<int> enrichDetails(
   final log = out ?? stdout;
   final adapter = StandvirtualPageAdapter('unused');
   final details = <ListingDetails>[];
-  var skipped = 0;
+  final failed = <String>[];
   FetchBlocked? stop;
 
   try {
     for (final p in pending) {
       try {
         final html = await fetcher.get(Uri.parse(p.url));
-        details.add(adapter.parseDetails(html));
+        final read = adapter.parseDetails(html);
+        if (read.sourceListingId != p.sourceListingId) {
+          // Redirected to another ad: this one has no page of its own.
+          failed.add(p.sourceListingId);
+          log.writeln(
+            '  - skipped ${p.sourceListingId}: the page is '
+            '${read.sourceListingId}',
+          );
+          continue;
+        }
+        details.add(read);
         log.writeln('  read ${p.sourceListingId}');
       } on FetchFailed catch (e) {
         // e.g. 404 for a listing removed since the last search: skip it.
-        skipped++;
+        failed.add(p.sourceListingId);
         log.writeln('  - skipped ${p.sourceListingId}: $e');
       } on FormatException catch (e) {
-        skipped++;
+        failed.add(p.sourceListingId);
         log.writeln('  - skipped ${p.sourceListingId}: ${e.message}');
       } on FetchLimitReached {
         rethrow;
       } on FetchRefused catch (e) {
-        skipped++;
+        failed.add(p.sourceListingId);
         log.writeln('  - skipped ${p.sourceListingId}: $e');
       }
     }
@@ -53,7 +65,10 @@ Future<int> enrichDetails(
 
   // Keep whatever was read before a stop.
   final updated = await store.applyDetails(_source, details);
-  log.writeln('Details stored for $updated listing(s), $skipped skipped.');
+  await store.markDetailsFailed(_source, failed);
+  log.writeln(
+    'Details stored for $updated listing(s), ${failed.length} skipped.',
+  );
   if (stop != null) throw stop;
   return updated;
 }

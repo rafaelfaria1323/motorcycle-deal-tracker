@@ -377,7 +377,12 @@ functions for manual work.
   (including `createdAt` -> `published_at` and the bump date ->
   `site_refreshed_at`; `apply_listing_dates` keeps the earliest publication
   and latest renewal). Listing pages are read only for matched, non-duplicate
-  listings without details (`details_checked_at is null`). The search
+  listings without details (`details_checked_at is null`), newest first;
+  a page that failed (gone, unreadable, refused, another ad) is marked
+  `details_failed_at` (`mark_details_failed`) and waits behind the
+  listings never tried. A search counts as read in full when every page
+  it spans was saved, or its pages hold the site's count (promoted ads
+  never count). The search
   result's `priceDrop` is stored as `price_before_drop` (highest seen, never
   creates alerts).
 - **OLX** search results (`__PRERENDERED_STATE__`, 40 per page, `page=N`)
@@ -399,7 +404,8 @@ functions for manual work.
   matched by their stored brand and model (a matched listing stores the
   catalog names), removed ones included.
 - Dealer boilerplate sentences are stripped from descriptions (they caused
-  false duplicates). Duplicates are detected across sources too.
+  false duplicates). Duplicates are detected across sources too; a removed
+  listing keeps its mark (only live listings are worked out again).
 - Relisted ads (`mark_relists`, called at the end of `mark_duplicates`): a
   live listing that matches a gone ad (same model and year, duplicate
   similarity >= 70) which disappeared up to 90 days before it was first
@@ -419,11 +425,14 @@ functions for manual work.
   robots.txt read and one budget),
   **never parallel**, no retries; stop on 403/429/503 or a non-normal page,
   then pause 24 h (state in `collector/.fetch_state.json` and
-  `.fetch_state.olx.json`, cached between Actions runs). Reaching the run or
-  daily limit after some pages were saved is not a failure: what was saved
-  is imported. A request that fails (a timeout) or a block after some pages
-  were saved also imports them, but the run still counts as failed; a
-  search with a page missing is not read in full, so it removes nothing.
+  `.fetch_state.olx.json`, cached between Actions runs; written whole
+  through a temporary file; a damaged one spends the day's budget).
+  Reaching the run or daily limit is not a failure: what was saved is
+  imported. A request that fails (a timeout), a page our rules refuse or
+  a block after some pages were saved also imports them, but the run still
+  counts as failed; a search with a page missing is not read in full, so
+  it removes nothing. The single-step commands keep the same caps
+  (`fetch.dart --max` up to 20, `enrich.dart` 10 by default, up to 19).
 - Honest user agent. Saved pages, manifests, generated search lists and
   fetch state are never committed (they contain sellers' contact details).
 - Never store private sellers' names or anyone's phone numbers.
@@ -466,7 +475,7 @@ functions for manual work.
   `mentions_accident`: "nunca teve acidentes", "livre de sinistros" and
   insurance wording don't count), missing
   mileage/year/location, thin description (only private sellers with details
-  read), 3+ owners, no service book, imported, implausible mileage (under
+  read, or on OLX, whose results hold the whole description), 3+ owners, no service book, imported, implausible mileage (under
   100 km on a bike 3+ years old, or over 25 000 km a year), relisted (5;
   `relisted_often` 10: twice, or on sale for over 90 days counting the
   earlier ads), the text contradicting the ad's fields
@@ -532,9 +541,12 @@ seen after `target_set_at` (stamped by a trigger); old_price = the target,
 one alert per target), `new_listing`, `price_reduction` (>= 1% drop, one per price-history
 row), `excellent_opportunity` (score >= 80, risk < 50, one per user/listing,
 `excellent_since`), `listing_removed` (only for listings the user was already
-alerted about), `back_on_market` (a relist of an ad the person followed:
+alerted about; one per removal: a listing that comes back and goes again
+alerts again), `back_on_market` (a relist of an ad the person followed:
 favourite or alerted by an active saved search; once per person and new
-ad; relists first seen in the last 14 days). Only events after the saved search was created. Saved
+ad; relists first seen in the last 14 days). Only events after the saved search was created
+and in the last day (a listing first seen, a drop or a removal older than
+that, e.g. of a model just followed, never alerts). Saved
 searches can also require a minimum Deal Score / maximum Risk Score,
 a maximum distance from the owner's home and equipment (`extras`, all
 required; `listing_extras` codes); all in `saved_search_matches`.
@@ -573,9 +585,10 @@ drop = last price this week >= 1% below the price the week started with
 Favourites (`listing_favourites`: user, listing, private note; owner-only
 RLS) alert their owner without a saved search (`saved_search_id` null):
 `generate_favourite_alerts()` gives every `price_reduction` (>= 1%) and the
-`listing_removed` after the listing became a favourite; the alerts' unique
-indexes keep one alert per price change / removal when a saved search also
-covers it. A favourite also holds the viewing checklist's marks
+`listing_removed` after the listing became a favourite; a unique index
+keeps one alert per price change, and a removal already alerted to the
+person since the listing was last seen isn't alerted again, when a saved
+search also covers it. A favourite also holds the viewing checklist's marks
 (`checklist jsonb`, `{"tyres": {"mark": "ok"|"issue", "note": ...}}`); the
 items live in the app (`viewing_checklist.dart`), keys never change.
 Reimporting everything after a reset: create saved searches AFTER the import,

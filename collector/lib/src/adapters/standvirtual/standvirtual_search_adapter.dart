@@ -28,7 +28,9 @@ class StandvirtualSearchPage {
   final int total;
   final int offset;
 
-  /// How many results this page holds.
+  /// How many results this page holds (promoted ads, shown above them and
+  /// also among a search's results, don't count: with them a search cut
+  /// short could look read in full).
   final int shown;
 
   /// How many results a page of this search holds.
@@ -65,9 +67,12 @@ class StandvirtualSearchAdapter
   @override
   Future<ParseResult<StandvirtualRawListing>> read() {
     // Per search (the manifest's, or the file's own without one): listings
-    // the site says it has, listings on the pages saved, and the first file.
+    // the site says it has, listings on the pages saved, the pages saved,
+    // and the first file.
     final totals = <String, int>{};
     final shown = <String, int>{};
+    final pages = <String, Set<int>>{};
+    final pageCount = <String, int>{};
     final firstFile = <String, (int, String, String?)>{};
 
     return readSavedSearchPages<StandvirtualRawListing, StandvirtualSearchPage>(
@@ -83,12 +88,15 @@ class StandvirtualSearchAdapter
         final key = search ?? name;
         totals[key] = page.total;
         shown[key] = (shown[key] ?? 0) + page.shown;
+        (pages[key] ??= {}).add(page.offset ~/ page.pageSize);
+        pageCount[key] = page.totalPages;
         firstFile.putIfAbsent(key, () => (i, name, search));
       },
       finish: () => [
         for (final MapEntry(:key, value: (i, name, search))
             in firstFile.entries)
-          if (shown[key]! < totals[key]!)
+          if (shown[key]! < totals[key]! &&
+              pages[key]!.length < pageCount[key]!)
             ParseIssue(
               i,
               '$name: holds ${shown[key]} of ${totals[key]} listings (more '
@@ -144,10 +152,6 @@ class StandvirtualSearchAdapter
     if (edges is! List) {
       throw const FormatException('search results have no listings list');
     }
-    final topAds = search['topads'] is List
-        ? search['topads'] as List
-        : const <Object?>[];
-
     final records = <StandvirtualRawListing>[];
     final problems = <String>[];
     for (final edge in edges) {
@@ -169,7 +173,7 @@ class StandvirtualSearchAdapter
       problems: problems,
       total: asInt(search['totalCount']) ?? edges.length,
       offset: asInt(asMap(search['pageInfo'])?['currentOffset']) ?? 0,
-      shown: edges.length + topAds.length,
+      shown: edges.length,
       pageSize: asInt(asMap(search['pageInfo'])?['pageSize']) ?? 32,
       models: models,
     );

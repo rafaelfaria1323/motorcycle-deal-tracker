@@ -6,7 +6,7 @@ const _source = 'standvirtual';
 
 Future<void> main(List<String> args) async {
   var dryRun = false;
-  var max = 15;
+  var max = 10;
   var badArgs = false;
   for (final arg in args) {
     if (arg == '--dry-run') {
@@ -17,11 +17,12 @@ Future<void> main(List<String> args) async {
       badArgs = true;
     }
   }
-  if (badArgs || max < 1 || max > 40) {
+  if (badArgs || max < 1 || max > 19) {
     stderr.writeln(
-      'Usage: dart run bin/enrich.dart [--dry-run] [--max=<1-40>]\n'
+      'Usage: dart run bin/enrich.dart [--dry-run] [--max=<1-19>]\n'
       '  Reads the listing page of up to <max> live listings that have no\n'
-      '  details yet (newest first) and stores what it adds.',
+      '  details yet (newest first, pages that failed before last) and\n'
+      '  stores what it adds.',
     );
     exitCode = 64;
     return;
