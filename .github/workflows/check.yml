@@ -76,6 +76,12 @@ jobs:
       - name: make duplication
         run: make duplication
 
+      # Unused code and unused files in the app (dart_code_linter).
+      - name: make dead-code
+        run: |
+          dart pub global activate dart_code_linter 4.4.2 >/dev/null
+          make dead-code
+
       - name: make coverage
         run: |
           dart pub global activate coverage >/dev/null

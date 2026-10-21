@@ -6,7 +6,8 @@ PRs, it does up to 3 of them (all if fewer are left) and does not look for
 new ones; when "To do" is empty, after 10 merged PRs, it only reviews the
 code and adds up to 10 new items (most valuable first), changing no code.
 It looks at how the code is written (duplication, dead code, structure,
-theme, efficiency, names); bugs and tests belong to
+theme, efficiency, names); unused code and files in the app are already
+failed by `make dead-code`, copy-paste by `make duplication`; bugs and tests belong to
 [`test-hardening.md`](test-hardening.md). Rafael can
 add, remove or reorder items by hand at any time.
 
