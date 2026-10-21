@@ -6,7 +6,8 @@ import 'telegram_notifier.dart';
 import 'web_push.dart';
 
 /// Sends pending alerts: each to its account's devices ([push], Web Push)
-/// and to the owner's Telegram chat ([telegram]), either when configured.
+/// and, an admin's, to the owner's Telegram chat ([telegram]), either when
+/// configured.
 /// Returns how many alerts went out and how many pushes reached a device.
 /// A Telegram failure stops the loop and leaves the rest for the next run;
 /// a device that no longer exists is forgotten. Never throws.
@@ -26,7 +27,7 @@ Future<({int alerts, int pushes})> notifyPending(
   final gone = <String>{};
   var pushes = 0;
   for (final alert in pending) {
-    if (telegram != null) {
+    if (telegram != null && alert.toTelegram) {
       try {
         await telegram.send(formatAlert(alert));
       } on NotifyFailed catch (e) {

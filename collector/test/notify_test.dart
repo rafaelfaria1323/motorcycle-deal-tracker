@@ -91,15 +91,17 @@ class _Push implements WebPushSender {
 PushTarget _device(String endpoint) =>
     PushTarget(endpoint: endpoint, p256dh: 'k', auth: 'a');
 
-PendingAlert _withId(String id, {String user = 'u1'}) => PendingAlert(
-  alertId: id,
-  userId: user,
-  listingId: 'l-$id',
-  type: 'new_listing',
-  brand: 'Yamaha',
-  model: 'R7',
-  url: 'https://www.olx.pt/d/anuncio/$id.html',
-);
+PendingAlert _withId(String id, {String user = 'u1', bool toTelegram = true}) =>
+    PendingAlert(
+      alertId: id,
+      userId: user,
+      toTelegram: toTelegram,
+      listingId: 'l-$id',
+      type: 'new_listing',
+      brand: 'Yamaha',
+      model: 'R7',
+      url: 'https://www.olx.pt/d/anuncio/$id.html',
+    );
 
 void main() {
   test('every pending alert is sent and marked', () async {
@@ -109,6 +111,30 @@ void main() {
     expect((await notifyPending(store, telegram: notifier)).alerts, 2);
     expect(notifier.sent, hasLength(2));
     expect(store.notified, ['a', 'b']);
+  });
+
+  test("only admins' alerts go to Telegram; all are marked", () async {
+    final store = _Store([_withId('a'), _withId('b', toTelegram: false)]);
+    final notifier = _Notifier();
+
+    expect((await notifyPending(store, telegram: notifier)).alerts, 2);
+    expect(notifier.sent, hasLength(1));
+    expect(store.notified, ['a', 'b']);
+  });
+
+  test('to_telegram is read from the row, true when missing', () {
+    final row = {
+      'alert_id': 'a',
+      'type': 'new_listing',
+      'brand': 'Yamaha',
+      'model': 'R7',
+      'url': 'https://x',
+    };
+    expect(PendingAlert.fromRow(row).toTelegram, isTrue);
+    expect(
+      PendingAlert.fromRow({...row, 'to_telegram': false}).toTelegram,
+      isFalse,
+    );
   });
 
   test("each alert goes to its own account's devices", () async {

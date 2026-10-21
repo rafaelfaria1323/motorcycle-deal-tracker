@@ -50,7 +50,7 @@ Unchanged.
 
 ## 6. Platform
 
-- Phase 1 — Flutter Web/PWA ✅ *Hosted on Cloudflare Pages, installed on the iPhone Home Screen; deployed on every merge. UI/UX redesign done (roadmap Sprint 13: Mais tab, Ofertas, listing page, Pesquisas/Alertas, its own look and fonts, one voice in pt-PT); models per account (Sprint 14); accounts created by hand and Telegram to the owner only, for now.*
+- Phase 1 — Flutter Web/PWA ✅ *Hosted on Cloudflare Pages, installed on the iPhone Home Screen; deployed on every merge. UI/UX redesign done (roadmap Sprint 13: Mais tab, Ofertas, listing page, Pesquisas/Alertas, its own look and fonts, one voice in pt-PT); models per account (Sprint 14); accounts from invite links made in the app (14.3), Telegram only for admins' alerts.*
 - Phase 2 — Flutter iOS/Android ⬜ *Not needed for now: a native iPhone build requires a paid Apple Developer account.*
 
 ## 7. Stack

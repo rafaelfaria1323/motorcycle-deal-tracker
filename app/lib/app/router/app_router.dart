@@ -17,6 +17,8 @@ import '../../features/listings/presentation/pages/listing_detail_page.dart';
 import '../../features/listings/presentation/pages/model_market_page.dart';
 import '../../features/listings/presentation/pages/saved_searches_page.dart';
 import '../../features/listings/presentation/pages/tracked_models_page.dart';
+import '../../features/settings/presentation/accounts_page.dart';
+import '../../features/settings/presentation/join_page.dart';
 import '../../features/settings/presentation/more_page.dart';
 import '../di/injection.dart';
 import '../shell/app_shell.dart';
@@ -115,6 +117,16 @@ final appRouter = GoRouter(
         if (cubit.state.status == FavouritesStatus.initial) cubit.load();
         return const FavouritesPage();
       },
+    ),
+    GoRoute(
+      path: AppRoutes.accounts,
+      builder: (context, state) => const AccountsPage(),
+    ),
+    // An invite link (`/#/join?code=…`), opened from a message.
+    GoRoute(
+      path: AppRoutes.join,
+      builder: (context, state) =>
+          JoinPage(code: state.uri.queryParameters['code'] ?? ''),
     ),
     GoRoute(
       path: AppRoutes.comparePath,

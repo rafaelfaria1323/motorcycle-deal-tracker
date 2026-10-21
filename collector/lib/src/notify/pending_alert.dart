@@ -15,6 +15,7 @@ class PendingAlert {
     this.price,
     this.dealScore,
     this.location,
+    this.toTelegram = true,
   });
 
   factory PendingAlert.fromRow(Map<String, dynamic> row) => PendingAlert(
@@ -32,6 +33,7 @@ class PendingAlert {
     price: (row['price'] as num?)?.toDouble(),
     dealScore: (row['deal_score'] as num?)?.toInt(),
     location: row['location'] as String?,
+    toTelegram: row['to_telegram'] as bool? ?? true,
   );
 
   final String alertId;
@@ -50,6 +52,9 @@ class PendingAlert {
   final double? price;
   final int? dealScore;
   final String? location;
+
+  /// Whether it also goes to the owner's Telegram chat (admins' alerts).
+  final bool toTelegram;
 }
 
 /// `7650` -> `7 650 €`
