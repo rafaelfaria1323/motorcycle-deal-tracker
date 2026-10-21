@@ -27,6 +27,7 @@ export 'src/notify/pending_alert.dart';
 export 'src/notify/run_health.dart';
 export 'src/notify/telegram_notifier.dart';
 export 'src/notify/weekly_summary.dart';
+export 'src/notify/web_push.dart';
 export 'src/pipeline/enrich_steps.dart';
 export 'src/pipeline/import_steps.dart';
 export 'src/pipeline/run_status.dart';

@@ -3,7 +3,8 @@
 Personal web app/PWA (single owner: Rafael) that watches the Portuguese used
 and semi-new motorcycle market, tracks price and status history, and ranks
 listings with an explainable **Deal Score** plus a separate **Risk Score**.
-Alerts go to the app and to the owner's phone (Telegram).
+Alerts go to the app, to each account's devices as notifications (Web
+Push) and to the owner's Telegram chat.
 
 Progress lives in `docs/roadmap.status.md` (step by step) and
 `docs/concept.status.md` (against the original concept). **Update both in
@@ -469,7 +470,17 @@ ad; relists first seen in the last 14 days). Only events after the saved search 
 searches can also require a minimum Deal Score / maximum Risk Score,
 a maximum distance from the owner's home and equipment (`extras`, all
 required; `listing_extras` codes); all in `saved_search_matches`.
-`notified_at` marks alerts already pushed to Telegram (only real accounts).
+`notified_at` marks alerts already sent (only real accounts): to the
+account's devices by Web Push (`push_subscriptions`, saved from Mais ›
+"Notificações neste aparelho"; on the iPhone only in the home-screen app)
+and to the owner's Telegram chat. The collector sends them itself
+(`notify/web_push.dart`: RFC 8291 encryption and RFC 8292 VAPID with
+pointycastle, no third party); its key pair is made on the first run
+(`store_push_keys`: public key in `push_config`, private in Vault
+`vapid_private_key`). The app's `web/push.js` (subscribe, state) and
+`web/push_sw.js` (shows the notification; a tap opens `/#/deals/<id>`)
+are plain JS called from `core/platform/push.dart`; gone devices (404/410)
+are deleted.
 Weekly summary (Mondays, `weekly_summary.dart`, pure logic in
 `notify/weekly_summary.dart`): tracked models, non-duplicates; new = first
 seen in the last 7 days, gone = removed with `last_checked_at` in them,

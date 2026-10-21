@@ -18,3 +18,8 @@ authenticated_security_definer_function_executable_public_add_catalog_model_p_br
 authenticated_security_definer_function_executable_public_set_model_min_year_p_motorcycle_id uuid, p_min_year integer
 authenticated_security_definer_function_executable_public_set_model_new_price_p_motorcycle_id uuid, p_price numeric, p_checked_at date
 authenticated_security_definer_function_executable_public_set_model_tracked_p_motorcycle_id uuid, p_tracked boolean
+
+# The app saves this device's push subscription: it starts with
+# require_account() (signed in, not anonymous) and writes only the caller's
+# own row (a device signed in to another account moves to it).
+authenticated_security_definer_function_executable_public_save_push_subscription_p_endpoint text, p_p256dh text, p_auth text

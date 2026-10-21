@@ -29,7 +29,9 @@ import '../../features/listings/presentation/cubit/listing_detail_cubit.dart';
 import '../../features/listings/presentation/cubit/listings_cubit.dart';
 import '../../features/listings/presentation/cubit/saved_searches_cubit.dart';
 import '../../features/settings/data/supabase_home_repository.dart';
+import '../../features/settings/data/supabase_push_repository.dart';
 import '../../features/settings/domain/home_repository.dart';
+import '../../features/settings/domain/push_repository.dart';
 
 final getIt = GetIt.instance;
 
@@ -84,6 +86,9 @@ void configureDependencies() {
     )
     ..registerLazySingleton<HomeRepository>(
       () => SupabaseHomeRepository(getIt<SupabaseClient>()),
+    )
+    ..registerLazySingleton<PushRepository>(
+      () => SupabasePushRepository(getIt<SupabaseClient>()),
     )
     ..registerLazySingleton<DealerRepository>(
       () => SupabaseDealerRepository(getIt<SupabaseClient>()),

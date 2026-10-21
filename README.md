@@ -10,7 +10,8 @@ an explainable **Deal Score** (price against similar bikes, year and
 mileage) and a separate **Risk Score** (missing details, possible accident,
 several owners, price too good to be true…). Saved searches and favourite
 listings (with private notes and a viewing checklist) raise alerts in the
-app and on the phone through Telegram.
+app, as notifications on each account's phone (Web Push), and through
+Telegram.
 
 The app is in Portuguese and installs on the iPhone from Safari
 ("Adicionar ao ecrã principal").
@@ -22,6 +23,7 @@ Tracked models (chosen in the app)
   → collector (GitHub Actions, started every 4 hours by Supabase pg_cron): searches → polite fetch → parse → store
   → Supabase / Postgres: price history, duplicates, fair value, scores, alerts
   → app (Flutter Web on Cloudflare Pages): Ofertas · Pesquisas · Alertas · Mais
+  → phones (Web Push): each account's new alerts after each run; a tap opens the listing
   → Telegram: new alerts after each run, a message when the collection breaks, stops starting or recovers,
     and a summary of the week every Monday
 ```

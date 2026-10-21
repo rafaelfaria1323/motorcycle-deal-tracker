@@ -277,6 +277,9 @@ Do not implement several unrelated features at once.
 ## 14.3 Accounts ⬜
 *Today accounts are created by hand in Supabase; a second person needs an invite or sign-up path, and Telegram per person (own chat id).*
 
+## 14.4 Notifications from the app (Web Push) ✅
+*Rafael, 2026-10-21: "replace Telegram with the website's notifications, routed to our app". Mais › "Notificações neste aparelho" turns them on for the signed-in account on this device (on the iPhone only in the home-screen app, iOS 16.4+; the switch says how otherwise). After each run the collector sends every new alert to its account's devices: "📉 Baixa de preço: Yamaha MT-07 2024", the prices and facts; a tap opens the listing in the app (`web/push_sw.js`). No third party: the collector encrypts (RFC 8291) and signs (VAPID, RFC 8292) the pushes itself with pointycastle, checked against the RFC's test vector; the key pair is made on its first run (private key in Vault), so nothing to set up. Devices the push service says are gone are deleted. Telegram keeps sending too until the notifications are confirmed on the phone. Tests: `web_push_test.dart`, `notify_test.dart`, `web_push_test.sql`, `notifications_test.sql`, `push_text_test.dart`.*
+
 # Sprint 12 — Flutter iOS ⬜
 
 *Decision: stay with the home-screen web app. A native build needs a paid Apple Developer account (TestFlight); with a free account apps expire after 7 days. Looked at again on 2026-10-20 (Rafael, no Mac): a CI build signed with a free account can't work, because its 7-day profile is made and renewed only by Xcode on a Mac; SideStore would renew it on the phone but holds the Apple ID password; and a free account has no push notifications anyway, so a native app would add nothing over the web app and Telegram.*

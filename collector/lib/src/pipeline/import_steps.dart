@@ -4,6 +4,7 @@ import '../catalog/catalog.dart';
 import '../normalized/normalized_listing.dart';
 import '../notify/notify_pending.dart';
 import '../notify/telegram_notifier.dart';
+import '../notify/web_push.dart';
 import '../store/listing_store.dart';
 import 'source_batch.dart';
 
@@ -151,12 +152,19 @@ Future<void> finishRun(ListingStore store, {StringSink? out}) async {
   final alerts = await store.generateAlerts();
   log.writeln('Alerts created: $alerts');
 
-  // 7. Push what's new to the phone, when Telegram is configured.
-  final notifier = TelegramNotifier.fromEnvironment();
-  if (notifier != null) {
-    final pushed = await notifyPending(store, notifier);
-    log.writeln('Notifications sent: $pushed');
-  } else {
-    log.writeln('Notifications: Telegram not configured');
+  // 7. Tell the phones: each account's devices (Web Push) and the owner's
+  //    Telegram chat when configured.
+  final telegram = TelegramNotifier.fromEnvironment();
+  WebPushSender? push;
+  try {
+    push = WebPushSender(await store.pushKeys());
+  } on Object catch (e) {
+    log.writeln('Web Push not available: $e');
   }
+  final notified = await notifyPending(store, telegram: telegram, push: push);
+  log.writeln(
+    'Notifications sent: ${notified.alerts} '
+    '(${notified.pushes} to devices'
+    '${telegram == null ? ', Telegram not configured' : ''})',
+  );
 }

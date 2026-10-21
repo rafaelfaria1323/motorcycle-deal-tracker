@@ -10,6 +10,7 @@ import '../../collector_status/presentation/collection_details.dart';
 import '../../collector_status/presentation/collector_status_banner.dart';
 import '../../collector_status/presentation/data_quality_details.dart';
 import 'home_place_tile.dart';
+import 'push_tile.dart';
 
 /// Everything that is not a list of offers: the account, the tracked
 /// models and how the data collection is doing.
@@ -45,6 +46,14 @@ class MorePage extends StatelessWidget {
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => showAccountSheet(context),
+                ),
+              ),
+              const _Header('Notificações'),
+              _Group(
+                child: PushTile(
+                  // A new state after sign-in or sign-out.
+                  key: ValueKey(signedIn),
+                  signedIn: signedIn,
                 ),
               ),
               const _Header('Mercado'),

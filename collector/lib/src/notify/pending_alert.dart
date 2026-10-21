@@ -6,6 +6,8 @@ class PendingAlert {
     required this.brand,
     required this.model,
     required this.url,
+    this.userId,
+    this.listingId,
     this.oldPrice,
     this.newPrice,
     this.year,
@@ -21,6 +23,8 @@ class PendingAlert {
     brand: row['brand'] as String,
     model: row['model'] as String,
     url: row['url'] as String,
+    userId: row['user_id'] as String?,
+    listingId: row['listing_id'] as String?,
     oldPrice: (row['old_price'] as num?)?.toDouble(),
     newPrice: (row['new_price'] as num?)?.toDouble(),
     year: (row['year'] as num?)?.toInt(),
@@ -35,6 +39,10 @@ class PendingAlert {
   final String brand;
   final String model;
   final String url;
+
+  /// Whose alert it is, and the listing it opens in the app.
+  final String? userId;
+  final String? listingId;
   final double? oldPrice;
   final double? newPrice;
   final int? year;
@@ -56,8 +64,9 @@ String euros(num value) {
   return '$out €';
 }
 
-/// The Telegram message for one alert (plain text).
-String formatAlert(PendingAlert a) {
+/// The three lines of an alert message: what happened to which bike, the
+/// price, and the facts.
+({String title, String? price, String facts}) _alertLines(PendingAlert a) {
   final heading = switch (a.type) {
     'new_listing' => '🆕 Novo anúncio',
     'price_reduction' => '📉 Baixa de preço',
@@ -91,10 +100,29 @@ String formatAlert(PendingAlert a) {
       'Pontuação ${a.dealScore}',
   ].join(' · ');
 
+  return (title: '$heading: $bike', price: priceLine, facts: facts);
+}
+
+/// The Telegram message for one alert (plain text).
+String formatAlert(PendingAlert a) {
+  final lines = _alertLines(a);
   return [
-    '$heading: $bike',
-    ?priceLine,
-    if (facts.isNotEmpty) facts,
+    lines.title,
+    ?lines.price,
+    if (lines.facts.isNotEmpty) lines.facts,
     a.url,
   ].join('\n');
+}
+
+/// The Web Push message for one alert, read by the app's service worker
+/// (`web/push_sw.js`): a tap opens the listing in the app.
+Map<String, Object?> pushMessage(PendingAlert a) {
+  final lines = _alertLines(a);
+  return {
+    'title': lines.title,
+    'body': [?lines.price, if (lines.facts.isNotEmpty) lines.facts].join('\n'),
+    'url': a.listingId == null ? a.url : '/#/deals/${a.listingId}',
+    // One notification per alert, even if a run sends it twice.
+    'tag': a.alertId,
+  };
 }
