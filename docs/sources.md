@@ -25,9 +25,11 @@ pages and storage spent on bikes nobody follows.
 
 **Decision.** When every model of an OLX search has an engine size inside
 one of OLX's engine-size bands, the search asks for that band only
-(`search[filter_enum_cilindrada][0]`). Only bands whose value was seen on
-the site are used (`501-1000-cc`, which holds every followed model today);
-an unknown value would make OLX return nothing, so a banded search whose
+(`search[filter_enum_cilindrada][0]`). The bands are the values of OLX's
+own filter list in its search pages (`ate-50-cc`, `51-125-cc`,
+`126-500-cc`, `501-1000-cc`, `mais-de-1000-cc`; the last four added on
+2026-10-21 for word searches such as the Forza 350 and ADV 350, which
+brought every Honda: 2 pages each); an unknown value would make OLX return nothing, so a banded search whose
 first page has no ads is not saved: it isn't read in full and removes
 nothing, and the log says so. A model without an engine
 size, or models in different bands, keep the search as it was. Standvirtual

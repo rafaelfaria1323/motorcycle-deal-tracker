@@ -120,6 +120,20 @@ void main() {
       });
     });
 
+    test('every band of OLX\'s filter is used, keyword searches too', () {
+      String? bandOf(int cc, {String olx = rSearch}) => planSearches(
+        Catalog([model('X', 2024, olx: olx, cc: cc)]),
+        FetchSite.olx,
+      ).searches.single.url.queryParameters[olxEngineSize];
+
+      expect(bandOf(30), 'ate-50-cc');
+      expect(bandOf(100), '51-125-cc');
+      expect(bandOf(330, olx: '${olxYamaha}q-xmax-300/'), '126-500-cc');
+      expect(bandOf(690), '501-1000-cc');
+      expect(bandOf(1100), 'mais-de-1000-cc');
+      expect(bandOf(120), isNull, reason: '110-140 cc spans two bands');
+    });
+
     test(
       'no band when a model has no engine size or the models span bands',
       () {
