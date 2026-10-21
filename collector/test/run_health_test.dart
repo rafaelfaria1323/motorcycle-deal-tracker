@@ -18,37 +18,34 @@ void main() {
     test('the first run ever is news only when it went wrong', () {
       expect(runHealthMessage(previous: null, current: 'ok', log: ''), isNull);
       expect(
-        runHealthMessage(previous: null, current: 'failed', log: log),
-        startsWith('⚠️ A recolha de anúncios falhou.'),
+        runHealthMessage(previous: null, current: 'failed', log: log)?['title'],
+        '⚠️ A recolha de anúncios falhou.',
       );
     });
 
     test('a failure says what went wrong on which site', () {
-      expect(
-        runHealthMessage(previous: 'ok', current: 'failed', log: log),
-        '⚠️ A recolha de anúncios falhou.\n\n'
-        'standvirtual: Stopped, the site pushed back: HTTP 429\n'
-        'olx: Database error: timeout\n\n'
-        'Os preços na app podem ficar desatualizados até a recolha voltar a '
-        'funcionar. O registo completo está no GitHub Actions.',
-      );
+      expect(runHealthMessage(previous: 'ok', current: 'failed', log: log), {
+        'title': '⚠️ A recolha de anúncios falhou.',
+        'body':
+            'standvirtual: Stopped, the site pushed back: HTTP 429\n'
+            'olx: Database error: timeout\n'
+            'Os preços na app podem ficar desatualizados até a recolha voltar '
+            'a funcionar.',
+        'url': '/#/collection-status',
+        'tag': 'run-health',
+      });
     });
 
     test('a block says the site waits 24 hours', () {
       expect(
         runHealthMessage(previous: 'failed', current: 'blocked', log: log),
-        '⛔ Um site recusou os pedidos da recolha de anúncios.\n\n'
-        'standvirtual: Stopped, the site pushed back: HTTP 429\n'
-        'olx: Database error: timeout\n\n'
-        'A recolha desse site fica em pausa durante 24 h e volta a tentar '
-        'automaticamente.',
+        containsPair(
+          'title',
+          '⛔ Um site recusou os pedidos da recolha de anúncios.',
+        ),
       );
-    });
-
-    test('a problem without details still sends its message', () {
       expect(
-        runHealthMessage(previous: 'ok', current: 'blocked', log: ''),
-        '⛔ Um site recusou os pedidos da recolha de anúncios.\n\n'
+        runHealthMessage(previous: 'ok', current: 'blocked', log: '')?['body'],
         'A recolha desse site fica em pausa durante 24 h e volta a tentar '
         'automaticamente.',
       );
@@ -56,10 +53,12 @@ void main() {
 
     test('the recovery is told once', () {
       for (final s in ['blocked', 'failed']) {
+        final message = runHealthMessage(previous: s, current: 'ok', log: log);
         expect(
-          runHealthMessage(previous: s, current: 'ok', log: ''),
+          message?['title'],
           '✅ A recolha de anúncios voltou a funcionar.',
         );
+        expect(message?['body'], '');
       }
     });
   });

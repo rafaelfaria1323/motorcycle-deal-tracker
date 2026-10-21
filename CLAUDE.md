@@ -3,8 +3,9 @@
 Personal web app/PWA (single owner: Rafael) that watches the Portuguese used
 and semi-new motorcycle market, tracks price and status history, and ranks
 listings with an explainable **Deal Score** plus a separate **Risk Score**.
-Alerts go to the app, to each account's devices as notifications (Web
-Push) and, an admin's, to the owner's Telegram chat. Others join through
+Alerts go to the app and to each account's devices as notifications (Web
+Push); Telegram keeps the weekly summary and the database's own warnings
+(watchdog, GitHub token). Others join through
 invite links made in the app.
 
 Progress lives in `docs/roadmap.status.md` (step by step) and
@@ -247,7 +248,7 @@ invites; written by the collector on each run).
   caller's own list, or every collected model for an anonymous session; a
   new account follows nothing). Saved searches match only their owner's
   models (`owner_tracks`). Notifications reach each account's own devices
-  (Web Push, see Alerts); Telegram still goes to the owner's one chat.
+  (Web Push, see Alerts).
 - Photos: `Image.network` with `WebHtmlElementStrategy.prefer` (the photo
   CDNs don't send CORS headers, so an `<img>` element is the only way).
 - Lists load `ListingModel.summaryColumns`, never `*` (descriptions are big);
@@ -293,8 +294,9 @@ invites; written by the collector on each run).
   the requests each site used (from refresh.dart's "Requests used:" lines,
   parsed by report_run.dart), `counts` what the run did over both sites
   (`new`, `price_changes`, `removed`, `alerts`, from the log's own lines:
-  `runCounts`; keep those log lines' wording). report_run.dart also sends a Telegram message
-  when a run's status differs from the previous run's (`run_health.dart`:
+  `runCounts`; keep those log lines' wording). report_run.dart also sends a notification to the
+  admins' devices (Web Push, `pushToUsers`; a tap opens "Estado da
+  recolha") when a run's status differs from the previous run's (`run_health.dart`:
   the error lines of each site, or "voltou a funcionar"), never twice for
   the same problem. It also stores `problems` (`runProblems`, runs not
   ok), `sites` (each fetch state file's `report()`: requests today, daily
@@ -334,7 +336,7 @@ save → markSeen → rematch → applyPriceChanges → setSearchKeys → applyP
 → applyListingDates → saveSiteModels → (if `--full`) markRemoved; Standvirtual then reads new listings' details
 (`enrichDetails`) with the same fetcher. Then once for all sites
 (`finishRun`): markDuplicates → recalculateScores → generateAlerts →
-Telegram notifications. The single-step commands (`fetch.dart`,
+notifications (Web Push). The single-step commands (`fetch.dart`,
 `collector.dart`, `enrich.dart`, `searches.dart`) reuse the same library
 functions for manual work.
 
@@ -525,9 +527,9 @@ a maximum distance from the owner's home and equipment (`extras`, all
 required; `listing_extras` codes); all in `saved_search_matches`.
 `notified_at` marks alerts already sent (only real accounts): to the
 account's devices by Web Push (`push_subscriptions`, saved from Mais ›
-"Notificações neste aparelho"; on the iPhone only in the home-screen app)
-and, admins' only (`pending_notifications.to_telegram`), to the owner's
-Telegram chat. The collector sends them itself
+"Notificações neste aparelho"; on the iPhone only in the home-screen app;
+no longer to Telegram since 2026-10-21, `pending_notifications.to_telegram`
+is unused). The collector sends them itself
 (`notify/web_push.dart`: RFC 8291 encryption and RFC 8292 VAPID with
 pointycastle, no third party); its key pair is made on the first run
 (`store_push_keys`: public key in `push_config`, private in Vault

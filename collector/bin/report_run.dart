@@ -5,8 +5,8 @@ import 'package:collector/collector.dart';
 /// Records one scheduled run in `collector_runs` (with its problems, each
 /// site's request budget and pause, and the GitHub run's address), drops
 /// rows older than
-/// 90 days and tells Telegram when the collection breaks or recovers (a
-/// change from the previous run's status only).
+/// 90 days and tells the admins' devices (Web Push) when the collection
+/// breaks or recovers (a change from the previous run's status only).
 /// Usage: `report_run.dart <exit-code> <started-at> <log-file>`
 Future<void> main(List<String> args) async {
   if (args.length != 3) {
@@ -59,13 +59,21 @@ Future<void> main(List<String> args) async {
       current: status,
       log: log,
     );
-    final notifier = TelegramNotifier.fromEnvironment();
-    if (message == null || notifier == null) return;
+    if (message == null) return;
+    // The run is recorded; a missed message must not fail the job.
     try {
-      await notifier.send(message, linkPreview: false);
-      stdout.writeln('Run health sent to Telegram.');
-    } on NotifyFailed catch (e) {
-      // The run is recorded; a missed message must not fail the job.
+      final store = ListingStore(client);
+      final push = WebPushSender(await store.pushKeys());
+      final result = await pushToUsers(
+        store,
+        push,
+        await store.adminIds(),
+        message,
+      );
+      stdout.writeln(
+        'Run health sent to ${result.sent} of ${result.devices} device(s).',
+      );
+    } on Object catch (e) {
       stderr.writeln('Run health not sent: $e');
     }
   });
