@@ -31,9 +31,11 @@ import '../../features/listings/presentation/cubit/saved_searches_cubit.dart';
 import '../../features/settings/data/supabase_accounts_repository.dart';
 import '../../features/settings/data/supabase_home_repository.dart';
 import '../../features/settings/data/supabase_push_repository.dart';
+import '../../features/settings/data/supabase_workflows_repository.dart';
 import '../../features/settings/domain/accounts_repository.dart';
 import '../../features/settings/domain/home_repository.dart';
 import '../../features/settings/domain/push_repository.dart';
+import '../../features/settings/domain/workflows_repository.dart';
 
 final getIt = GetIt.instance;
 
@@ -91,6 +93,9 @@ void configureDependencies() {
     )
     ..registerLazySingleton<AccountsRepository>(
       () => SupabaseAccountsRepository(getIt<SupabaseClient>()),
+    )
+    ..registerLazySingleton<WorkflowsRepository>(
+      () => SupabaseWorkflowsRepository(getIt<SupabaseClient>()),
     )
     ..registerLazySingleton<PushRepository>(
       () => SupabasePushRepository(getIt<SupabaseClient>()),

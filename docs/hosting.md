@@ -72,6 +72,8 @@ They need one token, created once:
 When the token expires, make a new one and replace it:
 `select vault.update_secret(id, 'github_pat_...') from vault.secrets where name = 'github_dispatch_token';`.
 The app's "Mais" shows a warning when no run happened recently.
+Admins' "Recolher agora" in Mais uses the same token (an expired one
+shows "O GitHub recusou o pedido").
 
 ### Warning on Telegram when no run starts
 
