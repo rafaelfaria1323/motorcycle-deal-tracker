@@ -353,7 +353,7 @@ functions for manual work.
   when there are at least 5 of them; ads under 300 € never count), each
   adjusted with `age_mileage_factor` (x0.35-2.5) using
   the model's own rates (`model_depreciation`): least-squares fit of
-  ln(price) on year and mileage over its live listings, from 30 listings,
+  ln(price) on year and mileage over its live listings (ads under 300 € left out), from 30 listings,
   clamped (0-15 %/year, 0-1 %/1000 km) and blended with the general rates
   (4 %/year, 0.2 %/1000 km) weighted by count; below 30 the general rates.
   The mileage rate is never below 0.5 %/1000 km (a buyer's minimum: asking
