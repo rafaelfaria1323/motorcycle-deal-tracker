@@ -15,6 +15,7 @@ class PendingAlert {
     this.price,
     this.dealScore,
     this.location,
+    this.createdAt,
   });
 
   factory PendingAlert.fromRow(Map<String, dynamic> row) => PendingAlert(
@@ -32,6 +33,10 @@ class PendingAlert {
     price: (row['price'] as num?)?.toDouble(),
     dealScore: (row['deal_score'] as num?)?.toInt(),
     location: row['location'] as String?,
+    createdAt: switch (row['created_at']) {
+      final String at => DateTime.parse(at),
+      _ => null,
+    },
   );
 
   final String alertId;
@@ -50,6 +55,9 @@ class PendingAlert {
   final double? price;
   final int? dealScore;
   final String? location;
+
+  /// When the alert was made (null from older databases).
+  final DateTime? createdAt;
 }
 
 /// `7650` -> `7 650 €`

@@ -156,7 +156,12 @@ const minComparables = 3;
 /// Prices are rounded to this many euros.
 const offerStep = 50.0;
 
-/// Null without an asking price or an estimated value, when the estimate
+/// Asking prices below this are placeholders ("1 €", "consulte"); the
+/// database leaves them out of the comparables too.
+const minRealPrice = 300.0;
+
+/// Null without an asking price (or a placeholder one, under
+/// [minRealPrice]) or an estimated value, when the estimate
 /// rests on fewer than 3 comparable listings (as the price score), for a
 /// removed listing and for a repeat of another listing (it has no value of
 /// its own).
@@ -172,7 +177,10 @@ OfferSuggestion? suggestOffer(
   final price = listing.price;
   final estimate = (listing.scoreBreakdown?['market_price'] as num?)
       ?.toDouble();
-  if (price == null || price <= 0 || estimate == null || estimate <= 0) {
+  if (price == null ||
+      price < minRealPrice ||
+      estimate == null ||
+      estimate <= 0) {
     return null;
   }
   if (listing.isRemoved || listing.duplicateOf != null) return null;

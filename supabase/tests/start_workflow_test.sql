@@ -177,3 +177,25 @@ begin
   assert (select content::jsonb -> 'inputs' from extensions.http_calls)
     = '{"account": "00000000-0000-0000-0000-0000000000a1", "kind": "price_reduction"}'::jsonb;
 end $$;
+
+-- The weekly summary waits 2 minutes per account too: another account's
+-- request a moment ago doesn't hold this one back.
+reset role;
+delete from extensions.http_replies where uri like '%weekly-summary.yml%';
+insert into extensions.http_replies values
+  ('POST', 'https://api.github.com/repos/rafaelfaria1323/motorcycle-deal-tracker'
+           || '/actions/workflows/weekly-summary.yml/dispatches', 204, '');
+set local role authenticated;
+set local test.uid = '00000000-0000-0000-0000-0000000000b1';
+select public.start_workflow('weekly-summary.yml');
+set local test.uid = '00000000-0000-0000-0000-0000000000a1';
+do $$
+begin
+  assert public.start_workflow('weekly-summary.yml') = now();
+  begin
+    perform public.start_workflow('weekly-summary.yml');
+    assert false, 'weekly summary started twice by the same account';
+  exception when sqlstate '55006' then null;
+  end;
+end $$;
+reset role;

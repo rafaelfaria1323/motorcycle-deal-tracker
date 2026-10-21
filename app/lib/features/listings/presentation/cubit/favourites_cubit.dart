@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/favourite.dart';
@@ -23,8 +25,10 @@ class FavouritesCubit extends Cubit<FavouritesState> {
   static const maxChecklistNoteLength = 300;
 
   /// Loads (or refreshes) the favourites. A failed refresh keeps the list
-  /// that is already on screen.
-  Future<void> load() async {
+  /// that is already on screen, unless [otherAccount]: then another
+  /// account's favourites (and private notes) must not stay.
+  Future<void> load({bool otherAccount = false}) async {
+    if (otherAccount) emit(const FavouritesState());
     if (state.status != FavouritesStatus.success) {
       emit(state.copyWith(status: FavouritesStatus.loading));
     }
@@ -73,7 +77,7 @@ class FavouritesCubit extends Cubit<FavouritesState> {
       }
       return true;
     } catch (_) {
-      emit(state.copyWith(favourites: before));
+      _undo(listing.id, before);
       return false;
     }
   }
@@ -97,7 +101,7 @@ class FavouritesCubit extends Cubit<FavouritesState> {
       await _repository.saveNote(listingId, note);
       return true;
     } catch (_) {
-      emit(state.copyWith(favourites: before));
+      _undo(listingId, before);
       return false;
     }
   }
@@ -123,7 +127,7 @@ class FavouritesCubit extends Cubit<FavouritesState> {
       await _repository.saveTargetPrice(listingId, targetPrice);
       return true;
     } catch (_) {
-      emit(state.copyWith(favourites: before));
+      _undo(listingId, before);
       return false;
     }
   }
@@ -156,9 +160,35 @@ class FavouritesCubit extends Cubit<FavouritesState> {
       await _repository.saveChecklist(listingId, checklist);
       return true;
     } catch (_) {
-      emit(state.copyWith(favourites: before));
+      // Only this item goes back: another one may have been saved since.
+      final now = state.favouriteOf(listingId);
+      if (now != null) {
+        final previous = favourite.checklist[key];
+        final restored = {...now.checklist}..remove(key);
+        if (previous != null) restored[key] = previous;
+        emit(
+          state.copyWith(
+            favourites: [
+              for (final f in state.favourites)
+                f.listingId == listingId ? f.withChecklist(restored) : f,
+            ],
+          ),
+        );
+      }
       return false;
     }
+  }
+
+  /// Puts [listingId]'s favourite back as it was in [before] (or takes it
+  /// out), leaving the changes made to other listings since then.
+  void _undo(String listingId, List<Favourite> before) {
+    final index = before.indexWhere((f) => f.listingId == listingId);
+    final rest = [
+      for (final f in state.favourites)
+        if (f.listingId != listingId) f,
+    ];
+    if (index >= 0) rest.insert(min(index, rest.length), before[index]);
+    emit(state.copyWith(favourites: rest));
   }
 }
 
