@@ -103,7 +103,7 @@ class FetchState {
 }
 
 /// The state a site's fetcher saved at [path]; null when there is none or
-/// it is damaged (the fetcher then starts afresh).
+/// it is damaged (the fetcher then takes today's budget as spent).
 Future<FetchState?> readFetchState(String path) async {
   final file = File(path);
   try {
@@ -323,11 +323,24 @@ class PoliteFetcher {
     await _saveState();
   }
 
-  Future<FetchState> _loadState() async =>
-      await readFetchState(site.statePath) ?? FetchState(day: _today());
+  Future<FetchState> _loadState() async {
+    final saved = await readFetchState(site.statePath);
+    if (saved != null) return saved;
+    if (!await File(site.statePath).exists()) return FetchState(day: _today());
+    // Damaged: today's count is unknown, so today's budget counts as spent
+    // (written back, so tomorrow starts afresh).
+    _state = FetchState(day: _today(), requests: policy.maxRequestsPerDay);
+    await _saveState();
+    return _state;
+  }
 
-  Future<void> _saveState() async =>
-      File(site.statePath).writeAsString(jsonEncode(_state.toJson()));
+  /// Written to a temporary file and renamed over the old one, so a run
+  /// stopped halfway never leaves a damaged file.
+  Future<void> _saveState() async {
+    final temp = File('${site.statePath}.tmp');
+    await temp.writeAsString(jsonEncode(_state.toJson()), flush: true);
+    await temp.rename(site.statePath);
+  }
 
   void close() => _client.close(force: true);
 }

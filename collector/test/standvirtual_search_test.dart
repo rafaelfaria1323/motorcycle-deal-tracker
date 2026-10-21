@@ -229,7 +229,7 @@ void main() {
           first,
           total: 34,
           topAds: [
-            node(id: '1'),
+            node(),
             node(id: '2'),
           ],
         ),

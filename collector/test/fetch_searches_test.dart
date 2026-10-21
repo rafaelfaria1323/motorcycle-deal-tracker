@@ -78,6 +78,7 @@ void main() {
   // Its status, and how long it waits before answering.
   late int Function(int page) status;
   late Duration Function(int page) delay;
+  late String robotsTxt;
 
   setUp(() async {
     dir = Directory.systemTemp.createTempSync('fetch');
@@ -92,6 +93,7 @@ void main() {
     answer = (page) => _page(page, 3);
     status = (_) => 200;
     delay = (_) => Duration.zero;
+    robotsTxt = 'User-agent: *\nAllow: /\n';
     server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     server.listen((request) async {
       requestTimes.add(DateTime.now());
@@ -102,9 +104,7 @@ void main() {
         await Future<void>.delayed(delay(page ?? 1));
         request.response.statusCode = status(page ?? 1);
       }
-      request.response.write(
-        robots ? 'User-agent: *\nAllow: /\n' : answer(page ?? 1),
-      );
+      request.response.write(robots ? robotsTxt : answer(page ?? 1));
       try {
         await request.response.close();
       } on Object catch (_) {
@@ -272,6 +272,38 @@ void main() {
 
     expect(outcome.saved, 1);
     expect(outcome.failure, isA<FetchBlocked>());
+  });
+
+  test('a page our rules refuse keeps what was saved, as a failure', () async {
+    robotsTxt = 'User-agent: *\nDisallow: /*page=2\n';
+
+    final outcome = await fetchWith(
+      const FetchPolicy(minDelay: Duration.zero, jitter: Duration.zero),
+    );
+
+    expect(outcome.saved, 1);
+    expect(outcome.failure, isA<FetchRefused>());
+    expect((await SearchManifest.readFrom(dir.path))!.files, hasLength(1));
+  });
+
+  test('a damaged state file spends today\'s budget', () async {
+    File(site.statePath).writeAsStringSync('{"day": "2026-');
+
+    await expectLater(
+      local(() async {
+        final fetcher = PoliteFetcher(site: site);
+        try {
+          await fetcher.prepare();
+        } finally {
+          fetcher.close();
+        }
+      }),
+      throwsA(isA<FetchLimitReached>()),
+    );
+    expect(paths, isEmpty);
+    // Written back whole, so tomorrow starts afresh.
+    final state = (await readFetchState(site.statePath))!;
+    expect(state.requests, const FetchPolicy().maxRequestsPerDay);
   });
 
   test('a failure before any page throws', () async {

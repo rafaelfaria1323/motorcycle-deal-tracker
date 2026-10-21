@@ -80,7 +80,7 @@ weekly-summary: require-collector-env ## Make and send each account's weekly sum
 enrich-dry: require-collector-env ## List the listings that still need details, requests nothing
 	cd collector && dart run bin/enrich.dart --dry-run
 
-enrich: require-collector-env ## Read details of up to 15 new listings: make enrich [ARGS=--max=10]
+enrich: require-collector-env ## Read details of up to 10 new listings: make enrich [ARGS=--max=5]
 	cd collector && dart run bin/enrich.dart $(ARGS)
 
 # One process for the whole collection (bin/refresh.dart): each site's

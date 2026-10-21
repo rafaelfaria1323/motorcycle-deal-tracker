@@ -17,8 +17,8 @@ class FetchOutcome {
   /// the site pushed back); null when every search was read.
   final String? stoppedBy;
 
-  /// The failure or block that stopped it after some pages were saved
-  /// ([FetchFailed] or [FetchBlocked]): the pages are imported all the
+  /// The failure, refusal or block that stopped it after some pages were
+  /// saved ([FetchFailed], [FetchRefused] or [FetchBlocked]): the pages are imported all the
   /// same, and then the caller throws it, so the run still counts as
   /// failed.
   final Exception? failure;
@@ -31,7 +31,8 @@ class FetchOutcome {
 ///
 /// Running out of requests after some pages were saved is not an error:
 /// the outcome says so and the import uses what was saved. A failed
-/// request (a timeout) or a block after some pages were saved ends the
+/// request (a timeout), a page our own rules refuse or a block after some
+/// pages were saved ends the
 /// same way, with the failure in [FetchOutcome.failure]. Anything before a
 /// page was saved throws, after the manifest of what was saved is written.
 /// A search with a page missing is not read in full, so the import never
@@ -95,6 +96,11 @@ Future<FetchOutcome> fetchSearches(
       'this run.',
     );
     return FetchOutcome(saved: saved.length, stoppedBy: '$e');
+  } on FetchRefused catch (e) {
+    // Our own rules refused a page (robots.txt, a redirect off the site's
+    // listings): stopped like a failure, keeping what was saved.
+    if (saved.isEmpty) rethrow;
+    return _stoppedBy(e, started, searches.length, saved.length, log);
   } on FetchFailed catch (e) {
     if (saved.isEmpty) rethrow;
     return _stoppedBy(e, started, searches.length, saved.length, log);

@@ -126,3 +126,15 @@ begin
   assert (select published_at from public.listings where source_listing_id = 'd1')
        = '2025-12-01'::timestamptz;
 end $$;
+
+-- A listing page that failed is marked, a read one is not.
+do $$
+begin
+  perform public.mark_details_failed('olx', array['d1', 'd2', 'nope']);
+  assert (select details_failed_at from public.listings where source_listing_id = 'd1') is null,
+    'a listing with details is not marked';
+  assert (select count(*) from public.listings
+          where details_failed_at is not null) = 0, 'd2 is on another site';
+  perform public.mark_details_failed('standvirtual', array['d2']);
+  assert (select details_failed_at from public.listings where source_listing_id = 'd2') = now();
+end $$;

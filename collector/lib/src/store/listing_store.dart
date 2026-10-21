@@ -98,6 +98,8 @@ class ListingStore {
         .not('motorcycle_id', 'is', null)
         .isFilter('duplicate_of', null)
         .inFilter('status', ['active', 'price_changed'])
+        // Pages that failed before wait behind the ones never tried.
+        .order('details_failed_at', ascending: true, nullsFirst: true)
         .order('first_seen_at', ascending: false)
         .limit(limit);
     return [
@@ -118,6 +120,17 @@ class ListingStore {
         'p_source': source,
         'p_details': [for (final d in details) d.toJson()],
       },
+    );
+    return _count(result);
+  }
+
+  /// Marks listings whose page could not be read, so the next runs try the
+  /// others first; returns how many were marked.
+  Future<int> markDetailsFailed(String source, List<String> ids) async {
+    if (ids.isEmpty) return 0;
+    final result = await _client.rpc<Object?>(
+      'mark_details_failed',
+      params: {'p_source': source, 'p_ids': ids},
     );
     return _count(result);
   }

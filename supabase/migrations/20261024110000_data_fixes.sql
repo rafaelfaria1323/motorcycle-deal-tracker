@@ -409,4 +409,33 @@ begin
 end;
 $$;
 
+-- A listing page that could not be read (gone, unreadable, redirected to
+-- another ad) is asked again only after the listings never tried, so a few
+-- bad pages can't take every run's budget. details_checked_at stays null:
+-- the listing still has no details (thin_description needs them).
+alter table public.listings add column details_failed_at timestamptz;
+
+create or replace function public.mark_details_failed(p_source text, p_ids text[])
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  n integer;
+begin
+  update public.listings
+  set details_failed_at = now()
+  where source = p_source
+    and source_listing_id = any (p_ids)
+    and details_checked_at is null;
+
+  get diagnostics n = row_count;
+  return n;
+end;
+$$;
+
+revoke all on function public.mark_details_failed(text, text[])
+  from public, anon, authenticated;
+
 select public.recalculate_deal_scores();

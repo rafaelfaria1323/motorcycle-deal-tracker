@@ -33,6 +33,7 @@ class _Fetcher implements PoliteFetcher {
 
 class _Store implements ListingStore {
   List<String>? storedIds;
+  List<String>? failedIds;
 
   @override
   Future<int> applyDetails(String source, List<ListingDetails> details) async {
@@ -42,13 +43,19 @@ class _Store implements ListingStore {
   }
 
   @override
+  Future<int> markDetailsFailed(String source, List<String> ids) async {
+    failedIds = [for (final id in ids) id.split('/').last];
+    return ids.length;
+  }
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 const _base = 'https://www.standvirtual.com/motos/anuncio';
 
 ({String sourceListingId, String url}) _pending(String id) =>
-    (sourceListingId: id, url: '$_base/$id.html');
+    (sourceListingId: StandvirtualMapper.listingId(id), url: '$_base/$id.html');
 
 void main() {
   test('a page that is gone, unreadable or refused is skipped', () async {
@@ -62,6 +69,8 @@ void main() {
         // Redirected off /motos/: our own rules refuse it.
         '$_base/4.html': const FetchRefused('only /motos/ pages'),
         '$_base/5.html': _page('5'),
+        // Redirected to another ad.
+        '$_base/6.html': _page('7'),
       }),
       [
         _pending('1'),
@@ -69,12 +78,15 @@ void main() {
         _pending('3'),
         _pending('4'),
         _pending('5'),
+        _pending('6'),
       ],
       out: StringBuffer(),
     );
 
     expect(updated, 2);
     expect(store.storedIds, ['1', '5']);
+    // Marked, so the next runs read the listings never tried first.
+    expect(store.failedIds, ['2', '3', '4', '6']);
   });
 
   test('running out of requests stores what was read, quietly', () async {
@@ -91,6 +103,8 @@ void main() {
 
     expect(updated, 1);
     expect(store.storedIds, ['1']);
+    // Not tried: nothing to mark.
+    expect(store.failedIds, isEmpty);
   });
 
   test('a block stores what was read, then is rethrown', () async {
