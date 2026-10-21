@@ -1,5 +1,6 @@
 // Service worker for notifications (Web Push), registered by push.js when
-// the user turns them on in Mais. The collector sends each alert as JSON
+// the user turns them on in Mais, in its own scope ("/push/", apart from
+// Flutter's worker at the root, see push.js). The collector sends each alert as JSON
 // {title, body, url, tag} (collector/lib/src/notify/pending_alert.dart,
 // pushMessage); a tap opens `url` (the listing, "/#/deals/<id>") in the
 // app, reusing an open window. No caching: the app is not served from here.
