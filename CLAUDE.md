@@ -76,7 +76,9 @@ has the model), or typed by hand.
 - Flutter is not installed in the sandbox and must not be downloaded: Rafael
   tests the app. Pure Dart logic in the app can be tested with plain Dart
   (`package:test`) on copies of the files. The deploy runs `flutter test`
-  and `flutter build web`.
+  and `flutter build web --wasm` (WebAssembly where the browser supports
+  it, JavaScript otherwise; no cross-origin isolation headers, which would
+  block the listing photos).
 
 ## Layout
 
