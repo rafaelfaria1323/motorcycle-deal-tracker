@@ -43,7 +43,7 @@ void main() {
   test('keeps unknown models but warns, with a hint for variants', () {
     final unknown = _mapped(mapper.map(_raw(brand: 'Suzuki', model: 'SV650')));
     expect(unknown.listing.motorcycleSlug, isNull);
-    expect(unknown.warnings.single, contains('not in the catalog'));
+    expect(unknown.warnings.single, contains('not a followed model'));
 
     final near = _mapped(mapper.map(_raw(model: 'MT-07 ABS')));
     expect(near.listing.motorcycleSlug, isNull);

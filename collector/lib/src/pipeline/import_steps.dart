@@ -49,6 +49,12 @@ Future<void> importBatch(
     }
   }
   log.writeln('Mapped ${listings.length}, rejected $rejected.');
+  for (final y in searchYields(batch)) {
+    log.writeln(
+      'Search yield: ${y.matched} of ${y.ads} ad(s) are a followed model · '
+      '${y.search}',
+    );
+  }
   if (batch.siteModels.isNotEmpty) {
     log.writeln('Brands and models on offer: ${batch.siteModels.length}');
   }

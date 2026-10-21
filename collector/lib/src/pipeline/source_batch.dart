@@ -95,6 +95,32 @@ class RemovalPlan {
   final bool includeUnkeyed;
 }
 
+/// How many of the ads a search read are a followed model, per search in
+/// the order planned. A search whose ads are mostly other bikes spends the
+/// request budget for little (OLX's word searches match any of their
+/// words). Empty without a manifest.
+List<({String search, int ads, int matched})> searchYields(SourceBatch batch) {
+  final manifest = batch.manifest;
+  if (manifest == null) return const [];
+  final ads = <String, int>{};
+  final matched = <String, int>{};
+  for (final record in batch.records) {
+    final search = record.search;
+    if (search == null) continue;
+    ads[search] = (ads[search] ?? 0) + 1;
+    if (record.outcome case Mapped(
+      :final listing,
+    ) when listing.motorcycleSlug != null) {
+      matched[search] = (matched[search] ?? 0) + 1;
+    }
+  }
+  return [
+    for (final search in manifest.planned)
+      if (ads[search] case final count?)
+        (search: search, ads: count, matched: matched[search] ?? 0),
+  ];
+}
+
 /// Decides what may be removed. Without a manifest the input must be clean
 /// as a whole; with one, each search stands on its own: a search with a
 /// problem, or not fetched at all, keeps its listings, and the others go

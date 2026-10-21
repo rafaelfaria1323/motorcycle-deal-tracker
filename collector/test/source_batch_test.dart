@@ -146,4 +146,26 @@ void main() {
       expect(plan.skipReason, isNotNull);
     });
   });
+
+  test('search yields count the followed models among each search\'s ads', () {
+    final yields = searchYields(
+      batch([
+        mapped('1', search: b),
+        MappedRecord(
+          '2',
+          search: a,
+          Mapped(testListing('2', motorcycleSlug: 'yamaha-mt-07')),
+        ),
+        mapped('3', search: a),
+        const MappedRecord('copy', Rejected('copy'), search: a),
+        mapped('4'),
+      ], manifest: both),
+    );
+
+    expect(yields, [
+      (search: a, ads: 3, matched: 1),
+      (search: b, ads: 1, matched: 0),
+    ]);
+    expect(searchYields(batch([mapped('1', search: a)])), isEmpty);
+  });
 }

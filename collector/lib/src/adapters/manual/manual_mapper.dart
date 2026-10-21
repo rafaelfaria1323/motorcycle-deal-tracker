@@ -38,9 +38,9 @@ class ManualMapper {
       final near = catalog.nearMiss(raw.brand, raw.model);
       warnings.add(
         near == null
-            ? '"${raw.brand} ${raw.model}" is not in the catalog, '
+            ? '"${raw.brand} ${raw.model}" is not a followed model, '
                   'so it gets no market price'
-            : '"${raw.brand} ${raw.model}" is not in the catalog; if it is a '
+            : '"${raw.brand} ${raw.model}" is not a followed model; if it is a '
                   'variant of ${near.model}, put the extra text in "variant"',
       );
     } else if (year != null && year < entry.minYear) {
