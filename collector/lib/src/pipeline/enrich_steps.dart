@@ -9,9 +9,10 @@ const _source = 'standvirtual';
 
 /// Reads the Standvirtual listing page of each of [pending] with [fetcher]
 /// (prepared) and stores the details they add; returns how many listings
-/// were updated. A page that is gone or unreadable is skipped. Running out
-/// of requests stops quietly; a block stops too, and is rethrown once what
-/// was read is stored.
+/// were updated. A page that is gone, unreadable or refused by our own
+/// rules (e.g. a redirect off /motos/) is skipped. Running out of requests
+/// stops quietly; a block stops too, and is rethrown once what was read is
+/// stored.
 Future<int> enrichDetails(
   ListingStore store,
   PoliteFetcher fetcher,
@@ -37,6 +38,11 @@ Future<int> enrichDetails(
       } on FormatException catch (e) {
         skipped++;
         log.writeln('  - skipped ${p.sourceListingId}: ${e.message}');
+      } on FetchLimitReached {
+        rethrow;
+      } on FetchRefused catch (e) {
+        skipped++;
+        log.writeln('  - skipped ${p.sourceListingId}: $e');
       }
     }
   } on FetchLimitReached catch (e) {

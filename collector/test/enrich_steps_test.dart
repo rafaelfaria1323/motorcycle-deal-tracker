@@ -51,7 +51,7 @@ const _base = 'https://www.standvirtual.com/motos/anuncio';
     (sourceListingId: id, url: '$_base/$id.html');
 
 void main() {
-  test('a page that is gone or unreadable is skipped', () async {
+  test('a page that is gone, unreadable or refused is skipped', () async {
     final store = _Store();
     final updated = await enrichDetails(
       store,
@@ -59,14 +59,22 @@ void main() {
         '$_base/1.html': _page('1'),
         '$_base/2.html': const FetchFailed('HTTP 404'),
         '$_base/3.html': '<html>no data</html>',
-        '$_base/4.html': _page('4'),
+        // Redirected off /motos/: our own rules refuse it.
+        '$_base/4.html': const FetchRefused('only /motos/ pages'),
+        '$_base/5.html': _page('5'),
       }),
-      [_pending('1'), _pending('2'), _pending('3'), _pending('4')],
+      [
+        _pending('1'),
+        _pending('2'),
+        _pending('3'),
+        _pending('4'),
+        _pending('5'),
+      ],
       out: StringBuffer(),
     );
 
     expect(updated, 2);
-    expect(store.storedIds, ['1', '4']);
+    expect(store.storedIds, ['1', '5']);
   });
 
   test('running out of requests stores what was read, quietly', () async {
