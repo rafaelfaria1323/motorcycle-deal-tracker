@@ -125,7 +125,10 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
 .github/workflows/test-hardening.yml  The same on docs/test-hardening.md:
                                   bugs, surviving mutants, redundant tests
                                   (label test-hardening); never overlaps
-                                  with code quality
+                                  with code quality. Both passes PAUSED since
+                                  2026-10-20 (Rafael): no runs after merges
+                                  until he says so; only "Run workflow"
+                                  starts one (mutation testing still runs)
 .github/workflows/mutation.yml    Mutation testing without AI (mutation_test,
                                   tool/mutation.py) on the files in
                                   */mutation_targets.txt: after merges only
@@ -134,9 +137,6 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
                                   HTML artifacts); test hardening's find
                                   runs start from the last full run's
                                   surviving mutants
-                                  Both PAUSED since 2026-10-20 (Rafael): no
-                                  runs after merges until he says so; only
-                                  "Run workflow" starts one
 .github/workflows/backlog-pass.yml  Shared by both: "To do" empty -> after 10
                                   merges, only find up to 10 items, no code
                                   change; otherwise every 5 merges do up to
