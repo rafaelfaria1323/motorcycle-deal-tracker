@@ -187,42 +187,18 @@ jobs:
           channel: stable
           cache: true
 
-      # app/android is not in the repository: made afresh from this
-      # Flutter's template (so it always matches it), then fitted by
-      # tool/android_manifest.py (internet permission, name) and given the
-      # app's icon. The package name never changes (Android treats another
-      # one as another app).
-      - name: Android project
-        if: steps.key.outputs.ready == 'true'
-        run: |
-          cd app
-          flutter create --platforms=android --org io.github.rafaelfaria1323 \
-            --project-name motorcycle_deal_tracker .
-          python3 ../tool/android_manifest.py android/app/src/main/AndroidManifest.xml
-          flutter pub get
-          dart run flutter_launcher_icons
-
-      # The run number is the version code, so each build installs over
-      # the one before. Phones are 64-bit ARM (a smaller APK than one for
-      # every processor).
+      # tool/android_build.sh: the Android project made from this
+      # Flutter's template, then the APK; the run number is its version.
       - name: Build APK
         if: steps.key.outputs.ready == 'true'
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
-          BUILD: ${{ github.run_number }}
           # Where shared links point (invites, the app's link). Set the
           # variable WEB_APP_URL if Cloudflare gave the project another
           # address.
           WEB_URL: ${{ vars.WEB_APP_URL || format('https://{0}.pages.dev', env.PAGES_PROJECT) }}
-        run: |
-          cd app && flutter build apk --release --target-platform android-arm64 \
-            --build-name="1.0.$BUILD" --build-number="$BUILD" \
-            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
-            --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY" \
-            --dart-define=APK_URL="$APK_URL" \
-            --dart-define=APP_BUILD="$BUILD" \
-            --dart-define=WEB_URL="$WEB_URL"
+        run: tool/android_build.sh "${{ github.run_number }}"
 
       # The template signs releases with a throwaway debug key; apksigner
       # signs it again with ours (PKCS12, alias `upload`).
@@ -239,14 +215,15 @@ jobs:
           rm "$keystore"
           "$apksigner" verify --print-certs motorcycle-deal-tracker.apk
 
-      # The first deploy creates the release; later ones replace its APK.
+      # The first deploy creates the release; later ones replace its APK
+      # and android.json.
       - name: Publish APK
         if: steps.key.outputs.ready == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           BUILD: ${{ github.run_number }}
         run: |
-          notes="Versão $BUILD (commit $GITHUB_SHA). Instale a app no Android a partir deste ficheiro; as versões seguintes instalam-se por cima."
+          notes="Versão $BUILD (commit $GITHUB_SHA). Instale a app no Android a partir deste ficheiro; depois, a própria app atualiza-se em Mais › App Android."
           if gh release view android > /dev/null 2>&1; then
             gh release edit android --notes "$notes"
           else
@@ -254,3 +231,7 @@ jobs:
               --notes "$notes" --target "$GITHUB_SHA"
           fi
           gh release upload android motorcycle-deal-tracker.apk --clobber
+          # Then the version file the app reads to offer the update (after
+          # the APK, so it never names a build that isn't there yet).
+          printf '{"build": %s, "commit": "%s"}\n' "$BUILD" "$GITHUB_SHA" > android.json
+          gh release upload android android.json --clobber

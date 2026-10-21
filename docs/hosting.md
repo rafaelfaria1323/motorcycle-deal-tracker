@@ -123,10 +123,16 @@ Every deploy also builds the Android app (`deploy-web.yml`, job
 `android`) and puts it on the GitHub release `android`, replacing the
 previous one:
 `https://github.com/rafaelfaria1323/motorcycle-deal-tracker/releases/download/android/motorcycle-deal-tracker.apk`.
-On an Android phone, Mais shows "App Android": in Chrome it installs the
-app, in the app it downloads the latest version, which installs over it
-(session and data stay). Android asks once to allow installs from Chrome
-(or from the browser that downloaded it).
+On an Android phone, Mais shows "App Android". In Chrome it downloads the
+app the first time; Android asks once to allow installs from Chrome. After
+that the app updates itself: Mais › "App Android" says "Há uma versão
+nova" when a deploy published a newer build (it reads `android.json`,
+published next to the APK), and a tap downloads it inside the app and
+opens Android's installer, with no browser. The first time Android asks to
+allow installs from Deal Tracker (Definições › "Instalar apps
+desconhecidas"); after that only its "Atualizar?" confirmation, which
+Android always shows for apps not from the Play Store. The update installs
+over the app: the session and data stay.
 
 It needs a signing key, made once and kept: every version must be signed
 with the same one, or Android refuses to install it over the app (losing

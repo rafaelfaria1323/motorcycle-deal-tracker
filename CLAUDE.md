@@ -124,11 +124,18 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
                                   (tested again first; skipped if none),
                                   then test, build and publish the app to
                                   Cloudflare Pages; then the Android APK
-                                  (job android: app/android made by
-                                  `flutter create`, never committed,
-                                  fitted by tool/android_manifest.py,
-                                  signed with the secrets' key, on the
-                                  GitHub release `android`)
+                                  (job android, tool/android_build.sh:
+                                  app/android made by `flutter create`,
+                                  never committed, fitted by
+                                  tool/android_manifest.py; signed with
+                                  the secrets' key, on the GitHub release
+                                  `android` with android.json, the build
+                                  number the app compares with its own)
+.github/workflows/android-check.yml  PRs touching app/packages, the
+                                  pubspec or the Android build scripts:
+                                  the APK built (not signed or published),
+                                  so a broken Android build shows before
+                                  the merge
 .github/workflows/code-quality.yml  Claude pass on docs/code-quality.md: how
                                   the code is written (duplication, dead
                                   code, structure, theme, names); one PR
@@ -273,8 +280,15 @@ invites; written by the collector on each run).
   in `core/platform/app_build.dart`: `APK_URL`, `APP_BUILD`, `WEB_URL`).
   Browser-only code sits behind conditional imports (`*_stub.dart` /
   `*_web.dart`); links to share use `webOrigin`, never `Uri.base`
-  (a file in the app). Mais › "App Android" (`android_app_text.dart`)
-  offers the APK on Android only. No notifications there yet
+  (a file in the app). Mais › "App Android" (`android_app_text.dart`,
+  `android_app_tile.dart`) on Android only: in the browser it opens the
+  APK; in the app it reads the release's `android.json`
+  (`android_release.dart`), says whether a newer build is out, and a tap
+  downloads it and opens Android's installer (no browser): the in-repo
+  plugin `app/packages/apk_installer` (Java, channel
+  `deal_tracker/apk_installer`, called by `core/platform/apk_installer.dart`;
+  its manifest brings `REQUEST_INSTALL_PACKAGES` and the file provider).
+  Android always asks to confirm the install. No notifications there yet
   (`PushState.nativeApp`: Web Push is the browser's).
 - Photos: `Image.network` with `WebHtmlElementStrategy.prefer` (the photo
   CDNs don't send CORS headers, so an `<img>` element is the only way).

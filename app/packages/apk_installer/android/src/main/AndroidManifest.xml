@@ -1,0 +1,17 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Lets the app hand an APK to Android's installer (the person still
+         confirms each install). -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
+
+    <application>
+        <provider
+            android:name="io.github.rafaelfaria1323.apk_installer.ApkFileProvider"
+            android:authorities="${applicationId}.apk_installer"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/apk_installer_paths"/>
+        </provider>
+    </application>
+</manifest>

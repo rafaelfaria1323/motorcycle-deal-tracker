@@ -39,6 +39,9 @@ dependencies:
   intl: ^0.20.3
   url_launcher: ^6.3.3
   flutter_launcher_icons: ^0.14.4
+  # The Android app's own updater (Android only, no Dart code).
+  apk_installer:
+    path: packages/apk_installer
 
 dev_dependencies:
   flutter_test:
