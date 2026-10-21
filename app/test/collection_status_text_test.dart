@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/domain/collector_run.dart';
+import 'package:motorcycle_deal_tracker/features/collector_status/domain/database_usage.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/domain/github_token.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/presentation/collection_status_text.dart';
 
@@ -138,5 +139,60 @@ void main() {
     expect(runStatusLabel('ok'), 'Correu bem');
     expect(runStatusLabel('blocked'), 'Bloqueada');
     expect(runStatusLabel('failed'), 'Falhou');
+  });
+
+  group('database usage', () {
+    const mb = 1024 * 1024;
+
+    test('the size against the free plan, red from 80 %', () {
+      final low = databaseUsageText(
+        const DatabaseUsage(bytes: 42 * mb + mb ~/ 3, tables: []),
+      );
+      expect(low.text, 'A base de dados ocupa 42,3 MB de 500 MB (8 %).');
+      expect(low.warning, isFalse);
+      final high = databaseUsageText(
+        const DatabaseUsage(bytes: 400 * mb, tables: []),
+      );
+      expect(
+        high.text,
+        startsWith('A base de dados ocupa 400,0 MB de 500 MB (80 %).'),
+      );
+      expect(high.text, contains('só deixa ler'));
+      expect(high.warning, isTrue);
+    });
+
+    test('the biggest tables, or nothing', () {
+      expect(
+        biggestTablesText(
+          const DatabaseUsage(
+            bytes: 50 * mb,
+            tables: [
+              (name: 'listings', bytes: 30 * mb),
+              (name: 'alerts', bytes: mb ~/ 2),
+            ],
+          ),
+        ),
+        'Maiores tabelas: listings 30,0 MB, alerts 0,5 MB',
+      );
+      expect(
+        biggestTablesText(const DatabaseUsage(bytes: mb, tables: [])),
+        isNull,
+      );
+    });
+
+    test('reads the database function\'s answer', () {
+      expect(
+        DatabaseUsage.fromJson({
+          'database_bytes': 2048,
+          'tables': [
+            {'name': 'listings', 'bytes': 1024},
+          ],
+        }),
+        const DatabaseUsage(
+          bytes: 2048,
+          tables: [(name: 'listings', bytes: 1024)],
+        ),
+      );
+    });
   });
 }

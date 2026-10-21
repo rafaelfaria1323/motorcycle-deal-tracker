@@ -319,7 +319,9 @@ invites; written by the collector on each run).
   ok), `sites` (each fetch state file's `report()`: requests today, daily
   limit, paused until) and `run_url` (`githubRunUrl`), shown to admins in
   Mais › "Estado da recolha" (`collection_status_page.dart`, route
-  `/collection-status`, pushed).
+  `/collection-status`, pushed), with the database's size against the
+  free plan's 500 MB and its 5 biggest tables (`database_usage`, admins;
+  red from 80 %).
 - Schedules live in Supabase, not in the workflows (GitHub's scheduler never
   started `collect.yml`): pg_cron jobs `collect-listings` (`40 */4 * * *`)
   and `weekly-summary` (`52 7 * * 1`) call `dispatch_workflow()`, which

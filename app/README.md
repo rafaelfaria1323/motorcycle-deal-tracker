@@ -59,7 +59,7 @@ Cloudflare Pages on every merge that touches `app/`
   lists, optional engine size, searches built automatically; or typed by
   hand), "Comparar modelos" (your models side by side: typical asking
   price and its spread, the typical bike, time until leaving the market,
-  price drops, depreciation; cheapest first), the collection status (last run, what it found, requests, next run; admins: "Estado da recolha" with the last runs and their errors, each site's requests today and pause and the GitHub token's expiry, "Recolher agora") and data quality
+  price drops, depreciation; cheapest first), the collection status (last run, what it found, requests, next run; admins: "Estado da recolha" with the last runs and their errors, each site's requests today and pause, the GitHub token's expiry and the database's size against the free plan's 500 MB, "Recolher agora") and data quality
   per site (live listings, unmatched, duplicates, missing year/km/location,
   when listings were last seen, sudden price changes).
 

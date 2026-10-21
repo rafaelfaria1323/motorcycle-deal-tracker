@@ -61,3 +61,8 @@ authenticated_security_definer_function_executable_public_start_workflow_p_workf
 # first (else 42501) and says only whether GitHub accepts the token and
 # when it expires, never the token.
 authenticated_security_definer_function_executable_public_github_token_status_
+
+# "Estado da recolha" (admins): database_usage calls require_admin() first
+# (else 42501) and says only the database's size and its 5 biggest tables'
+# names and sizes (pg_database_size needs a role allowed to connect).
+authenticated_security_definer_function_executable_public_database_usage_
