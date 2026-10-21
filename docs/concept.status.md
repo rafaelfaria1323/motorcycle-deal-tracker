@@ -43,7 +43,7 @@ Unchanged.
 ## 5. Sources 🟡
 
 - ✅ Standvirtual (every page of each search, from the first tracked year, + listing pages for details, low-volume personal fetcher).
-- ✅ OLX (search result pages, which hold the full description; Standvirtual copies skipped).
+- ✅ OLX (search result pages, which hold the full description; Standvirtual copies skipped; each search asks for the engine-size band of its models, so other models' ads aren't read).
 - ⬜ Future: CustoJusto, dealerships, European marketplaces, imports.
 
 *robots.txt checked and read every run; same polite limits per site (20 requests per run, 120 per day). **Terms of use still to be read and recorded** in `docs/sources.md`.*

@@ -25,10 +25,16 @@ const standvirtualYearFrom =
 /// of OLX's engine-size bands, the search asks for that band only.
 const olxEngineSize = 'search[filter_enum_cilindrada][0]';
 
-/// OLX's engine-size bands that we have seen on the site (value, cc from,
-/// cc to). Add a band here only once its value is seen in an ad or on the
-/// site's filter: an unknown value would make OLX return nothing.
-const olxEngineBands = [(value: '501-1000-cc', from: 501, to: 1000)];
+/// OLX's engine-size bands (value, cc from, cc to), as listed by the
+/// site's own filter in its search pages (`filter_enum_cilindrada`). Change
+/// them only from that list: an unknown value would make OLX return nothing.
+const olxEngineBands = [
+  (value: 'ate-50-cc', from: 0, to: 50),
+  (value: '51-125-cc', from: 51, to: 125),
+  (value: '126-500-cc', from: 126, to: 500),
+  (value: '501-1000-cc', from: 501, to: 1000),
+  (value: 'mais-de-1000-cc', from: 1001, to: 100000),
+];
 
 /// The band that holds every one of [entries], or null when one has no
 /// engine size or they don't fit one band.
