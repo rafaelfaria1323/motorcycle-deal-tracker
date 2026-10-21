@@ -367,7 +367,9 @@ functions for manual work.
   then pause 24 h (state in `collector/.fetch_state.json` and
   `.fetch_state.olx.json`, cached between Actions runs). Reaching the run or
   daily limit after some pages were saved is not a failure: what was saved
-  is imported.
+  is imported. A request that fails (a timeout) or a block after some pages
+  were saved also imports them, but the run still counts as failed; a
+  search with a page missing is not read in full, so it removes nothing.
 - Honest user agent. Saved pages, manifests, generated search lists and
   fetch state are never committed (they contain sellers' contact details).
 - Never store private sellers' names or anyone's phone numbers.
