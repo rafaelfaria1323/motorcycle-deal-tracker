@@ -409,6 +409,70 @@ class ListingStore {
     return points;
   }
 
+  /// Our Web Push key pair; made and stored on the first run.
+  Future<VapidKeys> pushKeys() async {
+    Future<VapidKeys?> read() async {
+      final rows = await _client.rpc<Object?>('push_keys') as List<dynamic>;
+      if (rows.isEmpty) return null;
+      final row = rows.first as Map<String, dynamic>;
+      return VapidKeys.fromBase64(
+        row['private_key'] as String,
+        row['public_key'] as String,
+      );
+    }
+
+    final stored = await read();
+    if (stored != null) return stored;
+    final keys = VapidKeys.generate();
+    await _client.rpc<Object?>(
+      'store_push_keys',
+      params: {
+        'p_public_key': keys.publicBase64,
+        'p_private_key': keys.privateBase64,
+      },
+    );
+    // Another run may have stored its pair first: use the stored one.
+    return await read() ?? keys;
+  }
+
+  /// Every account's devices, by account.
+  Future<Map<String, List<PushTarget>>> pushTargets() async {
+    final rows = await _client
+        .from('push_subscriptions')
+        .select('endpoint, user_id, p256dh, auth');
+    final byUser = <String, List<PushTarget>>{};
+    for (final r in rows) {
+      byUser
+          .putIfAbsent(r['user_id'] as String, () => [])
+          .add(
+            PushTarget(
+              endpoint: r['endpoint'] as String,
+              p256dh: r['p256dh'] as String,
+              auth: r['auth'] as String,
+            ),
+          );
+    }
+    return byUser;
+  }
+
+  /// Devices whose push service says they no longer exist.
+  Future<void> forgetPushTargets(List<String> endpoints) async {
+    if (endpoints.isEmpty) return;
+    await _client
+        .from('push_subscriptions')
+        .delete()
+        .inFilter('endpoint', endpoints);
+  }
+
+  /// Devices that received a push now.
+  Future<void> markPushTargetsUsed(List<String> endpoints) async {
+    if (endpoints.isEmpty) return;
+    await _client
+        .from('push_subscriptions')
+        .update({'last_sent_at': DateTime.now().toUtc().toIso8601String()})
+        .inFilter('endpoint', endpoints);
+  }
+
   Future<int> markNotified(List<String> alertIds) async {
     if (alertIds.isEmpty) return 0;
     final result = await _client.rpc<Object?>(

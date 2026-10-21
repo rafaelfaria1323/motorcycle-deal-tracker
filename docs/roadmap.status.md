@@ -275,7 +275,10 @@ Do not implement several unrelated features at once.
 ## 14.2 Collector follows the union ✅
 *`motorcycles.is_active` / `min_year` now mean "followed by some account" / "the earliest year any of them asks for", kept by `refresh_collected_model()` on every change, so the collector and its searches are unchanged. When nobody follows a model any more its listings lose it (as switching it off did); when someone follows it again they get it back. Scores, fair prices and market figures stay shared (the market is the same for everyone). The request budget shown in "Modelos acompanhados" counts every account's models.*
 ## 14.3 Accounts ⬜
-*Today accounts are created by hand in Supabase; a second person needs an invite or sign-up path, and Telegram per person (own chat id). Until then every real account's alerts, and the weekly summary of all collected models, go to the owner's Telegram chat.*
+*Today accounts are created by hand in Supabase; a second person needs an invite or sign-up path. Notifications per person are done (14.4, Web Push); until Telegram is turned off for alerts, every real account's alerts, and the weekly summary of all collected models, also go to the owner's Telegram chat.*
+
+## 14.4 Notifications from the app (Web Push) ✅
+*Rafael, 2026-10-21: "replace Telegram with the website's notifications, routed to our app". Mais › "Notificações neste aparelho" turns them on for the signed-in account on this device (on the iPhone only in the home-screen app, iOS 16.4+; the switch says how otherwise). After each run the collector sends every new alert to its account's devices: "📉 Baixa de preço: Yamaha MT-07 2024", the prices and facts; a tap opens the listing in the app (`web/push_sw.js`). No third party: the collector encrypts (RFC 8291) and signs (VAPID, RFC 8292) the pushes itself with pointycastle, checked against the RFC's test vector; the key pair is made on its first run (private key in Vault), so nothing to set up. Devices the push service says are gone are deleted. Telegram keeps sending too until the notifications are confirmed on the phone. Tests: `web_push_test.dart`, `notify_test.dart`, `web_push_test.sql`, `notifications_test.sql`, `push_text_test.dart`.*
 
 # Sprint 12 — Flutter iOS ⬜
 

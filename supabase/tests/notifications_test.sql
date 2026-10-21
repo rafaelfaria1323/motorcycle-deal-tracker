@@ -22,12 +22,15 @@ declare
   n int;
 begin
   select array_agg(alert_id order by ord) into ids
-  from public.pending_notifications() with ordinality p(alert_id, type, old_price, new_price, brand, model,
-                                                       year, mileage, price, deal_score, location, url, ord);
+  from public.pending_notifications() with ordinality p(alert_id, user_id, listing_id, type, old_price,
+                                                       new_price, brand, model, year, mileage, price,
+                                                       deal_score, location, url, ord);
   assert cardinality(ids) = 2, 'the anonymous session''s alert is not sent';
   assert (select type from public.alerts where id = ids[1]) = 'new_listing', 'oldest first';
   assert (select p.old_price = 7000 and p.new_price = 6500 and p.brand = 'Yamaha' and p.mileage = 12000
                  and p.location = 'Porto' and p.url = 'https://x/n1'
+                 and p.user_id = '00000000-0000-0000-0000-0000000000a1'
+                 and p.listing_id = (select id from public.listings where source_listing_id = 'n1')
           from public.pending_notifications() p where p.type = 'price_reduction'),
     'the message has the listing and the prices';
   assert (select count(*) from public.pending_notifications(1)) = 1, 'the limit holds';

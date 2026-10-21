@@ -47,6 +47,11 @@ returns bigint language sql as $$ insert into net.calls values (url, body, heade
 create schema vault;
 create table vault.secrets (name text, secret text);
 create view vault.decrypted_secrets as select name, secret as decrypted_secret from vault.secrets;
+create function vault.create_secret(new_secret text, new_name text default null,
+                                    new_description text default '')
+returns uuid language sql as $$
+  insert into vault.secrets values (new_name, new_secret); select gen_random_uuid()
+$$;
 
 -- Supabase grants the API roles everything in public by default and lets
 -- row level security (and the migrations' revokes) decide; do the same, so

@@ -20,7 +20,8 @@ For each site (Standvirtual, OLX):
 4. **Details** (Standvirtual only): read the listing page of new listings.
 
 Then, once for both sites: find duplicates, recalculate the scores,
-generate the alerts and send the new ones to Telegram.
+generate the alerts and send the new ones to each account's devices (Web
+Push) and to Telegram.
 
 After each scheduled run `bin/report_run.dart` records it in `collector_runs`
 and, when its status differs from the previous run's (ok, blocked, failed),
