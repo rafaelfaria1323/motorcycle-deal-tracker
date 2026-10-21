@@ -306,7 +306,10 @@ functions for manual work.
   the tracked models (`planSearches`). Models with the same address share one
   search, asking for the earliest `min_year` of those models (OLX
   `search[filter_float_year:from]`, Standvirtual
-  `search[filter_float_first_registration_year:from]`). Every page of a
+  `search[filter_float_first_registration_year:from]`). On OLX, whose model
+  filter is a family ("R", "CB"), a search also asks for the engine-size
+  band that holds all its models (`olxEngineBand`, only bands seen on the
+  site: today `501-1000-cc`), so other models' ads aren't read. Every page of a
   search is read (OLX 40 listings each, Standvirtual 32, `?page=N`). Oldest models first, so when the budget runs
   out the newest models' searches wait.
 - **Removal is per search** (`removalPlan`): each listing stores the search

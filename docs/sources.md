@@ -15,6 +15,30 @@ the migration `20261022150000_listing_distance.sql` (table `places`); no
 site is read at run time. Credit: "Place coordinates: GeoNames
 (geonames.org), CC BY 4.0".
 
+### 2026-10-21: OLX searches ask for the engine size (9.13)
+
+**Why.** OLX's model filter is a family: "R" holds the R125, R3, R6, R7, R1
+and R9; "CB"/"CBR" every Honda CB and CBR from 125 to 1000 cc. A search for
+the R7 or the CB650R also read every other model of the family, so more
+than 100 stored OLX ads matched no followed model (Rafael, 2026-10-21):
+pages and storage spent on bikes nobody follows.
+
+**Decision.** When every model of an OLX search has an engine size inside
+one of OLX's engine-size bands, the search asks for that band only
+(`search[filter_enum_cilindrada][0]`). Only bands whose value was seen on
+the site are used (`501-1000-cc`, which holds every followed model today);
+an unknown value would make OLX return nothing, so a banded search whose
+first page has no ads is not saved: it isn't read in full and removes
+nothing, and the log says so. A model without an engine
+size, or models in different bands, keep the search as it was. Standvirtual
+searches already name the engine size (`q-650`, `q-7`). An ad whose seller
+left the engine size empty, or chose the wrong band, is no longer found on
+OLX (Standvirtual still lists dealer ads).
+
+**Cleanup.** The unmatched ads already stored were set to removed once
+(migration `20261023160000`, not those with an alert or a favourite); the
+next run makes the ones its searches still bring live again.
+
 ### 2026-10-19: searches come from the tracked models (9.9)
 
 **Decision.** Each catalog model stores the OLX and Standvirtual search

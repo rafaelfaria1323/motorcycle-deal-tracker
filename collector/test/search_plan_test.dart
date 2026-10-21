@@ -9,6 +9,7 @@ CatalogEntry model(
   int minYear, {
   String? olx,
   String? standvirtual,
+  int? cc,
 }) => CatalogEntry(
   slug: name.toLowerCase(),
   brand: 'Yamaha',
@@ -16,6 +17,8 @@ CatalogEntry model(
   minYear: minYear,
   olxSearch: olx,
   standvirtualSearch: standvirtual,
+  engineCcMin: cc == null ? null : cc - 10,
+  engineCcMax: cc == null ? null : cc + 20,
 );
 
 void main() {
@@ -96,5 +99,84 @@ void main() {
 
     expect(plan.searches, isEmpty);
     expect(plan.problems.single, startsWith('Yamaha MT-07'));
+  });
+
+  group('OLX engine-size band', () {
+    const rSearch = '$olxYamaha?search%5Bfilter_enum_modelo%5D%5B0%5D=r';
+
+    test('a family search asks only for the band of its models', () {
+      final plan = planSearches(
+        Catalog([
+          model('R7', 2024, olx: rSearch, cc: 690),
+          model('R1', 2021, olx: rSearch, cc: 980),
+        ]),
+        FetchSite.olx,
+      );
+
+      expect(plan.searches.single.url.queryParameters, {
+        'search[filter_enum_modelo][0]': 'r',
+        olxYearFrom: '2021',
+        olxEngineSize: '501-1000-cc',
+      });
+    });
+
+    test(
+      'no band when a model has no engine size or the models span bands',
+      () {
+        String? bandOf(List<CatalogEntry> models) => planSearches(
+          Catalog(models),
+          FetchSite.olx,
+        ).searches.single.url.queryParameters[olxEngineSize];
+
+        expect(bandOf([model('R7', 2024, olx: rSearch)]), isNull);
+        expect(
+          bandOf([
+            model('R7', 2024, olx: rSearch, cc: 690),
+            model('R3', 2024, olx: rSearch, cc: 321),
+          ]),
+          isNull,
+        );
+      },
+    );
+
+    test('a band in the stored address is replaced, not kept', () {
+      final plan = planSearches(
+        Catalog([
+          model(
+            'R7',
+            2024,
+            olx:
+                '$rSearch&search%5Bfilter_enum_cilindrada%5D%5B0%5D=126-250-cc',
+            cc: 690,
+          ),
+          model('R1', 2021, olx: rSearch, cc: 980),
+        ]),
+        FetchSite.olx,
+      );
+
+      expect(plan.searches, hasLength(1));
+      expect(
+        plan.searches.single.url.queryParameters[olxEngineSize],
+        '501-1000-cc',
+      );
+    });
+
+    test('Standvirtual searches are left as they are', () {
+      final plan = planSearches(
+        Catalog([
+          model(
+            'R7',
+            2024,
+            standvirtual: 'https://www.standvirtual.com/motos/yamaha/r/q-7',
+            cc: 690,
+          ),
+        ]),
+        FetchSite.standvirtual,
+      );
+
+      expect(plan.searches.single.url.queryParameters.keys, [
+        standvirtualYearFrom,
+      ]);
+    });
   });
 }

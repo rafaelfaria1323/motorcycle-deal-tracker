@@ -285,6 +285,45 @@ void main() {
     );
   });
 
+  test('an OLX search with an engine band and no ads is not saved', () async {
+    answer = (page) => _page(page, 1); // no ads
+    final banded = search.replace(
+      queryParameters: {
+        ...search.queryParameters,
+        olxEngineSize: '501-1000-cc',
+      },
+    );
+    final log = StringBuffer();
+
+    final outcome = await local(() async {
+      final fetcher = PoliteFetcher(
+        site: site,
+        policy: const FetchPolicy(
+          minDelay: Duration.zero,
+          jitter: Duration.zero,
+        ),
+      );
+      await fetcher.prepare();
+      try {
+        return await fetchSearches(
+          fetcher,
+          [banded, search],
+          dir.path,
+          out: log,
+        );
+      } finally {
+        fetcher.close();
+      }
+    });
+
+    // The plain search's empty page is saved (no band: it can be empty).
+    expect(outcome.saved, 1);
+    final manifest = (await SearchManifest.readFrom(dir.path))!;
+    expect(manifest.planned, ['$banded', '$search']);
+    expect(manifest.files.values, ['$search']);
+    expect('$log', contains('OLX found no ads'));
+  });
+
   test('the pause between requests counts the time spent in between', () async {
     // Wide margins: a loaded CI machine can be slow by a few hundred ms.
     const pause = Duration(milliseconds: 1000);
