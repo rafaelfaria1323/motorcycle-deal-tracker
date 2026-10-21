@@ -80,20 +80,23 @@ void main() {
         }
       });
 
-      // The racing orange (filled buttons, small orange labels) reaches
-      // 3.7 in the light theme: enough for large text, not for 4.5. Kept
-      // as the brand colour; this stops it from getting any lighter.
-      test('the primary colour stays at least large-text readable', () {
+      // The racing orange: white on filled buttons, small orange labels on
+      // the page and cards, and snack bar actions on the inverse surface.
+      test('the primary colour is readable as text and behind text', () {
         expect(
           _contrast(scheme.onPrimary, scheme.primary),
-          greaterThanOrEqualTo(_large),
+          greaterThanOrEqualTo(_text),
         );
         for (final background in backgrounds.values) {
           expect(
             _contrast(scheme.primary, background),
-            greaterThanOrEqualTo(_large),
+            greaterThanOrEqualTo(_text),
           );
         }
+        expect(
+          _contrast(scheme.inversePrimary, scheme.inverseSurface),
+          greaterThanOrEqualTo(_text),
+        );
       });
     });
   }

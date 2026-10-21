@@ -25,7 +25,7 @@ abstract final class AppTheme {
 
   static const _lightScheme = ColorScheme(
     brightness: Brightness.light,
-    primary: Color(0xFFEB4F12),
+    primary: Color(0xFFC5420F),
     onPrimary: Colors.white,
     primaryContainer: Color(0xFFFFE4D8),
     onPrimaryContainer: Color(0xFF5C1A00),
@@ -95,7 +95,7 @@ abstract final class AppTheme {
     scrim: Colors.black,
     inverseSurface: Color(0xFFECEEF1),
     onInverseSurface: Color(0xFF14181E),
-    inversePrimary: Color(0xFFEB4F12),
+    inversePrimary: Color(0xFFB73D0E),
     surfaceTint: Colors.transparent,
   );
 
