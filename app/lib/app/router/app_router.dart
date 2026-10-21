@@ -18,6 +18,7 @@ import '../../features/listings/presentation/pages/listing_detail_page.dart';
 import '../../features/listings/presentation/pages/model_market_page.dart';
 import '../../features/listings/presentation/pages/saved_searches_page.dart';
 import '../../features/listings/presentation/pages/tracked_models_page.dart';
+import '../../features/listings/presentation/pages/weekly_summary_page.dart';
 import '../../features/settings/presentation/accounts_page.dart';
 import '../../features/settings/presentation/join_page.dart';
 import '../../features/settings/presentation/more_page.dart';
@@ -126,6 +127,11 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.collectionStatus,
       builder: (context, state) => const CollectionStatusPage(),
+    ),
+    // Also opened by a tap on the Monday notification (`/#/summary`).
+    GoRoute(
+      path: AppRoutes.summary,
+      builder: (context, state) => const WeeklySummaryPage(),
     ),
     // An invite link (`/#/join?code=…`), opened from a message.
     GoRoute(

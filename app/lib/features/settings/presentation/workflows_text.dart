@@ -15,8 +15,10 @@ import '../domain/workflows_repository.dart';
   ),
   AppWorkflow.weeklySummary => (
     title: 'Enviar o resumo da semana',
-    subtitle: 'Envia já para o Telegram o resumo dos últimos 7 dias',
-    started: 'Resumo pedido. Chega ao Telegram dentro de alguns minutos.',
+    subtitle: 'Os últimos 7 dias dos seus modelos, já, neste aparelho',
+    started:
+        'Resumo pedido. Chega dentro de 1 a 2 minutos e fica em Mais › '
+        'Resumo da semana.',
   ),
   AppWorkflow.pushTest => (
     title: 'Enviar notificação de teste',

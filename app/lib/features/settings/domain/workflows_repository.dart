@@ -1,5 +1,6 @@
-/// The GitHub workflows the app can start: the collection and the weekly
-/// summary (admins), a test notification (any signed-in account).
+/// The GitHub workflows the app can start: the collection (admins), a test
+/// notification and the weekly summary (any signed-in account, for
+/// itself).
 enum AppWorkflow {
   collect('collect.yml'),
   weeklySummary('weekly-summary.yml'),

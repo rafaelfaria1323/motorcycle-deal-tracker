@@ -32,10 +32,14 @@ sends one notification to the admins' devices (Web Push; a tap opens
 (`notify/run_health.dart`), or that the collection works again. The same
 problem is not repeated every 4 hours.
 
-Every Monday `bin/weekly_summary.dart` (workflow `weekly-summary.yml`) sends
-one Telegram message about the tracked models' last 7 days: new listings per
+Every Monday `bin/weekly_summary.dart` (workflow `weekly-summary.yml`) makes
+each account's summary of its own models' last 7 days: new listings per
 model, price drops (1 % or more, biggest first), listings gone, and the 5
-best live deals with a Risk Score below 50. It only reads the database.
+best live deals with a Risk Score below 50. It keeps it in
+`weekly_summaries` (the app's "Resumo da semana") and sends it to the
+account's devices (Web Push; a tap opens that page). Asked for in the app,
+the workflow gets the account as its input (`SUMMARY_ACCOUNT`) and makes
+only that one. It only reads the listings.
 
 ## Commands
 
@@ -49,7 +53,7 @@ best live deals with a Risk Score below 50. It only reads the database.
 | `make enrich-dry` / `enrich` | Standvirtual listing details |
 | `make notify-test` | Send a test message to Telegram |
 | `make push-test` | Send a test notification (Web Push) to the admins' devices (`push-test.yml` from the app: to the asking account's) |
-| `make weekly-summary [ARGS=--dry-run]` | Send (or print) the week's summary |
+| `make weekly-summary [ARGS=--dry-run]` | Make and send (or print) each account's summary of the week |
 | `make collector-check` | Format check, analyze and test |
 
 Secrets go in `collector/.env` (gitignored): `SUPABASE_URL`,

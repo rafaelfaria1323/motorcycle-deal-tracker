@@ -4,8 +4,8 @@ Personal web app/PWA (single owner: Rafael) that watches the Portuguese used
 and semi-new motorcycle market, tracks price and status history, and ranks
 listings with an explainable **Deal Score** plus a separate **Risk Score**.
 Alerts go to the app and to each account's devices as notifications (Web
-Push); Telegram keeps the weekly summary and the database's own warnings
-(watchdog, GitHub token). Others join through
+Push), and so does each account's weekly summary; Telegram keeps the
+database's own warnings (watchdog, GitHub token). Others join through
 invite links made in the app.
 
 Progress lives in `docs/roadmap.status.md` (step by step) and
@@ -99,8 +99,10 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
             test-hardening.md (backlogs of the automatic passes)
 .github/workflows/collect.yml     Collection every 4 hours (minute 40, UTC),
                                   started by Supabase pg_cron (see below)
-.github/workflows/weekly-summary.yml  Mondays 07:52 UTC (pg_cron): the week's summary
-                                  on Telegram (bin/weekly_summary.dart)
+.github/workflows/weekly-summary.yml  Mondays 07:52 UTC (pg_cron): each account's
+                                  summary of the week, kept for the app and
+                                  pushed to its devices (bin/weekly_summary.dart);
+                                  input `account`: only that one
 .github/workflows/push-test.yml   A test notification (bin/push_test.dart) to the
                                   devices of whoever asked in the app
 .github/workflows/check.yml       `make check` (with Flutter) and `make
@@ -177,7 +179,7 @@ make refresh ARGS=--full       one process for both sites (bin/refresh.dart): se
                                -> import (with removal) -> enrich, then scores/alerts once
 make refresh-olx|refresh-standvirtual   the same for one site
 make push-test                 send a test notification to the admins' devices (Web Push)
-make weekly-summary [ARGS=--dry-run]   send (or print) the week's Telegram summary
+make weekly-summary [ARGS=--dry-run]   make and send (or print) each account's weekly summary
 make mutation PKG=collector|app FILES="lib/..."   mutation testing of those files
                                (needs `dart pub global activate mutation_test`)
 ```
@@ -214,7 +216,7 @@ invites; written by the collector on each run).
   Mais). Account, "Modelos acompanhados" and collection status live in Mais.
   Use `context.go`, not `push`, so web URLs stay correct. Exception: full
   pages outside the shell (`/models`, `/market`, `/favourites`,
-  `/compare?ids=a,b,c`) are pushed.
+  `/compare?ids=a,b,c`, `/summary`) are pushed.
   The comparison picks live in `CompareCubit` (lazy singleton, max 3);
   its table is `compare_text.dart` (`compareRows`, tested).
 - Formatting: `Formatters.price`, `.mileage`, `.date`, `.daysAgo`,
@@ -234,13 +236,16 @@ invites; written by the collector on each run).
   `store_service_access`; never writes `auth.users`), then signs in.
   Admins also list accounts (`admin_accounts`), make or unmake admins
   (`set_admin`, never themselves) and remove accounts (`remove_account`),
-  and start `collect.yml` or `weekly-summary.yml` now from Mais › Recolha
-  de dados (`start_workflow`: GitHub's dispatch API through `http` with
-  the Vault token, each at most once per 15 minutes, `workflow_starts`;
-  the collector's caps still apply). Any signed-in account can also start
-  `push-test.yml` (Mais › "Notificações neste aparelho" › "Enviar
-  notificação de teste", once per 2 minutes): `bin/push_test.dart` sends a
-  test push to that account's devices (who asked: `workflow_starts`).
+  and start `collect.yml` now from Mais › Recolha de dados
+  (`start_workflow`: GitHub's dispatch API through `http` with the Vault
+  token, at most once per 15 minutes, `workflow_starts`; the collector's
+  caps still apply). Any signed-in account can also start, once per 2
+  minutes, `push-test.yml` (Mais › "Notificações neste aparelho" ›
+  "Enviar notificação de teste"; `bin/push_test.dart` sends a test push to
+  that account's devices, who asked: `workflow_starts`) and
+  `weekly-summary.yml` for itself ("Enviar o resumo da semana", there and
+  on the summary page; the account goes as the workflow's input
+  `account`). The app's start calls share `start_workflow.dart`.
   Catalog
   changes go through RPCs that call `require_account()` (signed in, not
   anonymous). Models per account: lists read `listings.in_my_models` and
@@ -539,7 +544,12 @@ registered in its own scope `/push/`: Flutter's worker at `/` unregisters
 itself on each start and would take the subscription with it) are plain JS called from `core/platform/push.dart`; gone devices (404/410)
 are deleted.
 Weekly summary (Mondays, `weekly_summary.dart`, pure logic in
-`notify/weekly_summary.dart`): tracked models, non-duplicates; new = first
+`notify/weekly_summary.dart` and `send_weekly_summaries.dart`): per account
+(`user_models`, its own models from its first year, as `in_my_models`),
+kept in `weekly_summaries` (one row per account, the latest; owner-only
+RLS; `weeklySummaryJson`) for the app's "Resumo da semana" (`/summary`,
+pushed; `weekly_summary_text.dart`) and pushed to the account's devices
+(`weeklySummaryPush`, a tap opens it); non-duplicates; new = first
 seen in the last 7 days, gone = removed with `last_checked_at` in them,
 drop = last price this week >= 1% below the price the week started with
 (live listings), best deals = live, risk < 50, by Deal Score.

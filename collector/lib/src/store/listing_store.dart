@@ -409,6 +409,42 @@ class ListingStore {
     return points;
   }
 
+  /// The models each account follows: account -> catalog id -> first year.
+  Future<Map<String, Map<String, int>>> followedModels() async {
+    final rows = await readAllPages(
+      (start, end) => _client
+          .from('user_models')
+          .select('user_id, motorcycle_id, min_year')
+          .eq('tracked', true)
+          .order('user_id')
+          .order('motorcycle_id')
+          .range(start, end),
+    );
+    final byUser = <String, Map<String, int>>{};
+    for (final r in rows) {
+      byUser.putIfAbsent(r['user_id'] as String, () => {})[r['motorcycle_id']
+          as String] = (r['min_year'] as num)
+          .toInt();
+    }
+    return byUser;
+  }
+
+  /// Keeps [summary] as [userId]'s latest weekly summary (the app's
+  /// "Resumo da semana").
+  Future<void> saveWeeklySummary(
+    String userId,
+    WeeklySummary summary,
+    Map<String, Object?> json,
+  ) async {
+    await _client.from('weekly_summaries').upsert({
+      'user_id': userId,
+      'since': summary.since.toUtc().toIso8601String(),
+      'until': summary.until.toUtc().toIso8601String(),
+      'summary': json,
+      'made_at': DateTime.now().toUtc().toIso8601String(),
+    }, onConflict: 'user_id');
+  }
+
   /// Lets the database call Supabase Auth's admin API (accounts made from
   /// invites in the app) with this run's address and key; stored in the
   /// Vault, only when they changed.

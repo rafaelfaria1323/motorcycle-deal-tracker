@@ -53,13 +53,13 @@ Cloudflare Pages on every merge that touches `app/`
 - **Alertas:** new listings, price drops, excellent opportunities, bikes
   you followed back on the market in a new ad ("Voltou ao mercado") and
   removed listings, grouped by day; the tab shows the unread count.
-- **Mais:** account, sharing (the app's link; admins: "Contas e convites"), "A sua localidade" (your home town: every listing
+- **Mais:** account, sharing (the app's link; admins: "Contas e convites"), "Notificações neste aparelho" (with "Enviar notificação de teste" and "Enviar o resumo da semana"), "Resumo da semana" (your models' last 7 days, made every Monday and sent as a notification that opens it: counts, new listings per model, the best deals and the biggest drops, each opening its listing), "A sua localidade" (your home town: every listing
   shows its distance from it), "Modelos acompanhados" (your own models: switch on/off, first
   year, new-bike price, add models: brand and model picked from the sites'
   lists, optional engine size, searches built automatically; or typed by
   hand), "Comparar modelos" (your models side by side: typical asking
   price and its spread, the typical bike, time until leaving the market,
-  price drops, depreciation; cheapest first), the collection status (last run, what it found, requests, next run; admins: "Estado da recolha" with the last runs and their errors, each site's requests today and pause and the GitHub token's expiry, "Recolher agora" and "Enviar o resumo da semana") and data quality
+  price drops, depreciation; cheapest first), the collection status (last run, what it found, requests, next run; admins: "Estado da recolha" with the last runs and their errors, each site's requests today and pause and the GitHub token's expiry, "Recolher agora") and data quality
   per site (live listings, unmatched, duplicates, missing year/km/location,
   when listings were last seen, sudden price changes).
 
