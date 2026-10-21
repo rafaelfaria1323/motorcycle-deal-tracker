@@ -160,6 +160,24 @@ void main() {
     expect(listing.sellerType, SellerType.private);
   });
 
+  test('the brand of the search beats another brand in the title', () {
+    const raw = OlxRawListing(
+      id: '1',
+      url: 'https://www.olx.pt/d/anuncio/x.html',
+      status: 'active',
+      title: 'Honda CB650R 2025 (troca por Yamaha)',
+      price: 7000,
+      currency: 'EUR',
+      categoryBrand: 'honda',
+      model: 'CB650R',
+      year: 2025,
+    );
+    final listing = (mapper.map(raw) as Mapped).listing;
+    expect(listing.brand, 'Honda');
+    // Not taken for a Yamaha of the catalog.
+    expect(listing.motorcycleSlug, isNull);
+  });
+
   test("a private seller's name is never read", () {
     expect(one(ad()).businessName, isNull);
     expect(
