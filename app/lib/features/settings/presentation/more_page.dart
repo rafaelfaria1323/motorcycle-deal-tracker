@@ -11,6 +11,7 @@ import '../../collector_status/presentation/collector_status_banner.dart';
 import '../../collector_status/presentation/data_quality_details.dart';
 import 'home_place_tile.dart';
 import 'push_tile.dart';
+import 'run_now_tiles.dart';
 import 'share_tiles.dart';
 
 /// Everything that is not a list of offers: the account, the tracked
@@ -119,6 +120,11 @@ class MorePage extends StatelessWidget {
                   child: Column(
                     children: [
                       CollectionDetails(signedIn: signedIn),
+                      RunNowTiles(
+                        // Asked again after sign-in or sign-out.
+                        key: ValueKey(signedIn),
+                        signedIn: signedIn,
+                      ),
                       if (!signedIn)
                         const Padding(
                           padding: EdgeInsets.fromLTRB(16, 0, 16, 12),

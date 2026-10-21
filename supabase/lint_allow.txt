@@ -46,3 +46,8 @@ anon_security_definer_function_executable_public_invite_status_p_code text
 authenticated_security_definer_function_executable_public_invite_status_p_code text
 anon_security_definer_function_executable_public_redeem_invite_p_code text, p_email text, p_password text
 authenticated_security_definer_function_executable_public_redeem_invite_p_code text, p_email text, p_password text
+
+# Admins start the collection or the weekly summary from the app:
+# start_workflow calls require_admin() first (else 42501) and starts only
+# those two workflows, once each per 15 minutes.
+authenticated_security_definer_function_executable_public_start_workflow_p_workflow text

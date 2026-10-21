@@ -229,7 +229,11 @@ invites; written by the collector on each run).
   service-role key the collector stores in the Vault each run,
   `store_service_access`; never writes `auth.users`), then signs in.
   Admins also list accounts (`admin_accounts`), make or unmake admins
-  (`set_admin`, never themselves) and remove accounts (`remove_account`).
+  (`set_admin`, never themselves) and remove accounts (`remove_account`),
+  and start `collect.yml` or `weekly-summary.yml` now from Mais › Recolha
+  de dados (`start_workflow`: GitHub's dispatch API through `http` with
+  the Vault token, each at most once per 15 minutes, `workflow_starts`;
+  the collector's caps still apply).
   Catalog
   changes go through RPCs that call `require_account()` (signed in, not
   anonymous). Models per account: lists read `listings.in_my_models` and
@@ -292,7 +296,8 @@ invites; written by the collector on each run).
   and `weekly-summary` (`52 7 * * 1`) call `dispatch_workflow()`, which
   starts the workflow through GitHub's workflow_dispatch API with pg_net and
   the Vault secret `github_dispatch_token` (fine-grained, this repo only,
-  Actions read/write; created by Rafael, see `docs/hosting.md`). Change a
+  Actions read/write; created by Rafael, see `docs/hosting.md`; admins can
+  also start them from the app, `start_workflow`). Change a
   schedule with a migration calling `cron.schedule` with the same job name.
 - Watchdog: pg_cron job `collection-watchdog` (`20 * * * *`) runs
   `check_collection_runs()`: no run recorded for 9 h sends a Telegram
