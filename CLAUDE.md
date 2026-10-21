@@ -467,7 +467,10 @@ functions for manual work.
   jumps on 1 January) (`expected_mileage`); 100 up to half the normal, 75
   at it, 50 at 1.5x, 0 from 2.5x; no mileage but a year: 50; the app's
   `mileageForAge` says the same in words, keep both in step), risk 10
-  (inverted); then + 2 points per extra found, at most + 10, never above
+  (inverted), seller 10 (`dealer_score`: dealers with 5+ bikes only, 100
+  minus 100 x (relisted + sharp changes + repeated + half the ads without
+  mileage) / bikes; private sellers and smaller dealers skip it; the
+  app's `sellerLine`); then + 2 points per extra found, at most + 10, never above
   100 (`listing_extras`: keywords in variant/description for quickshifter,
   exhaust, luggage, heated grips, protection (also "cogumelos"), new tyres,
   short plate holder, tinted or sport screen, adjustable levers, bar-end
@@ -530,7 +533,8 @@ functions for manual work.
 - Dealer figures (`dealer_reliability` view, per dealer name trimmed and
   case-folded, both sites; shown as "O stand" on dealer listings): bikes,
   live, relisted, sharp price changes, missing mileage, repeated used
-  bikes on the same site, price dropped. Not in the Deal Score yet (15.7).
+  bikes on the same site, price dropped. Scored as the Deal Score's seller
+  slice (`dealer_score`, see Scoring model).
 - Cost of ownership (`ownership_cost.dart`, app only): per year =
   average depreciation over the years kept (model's curve at the owner's
   km/year) + IUC (category E table by the model's engine size, nothing

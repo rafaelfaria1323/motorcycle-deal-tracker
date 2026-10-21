@@ -27,7 +27,8 @@ Cloudflare Pages on every merge that touches `app/`
   - **Avaliação:** why this score (the reasons and the risk), the same bike
     on the other site, "O stand" for dealers (what we have seen of its ads
     on both sites: relists, sharp price changes, missing mileage, repeated
-    ads, price drops).
+    ads, price drops; from 5 bikes it also counts in the Deal Score, and
+    the reasons say how the dealer scored).
   - **Negociar:** "Quanto oferecer" (where to start, a second offer if
     refused, the most to pay, each with a message to copy; "Argumentos" to
     quote to the seller; "O vendedor pediu": type the seller's counter-offer

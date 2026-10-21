@@ -43,7 +43,8 @@ begin
   assert (r.breakdown ->> 'slices_used')::int = 3, 'three slices used';
   assert (r.breakdown -> 'scores' ->> 'year_mileage')::numeric = 65, 'year/mileage blend';
   assert (r.breakdown -> 'scores' ->> 'risk')::numeric = 80, 'risk is inverted';
-  assert (r.breakdown ->> 'slices_total')::int = 3, 'three slices exist';
+  assert (r.breakdown ->> 'slices_total')::int = 4, 'four slices exist';
+  assert not (r.breakdown -> 'scores') ? 'seller', 'no dealer score, no seller slice';
   assert (r.breakdown ->> 'equipment_bonus')::int = 0, 'no extras, no bonus';
 
   -- Extras add 2 points each, at most 10, after the average.
@@ -58,6 +59,22 @@ begin
   assert r.deal_score = 92, format('one extra raises it, got %s', r.deal_score);
   select * into r from public.combine_deal_score(100, 100, 100, 0, 5);
   assert r.deal_score = 100, 'never above 100';
+
+  -- The seller slice (a dealer's score) weighs 10.
+  select * into r from public.combine_deal_score(80, 50, 100, 20, 0, 100);
+  -- (80*35 + 65*20 + 80*10 + 100*10) / 75 = 78.7
+  assert r.deal_score = 79, format('a clean dealer, got %s', r.deal_score);
+  assert (r.breakdown -> 'scores' ->> 'seller')::numeric = 100, 'seller score kept';
+  assert (r.breakdown ->> 'slices_used')::int = 4, 'four slices used';
+  select * into r from public.combine_deal_score(80, 50, 100, 20, 0, 0);
+  assert r.deal_score = 65, format('a dealer with warning signs, got %s', r.deal_score);
+
+  -- dealer_score: 100 minus the share of warning signs, half for no mileage.
+  assert public.dealer_score(10, 0, 0, 0, 0) = 100, 'clean';
+  assert public.dealer_score(10, 1, 1, 2, 1) = 60, 'relisted, sharp, repeated, no km';
+  assert public.dealer_score(5, 5, 5, 0, 5) = 0, 'clamped at 0';
+  assert public.dealer_score(4, 0, 0, 0, 0) is null, 'too few bikes';
+  assert public.dealer_score(null, 0, 0, 0, 0) is null, 'no dealer';
 
   -- Without the price slice, at most 70.
   select * into r from public.combine_deal_score(null, 100, 100, 0, 3);

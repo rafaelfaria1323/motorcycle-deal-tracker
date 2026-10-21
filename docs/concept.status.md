@@ -89,7 +89,7 @@ Initial price, current price, every change with date, percentage, and time onlin
 | Price vs market | 35% | ✅ fair value adjusted for age and mileage (per-model rates, comparables within 3 years when enough), from 3 comparables; without it the score is at most 70 (15.18) |
 | Year / mileage | 20% | ✅ |
 | Version / equipment | 15% | 🔄 a bonus instead (15.18): +2 points per extra named in the ad, at most +10 (as a weighted slice it lowered good scores); the version itself is not scored |
-| Seller / confidence | 10% | ⬜ |
+| Seller / confidence | 10% | ✅ dealers with 5+ bikes, from their ads' warning signs (15.7); private sellers and small dealers skip the slice |
 | Market / listing behaviour | 10% | ⬜ data being collected |
 | Risk indicators | 10% | ✅ |
 
@@ -108,7 +108,7 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 - ✅ Missing information.
 - ✅ Possible accident.
 - 🟡 Duplicate listing. *Detected (across sources too) and excluded from scoring, not a risk signal.*
-- ✅ Suspicious seller behaviour. *Relisted ads are detected (the same bike taken down and listed again), shown with the first date on sale and the earlier price, and count as risk (15.5): 5 points, 10 when relisted twice or on sale for over 90 days counting the earlier ads. Each dealer's figures (relisted, sharp price changes, missing mileage, repeated ads, price drops) are shown on its listings (15.7); scoring them comes later.*
+- ✅ Suspicious seller behaviour. *Relisted ads are detected (the same bike taken down and listed again), shown with the first date on sale and the earlier price, and count as risk (15.5): 5 points, 10 when relisted twice or on sale for over 90 days counting the earlier ads. Each dealer's figures (relisted, sharp price changes, missing mileage, repeated ads, price drops) are shown on its listings (15.7) and score the Deal Score's seller slice.*
 - ✅ Unclear ownership/history. *3+ owners, no service book, imported.*
 - ⬜ Excessively edited or reused images.
 
@@ -151,7 +151,7 @@ Private sellers' names and all phone numbers are never stored; saved pages and f
 
 Comparison ✅ (listings side by side), buying assistant, checklists, cost calculators, price prediction, weekly ranking ✅ (the weekly summary's best deals, 14.4d), smart alerts, model price history, imports, dealer integration. ➕ Depreciation tracking ✅ (per-model rates fitted from data).
 
-Planned in roadmap Sprint 15 ("Deciding and buying"): ➕ favourites with private notes ✅ (15.1; a favourite always alerts on price drops and removal), price to offer (buying assistant, 15.2) ✅, ➕ negotiation arguments, visit repairs off the offer, messages per step and a target price alert (15.19) ✅, ➕ "back on the market" alert for followed bikes (15.14) ✅, ➕ message to the seller (15.12) ✅, viewing checklist (15.3) ✅, cost of ownership (cost calculator, 15.4) ✅, relists as a risk signal (15.5) ✅, text contradictions as risk signals (15.6) ✅, dealer reliability (15.7) 🟡 (figures shown, not scored yet), price trends (model price history, 15.8) ⬜, more sources and imports (15.9) ⬜, web push (15.10) ⬜.
+Planned in roadmap Sprint 15 ("Deciding and buying"): ➕ favourites with private notes ✅ (15.1; a favourite always alerts on price drops and removal), price to offer (buying assistant, 15.2) ✅, ➕ negotiation arguments, visit repairs off the offer, messages per step and a target price alert (15.19) ✅, ➕ "back on the market" alert for followed bikes (15.14) ✅, ➕ message to the seller (15.12) ✅, viewing checklist (15.3) ✅, cost of ownership (cost calculator, 15.4) ✅, relists as a risk signal (15.5) ✅, text contradictions as risk signals (15.6) ✅, dealer reliability (15.7) ✅ (figures shown and scored), price trends (model price history, 15.8) ⬜, more sources and imports (15.9) ⬜, web push (15.10) ✅.
 
 ## 24. Product Philosophy ✅
 

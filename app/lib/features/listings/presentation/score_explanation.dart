@@ -69,6 +69,32 @@ String? extrasText(Map<String, dynamic>? breakdown) {
   return labels.isEmpty ? null : labels.join(', ');
 }
 
+/// The seller slice: the dealer's score from its ads' warning signs
+/// (relists, sharp price changes, repeats, no mileage; `dealer_score`), or
+/// null when it was not scored (private seller, fewer than 5 bikes).
+ExplanationLine? sellerLine(Map<String, dynamic>? breakdown) {
+  final score = ((breakdown?['scores'] as Map?)?['seller'] as num?)?.round();
+  if (score == null) return null;
+  final bikes = (breakdown?['dealer_bikes'] as num?)?.toInt();
+  final detail = '$score/100${bikes == null ? '' : ' em $bikes motas'}';
+  if (score >= 80) {
+    return ExplanationLine(
+      ExplanationTone.positive,
+      'Stand com anúncios fiáveis ($detail)',
+    );
+  }
+  if (score < 50) {
+    return ExplanationLine(
+      ExplanationTone.negative,
+      'Stand com muitos sinais de alerta nos anúncios ($detail)',
+    );
+  }
+  return ExplanationLine(
+    ExplanationTone.neutral,
+    'Stand com alguns sinais de alerta nos anúncios ($detail)',
+  );
+}
+
 /// The kilometres a year that count as normal for a motorcycle (cars do
 /// 10-12 000). Keep in step with expected_mileage() in the database.
 const normalKmPerYear = 5000;
@@ -309,6 +335,8 @@ abstract final class ScoreExplainer {
         ),
       );
     }
+
+    if (sellerLine(data) case final line?) lines.add(line);
 
     // Risk signals; some are reassuring and read as positives.
     for (final code in (data['risk_reasons'] as List? ?? const [])) {
