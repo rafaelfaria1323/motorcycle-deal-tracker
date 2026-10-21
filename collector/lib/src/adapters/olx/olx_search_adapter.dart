@@ -69,11 +69,14 @@ class OlxSearchAdapter implements SourceAdapter<OlxRawListing> {
         problems: page.problems,
         models: page.models,
       ),
+      // Per search: the manifest's (OLX's own address for a page can differ
+      // from the one asked for), or the page's own without a manifest.
       onPage: (page, i, name, search) {
-        (pagesBySearch[page.search] ??= {}).add(page.pageNumber);
-        totalPages[page.search] = page.totalPages;
-        firstFile.putIfAbsent(page.search, () => i);
-        manifestSearch.putIfAbsent(page.search, () => search);
+        final key = search ?? page.search;
+        (pagesBySearch[key] ??= {}).add(page.pageNumber);
+        totalPages[key] = page.totalPages;
+        firstFile.putIfAbsent(key, () => i);
+        manifestSearch.putIfAbsent(key, () => search);
       },
       finish: () => [
         for (final MapEntry(key: search, value: pages) in pagesBySearch.entries)
