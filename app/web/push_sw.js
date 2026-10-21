@@ -1,9 +1,9 @@
 // Service worker for notifications (Web Push), registered by push.js when
 // the user turns them on in Mais, in its own scope ("/push/", apart from
-// Flutter's worker at the root, see push.js). The collector sends each alert as JSON
-// {title, body, url, tag} (collector/lib/src/notify/pending_alert.dart,
-// pushMessage); a tap opens `url` (the listing, "/#/deals/<id>") in the
-// app, reusing an open window (see notificationclick). The app is not served
+// Flutter's worker at the root, see push.js). The collector sends each alert as
+// Declarative Web Push JSON {web_push: 8030, notification: {title, body,
+// navigate, tag}} (collector/lib/src/notify/web_push.dart, declarativePush);
+// a tap opens `navigate` (the listing, "/#/deals/<id>") in the app, reusing an open window (see notificationclick). The app is not served
 // from here: its only cache entry is the last tap (TAP_CACHE).
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
@@ -15,13 +15,17 @@ self.addEventListener('push', (event) => {
   } catch (_) {
     data = { body: event.data.text() };
   }
+  // The collector sends Declarative Web Push ({web_push: 8030, notification:
+  // {title, body, navigate, tag}}), which iOS 18.4+ shows and opens without
+  // this worker; other browsers land here.
+  const n = data.notification || data;
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Deal Tracker', {
-      body: data.body || '',
-      tag: data.tag,
+    self.registration.showNotification(n.title || 'Deal Tracker', {
+      body: n.body || '',
+      tag: n.tag,
       icon: 'icons/Icon-192.png',
       badge: 'icons/Icon-192.png',
-      data: { url: data.url || '/' },
+      data: { url: n.navigate || n.url || '/' },
     }),
   );
 });

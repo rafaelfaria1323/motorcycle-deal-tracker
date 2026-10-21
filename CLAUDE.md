@@ -536,10 +536,13 @@ account's devices by Web Push (`push_subscriptions`, saved from Mais ›
 no longer to Telegram since 2026-10-21, `pending_notifications.to_telegram`
 is unused). The collector sends them itself
 (`notify/web_push.dart`: RFC 8291 encryption and RFC 8292 VAPID with
-pointycastle, no third party); its key pair is made on the first run
+pointycastle, no third party; every push is Declarative Web Push,
+`declarativePush`: `{web_push: 8030, notification: {title, body, navigate,
+tag}}`, which iOS 18.4+ shows and opens itself, also moving an app that is
+already open; other browsers pass it to `push_sw.js`); its key pair is made on the first run
 (`store_push_keys`: public key in `push_config`, private in Vault
 `vapid_private_key`). The app's `web/push.js` (subscribe, state) and
-`web/push_sw.js` (shows the notification; a tap opens `/#/deals/<id>`: an
+`web/push_sw.js` (shows the notification elsewhere; a tap opens `/#/deals/<id>`: an
 open app is focused and sent the address, also left in Cache Storage for
 `push.js` to read when the app is shown, which puts it in the hash,
 since the worker can't navigate a page it doesn't control;
