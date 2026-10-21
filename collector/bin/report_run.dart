@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:collector/collector.dart';
 
-/// Records one scheduled run in `collector_runs`, drops rows older than
+/// Records one scheduled run in `collector_runs` (with its problems, each
+/// site's request budget and pause, and the GitHub run's address), drops
+/// rows older than
 /// 90 days and tells Telegram when the collection breaks or recovers (a
 /// change from the previous run's status only).
 /// Usage: `report_run.dart <exit-code> <started-at> <log-file>`
@@ -27,12 +29,21 @@ Future<void> main(List<String> args) async {
         .order('started_at', ascending: false)
         .limit(1)
         .maybeSingle();
+    final now = DateTime.now();
     await client.from('collector_runs').insert({
       'started_at': startedAt.toUtc().toIso8601String(),
       'status': status,
       'summary': logTail(log),
       'requests': requestsUsed(log),
       'counts': runCounts(log),
+      'problems': status == 'ok' ? <String>[] : runProblems(log),
+      'sites': {
+        for (final MapEntry(key: name, value: site) in FetchSite.byName.entries)
+          // No state yet: nothing used, no pause.
+          name: (await readFetchState(site.statePath) ?? FetchState(day: ''))
+              .report(const FetchPolicy(), now),
+      },
+      'run_url': githubRunUrl(Platform.environment),
     });
 
     final cutoff = DateTime.now().toUtc().subtract(const Duration(days: 90));

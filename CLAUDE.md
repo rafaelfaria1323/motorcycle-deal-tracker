@@ -290,7 +290,11 @@ invites; written by the collector on each run).
   `runCounts`; keep those log lines' wording). report_run.dart also sends a Telegram message
   when a run's status differs from the previous run's (`run_health.dart`:
   the error lines of each site, or "voltou a funcionar"), never twice for
-  the same problem.
+  the same problem. It also stores `problems` (`runProblems`, runs not
+  ok), `sites` (each fetch state file's `report()`: requests today, daily
+  limit, paused until) and `run_url` (`githubRunUrl`), shown to admins in
+  Mais › "Estado da recolha" (`collection_status_page.dart`, route
+  `/collection-status`, pushed).
 - Schedules live in Supabase, not in the workflows (GitHub's scheduler never
   started `collect.yml`): pg_cron jobs `collect-listings` (`40 */4 * * *`)
   and `weekly-summary` (`52 7 * * 1`) call `dispatch_workflow()`, which
@@ -299,6 +303,12 @@ invites; written by the collector on each run).
   Actions read/write; created by Rafael, see `docs/hosting.md`; admins can
   also start them from the app, `start_workflow`). Change a
   schedule with a migration calling `cron.schedule` with the same job name.
+- GitHub token: pg_cron job `github-token-check` (`7 8 * * *`) runs
+  `check_github_token()` (GET collect.yml with the Vault token through
+  `http`; state in `github_token_check`, one row, no API access; the
+  expiry from GitHub's `github-authentication-token-expiration` header);
+  refused or ending within 14 days tells Telegram once a day. Admins see
+  it in "Estado da recolha" (`github_token_status`, checks again).
 - Watchdog: pg_cron job `collection-watchdog` (`20 * * * *`) runs
   `check_collection_runs()`: no run recorded for 9 h sends a Telegram
   message (`send_telegram()`, pg_net, Vault secrets `telegram_bot_token`

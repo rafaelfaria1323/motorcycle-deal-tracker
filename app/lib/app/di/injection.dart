@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/auth/account_cubit.dart';
 import '../../core/auth/session_cubit.dart';
 import '../../features/collector_status/data/collector_runs_repository.dart';
+import '../../features/collector_status/data/github_token_repository.dart';
 import '../../features/collector_status/data/source_quality_repository.dart';
 import '../../features/collector_status/presentation/collector_status_cubit.dart';
 import '../../features/listings/data/repositories/supabase_alerts_repository.dart';
@@ -78,6 +79,9 @@ void configureDependencies() {
     ..registerLazySingleton(CompareCubit.new)
     ..registerLazySingleton<CollectorRunsRepository>(
       () => SupabaseCollectorRunsRepository(getIt<SupabaseClient>()),
+    )
+    ..registerLazySingleton<GithubTokenRepository>(
+      () => SupabaseGithubTokenRepository(getIt<SupabaseClient>()),
     )
     ..registerLazySingleton(
       () => CollectorStatusCubit(getIt<CollectorRunsRepository>()),

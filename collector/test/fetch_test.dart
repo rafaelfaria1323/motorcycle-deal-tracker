@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:collector/collector.dart';
 import 'package:test/test.dart';
 
@@ -122,6 +124,38 @@ void main() {
       expect(copy.day, '2026-10-19');
       expect(copy.requests, 3);
       expect(copy.blockedAt, state.blockedAt);
+    });
+
+    test('reports today\'s requests and a pause still running', () {
+      final state = FetchState(
+        day: '2026-10-19',
+        requests: 47,
+        blockedAt: DateTime.utc(2026, 10, 19, 8),
+      );
+      const policy = FetchPolicy();
+
+      expect(state.report(policy, DateTime.utc(2026, 10, 19, 20)), {
+        'requests_today': 47,
+        'daily_limit': 120,
+        'paused_until': '2026-10-20T08:00:00.000Z',
+      });
+      // The next day: nothing used yet, the pause is over.
+      expect(state.report(policy, DateTime.utc(2026, 10, 20, 9)), {
+        'requests_today': 0,
+        'daily_limit': 120,
+        'paused_until': null,
+      });
+    });
+
+    test('a missing or damaged state file reads as none', () async {
+      final dir = await Directory.systemTemp.createTemp('fetch_state');
+      addTearDown(() => dir.delete(recursive: true));
+      expect(await readFetchState('${dir.path}/none.json'), isNull);
+      final damaged = File('${dir.path}/bad.json')..writeAsStringSync('{');
+      expect(await readFetchState(damaged.path), isNull);
+      final good = File('${dir.path}/good.json')
+        ..writeAsStringSync('{"day": "2026-10-19", "requests": 5}');
+      expect((await readFetchState(good.path))!.requests, 5);
     });
   });
 }

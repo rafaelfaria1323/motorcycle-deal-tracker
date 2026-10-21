@@ -23,6 +23,9 @@ class _Repository implements CollectorRunsRepository {
 
   @override
   Future<List<CollectorRun>> getSince(DateTime since) async => const [];
+
+  @override
+  Future<List<CollectorRun>> getRecent(int limit) async => const [];
 }
 
 void main() {

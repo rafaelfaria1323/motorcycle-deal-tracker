@@ -6,6 +6,10 @@
 # (security definer) reads and writes it.
 rls_enabled_no_policy_public_collection_watchdog
 
+# The GitHub token check's state: likewise, only check_github_token()
+# reads and writes it.
+rls_enabled_no_policy_public_github_token_check
+
 # The policy already reads the JWT once per query: auth.jwt() sits inside
 # a scalar subquery, (select auth.jwt() ->> 'is_anonymous'). splinter only
 # recognises the form (select auth.jwt()) ->> ...
@@ -51,3 +55,8 @@ authenticated_security_definer_function_executable_public_redeem_invite_p_code t
 # start_workflow calls require_admin() first (else 42501) and starts only
 # those two workflows, once each per 15 minutes.
 authenticated_security_definer_function_executable_public_start_workflow_p_workflow text
+
+# "Estado da recolha" (admins): github_token_status calls require_admin()
+# first (else 42501) and says only whether GitHub accepts the token and
+# when it expires, never the token.
+authenticated_security_definer_function_executable_public_github_token_status_

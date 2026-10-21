@@ -46,3 +46,13 @@ Map<String, int> requestsUsed(String log) => {
   for (final m in RegExp(r'Requests used: (\w+)=(\d+)').allMatches(log))
     m.group(1)!: int.parse(m.group(2)!),
 };
+
+/// The GitHub Actions run's page, from the variables every job has; null
+/// outside Actions.
+String? githubRunUrl(Map<String, String> env) {
+  final server = env['GITHUB_SERVER_URL'];
+  final repo = env['GITHUB_REPOSITORY'];
+  final id = env['GITHUB_RUN_ID'];
+  if (server == null || repo == null || id == null) return null;
+  return '$server/$repo/actions/runs/$id';
+}

@@ -9,6 +9,7 @@ abstract final class AppRoutes {
   static const favourites = '/favourites';
   static const accounts = '/accounts';
   static const join = '/join';
+  static const collectionStatus = '/collection-status';
 
   static String listingDetail(String id) => '$deals/$id';
 

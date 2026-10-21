@@ -7,6 +7,9 @@ class CollectorRun extends Equatable {
     required this.finishedAt,
     this.requests = const {},
     this.counts = const {},
+    this.problems = const [],
+    this.sites = const {},
+    this.runUrl,
   });
 
   /// 'ok', 'blocked' or 'failed'.
@@ -21,10 +24,53 @@ class CollectorRun extends Equatable {
   /// 'removed': 1, 'alerts': 4}); empty for older runs.
   final Map<String, int> counts;
 
+  /// What went wrong in a run that was not ok, one line per error.
+  final List<String> problems;
+
+  /// Each site's budget and pause after the run; empty for older runs.
+  final Map<String, SiteBudget> sites;
+
+  /// The GitHub Actions run's page.
+  final String? runUrl;
+
   Duration get duration => finishedAt.difference(startedAt);
 
   @override
-  List<Object?> get props => [status, startedAt, finishedAt, requests, counts];
+  List<Object?> get props => [
+    status,
+    startedAt,
+    finishedAt,
+    requests,
+    counts,
+    problems,
+    sites,
+    runUrl,
+  ];
+}
+
+/// One site's requests used today (UTC day) out of its daily limit, and
+/// until when it is paused after the site pushed back.
+class SiteBudget extends Equatable {
+  const SiteBudget({
+    required this.requestsToday,
+    required this.dailyLimit,
+    this.pausedUntil,
+  });
+
+  factory SiteBudget.fromJson(Map<String, dynamic> json) => SiteBudget(
+    requestsToday: (json['requests_today'] as num?)?.toInt() ?? 0,
+    dailyLimit: (json['daily_limit'] as num?)?.toInt() ?? 120,
+    pausedUntil: json['paused_until'] == null
+        ? null
+        : DateTime.parse(json['paused_until'] as String),
+  );
+
+  final int requestsToday;
+  final int dailyLimit;
+  final DateTime? pausedUntil;
+
+  @override
+  List<Object?> get props => [requestsToday, dailyLimit, pausedUntil];
 }
 
 enum CollectorHealth { unknown, ok, stale, blocked, failed }

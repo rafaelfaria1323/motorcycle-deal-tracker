@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/collector_status/presentation/collection_status_page.dart';
 import '../../features/listings/presentation/cubit/alerts_cubit.dart';
 import '../../features/listings/presentation/cubit/favourites_cubit.dart';
 import '../../features/listings/presentation/cubit/favourites_state.dart';
@@ -121,6 +122,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.accounts,
       builder: (context, state) => const AccountsPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.collectionStatus,
+      builder: (context, state) => const CollectionStatusPage(),
     ),
     // An invite link (`/#/join?code=…`), opened from a message.
     GoRoute(
