@@ -3,6 +3,7 @@ import 'dart:io';
 import '../adapters/olx/olx_search_adapter.dart';
 import '../adapters/standvirtual/standvirtual_search_adapter.dart';
 import 'polite_fetcher.dart';
+import 'search_plan.dart';
 import 'search_manifest.dart';
 
 /// How a fetch of searches ended.
@@ -49,8 +50,8 @@ Future<FetchOutcome> fetchSearches(
   final saved = <String, String>{};
   var started = 0;
 
-  Future<String> save(Uri url, Uri search) async {
-    final html = await fetcher.get(url);
+  Future<String> save(Uri url, Uri search, {String? fetched}) async {
+    final html = fetched ?? await fetcher.get(url);
     final name = fileNameFor(url);
     await File('$directory/$name').writeAsString(html);
     saved[name] = '$search';
@@ -61,8 +62,18 @@ Future<FetchOutcome> fetchSearches(
   try {
     for (final url in searches) {
       started++;
-      final first = await save(url, url);
       final olx = fetcher.site.host == FetchSite.olx.host;
+      final html = await fetcher.get(url);
+      if (olx && _emptyWithEngineBand(url, html)) {
+        // Not saved, so the search is not read in full and removes nothing:
+        // if the band's value were wrong, OLX would return no ads at all.
+        log.writeln(
+          '  OLX found no ads for $url with the engine-size filter; '
+          'its listings are kept as they are (check olxEngineBands)',
+        );
+        continue;
+      }
+      final first = await save(url, url, fetched: html);
       final pages = _totalPages(first, olx: olx);
       for (var page = 2; page <= pages; page++) {
         await save(
@@ -113,6 +124,17 @@ FetchOutcome _stoppedBy(
     'the $saved page(s) saved are imported.',
   );
   return FetchOutcome(saved: saved, stoppedBy: '$e', failure: e);
+}
+
+/// Whether [url] asks OLX for an engine-size band and its first page
+/// [html] has no ads.
+bool _emptyWithEngineBand(Uri url, String html) {
+  if (!url.queryParameters.containsKey(olxEngineSize)) return false;
+  try {
+    return OlxSearchAdapter('').parseSearchPage(html).total == 0;
+  } on FormatException {
+    return false; // not a results page: saved, and the import reports it
+  }
 }
 
 /// How many pages the search whose first page is [html] spans; 1 when the
