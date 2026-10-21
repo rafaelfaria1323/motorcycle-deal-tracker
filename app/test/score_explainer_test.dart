@@ -135,6 +135,44 @@ void main() {
     expect(extrasText(null), isNull);
   });
 
+  test('a scored dealer is explained by its band; otherwise nothing', () {
+    ExplanationLine? line(num score, [int? bikes = 12]) => sellerLine({
+      'scores': {'seller': score},
+      'dealer_bikes': bikes,
+    });
+
+    expect(
+      line(90),
+      const ExplanationLine(
+        ExplanationTone.positive,
+        'Stand com anúncios fiáveis (90/100 em 12 motas)',
+      ),
+    );
+    expect(line(80)!.tone, ExplanationTone.positive);
+    expect(line(79.6)!.text, contains('fiáveis (80/100'));
+    expect(line(79.4)!.tone, ExplanationTone.neutral);
+    expect(line(50)!.tone, ExplanationTone.neutral);
+    expect(line(49)!.tone, ExplanationTone.negative);
+    expect(line(49)!.text, contains('muitos sinais de alerta'));
+    expect(line(60, null)!.text, endsWith('(60/100)'));
+    expect(sellerLine(const {'scores': <String, dynamic>{}}), isNull);
+    expect(sellerLine(null), isNull);
+
+    final lines = ScoreExplainer.explain(
+      _listing(
+        dealScore: 75,
+        breakdown: {
+          'scores': {'seller': 100},
+          'dealer_bikes': 6,
+        },
+      ),
+    )!.lines;
+    expect(
+      lines.single.text,
+      'Stand com anúncios fiáveis (100/100 em 6 motas)',
+    );
+  });
+
   test('a score without the price comparison says it is capped', () {
     final lines = ScoreExplainer.explain(
       _listing(dealScore: 70, breakdown: {'capped_without_price': true}),
