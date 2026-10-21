@@ -58,6 +58,7 @@ dev_dependencies:
 # The Android icon is made by the deploy, which makes app/android.
 flutter_launcher_icons:
   android: true
+  image_path: "assets/icon/app_icon.jpeg"
   min_sdk_android: 21
   web:
     generate: true
