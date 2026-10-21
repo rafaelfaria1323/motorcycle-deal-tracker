@@ -163,6 +163,30 @@ String vapidAuthorization(
 /// contact it if our pushes misbehave).
 const appOrigin = 'https://motorcycle-deal-tracker.pages.dev';
 
+/// What a push carries: Declarative Web Push (the Push API's `web_push: 8030`
+/// form). iOS 18.4+ shows it and opens `navigate` on a tap by itself, also
+/// with the home-screen app already open (a service worker that controls no
+/// page can't move it there); other browsers hand it to web/push_sw.js.
+/// [message] is {title, body, url, tag} with a relative url.
+Map<String, Object?> declarativePush(
+  Map<String, Object?> message, {
+  String origin = appOrigin,
+}) => {
+  'web_push': 8030,
+  'notification': {
+    // The title is required and must not be empty.
+    'title': switch (message['title']) {
+      final String t when t.isNotEmpty => t,
+      _ => 'Deal Tracker',
+    },
+    if (message['body'] case final String body) 'body': body,
+    'navigate': Uri.parse(
+      origin,
+    ).resolve(message['url'] as String? ?? '/').toString(),
+    if (message['tag'] case final String tag) 'tag': tag,
+  },
+};
+
 /// Sends pushes signed with one key pair.
 class WebPushSender {
   WebPushSender(this.keys, {this.subject = appOrigin});
@@ -174,7 +198,8 @@ class WebPushSender {
       sendWebPush(target, message, keys, subject: subject);
 }
 
-/// Sends [message] (JSON, read by the app's service worker) to [target].
+/// Sends [message] ({title, body, url, tag}, as [declarativePush]) to
+/// [target].
 /// Never throws: a network problem is [PushResult.failed].
 Future<PushResult> sendWebPush(
   PushTarget target,
@@ -186,7 +211,7 @@ Future<PushResult> sendWebPush(
   final Uint8List body;
   try {
     body = encryptPayload(
-      Uint8List.fromList(utf8.encode(jsonEncode(message))),
+      Uint8List.fromList(utf8.encode(jsonEncode(declarativePush(message)))),
       uaPublic: base64UrlDecodeLoose(target.p256dh),
       authSecret: base64UrlDecodeLoose(target.auth),
     );

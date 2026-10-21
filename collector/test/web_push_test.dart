@@ -82,6 +82,35 @@ void main() {
     },
   );
 
+  group('declarativePush', () {
+    test('wraps a message for the system to show and open', () {
+      expect(
+        declarativePush({
+          'title': 'Resumo',
+          'body': 'Texto',
+          'url': '/#/summary',
+          'tag': 'weekly-summary',
+        }),
+        {
+          'web_push': 8030,
+          'notification': {
+            'title': 'Resumo',
+            'body': 'Texto',
+            'navigate': '$appOrigin/#/summary',
+            'tag': 'weekly-summary',
+          },
+        },
+      );
+    });
+
+    test('a title is always there; no url opens the app', () {
+      expect(declarativePush({'title': ''}), {
+        'web_push': 8030,
+        'notification': {'title': 'Deal Tracker', 'navigate': '$appOrigin/'},
+      });
+    });
+  });
+
   group('sending', () {
     late HttpServer server;
     var status = 201;
