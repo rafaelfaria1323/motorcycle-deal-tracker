@@ -1,28 +1,35 @@
-/// The Telegram message for a change in the collection's health between the
-/// [previous] run's status and this run's [current] one (`ok`, `blocked`,
-/// `failed`, see `runStatus`), or null when nothing changed: a problem is
-/// reported once, not every 4 hours, and so is the recovery.
-String? runHealthMessage({
+/// The notification (Web Push, to the admins' devices) for a change in the
+/// collection's health between the [previous] run's status and this run's
+/// [current] one (`ok`, `blocked`, `failed`, see `runStatus`), or null when
+/// nothing changed: a problem is reported once, not every 4 hours, and so
+/// is the recovery. A tap opens "Estado da recolha".
+Map<String, Object?>? runHealthMessage({
   required String? previous,
   required String current,
   required String log,
 }) {
   if (current == previous) return null;
-  if (current == 'ok') {
-    return previous == null
-        ? null
-        : '✅ A recolha de anúncios voltou a funcionar.';
-  }
-  final problems = runProblems(log);
-  final details = problems.isEmpty ? '' : '\n\n${problems.join('\n')}';
-  if (current == 'blocked') {
-    return '⛔ Um site recusou os pedidos da recolha de anúncios.$details\n\n'
-        'A recolha desse site fica em pausa durante 24 h e volta a tentar '
-        'automaticamente.';
-  }
-  return '⚠️ A recolha de anúncios falhou.$details\n\n'
+  if (current == 'ok' && previous == null) return null;
+  final problems = current == 'ok' ? const <String>[] : runProblems(log);
+  final (title, advice) = switch (current) {
+    'ok' => ('✅ A recolha de anúncios voltou a funcionar.', null),
+    'blocked' => (
+      '⛔ Um site recusou os pedidos da recolha de anúncios.',
+      'A recolha desse site fica em pausa durante 24 h e volta a tentar '
+          'automaticamente.',
+    ),
+    _ => (
+      '⚠️ A recolha de anúncios falhou.',
       'Os preços na app podem ficar desatualizados até a recolha voltar a '
-      'funcionar. O registo completo está no GitHub Actions.';
+          'funcionar.',
+    ),
+  };
+  return {
+    'title': title,
+    'body': [...problems, ?advice].join('\n'),
+    'url': '/#/collection-status',
+    'tag': 'run-health',
+  };
 }
 
 /// What went wrong in a run, from refresh.dart's error lines, each with the

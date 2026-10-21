@@ -51,23 +51,6 @@ class _Store implements ListingStore {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/// Sends until [failAt] messages went out, then fails.
-class _Notifier implements TelegramNotifier {
-  _Notifier({this.failAt});
-
-  final int? failAt;
-  final sent = <String>[];
-
-  @override
-  Future<void> send(String text, {bool linkPreview = true}) async {
-    if (sent.length == failAt) throw const NotifyFailed('HTTP 502');
-    sent.add(text);
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
 /// Answers each device with [results] (by endpoint; sent otherwise).
 class _Push implements WebPushSender {
   _Push([this.results = const {}]);
@@ -91,50 +74,31 @@ class _Push implements WebPushSender {
 PushTarget _device(String endpoint) =>
     PushTarget(endpoint: endpoint, p256dh: 'k', auth: 'a');
 
-PendingAlert _withId(String id, {String user = 'u1', bool toTelegram = true}) =>
-    PendingAlert(
-      alertId: id,
-      userId: user,
-      toTelegram: toTelegram,
-      listingId: 'l-$id',
-      type: 'new_listing',
-      brand: 'Yamaha',
-      model: 'R7',
-      url: 'https://www.olx.pt/d/anuncio/$id.html',
-    );
+PendingAlert _withId(String id, {String user = 'u1'}) => PendingAlert(
+  alertId: id,
+  userId: user,
+  listingId: 'l-$id',
+  type: 'new_listing',
+  brand: 'Yamaha',
+  model: 'R7',
+  url: 'https://www.olx.pt/d/anuncio/$id.html',
+);
 
 void main() {
-  test('every pending alert is sent and marked', () async {
-    final store = _Store([_withId('a'), _withId('b')]);
-    final notifier = _Notifier();
+  test('every pending alert is marked, with or without devices', () async {
+    final store = _Store([_withId('a'), _withId('b', user: 'u2')])
+      ..devices = {
+        'u1': [_device('https://p/1')],
+      };
 
-    expect((await notifyPending(store, telegram: notifier)).alerts, 2);
-    expect(notifier.sent, hasLength(2));
+    expect(await notifyPending(store, push: _Push()), (alerts: 2, pushes: 1));
     expect(store.notified, ['a', 'b']);
   });
 
-  test("only admins' alerts go to Telegram; all are marked", () async {
-    final store = _Store([_withId('a'), _withId('b', toTelegram: false)]);
-    final notifier = _Notifier();
-
-    expect((await notifyPending(store, telegram: notifier)).alerts, 2);
-    expect(notifier.sent, hasLength(1));
-    expect(store.notified, ['a', 'b']);
-  });
-
-  test('to_telegram is read from the row, true when missing', () {
-    final row = {
-      'alert_id': 'a',
-      'type': 'new_listing',
-      'brand': 'Yamaha',
-      'model': 'R7',
-      'url': 'https://x',
-    };
-    expect(PendingAlert.fromRow(row).toTelegram, isTrue);
-    expect(
-      PendingAlert.fromRow({...row, 'to_telegram': false}).toTelegram,
-      isFalse,
-    );
+  test('without Web Push the alerts are still marked', () async {
+    final store = _Store([_withId('a')]);
+    expect(await notifyPending(store), (alerts: 1, pushes: 0));
+    expect(store.notified, ['a']);
   });
 
   test("each alert goes to its own account's devices", () async {
@@ -181,16 +145,6 @@ void main() {
     expect(store.notified, isNull);
   });
 
-  test('a failed send stops; only what went out is marked', () async {
-    final store = _Store([_withId('a'), _withId('b'), _withId('c')]);
-
-    expect(
-      (await notifyPending(store, telegram: _Notifier(failAt: 1))).alerts,
-      1,
-    );
-    expect(store.notified, ['a']);
-  });
-
   test('euros groups thousands', () {
     expect(euros(6800), '6 800 €');
     expect(euros(12500.4), '12 500 €');
@@ -199,37 +153,29 @@ void main() {
     expect(euros(-1234), '-1 234 €');
   });
 
-  test('a new listing shows price, facts, score and link', () {
-    expect(
-      formatAlert(alert('new_listing', newPrice: 6800)),
-      '🆕 Novo anúncio: Yamaha MT-07 2024\n'
-      '6 800 €\n'
-      '5 000 km · Viseu · Pontuação 87\n'
-      'https://www.standvirtual.com/motos/anuncio/x.html',
-    );
-  });
-
-  test('a price drop shows old and new price', () {
-    final text = formatAlert(
-      alert('price_reduction', oldPrice: 7200, newPrice: 6800),
-    );
-    expect(text.split('\n')[1], '7 200 € → 6 800 €');
+  test('a new listing shows price, facts and score', () {
+    expect(pushMessage(alert('new_listing', newPrice: 6800)), {
+      'title': '🆕 Novo anúncio: Yamaha MT-07 2024',
+      'body': '6 800 €\n5 000 km · Viseu · Pontuação 87',
+      'url': 'https://www.standvirtual.com/motos/anuncio/x.html',
+      'tag': 'a1',
+    });
   });
 
   test('back on the market shows the new price and the earlier one', () {
-    final text = formatAlert(
+    final message = pushMessage(
       alert('back_on_market', oldPrice: 7200, newPrice: 6800),
     );
-    expect(text.split('\n')[0], '🔁 Voltou ao mercado: Yamaha MT-07 2024');
-    expect(text.split('\n')[1], '6 800 € (antes 7 200 €)');
+    expect(message['title'], '🔁 Voltou ao mercado: Yamaha MT-07 2024');
+    expect(message['body'], startsWith('6 800 € (antes 7 200 €)\n'));
   });
 
   test('a target price reached shows the price and the target', () {
-    final text = formatAlert(
+    final message = pushMessage(
       alert('target_price_reached', oldPrice: 6600, newPrice: 6500),
     );
-    expect(text.split('\n')[0], '🎯 Chegou ao seu preço: Yamaha MT-07 2024');
-    expect(text.split('\n')[1], '6 500 € (o seu preço: 6 600 €)');
+    expect(message['title'], '🎯 Chegou ao seu preço: Yamaha MT-07 2024');
+    expect(message['body'], startsWith('6 500 € (o seu preço: 6 600 €)\n'));
   });
 
   test('the push message opens the listing in the app', () {
@@ -258,7 +204,7 @@ void main() {
   });
 
   test('a removed listing shows no score', () {
-    final text = formatAlert(alert('listing_removed', newPrice: 6800));
-    expect(text, isNot(contains('Pontuação')));
+    final message = pushMessage(alert('listing_removed', newPrice: 6800));
+    expect(message['body'], isNot(contains('Pontuação')));
   });
 }

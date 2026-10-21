@@ -29,7 +29,7 @@ Unchanged.
 - ✅ Calculate an explainable Deal Score.
 - ✅ Calculate a separate Risk Score.
 - ✅ Create saved searches. *Also by minimum Deal Score / maximum Risk Score.*
-- ✅ Send alerts. *In the app and on the phone via Telegram, plus a weekly summary on Mondays.*
+- ✅ Send alerts. *In the app and as notifications on each account's phone (Web Push), plus a weekly summary on Mondays (Telegram).*
 - ✅ Compare motorcycles. *Up to 3 listings side by side (long press in Ofertas or "Comparar" on a listing), best value per row highlighted.*
 - 🟡 Show market trends. *Time on market, price drops, depreciation and the spread of live asking prices per model, and the tracked models compared side by side ("Comparar modelos"); price trends need more history.*
 
@@ -59,13 +59,13 @@ Unchanged.
 - Backend: Supabase, PostgreSQL ✅, Supabase Auth ✅ *(anonymous + owner email/password)*; scheduled jobs ➕ *on GitHub Actions instead of Edge Functions (a Dart CLI collector, one process per run, every 4 hours), started by Supabase pg_cron (GitHub's own scheduler never started them).*
 - Hosting: Cloudflare Pages ✅
 - Repository: GitHub ✅ *(should become private)*; ➕ automatic code-quality review by Claude after every 5 merged PRs
-- Notifications: ➕ Telegram bot ✅ (alerts after each run, a message when the collection breaks, stops starting or recovers, weekly summary on Mondays); Web push ✅ *(each account's alerts on its devices, sent by the collector itself; a tap opens the listing in the app; "Enviar notificação de teste" in Mais checks a device; stays on after the app is closed)*
+- Notifications: Web push ✅ *(each account's alerts on its devices, the admins' when the collection breaks or recovers, sent by the collector itself; a tap opens the listing in the app; "Enviar notificação de teste" in Mais checks a device; stays on after the app is closed)*; ➕ Telegram bot ✅ (alerts until 2026-10-21; now the weekly summary on Mondays and the database's warnings when no run starts or the GitHub token is ending)
 
 ## 8. Architecture ✅
 
 ```text
 Tracked models (catalog) → searches → Collectors / Adapters → Normalization → PostgreSQL / Supabase
-   → Deal Engine · Price History · Status Tracking → Flutter Web/PWA → Alerts (app + Telegram)
+   → Deal Engine · Price History · Status Tracking → Flutter Web/PWA → Alerts (app + Web Push)
 ```
 
 *Each source has its own adapter + mapper (`manual`, `standvirtual`, `standvirtual-search`, `olx-search`); model matching (`ModelResolver`) and everything after normalization are shared.*

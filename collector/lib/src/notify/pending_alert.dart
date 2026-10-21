@@ -15,7 +15,6 @@ class PendingAlert {
     this.price,
     this.dealScore,
     this.location,
-    this.toTelegram = true,
   });
 
   factory PendingAlert.fromRow(Map<String, dynamic> row) => PendingAlert(
@@ -33,7 +32,6 @@ class PendingAlert {
     price: (row['price'] as num?)?.toDouble(),
     dealScore: (row['deal_score'] as num?)?.toInt(),
     location: row['location'] as String?,
-    toTelegram: row['to_telegram'] as bool? ?? true,
   );
 
   final String alertId;
@@ -52,9 +50,6 @@ class PendingAlert {
   final double? price;
   final int? dealScore;
   final String? location;
-
-  /// Whether it also goes to the owner's Telegram chat (admins' alerts).
-  final bool toTelegram;
 }
 
 /// `7650` -> `7 650 €`
@@ -106,17 +101,6 @@ String euros(num value) {
   ].join(' · ');
 
   return (title: '$heading: $bike', price: priceLine, facts: facts);
-}
-
-/// The Telegram message for one alert (plain text).
-String formatAlert(PendingAlert a) {
-  final lines = _alertLines(a);
-  return [
-    lines.title,
-    ?lines.price,
-    if (lines.facts.isNotEmpty) lines.facts,
-    a.url,
-  ].join('\n');
 }
 
 /// The Web Push message for one alert, read by the app's service worker

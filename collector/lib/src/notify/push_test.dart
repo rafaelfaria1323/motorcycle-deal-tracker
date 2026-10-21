@@ -18,7 +18,7 @@ const Map<String, Object?> testPushMessage = {
 /// Sends [testPushMessage] to the devices of the account that asked for it
 /// in the app (the last start of [pushTestWorkflow] in the last 30
 /// minutes) or, started elsewhere (GitHub's "Run workflow"), to every
-/// admin's devices. Forgets devices that no longer exist.
+/// admin's devices.
 Future<({int devices, int sent})> sendTestPush(
   ListingStore store,
   WebPushSender push, {
@@ -29,13 +29,24 @@ Future<({int devices, int sent})> sendTestPush(
   );
   final requester = await store.lastWorkflowStarter(pushTestWorkflow, since);
   final users = requester == null ? await store.adminIds() : [requester];
+  return pushToUsers(store, push, users, testPushMessage);
+}
+
+/// Sends [message] to every device of [users]; forgets devices that no
+/// longer exist and stamps the ones reached.
+Future<({int devices, int sent})> pushToUsers(
+  ListingStore store,
+  WebPushSender push,
+  List<String> users,
+  Map<String, Object?> message,
+) async {
   final byUser = await store.pushTargets();
   final devices = [for (final u in users) ...?byUser[u]];
 
   final reached = <String>[];
   final gone = <String>[];
   for (final device in devices) {
-    switch (await push.send(device, testPushMessage)) {
+    switch (await push.send(device, message)) {
       case PushResult.sent:
         reached.add(device.endpoint);
       case PushResult.gone:
