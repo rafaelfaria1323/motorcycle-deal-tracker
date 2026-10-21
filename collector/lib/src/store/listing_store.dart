@@ -465,6 +465,25 @@ class ListingStore {
     return byUser;
   }
 
+  /// The account that last started [workflow] from the app since [since].
+  Future<String?> lastWorkflowStarter(String workflow, DateTime since) async {
+    final rows = await _client
+        .from('workflow_starts')
+        .select('started_by')
+        .eq('workflow', workflow)
+        .gte('started_at', since.toUtc().toIso8601String())
+        .not('started_by', 'is', null)
+        .order('started_at', ascending: false)
+        .limit(1);
+    return rows.isEmpty ? null : rows.single['started_by'] as String;
+  }
+
+  /// The admins' accounts.
+  Future<List<String>> adminIds() async {
+    final rows = await _client.from('app_admins').select('user_id');
+    return [for (final r in rows) r['user_id'] as String];
+  }
+
   /// Devices whose push service says they no longer exist.
   Future<void> forgetPushTargets(List<String> endpoints) async {
     if (endpoints.isEmpty) return;

@@ -18,11 +18,18 @@ import '../domain/workflows_repository.dart';
     subtitle: 'Envia já para o Telegram o resumo dos últimos 7 dias',
     started: 'Resumo pedido. Chega ao Telegram dentro de alguns minutos.',
   ),
+  AppWorkflow.pushTest => (
+    title: 'Enviar notificação de teste',
+    subtitle: 'Para confirmar que os alertas chegam aos seus aparelhos',
+    started:
+        'Notificação de teste pedida. Chega dentro de 1 a 2 minutos; se '
+        'não chegar, desative e volte a ativar as notificações.',
+  ),
 };
 
 /// Why `start_workflow` refused, from its error code.
 String startErrorText(String? code) => switch (code) {
-  '55006' => 'Já foi iniciado há menos de 15 minutos. Tente mais tarde.',
+  '55006' => 'Já foi pedido há poucos minutos. Tente mais tarde.',
   '55000' => 'Falta o token do GitHub no Vault do Supabase.',
   '58000' =>
     'O GitHub recusou o pedido. Verifique o token do GitHub (Actions: '

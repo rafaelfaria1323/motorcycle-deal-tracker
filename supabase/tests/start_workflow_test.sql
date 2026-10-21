@@ -88,3 +88,48 @@ do $$
 begin
   assert (select count(*) from public.workflow_starts) = 2, 'started again after 15 minutes';
 end $$;
+
+-- Any signed-in account may send itself a test notification (push-test.yml),
+-- once every 2 minutes; anonymous sessions may not.
+insert into extensions.http_replies values
+  ('POST', 'https://api.github.com/repos/rafaelfaria1323/motorcycle-deal-tracker'
+           || '/actions/workflows/push-test.yml/dispatches', 204, '');
+
+set local role authenticated;
+set local test.uid = '00000000-0000-0000-0000-0000000000b1';
+do $$
+begin
+  assert public.start_workflow('push-test.yml') = now();
+  begin
+    perform public.start_workflow('push-test.yml');
+    assert false, 'push test started twice';
+  exception when sqlstate '55006' then null;
+  end;
+  begin
+    perform public.start_workflow('collect.yml');
+    assert false, 'a non-admin started the collection';
+  exception when sqlstate '42501' then null;
+  end;
+end $$;
+
+set local test.jwt = '{"is_anonymous": true}';
+do $$
+begin
+  perform public.start_workflow('push-test.yml');
+  assert false, 'an anonymous session sent a test notification';
+exception when sqlstate '42501' then null;
+end $$;
+reset role;
+
+do $$
+begin
+  assert (select started_by from public.workflow_starts
+          where workflow = 'push-test.yml') = '00000000-0000-0000-0000-0000000000b1';
+  update public.workflow_starts set started_at = now() - interval '3 minutes'
+  where workflow = 'push-test.yml';
+end $$;
+
+set local role authenticated;
+set local test.jwt = '{"is_anonymous": false}';
+select public.start_workflow('push-test.yml');
+reset role;

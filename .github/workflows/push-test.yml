@@ -1,0 +1,35 @@
+name: Test notification
+
+# Sends one test notification (Web Push) to the devices of the account that
+# asked for it in the app (Mais › "Notificações neste aparelho", through
+# start_workflow) or, started from the Actions tab, to every admin's
+# devices. Uses the collector's push keys.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: push-test
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Install collector dependencies
+        run: cd collector && dart pub get
+
+      - name: Send a test notification
+        run: cd collector && dart run bin/push_test.dart

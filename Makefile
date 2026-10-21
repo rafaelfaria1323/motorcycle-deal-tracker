@@ -71,6 +71,9 @@ fetch: searches ## Download the search pages, slowly and capped: make fetch [SIT
 notify-test: require-collector-env ## Send a test message to Telegram
 	cd collector && dart run bin/notify_test.dart
 
+push-test: require-collector-env ## Send a test notification to the admins' devices (Web Push)
+	cd collector && dart run bin/push_test.dart
+
 weekly-summary: require-collector-env ## Send the week's summary to Telegram: make weekly-summary [ARGS=--dry-run]
 	cd collector && dart run bin/weekly_summary.dart $(ARGS)
 

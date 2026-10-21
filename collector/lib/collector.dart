@@ -24,6 +24,7 @@ export 'src/normalized/normalized_listing.dart';
 export 'src/normalized/normalizers.dart';
 export 'src/notify/notify_pending.dart';
 export 'src/notify/pending_alert.dart';
+export 'src/notify/push_test.dart';
 export 'src/notify/run_health.dart';
 export 'src/notify/telegram_notifier.dart';
 export 'src/notify/weekly_summary.dart';

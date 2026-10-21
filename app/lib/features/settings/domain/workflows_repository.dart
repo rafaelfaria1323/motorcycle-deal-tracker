@@ -1,7 +1,9 @@
-/// The GitHub workflows an admin can start from the app.
+/// The GitHub workflows the app can start: the collection and the weekly
+/// summary (admins), a test notification (any signed-in account).
 enum AppWorkflow {
   collect('collect.yml'),
-  weeklySummary('weekly-summary.yml');
+  weeklySummary('weekly-summary.yml'),
+  pushTest('push-test.yml');
 
   const AppWorkflow(this.file);
 
@@ -10,7 +12,6 @@ enum AppWorkflow {
 }
 
 abstract interface class WorkflowsRepository {
-  /// Starts [workflow] on main now (admins only); returns when it was
-  /// recorded.
+  /// Starts [workflow] on main now; returns when it was recorded.
   Future<DateTime> start(AppWorkflow workflow);
 }
