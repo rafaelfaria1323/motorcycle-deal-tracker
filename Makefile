@@ -2,7 +2,7 @@
 .PHONY: help app-get app-run app-check app-build app-serve \
         collector-get collector-check collect-dry collect \
         db-push db-new db-test sql-lint check tool-check lint-scripts format clean mutation \
-        coverage duplication \
+        coverage duplication dead-code \
         require-collector-env require-file
 
 # Which source the collector reads: manual (a JSON file), standvirtual
@@ -139,6 +139,15 @@ coverage: ## Test coverage of app logic and collector, with floors (needs `dart 
 duplication: ## Copy-pasted code above 1 % of the lines fails (jscpd, via npx)
 	npx --yes jscpd@4 --min-tokens 70 --format dart --threshold 1 \
 	  --reporters console --ignore '**/*.g.dart' app/lib collector/lib collector/bin
+
+# Unused code (declarations nothing in lib uses) and unused files in the
+# app: dart_code_linter, pinned. Not the collector: lib/collector.dart
+# exports every file, and exported code counts as used (public API).
+DCL = dart pub global run dart_code_linter:metrics
+
+dead-code: ## Unused code and files in the app (needs Flutter and `dart pub global activate dart_code_linter 4.4.2`)
+	cd app && $(DCL) check-unused-code lib --fatal-unused --no-congratulate
+	cd app && $(DCL) check-unused-files lib test --fatal-unused --no-congratulate
 
 format: ## Format app and collector code
 	dart format app/lib app/test collector
