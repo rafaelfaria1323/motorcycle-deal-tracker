@@ -7,7 +7,8 @@ enum PushState {
   /// The browser has no Web Push.
   unsupported,
 
-  /// The Android app (outside the browser): no Web Push there.
+  /// The Android app built without Firebase (or not in a browser at all):
+  /// no notifications there.
   nativeApp,
 
   /// iPhone/iPad Safari: only a home-screen app receives them.
@@ -22,9 +23,13 @@ enum PushState {
 /// This device's push subscription, as the database stores it.
 typedef PushSubscription = ({String endpoint, String p256dh, String auth});
 
-/// Web Push on this device (`web/push.js`): its state, turning it on with
-/// our public key (asks for permission: call it straight from a tap), and
-/// off (returns the endpoint removed, or null).
+/// The endpoint prefix of an Android app's device (its FCM token follows).
+const androidPrefix = 'fcm:';
+
+/// Notifications on this device: Web Push in the browser (`web/push.js`),
+/// Firebase Cloud Messaging in the Android app. Its state, turning it on
+/// with our public key (asks for permission: call it straight from a tap),
+/// and off (returns the endpoint removed, or null).
 abstract final class DevicePush {
   static Future<PushState> state() => impl.pushState();
 
@@ -32,6 +37,11 @@ abstract final class DevicePush {
       impl.enablePush(publicKey);
 
   static Future<String?> disable() => impl.disablePush();
+
+  /// In the Android app, [open] gets the page (the message's url) of each
+  /// notification tapped; the browser opens it by itself.
+  static Future<void> listenToTaps(void Function(String url) open) =>
+      impl.listenToTaps(open);
 }
 
 /// The browser's PushSubscription.toJSON().

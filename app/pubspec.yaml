@@ -42,6 +42,9 @@ dependencies:
   # The Android app's own updater (Android only, no Dart code).
   apk_installer:
     path: packages/apk_installer
+  # The Android app's notifications (Firebase Cloud Messaging; no Dart code).
+  android_push:
+    path: packages/android_push
 
 dev_dependencies:
   flutter_test:

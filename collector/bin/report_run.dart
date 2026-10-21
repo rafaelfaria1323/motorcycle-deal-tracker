@@ -63,7 +63,10 @@ Future<void> main(List<String> args) async {
     // The run is recorded; a missed message must not fail the job.
     try {
       final store = ListingStore(client);
-      final push = WebPushSender(await store.pushKeys());
+      final push = WebPushSender(
+        await store.pushKeys(),
+        fcm: FcmSender.fromEnvironment(),
+      );
       final result = await pushToUsers(
         store,
         push,

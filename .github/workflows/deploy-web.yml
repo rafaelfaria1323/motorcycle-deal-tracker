@@ -198,6 +198,9 @@ jobs:
           # variable WEB_APP_URL if Cloudflare gave the project another
           # address.
           WEB_URL: ${{ vars.WEB_APP_URL || format('https://{0}.pages.dev', env.PAGES_PROJECT) }}
+          # The Firebase project's google-services.json: notifications in
+          # the app (none without it).
+          FIREBASE_ANDROID_CONFIG: ${{ secrets.FIREBASE_ANDROID_CONFIG }}
         run: tool/android_build.sh "${{ github.run_number }}"
 
       # The template signs releases with a throwaway debug key; apksigner

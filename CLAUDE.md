@@ -4,7 +4,7 @@ Personal web app/PWA (single owner: Rafael) that watches the Portuguese used
 and semi-new motorcycle market, tracks price and status history, and ranks
 listings with an explainable **Deal Score** plus a separate **Risk Score**.
 Alerts go to the app and to each account's devices as notifications (Web
-Push), and so does each account's weekly summary; Telegram keeps the
+Push; Firebase Cloud Messaging in the Android app), and so does each account's weekly summary; Telegram keeps the
 database's own warnings (watchdog, GitHub token). Others join through
 invite links made in the app.
 
@@ -207,7 +207,10 @@ names, plus `SUPABASE_PUBLISHABLE_KEY`, `CLOUDFLARE_API_TOKEN` and
 `ANDROID_KEYSTORE_PASSWORD` for the Android app (PKCS12, alias `upload`;
 the same key forever, or updates won't install), `SUPABASE_DB_URL` (Session
 pooler connection string, `[YOUR-PASSWORD]` left in) and
-`SUPABASE_DB_PASSWORD` for the migrations, and `CLAUDE_CODE_OAUTH_TOKEN`
+`SUPABASE_DB_PASSWORD` for the migrations, `FIREBASE_ANDROID_CONFIG`
+(the Firebase project's `google-services.json`, built into the APK) and
+`FIREBASE_SERVICE_ACCOUNT` (its service account key, the collector's
+sender) for the Android app's notifications, and `CLAUDE_CODE_OAUTH_TOKEN`
 for the code-quality review. Supabase's Vault holds `github_dispatch_token`
 (starts the scheduled workflows), `telegram_bot_token` /
 `telegram_chat_id` (the watchdog's messages), `vapid_private_key` (Web
@@ -216,6 +219,10 @@ invites; written by the collector on each run).
 
 ## App conventions (Flutter)
 
+- Start: `main.dart` runs `Startup` (`app/startup.dart`), which draws at
+  once (Android keeps its splash until the first frame): a spinner while
+  Supabase (20 s at most) and the session start, then the app, or the
+  reason it failed with "Tentar novamente".
 - Clean architecture per feature: `domain/` (entities, repository interfaces),
   `data/` (models with `fromJson`, Supabase repositories), `presentation/`
   (cubits, pages, widgets). Features: `listings`, `collector_status`,
@@ -288,8 +295,17 @@ invites; written by the collector on each run).
   plugin `app/packages/apk_installer` (Java, channel
   `deal_tracker/apk_installer`, called by `core/platform/apk_installer.dart`;
   its manifest brings `REQUEST_INSTALL_PACKAGES` and the file provider).
-  Android always asks to confirm the install. No notifications there yet
-  (`PushState.nativeApp`: Web Push is the browser's).
+  Android always asks to confirm the install. Notifications come through
+  Firebase Cloud Messaging: the in-repo plugin `app/packages/android_push`
+  (Java, channel `deal_tracker/android_push`, called by
+  `core/platform/push_stub.dart`, the non-web side of `DevicePush`; its
+  `DealTrackerMessagingService` shows each data message on the channel
+  "Alertas", also with the app closed, while switched on in Mais; a tap
+  opens the message's url: `notification_link.dart`, then `appRouter.go`,
+  or an ad's address outside the app). Firebase starts from resource
+  strings `tool/firebase_values.py` writes at build time (secret
+  `FIREBASE_ANDROID_CONFIG`; without it `PushState.nativeApp`, no
+  notifications).
 - Photos: `Image.network` with `WebHtmlElementStrategy.prefer` (the photo
   CDNs don't send CORS headers, so an `<img>` element is the only way).
 - Lists load `ListingModel.summaryColumns`, never `*` (descriptions are big);
@@ -599,7 +615,8 @@ required; `listing_extras` codes); all in `saved_search_matches`.
 `notified_at` marks alerts already sent (only real accounts; up to 200
 a run, oldest first; kept for the next run when the push keys can't be
 read, and while no device took a push that failed, for 24 h; older ones
-are marked without a push): to the account's devices by Web Push (`push_subscriptions`, saved from Mais ›
+are marked without a push): to the account's devices by Web Push, or FCM
+for the Android app (`push_subscriptions`, saved from Mais ›
 "Notificações neste aparelho", saved again on each visit, removed on
 sign-out; on the iPhone only in the home-screen app;
 no longer to Telegram since 2026-10-21, `pending_notifications.to_telegram`
@@ -617,7 +634,13 @@ open app is focused and sent the address, also left in Cache Storage for
 since the worker can't navigate a page it doesn't control;
 registered in its own scope `/push/`: Flutter's worker at `/` unregisters
 itself on each start and would take the subscription with it) are plain JS called from `core/platform/push.dart`; gone devices (404/410)
-are deleted.
+are deleted. The Android app's device is a row with endpoint
+`fcm:<registration token>` and empty keys (`save_push_subscription`);
+`WebPushSender` hands those to `notify/fcm.dart` (FCM HTTP v1: a JWT
+signed RS256 with the service account's key from env
+`FIREBASE_SERVICE_ACCOUNT`, exchanged for one access token per run; the
+same {title, body, url, tag} as a data message; UNREGISTERED is gone;
+without the secret they fail and the alert waits as for any failed push).
 Weekly summary (Mondays, `weekly_summary.dart`, pure logic in
 `notify/weekly_summary.dart` and `send_weekly_summaries.dart`): per account
 (`user_models`, its own models from its first year, as `in_my_models`),

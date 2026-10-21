@@ -157,8 +157,36 @@ tile stays hidden.
 The app's shared links (invites, "Partilhar a app") point to
 `https://motorcycle-deal-tracker.pages.dev`; if Cloudflare gave the
 project another address, set the repository variable `WEB_APP_URL` to it.
-The Android app has no notifications yet (they are Web Push, which only a
-browser has): keep them on in Chrome.
+### Notifications in the Android app
+
+Web Push lives in browsers, so the Android app gets its notifications
+through Firebase Cloud Messaging (free, no usage limits for this). Set up
+once:
+
+1. [console.firebase.google.com](https://console.firebase.google.com) →
+   "Criar projeto" / "Create a project" (any name, e.g. `deal-tracker`;
+   Google Analytics not needed).
+2. In the project: add an app → Android. Package name
+   `io.github.rafaelfaria1323.motorcycle_deal_tracker` (exactly), nickname
+   "Deal Tracker"; skip the SHA-1 and the SDK steps. Download
+   `google-services.json`.
+3. GitHub › Settings › Secrets and variables › Actions → new secret
+   `FIREBASE_ANDROID_CONFIG`: paste the whole content of
+   `google-services.json`.
+4. Firebase › Project settings (gear) › Service accounts → "Generate new
+   private key". Paste the whole downloaded JSON as the secret
+   `FIREBASE_SERVICE_ACCOUNT`, then delete the file (it lets anyone send
+   notifications as the project). Cloud Messaging's API (V1) is on by
+   default for new projects (Project settings › Cloud Messaging).
+5. Run "Deploy web app" (or merge anything touching `app/`) for an APK with
+   Firebase in it, update the app from Mais › "App Android", then turn on
+   Mais › "Notificações neste aparelho" in the app (Android 13+ asks to
+   allow them).
+
+The collector (collect, weekly summary and test workflows) sends to the
+app's devices with the service account; without the secret those devices
+get nothing, and an APK built without `FIREBASE_ANDROID_CONFIG` says it
+receives no notifications (keep them on in Chrome then).
 
 ## Privacy
 

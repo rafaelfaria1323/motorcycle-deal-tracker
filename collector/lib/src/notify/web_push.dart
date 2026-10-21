@@ -6,6 +6,8 @@ import 'dart:typed_data';
 
 import 'package:pointycastle/export.dart';
 
+import 'fcm.dart';
+
 /// Web Push without a third party: the message is encrypted for the
 /// browser (RFC 8291, aes128gcm) and signed with our VAPID key (RFC 8292),
 /// then posted to the push service the browser chose (Apple's for an
@@ -50,6 +52,9 @@ class PushTarget {
   });
 
   final String endpoint;
+
+  /// The Android app's device (FCM), not a browser's.
+  bool get isAndroid => endpoint.startsWith(fcmPrefix);
 
   /// The browser's public key (base64url, 65 bytes).
   final String p256dh;
@@ -187,15 +192,32 @@ Map<String, Object?> declarativePush(
   },
 };
 
-/// Sends pushes signed with one key pair.
+/// Sends pushes signed with one key pair; the Android app's devices go
+/// through [fcm] (none without it: those pushes fail).
 class WebPushSender {
-  WebPushSender(this.keys, {this.subject = appOrigin});
+  WebPushSender(this.keys, {this.subject = appOrigin, this.fcm});
 
   final VapidKeys keys;
   final String subject;
+  final FcmSender? fcm;
+  bool _toldNoFcm = false;
 
-  Future<PushResult> send(PushTarget target, Map<String, Object?> message) =>
-      sendWebPush(target, message, keys, subject: subject);
+  Future<PushResult> send(
+    PushTarget target,
+    Map<String, Object?> message,
+  ) async {
+    if (!target.isAndroid) {
+      return sendWebPush(target, message, keys, subject: subject);
+    }
+    if (fcm case final fcm?) return fcm.send(target, message);
+    if (!_toldNoFcm) {
+      _toldNoFcm = true;
+      stderr.writeln(
+        'Android device not reached: FIREBASE_SERVICE_ACCOUNT not set',
+      );
+    }
+    return PushResult.failed;
+  }
 }
 
 /// Sends [message] ({title, body, url, tag}, as [declarativePush]) to

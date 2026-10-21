@@ -23,7 +23,8 @@ For each site (Standvirtual, OLX):
 
 Then, once for both sites: find duplicates, recalculate the scores,
 generate the alerts and send the new ones to each account's devices (Web
-Push).
+Push; the Android app's through Firebase Cloud Messaging, `notify/fcm.dart`,
+with the service account in env `FIREBASE_SERVICE_ACCOUNT`).
 
 After each scheduled run `bin/report_run.dart` records it in `collector_runs`
 (with the error lines of a run that was not ok, each site's requests today

@@ -14,7 +14,10 @@
 #
 # Usage: tool/android_build.sh <build number>
 # The app's settings come from the environment, empty when unset:
-# SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, APK_URL, WEB_URL.
+# SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, APK_URL, WEB_URL; and
+# FIREBASE_ANDROID_CONFIG (google-services.json) for its notifications,
+# written as resource strings by tool/firebase_values.py (without it the
+# app has none).
 set -euo pipefail
 
 build="${1:?usage: tool/android_build.sh <build number>}"
@@ -23,6 +26,13 @@ cd "$(dirname "$0")/../app"
 flutter create --platforms=android --org io.github.rafaelfaria1323 \
   --project-name motorcycle_deal_tracker .
 python3 ../tool/android_manifest.py android/app/src/main/AndroidManifest.xml
+if [[ -n "${FIREBASE_ANDROID_CONFIG:-}" ]]; then
+  mkdir -p android/app/src/main/res/values
+  printf '%s' "$FIREBASE_ANDROID_CONFIG" |
+    python3 ../tool/firebase_values.py android/app/src/main/res/values/firebase.xml
+else
+  echo "FIREBASE_ANDROID_CONFIG not set: the app is built without notifications" >&2
+fi
 flutter pub get
 dart run flutter_launcher_icons
 
