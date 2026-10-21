@@ -219,6 +219,10 @@ invites; written by the collector on each run).
 
 ## App conventions (Flutter)
 
+- Start: `main.dart` runs `Startup` (`app/startup.dart`), which draws at
+  once (Android keeps its splash until the first frame): a spinner while
+  Supabase (20 s at most) and the session start, then the app, or the
+  reason it failed with "Tentar novamente".
 - Clean architecture per feature: `domain/` (entities, repository interfaces),
   `data/` (models with `fromJson`, Supabase repositories), `presentation/`
   (cubits, pages, widgets). Features: `listings`, `collector_status`,
