@@ -35,7 +35,7 @@ Tracked models (chosen in the app)
 | [`collector/`](collector/README.md) | Dart command line: fetches, parses and stores listings, then scores and alerts |
 | `supabase/` | Database migrations: tables, scoring, alerts, views, access rules; `tests/`: SQL tests (`make db-test`) |
 | `docs/` | Progress and decisions (see below) |
-| `.github/workflows/` | `collect.yml` (every 4 hours, started by Supabase pg_cron), `check.yml` (`make check` and `make db-test` on every pull request), `deploy-web.yml` (new migrations, then the app, on merge), `weekly-summary.yml` (Mondays, each account's week in the app and on its devices; or one account's when asked in the app), `notify-test.yml` (Telegram test), `push-test.yml` (a test notification to the devices of whoever asked in the app), `mutation.yml` (mutation testing without AI: after merges the changed files, by hand all of them; report on the run's page), `code-quality.yml` and `test-hardening.yml` (Claude works through the backlogs, fixing every 5 merged PRs and finding new items after 10 in `docs/code-quality.md` and `docs/test-hardening.md`; shared steps in `backlog-pass.yml`) |
+| `.github/workflows/` | `collect.yml` (every 4 hours, started by Supabase pg_cron), `check.yml` (`make check` and `make db-test` on every pull request), `deploy-web.yml` (new migrations, then the app, on merge, and the Android APK on the release `android`), `weekly-summary.yml` (Mondays, each account's week in the app and on its devices; or one account's when asked in the app), `notify-test.yml` (Telegram test), `push-test.yml` (a test notification to the devices of whoever asked in the app), `mutation.yml` (mutation testing without AI: after merges the changed files, by hand all of them; report on the run's page), `code-quality.yml` and `test-hardening.yml` (Claude works through the backlogs, fixing every 5 merged PRs and finding new items after 10 in `docs/code-quality.md` and `docs/test-hardening.md`; shared steps in `backlog-pass.yml`) |
 
 ## Getting started
 
@@ -54,8 +54,9 @@ make check                # analyze and test everything (before each commit)
 `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`.
 GitHub Actions uses repository secrets with the same names, plus
 `SUPABASE_PUBLISHABLE_KEY`, `CLOUDFLARE_API_TOKEN` and
-`CLOUDFLARE_ACCOUNT_ID` for the web deploy, `SUPABASE_DB_URL` and
-`SUPABASE_DB_PASSWORD` for the migrations, and `CLAUDE_CODE_OAUTH_TOKEN`
+`CLOUDFLARE_ACCOUNT_ID` for the web deploy, `ANDROID_KEYSTORE_BASE64`
+and `ANDROID_KEYSTORE_PASSWORD` for the Android app's signing key,
+`SUPABASE_DB_URL` and `SUPABASE_DB_PASSWORD` for the migrations, and `CLAUDE_CODE_OAUTH_TOKEN`
 for the code-quality review. Supabase's Vault holds `github_dispatch_token`,
 which the scheduled jobs use to start the workflows (`docs/hosting.md`).
 Database changes: `make db-new
@@ -77,7 +78,7 @@ are never committed.
 - [`docs/roadmap.status.md`](docs/roadmap.status.md): the roadmap, step by step, with what is done.
 - [`docs/concept.status.md`](docs/concept.status.md): the original concept and how far it is built.
 - [`docs/sources.md`](docs/sources.md): data-source decisions.
-- [`docs/hosting.md`](docs/hosting.md): Cloudflare Pages and installing on the iPhone.
+- [`docs/hosting.md`](docs/hosting.md): Cloudflare Pages, installing on the iPhone, and the Android app.
 - [`docs/code-quality.md`](docs/code-quality.md): code improvements to do and done (worked through automatically).
 - [`docs/test-hardening.md`](docs/test-hardening.md): bugs, missing and redundant tests found by the automatic mutation-style pass, to do and done.
 - [`CLAUDE.md`](CLAUDE.md): conventions and the detailed pipeline, scoring and alert rules.

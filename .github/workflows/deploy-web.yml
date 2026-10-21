@@ -25,6 +25,10 @@ env:
   # Cloudflare Pages project; the app is served at https://<name>.pages.dev
   # (Cloudflare adds a suffix if the name is taken; the deploy log shows it).
   PAGES_PROJECT: motorcycle-deal-tracker
+  # The Android app: one GitHub release (tag `android`) whose APK each
+  # deploy replaces, so this address always gives the latest (the repo is
+  # public: no sign-in). Mais offers it on Android.
+  APK_URL: ${{ github.server_url }}/${{ github.repository }}/releases/download/android/motorcycle-deal-tracker.apk
 
 jobs:
   migrate:
@@ -115,18 +119,24 @@ jobs:
 
       # The publishable key is meant for browsers (row-level security protects
       # the data); it is a secret only to keep it out of the repository.
+      # The APK's address only once there is a signing key (the android
+      # job below publishes nothing without one).
       - name: Build
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          HAS_ANDROID_KEY: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
         run: |
           if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_PUBLISHABLE_KEY" ]; then
             echo "::error::Set the SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY secrets"
             exit 1
           fi
+          apk_url=""
+          if [ "$HAS_ANDROID_KEY" = true ]; then apk_url="$APK_URL"; fi
           cd app && flutter build web --release --wasm \
             --dart-define=SUPABASE_URL="$SUPABASE_URL" \
-            --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
+            --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY" \
+            --dart-define=APK_URL="$apk_url"
 
       # The first deploy creates the Pages project.
       - name: Deploy to Cloudflare Pages
@@ -136,3 +146,111 @@ jobs:
               --production-branch=main
           npx --yes wrangler@4 pages deploy app/build/web \
             --project-name="$PAGES_PROJECT" --branch=main --commit-dirty=true
+
+  # The Android app, after the web app (same tested code): built, signed
+  # with the key in the secrets (the same key every time, or Android
+  # refuses to install an update over the app) and put on the `android`
+  # release. Skipped until ANDROID_KEYSTORE_BASE64 and
+  # ANDROID_KEYSTORE_PASSWORD are set (docs/hosting.md, "Android app").
+  android:
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write # the release
+    env:
+      KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+    steps:
+      - name: Signing key
+        id: key
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ]; then
+            echo "::warning::No Android signing key (ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD): no APK built"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v7
+        if: steps.key.outputs.ready == 'true'
+
+      - uses: actions/setup-java@v5
+        if: steps.key.outputs.ready == 'true'
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        if: steps.key.outputs.ready == 'true'
+        with:
+          channel: stable
+          cache: true
+
+      # app/android is not in the repository: made afresh from this
+      # Flutter's template (so it always matches it), then fitted by
+      # tool/android_manifest.py (internet permission, name) and given the
+      # app's icon. The package name never changes (Android treats another
+      # one as another app).
+      - name: Android project
+        if: steps.key.outputs.ready == 'true'
+        run: |
+          cd app
+          flutter create --platforms=android --org io.github.rafaelfaria1323 \
+            --project-name motorcycle_deal_tracker .
+          python3 ../tool/android_manifest.py android/app/src/main/AndroidManifest.xml
+          flutter pub get
+          dart run flutter_launcher_icons
+
+      # The run number is the version code, so each build installs over
+      # the one before. Phones are 64-bit ARM (a smaller APK than one for
+      # every processor).
+      - name: Build APK
+        if: steps.key.outputs.ready == 'true'
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          BUILD: ${{ github.run_number }}
+          # Where shared links point (invites, the app's link). Set the
+          # variable WEB_APP_URL if Cloudflare gave the project another
+          # address.
+          WEB_URL: ${{ vars.WEB_APP_URL || format('https://{0}.pages.dev', env.PAGES_PROJECT) }}
+        run: |
+          cd app && flutter build apk --release --target-platform android-arm64 \
+            --build-name="1.0.$BUILD" --build-number="$BUILD" \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY" \
+            --dart-define=APK_URL="$APK_URL" \
+            --dart-define=APP_BUILD="$BUILD" \
+            --dart-define=WEB_URL="$WEB_URL"
+
+      # The template signs releases with a throwaway debug key; apksigner
+      # signs it again with ours (PKCS12, alias `upload`).
+      - name: Sign APK
+        if: steps.key.outputs.ready == 'true'
+        run: |
+          keystore="$RUNNER_TEMP/release.p12"
+          echo "$KEYSTORE_BASE64" | base64 -d > "$keystore"
+          apksigner=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -n 1)
+          "$apksigner" sign --ks "$keystore" --ks-type PKCS12 \
+            --ks-key-alias upload --ks-pass env:KEYSTORE_PASSWORD \
+            --out motorcycle-deal-tracker.apk \
+            app/build/app/outputs/flutter-apk/app-release.apk
+          rm "$keystore"
+          "$apksigner" verify --print-certs motorcycle-deal-tracker.apk
+
+      # The first deploy creates the release; later ones replace its APK.
+      - name: Publish APK
+        if: steps.key.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUILD: ${{ github.run_number }}
+        run: |
+          notes="Versão $BUILD (commit $GITHUB_SHA). Instale a app no Android a partir deste ficheiro; as versões seguintes instalam-se por cima."
+          if gh release view android > /dev/null 2>&1; then
+            gh release edit android --notes "$notes"
+          else
+            gh release create android --title "App Android" \
+              --notes "$notes" --target "$GITHUB_SHA"
+          fi
+          gh release upload android motorcycle-deal-tracker.apk --clobber

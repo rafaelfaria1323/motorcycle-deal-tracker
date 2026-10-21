@@ -117,6 +117,43 @@ The home-screen app keeps its own storage, separate from Safari, so it starts
 as a new anonymous user: sign in from the account sheet to see your saved
 searches.
 
+## Android app
+
+Every deploy also builds the Android app (`deploy-web.yml`, job
+`android`) and puts it on the GitHub release `android`, replacing the
+previous one:
+`https://github.com/rafaelfaria1323/motorcycle-deal-tracker/releases/download/android/motorcycle-deal-tracker.apk`.
+On an Android phone, Mais shows "App Android": in Chrome it installs the
+app, in the app it downloads the latest version, which installs over it
+(session and data stay). Android asks once to allow installs from Chrome
+(or from the browser that downloaded it).
+
+It needs a signing key, made once and kept: every version must be signed
+with the same one, or Android refuses to install it over the app (losing
+the key means uninstalling the app once). On the Mac, in Terminal:
+
+```
+openssl req -x509 -newkey rsa:2048 -nodes -keyout key.pem -out cert.pem \
+  -days 10000 -subj "/CN=Deal Tracker"
+openssl pkcs12 -export -inkey key.pem -in cert.pem -name upload \
+  -out deal-tracker-android.p12      # asks for a password: remember it
+rm key.pem cert.pem
+base64 -i deal-tracker-android.p12 | pbcopy
+```
+
+Then in GitHub › Settings › Secrets and variables › Actions add
+`ANDROID_KEYSTORE_BASE64` (paste) and `ANDROID_KEYSTORE_PASSWORD` (the
+password), keep `deal-tracker-android.p12` and its password somewhere safe
+(e.g. a password manager), and run "Deploy web app" once (Actions › Run
+workflow) for the first APK. Without the secrets the job only warns and the
+tile stays hidden.
+
+The app's shared links (invites, "Partilhar a app") point to
+`https://motorcycle-deal-tracker.pages.dev`; if Cloudflare gave the
+project another address, set the repository variable `WEB_APP_URL` to it.
+The Android app has no notifications yet (they are Web Push, which only a
+browser has): keep them on in Chrome.
+
 ## Privacy
 
 The address is public: anyone who has it can browse the listings (as on the

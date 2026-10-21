@@ -16,6 +16,9 @@ String pushSubtitle(PushState state, {required bool signedIn}) {
       'Bloqueadas neste aparelho: permita-as nas definições (no iPhone, '
           'Definições › Notificações)',
     PushState.unsupported => 'Este navegador não recebe notificações',
+    PushState.nativeApp =>
+      'A app Android ainda não recebe notificações: para as receber, abra a '
+          'app no Chrome e ative-as lá',
   };
 }
 

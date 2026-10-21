@@ -7,6 +7,9 @@ enum PushState {
   /// The browser has no Web Push.
   unsupported,
 
+  /// The Android app (outside the browser): no Web Push there.
+  nativeApp,
+
   /// iPhone/iPad Safari: only a home-screen app receives them.
   needsHomeScreen,
 

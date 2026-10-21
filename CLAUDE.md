@@ -123,7 +123,12 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
                                   migrations: apply new migrations
                                   (tested again first; skipped if none),
                                   then test, build and publish the app to
-                                  Cloudflare Pages
+                                  Cloudflare Pages; then the Android APK
+                                  (job android: app/android made by
+                                  `flutter create`, never committed,
+                                  fitted by tool/android_manifest.py,
+                                  signed with the secrets' key, on the
+                                  GitHub release `android`)
 .github/workflows/code-quality.yml  Claude pass on docs/code-quality.md: how
                                   the code is written (duplication, dead
                                   code, structure, theme, names); one PR
@@ -191,7 +196,9 @@ Local secrets live in `collector/.env` (gitignored, loaded by the Makefile):
 `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN`,
 `TELEGRAM_CHAT_ID`. GitHub Actions uses repository secrets with the same
 names, plus `SUPABASE_PUBLISHABLE_KEY`, `CLOUDFLARE_API_TOKEN` and
-`CLOUDFLARE_ACCOUNT_ID` for the web deploy, `SUPABASE_DB_URL` (Session
+`CLOUDFLARE_ACCOUNT_ID` for the web deploy, `ANDROID_KEYSTORE_BASE64` and
+`ANDROID_KEYSTORE_PASSWORD` for the Android app (PKCS12, alias `upload`;
+the same key forever, or updates won't install), `SUPABASE_DB_URL` (Session
 pooler connection string, `[YOUR-PASSWORD]` left in) and
 `SUPABASE_DB_PASSWORD` for the migrations, and `CLAUDE_CODE_OAUTH_TOKEN`
 for the code-quality review. Supabase's Vault holds `github_dispatch_token`
@@ -262,6 +269,13 @@ invites; written by the collector on each run).
   new account follows nothing). Saved searches match only their owner's
   models (`owner_tracks`). Notifications reach each account's own devices
   (Web Push, see Alerts).
+- Android app: the same code built as an APK by the deploy (`--dart-define`s
+  in `core/platform/app_build.dart`: `APK_URL`, `APP_BUILD`, `WEB_URL`).
+  Browser-only code sits behind conditional imports (`*_stub.dart` /
+  `*_web.dart`); links to share use `webOrigin`, never `Uri.base`
+  (a file in the app). Mais › "App Android" (`android_app_text.dart`)
+  offers the APK on Android only. No notifications there yet
+  (`PushState.nativeApp`: Web Push is the browser's).
 - Photos: `Image.network` with `WebHtmlElementStrategy.prefer` (the photo
   CDNs don't send CORS headers, so an `<img>` element is the only way).
 - Lists load `ListingModel.summaryColumns`, never `*` (descriptions are big);
