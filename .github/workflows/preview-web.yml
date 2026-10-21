@@ -9,6 +9,8 @@ name: Preview web app
 # Each push leaves only the newest build (older ones had their own
 # addresses); closing or merging the PR deletes its preview altogether
 # (tool/pages_previews.py). Cloudflare Pages costs nothing for this.
+# Lighthouse measures each preview (load time, download size,
+# accessibility) and the comment shows the result.
 on:
   pull_request:
     types: [opened, synchronize, reopened, closed]
@@ -77,6 +79,21 @@ jobs:
       - name: Remove the older builds
         run: python3 tool/pages_previews.py "pr-$PR" --keep-latest
 
+      # Load time, download size and accessibility of the preview as a
+      # phone sees it (Lighthouse's mobile defaults, the runner's Chrome).
+      # Report only: on the run's summary and in the comment below; a low
+      # score never fails the PR. Each run opens the app, so it signs in
+      # anonymously like any visitor.
+      - name: Lighthouse
+        continue-on-error: true
+        env:
+          URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          npx --yes lighthouse@13.5.0 "$URL" --quiet --output=json \
+            --output-path="$RUNNER_TEMP/lighthouse.json" --chrome-flags="--headless=new"
+          python3 -I tool/lighthouse_summary.py "$RUNNER_TEMP/lighthouse.json" \
+            | tee "$RUNNER_TEMP/lighthouse.md" >> "$GITHUB_STEP_SUMMARY"
+
       # One comment per PR, edited on every push.
       - name: Link it on the PR
         env:
@@ -90,6 +107,9 @@ jobs:
 
           Built from ${SHA:0:7}. Open it on the iPhone in Safari to try the change before merging. It uses the real database; migrations in this PR are applied only when it is merged."
           body=$(printf '%s\n' "$body" | sed 's/^          //')
+          if [ -s "$RUNNER_TEMP/lighthouse.md" ]; then
+            body="$body"$'\n\n'"$(sed 's/$/  /' "$RUNNER_TEMP/lighthouse.md")"
+          fi
           id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate \
             --jq ".[] | select(.body | startswith(\"$marker\")) | .id" | head -n 1)
           if [ -n "$id" ]; then
