@@ -72,7 +72,7 @@ Do not implement several unrelated features at once.
 ## 4.2 Difference vs new ✅
 *4.2b: "Comparação com uma nova" card on the detail page (new price, difference, hint under 10%, warning when not cheaper, outdated after 180 days). 4.2c: the new-bike price is set from the app (tap a model in "Modelos acompanhados"), dated the day it is saved. Prices for the 9 newer models are not set yet, and the original 4 still need checking.*
 ## 4.3 Price score ✅
-➕ 4.3 Per-model depreciation fitted from the model's own listings (from 30 listings, blended with the general 4 %/year, 0.2 %/1000 km), shown in "Mercado deste modelo" ✅
+➕ 4.3 Per-model depreciation fitted from the model's own listings (from 30 listings, ads under 300 € left out, blended with the general 4 %/year, 0.2 %/1000 km), shown in "Mercado deste modelo" ✅
 ## 4.4 Mileage score ✅
 ## 4.5 Year score ✅
 ## 4.6 Risk score ✅
