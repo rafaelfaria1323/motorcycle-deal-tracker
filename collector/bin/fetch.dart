@@ -81,7 +81,8 @@ Future<void> main(List<String> args) async {
   );
   try {
     await fetcher.prepare();
-    await fetchSearches(fetcher, urls, out);
+    final outcome = await fetchSearches(fetcher, urls, out);
+    if (outcome.failure case final failure?) throw failure;
     stdout.writeln('Done.');
   } on FetchRefused catch (e) {
     stderr.writeln('Not fetched: $e');

@@ -110,12 +110,14 @@ Future<int> _refreshSite(
   final fetcher = PoliteFetcher(site: site);
   try {
     await fetcher.prepare();
-    await fetchSearches(fetcher, [
+    final outcome = await fetchSearches(fetcher, [
       for (final s in plan.searches) s.url,
     ], directory);
 
     final batch = await loadBatch('$name-search', directory, catalog);
     await importBatch(batch, catalog, store: store, full: full, force: force);
+    // Stopped by a failure after some pages: imported, still a failed run.
+    if (outcome.failure case final failure?) throw failure;
 
     if (site == FetchSite.standvirtual && enrichMax > 0) {
       // New listings may be duplicates; those are never read.

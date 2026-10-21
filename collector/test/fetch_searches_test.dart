@@ -75,6 +75,9 @@ void main() {
   final paths = <String>[];
   // What the server answers for a page other than robots.txt.
   late String Function(int page) answer;
+  // Its status, and how long it waits before answering.
+  late int Function(int page) status;
+  late Duration Function(int page) delay;
 
   setUp(() async {
     dir = Directory.systemTemp.createTempSync('fetch');
@@ -87,18 +90,26 @@ void main() {
     requestTimes.clear();
     paths.clear();
     answer = (page) => _page(page, 3);
+    status = (_) => 200;
+    delay = (_) => Duration.zero;
     server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
-    server.listen((request) {
+    server.listen((request) async {
       requestTimes.add(DateTime.now());
       paths.add(request.uri.toString());
       final page = int.tryParse(request.uri.queryParameters['page'] ?? '');
-      request.response
-        ..write(
-          request.uri.path == '/robots.txt'
-              ? 'User-agent: *\nAllow: /\n'
-              : answer(page ?? 1),
-        )
-        ..close();
+      final robots = request.uri.path == '/robots.txt';
+      if (!robots) {
+        await Future<void>.delayed(delay(page ?? 1));
+        request.response.statusCode = status(page ?? 1);
+      }
+      request.response.write(
+        robots ? 'User-agent: *\nAllow: /\n' : answer(page ?? 1),
+      );
+      try {
+        await request.response.close();
+      } on Object catch (_) {
+        // The fetcher gave up waiting (the timeout test).
+      }
     });
   });
 
@@ -216,6 +227,62 @@ void main() {
     expect(outcome.saved, 2);
     expect(outcome.stoppedBy, contains('run limit'));
     expect((await SearchManifest.readFrom(dir.path))!.files, hasLength(2));
+  });
+
+  Future<FetchOutcome> fetchWith(FetchPolicy policy) => local(() async {
+    final fetcher = PoliteFetcher(site: site, policy: policy);
+    await fetcher.prepare();
+    try {
+      return await fetchSearches(
+        fetcher,
+        [search],
+        dir.path,
+        out: StringBuffer(),
+      );
+    } finally {
+      fetcher.close();
+    }
+  });
+
+  test('a request that times out keeps what was saved, as a failure', () async {
+    delay = (page) => page == 3 ? const Duration(seconds: 2) : Duration.zero;
+
+    final outcome = await fetchWith(
+      const FetchPolicy(
+        minDelay: Duration.zero,
+        jitter: Duration.zero,
+        timeout: Duration(milliseconds: 300),
+      ),
+    );
+
+    expect(outcome.saved, 2);
+    expect(outcome.failure, isA<FetchFailed>());
+    expect(outcome.stoppedBy, contains('timed out'));
+    // Page 3 is missing, so the search is not read in full: nothing of it
+    // is removed.
+    expect((await SearchManifest.readFrom(dir.path))!.files, hasLength(2));
+  });
+
+  test('a block after a page keeps that page, as a failure', () async {
+    status = (page) => page == 2 ? 503 : 200;
+
+    final outcome = await fetchWith(
+      const FetchPolicy(minDelay: Duration.zero, jitter: Duration.zero),
+    );
+
+    expect(outcome.saved, 1);
+    expect(outcome.failure, isA<FetchBlocked>());
+  });
+
+  test('a failure before any page throws', () async {
+    status = (_) => 503;
+
+    await expectLater(
+      fetchWith(
+        const FetchPolicy(minDelay: Duration.zero, jitter: Duration.zero),
+      ),
+      throwsA(isA<FetchBlocked>()),
+    );
   });
 
   test('the pause between requests counts the time spent in between', () async {
