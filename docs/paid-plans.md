@@ -1,10 +1,11 @@
-# Paid plans and other income (plan, not started)
+# Paid plans and other income (plan, on hold)
 
 Rafael, 2026-10-22: "plan the paid features if in the future we want to
 start having paid subscriptions: what could we offer to people that pay
 (features we already have or don't have yet), and what would be other ways
 to make money". This file is the plan. Its steps are in the roadmap
-(Sprint 16) and nothing here is built yet. It is not legal or tax advice.
+(Sprint 16) and nothing here is built yet. It waits for the sites'
+permission (1.1, Rafael's decision). It is not legal or tax advice.
 Where it says "check", a lawyer or an accountant decides.
 
 ## 1. Before anything is charged (Rafael's decisions)
@@ -42,7 +43,10 @@ knowingly"). Charging money for access ends that basis.
      app no longer shows its description or photos. Ask a lawyer first.
   4. Charge as the app is now: not recommended.
 
-Every step below assumes option 2 or 3 was chosen.
+**Decision (Rafael, 2026-10-22): option 2 only.** Paid plans come only if
+the sites make their data available to us: an API, or a licence for the
+listings. Until then the app stays free for invited accounts, and no page
+offers plans to anyone. Every step below assumes that permission exists.
 
 ### 1.2 The business (check with an accountant)
 
@@ -197,7 +201,8 @@ sale, and neither is a place in the list.
 
 The steps are in the roadmap's Sprint 16, in this order:
 
-1. 16.0, the decisions above.
+1. 16.0, the decisions above (the data question decided: only with the
+   sites' API or licence).
 2. Plans and entitlements in the database (16.1).
 3. Payments through the Merchant of Record's hosted checkout and a
    webhook (16.2). No card data ever reaches us.
