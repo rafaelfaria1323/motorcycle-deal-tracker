@@ -222,7 +222,10 @@ invites; written by the collector on each run).
 - Start: `main.dart` runs `Startup` (`app/startup.dart`), which draws at
   once (Android keeps its splash until the first frame): a spinner while
   Supabase (20 s at most) and the session start, then the app, or the
-  reason it failed with "Tentar novamente".
+  reason it failed with "Tentar novamente". That screen is a bare
+  `Theme` + `Material`, never a `MaterialApp` (on the web its navigator
+  would overwrite a notification's `/#/deals/<id>` and its `Title` the
+  `theme-color`).
 - Clean architecture per feature: `domain/` (entities, repository interfaces),
   `data/` (models with `fromJson`, Supabase repositories), `presentation/`
   (cubits, pages, widgets). Features: `listings`, `collector_status`,

@@ -85,25 +85,38 @@ class _StartupState extends State<Startup> {
             !snapshot.hasError) {
           return const App();
         }
-        return MaterialApp(
-          theme: AppTheme.light,
-          darkTheme: AppTheme.dark,
-          debugShowCheckedModeBanner: false,
-          home: Scaffold(
-            body: snapshot.hasError
-                ? StateMessage(
-                    icon: Icons.cloud_off,
-                    title: 'Não foi possível abrir a app',
-                    message:
-                        'Verifique a ligação à internet e tente de novo.\n'
-                        '(${_describe(snapshot.error)})',
-                    actionLabel: 'Tentar novamente',
-                    onAction: () => setState(() => _ready = _start()),
-                  )
-                : const Center(child: CircularProgressIndicator()),
-          ),
+        return _waiting(
+          context,
+          snapshot.hasError
+              ? StateMessage(
+                  icon: Icons.cloud_off,
+                  title: 'Não foi possível abrir a app',
+                  message:
+                      'Verifique a ligação à internet e tente de novo.\n'
+                      '(${_describe(snapshot.error)})',
+                  actionLabel: 'Tentar novamente',
+                  onAction: () => setState(() => _ready = _start()),
+                )
+              : const Center(child: CircularProgressIndicator()),
         );
       },
+    );
+  }
+
+  /// The screen before the app: only a theme and a Material, no
+  /// MaterialApp. On the web a MaterialApp's navigator would report "/" to
+  /// the browser, replacing the address a notification opened
+  /// (`/#/deals/<id>`), and its Title would paint the primary colour into
+  /// `theme-color` (the iPhone's status bar).
+  static Widget _waiting(BuildContext context, Widget child) {
+    final dark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+    final theme = dark ? AppTheme.dark : AppTheme.light;
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Theme(
+        data: theme,
+        child: Material(color: theme.scaffoldBackgroundColor, child: child),
+      ),
     );
   }
 
