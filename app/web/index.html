@@ -84,11 +84,62 @@
       @media (display-mode: standalone) {
         #edge-tint-bottom { display: none; }
       }
+
+      /* Loading screen while the app downloads (about 3 MB): the spinner
+         Startup (lib/app/startup.dart) draws next, in the same place, so
+         the hand-over can't be seen. An <svg> counts as content for the
+         browser (first paint), a CSS border would not. Removed on
+         Flutter's first frame. Colours: the theme's primary. */
+      #splash {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        color: #C5420F;
+      }
+      @media (prefers-color-scheme: dark) { #splash { color: #FF6B2E; } }
+      #splash svg { width: 36px; height: 36px; animation: splash-turn 1.4s linear infinite; }
+      #splash circle {
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 4;
+        stroke-dasharray: 1 200;
+        animation: splash-arc 1.4s ease-in-out infinite;
+      }
+      @keyframes splash-turn { to { transform: rotate(360deg); } }
+      @keyframes splash-arc {
+        0% { stroke-dasharray: 1 200; stroke-dashoffset: 0; }
+        50% { stroke-dasharray: 70 200; stroke-dashoffset: -25; }
+        100% { stroke-dasharray: 70 200; stroke-dashoffset: -100; }
+      }
     </style>
 </head>
 <body>
 <div class="edge-tint" id="edge-tint-top"></div>
 <div class="edge-tint" id="edge-tint-bottom"></div>
+<div id="splash" role="progressbar" aria-label="A abrir a app">
+  <svg viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="16"></circle></svg>
+</div>
+<script>
+  // The loading screen goes on Flutter's first frame (the engine's
+  // flutter-first-frame event). Should that event never come, it goes
+  // 10 s after the app's view exists, which draws at once.
+  (function () {
+    var splash = document.getElementById('splash');
+    function remove() {
+      if (splash.parentNode) splash.parentNode.removeChild(splash);
+    }
+    window.addEventListener('flutter-first-frame', remove, { once: true });
+    var watch = new MutationObserver(function () {
+      if (!document.querySelector('flutter-view')) return;
+      watch.disconnect();
+      setTimeout(remove, 10000);
+    });
+    watch.observe(document.body, { childList: true });
+  })();
+</script>
 <script>
   // Before the app loads: theme-color and the strips in the current
   // light/dark mode (AppTheme.lightBackground / darkBackground at the top,
