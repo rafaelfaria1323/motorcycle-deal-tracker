@@ -107,10 +107,11 @@ flutter:
           weight: 600
         - asset: assets/fonts/Barlow-Bold.ttf
           weight: 700
+    # Titles, prices and scores are all bold (AppTheme._textTheme,
+    # DealScoreBadge): the web app downloads every file here before it
+    # draws, so only the weight in use.
     - family: BarlowSemiCondensed
       fonts:
-        - asset: assets/fonts/BarlowSemiCondensed-SemiBold.ttf
-          weight: 600
         - asset: assets/fonts/BarlowSemiCondensed-Bold.ttf
           weight: 700
     # The web engine's default font is "Roboto": without a family of that

@@ -4,7 +4,7 @@ import pathlib
 import tempfile
 import unittest
 
-from font_coverage import ROOT, font_characters, main, missing, written_characters
+from font_coverage import ROOT, font_characters, main, missing, too_big, written_characters
 
 FONT = ROOT / "app/assets/fonts/Barlow-Regular.ttf"
 
@@ -26,6 +26,21 @@ class FontCoverageTest(unittest.TestCase):
             self.assertEqual(set(written_characters([source])), {"ç", "↓", "€", "★"})
             self.assertEqual(missing([FONT], [source]), [
                 f"Barlow-Regular.ttf lacks U+2605 '★' ({source})",
+            ])
+
+    def test_lists_hinted_and_undeclared_fonts(self):
+        with tempfile.TemporaryDirectory() as folder:
+            hinted = pathlib.Path(folder, "Hinted.ttf")
+            # A font directory with one table: fpgm.
+            hinted.write_bytes(
+                bytes.fromhex("00010000 0001 0010 0000 0000")
+                + b"fpgm" + bytes(12)
+            )
+            self.assertEqual(too_big([hinted], "assets/fonts/Hinted.ttf"), [
+                "Hinted.ttf has hinting (fpgm)",
+            ])
+            self.assertEqual(too_big([FONT], ""), [
+                "Barlow-Regular.ttf is not in app/pubspec.yaml",
             ])
 
     def test_the_app_writes_nothing_the_fonts_lack(self):

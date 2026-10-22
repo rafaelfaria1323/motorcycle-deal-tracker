@@ -8,6 +8,12 @@ the characters each font maps (its cmap, format 4), and lists what a font
 lacks. Missing arrows can be drawn with tool/font_arrows.py; anything else
 needs a font with it, or other wording.
 
+It also keeps the fonts small, since the web app downloads every one of
+them before it draws: no TrueType hinting (it only helps low-resolution
+screens; strip it with `pyftsubset FONT --unicodes='*' --glyphs='*'
+--layout-features='*' --name-IDs='*' --notdef-outline --no-hinting`), and
+no font file that app/pubspec.yaml doesn't declare.
+
     python3 tool/font_coverage.py    (from the repository root)
 
 Tested by tool/test_font_coverage.py, which also runs it on the app.
@@ -22,14 +28,23 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 COMMENT = re.compile(r"^\s*//")
 
 
-def font_characters(data):
-    """The code points a TrueType font maps (its Unicode format 4 cmap)."""
+# TrueType hinting: the instructions' programs and their control values.
+HINTING_TABLES = {b"fpgm", b"prep", b"cvt "}
+
+
+def font_tables(data):
+    """{tag: offset} of a TrueType font's tables."""
     tables = struct.unpack_from(">H", data, 4)[0]
-    cmap = None
+    found = {}
     for i in range(tables):
         tag, _, offset, _ = struct.unpack_from(">4sIII", data, 12 + 16 * i)
-        if tag == b"cmap":
-            cmap = offset
+        found[tag] = offset
+    return found
+
+
+def font_characters(data):
+    """The code points a TrueType font maps (its Unicode format 4 cmap)."""
+    cmap = font_tables(data).get(b"cmap")
     if cmap is None:
         raise ValueError("no cmap table")
     count = struct.unpack_from(">H", data, cmap + 2)[0]
@@ -90,10 +105,24 @@ def missing(fonts, sources):
     return lines
 
 
+def too_big(fonts, pubspec):
+    """Lines naming each font with hinting or not declared in the pubspec."""
+    lines = []
+    for font in fonts:
+        hinting = HINTING_TABLES & set(font_tables(font.read_bytes()))
+        if hinting:
+            tags = ", ".join(sorted(tag.decode().strip() for tag in hinting))
+            lines.append(f"{font.name} has hinting ({tags})")
+        if f"assets/fonts/{font.name}" not in pubspec:
+            lines.append(f"{font.name} is not in app/pubspec.yaml")
+    return lines
+
+
 def main():
     fonts = sorted((ROOT / "app/assets/fonts").glob("*.ttf"))
     sources = sorted((ROOT / "app/lib").rglob("*.dart"))
-    problems = missing(fonts, sources)
+    pubspec = (ROOT / "app/pubspec.yaml").read_text(encoding="utf-8")
+    problems = missing(fonts, sources) + too_big(fonts, pubspec)
     print("\n".join(problems) or f"{len(fonts)} fonts draw every character the app writes.")
     return 1 if problems else 0
 
