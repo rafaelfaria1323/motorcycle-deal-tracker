@@ -147,25 +147,43 @@ void main() {
     });
   });
 
-  test('search yields count the followed models among each search\'s ads', () {
-    final yields = searchYields(
-      batch([
-        mapped('1', search: b),
-        MappedRecord(
-          '2',
-          search: a,
-          Mapped(testListing('2', motorcycleSlug: 'yamaha-mt-07')),
-        ),
-        mapped('3', search: a),
-        const MappedRecord('copy', Rejected('copy'), search: a),
-        mapped('4'),
-      ], manifest: both),
+  test('search reports give each planned search its pages and ads', () {
+    const c = 'https://www.standvirtual.com/motos/honda/cb650r';
+    const manifest = SearchManifest(
+      planned: [a, b, c],
+      files: {'a.html': a, 'a2.html': a, 'b.html': b},
+      pages: {a: 2, b: 3},
+    );
+    final reports = searchReports(
+      batch(
+        [
+          mapped('1', search: b),
+          MappedRecord(
+            '2',
+            search: a,
+            Mapped(testListing('2', motorcycleSlug: 'yamaha-mt-07')),
+          ),
+          mapped('3', search: a),
+          const MappedRecord(
+            'copy',
+            Rejected('copy'),
+            liveId: 'copy',
+            search: a,
+          ),
+          mapped('4'),
+        ],
+        // What the adapter says when pages of a search are missing.
+        issues: [const ParseIssue(0, 'b: 1 of 3 page(s) saved', search: b)],
+        manifest: manifest,
+      ),
     );
 
-    expect(yields, [
-      (search: a, ads: 3, matched: 1),
-      (search: b, ads: 1, matched: 0),
+    expect(reports, [
+      (search: a, spans: 2, pages: 2, ads: 3, matched: 1, inFull: true),
+      (search: b, spans: 3, pages: 1, ads: 1, matched: 0, inFull: false),
+      // Never fetched (the run's time ran out).
+      (search: c, spans: null, pages: 0, ads: 0, matched: 0, inFull: false),
     ]);
-    expect(searchYields(batch([mapped('1', search: a)])), isEmpty);
+    expect(searchReports(batch([mapped('1', search: a)])), isEmpty);
   });
 }

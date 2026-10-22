@@ -91,6 +91,9 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
           final latestWithSites = runs
               .where((r) => r.sites.isNotEmpty)
               .firstOrNull;
+          final latestWithSearches = runs
+              .where((r) => r.searches.isNotEmpty)
+              .firstOrNull;
 
           return RefreshIndicator(
             onRefresh: _reload,
@@ -137,6 +140,23 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
                             now: now,
                           ),
                         ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                SectionCard(
+                  title: 'Pesquisas',
+                  footnote:
+                      'Da última recolha: páginas lidas de cada pesquisa e '
+                      'anúncios encontrados. Só uma pesquisa lida toda marca '
+                      'como retirados os anúncios que já não aparecem.',
+                  children: [
+                    if (latestWithSearches == null)
+                      const BulletLine(
+                        'Ainda sem dados: aparecem depois da próxima recolha.',
+                      )
+                    else
+                      for (final search in latestWithSearches.searches)
+                        BulletLine(searchReadText(search)),
                   ],
                 ),
                 const SizedBox(height: 12),

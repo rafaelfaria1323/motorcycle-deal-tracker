@@ -21,15 +21,26 @@ String unmatchedLabel(NormalizedListing listing) {
   return 'unmatched "$short"';
 }
 
+/// "Search (olx): yamaha-mt-07 · read 2 of 3 page(s) · 80 ad(s), 9
+/// followed · not in full", one line per planned search; [label] (else the
+/// search's address) names it. "?" pages when its first page wasn't saved.
+String searchReportLine(String source, SearchReport r, String? label) =>
+    'Search ($source): ${label ?? r.search} · '
+    'read ${r.pages} of ${r.spans ?? '?'} page(s) · '
+    '${r.ads} ad(s), ${r.matched} followed · '
+    '${r.inFull ? 'in full' : 'not in full'}';
+
 /// Steps 1-4 of an import: store what the batch holds, mark it seen, apply
 /// price changes and search keys, and (with [full]) remove what is gone.
-/// A null [store] is a dry run: the batch is only described.
+/// A null [store] is a dry run: the batch is only described. [labels]
+/// names searches in the log (search address -> its models).
 Future<void> importBatch(
   SourceBatch batch,
   Catalog catalog, {
   required ListingStore? store,
   bool full = false,
   bool force = false,
+  Map<String, String> labels = const {},
   StringSink? out,
 }) async {
   final log = out ?? stdout;
@@ -63,11 +74,9 @@ Future<void> importBatch(
     }
   }
   log.writeln('Mapped ${listings.length}, rejected $rejected.');
-  for (final y in searchYields(batch)) {
-    log.writeln(
-      'Search yield: ${y.matched} of ${y.ads} ad(s) are a followed model · '
-      '${y.search}',
-    );
+  for (final r in searchReports(batch)) {
+    // Read back by report_run.dart (searchesRead): keep the wording.
+    log.writeln(searchReportLine(batch.source, r, labels[r.search]));
   }
   if (batch.siteModels.isNotEmpty) {
     log.writeln('Brands and models on offer: ${batch.siteModels.length}');

@@ -9,6 +9,7 @@ class CollectorRun extends Equatable {
     this.counts = const {},
     this.problems = const [],
     this.sites = const {},
+    this.searches = const [],
     this.runUrl,
   });
 
@@ -30,6 +31,10 @@ class CollectorRun extends Equatable {
   /// Each site's budget and pause after the run; empty for older runs.
   final Map<String, SiteBudget> sites;
 
+  /// What each search cost and gave, in the order read; empty for older
+  /// runs.
+  final List<SearchRead> searches;
+
   /// The GitHub Actions run's page.
   final String? runUrl;
 
@@ -44,8 +49,48 @@ class CollectorRun extends Equatable {
     counts,
     problems,
     sites,
+    searches,
     runUrl,
   ];
+}
+
+/// One search in a run: the pages read of the [spans] the site said it has
+/// (null when its first page wasn't read), the ads found, how many are a
+/// followed model, and whether it was read in full (only then are its
+/// missing ads marked as gone).
+class SearchRead extends Equatable {
+  const SearchRead({
+    required this.site,
+    required this.search,
+    required this.pages,
+    required this.spans,
+    required this.ads,
+    required this.followed,
+    required this.inFull,
+  });
+
+  factory SearchRead.fromJson(Map<String, dynamic> json) => SearchRead(
+    site: json['site'] as String? ?? '',
+    search: json['search'] as String? ?? '',
+    pages: (json['pages'] as num?)?.toInt() ?? 0,
+    spans: (json['spans'] as num?)?.toInt(),
+    ads: (json['ads'] as num?)?.toInt() ?? 0,
+    followed: (json['followed'] as num?)?.toInt() ?? 0,
+    inFull: json['in_full'] as bool? ?? false,
+  );
+
+  final String site;
+
+  /// Its models ("yamaha-mt-07, yamaha-r7"), or its address.
+  final String search;
+  final int pages;
+  final int? spans;
+  final int ads;
+  final int followed;
+  final bool inFull;
+
+  @override
+  List<Object?> get props => [site, search, pages, spans, ads, followed, inFull];
 }
 
 /// One site's requests used today (UTC day), and until when it is paused

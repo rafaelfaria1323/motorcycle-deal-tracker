@@ -95,13 +95,30 @@ class RemovalPlan {
   final bool includeUnkeyed;
 }
 
-/// How many of the ads a search read are a followed model, per search in
-/// the order planned. A search whose ads are mostly other bikes spends the
-/// request budget for little (OLX's word searches match any of their
-/// words). Empty without a manifest.
-List<({String search, int ads, int matched})> searchYields(SourceBatch batch) {
+/// What one planned search cost and gave in a run (R.1): the pages the site
+/// said it spans ([spans], null when its first page wasn't saved), the
+/// pages saved, the ads read, how many are a followed model, and whether it
+/// was read in full (so its missing listings may be removed).
+typedef SearchReport = ({
+  String search,
+  int? spans,
+  int pages,
+  int ads,
+  int matched,
+  bool inFull,
+});
+
+/// One [SearchReport] per planned search, in the order planned. A search
+/// whose ads are mostly other bikes spends requests for little (OLX's word
+/// searches match any of their words); one that fits on one page gains
+/// nothing from reading fewer pages. Empty without a manifest.
+List<SearchReport> searchReports(SourceBatch batch) {
   final manifest = batch.manifest;
   if (manifest == null) return const [];
+  final pages = <String, int>{};
+  for (final search in manifest.files.values) {
+    pages[search] = (pages[search] ?? 0) + 1;
+  }
   final ads = <String, int>{};
   final matched = <String, int>{};
   for (final record in batch.records) {
@@ -114,10 +131,17 @@ List<({String search, int ads, int matched})> searchYields(SourceBatch batch) {
       matched[search] = (matched[search] ?? 0) + 1;
     }
   }
+  final inFull = {...?removalPlan(batch).searches};
   return [
     for (final search in manifest.planned)
-      if (ads[search] case final count?)
-        (search: search, ads: count, matched: matched[search] ?? 0),
+      (
+        search: search,
+        spans: manifest.pages[search],
+        pages: pages[search] ?? 0,
+        ads: ads[search] ?? 0,
+        matched: matched[search] ?? 0,
+        inFull: inFull.contains(search),
+      ),
   ];
 }
 

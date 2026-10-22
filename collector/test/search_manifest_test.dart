@@ -13,11 +13,20 @@ void main() {
     await const SearchManifest(
       planned: ['a', 'b'],
       files: {'p1.html': 'a', 'p2.html': 'a'},
+      pages: {'a': 3},
     ).writeTo(dir.path);
     final read = (await SearchManifest.readFrom(dir.path))!;
     expect(read.planned, ['a', 'b']);
     expect(read.files, {'p1.html': 'a', 'p2.html': 'a'});
+    expect(read.pages, {'a': 3});
     expect(read.fetched, {'a'});
+  });
+
+  test('a manifest without page counts reads with none', () async {
+    File(
+      '${dir.path}/${SearchManifest.fileName}',
+    ).writeAsStringSync('{"planned": ["a"], "files": {"p1.html": "a"}}');
+    expect((await SearchManifest.readFrom(dir.path))!.pages, isEmpty);
   });
 
   test('a folder without a manifest gives null', () async {
@@ -29,6 +38,8 @@ void main() {
     file.writeAsStringSync('not json');
     await expectLater(SearchManifest.readFrom(dir.path), throwsFormatException);
     file.writeAsStringSync('{"planned": [], "files": []}');
+    await expectLater(SearchManifest.readFrom(dir.path), throwsFormatException);
+    file.writeAsStringSync('{"planned": [], "files": {}, "pages": []}');
     await expectLater(SearchManifest.readFrom(dir.path), throwsFormatException);
     file.writeAsStringSync('[]');
     await expectLater(SearchManifest.readFrom(dir.path), throwsFormatException);

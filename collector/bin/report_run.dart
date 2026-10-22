@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:collector/collector.dart';
 
 /// Records one scheduled run in `collector_runs` (with its problems, each
-/// site's requests today and pause, and the GitHub run's address), drops
+/// search's pages and ads, each site's requests today and pause, and the
+/// GitHub run's address), drops
 /// rows older than
 /// 90 days and tells the admins' devices (Web Push) when the collection
 /// breaks or recovers (a change from the previous run's status only).
@@ -36,6 +37,7 @@ Future<void> main(List<String> args) async {
       'summary': logTail(log),
       'requests': requestsUsed(log),
       'counts': runCounts(log),
+      'searches': searchesRead(log),
       'problems': status == 'ok' ? <String>[] : runProblems(log),
       'sites': {
         for (final MapEntry(key: name, value: site) in FetchSite.byName.entries)

@@ -102,6 +102,41 @@ void main() {
     expect(out.toString(), contains('Dry run: nothing was written.'));
   });
 
+  test('the log says what each planned search cost and gave', () async {
+    const a = 'https://www.olx.pt/a', b = 'https://www.olx.pt/b';
+    final out = StringBuffer();
+    await importBatch(
+      SourceBatch(
+        'olx',
+        const [],
+        [MappedRecord('a', Mapped(testListing('a')), search: a)],
+        manifest: const SearchManifest(
+          planned: [a, b],
+          files: {'a.html': a},
+          pages: {a: 1},
+        ),
+      ),
+      catalog,
+      store: null,
+      labels: {a: 'yamaha-mt-07, yamaha-r7'},
+      out: out,
+    );
+
+    expect(
+      out.toString(),
+      allOf(
+        contains(
+          'Search (olx): yamaha-mt-07, yamaha-r7 · read 1 of 1 page(s) · '
+          '1 ad(s), 0 followed · in full\n',
+        ),
+        contains(
+          'Search (olx): $b · read 0 of ? page(s) · 0 ad(s), 0 followed · '
+          'not in full\n',
+        ),
+      ),
+    );
+  });
+
   test('an unmatched ad shows its brand and model, phone numbers masked', () {
     NormalizedListing ad(String model) => NormalizedListing(
       source: 'olx',

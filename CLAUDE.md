@@ -422,7 +422,11 @@ invites; written by the collector on each run).
   the error lines of each site, or "voltou a funcionar"), never twice for
   the same problem. It also stores `problems` (`runProblems`, runs not
   ok), `sites` (each fetch state file's `report()`: requests today,
-  paused until) and `run_url` (`githubRunUrl`), shown to admins in
+  paused until), `searches` (`searchesRead`: per search the pages it
+  spans and the pages read, from `searches.json`'s `pages`, the ads found,
+  how many are followed models, and whether it was read in full; from
+  importBatch's "Search (<site>): ..." lines, keep their wording) and
+  `run_url` (`githubRunUrl`), shown to admins in
   Mais › "Estado da recolha" (`collection_status_page.dart`, route
   `/collection-status`, pushed), with the database's size against the
   free plan's 500 MB and its 5 biggest tables (`database_usage`, admins;

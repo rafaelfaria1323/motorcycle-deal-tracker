@@ -139,6 +139,58 @@ void main() {
     });
   });
 
+  test('search lines', () {
+    SearchRead read({int? spans = 3, int pages = 3, bool inFull = true}) =>
+        SearchRead(
+          site: 'olx',
+          search: 'yamaha-mt-07, yamaha-r7',
+          pages: pages,
+          spans: spans,
+          ads: 80,
+          followed: 9,
+          inFull: inFull,
+        );
+
+    expect(
+      searchReadText(read()),
+      'OLX · yamaha-mt-07, yamaha-r7: 3 de 3 páginas, 80 anúncios (9 dos '
+      'modelos acompanhados)',
+    );
+    expect(
+      searchReadText(read(pages: 2, inFull: false)),
+      endsWith('2 de 3 páginas, 80 anúncios (9 dos modelos acompanhados) · '
+          'não lida toda'),
+    );
+    expect(
+      searchReadText(read(spans: 1, pages: 1)),
+      contains('1 de 1 página,'),
+    );
+    expect(
+      searchReadText(read(spans: null, pages: 0, inFull: false)),
+      'OLX · yamaha-mt-07, yamaha-r7: não lida nesta recolha',
+    );
+    expect(
+      SearchRead.fromJson(const {
+        'site': 'standvirtual',
+        'search': 'honda-cb650r',
+        'pages': 2,
+        'spans': null,
+        'ads': 40,
+        'followed': 38,
+        'in_full': false,
+      }),
+      const SearchRead(
+        site: 'standvirtual',
+        search: 'honda-cb650r',
+        pages: 2,
+        spans: null,
+        ads: 40,
+        followed: 38,
+        inFull: false,
+      ),
+    );
+  });
+
   test('run labels', () {
     expect(runStatusLabel('ok'), 'Correu bem');
     expect(runStatusLabel('blocked'), 'Bloqueada');

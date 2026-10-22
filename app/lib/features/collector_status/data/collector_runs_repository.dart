@@ -9,7 +9,8 @@ abstract interface class CollectorRunsRepository {
   /// The runs started since [since], newest first; empty without access.
   Future<List<CollectorRun>> getSince(DateTime since);
 
-  /// The last [limit] runs with their problems and sites, newest first.
+  /// The last [limit] runs with their problems, sites and searches, newest
+  /// first.
   Future<List<CollectorRun>> getRecent(int limit);
 }
 
@@ -34,7 +35,7 @@ class SupabaseCollectorRunsRepository implements CollectorRunsRepository {
   Future<List<CollectorRun>> getRecent(int limit) async {
     final rows = await _client
         .from('collector_runs')
-        .select('$_columns, problems, sites, run_url')
+        .select('$_columns, problems, sites, searches, run_url')
         .order('started_at', ascending: false)
         .limit(limit);
     return rows.map(_run).toList();
@@ -64,6 +65,10 @@ class SupabaseCollectorRunsRepository implements CollectorRunsRepository {
           in (row['sites'] as Map<String, dynamic>? ?? const {}).entries)
         if (value is Map<String, dynamic>) key: SiteBudget.fromJson(value),
     },
+    searches: [
+      for (final s in row['searches'] as List<dynamic>? ?? const [])
+        if (s is Map<String, dynamic>) SearchRead.fromJson(s),
+    ],
     runUrl: row['run_url'] as String?,
   );
 

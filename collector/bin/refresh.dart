@@ -129,7 +129,14 @@ Future<int> _refreshSite(
     ], directory);
 
     final batch = await loadBatch('$name-search', directory, catalog);
-    await importBatch(batch, catalog, store: store, full: full, force: force);
+    await importBatch(
+      batch,
+      catalog,
+      store: store,
+      full: full,
+      force: force,
+      labels: {for (final s in plan.searches) '${s.url}': s.models.join(', ')},
+    );
     // Stopped by a failure after some pages: imported, still a failed run.
     if (outcome.failure case final failure?) throw failure;
 
