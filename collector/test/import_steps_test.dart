@@ -102,6 +102,29 @@ void main() {
     expect(out.toString(), contains('Dry run: nothing was written.'));
   });
 
+  test('an unmatched ad shows its brand and model, phone numbers masked', () {
+    NormalizedListing ad(String model) => NormalizedListing(
+      source: 'olx',
+      sourceListingId: '1',
+      url: 'https://example.com/1',
+      brand: 'Honda',
+      model: model,
+      price: 5000,
+      sellerType: SellerType.private,
+      images: const [],
+    );
+
+    expect(
+      unmatchedLabel(ad('NSS 350  Forza')),
+      'unmatched "Honda NSS 350 Forza"',
+    );
+    expect(
+      unmatchedLabel(ad('SH 350 ligue 912 345 678')),
+      'unmatched "Honda SH 350 ligue …"',
+    );
+    expect(unmatchedLabel(ad('x' * 80)).length, lessThan(75));
+  });
+
   test('the steps run in order; without --full nothing is removed', () async {
     final store = _Store();
     await importBatch(_batch(), catalog, store: store, out: StringBuffer());

@@ -141,7 +141,7 @@ Shown on the detail page. Reference prices are edited in the app; set for the or
 
 ## 21. Data Quality 🟡
 
-✅ Collection runs and blocks are tracked. ✅ Requests used per run, run duration, next run and monthly usage shown in the app (Mais). ✅ Per site in Mais: live listings, tracked/unmatched/duplicate shares, missing year, mileage and location, Standvirtual pages still to read, when listings were last seen on each site (warns after 24 h) and sudden price changes of 50 % or more in the last 30 days (view `source_data_quality`). ⬜ Per-field confidence. ✅ Each run's log says, per search, how many of the ads it read are a followed model (9.10c), so searches that spend requests on other bikes show up. ✅ Near the free plan's limit (400 of 500 MB), old gone listings of models nobody follows are deleted (9.10d).
+✅ Collection runs and blocks are tracked. ✅ Requests used per run, run duration, next run and monthly usage shown in the app (Mais). ✅ Per site in Mais: live listings, tracked/unmatched/duplicate shares, missing year, mileage and location, Standvirtual pages still to read, when listings were last seen on each site (warns after 24 h) and sudden price changes of 50 % or more in the last 30 days (view `source_data_quality`). ⬜ Per-field confidence. ✅ Each run's log says, per search, how many of the ads it read are a followed model (9.10c), so searches that spend requests on other bikes show up; unmatched ads are logged with their brand and model. ✅ Near the free plan's limit (400 of 500 MB), old gone listings of models nobody follows are deleted (9.10d).
 
 ## 22. Privacy 🟡
 

@@ -8,6 +8,19 @@ import '../notify/web_push.dart';
 import '../store/listing_store.dart';
 import 'source_batch.dart';
 
+/// How an ad no followed model matched shows in the log: its brand and
+/// model as the site gave them (an unmatched OLX ad's model is its title),
+/// so a missed rule can be seen. Runs of 6+ digits are masked: a title may
+/// hold a phone number, which the logs never show.
+String unmatchedLabel(NormalizedListing listing) {
+  final name = '${listing.brand} ${listing.model}'
+      .replaceAll(RegExp(r'\d(?:[\s.-]?\d){5,}'), '…')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+  final short = name.length > 60 ? '${name.substring(0, 60)}…' : name;
+  return 'unmatched "$short"';
+}
+
 /// Steps 1-4 of an import: store what the batch holds, mark it seen, apply
 /// price changes and search keys, and (with [full]) remove what is gone.
 /// A null [store] is a dry run: the batch is only described.
@@ -37,7 +50,7 @@ Future<void> importBatch(
       case Mapped(:final listing, :final warnings):
         listings.add(listing);
         log.writeln(
-          '  - ${listing.motorcycleSlug ?? 'unmatched'} · '
+          '  - ${listing.motorcycleSlug ?? unmatchedLabel(listing)} · '
           '${listing.year ?? '-'} · ${listing.price} EUR · '
           '${listing.sourceListingId}',
         );
