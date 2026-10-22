@@ -25,7 +25,7 @@ class AlertsPage extends StatelessWidget {
 
   void _open(BuildContext context, ListingAlert alert) {
     context.read<AlertsCubit>().markRead(alert.id);
-    context.go(AppRoutes.listingDetail(alert.listing.id));
+    context.push(AppRoutes.listingDetail(alert.listing.id));
   }
 
   @override

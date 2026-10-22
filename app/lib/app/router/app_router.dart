@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -19,6 +20,8 @@ import '../../features/listings/presentation/pages/model_market_page.dart';
 import '../../features/listings/presentation/pages/saved_searches_page.dart';
 import '../../features/listings/presentation/pages/tracked_models_page.dart';
 import '../../features/listings/presentation/pages/weekly_summary_page.dart';
+import '../../features/listings/presentation/photo_viewer_args.dart';
+import '../../features/listings/presentation/widgets/photo_gallery.dart';
 import '../../features/settings/presentation/accounts_page.dart';
 import '../../features/settings/presentation/join_page.dart';
 import '../../features/settings/presentation/more_page.dart';
@@ -26,7 +29,12 @@ import '../di/injection.dart';
 import '../shell/app_shell.dart';
 import 'app_routes.dart';
 
+/// The navigator above the tabs: a listing and its photos open on it, so
+/// they cover the tab bar and back returns to whichever tab opened them.
+final _rootNavigator = GlobalKey<NavigatorState>();
+
 final appRouter = GoRouter(
+  navigatorKey: _rootNavigator,
   initialLocation: AppRoutes.deals,
   redirect: (context, state) {
     final url = state.uri.toString();
@@ -56,8 +64,11 @@ final appRouter = GoRouter(
                 );
               },
               routes: [
+                // Opened with `push` from any tab; from a notification
+                // (`go`) the Ofertas list is beneath it.
                 GoRoute(
                   path: ':id',
+                  parentNavigatorKey: _rootNavigator,
                   builder: (context, state) {
                     final id = state.pathParameters['id']!;
                     return BlocProvider(
@@ -65,6 +76,25 @@ final appRouter = GoRouter(
                       child: ListingDetailPage(listingId: id),
                     );
                   },
+                  routes: [
+                    GoRoute(
+                      path: 'photos',
+                      parentNavigatorKey: _rootNavigator,
+                      // A reloaded or typed address has no photos with it.
+                      redirect: (context, state) =>
+                          PhotoViewerArgs.fromExtra(state.extra) == null
+                          ? AppRoutes.listingDetail(state.pathParameters['id']!)
+                          : null,
+                      pageBuilder: (context, state) => MaterialPage<void>(
+                        key: state.pageKey,
+                        fullscreenDialog: true,
+                        child: FullScreenGallery(
+                          listingId: state.pathParameters['id']!,
+                          args: PhotoViewerArgs.fromExtra(state.extra)!,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

@@ -83,8 +83,22 @@ class _AppShellState extends State<AppShell> {
     );
   }
 
+  /// Android's back (button or edge swipe) on another tab returns to
+  /// Ofertas, as Android apps with tabs do, instead of closing the app;
+  /// on Ofertas it closes the app. The browser's back works on its own
+  /// history and never reaches this.
+  Widget _backToFirstTab(Widget child) => PopScope(
+    canPop: navigationShell.currentIndex == 0,
+    onPopInvokedWithResult: (didPop, _) {
+      if (!didPop) navigationShell.goBranch(0);
+    },
+    child: child,
+  );
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => _backToFirstTab(_layout(context));
+
+  Widget _layout(BuildContext context) {
     final isWide = MediaQuery.sizeOf(context).width >= _wideBreakpoint;
 
     final content = Align(

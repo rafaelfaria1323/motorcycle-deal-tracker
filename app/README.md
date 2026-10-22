@@ -89,7 +89,8 @@ accounts. "Partilhar a app" sends the app's link to anyone.
 ## Code layout
 
 ```text
-lib/app/        App widget, theme, router (go_router, one shell with 4 tabs), DI (get_it)
+lib/app/        App widget, theme, router (go_router, one shell with 4 tabs; ads and their
+                photos above it, pushed), DI (get_it)
 lib/core/       Formatting, shared widgets
 lib/features/   listings, collector_status, settings
   <feature>/domain/        entities, repository interfaces

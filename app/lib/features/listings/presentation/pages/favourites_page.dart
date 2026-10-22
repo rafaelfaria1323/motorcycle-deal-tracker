@@ -76,7 +76,7 @@ class FavouritesPage extends StatelessWidget {
                             child: ListingCard(
                               listing: f.listing!,
                               favourite: true,
-                              onTap: () => context.go(
+                              onTap: () => context.push(
                                 AppRoutes.listingDetail(f.listingId),
                               ),
                             ),

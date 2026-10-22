@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/formatting/formatters.dart';
+import '../../../../core/widgets/page_back_button.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
@@ -43,8 +44,7 @@ class ListingDetailPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(
-          onPressed: () =>
-              context.canPop() ? context.pop() : context.go(AppRoutes.deals),
+          onPressed: () => goBack(context, fallback: AppRoutes.deals),
         ),
         title: const Text('Detalhe'),
         actions: [
@@ -192,7 +192,7 @@ class _ContentState extends State<_Content> {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  PhotoGallery(images: listing.images),
+                  PhotoGallery(listingId: listing.id, images: listing.images),
                   const SizedBox(height: 16),
                   _Header(listing: listing),
                   const SizedBox(height: 12),
@@ -291,7 +291,7 @@ class _ContentState extends State<_Content> {
               'Parece ser a mesma mota de outro anúncio. '
               'Não conta para o mercado nem tem pontuação.',
           actionLabel: 'Ver original',
-          onAction: () => context.go('/deals/$duplicateOf'),
+          onAction: () => context.push(AppRoutes.listingDetail(duplicateOf)),
         ),
       if (relistText(listing) case final relist?)
         _StatusCard(
@@ -300,7 +300,8 @@ class _ContentState extends State<_Content> {
           title: 'Anúncio publicado de novo',
           text: relist,
           actionLabel: 'Ver anterior',
-          onAction: () => context.go('/deals/${listing.relistedFrom}'),
+          onAction: () =>
+              context.push(AppRoutes.listingDetail(listing.relistedFrom!)),
         ),
     ];
   }
