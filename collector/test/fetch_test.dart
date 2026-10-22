@@ -136,13 +136,11 @@ void main() {
 
       expect(state.report(policy, DateTime.utc(2026, 10, 19, 20)), {
         'requests_today': 47,
-        'daily_limit': 120,
         'paused_until': '2026-10-20T08:00:00.000Z',
       });
       // The next day: nothing used yet, the pause is over.
       expect(state.report(policy, DateTime.utc(2026, 10, 20, 9)), {
         'requests_today': 0,
-        'daily_limit': 120,
         'paused_until': null,
       });
     });

@@ -86,12 +86,13 @@ class ListingStore {
   /// Live listings of [source] whose listing page has not been read yet,
   /// newest first, then those read before the page's photos were kept
   /// (`photos_read_at`). Only catalog models that are not duplicates:
-  /// details feed the scores, and other listings are never scored.
+  /// details feed the scores, and other listings are never scored. All of
+  /// them without a [limit] (the API still returns at most 1000).
   Future<List<({String sourceListingId, String url})>> listingsMissingDetails(
     String source,
-    int limit,
+    int? limit,
   ) async {
-    final rows = await _client
+    final query = _client
         .from('listings')
         .select('source_listing_id, url')
         .eq('source', source)
@@ -103,8 +104,8 @@ class ListingStore {
         .order('details_failed_at', ascending: true, nullsFirst: true)
         // Listings without details before those missing only photos.
         .order('details_checked_at', ascending: true, nullsFirst: true)
-        .order('first_seen_at', ascending: false)
-        .limit(limit);
+        .order('first_seen_at', ascending: false);
+    final rows = await (limit == null ? query : query.limit(limit));
     return [
       for (final r in rows)
         (

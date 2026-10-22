@@ -286,24 +286,46 @@ void main() {
     expect((await SearchManifest.readFrom(dir.path))!.files, hasLength(1));
   });
 
-  test('a damaged state file spends today\'s budget', () async {
+  test('a damaged state file starts afresh', () async {
     File(site.statePath).writeAsStringSync('{"day": "2026-');
 
-    await expectLater(
-      local(() async {
-        final fetcher = PoliteFetcher(site: site);
-        try {
-          await fetcher.prepare();
-        } finally {
-          fetcher.close();
-        }
-      }),
-      throwsA(isA<FetchLimitReached>()),
-    );
-    expect(paths, isEmpty);
-    // Written back whole, so tomorrow starts afresh.
+    await local(() async {
+      final fetcher = PoliteFetcher(site: site);
+      try {
+        await fetcher.prepare();
+      } finally {
+        fetcher.close();
+      }
+    });
+    expect(paths, ['/robots.txt']);
+    // Written back whole, counting only this run's request.
     final state = (await readFetchState(site.statePath))!;
-    expect(state.requests, const FetchPolicy().maxRequestsPerDay);
+    expect(state.requests, 1);
+    expect(state.blockedAt, isNull);
+  });
+
+  test('no request cap unless one is set', () async {
+    final outcome = await fetchWith(
+      const FetchPolicy(minDelay: Duration.zero, jitter: Duration.zero),
+    );
+
+    expect(outcome.saved, 3);
+    expect(outcome.stoppedBy, isNull);
+  });
+
+  test('the run time running out keeps what was saved', () async {
+    final outcome = await fetchWith(
+      const FetchPolicy(
+        // robots.txt at once, the first page after the pause; the second
+        // would start after the run's time.
+        minDelay: Duration(milliseconds: 300),
+        jitter: Duration.zero,
+        maxRunTime: Duration(milliseconds: 150),
+      ),
+    );
+
+    expect(outcome.saved, 1);
+    expect(outcome.stoppedBy, contains('run time'));
   });
 
   test('a failure before any page throws', () async {

@@ -2,9 +2,8 @@
 -- instead of every 4 hours: 00:00, 08:00, then every 2 hours from 12:00 to
 -- 20:00 (Lisbon time). pg_cron counts in UTC, so the job runs every hour
 -- and starts the collection only at those Lisbon hours, which keeps them
--- right across summer time. The fetching caps are unchanged (20 requests
--- per run, 120 per day per site). collection_text.dart in the app mirrors
--- these hours: change both together.
+-- right across summer time. collection_text.dart in the app mirrors these
+-- hours: change both together (docs/hosting.md, "Changing the schedule").
 
 -- Whether a collection is due at p_now (its Lisbon hour is one of them).
 create function public.collection_due(p_now timestamptz)

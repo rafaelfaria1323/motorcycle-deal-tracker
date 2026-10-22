@@ -8,7 +8,7 @@ Future<void> main(List<String> args) async {
 
   var dryRun = false;
   String? outDir;
-  var maxRequests = const FetchPolicy().maxRequestsPerRun;
+  int? maxRequests; // no cap
   for (final flag in flags) {
     if (flag == '--dry-run') {
       dryRun = true;
@@ -16,21 +16,21 @@ Future<void> main(List<String> args) async {
       outDir = flag.substring('--out='.length);
     } else if (flag.startsWith('--max=')) {
       maxRequests = int.tryParse(flag.substring('--max='.length)) ?? 0;
+      if (maxRequests < 1) positional.add('?');
     } else {
       positional.add('?'); // forces the usage message
     }
   }
 
   final site = positional.isEmpty ? null : FetchSite.byName[positional.first];
-  if (positional.length != 2 ||
-      site == null ||
-      maxRequests < 1 ||
-      maxRequests > const FetchPolicy().maxRequestsPerRun) {
+  if (positional.length != 2 || site == null) {
     stderr.writeln(
       'Usage: dart run bin/fetch.dart <${FetchSite.byName.keys.join('|')}> '
-      '<urls-file> [--dry-run] [--out=<dir>] [--max=<1-20>]\n'
+      '<urls-file> [--dry-run] [--out=<dir>] [--max=<n>]\n'
       '  <urls-file>  one search address per line (# starts a comment)\n'
-      '  --dry-run    check the addresses and limits; nothing is requested\n'
+      '  --dry-run    check the addresses; nothing is requested\n'
+      '  --max        at most <n> requests, robots.txt included (default: no '
+      'cap)\n'
       '  OLX searches span pages; the following pages are fetched too.',
     );
     exitCode = 64;
@@ -65,7 +65,10 @@ Future<void> main(List<String> args) async {
     exitCode = 64;
     return;
   }
-  stdout.writeln('${urls.length} address(es), limit $maxRequests request(s).');
+  stdout.writeln(
+    '${urls.length} address(es)'
+    '${maxRequests == null ? '' : ', limit $maxRequests request(s)'}.',
+  );
 
   if (dryRun) {
     for (final url in urls) {

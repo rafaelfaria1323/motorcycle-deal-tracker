@@ -54,7 +54,7 @@ void main() {
   });
 
   group('site budget', () {
-    const budget = SiteBudget(requestsToday: 47, dailyLimit: 120);
+    const budget = SiteBudget(requestsToday: 47);
 
     test('today\'s requests, from a run today', () {
       final text = siteBudgetText(
@@ -63,7 +63,7 @@ void main() {
         reportedAt: now.subtract(const Duration(hours: 1)),
         now: now,
       );
-      expect(text.text, 'Standvirtual: 47 de 120 pedidos hoje');
+      expect(text.text, 'Standvirtual: 47 pedidos hoje (UTC)');
       expect(text.warning, isFalse);
     });
 
@@ -75,19 +75,26 @@ void main() {
           reportedAt: now.subtract(const Duration(days: 1)),
           now: now,
         ).text,
-        'OLX: 0 de 120 pedidos hoje',
+        'OLX: 0 pedidos hoje (UTC)',
       );
     });
 
-    test('the whole day used is a warning', () {
+    test('no daily cap: many requests are not a warning, one is singular', () {
+      final many = siteBudgetText(
+        'olx',
+        const SiteBudget(requestsToday: 500),
+        reportedAt: now,
+        now: now,
+      );
+      expect(many.warning, isFalse);
       expect(
         siteBudgetText(
           'olx',
-          const SiteBudget(requestsToday: 120, dailyLimit: 120),
+          const SiteBudget(requestsToday: 1),
           reportedAt: now,
           now: now,
-        ).warning,
-        isTrue,
+        ).text,
+        'OLX: 1 pedido hoje (UTC)',
       );
     });
 
@@ -96,7 +103,6 @@ void main() {
         'olx',
         SiteBudget(
           requestsToday: 3,
-          dailyLimit: 120,
           pausedUntil: now.add(const Duration(hours: 5)),
         ),
         reportedAt: now,
@@ -109,7 +115,6 @@ void main() {
           'olx',
           SiteBudget(
             requestsToday: 3,
-            dailyLimit: 120,
             pausedUntil: now.subtract(const Duration(minutes: 1)),
           ),
           reportedAt: now,
@@ -119,7 +124,7 @@ void main() {
       );
     });
 
-    test('reads the run\'s JSON', () {
+    test('reads the run\'s JSON (an older run\'s daily_limit ignored)', () {
       expect(
         SiteBudget.fromJson({
           'requests_today': 47,
@@ -128,7 +133,6 @@ void main() {
         }),
         SiteBudget(
           requestsToday: 47,
-          dailyLimit: 120,
           pausedUntil: DateTime.utc(2026, 10, 22, 8),
         ),
       );

@@ -88,9 +88,10 @@ String? biggestTablesText(DatabaseUsage usage) {
 
 const siteNames = {'standvirtual': 'Standvirtual', 'olx': 'OLX'};
 
-/// "Standvirtual: 47 de 120 pedidos hoje" or "OLX: em pausa até 14:32 de
-/// 22/10 (o site recusou pedidos)", from the run [reportedAt]: a run from
-/// an earlier UTC day (the budget's day) means nothing is used today yet.
+/// "Standvirtual: 47 pedidos hoje" or "OLX: em pausa até 14:32 de 22/10 (o
+/// site recusou pedidos)", from the run [reportedAt]: a run from an earlier
+/// UTC day (the fetcher's day) means nothing is used today yet. There is no
+/// daily cap, so only a pause is a warning.
 ({String text, bool warning}) siteBudgetText(
   String site,
   SiteBudget budget, {
@@ -113,8 +114,8 @@ const siteNames = {'standvirtual': 'Standvirtual', 'olx': 'OLX'};
       now.toUtc().toIso8601String().substring(0, 10);
   final used = sameDay ? budget.requestsToday : 0;
   return (
-    text: '$name: $used de ${budget.dailyLimit} pedidos hoje',
-    warning: used >= budget.dailyLimit,
+    text: '$name: $used ${used == 1 ? 'pedido' : 'pedidos'} hoje (UTC)',
+    warning: false,
   );
 }
 

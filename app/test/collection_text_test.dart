@@ -135,13 +135,56 @@ void main() {
     expect(runCountsText(const {}), isNull);
   });
 
-  test('requests per site against the limit', () {
+  test('requests per site', () {
     expect(
       requestsText({'standvirtual': 15, 'olx': 9}),
-      'Standvirtual 15 de 20 · OLX 9 de 20',
+      'Pedidos: Standvirtual 15 · OLX 9',
     );
     expect(requestsText(const {}), isNull);
   });
+
+  test('this month\'s requests per site, with the average per run', () {
+    expect(
+      monthRequestsText([
+        run(60, requests: {'standvirtual': 15, 'olx': 9}),
+        run(60, requests: {'standvirtual': 40, 'olx': 12}),
+        run(60), // an older run without counts
+      ]),
+      'Pedidos este mês: Standvirtual 55 (28 por recolha) · '
+      'OLX 21 (11 por recolha)',
+    );
+    expect(monthRequestsText([run(60)]), isNull);
+  });
+
+  test(
+    'requests per local day, newest first, days without counts left out',
+    () {
+      CollectorRun at(DateTime start, Map<String, int> requests) =>
+          CollectorRun(
+            status: 'ok',
+            startedAt: start,
+            finishedAt: start.add(const Duration(minutes: 5)),
+            requests: requests,
+          );
+      final now = DateTime(2026, 10, 22, 15);
+
+      expect(
+        dailyRequestsText([
+          at(DateTime(2026, 10, 22, 14), {'standvirtual': 15, 'olx': 9}),
+          at(DateTime(2026, 10, 22, 8), {'standvirtual': 30, 'olx': 10}),
+          at(DateTime(2026, 10, 21, 20), {'standvirtual': 12}),
+          at(DateTime(2026, 10, 19, 12), {'olx': 4}),
+          at(DateTime(2026, 10, 18, 12), const {}),
+        ], now),
+        [
+          'Hoje: Standvirtual 45 · OLX 19',
+          'Ontem: Standvirtual 12',
+          '19/10: OLX 4',
+        ],
+      );
+      expect(dailyRequestsText(const [], now), isEmpty);
+    },
+  );
 
   test('a month of runs in whole minutes, with set-up time', () {
     expect(estimatedMinutes(run(151)), 4);

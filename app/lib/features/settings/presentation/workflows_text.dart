@@ -7,8 +7,8 @@ import '../domain/workflows_repository.dart';
   AppWorkflow.collect => (
     title: 'Recolher agora',
     subtitle:
-        'Lê os sites já, fora do horário. Usa pedidos do limite diário de '
-        'cada site',
+        'Lê os sites já, fora do horário (os pedidos ficam em Estado da '
+        'recolha)',
     started:
         'Recolha iniciada. Os anúncios novos aparecem daqui a cerca de 10 '
         'minutos.',

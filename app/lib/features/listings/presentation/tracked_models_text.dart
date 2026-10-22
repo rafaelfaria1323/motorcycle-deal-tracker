@@ -5,11 +5,6 @@ const olxSearchPrefix =
     'https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/';
 const standvirtualSearchPrefix = 'https://www.standvirtual.com/motos/';
 
-/// The collector's request budget per site and run, and the number of OLX
-/// searches (1 to 4 pages each) above which it may run out.
-const requestsPerRun = 20;
-const comfortableOlxSearches = 5;
-
 /// "Desde 2023 · OLX e Standvirtual".
 String modelSubtitle(CatalogModel m) {
   final sites = [
@@ -69,20 +64,14 @@ String newPriceSubtitle(CatalogModel m) {
   );
 }
 
-/// What the collected models (of every account) cost in requests, and a
-/// warning when the budget may run out.
-List<String> budgetLines(List<CatalogModel> models) {
+/// The searches each collection runs for the collected models (of every
+/// account). There is no request cap: every page of each search is read.
+String searchesLine(List<CatalogModel> models) {
   final counts = searchCounts(models);
-  return [
-    'Pesquisas em cada recolha (modelos de todas as contas): '
-        '${counts.olx} no OLX e '
-        '${counts.standvirtual} no Standvirtual (limite de $requestsPerRun '
-        'pedidos por site).',
-    if (counts.olx > comfortableOlxSearches)
-      'Muitas pesquisas no OLX: cada uma usa 1 a 4 pedidos. Se o limite for '
-          'atingido, as pesquisas dos modelos adicionados mais recentemente '
-          'ficam para a recolha seguinte.',
-  ];
+  return 'Pesquisas em cada recolha (modelos de todas as contas): '
+      '${counts.olx} no OLX e ${counts.standvirtual} no Standvirtual, cada '
+      'uma com todas as páginas. Os pedidos de cada recolha aparecem em '
+      'Mais › Recolha de dados.';
 }
 
 /// Problems with the "add a model" form, by field; empty when it is fine.

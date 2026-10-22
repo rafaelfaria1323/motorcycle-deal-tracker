@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:collector/collector.dart';
 
 /// Records one scheduled run in `collector_runs` (with its problems, each
-/// site's request budget and pause, and the GitHub run's address), drops
+/// site's requests today and pause, and the GitHub run's address), drops
 /// rows older than
 /// 90 days and tells the admins' devices (Web Push) when the collection
 /// breaks or recovers (a change from the previous run's status only).

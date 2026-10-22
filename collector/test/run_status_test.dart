@@ -6,10 +6,9 @@ void main() {
     expect(runStatus(0, 'Stopped, the site pushed back'), 'ok');
   });
 
-  test('a push-back, a pause or the daily cap is a block', () {
+  test('a push-back or a pause is a block', () {
     expect(runStatus(2, 'Stopped, the site pushed back: HTTP 429'), 'blocked');
     expect(runStatus(2, 'Not fetched: paused until 2026-10-20'), 'blocked');
-    expect(runStatus(2, 'Not fetched: daily limit of 120 requests'), 'blocked');
   });
 
   test('anything else is a failure', () {
@@ -60,8 +59,9 @@ void main() {
 
   test('reads the requests each site used', () {
     const log =
-        'Requests used: standvirtual=15 (limit 20)\n'
+        'Requests used: standvirtual=15\n'
         'Scored 89 listing(s).\n'
+        // Older runs wrote the cap after the count.
         'Requests used: olx=9 (limit 20)\n';
 
     expect(requestsUsed(log), {'standvirtual': 15, 'olx': 9});

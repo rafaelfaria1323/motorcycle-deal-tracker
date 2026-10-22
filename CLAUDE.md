@@ -200,7 +200,7 @@ make sql-lint                  db-test, then plpgsql_check, splinter (supabase/l
 make searches SITE=olx|standvirtual   write the tracked models' searches
 make fetch-dry|fetch SITE=...  download those search pages (polite, capped)
 make collect-dry|collect SOURCE=manual|standvirtual|standvirtual-search|olx-search FILE=... [ARGS=--full]
-make enrich-dry|enrich         read Standvirtual listing pages for details (max 10 per run)
+make enrich-dry|enrich         read Standvirtual listing pages for details (10 by default)
 make refresh ARGS=--full       one process for both sites (bin/refresh.dart): searches -> fetch
                                -> import (with removal) -> enrich, then scores/alerts once
 make refresh-olx|refresh-standvirtual   the same for one site
@@ -407,8 +407,8 @@ invites; written by the collector on each run).
   recolha") when a run's status differs from the previous run's (`run_health.dart`:
   the error lines of each site, or "voltou a funcionar"), never twice for
   the same problem. It also stores `problems` (`runProblems`, runs not
-  ok), `sites` (each fetch state file's `report()`: requests today, daily
-  limit, paused until) and `run_url` (`githubRunUrl`), shown to admins in
+  ok), `sites` (each fetch state file's `report()`: requests today,
+  paused until) and `run_url` (`githubRunUrl`), shown to admins in
   Mais › "Estado da recolha" (`collection_status_page.dart`, route
   `/collection-status`, pushed), with the database's size against the
   free plan's 500 MB and its 5 biggest tables (`database_usage`, admins;
@@ -422,7 +422,9 @@ invites; written by the collector on each run).
   the Vault secret `github_dispatch_token` (fine-grained, this repo only,
   Actions read/write; created by Rafael, see `docs/hosting.md`; admins can
   also start them from the app, `start_workflow`). Change a
-  schedule with a migration calling `cron.schedule` with the same job name.
+  schedule with a migration calling `cron.schedule` with the same job name;
+  the collection's hours: `docs/hosting.md`, "Changing the schedule"
+  (database, app and tests together).
 - GitHub token: pg_cron job `github-token-check` (`7 8 * * *`) runs
   `check_github_token()` (GET collect.yml with the Vault token through
   `http`; state in `github_token_check`, one row, no API access; the
@@ -457,8 +459,8 @@ starts once, the catalog is loaded once). For each site:
 `planSearches` (tracked models) → `fetchSearches` saves the pages plus
 `searches.json` (planned searches, search of each page) → `importBatch`:
 save → markSeen → rematch → applyPriceChanges → setSearchKeys → applyPricesBeforeDrop
-→ applyListingDates → saveSiteModels → (if `--full`) markRemoved; Standvirtual then reads new listings' details
-(`enrichDetails`) with the same fetcher. Then once for all sites
+→ applyListingDates → saveSiteModels → (if `--full`) markRemoved; Standvirtual then reads the details of every
+listing waiting for them (`enrichDetails`) with the same fetcher. Then once for all sites
 (`finishRun`): markDuplicates → recalculateScores → generateAlerts →
 notifications (Web Push). The single-step commands (`fetch.dart`,
 `collector.dart`, `enrich.dart`, `searches.dart`) reuse the same library
@@ -473,8 +475,8 @@ functions for manual work.
   band that holds all its models (`olxEngineBand`, the values of OLX's own
   filter list: up to 50, 51-125, 126-500, 501-1000, over 1000 cc), so other
   models' ads aren't read; word searches ("q-honda-forza-350") too. Every page of a
-  search is read (OLX 40 listings each, Standvirtual 32, `?page=N`). Oldest models first, so when the budget runs
-  out the newest models' searches wait.
+  search is read (OLX 40 listings each, Standvirtual 32, `?page=N`). Oldest models first, so when a site's run time
+  (30 min) runs out the newest models' searches wait.
 - **Removal is per search** (`removalPlan`): each listing stores the search
   that found it (`listings.search_key`); a run removes only listings of the
   searches it read in full. A search with a problem (unreadable page,
@@ -539,19 +541,26 @@ functions for manual work.
   `https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/...`,
   robots.txt read every run.
 - 6-10 s between requests (counted from the end of the previous request,
-  so work done in between counts), max 20 per run and 120 per day **per
-  site** (Standvirtual's searches and listing pages share one fetcher, one
-  robots.txt read and one budget),
-  **never parallel**, no retries; stop on 403/429/503 or a non-normal page,
-  then pause 24 h (state in `collector/.fetch_state.json` and
-  `.fetch_state.olx.json`, cached between Actions runs; written whole
-  through a temporary file; a damaged one spends the day's budget).
-  Reaching the run or daily limit is not a failure: what was saved is
+  so work done in between counts), **never parallel**, no retries; stop on
+  403/429/503 or a non-normal page, then pause 24 h (state in
+  `collector/.fetch_state.json` and `.fetch_state.olx.json`, cached
+  between Actions runs; written whole through a temporary file; a damaged
+  one starts afresh, and a site still refusing pauses again at once).
+- No request caps since 2026-10-22 (Rafael: remove them, show the amounts,
+  adjust later): a run reads every page of the searches and every
+  Standvirtual listing page still waiting, at most 30 minutes per site
+  (`FetchPolicy.maxRunTime`, from robots.txt; Standvirtual's searches and
+  listing pages share one fetcher). `FetchPolicy` still takes
+  `maxRequestsPerRun` / `maxRequestsPerDay` (null = none) to bring caps
+  back. Requests are counted per run (`collector_runs.requests`) and per
+  site and day (the state file's `report()`), and shown in Mais (per run
+  and month) and "Estado da recolha" (per day).
+  Reaching the run time (or a cap) is not a failure: what was saved is
   imported. A request that fails (a timeout), a page our rules refuse or
   a block after some pages were saved also imports them, but the run still
   counts as failed; a search with a page missing is not read in full, so
-  it removes nothing. The single-step commands keep the same caps
-  (`fetch.dart --max` up to 20, `enrich.dart` 10 by default, up to 19).
+  it removes nothing. The single-step commands take an optional cap
+  (`fetch.dart --max`, `enrich.dart --max`, 10 by default).
 - Honest user agent. Saved pages, manifests, generated search lists and
   fetch state are never committed (they contain sellers' contact details).
 - Never store private sellers' names or anyone's phone numbers.

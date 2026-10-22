@@ -15,8 +15,9 @@ class FetchRefused implements Exception {
   String toString() => reason;
 }
 
-/// The run's or the day's request budget is spent. What was fetched so far
-/// is fine to use; the rest waits for a later run.
+/// The run reached a limit it was given (its time, or a request cap asked
+/// for by hand). What was fetched so far is fine to use; the rest waits for
+/// a later run.
 class FetchLimitReached extends FetchRefused {
   const FetchLimitReached(super.reason);
 }
@@ -45,8 +46,9 @@ class FetchPolicy {
   const FetchPolicy({
     this.minDelay = const Duration(seconds: 6),
     this.jitter = const Duration(seconds: 4),
-    this.maxRequestsPerRun = 20,
-    this.maxRequestsPerDay = 120,
+    this.maxRequestsPerRun,
+    this.maxRequestsPerDay,
+    this.maxRunTime = const Duration(minutes: 30),
     this.timeout = const Duration(seconds: 20),
     this.readTimeout = const Duration(seconds: 60),
     this.cooldownAfterBlock = const Duration(hours: 24),
@@ -54,8 +56,17 @@ class FetchPolicy {
 
   final Duration minDelay;
   final Duration jitter;
-  final int maxRequestsPerRun;
-  final int maxRequestsPerDay;
+
+  /// Request caps; none by default (Rafael, 2026-10-22: the counts are
+  /// recorded and shown in the app instead). Set for tests and by hand
+  /// (`fetch.dart --max`).
+  final int? maxRequestsPerRun;
+  final int? maxRequestsPerDay;
+
+  /// How long one run may keep sending requests to the site, from
+  /// [PoliteFetcher.prepare]: keeps a long backlog (e.g. listing pages
+  /// still to read) inside the job's time; the rest waits for the next run.
+  final Duration? maxRunTime;
 
   /// For connecting and the response's headers.
   final Duration timeout;
@@ -93,7 +104,7 @@ class FetchState {
       day == today ? this : FetchState(day: today, blockedAt: blockedAt);
 
   /// What the app shows for the site at [now]: requests used today (UTC)
-  /// out of the daily limit, and until when it is paused after a block.
+  /// and until when it is paused after a block.
   Map<String, Object?> report(FetchPolicy policy, DateTime now) {
     final utc = now.toUtc();
     final until = blockedAt?.add(policy.cooldownAfterBlock);
@@ -101,7 +112,6 @@ class FetchState {
       'requests_today': day == utc.toIso8601String().substring(0, 10)
           ? requests
           : 0,
-      'daily_limit': policy.maxRequestsPerDay,
       'paused_until': until != null && until.isAfter(utc)
           ? until.toUtc().toIso8601String()
           : null,
@@ -110,7 +120,7 @@ class FetchState {
 }
 
 /// The state a site's fetcher saved at [path]; null when there is none or
-/// it is damaged (the fetcher then takes today's budget as spent).
+/// it is damaged (the fetcher then starts a fresh one).
 Future<FetchState?> readFetchState(String path) async {
   final file = File(path);
   try {
@@ -175,7 +185,7 @@ String? urlProblem(Uri url, {required FetchSite site}) {
   return null;
 }
 
-/// A deliberately slow, capped, honest downloader for one website.
+/// A deliberately slow, one-at-a-time, honest downloader for one website.
 class PoliteFetcher {
   PoliteFetcher({
     required this.site,
@@ -195,6 +205,7 @@ class PoliteFetcher {
   late FetchState _state;
   late RobotsRules _robots;
   var _runRequests = 0;
+  DateTime? _startedAt;
 
   /// Requests sent in this run, robots.txt included.
   int get requestsThisRun => _runRequests;
@@ -207,6 +218,7 @@ class PoliteFetcher {
 
   /// Checks the pause after a block, loads robots.txt. Call before [get].
   Future<void> prepare() async {
+    _startedAt = DateTime.now();
     _state = (await _loadState()).rolledTo(_today());
 
     final blocked = _state.blockedAt;
@@ -267,15 +279,20 @@ class PoliteFetcher {
   Future<({int status, String body, String? location})> _request(
     Uri url,
   ) async {
-    if (_runRequests >= policy.maxRequestsPerRun) {
-      throw FetchLimitReached(
-        'run limit of ${policy.maxRequestsPerRun} requests reached',
-      );
+    final perRun = policy.maxRequestsPerRun;
+    if (perRun != null && _runRequests >= perRun) {
+      throw FetchLimitReached('run limit of $perRun requests reached');
     }
-    if (_state.requests >= policy.maxRequestsPerDay) {
-      throw FetchLimitReached(
-        'daily limit of ${policy.maxRequestsPerDay} requests reached',
-      );
+    final perDay = policy.maxRequestsPerDay;
+    if (perDay != null && _state.requests >= perDay) {
+      throw FetchLimitReached('daily limit of $perDay requests reached');
+    }
+    final runTime = policy.maxRunTime;
+    final started = _startedAt;
+    if (runTime != null &&
+        started != null &&
+        DateTime.now().difference(started) >= runTime) {
+      throw FetchLimitReached('run time of ${runTime.inMinutes} min reached');
     }
     // The pause runs from the end of the previous request, so time spent in
     // between (parsing, storing) counts towards it.
@@ -333,12 +350,13 @@ class PoliteFetcher {
   Future<FetchState> _loadState() async {
     final saved = await readFetchState(site.statePath);
     if (saved != null) return saved;
-    if (!await File(site.statePath).exists()) return FetchState(day: _today());
-    // Damaged: today's count is unknown, so today's budget counts as spent
-    // (written back, so tomorrow starts afresh).
-    _state = FetchState(day: _today(), requests: policy.maxRequestsPerDay);
-    await _saveState();
-    return _state;
+    if (await File(site.statePath).exists()) {
+      // Damaged (it is written whole, so this is rare): today's count starts
+      // again. A block it held is not lost for long: a site still pushing
+      // back refuses robots.txt, the first request, and the pause restarts.
+      stderr.writeln('${site.statePath} was damaged; starting a fresh one.');
+    }
+    return FetchState(day: _today());
   }
 
   /// Written to a temporary file and renamed over the old one, so a run
