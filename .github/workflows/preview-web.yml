@@ -61,7 +61,7 @@ jobs:
           flutter build web --release --wasm \
             --dart-define=SUPABASE_URL="$SUPABASE_URL" \
             --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
-          ../tool/web_preconnect.sh build/web/index.html "$SUPABASE_URL"
+          ../tool/web_preconnect.sh build/web/index.html "$SUPABASE_URL" "$SUPABASE_PUBLISHABLE_KEY"
 
       # A branch other than main is a preview: production stays as it is.
       - name: Publish the preview

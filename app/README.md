@@ -113,7 +113,12 @@ fails when the app writes a character the fonts lack.
 The start (`lib/app/startup.dart`) asks for the first listings while it
 signs in, and `web/index.html` opens the connections it needs early
 (Google's CDN for the engine, the photos' CDN, and the database, whose
-address the deploy writes in with `tool/web_preconnect.sh`).
+address the deploy writes in with `tool/web_preconnect.sh`). For a
+visitor without an account's session, `web/index.html` also asks for the
+first page of listings and the model list while the app downloads, and
+starts the first cards' photos; the start takes that answer
+(`core/platform/first_page.dart`) instead of asking again. Its queries
+are the app's own, checked by `test/first_page_test.dart`.
 
 State uses Cubits (flutter_bloc) with Equatable states. Photos use
 `Image.network` with `WebHtmlElementStrategy.prefer`, because the photo

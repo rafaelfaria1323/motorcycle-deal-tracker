@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../domain/entities/first_page.dart';
 import '../../domain/entities/listing_filters.dart';
 import '../../domain/entities/listing_sort.dart';
 import '../../domain/repositories/listings_repository.dart';
@@ -17,19 +18,34 @@ class ListingsCubit extends Cubit<ListingsState> {
   var _generation = 0;
 
   /// Loads the first page (and the model list, the first time or when
-  /// [models]: another account, or its models changed).
-  Future<void> load({bool models = false}) async {
+  /// [models]: another account, or its models changed). [early]: the
+  /// page `index.html` asked for before the app started, used instead of
+  /// asking the database when it came and the filters and order are still
+  /// the defaults it was asked with.
+  Future<void> load({bool models = false, Future<FirstPage?>? early}) async {
     final generation = ++_generation;
     emit(state.copyWith(status: ListingsStatus.loading, loadingMore: false));
     final filters = state.filters;
     final sort = state.sort;
     try {
-      final (motorcycles, listings) = await (
-        models || state.motorcycles.isEmpty
-            ? _repository.getMotorcycleOptions()
-            : Future.value(state.motorcycles),
-        _repository.getListings(filters: filters, sort: sort, limit: pageSize),
-      ).wait;
+      final first =
+          early != null &&
+              filters == ListingFilters.empty &&
+              sort == const ListingsState().sort
+          ? await early
+          : null;
+      final (motorcycles, listings) = first != null
+          ? (first.motorcycles, first.listings)
+          : await (
+              models || state.motorcycles.isEmpty
+                  ? _repository.getMotorcycleOptions()
+                  : Future.value(state.motorcycles),
+              _repository.getListings(
+                filters: filters,
+                sort: sort,
+                limit: pageSize,
+              ),
+            ).wait;
       // Filters changed or a reload started while loading: that newer
       // load wins.
       if (generation != _generation) return;

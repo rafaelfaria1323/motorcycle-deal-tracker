@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/entities/first_page.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_filters.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_sort.dart';
@@ -153,5 +154,53 @@ void main() {
 
     await cubit.load(models: true);
     expect(repository.optionCalls, 2);
+  });
+
+  group('the page index.html asked for early', () {
+    final early = FirstPage(
+      listings: [for (var i = 0; i < ListingsCubit.pageSize; i++) _listing(i)],
+      motorcycles: const [
+        MotorcycleOption(id: 'r7', brand: 'Yamaha', model: 'R7'),
+      ],
+    );
+
+    test('is shown without asking the database', () async {
+      final repository = _PagedListings(200);
+      final cubit = ListingsCubit(repository);
+
+      await cubit.load(early: Future.value(early));
+
+      expect(cubit.state.status, ListingsStatus.success);
+      expect(cubit.state.listings, early.listings);
+      expect(cubit.state.motorcycles, early.motorcycles);
+      expect(cubit.state.hasMore, isTrue);
+      expect(repository.offsets, isEmpty);
+      expect(repository.optionCalls, 0);
+
+      await cubit.loadMore();
+      expect(repository.offsets, [ListingsCubit.pageSize]);
+    });
+
+    test('missing, the app asks itself', () async {
+      final repository = _PagedListings(5);
+      final cubit = ListingsCubit(repository);
+
+      await cubit.load(early: Future.value());
+
+      expect(cubit.state.listings, hasLength(5));
+      expect(repository.offsets, [0]);
+      expect(repository.optionCalls, 1);
+    });
+
+    test('is not used once the filters changed', () async {
+      final repository = _PagedListings(5);
+      final cubit = ListingsCubit(repository);
+      await cubit.applyFilters(const ListingFilters(maxPrice: 7000));
+
+      await cubit.load(early: Future.value(early));
+
+      expect(cubit.state.listings, hasLength(5));
+      expect(repository.offsets, [0, 0]);
+    });
   });
 }

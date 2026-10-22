@@ -144,7 +144,7 @@ jobs:
             --dart-define=SUPABASE_URL="$SUPABASE_URL" \
             --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY" \
             --dart-define=APK_URL="$apk_url"
-          ../tool/web_preconnect.sh build/web/index.html "$SUPABASE_URL"
+          ../tool/web_preconnect.sh build/web/index.html "$SUPABASE_URL" "$SUPABASE_PUBLISHABLE_KEY"
 
       # The first deploy creates the Pages project.
       - name: Deploy to Cloudflare Pages

@@ -179,6 +179,69 @@
     }).observe(theme, { attributes: true, attributeFilter: ['content'] });
   })();
 </script>
+<script>
+  // The first listings and the model list, asked for while the app
+  // downloads instead of after it, and the first cards' photos started:
+  // the largest paint of the page is the first photo. The app takes the
+  // answer once (takeFirstPage, lib/core/platform/first_page_web.dart)
+  // for its first page (ListingsCubit.load). Only without a session or
+  // with an anonymous one, which see every collected model; an account
+  // sees its own models, so its app asks itself. The queries are the
+  // app's own (SupabaseListingsRepository: the default filters, Deal
+  // Score order, 40 a page), checked by test/first_page_test.dart. The
+  // database's address and public key: the build's
+  // <meta name="database"> (tool/web_preconnect.sh); none, nothing asked.
+  (function () {
+    var LISTINGS = 'listings?select=id,source,url,brand,model,motorcycle_id,' +
+      'duplicate_of,year,mileage,price,initial_price,price_before_drop,' +
+      'deal_score,risk_score,seller_type,location,images,status,' +
+      'first_seen_at,last_seen_at,distance_km&in_my_models=eq.true' +
+      '&duplicate_of=is.null&status=in.(%22active%22,%22price_changed%22)' +
+      '&order=deal_score.desc.nullslast,id.desc.nullslast&offset=0&limit=40';
+    var MODELS = 'motorcycles?select=id,brand,model&tracked_by_me=eq.true' +
+      '&order=brand.desc.nullslast,model.desc.nullslast';
+    var PHOTOS = 3;
+
+    var meta = document.querySelector('meta[name="database"]');
+    if (!meta || !window.fetch || !window.Promise) return;
+    var base = meta.getAttribute('content');
+    var key = meta.getAttribute('data-key');
+    try {
+      // Where Supabase keeps the session in the browser.
+      var stored = localStorage.getItem(
+        'sb-' + new URL(base).hostname.split('.')[0] + '-auth-token');
+      if (stored && !JSON.parse(stored).user.is_anonymous) return;
+    } catch (e) {
+      return;
+    }
+    var headers = { apikey: key, Authorization: 'Bearer ' + key };
+    function get(query) {
+      return fetch(base + '/rest/v1/' + query, { headers: headers })
+        .then(function (response) {
+          if (!response.ok) throw new Error('HTTP ' + response.status);
+          return response.text();
+        });
+    }
+    // Kept, so a photo isn't dropped before it arrives.
+    var photos = [];
+    window.dealTrackerFirstPage = Promise.all([get(LISTINGS), get(MODELS)])
+      .then(function (texts) {
+        JSON.parse(texts[0]).slice(0, PHOTOS).forEach(function (listing) {
+          if (!listing.images || !listing.images.length) return;
+          // The same address as the card's <img>, so it comes from the
+          // browser's cache; low priority, the app's files go first.
+          var photo = new Image();
+          photo.fetchPriority = 'low';
+          photo.src = listing.images[0];
+          photos.push(photo);
+        });
+        return '{"listings":' + texts[0] + ',"motorcycles":' + texts[1] + '}';
+      })
+      .catch(function () {
+        return null;
+      });
+  })();
+</script>
 <!-- Notifications on this device (Web Push): see push.js. -->
 <script src="push.js"></script>
 <script src="flutter_bootstrap.js" async></script>
