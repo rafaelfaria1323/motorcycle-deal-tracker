@@ -5,13 +5,15 @@ The app is built and published to Cloudflare Pages by
 `app/` or adds a migration, and from the Actions tab ("Deploy web app" →
 "Run workflow"). Tests must pass before anything is published.
 
-Database migrations are applied by the same workflow, before the app: when
-a merge adds files to `supabase/migrations/`, the `migrate` job tests every
-migration and SQL test again on an empty Postgres, then applies the ones
-Supabase is missing with `tool/apply_migrations.sh` (psql through the
-Session pooler, each migration in one transaction with its record in the
-same history table `supabase db push` uses). A merge without new migrations skips
-it. A failure stops the app deploy (fix it with a new migration; "Run
+Database migrations are applied by the same workflow, before the app: the
+`migrate` job asks Supabase which migrations it is missing; if any, it tests
+every migration and SQL test again on an empty Postgres, then applies them
+with `tool/apply_migrations.sh` (psql through the Session pooler, each
+migration in one transaction with its record in the same history table
+`supabase db push` uses). It asks the database rather than looking at what
+the merge added because a deploy waiting in the queue is replaced by the
+next merge's: the merge that added a migration may never get its own run.
+With nothing missing it skips to the app. A failure stops the app deploy (fix it with a new migration; "Run
 workflow" applies whatever is missing). `make db-push` still works by hand.
 
 Every pull request that changes `app/` also gets a preview

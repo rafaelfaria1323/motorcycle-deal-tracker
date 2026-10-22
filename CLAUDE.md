@@ -57,7 +57,9 @@ has the model), or typed by hand.
 - Flow: push to the `claude/...` branch, open a PR, Rafael merges. Once a PR
   is merged, start the next work from a fresh `origin/main`.
 - **Migrations** are applied on merge: `deploy-web.yml`'s `migrate` job
-  (skipped when the merge adds none) runs `make db-test` again, then
+  asks the database which migrations it is missing (dry run; not the
+  merge's diff: a queued deploy is replaced by the next merge's, so a
+  merge's own run may never happen); if any, it runs `make db-test` again, then
   `tool/apply_migrations.sh` (psql through the Session pooler, each
   migration in one transaction with its row in the CLI's
   `supabase_migrations.schema_migrations`; not `supabase db push`, which
@@ -120,8 +122,9 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
                                   deleted on each push, the preview deleted
                                   when the PR closes
 .github/workflows/deploy-web.yml  On merges touching app/ or adding
-                                  migrations: apply new migrations
-                                  (tested again first; skipped if none),
+                                  migrations: apply the migrations the
+                                  database is missing (tested again
+                                  first; skipped if none),
                                   then test, build and publish the app to
                                   Cloudflare Pages; then the Android APK
                                   (job android, tool/android_build.sh:

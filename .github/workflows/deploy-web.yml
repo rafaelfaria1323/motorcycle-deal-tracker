@@ -1,6 +1,6 @@
 name: Deploy web app
 
-# On a merge to main: first the database (new migrations, if the merge adds
+# On a merge to main: first the database (the migrations it is missing, if
 # any), then the app, so the app never reaches a database without the
 # columns it reads. A failed migration stops the app deploy.
 on:
@@ -49,30 +49,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Which migrations this merge adds; none: every step below is skipped
-      # (the job still succeeds, so the app deploys). Also refuses a change
-      # to a migration already on main. The manual "Run workflow" button
-      # always checks and applies whatever the database is missing.
-      - name: Find new migrations
-        id: new
+      # On a merge: refuses a change to a migration already on main, and
+      # lists the ones the merge adds (only a guard: what gets applied is
+      # decided below, by the database).
+      - name: Check migration names
+        if: github.event_name == 'push'
         env:
           BEFORE: ${{ github.event.before }}
-        run: |
-          if [ "${{ github.event_name }}" = push ]; then
-            tool/check_migrations.sh "$BEFORE" "$GITHUB_SHA"
-          else
-            echo "count=manual" >> "$GITHUB_OUTPUT"
-          fi
-
-      # Every migration on an empty database, then every SQL test: the same
-      # as the pull request's check, again on the merged code.
-      - name: Test migrations (make db-test)
-        if: steps.new.outputs.count != '0'
-        env:
-          PGHOST: localhost
-          PGUSER: postgres
-          PGPASSWORD: postgres
-        run: make db-test
+        run: tool/check_migrations.sh "$BEFORE" "$GITHUB_SHA"
 
       # SUPABASE_DB_URL: Supabase > Connect > Session pooler connection
       # string exactly as shown, "[YOUR-PASSWORD]" included (GitHub's
@@ -80,12 +64,13 @@ jobs:
       # the database password as typed. The password is URL-encoded here,
       # so any character works. (A URL with the password already in it and
       # no SUPABASE_DB_PASSWORD also works.)
-      # Applied with psql, not `supabase db push`: the CLI rewrites a pooler
-      # URL to the direct IPv6-only host. Same history table as the CLI;
-      # each migration in one transaction with its record. The dry run
-      # lists what will run.
-      - name: Apply migrations to Supabase
-        if: steps.new.outputs.count != '0'
+      # Asks the database which migrations it is missing (dry run), not
+      # which ones this merge adds: a queued deploy is replaced by a newer
+      # merge's, so a merge's own run may never happen, and the next run
+      # must still apply its migrations. None missing: the steps below are
+      # skipped (the job still succeeds, so the app deploys).
+      - name: Find missing migrations
+        id: db
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
@@ -93,6 +78,28 @@ jobs:
           db_url=$(python3 tool/db_url.py) || exit 1
           echo "::add-mask::$db_url"
           tool/apply_migrations.sh "$db_url" --dry-run
+
+      # Every migration on an empty database, then every SQL test: the same
+      # as the pull request's check, again on the merged code.
+      - name: Test migrations (make db-test)
+        if: steps.db.outputs.pending != '0'
+        env:
+          PGHOST: localhost
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: make db-test
+
+      # Applied with psql, not `supabase db push`: the CLI rewrites a pooler
+      # URL to the direct IPv6-only host. Same history table as the CLI;
+      # each migration in one transaction with its record.
+      - name: Apply migrations to Supabase
+        if: steps.db.outputs.pending != '0'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          db_url=$(python3 tool/db_url.py) || exit 1
+          echo "::add-mask::$db_url"
           tool/apply_migrations.sh "$db_url"
 
   deploy:
