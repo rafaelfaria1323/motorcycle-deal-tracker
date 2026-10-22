@@ -485,9 +485,11 @@ functions for manual work.
 - **Standvirtual** search pages hold everything except the description
   (including `createdAt` -> `published_at` and the bump date ->
   `site_refreshed_at`; `apply_listing_dates` keeps the earliest publication
-  and latest renewal). Listing pages are read only for matched, non-duplicate
-  listings without details (`details_checked_at is null`), newest first;
-  a page that failed (gone, unreadable, refused, another ad) is marked
+  and latest renewal) and only one thumbnail. Listing pages are read only
+  for matched, non-duplicate listings without details (`details_checked_at
+  is null`), newest first, for the details and every photo (up to 30,
+  `maxImages`); then for listings read before the photos were kept
+  (`photos_read_at is null`); a page that failed (gone, unreadable, refused, another ad) is marked
   `details_failed_at` (`mark_details_failed`) and waits behind the
   listings never tried. A search counts as read in full when every page
   it spans was saved, or its pages hold the site's count (promoted ads

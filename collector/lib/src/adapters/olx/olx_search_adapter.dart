@@ -219,7 +219,7 @@ OlxRawListing _fromAd(Map<String, dynamic> ad, String? brand) {
     externalUrl: external is String && external.isNotEmpty ? external : null,
     images: [
       if (photos is List)
-        for (final p in photos.take(10))
+        for (final p in photos.take(maxImages))
           if (p is String) p,
     ],
     createdAt: asTime(ad['createdTime']),

@@ -47,6 +47,10 @@ SellerType? parseSellerType(String value) {
   return null;
 }
 
+/// The most photos kept per listing (ads rarely have more; the list is
+/// stored with every listing).
+const maxImages = 30;
+
 /// Keeps valid http(s) image links, without duplicates, in their original order.
 List<String> cleanImages(List<String> images) {
   final seen = <String>{};
