@@ -416,6 +416,11 @@ invites; written by the collector on each run).
   favourite, alerted, or the earlier ad of a relist or duplicate; a
   deletion is told on Telegram. The file doesn't shrink (the space is
   reused), so it keeps pruning daily while above.
+- Anonymous users: pg_cron job `prune-anonymous-users` (`43 3 * * *`)
+  runs `prune_anonymous_users()`: deletes anonymous users made 30+ days
+  ago with no session used in 30 days (`auth.sessions`; they own nothing,
+  foreign keys cascade). Accounts are never touched; a pruned visitor
+  just signs in anonymously again.
 - The app's next-run time (`collection_text.dart`) mirrors the
   `collect-listings` job: change both together.
 - Watch out: `greatest`/`least` ignore nulls.
