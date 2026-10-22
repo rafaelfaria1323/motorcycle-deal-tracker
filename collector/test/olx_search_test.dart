@@ -311,6 +311,8 @@ void main() {
     for (final title in [
       'Yamaha YZF-R7 [2024] [3500]km',
       'Moto Yamaha YZF R7 2024',
+      'Vendo mota Yamaha YZF R7 de 2023',
+      'Vende-se moto Yamaha R7 com 8.000 km',
       'YZF-R7 impecável',
     ]) {
       final raw = one(ad(title: title, model: 'YZF'));

@@ -458,7 +458,7 @@ functions for manual work.
   from the catalog: model name and `aliases` spelled within the first three
   words (also without closing letters: "CBR 650" = CBR650R), Honda code
   suffixes (A, AC), per-model `excluded_words` ("tracer" for the MT-07,
-  "650f", "125f"), `engine_cc_min/max` as tiebreaker and guard (a model
+  "650f", "125f"), on OLX the title read after the brand (also after sale words: "Vendo mota Honda ..."), `engine_cc_min/max` as tiebreaker and guard (a model
   without limits is never picked by engine size alone; "350cc" reads as
   "350"). Ambiguous stays unmatched. Every import re-checks the model of
   the ads it read (`rematch_listings`), so a better rule also fixes
