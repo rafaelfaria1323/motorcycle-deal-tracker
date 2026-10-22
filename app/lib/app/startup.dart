@@ -5,9 +5,11 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/auth/session_bootstrap.dart';
+import '../core/platform/first_page.dart';
 import '../core/platform/push.dart';
 import '../core/platform/session_storage.dart';
 import '../core/widgets/state_message.dart';
+import '../features/listings/data/models/first_page_model.dart';
 import '../features/listings/presentation/cubit/listings_cubit.dart';
 import '../features/listings/presentation/cubit/listings_state.dart';
 import 'app.dart';
@@ -58,10 +60,11 @@ class _StartupState extends State<Startup> {
     // The first listings while the session starts, not after it: without
     // a session the database answers as for an anonymous one (every
     // collected model), so a first visit doesn't wait for its sign-in;
-    // a stored session goes with the request as usual.
+    // a stored session goes with the request as usual. In the browser
+    // index.html may already have asked (while the app downloaded).
     final listings = getIt<ListingsCubit>();
     if (listings.state.status == ListingsStatus.initial) {
-      unawaited(listings.load());
+      unawaited(listings.load(early: takeFirstPage().then(firstPageFromJson)));
     }
     await initializeDateFormatting('pt_PT');
     // Browsing works without a session, so a slow sign-in doesn't hold

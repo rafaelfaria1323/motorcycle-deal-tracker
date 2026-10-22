@@ -8,6 +8,7 @@ import '../../domain/entities/listing_sort.dart';
 import '../../domain/entities/motorcycle_option.dart';
 import '../../domain/entities/price_point.dart';
 import '../../domain/repositories/listings_repository.dart';
+import '../models/first_page_model.dart';
 import '../models/listing_model.dart';
 
 class SupabaseListingsRepository implements ListingsRepository {
@@ -24,6 +25,9 @@ class SupabaseListingsRepository implements ListingsRepository {
   }) async {
     // Only listings of the account's own models, from its own years
     // (in_my_models; anonymous sessions: every collected model).
+    // web/index.html asks for the first page with the default filters
+    // and order before the app starts: keep it in step
+    // (test/first_page_test.dart).
     var query = _client
         .from('listings')
         .select(ListingModel.summaryColumns)
@@ -114,6 +118,7 @@ class SupabaseListingsRepository implements ListingsRepository {
 
   @override
   Future<List<MotorcycleOption>> getMotorcycleOptions() async {
+    // Also asked by web/index.html (test/first_page_test.dart).
     final rows = await _client
         .from('motorcycles')
         .select('id, brand, model')
@@ -121,15 +126,7 @@ class SupabaseListingsRepository implements ListingsRepository {
         .order('brand')
         .order('model');
 
-    return rows
-        .map(
-          (row) => MotorcycleOption(
-            id: row['id'] as String,
-            brand: row['brand'] as String,
-            model: row['model'] as String,
-          ),
-        )
-        .toList();
+    return rows.map(motorcycleOptionFromJson).toList();
   }
 
   @override

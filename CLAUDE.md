@@ -362,7 +362,13 @@ invites; written by the collector on each run).
   preconnects to Google's CDN, the database (`tool/web_preconnect.sh`
   writes its address into the build) and the photos' CDN, and draws a
   spinner (`#splash`, the theme's primary, as `Startup`'s) until Flutter's
-  first frame), installed on the iPhone from Safari ("Adicionar
+  first frame; without an account's session it also asks for the first
+  page of listings and the model list and starts the first photos while
+  the app downloads (`window.dealTrackerFirstPage`, taken by `Startup`
+  through `core/platform/first_page.dart`; the script's queries must stay
+  the repository's own, `test/first_page_test.dart`; the address and
+  publishable key come from `<meta name="database">`, written by the same
+  script), installed on the iPhone from Safari ("Adicionar
   ao ecrã principal"). Status bar: Safari 26+ ignores `theme-color` and tints
   its bars from a solid `position: fixed` element at the top/bottom edge, so
   `web/index.html` has two 12px iOS-only strips (`.edge-tint`, taps pass
