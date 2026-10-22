@@ -18,7 +18,10 @@ For each site (Standvirtual, OLX):
    filters are stored too (`site_models`, for the app's model picker; no
    extra requests). The log says, per search, how many of the ads it read
    are a followed model ("Search yield"), so a search that spends requests
-   on other bikes shows up.
+   on other bikes shows up; an ad no followed model matched is logged with
+   the site's brand and model ("unmatched \"Honda NSS 350 Forza\""; on OLX
+   the model is the title, long digit runs masked), so a missed rule can
+   be spotted.
 4. **Details** (Standvirtual only): read the listing page of new listings.
 
 Then, once for both sites: find duplicates, recalculate the scores,
