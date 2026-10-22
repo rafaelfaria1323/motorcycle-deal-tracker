@@ -209,6 +209,16 @@ abstract final class ScoreExplainer {
       ExplanationTone.negative,
       'Posta à venda várias vezes ou há mais de 90 dias sem ser vendida',
     ),
+    'a2_limited': (
+      ExplanationTone.negative,
+      'Versão A2 (35 kW): para ter a potência toda é preciso tirar a '
+          'limitação e atualizar os documentos',
+    ),
+    'a2_unlocked': (
+      ExplanationTone.negative,
+      'Versão A2 deslimitada: confirme que os documentos já indicam a '
+          'potência toda',
+    ),
     'first_owner': (ExplanationTone.positive, 'Primeiro dono'),
     'service_book': (ExplanationTone.positive, 'Livro de revisões completo'),
     'under_warranty': (

@@ -636,7 +636,9 @@ functions for manual work.
   earlier ads), the text contradicting the ad's fields
   (`text_contradictions`: year 2+ apart (not a year still to come or after
   "até"), more km, imported, no service
-  book; 10 each); reassuring: first owner,
+  book; 10 each), an A2 (35 kW) version (`power_version` on variant and
+  description: `a2_limited` 15, still held back; `a2_unlocked` 10; "pode
+  ser limitada", "kit A2 incluído" count nothing); reassuring: first owner,
   service book, factory warranty (negative points, floor 0).
 - Market behaviour per model (`model_market_behaviour`): time until leaving
   the market, share and size of price drops (measured from the higher of the

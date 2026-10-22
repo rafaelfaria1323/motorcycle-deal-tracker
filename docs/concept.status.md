@@ -110,6 +110,7 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 - 🟡 Duplicate listing. *Detected (across sources too) and excluded from scoring, not a risk signal.*
 - ✅ Suspicious seller behaviour. *Relisted ads are detected (the same bike taken down and listed again), shown with the first date on sale and the earlier price, and count as risk (15.5): 5 points, 10 when relisted twice or on sale for over 90 days counting the earlier ads. Each dealer's figures (relisted, sharp price changes, missing mileage, repeated ads, price drops) are shown on its listings (15.7) and score the Deal Score's seller slice.*
 - ✅ Unclear ownership/history. *3+ owners, no service book, imported.*
+- ➕ ✅ A2 version (15.22). *An A2 (35 kW) bike still held back (15 points: the full power needs the kit off and the papers changed) or unlocked (10: check the papers show the full power); read from the variant and description, ads that only say it can be held back count nothing. Also an argument in "Quanto oferecer".*
 - ⬜ Excessively edited or reused images.
 
 ➕ Reassuring facts lower risk: first owner, service book, factory warranty.

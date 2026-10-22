@@ -206,6 +206,15 @@ const _riskArguments = [
   ('many_owners', 'Já teve 3 ou mais donos.'),
   ('imported', 'É importada: vale menos quando a vender.'),
   (
+    'a2_limited',
+    'É a versão A2 (35 kW): tirar a limitação e atualizar os documentos fica '
+        'por sua conta.',
+  ),
+  (
+    'a2_unlocked',
+    'Foi uma versão A2 deslimitada, não tem a potência toda de fábrica.',
+  ),
+  (
     'text_mileage_mismatch',
     'A descrição fala em mais quilómetros do que o anúncio indica.',
   ),

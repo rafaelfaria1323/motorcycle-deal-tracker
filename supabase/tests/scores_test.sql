@@ -147,3 +147,16 @@ begin
     format('only the quickshifter is valued: %s', b -> 'valued_extras');
   assert (b ->> 'equipment_bonus')::int = 1, format('one point: %s', b ->> 'equipment_bonus');
 end $$;
+
+-- An A2 version, read from the ad's variant, is a risk reason (Rafael,
+-- 2026-10-22: full power from the factory beats an A2 bike).
+update public.listings set variant = '35kW' where source_listing_id = 's4';
+
+do $$
+declare
+  b jsonb;
+begin
+  perform public.recalculate_deal_scores();
+  select score_breakdown into b from public.listings where source_listing_id = 's4';
+  assert b -> 'risk_reasons' ? 'a2_limited', format('held back: %s', b -> 'risk_reasons');
+end $$;

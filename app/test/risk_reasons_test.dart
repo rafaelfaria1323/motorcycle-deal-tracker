@@ -84,6 +84,16 @@ void main() {
     }
   });
 
+  test('an A2 version reads as a negative', () {
+    for (final code in ['a2_limited', 'a2_unlocked']) {
+      final lines = ScoreExplainer.explain(listingWith([code]))!.lines;
+
+      expect(lines, hasLength(1), reason: code);
+      expect(lines.single.tone, ExplanationTone.negative);
+      expect(lines.single.text, startsWith('Versão A2'));
+    }
+  });
+
   test('unknown reason codes are ignored', () {
     final lines = ScoreExplainer.explain(listingWith(['something_new']))!.lines;
 

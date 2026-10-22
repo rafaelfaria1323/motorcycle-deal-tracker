@@ -242,4 +242,40 @@ begin
   assert r.risk_score = 20
          and r.reasons = array['text_mileage_mismatch', 'text_year_mismatch'],
     format('each contradiction is 10 points, got %s %s', r.risk_score, r.reasons);
+
+  -- power_version: A2 (35 kW) versions, still held back or unlocked.
+  for i in 1..7 loop
+    assert public.power_version(null, (array[
+      'Versão A2, limitada a 35 kW.', 'MT-07 35kW, ideal para carta A2.',
+      'Mota limitada para A2.', 'Tem o kit A2 montado.',
+      'Vendo CB650R limitada, documentos em ordem.',
+      'Versão 35 kw, pode ser deslimitada.', 'A2 limitada, com 9000 km.'])[i])
+      = 'a2_limited', format('case %s is held back', i);
+  end loop;
+  for i in 1..6 loop
+    assert public.power_version(null, (array[
+      'Deslimitada, documentos já atualizados.', 'Foi desbloqueada na marca.',
+      'Estava limitada a 35 kW, já não está.', 'Kit A2 removido em 2023.',
+      'Limitação retirada no concessionário.', 'Esteve limitada, agora com potência total.'])[i])
+      = 'a2_unlocked', format('case %s was unlocked', i);
+  end loop;
+  for i in 1..8 loop
+    assert public.power_version(null, (array[
+      'Versão full, pode ser limitada a 35 kW.', 'Possibilidade de limitar para A2.',
+      'Kit A2 incluído.', 'Fácil de limitar para carta A2.', 'Limitável a 35kW.',
+      'Não está limitada, potência total.', 'Mota impecável, sempre na garagem.',
+      'Ideal para limitar a 35 kw.'])[i])
+      is null, format('case %s is a full-power bike', i);
+  end loop;
+  assert public.power_version('35kW', 'Mota impecável.') = 'a2_limited', 'read from the variant';
+  assert public.power_version(null, null) is null, 'nothing to read';
+
+  select * into r from public.risk_assessment(null, null, 2021, 12000,
+    'Versão A2, limitada a 35 kW.', 'Porto');
+  assert r.risk_score = 15 and r.reasons = array['a2_limited'],
+    format('held back, got %s %s', r.risk_score, r.reasons);
+  select * into r from public.risk_assessment(null, null, 2021, 12000,
+    'Mota impecável.', 'Porto', p_variant => 'A2 deslimitada');
+  assert r.risk_score = 10 and r.reasons = array['a2_unlocked'],
+    format('unlocked, got %s %s', r.risk_score, r.reasons);
 end $$;
