@@ -171,8 +171,9 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   Makefile; variable AUTO_MERGE_BACKLOG=false
                                   turns it off) and starts the app deploy
 .github/dependabot.yml            Weekly dependency PRs (app, collector, Actions)
-                                  (not shared_preferences_android: held at
-                                  2.4.28, 2.5.x fails in the release APK)
+                                  (not shared_preferences_android 2.4.28 or
+                                  path_provider_android 2.2.23: their JNI
+                                  releases fail in the release APK)
 .claude/hooks/session-start.sh  Cloud sessions only: Dart SDK on PATH, collector
                                   dependencies, local Postgres (PGHOST set), so
                                   make collector-check / tool-check / db-test run
@@ -325,7 +326,11 @@ invites; written by the collector on each run).
   or an ad's address outside the app). Firebase starts from resource
   strings `tool/firebase_values.py` writes at build time (secret
   `FIREBASE_ANDROID_CONFIG`; without it `PushState.nativeApp`, no
-  notifications).
+  notifications). The session is kept encrypted (`flutter_secure_storage`,
+  Keystore key; `core/platform/session_storage.dart`, Supabase's
+  `localStorage`; an earlier build's SharedPreferences copy is moved over
+  once, `session_store.dart`), and the manifest says
+  `android:allowBackup="false"` (`tool/android_manifest.py`).
 - Photos: `Image.network` with `WebHtmlElementStrategy.prefer` (the photo
   CDNs don't send CORS headers, so an `<img>` element is the only way).
 - Lists load `ListingModel.summaryColumns`, never `*` (descriptions are big);

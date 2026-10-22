@@ -22,6 +22,7 @@ class FitManifestTest(unittest.TestCase):
         self.assertIn('<uses-permission android:name="android.permission.INTERNET"/>', xml)
         self.assertLess(xml.index("INTERNET"), xml.index("<application"))
         self.assertIn('android:label="Deal Tracker"', xml)
+        self.assertEqual(xml.count('android:allowBackup="false"'), 1)
         self.assertNotIn("motorcycle_deal_tracker", xml)
         self.assertIn('android:icon="@mipmap/ic_launcher"', xml)
 
@@ -29,6 +30,12 @@ class FitManifestTest(unittest.TestCase):
         once = fit_manifest(TEMPLATE)
         self.assertEqual(fit_manifest(once), once)
         self.assertEqual(once.count("INTERNET"), 1)
+
+    def test_a_template_that_allows_backups_no_longer_does(self):
+        xml = fit_manifest(TEMPLATE.replace(
+            "<application", '<application android:allowBackup="true"'))
+        self.assertNotIn('allowBackup="true"', xml)
+        self.assertEqual(xml.count('android:allowBackup="false"'), 1)
 
     def test_a_changed_template_fails_loudly(self):
         with self.assertRaises(ManifestError):
