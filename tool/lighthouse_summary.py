@@ -1,7 +1,8 @@
 """A Lighthouse JSON report (mobile, the default) as a few Markdown lines:
 the category scores, the load metrics and the size of the download, the
 page's largest element, the biggest downloads (and whether each came
-compressed), then the accessibility and best-practice checks that failed.
+compressed), then the accessibility and best-practice checks that failed,
+with the console errors and deprecated calls themselves.
 
     python3 -I tool/lighthouse_summary.py report.json
 
@@ -28,6 +29,8 @@ METRICS = [
 ]
 MAX_FAILED = 5
 MAX_DOWNLOADS = 6
+MAX_MESSAGES = 3
+MAX_MESSAGE_LENGTH = 160
 # A file that arrives at least this share of its own size wasn't compressed
 # (small files aren't worth flagging; photos and WOFF2 come compressed).
 UNCOMPRESSED_SHARE = 0.95
@@ -77,7 +80,34 @@ def summarize(report):
             shown = "; ".join(failed[:MAX_FAILED])
             more = f" (+{len(failed) - MAX_FAILED})" if len(failed) > MAX_FAILED else ""
             lines.append(f"{label} to fix: {shown}{more}")
+    for key, label, field in (
+        ("errors-in-console", "Console errors", "description"),
+        ("deprecations", "Deprecated", "value"),
+    ):
+        messages = _messages(audits.get(key, {}), field)
+        if messages:
+            lines.append(f"{label}: " + " · ".join(messages))
     return lines
+
+
+def _messages(audit, field):
+    """The first distinct messages an audit lists, short and with no
+    backticks, each in code style."""
+    shown = []
+    for item in audit.get("details", {}).get("items", []):
+        text = item.get(field)
+        if isinstance(text, dict):
+            text = text.get("value")
+        if not isinstance(text, str):
+            continue
+        text = " ".join(text.split()).replace("`", "'")
+        if len(text) > MAX_MESSAGE_LENGTH:
+            text = text[:MAX_MESSAGE_LENGTH - 1] + "…"
+        if f"`{text}`" not in shown:
+            shown.append(f"`{text}`")
+    if len(shown) > MAX_MESSAGES:
+        return shown[:MAX_MESSAGES] + [f"+{len(shown) - MAX_MESSAGES}"]
+    return shown
 
 
 def _failed(category, audits):

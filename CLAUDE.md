@@ -343,9 +343,14 @@ invites; written by the collector on each run).
   tints) and `app_colors.dart` (`AppColors.of(context)`: positive/negative
   and Deal Score band colours, light and dark). Never hard-code colours in
   widgets. `theme_contrast_test.dart` checks the WCAG contrast of the
-  colours (text 4.5:1, score badges 3:1): keep it green when changing them. Fonts are bundled (`assets/fonts`, Latin subset): Barlow for
-  text, Barlow Semi Condensed (`AppTheme.displayFont`) for titles, prices
-  and scores; prices use tabular figures.
+  colours (text 4.5:1, score badges 3:1): keep it green when changing them. Fonts are bundled (`assets/fonts`, Latin subset plus arrows,
+  `tool/font_arrows.py`): Barlow for text, Barlow Semi Condensed
+  (`AppTheme.displayFont`) for titles, prices and scores; prices use
+  tabular figures. Barlow Regular is also the family "Roboto" (the web
+  engine's default, else downloaded from Google). A character the fonts
+  lack makes the web engine download a Google font: `make tool-check`
+  (`tool/font_coverage.py`) fails on one; draw it in or reword. The web
+  builds serve the engine themselves (`--no-web-resources-cdn`).
 - Hosting: Cloudflare Pages (security headers in `web/_headers`: HSTS,
   nosniff, no framing, referrer and permissions policies), installed on the iPhone from Safari ("Adicionar
   ao ecrã principal"). Status bar: Safari 26+ ignores `theme-color` and tints

@@ -91,8 +91,10 @@ flutter:
   uses-material-design: true
 
   # Barlow (SIL Open Font License, assets/fonts/OFL.txt), cut down to the
-  # Latin characters the app uses. Barlow for text, Barlow Semi Condensed for
-  # titles, prices and scores.
+  # Latin characters the app uses, plus arrows drawn by tool/font_arrows.py
+  # (tool/font_coverage.py checks that nothing the app writes is missing,
+  # which on the web would download a Google font). Barlow for text, Barlow
+  # Semi Condensed for titles, prices and scores.
   fonts:
     - family: Barlow
       fonts:
@@ -109,3 +111,9 @@ flutter:
           weight: 600
         - asset: assets/fonts/BarlowSemiCondensed-Bold.ttf
           weight: 700
+    # The web engine's default font is "Roboto": without a family of that
+    # name it downloads Roboto from Google on every first load (69 KB), for
+    # text no style here asks for. Barlow stands in for it.
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Barlow-Regular.ttf

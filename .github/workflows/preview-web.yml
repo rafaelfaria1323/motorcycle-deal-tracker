@@ -58,7 +58,9 @@ jobs:
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
         run: |
           cd app && flutter pub get
-          flutter build web --release --wasm \
+          # The engine (skwasm, CanvasKit) from this site, not Google's CDN:
+          # one connection less on the first load, and no request to Google.
+          flutter build web --release --wasm --no-web-resources-cdn \
             --dart-define=SUPABASE_URL="$SUPABASE_URL" \
             --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
 
