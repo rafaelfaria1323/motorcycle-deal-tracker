@@ -140,6 +140,7 @@ class StandvirtualPageAdapter implements SourceAdapter<StandvirtualRawListing> {
         _value(params, 'vendors_warranty_valid_until_date') ?? '',
       ),
       publishedAt: published is String ? published : null,
+      images: _images(advert['images']),
     );
   }
 }
@@ -172,8 +173,8 @@ String? _location(Map<String, dynamic>? seller) {
 List<String> _images(Object? images) {
   final photos = asMap(images)?['photos'];
   if (photos is! List) return const [];
-  return [
+  return cleanImages([
     for (final p in photos)
       if (asMap(p)?['url'] is String) asMap(p)!['url'] as String,
-  ].take(10).toList();
+  ]).take(maxImages).toList();
 }

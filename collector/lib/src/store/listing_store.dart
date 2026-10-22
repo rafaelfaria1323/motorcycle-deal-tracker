@@ -84,8 +84,9 @@ class ListingStore {
   final SupabaseClient _client;
 
   /// Live listings of [source] whose listing page has not been read yet,
-  /// newest first. Only catalog models that are not duplicates: details
-  /// feed the scores, and other listings are never scored.
+  /// newest first, then those read before the page's photos were kept
+  /// (`photos_read_at`). Only catalog models that are not duplicates:
+  /// details feed the scores, and other listings are never scored.
   Future<List<({String sourceListingId, String url})>> listingsMissingDetails(
     String source,
     int limit,
@@ -94,12 +95,14 @@ class ListingStore {
         .from('listings')
         .select('source_listing_id, url')
         .eq('source', source)
-        .isFilter('details_checked_at', null)
+        .isFilter('photos_read_at', null)
         .not('motorcycle_id', 'is', null)
         .isFilter('duplicate_of', null)
         .inFilter('status', ['active', 'price_changed'])
         // Pages that failed before wait behind the ones never tried.
         .order('details_failed_at', ascending: true, nullsFirst: true)
+        // Listings without details before those missing only photos.
+        .order('details_checked_at', ascending: true, nullsFirst: true)
         .order('first_seen_at', ascending: false)
         .limit(limit);
     return [

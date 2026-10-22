@@ -45,6 +45,13 @@
 
     <link rel="manifest" href="manifest.json">
 
+    <!-- Connections the start needs, opened while the app downloads:
+         Flutter's engine (Google's CDN), the database (the build puts its
+         address in: tool/web_preconnect.sh) and the listing photos. -->
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <!-- database-preconnect -->
+    <link rel="preconnect" href="https://ireland.apollo.olxcdn.com">
+
     <!-- Same background before the app has loaded, so nothing flashes. -->
     <style>
       html, body { background-color: #F4F5F7; }

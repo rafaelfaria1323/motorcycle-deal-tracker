@@ -250,6 +250,25 @@ void main() {
     expect(details.warrantyUntil, '2028-02-24');
     expect(details.dealerWarrantyMonths, 24);
     expect(details.publishedAt, '2026-10-08T18:30:13Z');
+    expect(details.images, ['https://img.example.com/1.jpg']);
+  });
+
+  test('a listing page keeps every photo, up to maxImages', () {
+    final ad = advert()
+      ..['images'] = {
+        'photos': [
+          for (var i = 0; i < maxImages + 5; i++)
+            {'url': 'https://img.example.com/$i.jpg'},
+          {'url': 'https://img.example.com/0.jpg'},
+          {'url': 'not a link'},
+        ],
+      };
+
+    final details = adapter.parseDetails(page(ad));
+
+    expect(details.images, hasLength(maxImages));
+    expect(details.images.first, 'https://img.example.com/0.jpg');
+    expect(details.toJson()['images'], details.images);
   });
 
   test('missing facts stay unknown, not false', () {

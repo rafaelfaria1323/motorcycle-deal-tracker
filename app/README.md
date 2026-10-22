@@ -110,6 +110,11 @@ registered as "Roboto", the web engine's default font, which it would
 otherwise download from Google. `tool/font_coverage.py` (`make tool-check`)
 fails when the app writes a character the fonts lack.
 
+The start (`lib/app/startup.dart`) asks for the first listings while it
+signs in, and `web/index.html` opens the connections it needs early
+(Google's CDN for the engine, the photos' CDN, and the database, whose
+address the deploy writes in with `tool/web_preconnect.sh`).
+
 State uses Cubits (flutter_bloc) with Equatable states. Photos use
 `Image.network` with `WebHtmlElementStrategy.prefer`, because the photo
 sites send no CORS headers.

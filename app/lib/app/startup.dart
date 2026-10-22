@@ -8,6 +8,8 @@ import '../core/auth/session_bootstrap.dart';
 import '../core/platform/push.dart';
 import '../core/platform/session_storage.dart';
 import '../core/widgets/state_message.dart';
+import '../features/listings/presentation/cubit/listings_cubit.dart';
+import '../features/listings/presentation/cubit/listings_state.dart';
 import 'app.dart';
 import 'di/injection.dart';
 import 'router/notification_taps.dart';
@@ -52,6 +54,14 @@ class _StartupState extends State<Startup> {
     if (!_dependenciesReady) {
       configureDependencies();
       _dependenciesReady = true;
+    }
+    // The first listings while the session starts, not after it: without
+    // a session the database answers as for an anonymous one (every
+    // collected model), so a first visit doesn't wait for its sign-in;
+    // a stored session goes with the request as usual.
+    final listings = getIt<ListingsCubit>();
+    if (listings.state.status == ListingsStatus.initial) {
+      unawaited(listings.load());
     }
     await initializeDateFormatting('pt_PT');
     // Browsing works without a session, so a slow sign-in doesn't hold

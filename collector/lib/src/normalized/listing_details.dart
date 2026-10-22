@@ -9,6 +9,7 @@ class ListingDetails {
     this.warrantyUntil,
     this.dealerWarrantyMonths,
     this.publishedAt,
+    this.images = const [],
   });
 
   final String sourceListingId;
@@ -28,6 +29,10 @@ class ListingDetails {
   /// First publication (not the date of the last paid "bump").
   final String? publishedAt;
 
+  /// Every photo on the page (search results carry only one); empty keeps
+  /// what is stored.
+  final List<String> images;
+
   Map<String, dynamic> toJson() => {
     'source_listing_id': sourceListingId,
     'description': description,
@@ -37,5 +42,6 @@ class ListingDetails {
     'warranty_until': warrantyUntil,
     'dealer_warranty_months': dealerWarrantyMonths,
     'published_at': publishedAt,
+    'images': images,
   };
 }

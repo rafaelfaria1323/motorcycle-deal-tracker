@@ -86,6 +86,22 @@ begin
          = array['cbr-2025', 'mt07-2021', 'mt07-2026'], 'anonymous: every collected model';
 end $$;
 
+-- No session yet (the app's first visit asks for the first listings while
+-- it signs in): the same as an anonymous session.
+set local role anon;
+set local test.uid = '';
+set local test.jwt = '';
+do $$
+begin
+  assert (select array_agg(source_listing_id order by source_listing_id)
+          from public.listings l where public.in_my_models(l))
+         = array['cbr-2025', 'mt07-2021', 'mt07-2026'], 'no session: every collected model';
+  assert (select array_agg(m.slug order by m.slug) from public.motorcycles m
+          where public.tracked_by_me(m))
+         = array['honda-cbr650r', 'yamaha-mt-07'], 'no session: the collected models';
+end $$;
+set local role authenticated;
+
 -- A stops following the CBR650R: nobody does, so it is no longer collected
 -- and its listings lose the model. B stopping the MT-07 leaves it to A.
 set local test.jwt = '{"is_anonymous": false}';

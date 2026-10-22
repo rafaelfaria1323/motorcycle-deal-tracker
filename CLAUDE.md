@@ -232,7 +232,9 @@ invites; written by the collector on each run).
 - Start: `main.dart` runs `Startup` (`app/startup.dart`), which draws at
   once (Android keeps its splash until the first frame): a spinner while
   Supabase (20 s at most) and the session start, then the app, or the
-  reason it failed with "Tentar novamente". That screen is a bare
+  reason it failed with "Tentar novamente". The first listings are asked
+  for during the sign-in, not after it (no session reads as an anonymous
+  one). That screen is a bare
   `Theme` + `Material`, never a `MaterialApp` (on the web its navigator
   would overwrite a notification's `/#/deals/<id>` and its `Title` the
   `theme-color`).
@@ -353,7 +355,9 @@ invites; written by the collector on each run).
   engine stays on Google's CDN: served from Pages, `skwasm.wasm` came
   1.5 MB instead of 1.2 MB (#172).
 - Hosting: Cloudflare Pages (security headers in `web/_headers`: HSTS,
-  nosniff, no framing, referrer and permissions policies), installed on the iPhone from Safari ("Adicionar
+  nosniff, no framing, referrer and permissions policies; `index.html`
+  preconnects to Google's CDN, the database (`tool/web_preconnect.sh`
+  writes its address into the build) and the photos' CDN), installed on the iPhone from Safari ("Adicionar
   ao ecrã principal"). Status bar: Safari 26+ ignores `theme-color` and tints
   its bars from a solid `position: fixed` element at the top/bottom edge, so
   `web/index.html` has two 12px iOS-only strips (`.edge-tint`, taps pass
@@ -481,9 +485,11 @@ functions for manual work.
 - **Standvirtual** search pages hold everything except the description
   (including `createdAt` -> `published_at` and the bump date ->
   `site_refreshed_at`; `apply_listing_dates` keeps the earliest publication
-  and latest renewal). Listing pages are read only for matched, non-duplicate
-  listings without details (`details_checked_at is null`), newest first;
-  a page that failed (gone, unreadable, refused, another ad) is marked
+  and latest renewal) and only one thumbnail. Listing pages are read only
+  for matched, non-duplicate listings without details (`details_checked_at
+  is null`), newest first, for the details and every photo (up to 30,
+  `maxImages`); then for listings read before the photos were kept
+  (`photos_read_at is null`); a page that failed (gone, unreadable, refused, another ad) is marked
   `details_failed_at` (`mark_details_failed`) and waits behind the
   listings never tried. A search counts as read in full when every page
   it spans was saved, or its pages hold the site's count (promoted ads
