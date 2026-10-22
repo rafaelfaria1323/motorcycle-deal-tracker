@@ -7,6 +7,8 @@ begin
   for c in
     select * from (values
       ('Mota com 12.000 km, revisões feitas.', 12000),
+      (E'Vendo Honda cb650R E -clutch de setembro\n2025\nVermelha 2.750 km\n'
+        'Preço 8.300\nAtenção só venda', 2750),
       ('Vendo Yamaha MT-07 de 2019. 15 mil kms. Pneus novos com 2000 km.', 15000),
       ('Quilometragem: 8500', 8500),
       ('Kms: 12.345. Revisão feita aos 10.000 km', 12345),
