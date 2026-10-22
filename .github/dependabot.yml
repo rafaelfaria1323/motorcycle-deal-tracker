@@ -12,9 +12,11 @@ updates:
     groups:
       app-minor:
         update-types: [minor, patch]
-    # Held at 2.4.28 in app/pubspec.yaml: 2.5.x fails in the release APK.
+    # Held in app/pubspec.yaml (shared_preferences_android 2.4.28,
+    # path_provider_android 2.2.23): their JNI releases fail in the release APK.
     ignore:
       - dependency-name: shared_preferences_android
+      - dependency-name: path_provider_android
     open-pull-requests-limit: 3
 
   - package-ecosystem: pub

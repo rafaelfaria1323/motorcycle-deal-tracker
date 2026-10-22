@@ -9,7 +9,9 @@ is made there, not committed) and publishes it on the GitHub release
 Android app says when a newer version is out and installs it (the in-repo
 plugin `packages/apk_installer`; `docs/hosting.md`). The Android app gets
 its notifications through Firebase Cloud Messaging (the in-repo plugin
-`packages/android_push`); a tap opens the page in the app.
+`packages/android_push`); a tap opens the page in the app. It keeps the
+sign-in encrypted with a key in the Android Keystore
+(`flutter_secure_storage`) and leaves its data out of Android's backups.
 
 ## Screens
 

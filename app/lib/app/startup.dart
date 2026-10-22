@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/auth/session_bootstrap.dart';
 import '../core/platform/push.dart';
+import '../core/platform/session_storage.dart';
 import '../core/widgets/state_message.dart';
 import 'app.dart';
 import 'di/injection.dart';
@@ -69,6 +70,9 @@ class _StartupState extends State<Startup> {
       await Supabase.initialize(
         url: _supabaseUrl,
         publishableKey: _supabasePublishableKey,
+        authOptions: FlutterAuthClientOptions(
+          localStorage: sessionStorage(_supabaseUrl),
+        ),
       );
     } on Object {
       _supabase = null;
