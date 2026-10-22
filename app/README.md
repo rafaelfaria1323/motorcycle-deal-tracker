@@ -119,7 +119,7 @@ signs in, and `web/index.html` opens the connections it needs early
 address the deploy writes in with `tool/web_preconnect.sh`). For a
 visitor without an account's session, `web/index.html` also asks for the
 first page of listings and the model list while the app downloads, and
-starts the first card's photo; the start takes that answer
+starts the first cards' photos; the start takes that answer
 (`core/platform/first_page.dart`) instead of asking again. Its queries
 are the app's own, checked by `test/first_page_test.dart`.
 
