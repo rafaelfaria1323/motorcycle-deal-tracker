@@ -167,6 +167,8 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md,
                                   Makefile; variable AUTO_MERGE_BACKLOG=false
                                   turns it off) and starts the app deploy
 .github/dependabot.yml            Weekly dependency PRs (app, collector, Actions)
+                                  (not shared_preferences_android: held at
+                                  2.4.28, 2.5.x fails in the release APK)
 .claude/hooks/session-start.sh  Cloud sessions only: Dart SDK on PATH, collector
                                   dependencies, local Postgres (PGHOST set), so
                                   make collector-check / tool-check / db-test run
