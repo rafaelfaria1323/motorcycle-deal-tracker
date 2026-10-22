@@ -161,6 +161,16 @@ void main() {
     expect(listing.sellerType, SellerType.private);
   });
 
+  test('the title is kept as the variant, without phone numbers', () {
+    Mapped map(String title) => mapper.map(one(ad(title: title))) as Mapped;
+
+    expect(map('Yamaha MT-07 35Kw A2').listing.variant, 'MT-07 35Kw A2');
+    expect(map('Yamaha MT-07 912 345 678 A2').listing.variant, 'MT-07 A2');
+    expect(map('Yamaha MT-07 +351912345678').listing.variant, 'MT-07');
+    // Unmatched ads keep their title as the model instead.
+    expect(map('Yamaha Tracer 7 2023').listing.variant, isNull);
+  });
+
   test('the brand of the search beats another brand in the title', () {
     const raw = OlxRawListing(
       id: '1',

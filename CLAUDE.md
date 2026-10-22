@@ -524,7 +524,9 @@ functions for manual work.
   `partner.code = 'standvirtual'` are copies of Standvirtual ads and are
   skipped. Ads without a price are rejected but count as live. `createdTime`
   is stored as `published_at`, `lastRefreshTime` (the date OLX shows) as
-  `site_refreshed_at`.
+  `site_refreshed_at`. A matched ad's title (after the brand, phone-shaped
+  numbers removed) is stored as `variant`, as Standvirtual's version, for
+  the A2 and extras rules.
 - **Model matching** (`ModelResolver`, shared by all sources) reads its rules
   from the catalog: model name and `aliases` spelled within the first three
   words (also without closing letters: "CBR 650" = CBR650R), Honda code

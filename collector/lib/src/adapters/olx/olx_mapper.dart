@@ -50,6 +50,10 @@ class OlxMapper {
         url: raw.url,
         brand: brand,
         model: model,
+        // The title, as Standvirtual's version: it often names what the
+        // description doesn't ("35kW A2", "com quickshifter"), read by the
+        // risk and extras rules.
+        variant: entry != null ? _titleText(title) : null,
         priceEur: price,
         year: raw.year,
         mileageKm: raw.mileageKm,
@@ -92,6 +96,19 @@ class OlxMapper {
     }
     final rest = words.sublist(at + 1).join(' ');
     return rest.isEmpty ? title.trim() : rest;
+  }
+
+  /// [title] without anything shaped like a Portuguese phone number (nine
+  /// digits from 2 or 9, spaced or not): nobody's phone number is stored.
+  static String? _titleText(String title) {
+    final text = title
+        .replaceAll(
+          RegExp(r'(?<!\d)(\+?351\s*)?[29]\d{2}[\s.]?\d{3}[\s.]?\d{3}(?!\d)'),
+          '',
+        )
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    return text.isEmpty ? null : text;
   }
 
   /// Words sellers put before the brand ("Vendo mota Honda ...").
