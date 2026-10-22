@@ -173,6 +173,18 @@ void main() {
       expect(args, hasLength(3));
     });
 
+    test('an A2 version, held back or unlocked', () {
+      List<String> a2(String code) => argue(
+        _listing(
+          breakdown: {
+            'risk_reasons': [code],
+          },
+        ),
+      );
+      expect(a2('a2_limited').single, startsWith('É a versão A2 (35 kW)'));
+      expect(a2('a2_unlocked').single, contains('deslimitada'));
+    });
+
     test('long on sale, against the model when it is known', () {
       expect(
         argue(_listing(), market: _market(), days: 60).single,
