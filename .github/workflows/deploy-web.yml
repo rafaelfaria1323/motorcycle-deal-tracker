@@ -140,9 +140,7 @@ jobs:
           fi
           apk_url=""
           if [ "$HAS_ANDROID_KEY" = true ]; then apk_url="$APK_URL"; fi
-          # The engine (skwasm, CanvasKit) from this site, not Google's CDN:
-          # one connection less on the first load, and no request to Google.
-          cd app && flutter build web --release --wasm --no-web-resources-cdn \
+          cd app && flutter build web --release --wasm \
             --dart-define=SUPABASE_URL="$SUPABASE_URL" \
             --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY" \
             --dart-define=APK_URL="$apk_url"

@@ -40,7 +40,7 @@ app-check: ## Analyze and test the app
 	cd app && flutter analyze && flutter test
 
 app-build: ## Release web build
-	cd app && flutter build web --wasm --no-web-resources-cdn --dart-define-from-file=env/dev.json
+	cd app && flutter build web --wasm --dart-define-from-file=env/dev.json
 
 app-serve: app-build ## Serve the release build on http://localhost:8080 (PWA test)
 	cd app/build/web && python3 -m http.server 8080

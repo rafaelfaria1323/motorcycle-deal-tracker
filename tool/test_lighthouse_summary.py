@@ -85,8 +85,10 @@ class LighthouseSummaryTest(unittest.TestCase):
         report = _report()
         errors = [
             {"source": "exception", "description": "TypeError: x is `null`\n  at main.js"},
-            {"source": "network", "description": "Failed to load resource: 404"},
-            {"source": "network", "description": "Failed to load resource: 404"},
+            {"source": "network", "description": "Failed to load resource: 404",
+             "sourceLocation": {"url": "https://pr-1.x.pages.dev/icons/a.png?v=1"}},
+            {"source": "network", "description": "Failed to load resource: 404",
+             "sourceLocation": {"url": "https://pr-1.x.pages.dev/icons/a.png?v=1"}},
             {"source": "console.error", "description": "a"},
             {"source": "console.error", "description": "b" * 200},
         ]
@@ -101,7 +103,7 @@ class LighthouseSummaryTest(unittest.TestCase):
         lines = summarize(report)
         self.assertEqual(lines[-2], (
             "Console errors: `TypeError: x is 'null' at main.js` · "
-            "`Failed to load resource: 404` · `a` · +1"
+            "`Failed to load resource: 404 (a.png)` · `a` · +1"
         ))
         self.assertEqual(lines[-1], "Deprecated: `Old API used` · `Another old API`")
 

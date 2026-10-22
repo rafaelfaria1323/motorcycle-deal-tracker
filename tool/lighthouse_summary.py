@@ -91,8 +91,8 @@ def summarize(report):
 
 
 def _messages(audit, field):
-    """The first distinct messages an audit lists, short and with no
-    backticks, each in code style."""
+    """The first distinct messages an audit lists, short, with no
+    backticks and the file they came from, each in code style."""
     shown = []
     for item in audit.get("details", {}).get("items", []):
         text = item.get(field)
@@ -103,6 +103,9 @@ def _messages(audit, field):
         text = " ".join(text.split()).replace("`", "'")
         if len(text) > MAX_MESSAGE_LENGTH:
             text = text[:MAX_MESSAGE_LENGTH - 1] + "…"
+        url = item.get("sourceLocation", {}).get("url") or item.get("url")
+        if url:
+            text += f" ({_name(url)})"
         if f"`{text}`" not in shown:
             shown.append(f"`{text}`")
     if len(shown) > MAX_MESSAGES:
