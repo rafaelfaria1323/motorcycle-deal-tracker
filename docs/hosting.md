@@ -194,3 +194,8 @@ The address is public: anyone who has it can browse the listings (as on the
 listing sites themselves) but saved searches and alerts stay per user under
 row-level security. Cloudflare Access (free for up to 50 users) can put an
 email login in front of the whole site if that is ever needed.
+
+The API keys (publishable key) can only read, apart from the app's own
+writes on the caller's rows (roadmap S.1); `app/web/_headers` makes Pages
+send HSTS, `nosniff`, a no-framing policy, a referrer policy and a
+permissions policy (no camera, microphone, location or payment).

@@ -334,7 +334,8 @@ invites; written by the collector on each run).
   colours (text 4.5:1, score badges 3:1): keep it green when changing them. Fonts are bundled (`assets/fonts`, Latin subset): Barlow for
   text, Barlow Semi Condensed (`AppTheme.displayFont`) for titles, prices
   and scores; prices use tabular figures.
-- Hosting: Cloudflare Pages, installed on the iPhone from Safari ("Adicionar
+- Hosting: Cloudflare Pages (security headers in `web/_headers`: HSTS,
+  nosniff, no framing, referrer and permissions policies), installed on the iPhone from Safari ("Adicionar
   ao ecrã principal"). Status bar: Safari 26+ ignores `theme-color` and tints
   its bars from a solid `position: fixed` element at the top/bottom edge, so
   `web/index.html` has two 12px iOS-only strips (`.edge-tint`, taps pass
@@ -357,6 +358,13 @@ invites; written by the collector on each run).
 - Functions: `security definer`, `set search_path = ''`, fully qualified
   names, and `revoke all ... from public, anon, authenticated` unless the app
   must call them. Views: `with (security_invoker = true)`.
+- Table privileges: anon and authenticated have only `select` on public's
+  tables (also tables made later: default privileges); authenticated writes
+  only saved_searches, listing_favourites, user_home, ownership_settings,
+  deletes invites and push_subscriptions, and updates `alerts.read_at`
+  (`20261024170000_tighten_api_grants.sql`, `api_grants_test.sql`). A new
+  table the app writes needs its own `grant` (RLS still limits the rows);
+  everything else goes through security definer functions.
 - Every UPDATE and DELETE in a function has a WHERE (`where id` on the
   one-row tables, `where true` for all rows): Supabase's API loads
   pg-safeupdate, which refuses them otherwise, also inside functions the

@@ -110,14 +110,17 @@ void main() {
         'u1': [_device('https://p/1')],
       };
 
-    expect(await notifyPending(store, push: _Push()), (alerts: 2, pushes: 1));
+    expect(await notifyPending(store, push: _Push(), now: _now), (
+      alerts: 2,
+      pushes: 1,
+    ));
     expect(store.notified, ['a', 'b']);
     expect(store.limits, [pendingPerRun]);
   });
 
   test('without Web Push nothing is marked: the next run sends', () async {
     final store = _Store([_withId('a')]);
-    expect(await notifyPending(store), (alerts: 0, pushes: 0));
+    expect(await notifyPending(store, now: _now), (alerts: 0, pushes: 0));
     expect(store.notified, isNull);
   });
 
@@ -162,7 +165,7 @@ void main() {
       };
     final push = _Push();
 
-    final result = await notifyPending(store, push: push);
+    final result = await notifyPending(store, push: push, now: _now);
 
     expect(result, (alerts: 2, pushes: 3));
     expect(
@@ -184,7 +187,7 @@ void main() {
       };
     final push = _Push({'https://p/old': PushResult.gone});
 
-    final result = await notifyPending(store, push: push);
+    final result = await notifyPending(store, push: push, now: _now);
 
     expect(result.pushes, 2);
     expect(push.sent.where((s) => s.$1 == 'https://p/old'), hasLength(1));
@@ -194,7 +197,10 @@ void main() {
 
   test('nothing pending: no device is read', () async {
     final store = _Store([]);
-    expect(await notifyPending(store, push: _Push()), (alerts: 0, pushes: 0));
+    expect(await notifyPending(store, push: _Push(), now: _now), (
+      alerts: 0,
+      pushes: 0,
+    ));
     expect(store.notified, isNull);
   });
 
