@@ -238,7 +238,8 @@ void main() {
       ..['complete_review_book'] = param('1', 'Sim')
       ..['origin'] = param('national', 'Nacional')
       ..['maker_warranty_valid_until_date'] = param('2028-02-24')
-      ..['vendors_warranty_valid_until_date'] = param('24', '24 Meses');
+      ..['vendors_warranty_valid_until_date'] = param('24', '24 Meses')
+      ..['color'] = param('blue', 'Azul');
 
     final details = adapter.parseDetails(page(ad));
 
@@ -250,6 +251,8 @@ void main() {
     expect(details.warrantyUntil, '2028-02-24');
     expect(details.dealerWarrantyMonths, 24);
     expect(details.publishedAt, '2026-10-08T18:30:13Z');
+    expect(details.siteColour, 'blue');
+    expect(details.toJson()['site_colour'], 'blue');
     expect(details.images, ['https://img.example.com/1.jpg']);
   });
 

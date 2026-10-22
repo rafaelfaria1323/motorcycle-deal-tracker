@@ -29,6 +29,15 @@ void main() {
     expect(listing.newPrice, isNull);
   });
 
+  test('reads the colour and whether it is a favourite', () {
+    final listing = ListingModel.fromJson(
+      _row({'colour': 'blue', 'my_colour': true}),
+    );
+    expect(listing.colour, 'blue');
+    expect(listing.myColour, isTrue);
+    expect(ListingModel.fromJson(_row()).myColour, isFalse);
+  });
+
   test('unknown seller types and statuses fall back to unknown', () {
     final listing = ListingModel.fromJson(
       _row({'seller_type': 'bot', 'status': 'weird'}),

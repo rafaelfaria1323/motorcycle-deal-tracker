@@ -397,7 +397,8 @@ invites; written by the collector on each run).
   must call them. Views: `with (security_invoker = true)`.
 - Table privileges: anon and authenticated have only `select` on public's
   tables (also tables made later: default privileges); authenticated writes
-  only saved_searches, listing_favourites, user_home, ownership_settings,
+  only saved_searches, listing_favourites, user_home, user_colours,
+  ownership_settings,
   deletes invites and push_subscriptions, and updates `alerts.read_at`
   (`20261024170000_tighten_api_grants.sql`, `api_grants_test.sql`). A new
   table the app writes needs its own `grant` (RLS still limits the rows);
@@ -514,7 +515,8 @@ functions for manual work.
   `maxImages`); then for listings read before the photos were kept
   (`photos_read_at is null`); a page that failed (gone, unreadable, refused, another ad) is marked
   `details_failed_at` (`mark_details_failed`) and waits behind the
-  listings never tried. A search counts as read in full when every page
+  listings never tried. The page's colour field is stored as
+  `site_colour`. A search counts as read in full when every page
   it spans was saved, or its pages hold the site's count (promoted ads
   never count). The search
   result's `priceDrop` is stored as `price_before_drop` (highest seen, never
@@ -690,6 +692,13 @@ functions for manual work.
   under 10 €; **check `iucBands` every January**) + the owner's insurance
   (left out until entered) + tyres, services and chain kit by engine size.
   The owner's figures live in `ownership_settings` (one row per account).
+- Favourite colours: `listings.colour` (a code: `colour_code()` of
+  Standvirtual's `site_colour`, else `colour_in_text()`: a colour word in
+  the variant before "com", or after "cor" in the description; trigger
+  `listings_colour`), `user_colours` (one row per account, set in Mais ›
+  "Cores preferidas"; the codes = the app's `colourLabels`) and the
+  computed field `listings.my_colour` (select it explicitly). A plus shown
+  on the card, the facts and the explanation; never part of any score.
 - New-bike comparison: `motorcycles.new_price_reference` (+ checked date),
   shown on the detail page; hidden when the model has no reference price.
 

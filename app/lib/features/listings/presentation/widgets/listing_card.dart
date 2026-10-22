@@ -71,8 +71,23 @@ class ListingCard extends StatelessWidget {
                       right: 10,
                       child: DealScoreBadge(score: listing.dealScore!),
                     ),
-                  if (listing.isRemoved)
-                    const Positioned(top: 10, left: 10, child: _RemovedPill()),
+                  if (listing.isRemoved || listing.myColour)
+                    Positioned(
+                      top: 10,
+                      left: 10,
+                      child: Row(
+                        spacing: 6,
+                        children: [
+                          if (listing.isRemoved) const _PhotoPill('Removido'),
+                          // A plus for the person; the score ignores it.
+                          if (listing.myColour)
+                            const _PhotoPill(
+                              'Cor preferida',
+                              icon: Icons.palette_outlined,
+                            ),
+                        ],
+                      ),
+                    ),
                   if (favourite)
                     Positioned(
                       bottom: 10,
@@ -170,8 +185,12 @@ class ListingCard extends StatelessWidget {
   }
 }
 
-class _RemovedPill extends StatelessWidget {
-  const _RemovedPill();
+/// A label on the photo: "Removido", "Cor preferida".
+class _PhotoPill extends StatelessWidget {
+  const _PhotoPill(this.text, {this.icon});
+
+  final String text;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -180,15 +199,22 @@ class _RemovedPill extends StatelessWidget {
         color: AppColors.photoPillScrim,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        child: Text(
-          'Removido',
-          style: TextStyle(
-            fontFamily: AppTheme.bodyFont,
-            fontWeight: FontWeight.w600,
-            color: AppColors.onPhoto,
-          ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 4,
+          children: [
+            if (icon != null) Icon(icon, size: 14, color: AppColors.onPhoto),
+            Text(
+              text,
+              style: const TextStyle(
+                fontFamily: AppTheme.bodyFont,
+                fontWeight: FontWeight.w600,
+                color: AppColors.onPhoto,
+              ),
+            ),
+          ],
         ),
       ),
     );

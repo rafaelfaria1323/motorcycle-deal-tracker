@@ -63,7 +63,7 @@ sign-in encrypted with a key in the Android Keystore
   you followed back on the market in a new ad ("Voltou ao mercado") and
   removed listings, grouped by day; the tab shows the unread count.
 - **Mais:** account, sharing (the app's link; admins: "Contas e convites"), "Notificações neste aparelho" (with "Enviar notificação de teste", an example of any alert or collection message, and "Enviar o resumo da semana"), "Resumo da semana" (your models' last 7 days, made every Monday and sent as a notification that opens it: counts, new listings per model, the best deals and the biggest drops, each opening its listing), "A sua localidade" (your home town: every listing
-  shows its distance from it), "Modelos acompanhados" (your own models: switch on/off, first
+  shows its distance from it), "Cores preferidas" (your colours: listings in them are marked "Cor preferida", never scored), "Modelos acompanhados" (your own models: switch on/off, first
   year, new-bike price, add models: brand and model picked from the sites'
   lists, optional engine size, searches built automatically; or typed by
   hand), "Comparar modelos" (your models side by side: typical asking

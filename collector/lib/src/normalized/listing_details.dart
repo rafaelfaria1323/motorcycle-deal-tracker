@@ -9,6 +9,7 @@ class ListingDetails {
     this.warrantyUntil,
     this.dealerWarrantyMonths,
     this.publishedAt,
+    this.siteColour,
     this.images = const [],
   });
 
@@ -29,6 +30,10 @@ class ListingDetails {
   /// First publication (not the date of the last paid "bump").
   final String? publishedAt;
 
+  /// The site's colour field (its id, e.g. 'blue'); the database turns it
+  /// into `listings.colour`.
+  final String? siteColour;
+
   /// Every photo on the page (search results carry only one); empty keeps
   /// what is stored.
   final List<String> images;
@@ -42,6 +47,7 @@ class ListingDetails {
     'warranty_until': warrantyUntil,
     'dealer_warranty_months': dealerWarrantyMonths,
     'published_at': publishedAt,
+    'site_colour': siteColour,
     'images': images,
   };
 }
