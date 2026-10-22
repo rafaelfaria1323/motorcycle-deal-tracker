@@ -108,7 +108,10 @@ Semi Condensed for titles, prices and scores (SIL Open Font License),
 with arrows drawn in by `tool/font_arrows.py`; Barlow Regular is also
 registered as "Roboto", the web engine's default font, which it would
 otherwise download from Google. `tool/font_coverage.py` (`make tool-check`)
-fails when the app writes a character the fonts lack.
+fails when the app writes a character the fonts lack, when a font keeps
+TrueType hinting (the web app downloads every font before it draws; the
+command to strip it is in the script) or when a font file isn't declared
+in `pubspec.yaml`. Only the weights the app uses are bundled.
 
 The start (`lib/app/startup.dart`) asks for the first listings while it
 signs in, and `web/index.html` opens the connections it needs early

@@ -355,6 +355,10 @@ invites; written by the collector on each run).
   engine's default, else downloaded from Google). A character the fonts
   lack makes the web engine download a Google font: `make tool-check`
   (`tool/font_coverage.py`) fails on one; draw it in or reword. The
+  web app downloads every font file before its first frame, so they are
+  unhinted and only the weights in use (Barlow Semi Condensed: Bold
+  only); `font_coverage.py` also fails on a hinted font or one the
+  pubspec doesn't declare. The
   engine stays on Google's CDN: served from Pages, `skwasm.wasm` came
   1.5 MB instead of 1.2 MB (#172).
 - Hosting: Cloudflare Pages (security headers in `web/_headers`: HSTS,
