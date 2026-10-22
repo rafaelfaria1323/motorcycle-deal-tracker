@@ -360,7 +360,9 @@ invites; written by the collector on each run).
 - Hosting: Cloudflare Pages (security headers in `web/_headers`: HSTS,
   nosniff, no framing, referrer and permissions policies; `index.html`
   preconnects to Google's CDN, the database (`tool/web_preconnect.sh`
-  writes its address into the build) and the photos' CDN), installed on the iPhone from Safari ("Adicionar
+  writes its address into the build) and the photos' CDN, and draws a
+  spinner (`#splash`, the theme's primary, as `Startup`'s) until Flutter's
+  first frame), installed on the iPhone from Safari ("Adicionar
   ao ecrã principal"). Status bar: Safari 26+ ignores `theme-color` and tints
   its bars from a solid `position: fixed` element at the top/bottom edge, so
   `web/index.html` has two 12px iOS-only strips (`.edge-tint`, taps pass
