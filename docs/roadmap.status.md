@@ -138,6 +138,7 @@ Do not implement several unrelated features at once.
 ➕ 9.5b Risk signal for implausible mileage: under 100 km on a bike three or more years old (a placeholder like "0" or "1"), or more than 25 000 km a year; 10 points, explained on the listing page ✅
 ➕ 9.6 Scheduled collection on GitHub Actions, every 4 hours, 120 requests per day per site, with run log ✅
 ➕ 9.6b Collection status banner on the dashboard ✅
+➕ 9.6d Collection at fixed Lisbon hours ✅ *Rafael, 2026-10-22: every 2 hours from 12 to 20, then 24, then 8 and 12. Runs at 00:40, 08:40, 12:40, 14:40, 16:40, 18:40 and 20:40 Lisbon time: the pg_cron job `collect-listings` runs hourly and `dispatch_collection()` starts `collect.yml` only when `collection_due()` (the Europe/Lisbon hour, so summer time needs no change; `20261024210000_collection_hours.sql`). Same caps (20 per run, 120 per day per site); the longest gap (8 h) stays under the watchdog's 9. The app's next-run text follows (`collection_text.dart`, EU summer-time rule). Tests: `schedule_test.sql`, `collection_text_test.dart`.*
 ## 9.7 OLX adapter ✅
 *Search result pages only (they hold the full description), every page of each search, 2023+ year filter. Standvirtual copies skipped. Fixes in 9.7b (multi-page searches, ads without a price, R7 titles) and 9.7c ("CBR 650" = CBR650R).*
 ➕ 9.8 Choose the tracked models in the app; matching rules moved into the catalog; 9 more models added (off by default) ✅. Fix: switching a model back on left its old listings unmatched (the collector never rematches stored listings); now switching on gives them back by the catalog brand and model names they were stored with, removed ones included, and the migration restored the listings of models already back on.
@@ -441,7 +442,7 @@ Open Web App → Choose R7 2026 → See listings → Sort by Deal Score → Open
 New listing → Collector → Database → Deal Score → Saved-search match → Alert
 ```
 
-*Running on real Standvirtual and OLX data every 4 hours.*
+*Running on real Standvirtual and OLX data 7 times a day.*
 
 # Third Milestone ✅
 

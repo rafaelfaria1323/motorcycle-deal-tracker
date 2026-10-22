@@ -41,7 +41,7 @@ String? qualityDetailsLine(SourceQuality q) {
       : '${q.detailsPending} páginas de anúncio por ler';
 }
 
-/// Collections run every 4 hours; a day without seeing any listing means
+/// Collections run 7 times a day; a day without seeing any listing means
 /// the site stopped answering or the collection stopped.
 const staleAfter = Duration(hours: 24);
 

@@ -13,30 +13,63 @@ CollectorRun run(int seconds, {Map<String, int> requests = const {}}) {
 }
 
 void main() {
-  group('next collection (minute 40 of every 4th hour, UTC)', () {
-    test('later the same block', () {
+  group('next collection (minute 40 of the Lisbon hours)', () {
+    test('later the same hour', () {
       expect(
-        nextCollection(DateTime.utc(2026, 10, 19, 12, 10)),
-        DateTime.utc(2026, 10, 19, 12, 40),
+        nextCollection(DateTime.utc(2026, 12, 1, 12, 10)),
+        DateTime.utc(2026, 12, 1, 12, 40),
       );
     });
 
-    test('just after a run, the next block', () {
+    test('every 2 hours in the afternoon', () {
       expect(
-        nextCollection(DateTime.utc(2026, 10, 19, 12, 40)),
-        DateTime.utc(2026, 10, 19, 16, 40),
+        nextCollection(DateTime.utc(2026, 12, 1, 12, 40)),
+        DateTime.utc(2026, 12, 1, 14, 40),
       );
       expect(
-        nextCollection(DateTime.utc(2026, 10, 19, 14, 5)),
-        DateTime.utc(2026, 10, 19, 16, 40),
+        nextCollection(DateTime.utc(2026, 12, 1, 19, 5)),
+        DateTime.utc(2026, 12, 1, 20, 40),
       );
     });
 
-    test('across midnight', () {
+    test('midnight, then 08:40, then 12:40', () {
       expect(
-        nextCollection(DateTime.utc(2026, 10, 19, 22, 50)),
-        DateTime.utc(2026, 10, 20, 0, 40),
+        nextCollection(DateTime.utc(2026, 12, 1, 20, 50)),
+        DateTime.utc(2026, 12, 2, 0, 40),
       );
+      expect(
+        nextCollection(DateTime.utc(2026, 12, 2, 0, 41)),
+        DateTime.utc(2026, 12, 2, 8, 40),
+      );
+      expect(
+        nextCollection(DateTime.utc(2026, 12, 2, 9)),
+        DateTime.utc(2026, 12, 2, 12, 40),
+      );
+    });
+
+    test('in summer time the same Lisbon hours are an hour earlier in UTC', () {
+      expect(
+        nextCollection(DateTime.utc(2026, 7, 1, 21)),
+        DateTime.utc(2026, 7, 1, 23, 40),
+      );
+      expect(
+        nextCollection(DateTime.utc(2026, 7, 2, 0)),
+        DateTime.utc(2026, 7, 2, 7, 40),
+      );
+    });
+
+    test('summer time follows the EU rule', () {
+      // 2026: from 29 March to 25 October, 01:00 UTC.
+      expect(lisbonOffset(DateTime.utc(2026, 3, 29, 0, 59)), Duration.zero);
+      expect(
+        lisbonOffset(DateTime.utc(2026, 3, 29, 1)),
+        const Duration(hours: 1),
+      );
+      expect(
+        lisbonOffset(DateTime.utc(2026, 10, 25, 0, 59)),
+        const Duration(hours: 1),
+      );
+      expect(lisbonOffset(DateTime.utc(2026, 10, 25, 1)), Duration.zero);
     });
 
     test('the text gives the day and time', () {

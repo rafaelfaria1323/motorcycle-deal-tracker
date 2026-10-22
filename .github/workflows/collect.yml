@@ -1,10 +1,11 @@
 name: Collect listings
 
 on:
-  # Started every 4 hours (minute 40, UTC) by Supabase: the pg_cron job
-  # 'collect-listings' calls the workflow_dispatch API (GitHub's own
-  # scheduler never started this workflow). Also the manual "Run workflow"
-  # button.
+  # Started at 00:40, 08:40 and every 2 hours from 12:40 to 20:40, Lisbon
+  # time, by Supabase: the hourly pg_cron job 'collect-listings' calls
+  # dispatch_collection(), which calls the workflow_dispatch API at those
+  # hours (GitHub's own scheduler never started this workflow). Also the
+  # manual "Run workflow" button.
   # Each site has its own caps (20 per run, 120 per day). A run uses about
   # 15 Standvirtual requests (robots.txt, 4 search pages, up to 10 listing
   # pages) and about 10-12 OLX requests (robots.txt, every page of the

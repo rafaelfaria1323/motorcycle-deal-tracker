@@ -4,7 +4,8 @@ A personal web app that watches the Portuguese used and semi-new motorcycle
 market and answers one question: **is this motorcycle a good deal right
 now?**
 
-Every 4 hours it reads Standvirtual and OLX for the models being tracked,
+Seven times a day (00:40, 08:40, then every 2 hours from 12:40 to 20:40,
+Lisbon time) it reads Standvirtual and OLX for the models being tracked,
 keeps each listing's price and status history, and ranks the listings with
 an explainable **Deal Score** (price against similar bikes, year and
 mileage) and a separate **Risk Score** (missing details, possible accident,
@@ -20,7 +21,7 @@ The app is in Portuguese and installs on the iPhone from Safari
 
 ```text
 Tracked models (chosen in the app)
-  → collector (GitHub Actions, started every 4 hours by Supabase pg_cron): searches → polite fetch → parse → store
+  → collector (GitHub Actions, started 7 times a day by Supabase pg_cron): searches → polite fetch → parse → store
   → Supabase / Postgres: price history, duplicates, fair value, scores, alerts
   → app (Flutter Web on Cloudflare Pages): Ofertas · Pesquisas · Alertas · Mais
   → phones (Web Push; FCM in the Android app): each account's new alerts after each run (a tap opens the listing), its
@@ -36,7 +37,7 @@ Tracked models (chosen in the app)
 | [`collector/`](collector/README.md) | Dart command line: fetches, parses and stores listings, then scores and alerts |
 | `supabase/` | Database migrations: tables, scoring, alerts, views, access rules; `tests/`: SQL tests (`make db-test`) |
 | `docs/` | Progress and decisions (see below) |
-| `.github/workflows/` | `collect.yml` (every 4 hours, started by Supabase pg_cron), `check.yml` (`make check` and `make db-test` on every pull request), `deploy-web.yml` (new migrations, then the app, on merge, and the Android APK on the release `android`, which the Android app installs as its update), `android-check.yml` (the APK built on pull requests that touch the Android side), `weekly-summary.yml` (Mondays, each account's week in the app and on its devices; or one account's when asked in the app), `notify-test.yml` (Telegram test), `push-test.yml` (a test notification to the devices of whoever asked in the app), `mutation.yml` (mutation testing without AI: after merges the changed files, by hand all of them; report on the run's page), `code-quality.yml` and `test-hardening.yml` (Claude works through the backlogs, fixing every 5 merged PRs and finding new items after 10 in `docs/code-quality.md` and `docs/test-hardening.md`; shared steps in `backlog-pass.yml`) |
+| `.github/workflows/` | `collect.yml` (00:40, 08:40 and every 2 hours from 12:40 to 20:40, Lisbon time, started by Supabase pg_cron), `check.yml` (`make check` and `make db-test` on every pull request), `deploy-web.yml` (new migrations, then the app, on merge, and the Android APK on the release `android`, which the Android app installs as its update), `android-check.yml` (the APK built on pull requests that touch the Android side), `weekly-summary.yml` (Mondays, each account's week in the app and on its devices; or one account's when asked in the app), `notify-test.yml` (Telegram test), `push-test.yml` (a test notification to the devices of whoever asked in the app), `mutation.yml` (mutation testing without AI: after merges the changed files, by hand all of them; report on the run's page), `code-quality.yml` and `test-hardening.yml` (Claude works through the backlogs, fixing every 5 merged PRs and finding new items after 10 in `docs/code-quality.md` and `docs/test-hardening.md`; shared steps in `backlog-pass.yml`) |
 
 ## Getting started
 

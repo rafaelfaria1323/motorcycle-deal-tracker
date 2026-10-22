@@ -100,7 +100,8 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
             (also how to replace each secret),
             roadmap.status.md, concept.status.md, code-quality.md and
             test-hardening.md (backlogs of the automatic passes)
-.github/workflows/collect.yml     Collection every 4 hours (minute 40, UTC),
+.github/workflows/collect.yml     Collection at 00:40, 08:40 and every 2 h
+                                  from 12:40 to 20:40 (Lisbon time),
                                   started by Supabase pg_cron (see below)
 .github/workflows/weekly-summary.yml  Mondays 07:52 UTC (pg_cron): each account's
                                   summary of the week, kept for the app and
@@ -413,7 +414,9 @@ invites; written by the collector on each run).
   free plan's 500 MB and its 5 biggest tables (`database_usage`, admins;
   red from 80 %).
 - Schedules live in Supabase, not in the workflows (GitHub's scheduler never
-  started `collect.yml`): pg_cron jobs `collect-listings` (`40 */4 * * *`)
+  started `collect.yml`): pg_cron jobs `collect-listings` (`40 * * * *`,
+  `dispatch_collection()`: only at the Lisbon hours 0, 8, 12, 14, 16, 18
+  and 20, `collection_due`, so summer time needs no change)
   and `weekly-summary` (`52 7 * * 1`) call `dispatch_workflow()`, which
   starts the workflow through GitHub's workflow_dispatch API with pg_net and
   the Vault secret `github_dispatch_token` (fine-grained, this repo only,
@@ -443,8 +446,8 @@ invites; written by the collector on each run).
   ago with no session used in 30 days (`auth.sessions`; they own nothing,
   foreign keys cascade). Accounts are never touched; a pruned visitor
   just signs in anonymously again.
-- The app's next-run time (`collection_text.dart`) mirrors the
-  `collect-listings` job: change both together.
+- The app's next-run time (`collection_text.dart`, `collectionHours` and
+  the EU summer-time rule) mirrors `collection_due`: change both together.
 - Watch out: `greatest`/`least` ignore nulls.
 
 ## Collection pipeline

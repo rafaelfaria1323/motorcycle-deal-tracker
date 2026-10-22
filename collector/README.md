@@ -1,7 +1,8 @@
 # Collector
 
-Dart command line that fills the database. GitHub Actions runs it every
-4 hours (`.github/workflows/collect.yml`, minute 40 UTC); it uses the
+Dart command line that fills the database. GitHub Actions runs it at
+00:40, 08:40 and every 2 hours from 12:40 to 20:40, Lisbon time
+(`.github/workflows/collect.yml`, started by Supabase pg_cron); it uses the
 Supabase service-role key, which the app never sees.
 
 ## One run (`make refresh`, `bin/refresh.dart`)
@@ -36,7 +37,7 @@ in the app's "Estado da recolha") and, when its status differs from the previous
 sends one notification to the admins' devices (Web Push; a tap opens
 "Estado da recolha"): what went wrong on which site
 (`notify/run_health.dart`), or that the collection works again. The same
-problem is not repeated every 4 hours.
+problem is not repeated on every run.
 
 Every Monday `bin/weekly_summary.dart` (workflow `weekly-summary.yml`) makes
 each account's summary of its own models' last 7 days: new listings per

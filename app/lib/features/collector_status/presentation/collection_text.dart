@@ -1,30 +1,40 @@
 import '../../../core/formatting/formatters.dart';
 import '../domain/collector_run.dart';
 
-/// The collection starts at minute 40 of every 4th hour, UTC (the pg_cron
-/// job 'collect-listings', '40 */4 * * *', in
-/// supabase/migrations/20261020140000_schedule_workflows_with_pg_cron.sql;
-/// keep them in step).
-const _hourStep = 4;
+/// The collection starts at minute 40 of these hours, Lisbon time (the
+/// pg_cron job 'collect-listings' and collection_due() in
+/// supabase/migrations/20261024210000_collection_hours.sql; keep them in
+/// step).
+const collectionHours = {0, 8, 12, 14, 16, 18, 20};
 const _minute = 40;
 
 /// Requests allowed per site and run (FetchPolicy.maxRequestsPerRun).
 const requestsPerRunLimit = 20;
 
-/// The next scheduled collection after [now].
+/// The next scheduled collection after [now], in UTC.
 DateTime nextCollection(DateTime now) {
   final utc = now.toUtc();
-  var next = DateTime.utc(
-    utc.year,
-    utc.month,
-    utc.day,
-    utc.hour - utc.hour % _hourStep,
-    _minute,
-  );
-  while (!next.isAfter(utc)) {
-    next = next.add(const Duration(hours: _hourStep));
+  var next = DateTime.utc(utc.year, utc.month, utc.day, utc.hour, _minute);
+  while (!next.isAfter(utc) ||
+      !collectionHours.contains(next.add(lisbonOffset(next)).hour)) {
+    next = next.add(const Duration(hours: 1));
   }
   return next;
+}
+
+/// Portugal's offset from UTC at [utc]: an hour of summer time from 01:00
+/// UTC on the last Sunday of March to 01:00 UTC on the last Sunday of
+/// October (the EU rule), none otherwise.
+Duration lisbonOffset(DateTime utc) {
+  DateTime lastSunday(int month) {
+    final last = DateTime.utc(utc.year, month + 1, 0, 1);
+    return last.subtract(Duration(days: last.weekday % 7));
+  }
+
+  final summer =
+      !utc.isBefore(lastSunday(DateTime.march)) &&
+      utc.isBefore(lastSunday(DateTime.october));
+  return Duration(hours: summer ? 1 : 0);
 }
 
 /// "Próxima recolha: hoje às 20:40" (local time). The run itself waits for
