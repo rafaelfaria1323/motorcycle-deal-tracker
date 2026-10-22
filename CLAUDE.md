@@ -96,7 +96,8 @@ has the model), or typed by hand.
 app/        Flutter Web/PWA (package name: motorcycle_deal_tracker)
 collector/  Pure Dart CLI: fetch, parse, store, score, alert (service-role key)
 supabase/   Migrations (Postgres: scoring, alerts, views, RLS); tests/ SQL tests
-docs/       sources.md (data-source decisions, keep updated), hosting.md,
+docs/       sources.md (data-source decisions, keep updated), hosting.md
+            (also how to replace each secret),
             roadmap.status.md, concept.status.md, code-quality.md and
             test-hardening.md (backlogs of the automatic passes)
 .github/workflows/collect.yml     Collection every 4 hours (minute 40, UTC),

@@ -145,7 +145,7 @@ Shown on the detail page. Reference prices are edited in the app; set for the or
 
 ## 22. Privacy 🟡
 
-Private sellers' names and all phone numbers are never stored; saved pages and fetch state are no longer committed. The repo stays public (Rafael, 2026-10-21: the free pipeline is worth more); old saved pages with phone numbers remain in its git history. The API roles may write only where the app does, and the site sends security headers (roadmap S.1); anonymous users idle for 30 days are deleted (S.2); personal data is owner-only by row level security and encrypted at rest by Supabase.
+Private sellers' names and all phone numbers are never stored; saved pages and fetch state are no longer committed. The repo stays public (Rafael, 2026-10-21: the free pipeline is worth more); old saved pages with phone numbers remain in its git history. The API roles may write only where the app does, and the site sends security headers (roadmap S.1); anonymous users idle for 30 days are deleted (S.2); personal data is owner-only by row level security and encrypted at rest by Supabase. How to replace each secret, and when, is written down in `docs/hosting.md` (roadmap S.4).
 
 ## 23. Future Features ⬜
 
