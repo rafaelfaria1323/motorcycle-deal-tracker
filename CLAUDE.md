@@ -117,9 +117,12 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   published to pr-<number>.<project>.pages.dev,
                                   linked in one comment on the PR (real
                                   database; the PR's migrations not applied);
-                                  Lighthouse (mobile) scores and load times
-                                  in that comment (report only,
-                                  tool/lighthouse_summary.py); older builds
+                                  Lighthouse (mobile) scores, load times,
+                                  largest element, biggest downloads and
+                                  failed checks in that comment (report
+                                  only, tool/lighthouse_summary.py; the
+                                  whole report kept 14 days as the run's
+                                  artifact lighthouse-pr-<number>); older builds
                                   deleted on each push, the preview deleted
                                   when the PR closes
 .github/workflows/deploy-web.yml  On merges touching app/ or adding

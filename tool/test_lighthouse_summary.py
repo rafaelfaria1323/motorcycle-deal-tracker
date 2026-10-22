@@ -43,6 +43,52 @@ class LighthouseSummaryTest(unittest.TestCase):
             "Accessibility to fix: Buttons have no name",
         ])
 
+    def test_largest_element_downloads_and_failed_best_practices(self):
+        site = "https://pr-1.motorcycle-deal-tracker.pages.dev"
+        report = _report()
+        report["categories"]["best-practices"] = {
+            "score": 0.77,
+            "auditRefs": [{"id": "errors-in-console", "weight": 1}],
+        }
+        report["audits"].update({
+            "errors-in-console": {"score": 0, "title": "Browser errors were logged"},
+            "largest-contentful-paint-element": {"details": {"type": "list", "items": [
+                {"type": "table", "items": [
+                    {"node": {"type": "node", "snippet": '<img src="https://ireland.apollo.olxcdn.com/x">'}},
+                ]},
+            ]}},
+            "network-requests": {"details": {"items": [
+                {"url": f"{site}/main.dart.wasm", "transferSize": 1_500_000,
+                 "resourceSize": 1_520_000},
+                {"url": f"{site}/canvaskit/skwasm.wasm", "transferSize": 900_000,
+                 "resourceSize": 2_700_000},
+                {"url": "https://ireland.apollo.olxcdn.com/v1/files/abc/image?s=1",
+                 "transferSize": 120_000, "resourceSize": 120_000},
+                {"url": f"{site}/favicon.png", "transferSize": 5_000,
+                 "resourceSize": 5_000},
+                {"url": f"{site}/cached.js", "transferSize": 0},
+            ]}},
+        })
+        lines = summarize(report)
+        self.assertEqual(lines[2], "Largest element: `<img src=\"https://ireland.apollo.olxcdn.com/x\">`")
+        self.assertEqual(lines[3], (
+            "Biggest downloads: main.dart.wasm 1.5 MB (not compressed) · "
+            "skwasm.wasm 900 KB (2.7 MB unpacked) · "
+            "ireland.apollo.olxcdn.com/…/image 120 KB · favicon.png 5 KB"
+        ))
+        self.assertEqual(lines[4:], [
+            "Accessibility to fix: Buttons have no name",
+            "Best practices to fix: Browser errors were logged",
+        ])
+
+    def test_largest_element_from_the_lcp_insight(self):
+        report = _report()
+        report["audits"]["lcp-breakdown-insight"] = {"details": {"type": "list", "items": [
+            {"type": "table", "items": [{"subpart": "ttfb"}]},
+            {"type": "node", "nodeLabel": "flt-glass-pane", "snippet": "<flt-glass-pane>"},
+        ]}}
+        self.assertIn("Largest element: `<flt-glass-pane>`", summarize(report))
+
     def test_a_page_that_did_not_load(self):
         report = _report(runtimeError={"code": "NO_FCP", "message": "..."})
         self.assertEqual(summarize(report), [

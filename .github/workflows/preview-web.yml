@@ -79,8 +79,9 @@ jobs:
       - name: Remove the older builds
         run: python3 tool/pages_previews.py "pr-$PR" --keep-latest
 
-      # Load time, download size and accessibility of the preview as a
-      # phone sees it (Lighthouse's mobile defaults, the runner's Chrome).
+      # Load time, download size, accessibility and best practices of the
+      # preview as a phone sees it (Lighthouse's mobile defaults, the
+      # runner's Chrome).
       # Report only: on the run's summary and in the comment below; a low
       # score never fails the PR. Each run opens the app, so it signs in
       # anonymously like any visitor.
@@ -93,6 +94,18 @@ jobs:
             --output-path="$RUNNER_TEMP/lighthouse.json" --chrome-flags="--headless=new"
           python3 -I tool/lighthouse_summary.py "$RUNNER_TEMP/lighthouse.json" \
             | tee "$RUNNER_TEMP/lighthouse.md" >> "$GITHUB_STEP_SUMMARY"
+
+      # The whole report, to open in https://googlechrome.github.io/lighthouse/viewer/
+      # (every audit, not only what the comment shows).
+      - name: Keep the Lighthouse report
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: lighthouse-pr-${{ github.event.pull_request.number }}
+          path: ${{ runner.temp }}/lighthouse.json
+          if-no-files-found: ignore
+          retention-days: 14
 
       # One comment per PR, edited on every push.
       - name: Link it on the PR
