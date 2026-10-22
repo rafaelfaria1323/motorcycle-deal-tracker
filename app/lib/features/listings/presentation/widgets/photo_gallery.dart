@@ -1,15 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/widgets/page_back_button.dart';
 import '../listing_detail_text.dart';
+import '../photo_viewer_args.dart';
 import 'listing_photo.dart';
 
 /// All the listing's photos: swipe or use the arrows, tap to see them
 /// full screen.
 class PhotoGallery extends StatefulWidget {
-  const PhotoGallery({required this.images, super.key});
+  const PhotoGallery({
+    required this.listingId,
+    required this.images,
+    super.key,
+  });
 
+  final String listingId;
   final List<String> images;
 
   @override
@@ -26,15 +35,13 @@ class _PhotoGalleryState extends State<PhotoGallery> {
     super.dispose();
   }
 
-  void _openFullScreen() {
-    Navigator.of(context, rootNavigator: true).push(
-      MaterialPageRoute<void>(
-        fullscreenDialog: true,
-        builder: (_) =>
-            _FullScreenGallery(images: widget.images, initialIndex: _index),
-      ),
-    );
-  }
+  // A route of its own (not a bare Navigator push), so the browser's
+  // history has an entry for it: the back gesture closes the photos
+  // instead of leaving the listing.
+  void _openFullScreen() => context.push(
+    AppRoutes.listingPhotos(widget.listingId),
+    extra: PhotoViewerArgs(images: widget.images, index: _index).toExtra(),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -163,19 +170,24 @@ class _RoundButton extends StatelessWidget {
   }
 }
 
-class _FullScreenGallery extends StatefulWidget {
-  const _FullScreenGallery({required this.images, required this.initialIndex});
+/// The photos full screen (route `/deals/<id>/photos`).
+class FullScreenGallery extends StatefulWidget {
+  const FullScreenGallery({
+    required this.listingId,
+    required this.args,
+    super.key,
+  });
 
-  final List<String> images;
-  final int initialIndex;
+  final String listingId;
+  final PhotoViewerArgs args;
 
   @override
-  State<_FullScreenGallery> createState() => _FullScreenGalleryState();
+  State<FullScreenGallery> createState() => _FullScreenGalleryState();
 }
 
-class _FullScreenGalleryState extends State<_FullScreenGallery> {
-  late final _controller = PageController(initialPage: widget.initialIndex);
-  late var _index = widget.initialIndex;
+class _FullScreenGalleryState extends State<FullScreenGallery> {
+  late final _controller = PageController(initialPage: widget.args.index);
+  late var _index = widget.args.index;
 
   @override
   void dispose() {
@@ -185,11 +197,17 @@ class _FullScreenGalleryState extends State<_FullScreenGallery> {
 
   @override
   Widget build(BuildContext context) {
-    final images = widget.images;
+    final images = widget.args.images;
 
     return Scaffold(
       backgroundColor: AppColors.photoBackdrop,
       appBar: AppBar(
+        leading: CloseButton(
+          onPressed: () => goBack(
+            context,
+            fallback: AppRoutes.listingDetail(widget.listingId),
+          ),
+        ),
         backgroundColor: AppColors.photoBackdrop,
         foregroundColor: AppColors.onPhoto,
         systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(

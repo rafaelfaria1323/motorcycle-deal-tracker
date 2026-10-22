@@ -182,7 +182,7 @@ class _DealTile extends StatelessWidget {
       title: Text(summaryDealTitle(deal)),
       subtitle: Text(subtitle),
       trailing: const Icon(Icons.chevron_right),
-      onTap: () => context.go(AppRoutes.listingDetail(deal.listingId)),
+      onTap: () => context.push(AppRoutes.listingDetail(deal.listingId)),
     );
   }
 }

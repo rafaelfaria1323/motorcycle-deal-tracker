@@ -278,7 +278,7 @@ class DashboardPage extends StatelessWidget {
                                               favourite: favourites.isFavourite(
                                                 listing.id,
                                               ),
-                                              onTap: () => context.go(
+                                              onTap: () => context.push(
                                                 AppRoutes.listingDetail(
                                                   listing.id,
                                                 ),

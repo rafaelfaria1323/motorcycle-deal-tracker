@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/widgets/page_back_button.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/repositories/listings_repository.dart';
@@ -48,12 +49,12 @@ class _ComparePageState extends State<ComparePage> {
     if (rest.isEmpty) {
       _close();
     } else {
-      context.replace(AppRoutes.compare(rest));
+      // In place of this entry, so back doesn't bring the removed one back.
+      Router.neglect(context, () => context.replace(AppRoutes.compare(rest)));
     }
   }
 
-  void _close() =>
-      context.canPop() ? context.pop() : context.go(AppRoutes.deals);
+  void _close() => goBack(context, fallback: AppRoutes.deals);
 
   @override
   Widget build(BuildContext context) {
@@ -192,7 +193,7 @@ class _Header extends StatelessWidget {
         Stack(
           children: [
             InkWell(
-              onTap: () => context.go(AppRoutes.listingDetail(listing.id)),
+              onTap: () => context.push(AppRoutes.listingDetail(listing.id)),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: AspectRatio(

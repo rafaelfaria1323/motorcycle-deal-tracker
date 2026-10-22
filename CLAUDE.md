@@ -243,9 +243,20 @@ invites; written by the collector on each run).
   cubits after sign-in/out.
 - Routing: go_router `StatefulShellRoute` (Ofertas / Pesquisas / Alertas /
   Mais). Account, "Modelos acompanhados" and collection status live in Mais.
-  Use `context.go`, not `push`, so web URLs stay correct. Exception: full
-  pages outside the shell (`/models`, `/market`, `/favourites`,
-  `/compare?ids=a,b,c`, `/summary`) are pushed.
+  Switching tabs uses `context.go`; full pages outside the shell
+  (`/models`, `/market`, `/favourites`, `/compare?ids=a,b,c`, `/summary`)
+  and an ad (`/deals/<id>`, from anywhere) are pushed, so back returns
+  where the person was; pushed pages show their own address
+  (`GoRouter.optionURLReflectsImperativeAPIs`, set in `main.dart`). The
+  ad and its photos (`/deals/<id>/photos`, `extra` = `PhotoViewerArgs`,
+  JSON so the browser's history keeps it) open on the root navigator
+  (`parentNavigatorKey`), above the tab bar. Android's back on a tab
+  other than Ofertas goes to Ofertas (`AppShell`'s `PopScope`). Every
+  in-app back arrow calls `goBack` (`core/widgets/page_back_button.dart`):
+  in the browser `history.back()` while the entry before is the app's
+  (`core/platform/browser_back.dart`), else pop or the fallback in place
+  of the current entry (`Router.neglect`); a plain pop on the web would
+  add an entry, and the back swipe would reopen the page.
   The comparison picks live in `CompareCubit` (lazy singleton, max 3);
   its table is `compare_text.dart` (`compareRows`, tested).
 - Formatting: `Formatters.price`, `.mileage`, `.date`, `.daysAgo`,
@@ -278,8 +289,8 @@ invites; written by the collector on each run).
   on the summary page; the account goes as the workflow's input
   `account`, once per 2 minutes). The app's start calls share
   `start_workflow.dart`. Full pages outside the shell show
-  `PageBackButton` (`core/widgets/`): pops, or, opened from a notification
-  with nothing beneath, goes to Mais (Ofertas for Favoritos).
+  `PageBackButton` (`core/widgets/`, `goBack`): pops, or, opened from a
+  notification with nothing beneath, goes to Mais (Ofertas for Favoritos).
   Catalog
   changes go through RPCs that call `require_account()` (signed in, not
   anonymous). Models per account: lists read `listings.in_my_models` and

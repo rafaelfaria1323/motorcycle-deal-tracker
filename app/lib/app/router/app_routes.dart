@@ -14,6 +14,8 @@ abstract final class AppRoutes {
 
   static String listingDetail(String id) => '$deals/$id';
 
+  static String listingPhotos(String id) => '$deals/$id/photos';
+
   static String compare(List<String> ids) =>
       '$comparePath?ids=${ids.join(',')}';
 }
