@@ -514,6 +514,11 @@ functions for manual work.
   its listings are unmatched at once; when one follows it again they are
   matched by their stored brand and model (a matched listing stores the
   catalog names), removed ones included.
+- An empty mileage field is read from the description (trigger
+  `listings_mileage_from_text`, `mileage_in_text`: "com 12.000 km",
+  "Quilometragem: 12000"; tyres, services, work done ("troquei a corrente com"), purchase and km/h numbers don't count,
+  two different values leave it empty) and marked `mileage_from_text`
+  (the app's "(lido na descrição)"); the ad's own field always wins.
 - Dealer boilerplate sentences are stripped from descriptions (they caused
   false duplicates). Duplicates are detected across sources too; a removed
   listing keeps its mark (only live listings are worked out again).

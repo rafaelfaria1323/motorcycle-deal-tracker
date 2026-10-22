@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/listing_detail_text.dart';
 
@@ -68,6 +69,28 @@ void main() {
     expect(bikeFacts(full), contains(('Livro de revisões', 'Não')));
     expect(bikeFacts(full), contains(('Origem', 'Importada')));
     expect(bikeFacts(full), contains(('Garantia do vendedor', '18 meses')));
+  });
+
+  test('a mileage read from the description says so', () {
+    const fromText = Listing(
+      id: 'l3',
+      source: 'olx',
+      url: 'https://www.olx.pt/x',
+      brand: 'Yamaha',
+      model: 'MT-07',
+      status: ListingStatus.active,
+      sellerType: SellerType.private,
+      images: [],
+      mileage: 12000,
+      mileageFromText: true,
+    );
+    expect(
+      bikeFacts(fromText),
+      contains((
+        'Quilometragem',
+        '${Formatters.mileage(12000)} (lido na descrição)',
+      )),
+    );
   });
 
   test('the ad: dashes for the unknown, dates only when known', () {
