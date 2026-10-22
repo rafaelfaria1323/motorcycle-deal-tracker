@@ -6,7 +6,8 @@ on:
   # dispatch_collection(), which calls the workflow_dispatch API at those
   # hours (GitHub's own scheduler never started this workflow). Also the
   # manual "Run workflow" button.
-  # No request caps (Rafael, 2026-10-22): each site gets robots.txt, every
+  # No request caps (Rafael, 2026-10-22): each site gets robots.txt (once a
+  # day, kept in the fetch state up to 24 h), every
   # page of the tracked models' searches and (Standvirtual) every listing
   # page still to read, 6-10 s apart, one at a time, at most 30 minutes per
   # site (FetchPolicy.maxRunTime; the rest waits for the next run). The
@@ -42,9 +43,9 @@ jobs:
       - name: Install collector dependencies
         run: cd collector && dart pub get
 
-      # The fetcher's requests today and block pause live in these files (one
-      # per site); each run saves a new copy and the next run restores the
-      # latest.
+      # The fetcher's requests today, block pause and robots.txt (kept up to
+      # 24 h) live in these files (one per site); each run saves a new copy
+      # and the next run restores the latest.
       - name: Restore fetch state
         uses: actions/cache/restore@v6
         with:

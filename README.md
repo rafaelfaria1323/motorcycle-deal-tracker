@@ -71,8 +71,8 @@ migrations to Supabase before the app deploys (`deploy-web.yml`);
 
 ## Fetching rules
 
-The collector is a low-volume personal reader: robots.txt read every run,
-6–10 s between requests, never in parallel, no retries, at most 30 minutes
+The collector is a low-volume personal reader: robots.txt read once a day
+(kept up to 24 hours), 6–10 s between requests, never in parallel, no retries, at most 30 minutes
 per site and run (no request cap since 2026-10-22; the requests are shown
 per run, day and month in the app), and a 24-hour pause after any refusal.
 Private sellers' names and phone numbers are never stored, and saved pages

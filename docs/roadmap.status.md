@@ -87,7 +87,7 @@ Do not implement several unrelated features at once.
 ## 5.1 Choose first source ✅
 *First a manual JSON import (`source = 'manual'`); Standvirtual followed in Sprint 9, OLX in 9.7.*
 ## 5.2 Confirm permitted data access 🟡
-*API options checked, robots.txt of both sites checked and respected (read every run). **Terms of use of Standvirtual and OLX still to be read and quoted in `docs/sources.md`.** Decision recorded: low-volume personal fetcher.*
+*API options checked, robots.txt of both sites checked and respected (read once a day, kept up to 24 h since R.4). **Terms of use of Standvirtual and OLX still to be read and quoted in `docs/sources.md`.** Decision recorded: low-volume personal fetcher.*
 ## 5.3 Create parser/adapter ✅
 ## 5.4 Map source fields ✅
 ## 5.5 Store listings ✅
@@ -413,7 +413,7 @@ Do not implement several unrelated features at once.
 ## S.5 Android: encrypted session, no backups ✅
 *The Android app kept its Supabase session (refresh token) in SharedPreferences, a plain file readable by anyone with a rooted phone or a backup of it. It now lives in `flutter_secure_storage` (AES-GCM, key in the Android Keystore, which never leaves the phone): `core/platform/session_storage.dart`, given to Supabase as its `localStorage` (the web keeps the browser's). An earlier build's session is moved over once and deleted from SharedPreferences (`session_store.dart`, `session_store_test.dart`), so updating the APK keeps the person signed in; if the encrypted write fails the old copy stays. The manifest now says `android:allowBackup="false"` (`tool/android_manifest.py`): no cloud backup of the app's data. Android 12+ still copies data when moving to a new phone, but the Keystore key doesn't come along, so the new phone starts signed out. `path_provider_android` (from flutter_secure_storage) is held at 2.2.23: 2.3 moved to JNI like `shared_preferences_android` 2.5, which fails in the release APK.*
 
-# Fewer requests (R) ⬜
+# Fewer requests (R) 🟡
 
 *Rafael, 2026-10-22, after the caps were removed (9.6e): "is there anything we could cache, or some strategy that would help do fewer requests?" The pages themselves can't be cached: a search page changes with every new ad and every new price, and each listing page is already read only once (9.4b). The savings come from reading fewer pages. Order: measure first (R.1), then the biggest saving (R.2), using the uncapped runs' numbers.*
 
@@ -434,8 +434,8 @@ Do not implement several unrelated features at once.
 *Full runs (every page, removals, every price) stay at 2–3 of the 7 hours, e.g. 08:00, 14:00 and 20:00; the rest are light. `refresh.dart`'s `--full` already decides whether a run removes listings; a light run is one without it that also stops paging early. Option: when a search's total count falls in a light run, read that search in full at once (something was removed).*
 ## R.3 One Standvirtual search per brand ⬜
 *If Standvirtual's model filter takes several models (check its filter list), the followed models of one brand share one search. Fewer half-empty last pages: the CB650R and CBR650R as one search of 32 per page instead of two. OLX already groups by family and engine size (9.13, 9.14).*
-## R.4 robots.txt kept up to 24 hours ⬜
-*Rafael's decision (it loosens a Fetching rule: "robots.txt read every run"). RFC 9309 lets a crawler keep robots.txt for up to 24 hours. Kept in each site's fetch state and read again at the first run of the day, or after a refusal: 2 requests a day instead of 14.*
+## R.4 robots.txt kept up to 24 hours ✅
+*Rafael, 2026-10-22: "I would do it, yes" (it loosens the Fetching rule "robots.txt read every run"). RFC 9309 lets a crawler keep robots.txt for up to 24 hours. Each site's fetch state (`.fetch_state*.json`, already cached between runs) now keeps the robots.txt read and when (`robots`, `robots_read_at`). `prepare()` uses the kept copy while it is younger than `FetchPolicy.robotsMaxAge` (24 h; a read time in the future, a moved clock, counts as too old) and otherwise reads it again and keeps the new one. A block forgets it, so the first run after the 24 h pause reads it again. The kept copy decides what may be read, as a fresh one would. `refresh.dart` logs when the copy in use was read. With 7 runs a day: about 1 robots.txt request a day per site instead of 7. Tests: `fetch_test.dart` (kept across days and through JSON, the 24 h limit), `fetch_searches_test.dart` (the next run makes no request for it, the kept copy still refuses a disallowed page, a 24 h old one is read again, a block forgets it).*
 ## R.5 Listing pages that matter first ⬜
 *When a run reaches the 30 minutes per site (`maxRunTime`), the Standvirtual listing pages still to read wait for the next run. Read first the favourites', then the alerted ones', then the rest by Deal Score, instead of newest first. Same requests, but what waits is what matters least.*
 ## R.6 Quiet searches read less often ⬜
@@ -443,10 +443,10 @@ Do not implement several unrelated features at once.
 
 # Sprint 16 — Paid plans ⬜
 
-*Rafael, 2026-10-22: "plan the paid features if in the future we want to start having paid subscriptions, and other ways to make money". The plan: `docs/paid-plans.md` (decisions, free vs paid features, new features, other income, prices to test). Not started. It starts only after 16.0.*
-## 16.0 Decisions before charging ⬜
+*Rafael, 2026-10-22: "plan the paid features if in the future we want to start having paid subscriptions, and other ways to make money". The plan: `docs/paid-plans.md` (decisions, free vs paid features, new features, other income, prices to test). Not started, and on hold: Rafael decided the same day to charge only if Standvirtual and OLX give us an API or a data licence (16.0).*
+## 16.0 Decisions before charging 🟡
 *Rafael's, with a lawyer and an accountant (`docs/paid-plans.md` §1):*
-- *Data rights. The collection's basis is personal, non-commercial use (`docs/sources.md`). The sites' terms are still unread, and the EU database right applies (CJEU Innoweb v Wegener, CV-Online v Melons). Choose: stay free among invited friends, get the sites' permission, or charge only for our own analysis and tools.*
+- *Data rights: decided (Rafael, 2026-10-22). The collection's basis is personal, non-commercial use (`docs/sources.md`), and the EU database right applies (CJEU Innoweb v Wegener, CV-Online v Melons). Paid plans only if the sites make their data available to us: an API, or a licence for the listings. Until then the app stays free for invited accounts, and no page offers plans (no public page for them either). The rest of Sprint 16 waits for that permission.*
 - *Business: activity at Finanças, VAT, invoices, Merchant of Record or Stripe.*
 - *Legal pages.*
 - *Supabase Pro.*
@@ -492,7 +492,7 @@ Do not implement several unrelated features at once.
 2. Saved ads from other sites: update the price or mark sold from their page (after #43).
 3. Fewer requests: R.1 once the uncapped runs have a week of numbers, then R.2.
 
-**Open items for Rafael:** read the Standvirtual/OLX terms and record the clauses in `docs/sources.md`; check the new-bike reference prices; check the IUC table each January (`ownership_cost.dart`) and enter your insurance quote in "Custo de ter esta mota" → Alterar. Robots.txt kept up to 24 h (R.4)? Paid plans: the decisions in 16.0 (`docs/paid-plans.md` §1) before any of Sprint 16.
+**Open items for Rafael:** read the Standvirtual/OLX terms and record the clauses in `docs/sources.md`; check the new-bike reference prices; check the IUC table each January (`ownership_cost.dart`) and enter your insurance quote in "Custo de ter esta mota" → Alterar. Paid plans: on hold until the sites offer an API or a data licence (16.0); the business and legal decisions in `docs/paid-plans.md` §1.2–1.4 only then.
 
 # Definition of Done
 

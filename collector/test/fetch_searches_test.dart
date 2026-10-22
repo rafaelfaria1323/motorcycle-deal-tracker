@@ -304,6 +304,72 @@ void main() {
     expect(state.blockedAt, isNull);
   });
 
+  group('robots.txt kept for 24 hours', () {
+    const policy = FetchPolicy(minDelay: Duration.zero, jitter: Duration.zero);
+
+    Future<int> prepare() => local(() async {
+      final fetcher = PoliteFetcher(site: site, policy: policy);
+      try {
+        await fetcher.prepare();
+        return fetcher.requestsThisRun;
+      } finally {
+        fetcher.close();
+      }
+    });
+
+    void keep(String text, Duration age) =>
+        File(site.statePath).writeAsStringSync(
+          jsonEncode(
+            FetchState(
+              day: '2026-10-19',
+              robots: text,
+              robotsReadAt: DateTime.now().toUtc().subtract(age),
+            ).toJson(),
+          ),
+        );
+
+    test('the next run uses the one read by the run before', () async {
+      expect(await prepare(), 1);
+      expect(await prepare(), 0);
+      expect(paths, ['/robots.txt']);
+      expect((await readFetchState(site.statePath))!.robots, robotsTxt);
+    });
+
+    test('the one kept still decides what may be read', () async {
+      keep('User-agent: *\nDisallow: /*page=2\n', const Duration(hours: 1));
+
+      final outcome = await fetchWith(policy);
+
+      expect(outcome.saved, 1);
+      expect(outcome.failure, isA<FetchRefused>());
+      expect(paths.where((p) => p == '/robots.txt'), isEmpty);
+    });
+
+    test('one 24 hours old is read again and replaced', () async {
+      keep('User-agent: *\nDisallow: /\n', const Duration(hours: 24));
+
+      expect(await prepare(), 1);
+      expect(paths, ['/robots.txt']);
+      final state = (await readFetchState(site.statePath))!;
+      expect(state.robots, robotsTxt);
+      expect(
+        DateTime.now().toUtc().difference(state.robotsReadAt!),
+        lessThan(const Duration(minutes: 1)),
+      );
+    });
+
+    test('a block forgets it, so the run after the pause reads it', () async {
+      status = (_) => 503;
+
+      await expectLater(fetchWith(policy), throwsA(isA<FetchBlocked>()));
+
+      final state = (await readFetchState(site.statePath))!;
+      expect(state.blockedAt, isNotNull);
+      expect(state.robots, isNull);
+      expect(state.robotsReadAt, isNull);
+    });
+  });
+
   test('no request cap unless one is set', () async {
     final outcome = await fetchWith(
       const FetchPolicy(minDelay: Duration.zero, jitter: Duration.zero),
