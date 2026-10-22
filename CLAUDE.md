@@ -612,8 +612,11 @@ functions for manual work.
   (inverted), seller 10 (`dealer_score`: dealers with 5+ bikes only, 100
   minus 100 x (relisted + sharp changes + repeated + half the ads without
   mileage) / bikes; private sellers and smaller dealers skip it; the
-  app's `sellerLine`); then + 2 points per extra found, at most + 10, never above
-  100 (`listing_extras`: keywords in variant/description for quickshifter,
+  app's `sellerLine`); then + 1 point per extra worth money
+  (`valued_extras`: quickshifter, exhaust, luggage, heated grips, upgraded
+  suspension, cruise control, steering damper, new tyres), at most + 3, so
+  extras only break ties (never more than about a year newer), never above
+  100 (all extras are still read, shown and filterable; `listing_extras`: keywords in variant/description for quickshifter,
   exhaust, luggage, heated grips, protection (also "cogumelos"), new tyres,
   short plate holder, tinted or sport screen, adjustable levers, bar-end
   mirrors, phone mount/USB, alarm/tracker, steering damper, centre stand,
