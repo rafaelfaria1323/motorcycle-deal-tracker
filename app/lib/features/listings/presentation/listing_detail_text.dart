@@ -37,10 +37,15 @@ String originalLinkLabel(String source) => switch (source) {
 typedef Fact = (String label, String value);
 
 /// "A mota": year and mileage always (a dash when unknown), the rest only
-/// when the ad says.
+/// when the ad says. A mileage read from the description says so.
 List<Fact> bikeFacts(Listing listing) => [
   ('Ano', listing.year?.toString() ?? '—'),
-  ('Quilometragem', Formatters.mileage(listing.mileage)),
+  (
+    'Quilometragem',
+    listing.mileageFromText
+        ? '${Formatters.mileage(listing.mileage)} (lido na descrição)'
+        : Formatters.mileage(listing.mileage),
+  ),
   if (listing.registrations case final owners?) ('Registos (donos)', '$owners'),
   if (listing.serviceBook case final book?)
     ('Livro de revisões', book ? 'Completo' : 'Não'),

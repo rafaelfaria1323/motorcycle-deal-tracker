@@ -19,6 +19,7 @@ class Listing extends Equatable {
     this.riskScore,
     this.year,
     this.mileage,
+    this.mileageFromText = false,
     this.dealScore,
     this.initialPrice,
     this.priceBeforeDrop,
@@ -55,6 +56,10 @@ class Listing extends Equatable {
   final int? riskScore;
   final int? year;
   final int? mileage;
+
+  /// The ad's mileage field was empty and [mileage] was read from its
+  /// description (`mileage_in_text`).
+  final bool mileageFromText;
   final int? dealScore;
   final double? initialPrice;
 
