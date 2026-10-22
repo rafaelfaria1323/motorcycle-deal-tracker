@@ -13,6 +13,8 @@
 # transaction together with its row in that table: a failing one changes
 # nothing and stops the rest. Refuses to run when the database has a
 # version the repository doesn't (someone applied a migration not on main).
+# On GitHub Actions, writes `pending=N` to $GITHUB_OUTPUT (what the database
+# is missing, before applying), so the deploy gates on the database itself.
 set -euo pipefail
 
 url=${1:?usage: apply_migrations.sh DB_URL [--dry-run]}
@@ -40,6 +42,9 @@ for f in "$dir"/*.sql; do
   grep -qx "$version" <<<"$applied" || pending+=("$f")
 done
 
+if [ -n "${GITHUB_OUTPUT:-}" ]; then
+  echo "pending=${#pending[@]}" >> "$GITHUB_OUTPUT"
+fi
 if [ ${#pending[@]} -eq 0 ]; then
   echo "The database is up to date."
   exit 0

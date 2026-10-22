@@ -5,13 +5,15 @@ The app is built and published to Cloudflare Pages by
 `app/` or adds a migration, and from the Actions tab ("Deploy web app" →
 "Run workflow"). Tests must pass before anything is published.
 
-Database migrations are applied by the same workflow, before the app: when
-a merge adds files to `supabase/migrations/`, the `migrate` job tests every
-migration and SQL test again on an empty Postgres, then applies the ones
-Supabase is missing with `tool/apply_migrations.sh` (psql through the
-Session pooler, each migration in one transaction with its record in the
-same history table `supabase db push` uses). A merge without new migrations skips
-it. A failure stops the app deploy (fix it with a new migration; "Run
+Database migrations are applied by the same workflow, before the app: the
+`migrate` job asks Supabase which migrations it is missing; if any, it tests
+every migration and SQL test again on an empty Postgres, then applies them
+with `tool/apply_migrations.sh` (psql through the Session pooler, each
+migration in one transaction with its record in the same history table
+`supabase db push` uses). It asks the database rather than looking at what
+the merge added because a deploy waiting in the queue is replaced by the
+next merge's: the merge that added a migration may never get its own run.
+With nothing missing it skips to the app. A failure stops the app deploy (fix it with a new migration; "Run
 workflow" applies whatever is missing). `make db-push` still works by hand.
 
 Every pull request that changes `app/` also gets a preview
@@ -199,3 +201,45 @@ The API keys (publishable key) can only read, apart from the app's own
 writes on the caller's rows (roadmap S.1); `app/web/_headers` makes Pages
 send HSTS, `nosniff`, a no-framing policy, a referrer policy and a
 permissions policy (no camera, microphone, location or payment).
+
+## Replacing secrets
+
+Replace a secret at once if it may have leaked (pasted somewhere, a lost
+laptop, a log that showed it), and otherwise once a year, in January,
+together with the IUC check. The GitHub dispatch token has its own
+expiry; Telegram and "Estado da recolha" warn 14 days before it.
+
+Rules for every one: make the new value first, put it everywhere it is
+used, check that it works, and only then revoke the old one. Repository
+secrets are in GitHub › Settings › Secrets and variables › Actions;
+Vault secrets are replaced in Supabase › SQL Editor with
+`select vault.update_secret(id, '<new value>') from vault.secrets where name = '<name>';`.
+Never paste a value in a chat, an issue or a commit; on the Mac, also
+update `collector/.env` if you run the collector there.
+
+| Secret | Where it is used | How to replace it |
+|---|---|---|
+| GitHub dispatch token | Vault `github_dispatch_token` | See "Scheduled runs" above: new fine-grained token, `vault.update_secret`, check with `select public.dispatch_workflow('collect.yml');` (or "Recolher agora" in Mais), then delete the old token in GitHub. |
+| Supabase secret key | Repository secret `SUPABASE_SERVICE_ROLE_KEY`; the collector copies it into Vault `service_role_key` on each run (invites use it) | Supabase › Project Settings › API Keys › Secret keys: create a new one, put it in the repository secret, run "Collect listings" (Actions › Run workflow), check the run is green and an invite can be made, then delete the old key. A project still on the legacy `service_role` JWT can't replace it alone (a new JWT secret also changes the publishable key and signs everyone out): move to the new API keys first (the same page). |
+| Database password | Repository secret `SUPABASE_DB_PASSWORD` (migrations) | Supabase › Project Settings › Database › Reset database password, then the repository secret. Check with "Deploy web app" › Run workflow (the `migrate` job connects even when nothing is missing). |
+| Telegram bot token | Repository secret `TELEGRAM_BOT_TOKEN` and Vault `telegram_bot_token` | In Telegram, @BotFather › `/revoke` › the bot: the old token stops at once, so put the new one in both places straight away. Check with `select public.send_telegram('Teste');`. The chat id never changes. |
+| Cloudflare API token | Repository secret `CLOUDFLARE_API_TOKEN` | Cloudflare › My Profile › API Tokens › the token › "Roll", then the repository secret; check with "Deploy web app" › Run workflow. |
+| Firebase service account | Repository secret `FIREBASE_SERVICE_ACCOUNT` | Firebase › Project settings › Service accounts › "Generate new private key", paste it as the secret, delete the file; check with "Enviar notificação de teste" in the Android app; then delete the old key in Google Cloud › IAM › Service accounts › the account › Keys. `FIREBASE_ANDROID_CONFIG` is not a secret worth replacing (it is inside every APK). |
+| Claude token | Repository secret `CLAUDE_CODE_OAUTH_TOKEN` (backlog passes) | `claude setup-token` on the Mac, paste it as the secret (these tokens last a year, so this one also has its own date). |
+
+Not replaced:
+
+- **Android signing key** (`ANDROID_KEYSTORE_BASE64`, `..._PASSWORD`):
+  never; a new key means everyone uninstalls the app once. Kept in a
+  password manager and the repository secrets only. A leak alone does
+  not reach a phone: the app installs updates only from this
+  repository's release.
+- **Web Push key pair** (`push_config`, Vault `vapid_private_key`): made
+  by the collector, never typed anywhere. Only if it leaked: in the SQL
+  Editor `delete from public.push_config where true;`,
+  `delete from vault.secrets where name = 'vapid_private_key';` and
+  `delete from public.push_subscriptions where endpoint not like 'fcm:%';`;
+  the next collection makes a new pair, and each browser or iPhone turns
+  on Mais › "Notificações neste aparelho" again.
+- **Publishable key** (`SUPABASE_PUBLISHABLE_KEY`): public by design,
+  inside the app; row-level security and the grants protect the data.
