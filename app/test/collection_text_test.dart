@@ -13,48 +13,48 @@ CollectorRun run(int seconds, {Map<String, int> requests = const {}}) {
 }
 
 void main() {
-  group('next collection (minute 40 of the Lisbon hours)', () {
-    test('later the same hour', () {
+  group('next collection (on the Lisbon hours)', () {
+    test('the coming hour', () {
       expect(
-        nextCollection(DateTime.utc(2026, 12, 1, 12, 10)),
-        DateTime.utc(2026, 12, 1, 12, 40),
+        nextCollection(DateTime.utc(2026, 12, 1, 11, 50)),
+        DateTime.utc(2026, 12, 1, 12),
       );
     });
 
     test('every 2 hours in the afternoon', () {
       expect(
-        nextCollection(DateTime.utc(2026, 12, 1, 12, 40)),
-        DateTime.utc(2026, 12, 1, 14, 40),
+        nextCollection(DateTime.utc(2026, 12, 1, 12)),
+        DateTime.utc(2026, 12, 1, 14),
       );
       expect(
         nextCollection(DateTime.utc(2026, 12, 1, 19, 5)),
-        DateTime.utc(2026, 12, 1, 20, 40),
+        DateTime.utc(2026, 12, 1, 20),
       );
     });
 
-    test('midnight, then 08:40, then 12:40', () {
+    test('midnight, then 08:00, then 12:00', () {
       expect(
-        nextCollection(DateTime.utc(2026, 12, 1, 20, 50)),
-        DateTime.utc(2026, 12, 2, 0, 40),
+        nextCollection(DateTime.utc(2026, 12, 1, 20, 10)),
+        DateTime.utc(2026, 12, 2),
       );
       expect(
-        nextCollection(DateTime.utc(2026, 12, 2, 0, 41)),
-        DateTime.utc(2026, 12, 2, 8, 40),
+        nextCollection(DateTime.utc(2026, 12, 2, 0, 1)),
+        DateTime.utc(2026, 12, 2, 8),
       );
       expect(
         nextCollection(DateTime.utc(2026, 12, 2, 9)),
-        DateTime.utc(2026, 12, 2, 12, 40),
+        DateTime.utc(2026, 12, 2, 12),
       );
     });
 
     test('in summer time the same Lisbon hours are an hour earlier in UTC', () {
       expect(
         nextCollection(DateTime.utc(2026, 7, 1, 21)),
-        DateTime.utc(2026, 7, 1, 23, 40),
+        DateTime.utc(2026, 7, 1, 23),
       );
       expect(
         nextCollection(DateTime.utc(2026, 7, 2, 0)),
-        DateTime.utc(2026, 7, 2, 7, 40),
+        DateTime.utc(2026, 7, 2, 7),
       );
     });
 

@@ -1,12 +1,11 @@
 import '../../../core/formatting/formatters.dart';
 import '../domain/collector_run.dart';
 
-/// The collection starts at minute 40 of these hours, Lisbon time (the
+/// The collection starts on the hour at these hours, Lisbon time (the
 /// pg_cron job 'collect-listings' and collection_due() in
 /// supabase/migrations/20261024210000_collection_hours.sql; keep them in
 /// step).
 const collectionHours = {0, 8, 12, 14, 16, 18, 20};
-const _minute = 40;
 
 /// Requests allowed per site and run (FetchPolicy.maxRequestsPerRun).
 const requestsPerRunLimit = 20;
@@ -14,7 +13,7 @@ const requestsPerRunLimit = 20;
 /// The next scheduled collection after [now], in UTC.
 DateTime nextCollection(DateTime now) {
   final utc = now.toUtc();
-  var next = DateTime.utc(utc.year, utc.month, utc.day, utc.hour, _minute);
+  var next = DateTime.utc(utc.year, utc.month, utc.day, utc.hour);
   while (!next.isAfter(utc) ||
       !collectionHours.contains(next.add(lisbonOffset(next)).hour)) {
     next = next.add(const Duration(hours: 1));
@@ -37,7 +36,7 @@ Duration lisbonOffset(DateTime utc) {
   return Duration(hours: summer ? 1 : 0);
 }
 
-/// "Próxima recolha: hoje às 20:40" (local time). The run itself waits for
+/// "Próxima recolha: hoje às 20:00" (local time). The run itself waits for
 /// a free GitHub runner, hence the note.
 String nextCollectionText(DateTime now) {
   final next = nextCollection(now).toLocal();

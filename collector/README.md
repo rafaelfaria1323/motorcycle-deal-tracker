@@ -1,7 +1,7 @@
 # Collector
 
 Dart command line that fills the database. GitHub Actions runs it at
-00:40, 08:40 and every 2 hours from 12:40 to 20:40, Lisbon time
+00:00, 08:00 and every 2 hours from 12:00 to 20:00, Lisbon time
 (`.github/workflows/collect.yml`, started by Supabase pg_cron); it uses the
 Supabase service-role key, which the app never sees.
 

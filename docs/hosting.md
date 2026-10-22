@@ -55,8 +55,8 @@ its preview (`tool/pages_previews.py`). Previews cost nothing.
 ## Scheduled runs (Supabase starts them)
 
 GitHub's own scheduler never started `collect.yml`, so Supabase does:
-pg_cron jobs `collect-listings` (at 00:40, 08:40 and every 2 hours from
-12:40 to 20:40, Lisbon time) and
+pg_cron jobs `collect-listings` (at 00:00, 08:00 and every 2 hours from
+12:00 to 20:00, Lisbon time) and
 `weekly-summary` (Mondays 07:52 UTC; each account's summary to its devices)
 call GitHub's "Run workflow" API.
 They need one token, created once:

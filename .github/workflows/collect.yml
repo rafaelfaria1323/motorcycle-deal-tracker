@@ -1,7 +1,7 @@
 name: Collect listings
 
 on:
-  # Started at 00:40, 08:40 and every 2 hours from 12:40 to 20:40, Lisbon
+  # Started at 00:00, 08:00 and every 2 hours from 12:00 to 20:00, Lisbon
   # time, by Supabase: the hourly pg_cron job 'collect-listings' calls
   # dispatch_collection(), which calls the workflow_dispatch API at those
   # hours (GitHub's own scheduler never started this workflow). Also the

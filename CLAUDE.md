@@ -100,8 +100,8 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
             (also how to replace each secret),
             roadmap.status.md, concept.status.md, code-quality.md and
             test-hardening.md (backlogs of the automatic passes)
-.github/workflows/collect.yml     Collection at 00:40, 08:40 and every 2 h
-                                  from 12:40 to 20:40 (Lisbon time),
+.github/workflows/collect.yml     Collection at 00:00, 08:00 and every 2 h
+                                  from 12:00 to 20:00 (Lisbon time),
                                   started by Supabase pg_cron (see below)
 .github/workflows/weekly-summary.yml  Mondays 07:52 UTC (pg_cron): each account's
                                   summary of the week, kept for the app and
@@ -414,7 +414,7 @@ invites; written by the collector on each run).
   free plan's 500 MB and its 5 biggest tables (`database_usage`, admins;
   red from 80 %).
 - Schedules live in Supabase, not in the workflows (GitHub's scheduler never
-  started `collect.yml`): pg_cron jobs `collect-listings` (`40 * * * *`,
+  started `collect.yml`): pg_cron jobs `collect-listings` (`0 * * * *`,
   `dispatch_collection()`: only at the Lisbon hours 0, 8, 12, 14, 16, 18
   and 20, `collection_due`, so summer time needs no change)
   and `weekly-summary` (`52 7 * * 1`) call `dispatch_workflow()`, which

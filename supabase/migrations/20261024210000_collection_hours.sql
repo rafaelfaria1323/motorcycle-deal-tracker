@@ -1,6 +1,6 @@
 -- Rafael, 2026-10-22: collections at fixed hours of the Portuguese day
--- instead of every 4 hours: 00:40, 08:40, then every 2 hours from 12:40 to
--- 20:40 (Lisbon time). pg_cron counts in UTC, so the job runs every hour
+-- instead of every 4 hours: 00:00, 08:00, then every 2 hours from 12:00 to
+-- 20:00 (Lisbon time). pg_cron counts in UTC, so the job runs every hour
 -- and starts the collection only at those Lisbon hours, which keeps them
 -- right across summer time. The fetching caps are unchanged (20 requests
 -- per run, 120 per day per site). collection_text.dart in the app mirrors
@@ -41,6 +41,6 @@ revoke all on function public.dispatch_collection(timestamptz)
 -- Replaces the job of the same name.
 select cron.schedule(
   'collect-listings',
-  '40 * * * *',
+  '0 * * * *',
   $job$ select public.dispatch_collection() $job$
 );
