@@ -139,7 +139,11 @@ them again, set the caps in `FetchPolicy`
 (`collector/lib/src/fetch/polite_fetcher.dart`): `maxRequestsPerRun`,
 `maxRequestsPerDay` (null = none) and `maxRunTime`; keep `collect.yml`'s
 `timeout-minutes` above twice `maxRunTime` plus the imports, and update
-`docs/sources.md` and the Fetching rules in `CLAUDE.md`.
+`docs/sources.md` and the Fetching rules in `CLAUDE.md`. robots.txt is
+read once a day per site, not every run: it is kept in the fetch state
+for up to 24 hours (`FetchPolicy.robotsMaxAge`; the log says when the one
+in use was read). Other ways to need fewer requests (light runs newest
+first, fewer searches) are planned in the roadmap's "Fewer requests (R)".
 
 ### Space: old listings of models nobody follows
 

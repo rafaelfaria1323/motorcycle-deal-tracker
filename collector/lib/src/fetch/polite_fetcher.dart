@@ -52,6 +52,7 @@ class FetchPolicy {
     this.timeout = const Duration(seconds: 20),
     this.readTimeout = const Duration(seconds: 60),
     this.cooldownAfterBlock = const Duration(hours: 24),
+    this.robotsMaxAge = const Duration(hours: 24),
   });
 
   final Duration minDelay;
@@ -75,33 +76,68 @@ class FetchPolicy {
   /// one took longer than [timeout] on a slow runner (it adds no request).
   final Duration readTimeout;
   final Duration cooldownAfterBlock;
+
+  /// How long a robots.txt read is kept (in the state file, across runs)
+  /// before it is read again. RFC 9309 asks crawlers not to keep one
+  /// longer than 24 hours; Rafael, 2026-10-22: once a day, not every run.
+  final Duration robotsMaxAge;
 }
 
-/// What survives between runs: today's request count and the last block.
+/// What survives between runs: today's request count, the last block and
+/// the site's robots.txt as last read.
 class FetchState {
-  FetchState({required this.day, this.requests = 0, this.blockedAt});
+  FetchState({
+    required this.day,
+    this.requests = 0,
+    this.blockedAt,
+    this.robots,
+    this.robotsReadAt,
+  });
 
   factory FetchState.fromJson(Map<String, dynamic> json) => FetchState(
     day: json['day'] as String,
     requests: json['requests'] as int,
-    blockedAt: json['blocked_at'] == null
-        ? null
-        : DateTime.parse(json['blocked_at'] as String),
+    blockedAt: _time(json['blocked_at']),
+    robots: json['robots'] as String?,
+    robotsReadAt: _time(json['robots_read_at']),
   );
+
+  static DateTime? _time(Object? value) =>
+      value == null ? null : DateTime.parse(value as String);
 
   String day;
   int requests;
   DateTime? blockedAt;
+  String? robots;
+  DateTime? robotsReadAt;
 
   Map<String, dynamic> toJson() => {
     'day': day,
     'requests': requests,
     'blocked_at': blockedAt?.toUtc().toIso8601String(),
+    'robots': robots,
+    'robots_read_at': robotsReadAt?.toUtc().toIso8601String(),
   };
 
-  /// The count restarts each day; a block is remembered.
-  FetchState rolledTo(String today) =>
-      day == today ? this : FetchState(day: today, blockedAt: blockedAt);
+  /// The count restarts each day; a block and robots.txt are remembered.
+  FetchState rolledTo(String today) => day == today
+      ? this
+      : FetchState(
+          day: today,
+          blockedAt: blockedAt,
+          robots: robots,
+          robotsReadAt: robotsReadAt,
+        );
+
+  /// The robots.txt kept from an earlier read while younger than [maxAge]
+  /// at [now]; null when it must be read again (none kept, too old, or
+  /// read "in the future" by a clock that moved).
+  String? keptRobots(Duration maxAge, DateTime now) {
+    final readAt = robotsReadAt;
+    if (readAt == null) return null;
+    final age = now.toUtc().difference(readAt);
+    return age.isNegative || age >= maxAge ? null : robots;
+  }
 
   /// What the app shows for the site at [now]: requests used today (UTC)
   /// and until when it is paused after a block.
@@ -216,7 +252,12 @@ class PoliteFetcher {
   static String _today() =>
       DateTime.now().toUtc().toIso8601String().substring(0, 10);
 
-  /// Checks the pause after a block, loads robots.txt. Call before [get].
+  /// When the robots.txt in use was read: in this run, or by an earlier one
+  /// less than [FetchPolicy.robotsMaxAge] ago. Known after [prepare].
+  DateTime? get robotsReadAt => _state.robotsReadAt;
+
+  /// Checks the pause after a block, loads robots.txt (the one kept in the
+  /// state file while it is fresh, else from the site). Call before [get].
   Future<void> prepare() async {
     _startedAt = DateTime.now();
     _state = (await _loadState()).rolledTo(_today());
@@ -233,6 +274,11 @@ class PoliteFetcher {
       _state.blockedAt = null;
     }
 
+    final kept = _state.keptRobots(policy.robotsMaxAge, DateTime.now());
+    if (kept != null) {
+      _robots = RobotsRules.parse(kept);
+      return;
+    }
     final robots = await _request(Uri.https(site.host, '/robots.txt'));
     if (robots.status != 200) {
       throw FetchRefused(
@@ -241,6 +287,10 @@ class PoliteFetcher {
       );
     }
     _robots = RobotsRules.parse(robots.body);
+    _state
+      ..robots = robots.body
+      ..robotsReadAt = DateTime.now().toUtc();
+    await _saveState();
   }
 
   /// Downloads one page and returns its HTML.
@@ -342,8 +392,12 @@ class PoliteFetcher {
     }
   }
 
+  /// After the pause, the first run reads robots.txt again.
   Future<void> _markBlocked() async {
-    _state.blockedAt = DateTime.now().toUtc();
+    _state
+      ..blockedAt = DateTime.now().toUtc()
+      ..robots = null
+      ..robotsReadAt = null;
     await _saveState();
   }
 

@@ -99,7 +99,9 @@ supabase/   Migrations (Postgres: scoring, alerts, views, RLS); tests/ SQL tests
 docs/       sources.md (data-source decisions, keep updated), hosting.md
             (also how to replace each secret),
             roadmap.status.md, concept.status.md, code-quality.md and
-            test-hardening.md (backlogs of the automatic passes)
+            test-hardening.md (backlogs of the automatic passes),
+            paid-plans.md (paid plans and other income: a plan, not
+            started; roadmap Sprint 16)
 .github/workflows/collect.yml     Collection at 00:00, 08:00 and every 2 h
                                   from 12:00 to 20:00 (Lisbon time),
                                   started by Supabase pg_cron (see below)
@@ -539,10 +541,13 @@ functions for manual work.
 
 - Only `https://www.standvirtual.com/motos/...` and
   `https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/...`,
-  robots.txt read every run.
+  robots.txt read once a day: kept in the site's fetch state up to 24 h
+  (`FetchPolicy.robotsMaxAge`, RFC 9309's limit; Rafael, 2026-10-22),
+  forgotten on a block, so the run after the pause reads it again.
 - 6-10 s between requests (counted from the end of the previous request,
   so work done in between counts), **never parallel**, no retries; stop on
-  403/429/503 or a non-normal page, then pause 24 h (state in
+  403/429/503 or a non-normal page, then pause 24 h (state: requests
+  today, the last block and robots.txt, in
   `collector/.fetch_state.json` and `.fetch_state.olx.json`, cached
   between Actions runs; written whole through a temporary file; a damaged
   one starts afresh, and a site still refusing pauses again at once).

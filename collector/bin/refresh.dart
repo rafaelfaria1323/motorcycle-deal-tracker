@@ -6,9 +6,9 @@ import 'package:supabase/supabase.dart';
 /// One whole collection in one process: for each site, the searches of the
 /// tracked models are fetched and imported (Standvirtual then reads the
 /// details of new listings with the same fetcher, so robots.txt is read
-/// once); then duplicates, scores,
-/// alerts and notifications run once. A site that fails does not stop the
-/// other; the exit code still reports it.
+/// at most once, and only when the one kept is 24 h old); then duplicates,
+/// scores, alerts and notifications run once. A site that fails does not
+/// stop the other; the exit code still reports it.
 Future<void> main(List<String> args) async {
   final sites = <FetchSite>[];
   var full = false;
@@ -120,6 +120,10 @@ Future<int> _refreshSite(
   final fetcher = PoliteFetcher(site: site);
   try {
     await fetcher.prepare();
+    stdout.writeln(
+      'robots.txt as read at ${fetcher.robotsReadAt?.toIso8601String()} '
+      '(read again after 24 h)',
+    );
     final outcome = await fetchSearches(fetcher, [
       for (final s in plan.searches) s.url,
     ], directory);

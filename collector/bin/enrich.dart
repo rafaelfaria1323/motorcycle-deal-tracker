@@ -42,7 +42,7 @@ Future<void> main(List<String> args) async {
       return;
     }
 
-    // One extra request for robots.txt.
+    // One extra request for robots.txt, when the one kept is 24 h old.
     final fetcher = PoliteFetcher(
       site: FetchSite.standvirtual,
       policy: FetchPolicy(maxRequestsPerRun: max + 1),

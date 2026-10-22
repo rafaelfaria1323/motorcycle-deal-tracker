@@ -126,6 +126,43 @@ void main() {
       expect(copy.blockedAt, state.blockedAt);
     });
 
+    test('robots.txt is kept across days and through JSON', () {
+      final read = DateTime.utc(2026, 10, 19, 8);
+      final state = FetchState(
+        day: '2026-10-19',
+        robots: robots,
+        robotsReadAt: read,
+      );
+
+      final copy = FetchState.fromJson(state.toJson()).rolledTo('2026-10-20');
+
+      expect(copy.robots, robots);
+      expect(copy.robotsReadAt, read);
+    });
+
+    test('robots.txt is used for less than 24 hours', () {
+      final read = DateTime.utc(2026, 10, 19, 8);
+      final state = FetchState(
+        day: '2026-10-19',
+        robots: robots,
+        robotsReadAt: read,
+      );
+      const day = Duration(hours: 24);
+
+      expect(state.keptRobots(day, read), robots);
+      expect(
+        state.keptRobots(day, read.add(const Duration(hours: 23, minutes: 59))),
+        robots,
+      );
+      expect(state.keptRobots(day, read.add(day)), isNull);
+      // A clock that went back: read again.
+      expect(
+        state.keptRobots(day, read.subtract(const Duration(minutes: 1))),
+        isNull,
+      );
+      expect(FetchState(day: '2026-10-19').keptRobots(day, read), isNull);
+    });
+
     test('reports today\'s requests and a pause still running', () {
       final state = FetchState(
         day: '2026-10-19',

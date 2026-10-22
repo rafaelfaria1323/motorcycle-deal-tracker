@@ -5,6 +5,32 @@ here. Robots.txt is not permission; the source's terms of use decide.
 
 ## Decision log
 
+### 2026-10-22: robots.txt kept up to 24 hours (R.4)
+
+**Decision (Rafael).** robots.txt is read once a day per site instead of
+at the start of every run. The copy read is kept in the site's fetch state
+(`.fetch_state*.json`) for up to 24 hours (`FetchPolicy.robotsMaxAge`),
+the most RFC 9309 allows a crawler to keep one. It is forgotten when the
+site pushes back, so the run after the 24-hour pause reads it again. The
+kept copy decides what may be read, as a fresh one would. This saves 6 of
+the 7 robots.txt requests a day per site. Everything else in the rules is
+unchanged.
+
+### 2026-10-22: paid plans planned; the data's basis is personal use
+
+**Not a change to the collection.** Rafael asked for a plan of paid
+subscriptions (`docs/paid-plans.md`, roadmap Sprint 16). Every decision
+below rests on personal, non-commercial use, and charging for the app
+would end that basis. Before anything is charged, the terms (table at the
+end) must be read, and the sites asked for permission or a lawyer
+consulted. The EU database right and two CJEU judgments on search engines
+over classified-ad sites (Innoweb v Wegener, CV-Online v Melons) are why
+(`docs/paid-plans.md` §1.1).
+
+**Decision (Rafael), the same day.** Paid plans only if the sites make
+their data available to us: an API, or a licence for the listings. Until
+then the app stays free for invited accounts.
+
 ### 2026-10-22: no request caps, the amounts shown instead (9.6e)
 
 **Decision (Rafael).** The caps of 20 requests per run and 120 per day per
