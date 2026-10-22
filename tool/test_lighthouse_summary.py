@@ -81,6 +81,32 @@ class LighthouseSummaryTest(unittest.TestCase):
             "Best practices to fix: Browser errors were logged",
         ])
 
+    def test_console_errors_and_deprecations_are_quoted(self):
+        report = _report()
+        errors = [
+            {"source": "exception", "description": "TypeError: x is `null`\n  at main.js"},
+            {"source": "network", "description": "Failed to load resource: 404",
+             "sourceLocation": {"url": "https://pr-1.x.pages.dev/icons/a.png?v=1"}},
+            {"source": "network", "description": "Failed to load resource: 404",
+             "sourceLocation": {"url": "https://pr-1.x.pages.dev/icons/a.png?v=1"}},
+            {"source": "console.error", "description": "a"},
+            {"source": "console.error", "description": "b" * 200},
+        ]
+        report["audits"].update({
+            "errors-in-console": {"score": 0, "details": {"items": errors}},
+            "deprecations": {"score": 0, "details": {"items": [
+                {"value": {"type": "text", "value": "Old API used"}},
+                {"value": "Another old API"},
+                {"source": {"url": "x"}},
+            ]}},
+        })
+        lines = summarize(report)
+        self.assertEqual(lines[-2], (
+            "Console errors: `TypeError: x is 'null' at main.js` · "
+            "`Failed to load resource: 404 (a.png)` · `a` · +1"
+        ))
+        self.assertEqual(lines[-1], "Deprecated: `Old API used` · `Another old API`")
+
     def test_largest_element_from_the_lcp_insight(self):
         report = _report()
         report["audits"]["lcp-breakdown-insight"] = {"details": {"type": "list", "items": [
