@@ -22,6 +22,12 @@ create schema auth;
 create table auth.users (id uuid primary key, is_anonymous boolean not null default false,
                          email varchar(255), created_at timestamptz default now(),
                          last_sign_in_at timestamptz);
+-- Auth's sessions (refreshed_at is a plain timestamp in UTC there too).
+create table auth.sessions (id uuid primary key default gen_random_uuid(),
+                            user_id uuid not null references auth.users (id) on delete cascade,
+                            created_at timestamptz default now(),
+                            updated_at timestamptz default now(),
+                            refreshed_at timestamp);
 create function auth.uid() returns uuid language sql stable as
   $$ select nullif(current_setting('test.uid', true), '')::uuid $$;
 create function auth.jwt() returns jsonb language sql stable as
