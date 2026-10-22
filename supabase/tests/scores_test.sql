@@ -129,3 +129,21 @@ begin
          = round(0.7 * 50 + 0.3 * public.year_score(2024), 1),
     'hidden mileage counts as 50';
 end $$;
+
+-- Only the extras worth money add points (Rafael, 2026-10-22: five small
+-- extras lifted an older bike above a newer one with fewer km).
+update public.listings
+set description = 'Com quickshifter, piscas LED, tomada USB, manetes ajustáveis e cogumelos.'
+where source_listing_id = 's4';
+
+do $$
+declare
+  b jsonb;
+begin
+  perform public.recalculate_deal_scores();
+  select score_breakdown into b from public.listings where source_listing_id = 's4';
+  assert jsonb_array_length(b -> 'extras') = 5, format('every extra listed: %s', b -> 'extras');
+  assert b -> 'valued_extras' = '["quickshifter"]'::jsonb,
+    format('only the quickshifter is valued: %s', b -> 'valued_extras');
+  assert (b ->> 'equipment_bonus')::int = 1, format('one point: %s', b ->> 'equipment_bonus');
+end $$;

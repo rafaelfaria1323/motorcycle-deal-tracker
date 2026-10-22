@@ -131,6 +131,20 @@ void main() {
       )!.lines.single.text,
       'Extras indicados (+4): escape desportivo, punhos aquecidos',
     );
+    expect(
+      ScoreExplainer.explain(
+        _listing(
+          dealScore: 80,
+          breakdown: {
+            'extras': ['led_indicators', 'phone_mount', 'quickshifter'],
+            'valued_extras': ['quickshifter'],
+            'equipment_bonus': 1,
+          },
+        ),
+      )!.lines.single.text,
+      'Extras indicados (+1 por quickshifter): piscas LED, '
+      'suporte de telemóvel ou USB, quickshifter',
+    );
     expect(extrasText(const {'extras': <String>[]}), isNull);
     expect(extrasText(null), isNull);
   });

@@ -47,18 +47,26 @@ begin
   assert not (r.breakdown -> 'scores') ? 'seller', 'no dealer score, no seller slice';
   assert (r.breakdown ->> 'equipment_bonus')::int = 0, 'no extras, no bonus';
 
-  -- Extras add 2 points each, at most 10, after the average.
+  -- Valued extras add 1 point each, at most 3, after the average.
   select * into r from public.combine_deal_score(80, 50, 100, 20, 2);
-  assert r.deal_score = 79, format('two extras, got %s', r.deal_score);
+  assert r.deal_score = 77, format('two extras, got %s', r.deal_score);
   select * into r from public.combine_deal_score(80, 50, 100, 20, 9);
-  assert r.deal_score = 85, format('at most 10 points, got %s', r.deal_score);
+  assert r.deal_score = 78, format('at most 3 points, got %s', r.deal_score);
+  assert (r.breakdown ->> 'equipment_bonus')::int = 3, 'the bonus is noted';
   -- An extra never lowers a good score (as a slice it did: 90 -> 87).
   select * into r from public.combine_deal_score(100, 85, 30, 0);
   assert r.deal_score = 90, format('without extras, got %s', r.deal_score);
   select * into r from public.combine_deal_score(100, 85, 30, 0, 1);
-  assert r.deal_score = 92, format('one extra raises it, got %s', r.deal_score);
+  assert r.deal_score = 91, format('one extra raises it, got %s', r.deal_score);
   select * into r from public.combine_deal_score(100, 100, 100, 0, 5);
   assert r.deal_score = 100, 'never above 100';
+
+  -- Only the extras worth money count; small or cosmetic ones don't.
+  assert public.valued_extras(array['led_indicators', 'quickshifter', 'phone_mount',
+                                    'exhaust', 'tail_tidy'])
+         = array['exhaust', 'quickshifter'], 'valued extras';
+  assert public.valued_extras(array['mirrors', 'levers']) = '{}'::text[], 'none valued';
+  assert public.valued_extras('{}') = '{}'::text[], 'no extras';
 
   -- The seller slice (a dealer's score) weighs 10.
   select * into r from public.combine_deal_score(80, 50, 100, 20, 0, 100);

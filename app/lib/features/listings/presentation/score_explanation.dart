@@ -60,10 +60,11 @@ const extraLabels = {
   'original_parts': 'peças de origem incluídas',
 };
 
-/// The extras found in the ad ("quickshifter, malas"), or null when none.
-String? extrasText(Map<String, dynamic>? breakdown) {
+/// The extras found in the ad ("quickshifter, malas"), or null when none;
+/// [key] `valued_extras` gives only the ones that add points.
+String? extrasText(Map<String, dynamic>? breakdown, {String key = 'extras'}) {
   final labels = [
-    for (final code in (breakdown?['extras'] as List? ?? const []))
+    for (final code in (breakdown?[key] as List? ?? const []))
       ?extraLabels[code],
   ];
   return labels.isEmpty ? null : labels.join(', ');
@@ -325,13 +326,17 @@ abstract final class ScoreExplainer {
 
     // Version / equipment
     if (extrasText(data) case final extras?) {
+      // Only extras worth money add points (valued_extras).
       final bonus = (data['equipment_bonus'] as num?)?.toInt();
+      final valued = extrasText(data, key: 'valued_extras');
       lines.add(
         ExplanationLine(
           ExplanationTone.positive,
           bonus == null || bonus == 0
               ? 'Extras indicados: $extras'
-              : 'Extras indicados (+$bonus): $extras',
+              : valued == null
+              ? 'Extras indicados (+$bonus): $extras'
+              : 'Extras indicados (+$bonus por $valued): $extras',
         ),
       );
     }
