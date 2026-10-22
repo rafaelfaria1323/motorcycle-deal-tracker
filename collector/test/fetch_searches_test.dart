@@ -158,6 +158,7 @@ void main() {
     final manifest = (await SearchManifest.readFrom(dir.path))!;
     expect(manifest.planned, ['$search']);
     expect(manifest.files.values.toSet(), {'$search'});
+    expect(manifest.pages, {'$search': 3});
     expect(paths.where((p) => p.contains('page=')), hasLength(2));
   });
 
@@ -226,7 +227,10 @@ void main() {
 
     expect(outcome.saved, 2);
     expect(outcome.stoppedBy, contains('run limit'));
-    expect((await SearchManifest.readFrom(dir.path))!.files, hasLength(2));
+    final manifest = (await SearchManifest.readFrom(dir.path))!;
+    expect(manifest.files, hasLength(2));
+    // The search still spans 3: the run read 2 of them.
+    expect(manifest.pages, {'$search': 3});
   });
 
   Future<FetchOutcome> fetchWith(FetchPolicy policy) => local(() async {

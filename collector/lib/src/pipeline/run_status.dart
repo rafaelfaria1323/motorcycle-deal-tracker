@@ -43,6 +43,27 @@ Map<String, int> requestsUsed(String log) => {
     m.group(1)!: int.parse(m.group(2)!),
 };
 
+/// What each search cost and gave in a run (R.1), from importBatch's
+/// `Search (<site>): ...` lines (searchReportLine), in the log's order:
+/// `{site, search, pages, spans, ads, followed, in_full}`, `spans` null
+/// when the search's first page wasn't saved. Empty when the log has none.
+List<Map<String, Object?>> searchesRead(String log) => [
+  for (final m in RegExp(
+    r'^\s*Search \((\w+)\): (.+) · read (\d+) of (\d+|\?) page\(s\) · '
+    r'(\d+) ad\(s\), (\d+) followed · (in full|not in full)\s*$',
+    multiLine: true,
+  ).allMatches(log))
+    {
+      'site': m.group(1),
+      'search': m.group(2),
+      'pages': int.parse(m.group(3)!),
+      'spans': int.tryParse(m.group(4)!),
+      'ads': int.parse(m.group(5)!),
+      'followed': int.parse(m.group(6)!),
+      'in_full': m.group(7) == 'in full',
+    },
+];
+
 /// The GitHub Actions run's page, from the variables every job has; null
 /// outside Actions.
 String? githubRunUrl(Map<String, String> env) {

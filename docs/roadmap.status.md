@@ -430,8 +430,10 @@ Do not implement several unrelated features at once.
 - *Compression: Dart's `HttpClient` already asks for gzip, which saves bytes, not requests.*
 - *The sites' JSON APIs: `/api/` is blocked by robots.txt.*
 - *Parallel requests: forbidden by the Fetching rules.*
-## R.1 Pages per search recorded ⬜
-*Each run stores, for each search, the pages it spans, the pages read and the ads found, taken from `searches.json` (`collector_runs.searches`). "Estado da recolha" shows them. After a week of uncapped runs these numbers say which of R.2–R.6 are worth building: a search that fits on one page gains nothing from R.2.*
+## R.1 Pages per search recorded ✅
+*Each run stores, for each search, the pages it spans, the pages read and the ads found (`collector_runs.searches`). After a week of uncapped runs these numbers say which of R.2–R.6 are worth building: a search that fits on one page gains nothing from R.2.*
+
+*`fetchSearches` keeps each search's page count from its first page in `searches.json` (`pages`; older manifests have none). `searchReports` (replacing `searchYields`) gives every planned search its pages spanned and read, ads, followed-model ads and whether it was read in full (`removalPlan`'s complete searches). `importBatch` logs one line each, named by its models (`refresh.dart` passes them): "Search (olx): yamaha-mt-07 · read 2 of 3 page(s) · 80 ad(s), 9 followed · not in full"; a search the run never reached reads "0 of ?". `report_run.dart` reads them back (`searchesRead`) into the new jsonb column (migration `20261024220000_run_searches.sql`, `[]` for older runs). "Estado da recolha" shows the last run's searches under "Pesquisas" (`searchReadText`). Tests: `search_manifest_test.dart`, `fetch_searches_test.dart`, `source_batch_test.dart`, `import_steps_test.dart`, `run_status_test.dart`, `collection_status_text_test.dart`, `access_test.sql`.*
 ## R.2 Light runs, newest first ⬜
 *The biggest saving. A light run asks each search for its newest ads first, using the site's own sort, whose parameter is to be found in the sites' sort menu (as was done for the engine-size bands, 9.13). It stops paging once a page reaches ads older than that search's previous read (by the site's dates: Standvirtual's `createdAt`, OLX's `lastRefreshTime`), promoted ads aside. A search of 4 pages then costs 1 request instead of 4.*
 
@@ -498,7 +500,7 @@ Do not implement several unrelated features at once.
 
 1. Deal Score: the market-behaviour slice (time on market, price drops) once there is enough history; price trends per model (10.3, 15.8).
 2. Saved ads from other sites: update the price or mark sold from their page (after #43).
-3. Fewer requests: R.1 once the uncapped runs have a week of numbers, then R.2.
+3. Fewer requests: R.2 once R.1 has a week of uncapped runs' numbers (from 2026-10-22).
 
 **Open items for Rafael:** read the Standvirtual/OLX terms and record the clauses in `docs/sources.md`; check the new-bike reference prices; check the IUC table each January (`ownership_cost.dart`) and enter your insurance quote in "Custo de ter esta mota" → Alterar. Paid plans: on hold until the sites offer an API or a data licence (16.0); the business and legal decisions in `docs/paid-plans.md` §1.2–1.4 only then.
 

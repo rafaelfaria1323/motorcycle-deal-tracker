@@ -17,9 +17,12 @@ For each site (Standvirtual, OLX):
    changes and dates, and mark listings that left the searches read in full
    as removed (`--full`). The brand and model lists in the search pages'
    filters are stored too (`site_models`, for the app's model picker; no
-   extra requests). The log says, per search, how many of the ads it read
-   are a followed model ("Search yield"), so a search that spends requests
-   on other bikes shows up; an ad no followed model matched is logged with
+   extra requests). The log says, per search, the pages it spans (from its
+   first page, kept in `searches.json`) and the pages read, the ads found,
+   how many are a followed model and whether it was read in full
+   ("Search (olx): yamaha-mt-07 · read 2 of 3 page(s) · 80 ad(s), 9
+   followed · in full"), so a search that spends requests on other bikes
+   shows up; an ad no followed model matched is logged with
    the site's brand and model ("unmatched \"Honda NSS 350 Forza\""; on OLX
    the model is the title, long digit runs masked), so a missed rule can
    be spotted.
@@ -31,7 +34,8 @@ Push; the Android app's through Firebase Cloud Messaging, `notify/fcm.dart`,
 with the service account in env `FIREBASE_SERVICE_ACCOUNT`).
 
 After each scheduled run `bin/report_run.dart` records it in `collector_runs`
-(with the error lines of a run that was not ok, each site's requests today
+(with the error lines of a run that was not ok, each search's pages and
+ads from those lines, each site's requests today
 and pause from its fetch state file, and the GitHub run's address; shown
 in the app's "Estado da recolha") and, when its status differs from the previous run's (ok, blocked, failed),
 sends one notification to the admins' devices (Web Push; a tap opens

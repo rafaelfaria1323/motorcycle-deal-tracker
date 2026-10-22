@@ -49,6 +49,8 @@ Future<FetchOutcome> fetchSearches(
   // Which search each saved page belongs to, so the import removes only
   // listings of searches saved in full.
   final saved = <String, String>{};
+  // How many pages each search spans, for the run's record (R.1).
+  final spans = <String, int>{};
   var started = 0;
 
   Future<String> save(Uri url, Uri search, {String? fetched}) async {
@@ -76,6 +78,7 @@ Future<FetchOutcome> fetchSearches(
       }
       final first = await save(url, url, fetched: html);
       final pages = _totalPages(first, olx: olx);
+      spans['$url'] = pages;
       for (var page = 2; page <= pages; page++) {
         await save(
           olx
@@ -112,6 +115,7 @@ Future<FetchOutcome> fetchSearches(
       await SearchManifest(
         planned: [for (final url in searches) '$url'],
         files: saved,
+        pages: spans,
       ).writeTo(directory);
     }
   }

@@ -41,6 +41,8 @@ set local test.jwt = '{"is_anonymous": false}';
 do $$
 begin
   assert (select count(*) from public.collector_runs) = 1, 'the account sees the runs';
+  assert (select searches from public.collector_runs) = '[]'::jsonb,
+    'a run recorded without searches has none';
   perform public.set_model_tracked((select id from public.motorcycles where slug = 'yamaha-r1'), true);
   assert (select is_active from public.motorcycles where slug = 'yamaha-r1'), 'the account changed it';
 end $$;

@@ -119,6 +119,19 @@ const siteNames = {'standvirtual': 'Standvirtual', 'olx': 'OLX'};
   );
 }
 
+/// "OLX · yamaha-mt-07: 2 de 3 páginas, 80 anúncios (9 dos modelos
+/// acompanhados) · não lida toda": a search not read in full keeps its gone
+/// ads until a run reads it all.
+String searchReadText(SearchRead s) {
+  final name = '${siteNames[s.site] ?? s.site} · ${s.search}';
+  final spans = s.spans;
+  if (spans == null) return '$name: não lida nesta recolha';
+  final pages = '${s.pages} de $spans ${spans == 1 ? 'página' : 'páginas'}';
+  final ads = '${s.ads} ${s.ads == 1 ? 'anúncio' : 'anúncios'}';
+  return '$name: $pages, $ads (${s.followed} dos modelos acompanhados)'
+      '${s.inFull ? '' : ' · não lida toda'}';
+}
+
 /// "Correu bem", "Bloqueada" or "Falhou".
 String runStatusLabel(String status) => switch (status) {
   'ok' => 'Correu bem',

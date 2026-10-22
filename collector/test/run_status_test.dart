@@ -68,6 +68,47 @@ void main() {
     expect(requestsUsed('no counts here'), isEmpty);
   });
 
+  test('reads what each search cost and gave', () {
+    const report = (
+      search: 'https://www.olx.pt/b',
+      spans: null,
+      pages: 0,
+      ads: 0,
+      matched: 0,
+      inFull: false,
+    );
+    final log = [
+      'Mapped 80, rejected 0.',
+      'Search (standvirtual): yamaha-mt-07, yamaha-r7 · read 3 of 3 page(s) '
+          '· 87 ad(s), 40 followed · in full',
+      // The line importBatch writes.
+      searchReportLine('olx', report, null),
+      'Requests used: olx=9',
+    ].join('\n');
+
+    expect(searchesRead(log), [
+      {
+        'site': 'standvirtual',
+        'search': 'yamaha-mt-07, yamaha-r7',
+        'pages': 3,
+        'spans': 3,
+        'ads': 87,
+        'followed': 40,
+        'in_full': true,
+      },
+      {
+        'site': 'olx',
+        'search': 'https://www.olx.pt/b',
+        'pages': 0,
+        'spans': null,
+        'ads': 0,
+        'followed': 0,
+        'in_full': false,
+      },
+    ]);
+    expect(searchesRead('Search yield: 9 of 80 ad(s)'), isEmpty);
+  });
+
   test('the GitHub run page comes from the job\'s variables', () {
     expect(
       githubRunUrl({
