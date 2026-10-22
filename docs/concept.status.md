@@ -11,7 +11,7 @@ A Web App/PWA that monitors the Portuguese used and semi-new motorcycle market, 
 
 > “Is this motorcycle actually a good deal right now?”
 
-*Answered for Standvirtual and OLX, with real data refreshed every 4 hours.*
+*Answered for Standvirtual and OLX, with real data refreshed 7 times a day (every 2 hours in the afternoon).*
 
 ## 2. Problem
 
@@ -46,17 +46,17 @@ Unchanged.
 - ✅ OLX (search result pages, which hold the full description; Standvirtual copies skipped; each search asks for the engine-size band of its models, so other models' ads aren't read).
 - ⬜ Future: CustoJusto, dealerships, European marketplaces, imports.
 
-*robots.txt checked and read every run; same polite limits per site (20 requests per run, 120 per day). **Terms of use still to be read and recorded** in `docs/sources.md`.*
+*robots.txt checked and read every run; same polite rules per site (6-10 s apart, one at a time, 24 h pause on a refusal); no request caps since 2026-10-22, at most 30 min per site and run, the requests shown per run, day and month. **Terms of use still to be read and recorded** in `docs/sources.md`.*
 
 ## 6. Platform
 
-- Phase 1 — Flutter Web/PWA ✅ *Hosted on Cloudflare Pages, installed on the iPhone Home Screen; deployed on every merge, with the migrations the database is missing applied first (Security S.3). UI/UX redesign done (roadmap Sprint 13: Mais tab, Ofertas, listing page, Pesquisas/Alertas, its own look and fonts, one voice in pt-PT); models per account (Sprint 14); accounts from invite links made in the app (14.3), Telegram only for admins' alerts; admins can start a collection from Mais (14.5), any account its own weekly summary (14.4d) and see each run's errors, the sites' budgets and pauses and the GitHub token's expiry in "Estado da recolha" (14.6; checked from the app since 14.6b, with the database's size too). Start speed: each PR's preview is measured by Lighthouse, which now shows what the download is made of (roadmap N.13); the first load no longer fetches fonts from Google (N.14), and asks for the first listings while it signs in, with its connections opened early (N.15).*
+- Phase 1 — Flutter Web/PWA ✅ *Hosted on Cloudflare Pages, installed on the iPhone Home Screen; deployed on every merge, with the migrations the database is missing applied first (Security S.3). UI/UX redesign done (roadmap Sprint 13: Mais tab, Ofertas, listing page, Pesquisas/Alertas, its own look and fonts, one voice in pt-PT); models per account (Sprint 14); accounts from invite links made in the app (14.3), Telegram only for admins' alerts; admins can start a collection from Mais (14.5), any account its own weekly summary (14.4d) and see each run's errors, the sites' requests and pauses and the GitHub token's expiry in "Estado da recolha" (14.6; checked from the app since 14.6b, with the database's size too). Start speed: each PR's preview is measured by Lighthouse, which now shows what the download is made of (roadmap N.13); the first load no longer fetches fonts from Google (N.14), and asks for the first listings while it signs in, with its connections opened early (N.15).*
 - Phase 2 — Flutter iOS/Android 🟡 *Android ✅: every deploy builds a signed APK and replaces it on the GitHub release `android`; Mais offers it on Android phones, and the app updates itself from there (it says when a newer build is out, downloads it and opens Android's installer; roadmap 12.5). Notifications too, through Firebase Cloud Messaging (roadmap 12.6), a tap opening the page in the app. Android's back gesture and the browser's back/forward follow the screens the person went through (roadmap 12.7). iPhone: not needed, a native build requires a paid Apple Developer account.*
 
 ## 7. Stack
 
 - Frontend: Flutter Web, Dart ✅
-- Backend: Supabase, PostgreSQL ✅, Supabase Auth ✅ *(anonymous + owner email/password)*; scheduled jobs ➕ *on GitHub Actions instead of Edge Functions (a Dart CLI collector, one process per run, every 4 hours), started by Supabase pg_cron (GitHub's own scheduler never started them).*
+- Backend: Supabase, PostgreSQL ✅, Supabase Auth ✅ *(anonymous + owner email/password)*; scheduled jobs ➕ *on GitHub Actions instead of Edge Functions (a Dart CLI collector, one process per run, 7 times a day at fixed Lisbon hours), started by Supabase pg_cron (GitHub's own scheduler never started them).*
 - Hosting: Cloudflare Pages ✅
 - Repository: GitHub ✅ *(stays public, Rafael 2026-10-21: free Actions minutes for the whole pipeline)*; ➕ automatic code-quality review by Claude after every 5 merged PRs
 - Notifications: Web push ✅ *(each account's alerts on its devices (in the Android app through Firebase Cloud Messaging), the admins' when the collection breaks or recovers, sent by the collector itself; a tap opens the listing in the app; "Enviar notificação de teste" in Mais checks a device with an example of any notification; stays on after the app is closed; the weekly summary on Mondays, kept in the app's "Resumo da semana")*; ➕ Telegram bot ✅ (alerts until 2026-10-21, the weekly summary until 14.4d; now only the database's warnings when no run starts or the GitHub token is ending)

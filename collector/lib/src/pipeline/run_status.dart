@@ -3,11 +3,7 @@
 /// fetcher's own wording.
 String runStatus(int exitCode, String log) {
   if (exitCode == 0) return 'ok';
-  const blockedMarks = [
-    'the site pushed back',
-    'paused until',
-    'daily limit of',
-  ];
+  const blockedMarks = ['the site pushed back', 'paused until'];
   if (blockedMarks.any(log.contains)) return 'blocked';
   return 'failed';
 }

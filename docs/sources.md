@@ -5,6 +5,26 @@ here. Robots.txt is not permission; the source's terms of use decide.
 
 ## Decision log
 
+### 2026-10-22: no request caps, the amounts shown instead (9.6e)
+
+**Decision (Rafael).** The caps of 20 requests per run and 120 per day per
+site are removed, to see what the collection really needs; they can come
+back once the numbers are known. Each run reads every page of the tracked
+models' searches and every Standvirtual listing page still to read.
+
+**Kept.** robots.txt read every run, only the allowed paths, 6-10 s
+between requests, one at a time, no retries, a 24 h pause on 403/429/503
+or a non-normal page, honest user agent. New guard: at most 30 minutes of
+requests per site and run (`FetchPolicy.maxRunTime`); what is left waits
+for the next run. At 6-10 s that is at most about 225 requests per site
+and run (7 runs a day, 9.6d).
+
+**Watched.** Requests per run, per day and per month are shown in the app
+(Mais › Recolha de dados, "Estado da recolha"). To set caps again:
+`FetchPolicy(maxRequestsPerRun: …, maxRequestsPerDay: …)` in
+`collector/lib/src/fetch/polite_fetcher.dart` (see `docs/hosting.md`).
+The limits recorded below are those of their time.
+
 ### 2026-10-20: place coordinates from GeoNames (15.11)
 
 The distance from home needs coordinates for the place names the sites
@@ -53,7 +73,7 @@ year any of them tracks (Standvirtual's since 2026-10-20, see below). Models can
 from the site.
 
 **Limits unchanged.** The same fetch rules and budget apply (20 requests
-per run, 120 per day, per site). Searches run oldest model first; when the
+per run, 120 per day, per site; removed on 2026-10-22, see above). Searches run oldest model first; when the
 budget runs out the rest wait for the next run, and the app warns when the
 OLX searches are many.
 

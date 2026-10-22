@@ -61,9 +61,12 @@ class _CollectionDetailsState extends State<CollectionDetails> {
             if (runCountsText(last.counts) case final counts?)
               (Icons.fiber_new_outlined, counts),
             if (requestsText(last.requests) case final requests?)
-              (Icons.swap_vert, 'Pedidos: $requests'),
+              (Icons.swap_vert, requests),
           ]);
           lines.add((Icons.cloud_outlined, monthUsageText(runs)));
+          if (monthRequestsText(runs) case final requests?) {
+            lines.add((Icons.swap_vert, requests));
+          }
         }
         final muted = Theme.of(context).colorScheme.onSurfaceVariant;
 

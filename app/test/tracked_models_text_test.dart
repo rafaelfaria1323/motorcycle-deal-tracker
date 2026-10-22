@@ -59,15 +59,16 @@ void main() {
     expect(counts.olx, 1);
   });
 
-  test('many OLX searches bring a warning', () {
-    final few = budgetLines([model('R7', olx: yamahaR)]);
-    final many = budgetLines([
-      for (var i = 0; i < 6; i++) model('M$i', olx: '$yamahaR$i'),
-    ]);
-
-    expect(few, hasLength(1));
-    expect(many, hasLength(2));
-    expect(many.last, startsWith('Muitas pesquisas no OLX'));
+  test('the searches line counts each site\'s searches', () {
+    expect(
+      searchesLine([
+        for (var i = 0; i < 6; i++) model('M$i', olx: '$yamahaR$i'),
+      ]),
+      startsWith(
+        'Pesquisas em cada recolha (modelos de todas as contas): 6 no OLX e '
+        '0 no Standvirtual',
+      ),
+    );
   });
 
   group('the add-model form', () {

@@ -6,14 +6,14 @@ import 'package:supabase/supabase.dart';
 /// One whole collection in one process: for each site, the searches of the
 /// tracked models are fetched and imported (Standvirtual then reads the
 /// details of new listings with the same fetcher, so robots.txt is read
-/// once and the site's request budget is shared); then duplicates, scores,
+/// once); then duplicates, scores,
 /// alerts and notifications run once. A site that fails does not stop the
 /// other; the exit code still reports it.
 Future<void> main(List<String> args) async {
   final sites = <FetchSite>[];
   var full = false;
   var force = false;
-  var enrichMax = 10;
+  int? enrichMax; // every listing waiting
   var badArgs = false;
   for (final arg in args) {
     if (arg == '--full') {
@@ -25,17 +25,20 @@ Future<void> main(List<String> args) async {
       site == null ? badArgs = true : sites.add(site);
     } else if (arg.startsWith('--enrich-max=')) {
       enrichMax = int.tryParse(arg.substring('--enrich-max='.length)) ?? -1;
+      if (enrichMax < 0) badArgs = true;
     } else {
       badArgs = true;
     }
   }
-  if (badArgs || enrichMax < 0 || enrichMax > 19) {
+  if (badArgs) {
     stderr.writeln(
       'Usage: dart run bin/refresh.dart [--full] [--force] '
-      '[--site=${FetchSite.byName.keys.join('|')}]... [--enrich-max=<0-19>]\n'
+      '[--site=${FetchSite.byName.keys.join('|')}]... [--enrich-max=<n>]\n'
       '  --full   remove listings missing from searches read in full\n'
       '  --site   only this site (repeatable; default: all)\n'
-      '  --enrich-max  Standvirtual listing pages to read (default 10)',
+      '  --enrich-max  Standvirtual listing pages to read (default: all '
+      'waiting,\n'
+      '                within the run time)',
     );
     exitCode = 64;
     return;
@@ -97,7 +100,7 @@ Future<int> _refreshSite(
   ListingStore store, {
   required bool full,
   required bool force,
-  required int enrichMax,
+  required int? enrichMax,
 }) async {
   final plan = planSearches(catalog, site);
   for (final problem in plan.problems) {
@@ -126,7 +129,7 @@ Future<int> _refreshSite(
     // Stopped by a failure after some pages: imported, still a failed run.
     if (outcome.failure case final failure?) throw failure;
 
-    if (site == FetchSite.standvirtual && enrichMax > 0) {
+    if (site == FetchSite.standvirtual && enrichMax != 0) {
       // New listings may be duplicates; those are never read.
       await store.markDuplicates();
       final pending = await store.listingsMissingDetails(name, enrichMax);
@@ -135,8 +138,8 @@ Future<int> _refreshSite(
     }
     return 0;
   } on FetchLimitReached catch (e) {
-    // The budget is spent (e.g. the day's last requests went to the run
-    // before): nothing is wrong, the next run carries on.
+    // The run's time is up (before any search was read): nothing is wrong,
+    // the next run carries on.
     stdout.writeln('Nothing fetched: $e; the next run carries on.');
     return 0;
   } on FetchRefused catch (e) {
@@ -160,10 +163,7 @@ Future<int> _refreshSite(
     return 70;
   } finally {
     // Read back by report_run.dart (requestsUsed) and shown in the app.
-    stdout.writeln(
-      'Requests used: $name=${fetcher.requestsThisRun} '
-      '(limit ${fetcher.policy.maxRequestsPerRun})',
-    );
+    stdout.writeln('Requests used: $name=${fetcher.requestsThisRun}');
     fetcher.close();
   }
 }

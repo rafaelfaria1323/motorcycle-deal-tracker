@@ -1,17 +1,19 @@
 name: Collect listings
 
 on:
-  # Started every 4 hours (minute 40, UTC) by Supabase: the pg_cron job
-  # 'collect-listings' calls the workflow_dispatch API (GitHub's own
-  # scheduler never started this workflow). Also the manual "Run workflow"
-  # button.
-  # Each site has its own caps (20 per run, 120 per day). A run uses about
-  # 15 Standvirtual requests (robots.txt, 4 search pages, up to 10 listing
-  # pages) and about 10-12 OLX requests (robots.txt, every page of the
-  # tracked models' searches).
+  # Started at 00:00, 08:00 and every 2 hours from 12:00 to 20:00, Lisbon
+  # time, by Supabase: the hourly pg_cron job 'collect-listings' calls
+  # dispatch_collection(), which calls the workflow_dispatch API at those
+  # hours (GitHub's own scheduler never started this workflow). Also the
+  # manual "Run workflow" button.
+  # No request caps (Rafael, 2026-10-22): each site gets robots.txt, every
+  # page of the tracked models' searches and (Standvirtual) every listing
+  # page still to read, 6-10 s apart, one at a time, at most 30 minutes per
+  # site (FetchPolicy.maxRunTime; the rest waits for the next run). The
+  # requests of each run and day are recorded and shown in the app.
   workflow_dispatch:
 
-# Never two runs at once: they would share the request budget.
+# Never two runs at once: they would fetch the same site in parallel.
 concurrency:
   group: collect
   cancel-in-progress: false
@@ -22,7 +24,8 @@ permissions:
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Two sites of at most 30 minutes of requests each, plus the imports.
+    timeout-minutes: 75
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -39,7 +42,7 @@ jobs:
       - name: Install collector dependencies
         run: cd collector && dart pub get
 
-      # The fetcher's request count and block pause live in these files (one
+      # The fetcher's requests today and block pause live in these files (one
       # per site); each run saves a new copy and the next run restores the
       # latest.
       - name: Restore fetch state

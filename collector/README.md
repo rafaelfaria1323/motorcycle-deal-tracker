@@ -1,7 +1,8 @@
 # Collector
 
-Dart command line that fills the database. GitHub Actions runs it every
-4 hours (`.github/workflows/collect.yml`, minute 40 UTC); it uses the
+Dart command line that fills the database. GitHub Actions runs it at
+00:00, 08:00 and every 2 hours from 12:00 to 20:00, Lisbon time
+(`.github/workflows/collect.yml`, started by Supabase pg_cron); it uses the
 Supabase service-role key, which the app never sees.
 
 ## One run (`make refresh`, `bin/refresh.dart`)
@@ -11,7 +12,7 @@ For each site (Standvirtual, OLX):
 1. **Plan:** the searches of the models any account follows, read from the catalog
    (models that share a search share one request).
 2. **Fetch:** every page of each search (from the earliest tracked year),
-   politely (see the root README) and capped.
+   politely (see the root README), at most 30 minutes per site.
 3. **Import:** parse, match each listing to a model, store it, record price
    changes and dates, and mark listings that left the searches read in full
    as removed (`--full`). The brand and model lists in the search pages'
@@ -36,7 +37,7 @@ in the app's "Estado da recolha") and, when its status differs from the previous
 sends one notification to the admins' devices (Web Push; a tap opens
 "Estado da recolha"): what went wrong on which site
 (`notify/run_health.dart`), or that the collection works again. The same
-problem is not repeated every 4 hours.
+problem is not repeated on every run.
 
 Every Monday `bin/weekly_summary.dart` (workflow `weekly-summary.yml`) makes
 each account's summary of its own models' last 7 days: new listings per

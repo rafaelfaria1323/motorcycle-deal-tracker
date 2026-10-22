@@ -13,30 +13,63 @@ CollectorRun run(int seconds, {Map<String, int> requests = const {}}) {
 }
 
 void main() {
-  group('next collection (minute 40 of every 4th hour, UTC)', () {
-    test('later the same block', () {
+  group('next collection (on the Lisbon hours)', () {
+    test('the coming hour', () {
       expect(
-        nextCollection(DateTime.utc(2026, 10, 19, 12, 10)),
-        DateTime.utc(2026, 10, 19, 12, 40),
+        nextCollection(DateTime.utc(2026, 12, 1, 11, 50)),
+        DateTime.utc(2026, 12, 1, 12),
       );
     });
 
-    test('just after a run, the next block', () {
+    test('every 2 hours in the afternoon', () {
       expect(
-        nextCollection(DateTime.utc(2026, 10, 19, 12, 40)),
-        DateTime.utc(2026, 10, 19, 16, 40),
+        nextCollection(DateTime.utc(2026, 12, 1, 12)),
+        DateTime.utc(2026, 12, 1, 14),
       );
       expect(
-        nextCollection(DateTime.utc(2026, 10, 19, 14, 5)),
-        DateTime.utc(2026, 10, 19, 16, 40),
+        nextCollection(DateTime.utc(2026, 12, 1, 19, 5)),
+        DateTime.utc(2026, 12, 1, 20),
       );
     });
 
-    test('across midnight', () {
+    test('midnight, then 08:00, then 12:00', () {
       expect(
-        nextCollection(DateTime.utc(2026, 10, 19, 22, 50)),
-        DateTime.utc(2026, 10, 20, 0, 40),
+        nextCollection(DateTime.utc(2026, 12, 1, 20, 10)),
+        DateTime.utc(2026, 12, 2),
       );
+      expect(
+        nextCollection(DateTime.utc(2026, 12, 2, 0, 1)),
+        DateTime.utc(2026, 12, 2, 8),
+      );
+      expect(
+        nextCollection(DateTime.utc(2026, 12, 2, 9)),
+        DateTime.utc(2026, 12, 2, 12),
+      );
+    });
+
+    test('in summer time the same Lisbon hours are an hour earlier in UTC', () {
+      expect(
+        nextCollection(DateTime.utc(2026, 7, 1, 21)),
+        DateTime.utc(2026, 7, 1, 23),
+      );
+      expect(
+        nextCollection(DateTime.utc(2026, 7, 2, 0)),
+        DateTime.utc(2026, 7, 2, 7),
+      );
+    });
+
+    test('summer time follows the EU rule', () {
+      // 2026: from 29 March to 25 October, 01:00 UTC.
+      expect(lisbonOffset(DateTime.utc(2026, 3, 29, 0, 59)), Duration.zero);
+      expect(
+        lisbonOffset(DateTime.utc(2026, 3, 29, 1)),
+        const Duration(hours: 1),
+      );
+      expect(
+        lisbonOffset(DateTime.utc(2026, 10, 25, 0, 59)),
+        const Duration(hours: 1),
+      );
+      expect(lisbonOffset(DateTime.utc(2026, 10, 25, 1)), Duration.zero);
     });
 
     test('the text gives the day and time', () {
@@ -102,13 +135,56 @@ void main() {
     expect(runCountsText(const {}), isNull);
   });
 
-  test('requests per site against the limit', () {
+  test('requests per site', () {
     expect(
       requestsText({'standvirtual': 15, 'olx': 9}),
-      'Standvirtual 15 de 20 · OLX 9 de 20',
+      'Pedidos: Standvirtual 15 · OLX 9',
     );
     expect(requestsText(const {}), isNull);
   });
+
+  test('this month\'s requests per site, with the average per run', () {
+    expect(
+      monthRequestsText([
+        run(60, requests: {'standvirtual': 15, 'olx': 9}),
+        run(60, requests: {'standvirtual': 40, 'olx': 12}),
+        run(60), // an older run without counts
+      ]),
+      'Pedidos este mês: Standvirtual 55 (28 por recolha) · '
+      'OLX 21 (11 por recolha)',
+    );
+    expect(monthRequestsText([run(60)]), isNull);
+  });
+
+  test(
+    'requests per local day, newest first, days without counts left out',
+    () {
+      CollectorRun at(DateTime start, Map<String, int> requests) =>
+          CollectorRun(
+            status: 'ok',
+            startedAt: start,
+            finishedAt: start.add(const Duration(minutes: 5)),
+            requests: requests,
+          );
+      final now = DateTime(2026, 10, 22, 15);
+
+      expect(
+        dailyRequestsText([
+          at(DateTime(2026, 10, 22, 14), {'standvirtual': 15, 'olx': 9}),
+          at(DateTime(2026, 10, 22, 8), {'standvirtual': 30, 'olx': 10}),
+          at(DateTime(2026, 10, 21, 20), {'standvirtual': 12}),
+          at(DateTime(2026, 10, 19, 12), {'olx': 4}),
+          at(DateTime(2026, 10, 18, 12), const {}),
+        ], now),
+        [
+          'Hoje: Standvirtual 45 · OLX 19',
+          'Ontem: Standvirtual 12',
+          '19/10: OLX 4',
+        ],
+      );
+      expect(dailyRequestsText(const [], now), isEmpty);
+    },
+  );
 
   test('a month of runs in whole minutes, with set-up time', () {
     expect(estimatedMinutes(run(151)), 4);

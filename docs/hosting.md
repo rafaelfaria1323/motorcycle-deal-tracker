@@ -55,7 +55,8 @@ its preview (`tool/pages_previews.py`). Previews cost nothing.
 ## Scheduled runs (Supabase starts them)
 
 GitHub's own scheduler never started `collect.yml`, so Supabase does:
-pg_cron jobs `collect-listings` (every 4 hours, minute 40 UTC) and
+pg_cron jobs `collect-listings` (at 00:00, 08:00 and every 2 hours from
+12:00 to 20:00, Lisbon time) and
 `weekly-summary` (Mondays 07:52 UTC; each account's summary to its devices)
 call GitHub's "Run workflow" API.
 They need one token, created once:
@@ -79,6 +80,66 @@ Admins' "Recolher agora" in Mais uses the same token (an expired one
 shows "O GitHub recusou o pedido"). Mais › "Estado da recolha" shows the
 token's expiry date, and from 14 days before it Telegram reminds you once
 a day (pg_cron `github-token-check`).
+
+### Changing the schedule
+
+The collection's hours live in three places, which must agree: the
+database (what really starts the runs), the app (the "Próxima recolha"
+text) and their tests. One PR changes them together; merging it applies
+the migration (`deploy-web.yml`) and deploys the app.
+
+1. **Database.** `make db-new NAME=collection_hours_<what>` and, in the new
+   migration, define `collection_due` again with the new Lisbon hours
+   (never edit the migration already on `main`):
+
+   ```sql
+   create or replace function public.collection_due(p_now timestamptz)
+   returns boolean
+   language sql
+   stable
+   set search_path = ''
+   as $$
+     select extract(hour from p_now at time zone 'Europe/Lisbon')::integer
+            = any (array[0, 8, 12, 14, 16, 18, 20])
+   $$;
+   ```
+
+   The pg_cron job `collect-listings` runs every hour on the hour
+   (`0 * * * *`) and starts `collect.yml` only when `collection_due()` is
+   true, so changing the hours needs nothing else. Runs at another minute
+   (say 12:30) also need the job itself rescheduled, in the same
+   migration: `select cron.schedule('collect-listings', '30 * * * *',
+   $job$ select public.dispatch_collection() $job$);` (the same name
+   replaces the job). Lisbon hours, so summer time needs no change.
+2. **App.** `collectionHours` at the top of
+   `app/lib/features/collector_status/presentation/collection_text.dart`
+   (the same hours; the minute is fixed at :00 in `nextCollection`).
+   `tracked_models_page.dart` mentions the longest gap ("até 8 horas, de
+   noite"): reword it if that changes.
+3. **Tests.** `supabase/tests/schedule_test.sql` (which hours start a
+   run) and `app/test/collection_text_test.dart` (the next run's time).
+   `make db-test` runs the first; the second runs in CI.
+4. **Watchdog.** `collection-watchdog` warns after 9 hours without a run:
+   keep the longest gap between runs under that, or change the 9 in
+   `check_collection_runs()` with the same migration.
+5. **Docs.** This file, `CLAUDE.md` (Database conventions, Layout),
+   `collect.yml`'s comment and `docs/roadmap.status.md`.
+
+The weekly summary works the same way (job `weekly-summary`, `52 7 * * 1`,
+UTC; the app shows no time for it).
+
+### Requests per run (no caps)
+
+Since 2026-10-22 there is no request cap: each run reads every page of the
+searches and every Standvirtual listing page still to read, 6-10 s apart,
+for at most 30 minutes per site. The app shows the numbers: Mais ›
+Recolha de dados (last run, this month with the average per run) and
+"Estado da recolha" (per day for the last week, today per site). To limit
+them again, set the caps in `FetchPolicy`
+(`collector/lib/src/fetch/polite_fetcher.dart`): `maxRequestsPerRun`,
+`maxRequestsPerDay` (null = none) and `maxRunTime`; keep `collect.yml`'s
+`timeout-minutes` above twice `maxRunTime` plus the imports, and update
+`docs/sources.md` and the Fetching rules in `CLAUDE.md`.
 
 ### Space: old listings of models nobody follows
 

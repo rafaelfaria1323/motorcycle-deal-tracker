@@ -48,29 +48,24 @@ class CollectorRun extends Equatable {
   ];
 }
 
-/// One site's requests used today (UTC day) out of its daily limit, and
-/// until when it is paused after the site pushed back.
+/// One site's requests used today (UTC day), and until when it is paused
+/// after the site pushed back. (Older runs also sent a `daily_limit`; the
+/// caps are gone, so it is ignored.)
 class SiteBudget extends Equatable {
-  const SiteBudget({
-    required this.requestsToday,
-    required this.dailyLimit,
-    this.pausedUntil,
-  });
+  const SiteBudget({required this.requestsToday, this.pausedUntil});
 
   factory SiteBudget.fromJson(Map<String, dynamic> json) => SiteBudget(
     requestsToday: (json['requests_today'] as num?)?.toInt() ?? 0,
-    dailyLimit: (json['daily_limit'] as num?)?.toInt() ?? 120,
     pausedUntil: json['paused_until'] == null
         ? null
         : DateTime.parse(json['paused_until'] as String),
   );
 
   final int requestsToday;
-  final int dailyLimit;
   final DateTime? pausedUntil;
 
   @override
-  List<Object?> get props => [requestsToday, dailyLimit, pausedUntil];
+  List<Object?> get props => [requestsToday, pausedUntil];
 }
 
 enum CollectorHealth { unknown, ok, stale, blocked, failed }

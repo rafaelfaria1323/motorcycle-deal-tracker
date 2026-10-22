@@ -20,7 +20,8 @@ import 'collection_text.dart';
 
 /// "Estado da recolha" (admins, from Mais): whether the GitHub token still
 /// starts the runs, how much database space is used, each site's requests
-/// today and pause, and the last runs with what went wrong and a link to
+/// today and pause, the requests of each of the last 7 days, and the last
+/// runs with what went wrong and a link to
 /// each one on GitHub.
 class CollectionStatusPage extends StatefulWidget {
   const CollectionStatusPage({super.key});
@@ -33,6 +34,7 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
   static const _runs = 20;
 
   late Future<List<CollectorRun>> _recent;
+  late Future<List<CollectorRun>> _week;
   late Future<GithubToken?> _token;
   late Future<DatabaseUsage?> _usage;
 
@@ -43,7 +45,11 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
   }
 
   void _load() {
-    _recent = getIt<CollectorRunsRepository>().getRecent(_runs);
+    final repository = getIt<CollectorRunsRepository>();
+    _recent = repository.getRecent(_runs);
+    _week = repository
+        .getSince(DateTime.now().subtract(const Duration(days: 7)))
+        .catchError((Object _) => const <CollectorRun>[]);
     _token = getIt<GithubTokenRepository>().check().then<GithubToken?>(
       (t) => t,
       onError: (Object _) => null,
@@ -56,7 +62,7 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
 
   Future<void> _reload() async {
     setState(_load);
-    await (_recent, _token, _usage).wait;
+    await (_recent, _week, _token, _usage).wait;
   }
 
   @override
@@ -111,9 +117,10 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
                 SectionCard(
                   title: 'Sites',
                   footnote:
-                      'Cada site permite 20 pedidos por recolha e 120 por dia '
-                      '(o dia conta em UTC). Se um site recusar pedidos, fica '
-                      'em pausa 24 h.',
+                      'Sem limite de pedidos: cada recolha lê todas as '
+                      'páginas das pesquisas e os anúncios por ler, um pedido '
+                      'de cada vez, 6 a 10 s entre eles, até 30 min por site. '
+                      'Se um site recusar pedidos, fica em pausa 24 h.',
                   children: [
                     if (latestWithSites == null)
                       const BulletLine(
@@ -131,6 +138,14 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
                           ),
                         ),
                   ],
+                ),
+                const SizedBox(height: 12),
+                SectionCard(
+                  title: 'Pedidos por dia',
+                  footnote:
+                      'Os últimos 7 dias, somando as recolhas de cada '
+                      'dia.',
+                  children: [_DailyRequests(runs: _week, now: now)],
                 ),
                 const SizedBox(height: 12),
                 SectionCard(
@@ -172,6 +187,33 @@ class _TokenLine extends StatelessWidget {
           );
         }
         return _WarningLine(tokenText(token, now));
+      },
+    );
+  }
+}
+
+class _DailyRequests extends StatelessWidget {
+  const _DailyRequests({required this.runs, required this.now});
+
+  final Future<List<CollectorRun>> runs;
+  final DateTime now;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<CollectorRun>>(
+      future: runs,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const BulletLine('A contar os pedidos…');
+        }
+        final days = dailyRequestsText(snapshot.data ?? const [], now);
+        if (days.isEmpty) {
+          return const BulletLine('Ainda sem pedidos registados.');
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [for (final day in days) BulletLine(day)],
+        );
       },
     );
   }

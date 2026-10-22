@@ -1,7 +1,7 @@
 /// The notification (Web Push, to the admins' devices) for a change in the
 /// collection's health between the [previous] run's status and this run's
 /// [current] one (`ok`, `blocked`, `failed`, see `runStatus`), or null when
-/// nothing changed: a problem is reported once, not every 4 hours, and so
+/// nothing changed: a problem is reported once, not on every run, and so
 /// is the recovery. A tap opens "Estado da recolha".
 Map<String, Object?>? runHealthMessage({
   required String? previous,

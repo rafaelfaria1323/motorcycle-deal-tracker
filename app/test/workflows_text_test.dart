@@ -9,8 +9,11 @@ void main() {
     expect(AppWorkflow.pushTest.file, 'push-test.yml');
   });
 
-  test('the collection warns that it uses the daily budget', () {
-    expect(workflowText(AppWorkflow.collect).subtitle, contains('limite'));
+  test('the collection says where its requests are shown', () {
+    expect(
+      workflowText(AppWorkflow.collect).subtitle,
+      contains('Estado da recolha'),
+    );
     expect(workflowText(AppWorkflow.weeklySummary).title, contains('resumo'));
     expect(workflowText(AppWorkflow.pushTest).title, contains('teste'));
   });

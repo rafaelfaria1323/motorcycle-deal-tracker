@@ -187,7 +187,6 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
     final muted = theme.textTheme.bodyMedium?.copyWith(
       color: theme.colorScheme.onSurfaceVariant,
     );
-    final budget = budgetLines(models);
 
     return ListView(
       padding: const EdgeInsets.only(bottom: 96),
@@ -198,31 +197,16 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
             'Escolha os modelos que quer acompanhar e desde que ano: só esses '
             'aparecem em Ofertas, nos alertas e no mercado. A recolha pesquisa '
             'os modelos de todas as contas, por isso um modelo novo pode já '
-            'ter anúncios. Os anúncios novos chegam na próxima recolha (até 4 '
-            'horas). Toque num modelo para mudar o ano ou o preço de uma nova.',
+            'ter anúncios. Os anúncios novos chegam na próxima recolha (até 8 '
+            'horas, de noite). Toque num modelo para mudar o ano ou o preço de '
+            'uma nova.',
             style: muted,
           ),
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-          child: Text(budget.first, style: muted),
+          child: Text(searchesLine(models), style: muted),
         ),
-        if (budget.length > 1)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  Icons.warning_amber_rounded,
-                  size: 18,
-                  color: theme.colorScheme.error,
-                ),
-                const SizedBox(width: 8),
-                Expanded(child: Text(budget[1])),
-              ],
-            ),
-          ),
         for (final MapEntry(key: brand, value: brandModels) in modelsByBrand(
           models,
         ).entries) ...[

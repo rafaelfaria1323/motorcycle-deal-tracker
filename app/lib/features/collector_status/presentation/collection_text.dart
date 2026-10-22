@@ -1,33 +1,40 @@
 import '../../../core/formatting/formatters.dart';
 import '../domain/collector_run.dart';
+import 'collection_status_text.dart';
 
-/// The collection starts at minute 40 of every 4th hour, UTC (the pg_cron
-/// job 'collect-listings', '40 */4 * * *', in
-/// supabase/migrations/20261020140000_schedule_workflows_with_pg_cron.sql;
-/// keep them in step).
-const _hourStep = 4;
-const _minute = 40;
+/// The collection starts on the hour at these hours, Lisbon time (the
+/// pg_cron job 'collect-listings' and collection_due() in
+/// supabase/migrations/20261024210000_collection_hours.sql; keep them in
+/// step).
+const collectionHours = {0, 8, 12, 14, 16, 18, 20};
 
-/// Requests allowed per site and run (FetchPolicy.maxRequestsPerRun).
-const requestsPerRunLimit = 20;
-
-/// The next scheduled collection after [now].
+/// The next scheduled collection after [now], in UTC.
 DateTime nextCollection(DateTime now) {
   final utc = now.toUtc();
-  var next = DateTime.utc(
-    utc.year,
-    utc.month,
-    utc.day,
-    utc.hour - utc.hour % _hourStep,
-    _minute,
-  );
-  while (!next.isAfter(utc)) {
-    next = next.add(const Duration(hours: _hourStep));
+  var next = DateTime.utc(utc.year, utc.month, utc.day, utc.hour);
+  while (!next.isAfter(utc) ||
+      !collectionHours.contains(next.add(lisbonOffset(next)).hour)) {
+    next = next.add(const Duration(hours: 1));
   }
   return next;
 }
 
-/// "Próxima recolha: hoje às 20:40" (local time). The run itself waits for
+/// Portugal's offset from UTC at [utc]: an hour of summer time from 01:00
+/// UTC on the last Sunday of March to 01:00 UTC on the last Sunday of
+/// October (the EU rule), none otherwise.
+Duration lisbonOffset(DateTime utc) {
+  DateTime lastSunday(int month) {
+    final last = DateTime.utc(utc.year, month + 1, 0, 1);
+    return last.subtract(Duration(days: last.weekday % 7));
+  }
+
+  final summer =
+      !utc.isBefore(lastSunday(DateTime.march)) &&
+      utc.isBefore(lastSunday(DateTime.october));
+  return Duration(hours: summer ? 1 : 0);
+}
+
+/// "Próxima recolha: hoje às 20:00" (local time). The run itself waits for
 /// a free GitHub runner, hence the note.
 String nextCollectionText(DateTime now) {
   final next = nextCollection(now).toLocal();
@@ -65,14 +72,58 @@ String durationText(Duration d) {
   return minutes == 0 ? '$seconds s' : '$minutes min $seconds s';
 }
 
-/// "Standvirtual 15 de 20 · OLX 9 de 20"; null when the run didn't say.
-String? requestsText(Map<String, int> requests) {
-  if (requests.isEmpty) return null;
-  const names = {'standvirtual': 'Standvirtual', 'olx': 'OLX'};
+/// "Pedidos: Standvirtual 15 · OLX 9" (the sites have no request cap, so
+/// these are the figures to watch); null when the run didn't say.
+String? requestsText(Map<String, int> requests) =>
+    requests.isEmpty ? null : 'Pedidos: ${_perSite(requests)}';
+
+String _perSite(Map<String, int> requests) => [
+  for (final MapEntry(:key, :value) in requests.entries)
+    '${siteNames[key] ?? key} $value',
+].join(' · ');
+
+/// "Pedidos este mês: Standvirtual 420 (15 por recolha) · OLX 280 (10 por
+/// recolha)": each site's total over [runs] and its average over the runs
+/// that counted it; null when none did (older runs).
+String? monthRequestsText(List<CollectorRun> runs) {
+  final totals = <String, int>{};
+  final counted = <String, int>{};
+  for (final run in runs) {
+    for (final MapEntry(:key, :value) in run.requests.entries) {
+      totals[key] = (totals[key] ?? 0) + value;
+      counted[key] = (counted[key] ?? 0) + 1;
+    }
+  }
+  if (totals.isEmpty) return null;
+  return 'Pedidos este mês: ${[for (final MapEntry(:key, :value) in totals.entries) '${siteNames[key] ?? key} $value '
+        '(${(value / counted[key]!).round()} por recolha)'].join(' · ')}';
+}
+
+/// "Hoje: Standvirtual 105 · OLX 70", "Ontem: …", "20/10: …": each local
+/// day's requests per site over [runs] (by when the run started), newest
+/// day first. Days without counted runs are left out.
+List<String> dailyRequestsText(List<CollectorRun> runs, DateTime now) {
+  final days = <DateTime, Map<String, int>>{};
+  for (final run in runs) {
+    final start = run.startedAt.toLocal();
+    final sites = days.putIfAbsent(
+      DateTime(start.year, start.month, start.day),
+      () => {},
+    );
+    for (final MapEntry(:key, :value) in run.requests.entries) {
+      sites[key] = (sites[key] ?? 0) + value;
+    }
+  }
+  final sorted = days.keys.where((d) => days[d]!.isNotEmpty).toList()
+    ..sort((a, b) => b.compareTo(a));
   return [
-    for (final MapEntry(:key, :value) in requests.entries)
-      '${names[key] ?? key} $value de $requestsPerRunLimit',
-  ].join(' · ');
+    for (final day in sorted)
+      '${switch (Formatters.calendarDays(day, now)) {
+        0 => 'Hoje',
+        1 => 'Ontem',
+        _ => Formatters.date(day).substring(0, 5),
+      }}: ${_perSite(days[day]!)}',
+  ];
 }
 
 /// "3 anúncios novos, 2 preços alterados, 1 anúncio removido, 4 alertas";
