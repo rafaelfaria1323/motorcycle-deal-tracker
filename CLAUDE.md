@@ -232,7 +232,9 @@ invites; written by the collector on each run).
 - Start: `main.dart` runs `Startup` (`app/startup.dart`), which draws at
   once (Android keeps its splash until the first frame): a spinner while
   Supabase (20 s at most) and the session start, then the app, or the
-  reason it failed with "Tentar novamente". That screen is a bare
+  reason it failed with "Tentar novamente". The first listings are asked
+  for during the sign-in, not after it (no session reads as an anonymous
+  one). That screen is a bare
   `Theme` + `Material`, never a `MaterialApp` (on the web its navigator
   would overwrite a notification's `/#/deals/<id>` and its `Title` the
   `theme-color`).
@@ -353,7 +355,9 @@ invites; written by the collector on each run).
   engine stays on Google's CDN: served from Pages, `skwasm.wasm` came
   1.5 MB instead of 1.2 MB (#172).
 - Hosting: Cloudflare Pages (security headers in `web/_headers`: HSTS,
-  nosniff, no framing, referrer and permissions policies), installed on the iPhone from Safari ("Adicionar
+  nosniff, no framing, referrer and permissions policies; `index.html`
+  preconnects to Google's CDN, the database (`tool/web_preconnect.sh`
+  writes its address into the build) and the photos' CDN), installed on the iPhone from Safari ("Adicionar
   ao ecrã principal"). Status bar: Safari 26+ ignores `theme-color` and tints
   its bars from a solid `position: fixed` element at the top/bottom edge, so
   `web/index.html` has two 12px iOS-only strips (`.edge-tint`, taps pass
