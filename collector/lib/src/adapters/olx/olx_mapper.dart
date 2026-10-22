@@ -77,16 +77,39 @@ class OlxMapper {
   }
 
   /// The title without the brand and the words around it ("Moto Yamaha
-  /// YZF-R7" -> "YZF-R7"), so the model sits at the start where the
-  /// resolver looks for it.
+  /// YZF-R7" -> "YZF-R7", "Vendo mota Honda Forza 350" -> "Forza 350"), so
+  /// the model sits at the start where the resolver looks for it. The brand
+  /// counts as the second word at most, or later when every word before it
+  /// is [_saleWords]: "R7 troca Yamaha" keeps its model.
   static String _withoutBrand(String title, String brand) {
     final words = title.trim().split(RegExp(r'\s+'));
     final key = brand.toLowerCase();
     final at = words.indexWhere((w) => w.toLowerCase() == key);
-    if (at < 0 || at > 1) return title.trim();
+    if (at < 0) return title.trim();
+    if (at > 1 &&
+        !words.take(at).every((w) => _saleWords.contains(w.toLowerCase()))) {
+      return title.trim();
+    }
     final rest = words.sublist(at + 1).join(' ');
     return rest.isEmpty ? title.trim() : rest;
   }
+
+  /// Words sellers put before the brand ("Vendo mota Honda ...").
+  static const _saleWords = {
+    'vendo',
+    'vende',
+    'vende-se',
+    'vendese',
+    'venda',
+    'mota',
+    'moto',
+    'motociclo',
+    'motocicleta',
+    'scooter',
+    'a',
+    'uma',
+    'minha',
+  };
 
   /// The brand of the search's category (spelled as in the catalog when
   /// it is there): it wins over the title, so "Honda CB650R (troca por
