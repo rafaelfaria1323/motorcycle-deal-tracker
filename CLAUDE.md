@@ -99,7 +99,9 @@ supabase/   Migrations (Postgres: scoring, alerts, views, RLS); tests/ SQL tests
 docs/       sources.md (data-source decisions, keep updated), hosting.md
             (also how to replace each secret),
             roadmap.status.md, concept.status.md, code-quality.md and
-            test-hardening.md (backlogs of the automatic passes)
+            test-hardening.md (backlogs of the automatic passes),
+            paid-plans.md (paid plans and other income: a plan, not
+            started; roadmap Sprint 16)
 .github/workflows/collect.yml     Collection at 00:00, 08:00 and every 2 h
                                   from 12:00 to 20:00 (Lisbon time),
                                   started by Supabase pg_cron (see below)

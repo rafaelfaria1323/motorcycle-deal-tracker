@@ -413,12 +413,86 @@ Do not implement several unrelated features at once.
 ## S.5 Android: encrypted session, no backups ✅
 *The Android app kept its Supabase session (refresh token) in SharedPreferences, a plain file readable by anyone with a rooted phone or a backup of it. It now lives in `flutter_secure_storage` (AES-GCM, key in the Android Keystore, which never leaves the phone): `core/platform/session_storage.dart`, given to Supabase as its `localStorage` (the web keeps the browser's). An earlier build's session is moved over once and deleted from SharedPreferences (`session_store.dart`, `session_store_test.dart`), so updating the APK keeps the person signed in; if the encrypted write fails the old copy stays. The manifest now says `android:allowBackup="false"` (`tool/android_manifest.py`): no cloud backup of the app's data. Android 12+ still copies data when moving to a new phone, but the Keystore key doesn't come along, so the new phone starts signed out. `path_provider_android` (from flutter_secure_storage) is held at 2.2.23: 2.3 moved to JNI like `shared_preferences_android` 2.5, which fails in the release APK.*
 
+# Fewer requests (R) ⬜
+
+*Rafael, 2026-10-22, after the caps were removed (9.6e): "is there anything we could cache, or some strategy that would help do fewer requests?" The pages themselves can't be cached: a search page changes with every new ad and every new price, and each listing page is already read only once (9.4b). The savings come from reading fewer pages. Order: measure first (R.1), then the biggest saving (R.2), using the uncapped runs' numbers.*
+
+*Considered, not worth it:*
+- *HTTP caching (`ETag`, `If-Modified-Since`): a 304 is still a request, and search pages change all the time.*
+- *Compression: Dart's `HttpClient` already asks for gzip, which saves bytes, not requests.*
+- *The sites' JSON APIs: `/api/` is blocked by robots.txt.*
+- *Parallel requests: forbidden by the Fetching rules.*
+## R.1 Pages per search recorded ⬜
+*Each run stores, for each search, the pages it spans, the pages read and the ads found, taken from `searches.json` (`collector_runs.searches`). "Estado da recolha" shows them. After a week of uncapped runs these numbers say which of R.2–R.6 are worth building: a search that fits on one page gains nothing from R.2.*
+## R.2 Light runs, newest first ⬜
+*The biggest saving. A light run asks each search for its newest ads first, using the site's own sort, whose parameter is to be found in the sites' sort menu (as was done for the engine-size bands, 9.13). It stops paging once a page reaches ads older than that search's previous read (by the site's dates: Standvirtual's `createdAt`, OLX's `lastRefreshTime`), promoted ads aside. A search of 4 pages then costs 1 request instead of 4.*
+
+*What it can't do:*
+- *Light reads are never "read in full", so they remove nothing (`removalPlan`).*
+- *A price change on a later page waits for the next full run. Check whether either site moves a repriced ad to the top; if one does, light runs see drops too.*
+
+*Full runs (every page, removals, every price) stay at 2–3 of the 7 hours, e.g. 08:00, 14:00 and 20:00; the rest are light. `refresh.dart`'s `--full` already decides whether a run removes listings; a light run is one without it that also stops paging early. Option: when a search's total count falls in a light run, read that search in full at once (something was removed).*
+## R.3 One Standvirtual search per brand ⬜
+*If Standvirtual's model filter takes several models (check its filter list), the followed models of one brand share one search. Fewer half-empty last pages: the CB650R and CBR650R as one search of 32 per page instead of two. OLX already groups by family and engine size (9.13, 9.14).*
+## R.4 robots.txt kept up to 24 hours ⬜
+*Rafael's decision (it loosens a Fetching rule: "robots.txt read every run"). RFC 9309 lets a crawler keep robots.txt for up to 24 hours. Kept in each site's fetch state and read again at the first run of the day, or after a refusal: 2 requests a day instead of 14.*
+## R.5 Listing pages that matter first ⬜
+*When a run reaches the 30 minutes per site (`maxRunTime`), the Standvirtual listing pages still to read wait for the next run. Read first the favourites', then the alerted ones', then the rest by Deal Score, instead of newest first. Same requests, but what waits is what matters least.*
+## R.6 Quiet searches read less often ⬜
+*After R.2: a search with no new ad in its last several light reads is read every other light run. Only if R.1's numbers show many such searches.*
+
+# Sprint 16 — Paid plans ⬜
+
+*Rafael, 2026-10-22: "plan the paid features if in the future we want to start having paid subscriptions, and other ways to make money". The plan: `docs/paid-plans.md` (decisions, free vs paid features, new features, other income, prices to test). Not started. It starts only after 16.0.*
+## 16.0 Decisions before charging ⬜
+*Rafael's, with a lawyer and an accountant (`docs/paid-plans.md` §1):*
+- *Data rights. The collection's basis is personal, non-commercial use (`docs/sources.md`). The sites' terms are still unread, and the EU database right applies (CJEU Innoweb v Wegener, CV-Online v Melons). Choose: stay free among invited friends, get the sites' permission, or charge only for our own analysis and tools.*
+- *Business: activity at Finanças, VAT, invoices, Merchant of Record or Stripe.*
+- *Legal pages.*
+- *Supabase Pro.*
+## 16.1 Plans and entitlements in the database ⬜
+*Two tables:*
+- *`plans`: code and limits (models, saved searches, favourites, features).*
+- *`subscriptions`: user, plan, status, `current_period_end`, provider and its reference. No API writes; only the webhook writes.*
+
+*`my_plan()` and `has_feature(code)`. The limits are enforced where the writes happen: the catalog RPCs for models, triggers on `saved_searches` and `listing_favourites`, the collector's notifications for pushes after each run. Invited accounts and admins get the free `convidado` plan, with Pro's features. SQL tests per limit. The app reads the plan through `PlanCubit`.*
+## 16.2 Payments ⬜
+*The Merchant of Record's hosted checkout (no card data reaches us). Its signed webhook goes to a Supabase Edge Function, which updates `subscriptions`. The Merchant of Record's portal handles cancelling, cards and invoices. Built in its test mode first. The pass (60 days, no renewal) and one-off reports are single payments; Pro is a subscription.*
+## 16.3 Open sign-up ⬜
+*Email confirmation and password reset through a transactional email service's SMTP. Cloudflare Turnstile on sign-up (Supabase supports it). Account deletion by the person themselves (GDPR). Invites stay for friends.*
+## 16.4 "Planos" page and trial ⬜
+*Mais › Planos: what each plan has (`docs/paid-plans.md` §2.1). A locked feature says what it does and offers "Experimentar 14 dias" (no card). Scores and their explanations are never locked.*
+## 16.5 Legal pages ⬜
+*Termos, Privacidade, the Livro de Reclamações Eletrónico link, the dispute-resolution body (RAL entity), prices with VAT, and the consent at checkout about the withdrawal right. No cookie banner while the app keeps only what it needs to work (no analytics cookies).*
+## 16.6 Metrics without trackers ⬜
+*Counts kept in the database:*
+- *accounts, and accounts active in the last 7 and 30 days;*
+- *trials, trials turned paid, and cancellations;*
+- *the features used.*
+
+*Admins see them in Mais. No Google Analytics.*
+## 16.7 Infrastructure for paying users ⬜
+*Supabase Pro (daily backups, no pausing, 8 GB), a domain of its own, the repository's visibility and licence. Request volume first: roadmap R, and a cap on the models a free account follows.*
+## 16.8 Report of one ad ⬜
+*"Relatório de um anúncio": one ad's full analysis as a link to share, bought one at a time (`report_purchases`).*
+## 16.9 What is my bike worth ⬜
+*"Quanto vale a minha mota", for sellers: estimate, time to sell, asking price and trade-in floor, from the model's comparables and market behaviour.*
+## 16.10 Import calculator ⬜
+*A bike from Spain, Germany or France: price + ISV (engine size, reduced by age) + homologation, inspection and transport, against the Portuguese estimate. Tax rules to check; more sources need their terms read first.*
+## 16.11 Shared lists and export ⬜
+*Favourites, notes and checklists shared with one more account (a partner, a mechanic) and exported as CSV or PDF.*
+## 16.12 Affiliate links and the stand plan ⬜
+*Insurance, financing, gear, inspection and transport links where they fit, marked "ligação de afiliado" and never part of a score. The stand plan: a dealer's stock against the market. Never placement, never a better score.*
+## 16.13 Donations ⬜
+*Possible now, before everything else: GitHub Sponsors or Ko-fi linked from Mais. The income is still declared.*
+
 # Next
 
 1. Deal Score: the market-behaviour slice (time on market, price drops) once there is enough history; price trends per model (10.3, 15.8).
 2. Saved ads from other sites: update the price or mark sold from their page (after #43).
+3. Fewer requests: R.1 once the uncapped runs have a week of numbers, then R.2.
 
-**Open items for Rafael:** read the Standvirtual/OLX terms and record the clauses in `docs/sources.md`; check the new-bike reference prices; check the IUC table each January (`ownership_cost.dart`) and enter your insurance quote in "Custo de ter esta mota" → Alterar.
+**Open items for Rafael:** read the Standvirtual/OLX terms and record the clauses in `docs/sources.md`; check the new-bike reference prices; check the IUC table each January (`ownership_cost.dart`) and enter your insurance quote in "Custo de ter esta mota" → Alterar. Robots.txt kept up to 24 h (R.4)? Paid plans: the decisions in 16.0 (`docs/paid-plans.md` §1) before any of Sprint 16.
 
 # Definition of Done
 

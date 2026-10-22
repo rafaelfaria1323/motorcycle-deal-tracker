@@ -84,6 +84,7 @@ are never committed.
 - [`docs/concept.status.md`](docs/concept.status.md): the original concept and how far it is built.
 - [`docs/sources.md`](docs/sources.md): data-source decisions.
 - [`docs/hosting.md`](docs/hosting.md): Cloudflare Pages, installing on the iPhone, and the Android app.
+- [`docs/paid-plans.md`](docs/paid-plans.md): the plan for paid subscriptions and other income: what to decide first, free and paid features, prices to test. Not started (roadmap Sprint 16).
 - [`docs/code-quality.md`](docs/code-quality.md): code improvements to do and done (worked through automatically).
 - [`docs/test-hardening.md`](docs/test-hardening.md): bugs, missing and redundant tests found by the automatic mutation-style pass, to do and done.
 - [`CLAUDE.md`](CLAUDE.md): conventions and the detailed pipeline, scoring and alert rules.

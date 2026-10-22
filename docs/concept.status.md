@@ -46,7 +46,7 @@ Unchanged.
 - ✅ OLX (search result pages, which hold the full description; Standvirtual copies skipped; each search asks for the engine-size band of its models, so other models' ads aren't read).
 - ⬜ Future: CustoJusto, dealerships, European marketplaces, imports.
 
-*robots.txt checked and read every run; same polite rules per site (6-10 s apart, one at a time, 24 h pause on a refusal); no request caps since 2026-10-22, at most 30 min per site and run, the requests shown per run, day and month. **Terms of use still to be read and recorded** in `docs/sources.md`.*
+*robots.txt checked and read every run; same polite rules per site (6-10 s apart, one at a time, 24 h pause on a refusal); no request caps since 2026-10-22, at most 30 min per site and run, the requests shown per run, day and month. Fewer requests planned (roadmap R): pages per search recorded first, then light runs that read each search newest first and stop at ads already seen, with full runs a few times a day. **Terms of use still to be read and recorded** in `docs/sources.md`.*
 
 ## 6. Platform
 
@@ -152,6 +152,8 @@ Private sellers' names and all phone numbers are never stored; saved pages and f
 Comparison ✅ (listings side by side), buying assistant, checklists, cost calculators, price prediction, weekly ranking ✅ (the weekly summary's best deals, 14.4d), smart alerts, model price history, imports, dealer integration. ➕ Depreciation tracking ✅ (per-model rates fitted from data).
 
 Planned in roadmap Sprint 15 ("Deciding and buying"): ➕ favourites with private notes ✅ (15.1; a favourite always alerts on price drops and removal), price to offer (buying assistant, 15.2) ✅, ➕ negotiation arguments, visit repairs off the offer, messages per step and a target price alert (15.19) ✅, ➕ "back on the market" alert for followed bikes (15.14) ✅, ➕ message to the seller (15.12) ✅, viewing checklist (15.3) ✅, cost of ownership (cost calculator, 15.4) ✅, relists as a risk signal (15.5) ✅, text contradictions as risk signals (15.6) ✅, dealer reliability (15.7) ✅ (figures shown and scored), price trends (model price history, 15.8) ⬜, more sources and imports (15.9) ⬜, web push (15.10) ✅.
+
+➕ Paid plans ⬜: planned in roadmap Sprint 16 and `docs/paid-plans.md`. The plan covers free and paid features, a purchase pass, one-ad reports, seller valuation, an import calculator, affiliate links and a stand plan. Nothing is charged before the decisions in 16.0: the data's commercial use (the collection is personal and non-commercial today), the business, the legal pages and the infrastructure.
 
 ## 24. Product Philosophy ✅
 
