@@ -9,6 +9,7 @@ class CatalogModel extends Equatable {
     required this.minYear,
     required this.isTracked,
     this.isCollected = false,
+    this.colours = const [],
     this.olxSearch,
     this.standvirtualSearch,
     this.newPrice,
@@ -30,6 +31,10 @@ class CatalogModel extends Equatable {
   /// its searches, matches and scores its listings.
   final bool isCollected;
 
+  /// The account's favourite colours for this model (codes, as
+  /// `listings.colour`): a plus and a filter, never Deal Score points.
+  final List<String> colours;
+
   /// The search address that lists the model on each site, if any.
   final String? olxSearch;
   final String? standvirtualSearch;
@@ -39,13 +44,18 @@ class CatalogModel extends Equatable {
   final double? newPrice;
   final DateTime? newPriceCheckedAt;
 
-  CatalogModel copyWith({bool? isTracked, int? minYear}) => CatalogModel(
+  CatalogModel copyWith({
+    bool? isTracked,
+    int? minYear,
+    List<String>? colours,
+  }) => CatalogModel(
     id: id,
     brand: brand,
     model: model,
     minYear: minYear ?? this.minYear,
     isTracked: isTracked ?? this.isTracked,
     isCollected: isCollected,
+    colours: colours ?? this.colours,
     olxSearch: olxSearch,
     standvirtualSearch: standvirtualSearch,
     newPrice: newPrice,
@@ -60,6 +70,7 @@ class CatalogModel extends Equatable {
     minYear: minYear,
     isTracked: isTracked,
     isCollected: isCollected,
+    colours: colours,
     olxSearch: olxSearch,
     standvirtualSearch: standvirtualSearch,
     newPrice: price,
@@ -74,6 +85,7 @@ class CatalogModel extends Equatable {
     minYear,
     isTracked,
     isCollected,
+    colours,
     olxSearch,
     standvirtualSearch,
     newPrice,

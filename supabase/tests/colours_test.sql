@@ -27,11 +27,25 @@ end $$;
 
 insert into auth.users (id) values ('00000000-0000-0000-0000-0000000000c1'),
                                    ('00000000-0000-0000-0000-0000000000c2');
+-- Both accounts follow every collected model.
+insert into public.user_models (user_id, motorcycle_id, min_year)
+select u.id, m.id, m.min_year from auth.users u cross join public.motorcycles m
+where m.is_active;
 
-insert into public.listings (source, source_listing_id, url, brand, model, price, variant, description)
-values ('standvirtual', 'col-1', 'https://x/1', 'Yamaha', 'MT-07', 6000, 'MT-07', 'Cor: azul'),
-       ('olx', 'col-2', 'https://x/2', 'Yamaha', 'MT-07', 6000, 'MT-07 preta', null),
-       ('olx', 'col-3', 'https://x/3', 'Yamaha', 'MT-07', 6000, 'MT-07', 'Sem cor dita');
+insert into public.listings (source, source_listing_id, url, motorcycle_id, brand, model,
+                             price, variant, description)
+select v.src, v.sid, 'https://x/' || v.sid, m.id, m.brand, m.model, 6000, v.variant, v.descr
+from public.motorcycles m,
+     (values ('standvirtual', 'col-1', 'MT-07', 'Cor: azul'),
+             ('olx', 'col-2', 'MT-07 preta', null),
+             ('olx', 'col-3', 'MT-07', 'Sem cor dita')) v(src, sid, variant, descr)
+where m.slug = 'yamaha-mt-07';
+
+insert into public.listings (source, source_listing_id, url, motorcycle_id, brand, model,
+                             price, variant)
+select 'olx', 'col-4', 'https://x/col-4', m.id, m.brand, m.model, 6000, 'CBR650R azul'
+from public.motorcycles m
+where m.slug = 'honda-cbr650r';
 
 do $$
 begin
@@ -48,6 +62,8 @@ begin
   perform public.apply_listing_details('standvirtual',
     '[{"source_listing_id": "col-1", "description": "Cor: verde"}]');
   assert (select colour from public.listings where source_listing_id = 'col-1') = 'red';
+  perform public.apply_listing_details('standvirtual',
+    '[{"source_listing_id": "col-1", "site_colour": "blue"}]');
 end $$;
 
 set local role authenticated;
@@ -56,34 +72,99 @@ set local test.jwt = '{"is_anonymous": false}';
 
 do $$
 begin
-  assert not (select public.my_colour(l) from public.listings l
-              where source_listing_id = 'col-2'), 'no colours chosen: no mark';
+  assert not exists (select 1 from public.listings l where public.my_colour(l)),
+    'no colours chosen: no mark';
 end $$;
 
-insert into public.user_colours (colours) values ('{black,red}');
+-- Blue for the MT-07, black for the CBR650R.
+select public.set_model_colours(m.id, '{blue}') from public.motorcycles m
+where m.slug = 'yamaha-mt-07';
+select public.set_model_colours(m.id, '{black}') from public.motorcycles m
+where m.slug = 'honda-cbr650r';
+insert into public.saved_searches (name, only_my_colours) values ('Cores', true),
+                                                                 ('Todas', false);
 
 do $$
 declare
-  v_scores int[];
+  refused boolean := false;
 begin
   assert (select array_agg(l.source_listing_id order by l.source_listing_id)
-          from public.listings l where public.my_colour(l))
-         = array['col-1', 'col-2'];
-  assert not (select public.my_colour(l) from public.listings l
-              where source_listing_id = 'col-3'), 'unknown colour: no mark';
+          from public.listings l where public.my_colour(l)) = array['col-1'],
+    'a colour counts only for its model';
+  assert (select public.my_colours(m) from public.motorcycles m
+          where m.slug = 'yamaha-mt-07') = '{blue}';
+  assert (select public.my_colours(m) from public.motorcycles m
+          where m.slug = 'yamaha-r7') = '{}';
+  -- Choosing colours doesn't change what the account follows.
+  assert (select bool_and(u.tracked) from public.user_models u);
+
+  assert (select array_agg(l.source_listing_id)
+          from public.saved_search_matches sm
+          join public.saved_searches s on s.id = sm.saved_search_id
+          join public.listings l on l.id = sm.listing_id
+          where s.name = 'Cores') = array['col-1'], 'only my colours';
+  assert (select count(*)
+          from public.saved_search_matches sm
+          join public.saved_searches s on s.id = sm.saved_search_id
+          where s.name = 'Todas') = 4;
+
   begin
-    insert into public.user_colours (colours) values ('{teal}');
-    raise exception 'an unknown colour code was saved';
-  exception when check_violation or unique_violation then null;
+    perform public.set_model_colours(m.id, '{teal}') from public.motorcycles m
+    where m.slug = 'yamaha-mt-07';
+  exception when check_violation then refused := true;
   end;
+  assert refused, 'an unknown colour code is refused';
+end $$;
+
+reset role;
+
+-- The alerts say when the bike is in the person's colour.
+insert into public.alerts (user_id, listing_id, type)
+select '00000000-0000-0000-0000-0000000000c1', l.id, 'new_listing'
+from public.listings l where l.source_listing_id in ('col-1', 'col-4');
+do $$
+begin
+  assert (select array_agg(l.source_listing_id order by l.source_listing_id)
+          from public.pending_notifications() p
+          join public.listings l on l.id = p.listing_id
+          where p.my_colour) = array['col-1'];
+  assert (select count(*) from public.pending_notifications()) = 2;
+end $$;
+
+set local role authenticated;
+set local test.uid = '00000000-0000-0000-0000-0000000000c1';
+
+-- A model not followed keeps its colours, still not followed.
+select public.set_model_colours(m.id, '{red}') from public.motorcycles m
+where not m.is_active limit 1;
+do $$
+begin
+  assert (select not u.tracked and u.colours = '{red}'
+          from public.user_models u join public.motorcycles m on m.id = u.motorcycle_id
+          where not m.is_active);
 end $$;
 
 -- Each account's colours are its own.
 set local test.uid = '00000000-0000-0000-0000-0000000000c2';
 do $$
 begin
-  assert (select count(*) from public.user_colours) = 0;
   assert not exists (select 1 from public.listings l where public.my_colour(l));
+  assert (select public.my_colours(m) from public.motorcycles m
+          where m.slug = 'yamaha-mt-07') = '{}';
+end $$;
+
+-- Anonymous sessions can't choose colours.
+set local test.jwt = '{"is_anonymous": true}';
+do $$
+declare
+  refused boolean := false;
+begin
+  begin
+    perform public.set_model_colours(m.id, '{blue}') from public.motorcycles m
+    where m.slug = 'yamaha-mt-07';
+  exception when others then refused := true;
+  end;
+  assert refused;
 end $$;
 reset role;
 

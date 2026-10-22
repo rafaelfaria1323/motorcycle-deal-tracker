@@ -33,12 +33,10 @@ import '../../features/listings/presentation/cubit/listing_detail_cubit.dart';
 import '../../features/listings/presentation/cubit/listings_cubit.dart';
 import '../../features/listings/presentation/cubit/saved_searches_cubit.dart';
 import '../../features/settings/data/supabase_accounts_repository.dart';
-import '../../features/settings/data/supabase_colour_repository.dart';
 import '../../features/settings/data/supabase_home_repository.dart';
 import '../../features/settings/data/supabase_push_repository.dart';
 import '../../features/settings/data/supabase_workflows_repository.dart';
 import '../../features/settings/domain/accounts_repository.dart';
-import '../../features/settings/domain/colour_repository.dart';
 import '../../features/settings/domain/home_repository.dart';
 import '../../features/settings/domain/push_repository.dart';
 import '../../features/settings/domain/workflows_repository.dart';
@@ -104,9 +102,6 @@ void configureDependencies() {
     )
     ..registerLazySingleton<HomeRepository>(
       () => SupabaseHomeRepository(getIt<SupabaseClient>()),
-    )
-    ..registerLazySingleton<ColourRepository>(
-      () => SupabaseColourRepository(getIt<SupabaseClient>()),
     )
     ..registerLazySingleton<AccountsRepository>(
       () => SupabaseAccountsRepository(getIt<SupabaseClient>()),

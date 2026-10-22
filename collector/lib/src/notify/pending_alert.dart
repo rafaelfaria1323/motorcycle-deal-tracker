@@ -16,6 +16,7 @@ class PendingAlert {
     this.dealScore,
     this.location,
     this.createdAt,
+    this.myColour = false,
   });
 
   factory PendingAlert.fromRow(Map<String, dynamic> row) => PendingAlert(
@@ -37,6 +38,7 @@ class PendingAlert {
       final String at => DateTime.parse(at),
       _ => null,
     },
+    myColour: row['my_colour'] as bool? ?? false,
   );
 
   final String alertId;
@@ -58,6 +60,10 @@ class PendingAlert {
 
   /// When the alert was made (null from older databases).
   final DateTime? createdAt;
+
+  /// The bike is in one of the person's colours for its model (a plus, not
+  /// part of the score).
+  final bool myColour;
 }
 
 /// `7650` -> `7 650 €`
@@ -76,6 +82,7 @@ String euros(num value) {
 /// price, and the facts.
 ({String title, String? price, String facts}) _alertLines(PendingAlert a) {
   final heading = switch (a.type) {
+    'new_listing' when a.myColour => '🆕 Novo anúncio na sua cor',
     'new_listing' => '🆕 Novo anúncio',
     'price_reduction' => '📉 Baixa de preço',
     'excellent_opportunity' => '🔥 Excelente oportunidade',
@@ -102,6 +109,7 @@ String euros(num value) {
       : euros(current);
 
   final facts = [
+    if (a.myColour && a.type != 'new_listing') 'Na sua cor',
     if (a.mileage != null) '${euros(a.mileage!).replaceAll(' €', '')} km',
     if (a.location != null) a.location!,
     if (a.dealScore != null && a.type != 'listing_removed')

@@ -9,6 +9,8 @@ import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/catalog_model.dart';
 import '../../domain/repositories/catalog_repository.dart';
+import '../colour_text.dart';
+import '../cubit/favourites_cubit.dart';
 import '../cubit/listings_cubit.dart';
 import '../tracked_models_text.dart';
 import '../widgets/add_model_sheet.dart';
@@ -42,7 +44,11 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
 
   @override
   void dispose() {
-    if (_changed) unawaited(getIt<ListingsCubit>().load(models: true));
+    if (_changed) {
+      unawaited(getIt<ListingsCubit>().load(models: true));
+      // The favourite-colour marks come with the listings.
+      unawaited(getIt<FavouritesCubit>().load());
+    }
     super.dispose();
   }
 
@@ -90,19 +96,20 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
   );
 
   Future<void> _edit(CatalogModel model) async {
-    final edited = await showDialog<({int year, double? price})>(
+    final edited = await showDialog<_ModelEdit>(
       context: context,
       builder: (_) => _ModelDialog(model: model),
     );
     if (edited == null) return;
     final yearChanged = edited.year != model.minYear;
     final priceChanged = edited.price != model.newPrice;
-    if (!yearChanged && !priceChanged) return;
+    final coloursChanged = !_sameColours(edited.colours, model.colours);
+    if (!yearChanged && !priceChanged && !coloursChanged) return;
 
     await _save(
       model,
       model
-          .copyWith(minYear: edited.year)
+          .copyWith(minYear: edited.year, colours: edited.colours)
           .withNewPrice(
             edited.price,
             priceChanged
@@ -114,9 +121,15 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
         if (priceChanged) {
           await _repository.setNewPrice(model.id, edited.price);
         }
+        if (coloursChanged) {
+          await _repository.setColours(model.id, edited.colours);
+        }
       },
     );
   }
+
+  static bool _sameColours(List<String> a, List<String> b) =>
+      a.toSet().containsAll(b) && b.toSet().containsAll(a);
 
   Future<void> _add() async {
     final messenger = ScaffoldMessenger.of(context);
@@ -198,8 +211,8 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
             'aparecem em Ofertas, nos alertas e no mercado. A recolha pesquisa '
             'os modelos de todas as contas, por isso um modelo novo pode já '
             'ter anúncios. Os anúncios novos chegam na próxima recolha (até 8 '
-            'horas, de noite). Toque num modelo para mudar o ano ou o preço de '
-            'uma nova.',
+            'horas, de noite). Toque num modelo para mudar o ano, as suas '
+            'cores preferidas ou o preço de uma nova.',
             style: muted,
           ),
         ),
@@ -233,8 +246,10 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
   }
 }
 
-/// Edits a model's first year and new-bike price; returns null if
-/// cancelled.
+typedef _ModelEdit = ({int year, double? price, List<String> colours});
+
+/// Edits a model's first year, favourite colours and new-bike price;
+/// returns null if cancelled.
 class _ModelDialog extends StatefulWidget {
   const _ModelDialog({required this.model});
 
@@ -246,6 +261,7 @@ class _ModelDialog extends StatefulWidget {
 
 class _ModelDialogState extends State<_ModelDialog> {
   late int _year = widget.model.minYear;
+  late final Set<String> _colours = {...widget.model.colours};
   late final _price = TextEditingController(
     text: widget.model.newPrice?.toStringAsFixed(0) ?? '',
   );
@@ -264,7 +280,15 @@ class _ModelDialogState extends State<_ModelDialog> {
       setState(() => _priceError = parsed.error);
       return;
     }
-    Navigator.of(context).pop((year: _year, price: parsed.price));
+    Navigator.of(context).pop((
+      year: _year,
+      price: parsed.price,
+      // In the offered order, so equal choices compare equal.
+      colours: [
+        for (final code in colourLabels.keys)
+          if (_colours.contains(code)) code,
+      ],
+    ));
   }
 
   @override
@@ -299,6 +323,30 @@ class _ModelDialogState extends State<_ModelDialog> {
             const Text(
               'Anúncios mais antigos são ignorados. Um ano mais antigo traz '
               'mais anúncios, mas a pesquisa ocupa mais pedidos.',
+            ),
+            const SizedBox(height: 16),
+            Text('Cores preferidas', style: theme.textTheme.titleSmall),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final MapEntry(key: code, value: label)
+                    in colourLabels.entries)
+                  FilterChip(
+                    label: Text(label),
+                    selected: _colours.contains(code),
+                    onSelected: (selected) => setState(
+                      () =>
+                          selected ? _colours.add(code) : _colours.remove(code),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Os anúncios nestas cores ficam marcados e pode filtrá-los ou '
+              'ser avisado deles. A cor não conta na pontuação.',
             ),
             const SizedBox(height: 16),
             TextField(

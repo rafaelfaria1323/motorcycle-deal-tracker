@@ -10,7 +10,6 @@ import '../../collector_status/presentation/collection_details.dart';
 import '../../collector_status/presentation/collector_status_banner.dart';
 import '../../collector_status/presentation/data_quality_details.dart';
 import 'android_app_tile.dart';
-import 'favourite_colours_tile.dart';
 import 'home_place_tile.dart';
 import 'push_tile.dart';
 import 'run_now_tiles.dart';
@@ -102,15 +101,13 @@ class MorePage extends StatelessWidget {
                     const Divider(height: 1),
                     const HomePlaceTile(),
                     const Divider(height: 1),
-                    const FavouriteColoursTile(),
-                    const Divider(height: 1),
                     ListTile(
                       leading: const Icon(Icons.two_wheeler),
                       title: const Text('Modelos acompanhados'),
                       subtitle: Text(
                         signedIn
-                            ? 'Que modelos recolher, desde que ano e o preço '
-                                  'de uma nova'
+                            ? 'Que modelos recolher, desde que ano, as suas '
+                                  'cores e o preço de uma nova'
                             : 'Disponível com sessão iniciada',
                       ),
                       trailing: const Icon(Icons.chevron_right),

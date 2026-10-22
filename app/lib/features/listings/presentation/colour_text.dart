@@ -1,8 +1,8 @@
 import '../domain/entities/listing.dart';
 import 'score_explanation.dart';
 
-/// The colour codes of `listings.colour` and `user_colours`, in the order
-/// they are offered, with their labels.
+/// The colour codes of `listings.colour` and `user_models.colours`, in the
+/// order they are offered, with their labels.
 const colourLabels = {
   'black': 'Preto',
   'white': 'Branco',
@@ -23,8 +23,8 @@ const colourLabels = {
 /// "Azul" for a known code; null otherwise.
 String? colourLabel(String? code) => colourLabels[code];
 
-/// The person's colours for Mais ("Azul, Preto", in the offered order), or
-/// null when none is chosen.
+/// The person's colours for a model ("Preto, Azul", in the offered order),
+/// or null when none is chosen.
 String? favouriteColoursText(Iterable<String> codes) {
   final chosen = codes.toSet();
   final labels = [

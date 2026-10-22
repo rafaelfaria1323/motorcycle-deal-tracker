@@ -95,7 +95,7 @@ Initial price, current price, every change with date, percentage, and time onlin
 
 Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are parameters of one SQL function ✅.
 
-➕ Favourite colours (15.23): each account picks its colours; a listing in one is marked and explained as a plus, but never scored (an older bike or one with more km must not win on colour).
+➕ Favourite colours (15.23): each account picks its colours per model (blue MT-07, red CBR650R); a listing in one is marked and explained as a plus, can be filtered ("Só nas suas cores", with the cheapest sort: the best price in that colour) and alerted on by saved searches ("Novo anúncio na sua cor"), but never scored (an older bike or one with more km must not win on colour).
 
 ## 13. Explainable Score ✅
 

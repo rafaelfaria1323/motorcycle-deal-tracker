@@ -35,6 +35,7 @@ String summarizeFilters(
   for (final code in filters.extras) {
     parts.add(extraFilterLabel(code));
   }
+  if (filters.onlyMyColours) parts.add(onlyMyColoursLabel);
 
   return parts.join(' · ');
 }
@@ -44,6 +45,8 @@ const maxDistanceOptions = [25, 50, 100, 200, 300];
 
 /// "até 50 km de casa".
 String maxDistanceLabel(int km) => 'até ${Formatters.mileage(km)} de casa';
+
+const onlyMyColoursLabel = 'nas suas cores';
 
 /// "com quickshifter".
 String extraFilterLabel(String code) => 'com ${extraLabels[code] ?? code}';
@@ -69,6 +72,7 @@ List<FilterChipData> filterChips(
     bool risk = true,
     bool distance = true,
     String? withoutExtra,
+    bool colours = true,
     bool activeOnly = false,
   }) => ListingFilters(
     motorcycleId: model ? f.motorcycleId : null,
@@ -84,6 +88,7 @@ List<FilterChipData> filterChips(
       for (final e in f.extras)
         if (e != withoutExtra) e,
     ],
+    onlyMyColours: colours && f.onlyMyColours,
     activeOnly: activeOnly || f.activeOnly,
   );
 
@@ -125,6 +130,8 @@ List<FilterChipData> filterChips(
       (label: maxDistanceLabel(maxKm), without: copy(distance: false)),
     for (final code in f.extras)
       (label: extraFilterLabel(code), without: copy(withoutExtra: code)),
+    if (f.onlyMyColours)
+      (label: onlyMyColoursLabel, without: copy(colours: false)),
     if (!f.activeOnly)
       (label: 'Inclui removidos', without: copy(activeOnly: true)),
   ];

@@ -1,7 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:motorcycle_deal_tracker/features/listings/data/models/saved_search_model.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_filters.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/entities/saved_search.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/colour_text.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/listing_detail_text.dart';
+import 'package:motorcycle_deal_tracker/features/listings/presentation/saved_search_summary.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/score_explanation.dart';
 
 Listing _listing({String? colour, bool myColour = false}) => Listing(
@@ -20,7 +24,7 @@ Listing _listing({String? colour, bool myColour = false}) => Listing(
 
 void main() {
   test('the codes match the database check', () {
-    // As user_colours' check and colour_code() in the database.
+    // As user_models.colours' check and colour_code() in the database.
     expect(colourLabels.keys, [
       'black',
       'white',
@@ -73,5 +77,52 @@ void main() {
       bikeFacts(_listing(colour: 'grey', myColour: true)),
       contains(('Cor', 'Cinzento (uma das suas preferidas)')),
     );
+  });
+
+  group('only my colours', () {
+    test('counts as a filter and a saved-search criterion', () {
+      const filters = ListingFilters(onlyMyColours: true);
+      expect(filters.appliedCount, 1);
+      expect(filters.hasCriteria, isTrue);
+      expect(filters.criteriaOnly.onlyMyColours, isTrue);
+      expect(ListingFilters.empty.onlyMyColours, isFalse);
+    });
+
+    test('summary and chip', () {
+      const filters = ListingFilters(minYear: 2024, onlyMyColours: true);
+      expect(
+        summarizeFilters(filters, const []),
+        'desde 2024 · nas suas cores',
+      );
+      final chip = filterChips(filters, const []).last;
+      expect(chip.label, 'nas suas cores');
+      expect(chip.without, const ListingFilters(minYear: 2024));
+      expect(
+        filterChips(filters, const []).first.without,
+        const ListingFilters(onlyMyColours: true),
+      );
+    });
+
+    test('saved with the search and read back', () {
+      expect(
+        SavedSearchModel.toInsert(
+          'Azul',
+          const ListingFilters(onlyMyColours: true),
+        )['only_my_colours'],
+        isTrue,
+      );
+      final row = {
+        'id': 's1',
+        'created_at': '2026-10-22T12:00:00Z',
+        'only_my_colours': true,
+      };
+      expect(SavedSearchModel.fromJson(row).filters.onlyMyColours, isTrue);
+      expect(
+        SavedSearchModel.fromJson({...row}..remove('only_my_colours'))
+            .filters
+            .onlyMyColours,
+        isFalse,
+      );
+    });
   });
 }

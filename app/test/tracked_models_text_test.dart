@@ -36,6 +36,10 @@ void main() {
       'Desde 2023 · OLX e Standvirtual',
     );
     expect(modelSubtitle(model('R7')), 'Desde 2023 · sem pesquisa');
+    expect(
+      modelSubtitle(model('R7').copyWith(colours: ['blue', 'black'])),
+      'Desde 2023 · sem pesquisa · Preto, Azul',
+    );
   });
 
   test('tracked models that share a search count once', () {

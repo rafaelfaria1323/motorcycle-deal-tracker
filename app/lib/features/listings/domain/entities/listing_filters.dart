@@ -14,6 +14,7 @@ class ListingFilters extends Equatable {
     this.maxRiskScore,
     this.maxDistanceKm,
     this.extras = const [],
+    this.onlyMyColours = false,
     this.activeOnly = true,
   });
 
@@ -35,6 +36,10 @@ class ListingFilters extends Equatable {
 
   /// Equipment codes the ad must all mention (`listing_extras`); empty: any.
   final List<String> extras;
+
+  /// Only listings in the person's favourite colours for their model
+  /// (`listings.my_colour`); listings of unknown colour never match.
+  final bool onlyMyColours;
   final bool activeOnly;
 
   /// How many filters differ from the defaults (shown on the filter button).
@@ -49,6 +54,7 @@ class ListingFilters extends Equatable {
     maxRiskScore != null,
     maxDistanceKm != null,
     extras.isNotEmpty,
+    onlyMyColours,
     !activeOnly,
   ].where((applied) => applied).length;
 
@@ -64,6 +70,7 @@ class ListingFilters extends Equatable {
     maxRiskScore,
     maxDistanceKm,
     extras,
+    onlyMyColours,
     activeOnly,
   ];
 }

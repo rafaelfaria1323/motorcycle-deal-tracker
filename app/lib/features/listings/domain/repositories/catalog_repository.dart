@@ -10,6 +10,9 @@ abstract interface class CatalogRepository {
 
   Future<void> setMinYear(String motorcycleId, int minYear);
 
+  /// The account's favourite colours for the model (codes).
+  Future<void> setColours(String motorcycleId, List<String> colours);
+
   /// Sets the new-bike list price, checked today; null clears it.
   Future<void> setNewPrice(String motorcycleId, double? price);
 

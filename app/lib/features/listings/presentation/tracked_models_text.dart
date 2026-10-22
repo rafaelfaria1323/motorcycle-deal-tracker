@@ -1,11 +1,12 @@
 import '../../../core/formatting/formatters.dart';
 import '../domain/entities/catalog_model.dart';
+import 'colour_text.dart';
 
 const olxSearchPrefix =
     'https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/';
 const standvirtualSearchPrefix = 'https://www.standvirtual.com/motos/';
 
-/// "Desde 2023 · OLX e Standvirtual".
+/// "Desde 2023 · OLX e Standvirtual · Azul, Preto".
 String modelSubtitle(CatalogModel m) {
   final sites = [
     if (m.olxSearch != null) 'OLX',
@@ -14,6 +15,7 @@ String modelSubtitle(CatalogModel m) {
   return [
     'Desde ${m.minYear}',
     sites.isEmpty ? 'sem pesquisa' : sites.join(' e '),
+    ?favouriteColoursText(m.colours),
   ].join(' · ');
 }
 

@@ -69,6 +69,9 @@ class SupabaseListingsRepository implements ListingsRepository {
         jsonEncode(filters.extras),
       );
     }
+    if (filters.onlyMyColours) {
+      query = query.eq('my_colour', true);
+    }
     if (filters.activeOnly) {
       query = query.inFilter('status', ['active', 'price_changed']);
     }

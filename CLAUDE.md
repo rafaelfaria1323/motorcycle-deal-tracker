@@ -397,8 +397,7 @@ invites; written by the collector on each run).
   must call them. Views: `with (security_invoker = true)`.
 - Table privileges: anon and authenticated have only `select` on public's
   tables (also tables made later: default privileges); authenticated writes
-  only saved_searches, listing_favourites, user_home, user_colours,
-  ownership_settings,
+  only saved_searches, listing_favourites, user_home, ownership_settings,
   deletes invites and push_subscriptions, and updates `alerts.read_at`
   (`20261024170000_tighten_api_grants.sql`, `api_grants_test.sql`). A new
   table the app writes needs its own `grant` (RLS still limits the rows);
@@ -695,10 +694,15 @@ functions for manual work.
 - Favourite colours: `listings.colour` (a code: `colour_code()` of
   Standvirtual's `site_colour`, else `colour_in_text()`: a colour word in
   the variant before "com", or after "cor" in the description; trigger
-  `listings_colour`), `user_colours` (one row per account, set in Mais ›
-  "Cores preferidas"; the codes = the app's `colourLabels`) and the
-  computed field `listings.my_colour` (select it explicitly). A plus shown
-  on the card, the facts and the explanation; never part of any score.
+  `listings_colour`), `user_models.colours` (per account and model, set in
+  "Modelos acompanhados" through `set_model_colours`, read as
+  `motorcycles.my_colours`; the codes = the app's `colourLabels`) and the
+  computed field `listings.my_colour` (`likes_colour`: the listing's colour
+  is one of the caller's for its model; select it explicitly). A plus shown
+  on the card, the facts and the explanation, the Ofertas filter "Só nas
+  suas cores" (`ListingFilters.onlyMyColours`), saved searches'
+  `only_my_colours`, and alerts' "na sua cor" (`pending_notifications.
+  my_colour`); never part of any score.
 - New-bike comparison: `motorcycles.new_price_reference` (+ checked date),
   shown on the detail page; hidden when the model has no reference price.
 
@@ -717,8 +721,9 @@ ad; relists first seen in the last 14 days). Only events after the saved search 
 and in the last day (a listing first seen, a drop or a removal older than
 that, e.g. of a model just followed, never alerts). Saved
 searches can also require a minimum Deal Score / maximum Risk Score,
-a maximum distance from the owner's home and equipment (`extras`, all
-required; `listing_extras` codes); all in `saved_search_matches`.
+a maximum distance from the owner's home, equipment (`extras`, all
+required; `listing_extras` codes) and only the owner's colours of each
+model (`only_my_colours`); all in `saved_search_matches`.
 `notified_at` marks alerts already sent (only real accounts; up to 200
 a run, oldest first; kept for the next run when the push keys can't be
 read, and while no device took a push that failed, for 24 h; older ones

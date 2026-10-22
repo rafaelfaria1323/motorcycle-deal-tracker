@@ -221,6 +221,29 @@ void main() {
     });
   });
 
+  test('an alert says when the bike is in the person\'s colour', () {
+    PendingAlert inColour(String type) => PendingAlert.fromRow({
+      'alert_id': 'a2',
+      'type': type,
+      'brand': 'Yamaha',
+      'model': 'MT-07',
+      'url': 'https://x',
+      'price': 6800,
+      'my_colour': true,
+    });
+    expect(
+      pushMessage(inColour('new_listing'))['title'],
+      '🆕 Novo anúncio na sua cor: Yamaha MT-07',
+    );
+    final drop = pushMessage(inColour('price_reduction'));
+    expect(drop['title'], '📉 Baixa de preço: Yamaha MT-07');
+    expect(drop['body'], '6 800 €\nNa sua cor');
+    expect(
+      pushMessage(alert('new_listing', newPrice: 6800))['body'],
+      isNot(contains('cor')),
+    );
+  });
+
   test('back on the market shows the new price and the earlier one', () {
     final message = pushMessage(
       alert('back_on_market', oldPrice: 7200, newPrice: 6800),
