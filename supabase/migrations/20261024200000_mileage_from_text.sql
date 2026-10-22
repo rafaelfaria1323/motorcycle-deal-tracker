@@ -12,8 +12,10 @@ alter table public.listings
 -- "quilómetros" ("12.000 km", "12 mil km", "15000kms") or follows a label
 -- ("Quilometragem: 12000", "kms: 12.000"). Numbers about something else
 -- are left out by the words before them in the same clause (tyres,
--- services, chain, warranty, "aos 10.000 km", "a cada", "mais de") or
--- after them ("km/h", "por mês", "de autonomia"). Numbers after "tem",
+-- services, chain, warranty, work done or the purchase: "troquei a
+-- corrente com", "fiz a revisão com", "comprei com", "aos 10.000 km",
+-- "a cada", "mais de") or after them ("km/h", "por mês", "de autonomia",
+-- a verb: "com 15.000 km troquei"). Numbers after "tem",
 -- "com", "apenas", "só" or a label win; otherwise the one number left is
 -- taken. Two different values are a doubt: null.
 create function public.mileage_in_text(p_description text)
@@ -25,14 +27,21 @@ as $$
 declare
   d      constant text := lower(coalesce(p_description, ''));
   num    constant text := '(\d{1,3}(?:[.\s]\d{3})+|\d+(?:[.,]\d{1,2})?)';
+  -- A unit not followed by "/h", "por mês", "de autonomia" or a verb
+  -- ("com 15.000 km troquei a corrente").
   unit   constant text :=
     '\s*(mil)?\s*(?:km|kms|quil[oó]metros)\M'
-    '(?!\s*(?:/|por\M|p/|h\M|de\s+autonomia))';
+    '(?!\s*(?:/|por\M|p/|h\M|de\s+autonomia'
+    '|tro[cq]u|mud[aeoá]|substitu|instal|coloc|coloqu|mont[aeo]'
+    '|f[ie]z\M|foi\M|foram\M|lev[eo]|meti\M|pus\M))';
   other  constant text :=
     '(pneu|revis|[óo]leo|corrente|\mkit|garantia|autonomia|pr[oó]xim|troc'
     '|mud[aeo]|embraiag|pastilh|trav[õoã]|filtro|\mvelas?\M|\mcada\M'
     '|[uú]ltim|manuten|servi[çc]o|feit[ao]|bateria|viage|percurso'
-    '|\m(?:aos|dos|at[eé]|h[aá]|faz)\s*$|(?:menos|mais)\s+de\s*$)';
+    '|tro[cq]u|substitu|instal|coloc|coloqu|\mmont[aeo]|\mcompr[aeo]'
+    '|\mfiz\M|inspe[çc]|check|\mipo\M|afina|lubrific'
+    '|\m(?:aos|dos|os|nos|[àa]s|das|at[eé]|h[aá]|faz)\s*$'
+    '|(?:menos|mais)\s+de\s*$)';
   leads  constant text :=
     '(?:\mtem|\mcom|apenas|\ms[oó]|c/|quilometragem|marca)\s*$';
   r      record;

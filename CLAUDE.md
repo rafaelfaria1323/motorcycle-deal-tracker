@@ -516,7 +516,7 @@ functions for manual work.
   catalog names), removed ones included.
 - An empty mileage field is read from the description (trigger
   `listings_mileage_from_text`, `mileage_in_text`: "com 12.000 km",
-  "Quilometragem: 12000"; tyres/services/warranty/km/h numbers don't count,
+  "Quilometragem: 12000"; tyres, services, work done ("troquei a corrente com"), purchase and km/h numbers don't count,
   two different values leave it empty) and marked `mileage_from_text`
   (the app's "(lido na descrição)"); the ad's own field always wins.
 - Dealer boilerplate sentences are stripped from descriptions (they caused
