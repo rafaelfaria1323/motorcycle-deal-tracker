@@ -57,6 +57,12 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
 
+# shared_preferences_android 2.5.x (Pigeon JNI) fails in the release APK:
+# NoSuchMethodError on SharedPreferencesApiRegistrar.getAll, so Supabase's
+# session storage can't start and the app opens on its error screen. Held
+# at the last version before JNI until a fixed release is tried on a phone.
+dependency_overrides:
+  shared_preferences_android: 2.4.28
 
 # The Android icon is made by the deploy, which makes app/android.
 flutter_launcher_icons:

@@ -12,6 +12,9 @@ updates:
     groups:
       app-minor:
         update-types: [minor, patch]
+    # Held at 2.4.28 in app/pubspec.yaml: 2.5.x fails in the release APK.
+    ignore:
+      - dependency-name: shared_preferences_android
     open-pull-requests-limit: 3
 
   - package-ecosystem: pub
