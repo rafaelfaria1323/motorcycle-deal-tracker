@@ -181,8 +181,10 @@
 </script>
 <script>
   // The first listings and the model list, asked for while the app
-  // downloads instead of after it, and the first cards' photos started:
-  // the largest paint of the page is the first photo. The app takes the
+  // downloads instead of after it, and the first card's photo started:
+  // the largest paint of the page is that photo. Only that one: each
+  // photo shares the phone's bandwidth with the app's files (#179's
+  // preview: 3 photos, 480 KB), and the next cards draw after the first. The app takes the
   // answer once (takeFirstPage, lib/core/platform/first_page_web.dart)
   // for its first page (ListingsCubit.load). Only without a session or
   // with an anonymous one, which see every collected model; an account
@@ -200,7 +202,7 @@
       '&order=deal_score.desc.nullslast,id.desc.nullslast&offset=0&limit=40';
     var MODELS = 'motorcycles?select=id,brand,model&tracked_by_me=eq.true' +
       '&order=brand.desc.nullslast,model.desc.nullslast';
-    var PHOTOS = 3;
+    var PHOTOS = 1;
 
     var meta = document.querySelector('meta[name="database"]');
     if (!meta || !window.fetch || !window.Promise) return;

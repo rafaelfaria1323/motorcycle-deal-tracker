@@ -367,7 +367,7 @@ invites; written by the collector on each run).
   writes its address into the build) and the photos' CDN, and draws a
   spinner (`#splash`, the theme's primary, as `Startup`'s) until Flutter's
   first frame; without an account's session it also asks for the first
-  page of listings and the model list and starts the first photos while
+  page of listings and the model list and starts the first card's photo while
   the app downloads (`window.dealTrackerFirstPage`, taken by `Startup`
   through `core/platform/first_page.dart`; the script's queries must stay
   the repository's own, `test/first_page_test.dart`; the address and
