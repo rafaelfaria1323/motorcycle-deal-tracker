@@ -194,6 +194,14 @@ void main() {
     expect(lines.single.text, contains('no máximo em 70'));
   });
 
+  test('a damaged bike says its score is capped at 50', () {
+    final lines = ScoreExplainer.explain(
+      _listing(dealScore: 50, breakdown: {'capped_for_damage': true}),
+    )!.lines;
+    expect(lines.single.tone, ExplanationTone.negative);
+    expect(lines.single.text, contains('no máximo em 50'));
+  });
+
   group('mileage against the bike\'s age (5 000 km a year is normal)', () {
     ExplanationLine? line(int? km, int? year) => mileageForAge(km, year, 2027);
 

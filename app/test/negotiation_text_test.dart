@@ -185,6 +185,24 @@ void main() {
       expect(a2('a2_unlocked').single, contains('deslimitada'));
     });
 
+    test('damage in the description, accident first', () {
+      final args = argue(
+        _listing(
+          breakdown: {
+            'risk_reasons': [
+              'cosmetic_damage',
+              'needs_repair',
+              'possible_accident',
+            ],
+          },
+        ),
+      );
+      expect(args, hasLength(3));
+      expect(args[0], contains('acidente'));
+      expect(args[1], startsWith('Precisa de reparações'));
+      expect(args[2], contains('riscos'));
+    });
+
     test('long on sale, against the model when it is known', () {
       expect(
         argue(_listing(), market: _market(), days: 60).single,

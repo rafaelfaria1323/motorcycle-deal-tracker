@@ -170,7 +170,15 @@ abstract final class ScoreExplainer {
     ),
     'possible_accident': (
       ExplanationTone.negative,
-      'A descrição pode indicar acidente',
+      'A descrição fala em acidente, queda ou toque',
+    ),
+    'needs_repair': (
+      ExplanationTone.negative,
+      'A descrição fala em reparações ou peças em falta ou partidas',
+    ),
+    'cosmetic_damage': (
+      ExplanationTone.negative,
+      'A descrição fala em riscos ou mossas',
     ),
     'no_mileage': (ExplanationTone.negative, 'Quilometragem não indicada'),
     'no_year': (ExplanationTone.negative, 'Ano não indicado'),
@@ -312,6 +320,15 @@ abstract final class ScoreExplainer {
         const ExplanationLine(
           ExplanationTone.neutral,
           'Sem comparação de preço, a pontuação fica no máximo em 70',
+        ),
+      );
+    }
+    if (data['capped_for_damage'] == true) {
+      lines.add(
+        const ExplanationLine(
+          ExplanationTone.negative,
+          'Com danos ou reparações por fazer, a pontuação fica no máximo em '
+          '50: o valor estimado é o de motas sem danos',
         ),
       );
     }

@@ -200,6 +200,15 @@ List<String> negotiationArguments(
 
 const _riskArguments = [
   (
+    'possible_accident',
+    'A descrição fala em acidente ou toque: vale menos quando a vender.',
+  ),
+  (
+    'needs_repair',
+    'Precisa de reparações ou peças: o custo fica por sua conta.',
+  ),
+  ('cosmetic_damage', 'Tem riscos ou mossas, que pesam no preço.'),
+  (
     'no_service_book',
     'Não tem o livro de revisões completo: o que faltar fica por sua conta.',
   ),

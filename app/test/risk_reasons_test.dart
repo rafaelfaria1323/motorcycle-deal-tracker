@@ -94,6 +94,20 @@ void main() {
     }
   });
 
+  test('damage in the description reads as a negative', () {
+    for (final (code, word) in [
+      ('possible_accident', 'acidente'),
+      ('needs_repair', 'reparações'),
+      ('cosmetic_damage', 'riscos'),
+    ]) {
+      final lines = ScoreExplainer.explain(listingWith([code]))!.lines;
+
+      expect(lines, hasLength(1), reason: code);
+      expect(lines.single.tone, ExplanationTone.negative);
+      expect(lines.single.text, contains(word));
+    }
+  });
+
   test('unknown reason codes are ignored', () {
     final lines = ScoreExplainer.explain(listingWith(['something_new']))!.lines;
 

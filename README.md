@@ -8,8 +8,8 @@ Seven times a day (00:00, 08:00, then every 2 hours from 12:00 to 20:00,
 Lisbon time) it reads Standvirtual and OLX for the models being tracked,
 keeps each listing's price and status history, and ranks the listings with
 an explainable **Deal Score** (price against similar bikes, year and
-mileage) and a separate **Risk Score** (missing details, possible accident,
-several owners, price too good to be true…). Saved searches and favourite
+mileage) and a separate **Risk Score** (missing details, possible accident
+or damage, several owners, price too good to be true…). Saved searches and favourite
 listings (with private notes and a viewing checklist) raise alerts in the
 app and as notifications on each account's phone (Web Push; Firebase Cloud
 Messaging in the Android app).

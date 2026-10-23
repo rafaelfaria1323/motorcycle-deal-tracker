@@ -8,6 +8,7 @@ import '../../../../core/widgets/page_back_button.dart';
 import '../listing_detail_text.dart';
 import '../photo_viewer_args.dart';
 import 'listing_photo.dart';
+import 'zoomable_photo.dart';
 
 /// All the listing's photos: swipe or use the arrows, tap to see them
 /// full screen.
@@ -170,7 +171,8 @@ class _RoundButton extends StatelessWidget {
   }
 }
 
-/// The photos full screen (route `/deals/<id>/photos`).
+/// The photos full screen (route `/deals/<id>/photos`), each one zoomable
+/// (pinch, mouse wheel or double tap).
 class FullScreenGallery extends StatefulWidget {
   const FullScreenGallery({
     required this.listingId,
@@ -188,11 +190,17 @@ class FullScreenGallery extends StatefulWidget {
 class _FullScreenGalleryState extends State<FullScreenGallery> {
   late final _controller = PageController(initialPage: widget.args.index);
   late var _index = widget.args.index;
+  // While a photo is zoomed a drag moves it, not to the next photo.
+  var _zoomed = false;
 
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  void _setZoomed(bool zoomed) {
+    if (zoomed != _zoomed) setState(() => _zoomed = zoomed);
   }
 
   @override
@@ -220,10 +228,15 @@ class _FullScreenGalleryState extends State<FullScreenGallery> {
           children: [
             PageView.builder(
               controller: _controller,
+              physics: _zoomed ? const NeverScrollableScrollPhysics() : null,
               itemCount: images.length,
-              onPageChanged: (index) => setState(() => _index = index),
+              // The arrows still turn the page; the new photo starts at 1x.
+              onPageChanged: (index) => setState(() {
+                _index = index;
+                _zoomed = false;
+              }),
               itemBuilder: (_, index) =>
-                  ListingPhoto(url: images[index], fit: BoxFit.contain),
+                  ZoomablePhoto(url: images[index], onZoomChanged: _setZoomed),
             ),
             if (images.length > 1)
               _GalleryControls(

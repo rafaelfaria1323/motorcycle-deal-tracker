@@ -1,4 +1,4 @@
-# Motorcycle Deal Tracker — Concept & Architecture (status 2026-10-22)
+# Motorcycle Deal Tracker — Concept & Architecture (status 2026-10-23)
 
 **Legend:** ✅ done · 🟡 partly done · ⬜ not started · ➕ added along the way
 
@@ -108,7 +108,7 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 - ➕ ✅ The text contradicts the ad (15.6). *The year, mileage, origin or service book written in the description against the ad's fields; only clear cases (two or more years apart, more km in the text, "importada" on a national ad, "sem livro" with a service book).*
 - 🟡 Inconsistent description. *Only "possible accident" keywords; contradictions between text and fields planned (15.6).*
 - ✅ Missing information.
-- ✅ Possible accident.
+- ✅ Possible accident. *Accident, fall and knock wording (15.24: "teve um toque", "caiu", "foi ao chão"), with denials left out; repairs and missing or broken parts (`needs_repair`, 20) and scratches (`cosmetic_damage`, 5) too. An accident or repair in the text caps the Deal Score at 50.*
 - 🟡 Duplicate listing. *Detected (across sources too) and excluded from scoring, not a risk signal.*
 - ✅ Suspicious seller behaviour. *Relisted ads are detected (the same bike taken down and listed again), shown with the first date on sale and the earlier price, and count as risk (15.5): 5 points, 10 when relisted twice or on sale for over 90 days counting the earlier ads. Each dealer's figures (relisted, sharp price changes, missing mileage, repeated ads, price drops) are shown on its listings (15.7) and score the Deal Score's seller slice.*
 - ✅ Unclear ownership/history. *3+ owners, no service book, imported.*
