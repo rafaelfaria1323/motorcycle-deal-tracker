@@ -19,7 +19,9 @@ sign-in encrypted with a key in the Android Keystore
   newest, cheapest, most expensive, nearest), with filters shown as chips
   (including "Distância máxima" from your home and equipment: 19 kinds,
   e.g. quickshifter, escape, malas, proteções, suporte de matrícula curto,
-  bolha) and paged 40 at a time.
+  bolha, and "Só nas suas cores": each model's favourite colours; with
+  "Mais barato" that is the best price in your colour) and paged 40 at a
+  time.
   Each card shows the place and its distance from your home.
 - **Favoritos:** the listings you starred (star on a listing's page; star
   in the Ofertas app bar or Mais opens the list), newest first, each with
@@ -64,7 +66,8 @@ sign-in encrypted with a key in the Android Keystore
   removed listings, grouped by day; the tab shows the unread count.
 - **Mais:** account, sharing (the app's link; admins: "Contas e convites"), "Notificações neste aparelho" (with "Enviar notificação de teste", an example of any alert or collection message, and "Enviar o resumo da semana"), "Resumo da semana" (your models' last 7 days, made every Monday and sent as a notification that opens it: counts, new listings per model, the best deals and the biggest drops, each opening its listing), "A sua localidade" (your home town: every listing
   shows its distance from it), "Modelos acompanhados" (your own models: switch on/off, first
-  year, new-bike price, add models: brand and model picked from the sites'
+  year, favourite colours of each (listings in them are marked "Cor
+  preferida", never scored), new-bike price, add models: brand and model picked from the sites'
   lists, optional engine size, searches built automatically; or typed by
   hand), "Comparar modelos" (your models side by side: typical asking
   price and its spread, the typical bike, time until leaving the market,

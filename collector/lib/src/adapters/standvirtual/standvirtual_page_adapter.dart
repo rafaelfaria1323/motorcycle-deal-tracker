@@ -140,6 +140,7 @@ class StandvirtualPageAdapter implements SourceAdapter<StandvirtualRawListing> {
         _value(params, 'vendors_warranty_valid_until_date') ?? '',
       ),
       publishedAt: published is String ? published : null,
+      siteColour: _value(params, 'color') ?? _label(params, 'color'),
       images: _images(advert['images']),
     );
   }

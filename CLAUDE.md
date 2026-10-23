@@ -514,7 +514,8 @@ functions for manual work.
   `maxImages`); then for listings read before the photos were kept
   (`photos_read_at is null`); a page that failed (gone, unreadable, refused, another ad) is marked
   `details_failed_at` (`mark_details_failed`) and waits behind the
-  listings never tried. A search counts as read in full when every page
+  listings never tried. The page's colour field is stored as
+  `site_colour`. A search counts as read in full when every page
   it spans was saved, or its pages hold the site's count (promoted ads
   never count). The search
   result's `priceDrop` is stored as `price_before_drop` (highest seen, never
@@ -690,6 +691,18 @@ functions for manual work.
   under 10 €; **check `iucBands` every January**) + the owner's insurance
   (left out until entered) + tyres, services and chain kit by engine size.
   The owner's figures live in `ownership_settings` (one row per account).
+- Favourite colours: `listings.colour` (a code: `colour_code()` of
+  Standvirtual's `site_colour`, else `colour_in_text()`: a colour word in
+  the variant before "com", or after "cor" in the description; trigger
+  `listings_colour`), `user_models.colours` (per account and model, set in
+  "Modelos acompanhados" through `set_model_colours`, read as
+  `motorcycles.my_colours`; the codes = the app's `colourLabels`) and the
+  computed field `listings.my_colour` (`likes_colour`: the listing's colour
+  is one of the caller's for its model; select it explicitly). A plus shown
+  on the card, the facts and the explanation, the Ofertas filter "Só nas
+  suas cores" (`ListingFilters.onlyMyColours`), saved searches'
+  `only_my_colours`, and alerts' "na sua cor" (`pending_notifications.
+  my_colour`); never part of any score.
 - New-bike comparison: `motorcycles.new_price_reference` (+ checked date),
   shown on the detail page; hidden when the model has no reference price.
 
@@ -708,8 +721,9 @@ ad; relists first seen in the last 14 days). Only events after the saved search 
 and in the last day (a listing first seen, a drop or a removal older than
 that, e.g. of a model just followed, never alerts). Saved
 searches can also require a minimum Deal Score / maximum Risk Score,
-a maximum distance from the owner's home and equipment (`extras`, all
-required; `listing_extras` codes); all in `saved_search_matches`.
+a maximum distance from the owner's home, equipment (`extras`, all
+required; `listing_extras` codes) and only the owner's colours of each
+model (`only_my_colours`); all in `saved_search_matches`.
 `notified_at` marks alerts already sent (only real accounts; up to 200
 a run, oldest first; kept for the next run when the push keys can't be
 read, and while no device took a push that failed, for 24 h; older ones

@@ -106,8 +106,8 @@ class MorePage extends StatelessWidget {
                       title: const Text('Modelos acompanhados'),
                       subtitle: Text(
                         signedIn
-                            ? 'Que modelos recolher, desde que ano e o preço '
-                                  'de uma nova'
+                            ? 'Que modelos recolher, desde que ano, as suas '
+                                  'cores e o preço de uma nova'
                             : 'Disponível com sessão iniciada',
                       ),
                       trailing: const Icon(Icons.chevron_right),

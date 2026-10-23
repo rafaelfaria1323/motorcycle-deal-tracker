@@ -15,7 +15,7 @@ class SupabaseCatalogRepository implements CatalogRepository {
         .from('motorcycles')
         .select(
           'id, brand, model, my_min_year, tracked_by_me, is_active, '
-          'olx_search, standvirtual_search, new_price_reference, '
+          'my_colours, olx_search, standvirtual_search, new_price_reference, '
           'new_price_checked_at',
         );
     return [
@@ -27,6 +27,7 @@ class SupabaseCatalogRepository implements CatalogRepository {
           minYear: row['my_min_year'] as int,
           isTracked: row['tracked_by_me'] as bool,
           isCollected: row['is_active'] as bool,
+          colours: List<String>.from(row['my_colours'] as List? ?? const []),
           olxSearch: row['olx_search'] as String?,
           standvirtualSearch: row['standvirtual_search'] as String?,
           newPrice: (row['new_price_reference'] as num?)?.toDouble(),
@@ -50,6 +51,14 @@ class SupabaseCatalogRepository implements CatalogRepository {
     await _client.rpc<Object?>(
       'set_model_min_year',
       params: {'p_motorcycle_id': motorcycleId, 'p_min_year': minYear},
+    );
+  }
+
+  @override
+  Future<void> setColours(String motorcycleId, List<String> colours) async {
+    await _client.rpc<Object?>(
+      'set_model_colours',
+      params: {'p_motorcycle_id': motorcycleId, 'p_colours': colours},
     );
   }
 

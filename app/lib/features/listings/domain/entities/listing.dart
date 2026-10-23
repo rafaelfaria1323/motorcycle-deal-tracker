@@ -44,6 +44,8 @@ class Listing extends Equatable {
     this.newPriceCheckedAt,
     this.engineCc,
     this.distanceKm,
+    this.colour,
+    this.myColour = false,
   });
 
   final String id;
@@ -104,6 +106,14 @@ class Listing extends Equatable {
   /// Straight-line km from the signed-in person's home (the computed field
   /// `distance_km`); null without a home or a known place.
   final int? distanceKm;
+
+  /// The bike's colour as a code ('blue', `listings.colour`): the site's
+  /// field, or read from the variant or description; null when unknown.
+  final String? colour;
+
+  /// The colour is one of the signed-in person's favourites (the computed
+  /// field `my_colour`). A plus shown to them, never part of the Deal Score.
+  final bool myColour;
 
   /// The price changes are measured from: the first price we saw, or a
   /// higher earlier price the site reported.

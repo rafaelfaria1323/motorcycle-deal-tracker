@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 
 import '../../../core/formatting/formatters.dart';
 import '../domain/entities/listing.dart';
+import 'colour_text.dart';
 
 enum ExplanationTone { positive, negative, neutral }
 
@@ -352,6 +353,7 @@ abstract final class ScoreExplainer {
     }
 
     if (sellerLine(data) case final line?) lines.add(line);
+    if (favouriteColourLine(listing) case final line?) lines.add(line);
 
     // Risk signals; some are reassuring and read as positives.
     for (final code in (data['risk_reasons'] as List? ?? const [])) {

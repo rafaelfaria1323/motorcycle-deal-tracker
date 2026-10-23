@@ -1,5 +1,6 @@
 import '../../../core/formatting/formatters.dart';
 import '../domain/entities/listing.dart';
+import 'colour_text.dart';
 import 'listing_dates_text.dart';
 import 'listing_labels.dart';
 
@@ -37,7 +38,8 @@ String originalLinkLabel(String source) => switch (source) {
 typedef Fact = (String label, String value);
 
 /// "A mota": year and mileage always (a dash when unknown), the rest only
-/// when the ad says. A mileage read from the description says so.
+/// when the ad says. A mileage read from the description says so, and a
+/// colour among the person's favourites.
 List<Fact> bikeFacts(Listing listing) => [
   ('Ano', listing.year?.toString() ?? '—'),
   (
@@ -46,6 +48,8 @@ List<Fact> bikeFacts(Listing listing) => [
         ? '${Formatters.mileage(listing.mileage)} (lido na descrição)'
         : Formatters.mileage(listing.mileage),
   ),
+  if (colourLabel(listing.colour) case final colour?)
+    ('Cor', listing.myColour ? '$colour (uma das suas preferidas)' : colour),
   if (listing.registrations case final owners?) ('Registos (donos)', '$owners'),
   if (listing.serviceBook case final book?)
     ('Livro de revisões', book ? 'Completo' : 'Não'),

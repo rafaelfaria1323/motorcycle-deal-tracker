@@ -30,6 +30,7 @@ class _FiltersSheetState extends State<FiltersSheet> {
   late int? _maxRiskScore = widget.initial.maxRiskScore;
   late int? _maxDistanceKm = widget.initial.maxDistanceKm;
   late final Set<String> _extras = {...widget.initial.extras};
+  late bool _onlyMyColours = widget.initial.onlyMyColours;
 
   late final _year = TextEditingController(
     text: widget.initial.minYear?.toString() ?? '',
@@ -69,6 +70,7 @@ class _FiltersSheetState extends State<FiltersSheet> {
         for (final code in extraLabels.keys)
           if (_extras.contains(code)) code,
       ],
+      onlyMyColours: _onlyMyColours,
       activeOnly: _activeOnly,
     );
   }
@@ -222,6 +224,15 @@ class _FiltersSheetState extends State<FiltersSheet> {
             selected: {_sellerType},
             onSelectionChanged: (selection) =>
                 setState(() => _sellerType = selection.first),
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Só nas suas cores'),
+            subtitle: const Text(
+              'As cores preferidas de cada modelo, em Modelos acompanhados',
+            ),
+            value: _onlyMyColours,
+            onChanged: (value) => setState(() => _onlyMyColours = value),
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
