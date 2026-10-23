@@ -210,6 +210,33 @@ void main() {
     await tester.pumpAndSettle();
     expect(fixture.searchesRepository.values.single.name, 'Até sete mil');
     expect(fixture.searchesRepository.values.single.filters.maxPrice, 7000);
+    // Saved: nothing left to save, so the same search can't be saved twice.
+    expect(find.widgetWithText(TextButton, 'Guardar pesquisa'), findsNothing);
+    expect(
+      find.widgetWithText(TextButton, 'Pesquisa guardada'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a saved search applied in Ofertas shows as saved', (
+    tester,
+  ) async {
+    final fixture = InterfaceFixture();
+    await _open(tester, fixture);
+    await fixture.searches.load();
+    await fixture.listings.applyFilters(
+      fixture.searchesRepository.values.single.filters,
+    );
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(TextButton, 'Guardar pesquisa'), findsNothing);
+    expect(
+      find.widgetWithText(TextButton, 'Pesquisa guardada'),
+      findsOneWidget,
+    );
+
+    await fixture.listings.applyFilters(const ListingFilters(maxPrice: 7000));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(TextButton, 'Guardar pesquisa'), findsOneWidget);
   });
 
   testWidgets('sort labels and removable filters still drive the query', (

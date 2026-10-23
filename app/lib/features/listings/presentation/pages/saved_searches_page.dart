@@ -46,6 +46,15 @@ class SavedSearchesPage extends StatelessWidget {
       motorcycles: motorcycles,
     );
     if (edited == null) return;
+    final same = savedSearchLike(
+      cubit.state.searches,
+      edited.filters,
+      except: edited.id,
+    );
+    if (same != null) {
+      showMessage(messenger, alreadySavedText(same));
+      return;
+    }
 
     final saved = await cubit.update(edited);
     showMessage(
@@ -67,6 +76,10 @@ class SavedSearchesPage extends StatelessWidget {
       motorcycles: motorcycles,
     );
     if (draft == null) return;
+    if (savedSearchLike(cubit.state.searches, draft.filters) case final same?) {
+      showMessage(messenger, alreadySavedText(same));
+      return;
+    }
 
     final saved = await cubit.createFrom(draft);
     showMessage(

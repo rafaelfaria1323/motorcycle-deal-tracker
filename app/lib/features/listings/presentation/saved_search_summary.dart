@@ -170,3 +170,7 @@ List<FilterChipData> filterChips(
       (label: 'Inclui removidos', without: copy(activeOnly: true)),
   ];
 }
+
+/// Said when a search would repeat [existing].
+String alreadySavedText(SavedSearch existing) =>
+    'Esta pesquisa já está guardada como "${existing.displayName}".';
