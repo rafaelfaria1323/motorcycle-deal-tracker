@@ -5,6 +5,32 @@ here. Robots.txt is not permission; the source's terms of use decide.
 
 ## Decision log
 
+### 2026-10-23: every added model is searched on both sites (9.9c)
+
+**Why.** The model picker's Standvirtual-only warning was accurate: a
+missing OLX model filter left `olx_search` empty, so the collector skipped
+OLX. Manual entry also required at least one copied search address.
+
+**Decision.** Every catalog model gets both source addresses, including
+previously single-source models. Existing addresses remain unchanged.
+`catalog_search_url()` uses known ids from that source's `site_models`
+when available; otherwise it builds a keyword search under the same
+allowed motorcycle path. A known brand filter is kept, with only the
+model in the keywords (OLX matches any word, so repeating the brand would
+bring unrelated bikes); without that filter, both brand and model are
+included. Empty search terms are refused, never expanded to the whole
+market, and malformed site ids are not used. Accented search words are
+kept and encoded by the collector's URI handling.
+
+**App.** Pick or enter brand and model, first year and optional engine
+size. No source choice or search URLs; alternative names stay optional.
+The database fills missing searches, so older clients benefit too.
+
+**Unchanged.** No new source, extra requests to discover ids, parallel
+fetching or retries. The normal fetcher, year/engine filters, model
+matching and incomplete-search removal safeguards still apply. Following
+more searches can mean more requests within the existing run-time limits.
+
 ### 2026-10-22: robots.txt kept up to 24 hours (R.4)
 
 **Decision (Rafael).** robots.txt is read once a day per site instead of

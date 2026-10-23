@@ -16,10 +16,12 @@ begin
     ' ', '{forza}', 320, 360);
   assert (select brand = 'Honda' and model = 'Forza 350' and slug = 'honda-forza-350'
                  and is_active and min_year = 2021 and aliases = '{forza}'
-                 and olx_search like 'https://%/forza-350/' and standvirtual_search is null
+                 and olx_search like 'https://%/forza-350/'
+                 and standvirtual_search =
+                   'https://www.standvirtual.com/motos/q-honda-forza-350'
                  and engine_cc_min = 320 and engine_cc_max = 360
           from public.motorcycles where id = forza),
-    'added trimmed, tracked, without the blank Standvirtual search';
+    'added trimmed and tracked, keeping OLX and generating the blank Standvirtual search';
 
   refused := null;
   begin
@@ -36,12 +38,11 @@ begin
   end;
   assert refused like 'Brand and model%', 'a blank brand is refused';
 
-  refused := null;
-  begin
-    perform public.add_catalog_model('Honda', 'X', 2021, ' ', null);
-  exception when invalid_parameter_value then refused := sqlerrm;
-  end;
-  assert refused like 'A search address%', 'a model needs a search';
+  perform public.add_catalog_model('Norton', 'Atlas', 2021, ' ', null);
+  assert (select olx_search like 'https://%/q-norton-atlas/'
+                 and standvirtual_search like 'https://%/q-norton-atlas'
+          from public.motorcycles where slug = 'norton-atlas'),
+    'a model without addresses gets both searches';
 
   refused := null;
   begin

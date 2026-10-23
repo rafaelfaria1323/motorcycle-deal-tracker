@@ -28,8 +28,12 @@ brand and model picked from `site_models` (the sites' filter lists, stored
 by every import from the search pages; view `site_makes` for the brands),
 optional engine size (name "Forza 350", Standvirtual `q-350`, engine range
 +-10 %; a model named with a size but added without one gets that size's
-range, `engine_range_from_name`), searches built from the sites' ids (OLX only when OLX's own list
-has the model), or typed by hand.
+range, `engine_range_from_name`), or brand and model entered by name.
+Both OLX and Standvirtual are always searched: `ensure_model_searches()`
+keeps existing addresses and fills missing ones with `catalog_search_url()`
+(known site ids first; model words otherwise, plus the brand if its filter
+is unknown). Existing single-source models are backfilled too. The form
+never asks for search URLs; aliases sit under "Outros nomes do modelo".
 
 ## How to work on this project
 

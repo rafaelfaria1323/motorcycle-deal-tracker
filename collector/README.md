@@ -33,6 +33,13 @@ generate the alerts and send the new ones to each account's devices (Web
 Push; the Android app's through Firebase Cloud Messaging, `notify/fcm.dart`,
 with the service account in env `FIREBASE_SERVICE_ACCOUNT`).
 
+Every catalog model has searches for both OLX and Standvirtual, including
+models added before automatic source coverage. The database keeps existing
+addresses and fills missing ones from known site filters or a word search
+for the model (and brand when its filter is unknown). The planner applies
+the same year and OLX engine-band filters to these searches. This does not
+change the fetching rules, model matching, or per-search removal safeguards.
+
 After each scheduled run `bin/report_run.dart` records it in `collector_runs`
 (with the error lines of a run that was not ok, each search's pages and
 ads from those lines, each site's requests today

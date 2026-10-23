@@ -23,7 +23,8 @@ abstract interface class CatalogRepository {
   /// The models both sites offer for a brand.
   Future<List<SiteModel>> getSiteModels(String makeId);
 
-  /// Adds a model, tracked from the next collection. The engine size range
+  /// Adds a model, tracked on both sources from the next collection;
+  /// missing searches are generated automatically. The engine size range
   /// tells it apart from other sizes of the same family (Forza 125 / 350).
   Future<void> addModel({
     required String brand,

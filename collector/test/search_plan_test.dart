@@ -101,6 +101,79 @@ void main() {
     expect(plan.problems.single, startsWith('Yamaha MT-07'));
   });
 
+  test(
+    'automatic catalog searches plan both sites with the same safeguards',
+    () {
+      const olx =
+          'https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/';
+      const standvirtual = 'https://www.standvirtual.com/motos/';
+      final catalog = catalogFromRows([
+        {
+          'id': 'id-1',
+          'slug': 'honda-forza-350',
+          'brand': 'Honda',
+          'model': 'Forza 350',
+          'min_year': 2022,
+          'engine_cc_min': 315,
+          'engine_cc_max': 385,
+          'olx_search': '${olx}honda/q-forza-350/',
+          'standvirtual_search': '${standvirtual}honda/forza/q-350',
+        },
+        {
+          'id': 'id-2',
+          'slug': 'norton-v4-sv',
+          'brand': 'Norton',
+          'model': 'V4 SV',
+          'min_year': 2020,
+          'olx_search': '${olx}q-norton-v4-sv/',
+          'standvirtual_search': '${standvirtual}q-norton-v4-sv',
+        },
+        {
+          'id': 'id-3',
+          'slug': 'yamaha-tenere-700',
+          'brand': 'Yamaha',
+          'model': 'Ténéré 700',
+          'min_year': 2021,
+          'olx_search': '${olx}q-yamaha-ténéré-700/',
+          'standvirtual_search': '${standvirtual}q-yamaha-ténéré-700',
+        },
+      ]);
+
+      for (final site in [FetchSite.olx, FetchSite.standvirtual]) {
+        final plan = planSearches(catalog, site);
+        expect(plan.problems, isEmpty);
+        expect(plan.searches, hasLength(3));
+        expect(plan.searches.map((search) => search.models), [
+          ['Honda Forza 350'],
+          ['Norton V4 SV'],
+          ['Yamaha Ténéré 700'],
+        ]);
+        final yearKey = site == FetchSite.olx
+            ? olxYearFrom
+            : standvirtualYearFrom;
+        expect(
+          plan.searches.map((search) => search.url.queryParameters[yearKey]),
+          ['2022', '2020', '2021'],
+        );
+        for (final search in plan.searches) {
+          expect(urlProblem(search.url, site: site), isNull);
+        }
+        expect(
+          plan.searches.last.url.toString(),
+          contains('t%C3%A9n%C3%A9r%C3%A9-700'),
+        );
+        if (site == FetchSite.olx) {
+          expect(
+            plan.searches.first.url.queryParameters[olxEngineSize],
+            '126-500-cc',
+          );
+        } else {
+          expect(plan.searches.first.url.path, '/motos/honda/forza/q-350');
+        }
+      }
+    },
+  );
+
   group('OLX engine-size band', () {
     const rSearch = '$olxYamaha?search%5Bfilter_enum_modelo%5D%5B0%5D=r';
 

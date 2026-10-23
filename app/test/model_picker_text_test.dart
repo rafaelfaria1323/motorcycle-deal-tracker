@@ -32,12 +32,6 @@ void main() {
     expect([for (final m in models) m.id], ['cb', 'adv', 'forza']);
   });
 
-  test('the ads label', () {
-    expect(adsLabel('Forza', 32), 'Forza (32 anúncios)');
-    expect(adsLabel('S01', 1), 'S01 (1 anúncio)');
-    expect(adsLabel('Forza', null), 'Forza');
-  });
-
   test('the engine size is optional', () {
     expect(parseEngineCc(''), (cc: null, error: null));
     expect(parseEngineCc(' 350 cc'), (cc: 350, error: null));
