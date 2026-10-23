@@ -115,7 +115,7 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 - ➕ ✅ A2 version (15.22). *An A2 (35 kW) bike still held back (15 points: the full power needs the kit off and the papers changed) or unlocked (10: check the papers show the full power); read from the variant (Standvirtual's version, OLX's title) and description, ads that only say it can be held back count nothing. Also an argument in "Quanto oferecer".*
 - ⬜ Excessively edited or reused images.
 
-➕ Reassuring facts lower risk: first owner, service book, factory warranty.
+➕ Reassuring facts lower risk: first owner (the ad's field, or the text when the field is empty: "primeiro / único dono", "1ª mão", "first owner"), service book, factory warranty.
 
 ## 15. Saved Searches ✅
 

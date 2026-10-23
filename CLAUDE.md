@@ -648,8 +648,10 @@ functions for manual work.
   "até"), more km, imported, no service
   book; 10 each), an A2 (35 kW) version (`power_version` on variant and
   description: `a2_limited` 15, still held back; `a2_unlocked` 10; "pode
-  ser limitada", "kit A2 incluído" count nothing); reassuring: first owner,
-  service book, factory warranty (negative points, floor 0).
+  ser limitada", "kit A2 incluído" count nothing); reassuring: first owner
+  (the field, or `single_owner_in_text` when it is empty: "primeiro /
+  único dono", "1ª mão", "first owner"; denials don't count), service
+  book, factory warranty (negative points, floor 0).
 - Market behaviour per model (`model_market_behaviour`): time until leaving
   the market, share and size of price drops (measured from the higher of the
   first price seen and `price_before_drop`), depreciation rates. Show "ainda
