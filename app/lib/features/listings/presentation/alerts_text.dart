@@ -1,6 +1,12 @@
 import '../../../core/formatting/formatters.dart';
 import '../domain/entities/listing_alert.dart';
 
+String unreadAlertsText(int count) => switch (count) {
+  0 => 'Tudo lido',
+  1 => '1 alerta por ler',
+  _ => '$count alertas por ler',
+};
+
 /// One day's alerts under its heading ("Hoje", "Ontem", "Segunda-feira",
 /// "03/10/2026").
 typedef AlertDay = ({String label, List<ListingAlert> alerts});

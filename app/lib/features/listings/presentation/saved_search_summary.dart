@@ -1,9 +1,23 @@
 import '../../../core/formatting/formatters.dart';
 import '../domain/entities/listing_filters.dart';
 import '../domain/entities/motorcycle_option.dart';
+import '../domain/entities/saved_search.dart';
 import 'listing_labels.dart';
 import 'score_criteria.dart';
 import 'score_explanation.dart';
+
+String searchMatchesText(int count) =>
+    count == 1 ? '1 anúncio encontrado' : '$count anúncios encontrados';
+
+String searchNotificationText(SavedSearch search) {
+  final kinds = [
+    if (search.notifyNewListing) 'Novos anúncios',
+    if (search.notifyPriceReduction) 'Baixas de preço',
+    if (search.notifyExcellentDeal) 'Oportunidades',
+    if (search.notifyListingRemoved) 'Anúncios removidos',
+  ];
+  return kinds.isEmpty ? 'Sem alertas automáticos' : kinds.join(' · ');
+}
 
 /// "Yamaha MT-07 · desde 2026 · até 8 000 €" from a set of filters.
 String summarizeFilters(

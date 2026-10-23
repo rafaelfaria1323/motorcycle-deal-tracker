@@ -54,15 +54,24 @@ class _RiskMeter extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          spacing: 16,
+          runSpacing: 6,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            Text('Risco', style: theme.textTheme.titleMedium),
-            const SizedBox(width: 8),
-            Text(
-              ScoreExplainer.riskLabel(risk),
-              style: theme.textTheme.titleMedium?.copyWith(color: color),
+            Text.rich(
+              TextSpan(
+                children: [
+                  const TextSpan(text: 'Risco  '),
+                  TextSpan(
+                    text: ScoreExplainer.riskLabel(risk),
+                    style: TextStyle(color: color),
+                  ),
+                ],
+              ),
+              style: theme.textTheme.titleMedium,
             ),
-            const Spacer(),
             Text(
               '$risk/100',
               style: theme.textTheme.bodyMedium?.copyWith(

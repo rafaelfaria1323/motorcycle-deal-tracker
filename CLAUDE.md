@@ -343,6 +343,18 @@ invites; written by the collector on each run).
   CDNs don't send CORS headers, so an `<img>` element is the only way).
 - Lists load `ListingModel.summaryColumns`, never `*` (descriptions are big);
   the deals list is paged (40 per page, more on scroll).
+- Interface: shared wordmark (`core/widgets/app_brand.dart`) and editorial
+  page heading (`page_intro.dart`); labelled filter, sort, save and comparison
+  actions. Listing counts say "carregados" while more pages remain.
+  `AppShell` uses bottom navigation below 840px, a compact rail above it,
+  and an extended sidebar from 1180px (compact with enlarged text).
+  Cards size naturally on phones and with enlarged text; otherwise up to
+  three columns, with aligned location/comparison footers. The detail hero
+  splits into photo and summary at 800px of content width; its four
+  scrollable tabs keep opened sections alive, and the original-link action
+  stays fixed below. `interface_test.dart` covers responsive layouts and
+  interactions with the real bundled fonts; keep narrow and enlarged-text
+  layouts free of overflow.
 - Look: `app/theme/app_theme.dart` (hand-made colour schemes: cool greys,
   racing-orange primary, white cards with a hairline border, no shadows or
   tints) and `app_colors.dart` (`AppColors.of(context)`: positive/negative

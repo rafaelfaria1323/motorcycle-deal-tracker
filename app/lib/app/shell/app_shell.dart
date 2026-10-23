@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/widgets/app_brand.dart';
 import '../../features/listings/presentation/cubit/alerts_cubit.dart';
 import '../../features/listings/presentation/cubit/alerts_state.dart';
 import '../../features/listings/presentation/cubit/favourites_cubit.dart';
@@ -99,7 +100,10 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) => _backToFirstTab(_layout(context));
 
   Widget _layout(BuildContext context) {
-    final isWide = MediaQuery.sizeOf(context).width >= _wideBreakpoint;
+    final width = MediaQuery.sizeOf(context).width;
+    final isWide = width >= _wideBreakpoint;
+    final extended =
+        width >= 1180 && MediaQuery.textScalerOf(context).scale(16) <= 20;
 
     final content = Align(
       alignment: Alignment.topCenter,
@@ -113,18 +117,30 @@ class _AppShellState extends State<AppShell> {
       return Scaffold(
         body: Row(
           children: [
-            NavigationRail(
-              selectedIndex: navigationShell.currentIndex,
-              onDestinationSelected: _onSelect,
-              labelType: NavigationRailLabelType.all,
-              destinations: [
-                for (final (i, d) in _destinations.indexed)
-                  NavigationRailDestination(
-                    icon: _icon(i, selected: false),
-                    selectedIcon: _icon(i, selected: true),
-                    label: Text(d.label),
-                  ),
-              ],
+            SafeArea(
+              right: false,
+              child: NavigationRail(
+                extended: extended,
+                minWidth: 92,
+                minExtendedWidth: 224,
+                selectedIndex: navigationShell.currentIndex,
+                onDestinationSelected: _onSelect,
+                labelType: extended
+                    ? NavigationRailLabelType.none
+                    : NavigationRailLabelType.all,
+                leading: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 24, 12, 40),
+                  child: AppBrand(compact: !extended),
+                ),
+                destinations: [
+                  for (final (i, d) in _destinations.indexed)
+                    NavigationRailDestination(
+                      icon: _icon(i, selected: false),
+                      selectedIcon: _icon(i, selected: true),
+                      label: Text(d.label),
+                    ),
+                ],
+              ),
             ),
             const VerticalDivider(width: 1, thickness: 1),
             Expanded(child: content),

@@ -33,7 +33,6 @@ class AppColors extends ThemeExtension<AppColors> {
   static const photoCounterScrim = Color(0x8A000000);
   static const photoControlScrim = Color(0x73000000);
   static const photoPillScrim = Color(0xB3000000);
-  static const badgeShadow = Color(0x33000000);
 
   static const light = AppColors(
     positive: Color(0xFF0A7F57),
