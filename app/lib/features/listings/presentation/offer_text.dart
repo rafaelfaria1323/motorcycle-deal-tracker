@@ -139,6 +139,18 @@ const maxMargin = 0.10;
 /// much lower offer on a fairly priced bike is rarely taken seriously.
 const maxBelowEstimate = 0.10;
 
+/// The text tells of an accident or a repair to do (the risk reasons that
+/// cap the Deal Score at 50): this much more room, up to
+/// [damagedMaxMargin]. The estimate is of bikes without damage, so a price
+/// below it is the damage, not a discount: it takes nothing off the room
+/// and the estimate sets no floor.
+const damageMargin = 0.05;
+const damagedMaxMargin = 0.15;
+const damageReasons = {'possible_accident', 'needs_repair'};
+
+/// Scratches or dents in the text: a little more room.
+const cosmeticMargin = 0.02;
+
 /// Up on the site this long without a model figure counts as long.
 const defaultLongListingDays = 45;
 
@@ -189,13 +201,19 @@ OfferSuggestion? suggestOffer(
   if (comparables != null && comparables < minComparables) return null;
 
   final reasons = <String>[];
+  final riskReasons =
+      (listing.scoreBreakdown?['risk_reasons'] as List? ?? const []).toSet();
+  final damaged = riskReasons.any(damageReasons.contains);
 
   // The most to pay: the asking price, or the estimated value when the
   // asking price is above it.
   final double ceiling;
   // How far below the estimate the asking price already is: the seller has
   // given that much already, so it comes off the room to negotiate.
-  final alreadyBelow = price < estimate ? 1 - price / estimate : 0.0;
+  // Not for a damaged bike: its lower price is the damage.
+  final alreadyBelow = price < estimate && !damaged
+      ? 1 - price / estimate
+      : 0.0;
   if (price > estimate * 1.02) {
     ceiling = _roundDown(estimate);
     reasons.add(
@@ -205,7 +223,14 @@ OfferSuggestion? suggestOffer(
     );
   } else {
     ceiling = _roundDown(price);
-    if (price < estimate * 0.98) {
+    if (damaged && price < estimate * 0.98) {
+      reasons.add(
+        'O preço pedido está '
+        '${Formatters.percent((1 - price / estimate) * 100)} abaixo do valor '
+        'estimado (${Formatters.price(estimate)}), mas esse valor é o de '
+        'motas sem danos: a diferença é o dano, não um desconto.',
+      );
+    } else if (price < estimate * 0.98) {
       reasons.add(
         'O preço pedido já está '
         '${Formatters.percent(alreadyBelow * 100)} abaixo do valor '
@@ -288,11 +313,28 @@ OfferSuggestion? suggestOffer(
     );
   }
 
+  if (damaged) {
+    margin += damageMargin;
+    reasons.add(
+      'O anúncio fala de um acidente ou de reparações por fazer: comece mais '
+      'abaixo, peça fotos ou um orçamento da reparação e desconte-o.',
+    );
+  } else if (riskReasons.contains('cosmetic_damage')) {
+    margin += cosmeticMargin;
+    reasons.add('O anúncio fala de riscos ou mossas: use-os para negociar.');
+  }
+
   if (ceiling < offerStep) return null;
   // At least 1 % (a dealer's 3 % less an earlier drop, or a price already
   // well below the estimate), so the opening is always below the ceiling.
-  margin = (margin - alreadyBelow).clamp(0.01, maxMargin);
-  final floor = _roundDown(estimate * (1 - maxBelowEstimate));
+  margin = (margin - alreadyBelow).clamp(
+    0.01,
+    damaged ? damagedMaxMargin : maxMargin,
+  );
+  // The estimate is of bikes without damage: no floor from it.
+  final floor = damaged
+      ? offerStep
+      : _roundDown(estimate * (1 - maxBelowEstimate));
   final opening = min(
     max(_roundDown(ceiling * (1 - margin)), floor),
     _roundDown(ceiling * 0.99),

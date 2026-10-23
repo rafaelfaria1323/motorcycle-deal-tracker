@@ -17,6 +17,7 @@ Listing _listing({
   DateTime? relistedSince,
   String? relistedFrom,
   int? comparables,
+  List<String>? riskReasons,
 }) => Listing(
   id: 'l1',
   source: 'olx',
@@ -37,7 +38,11 @@ Listing _listing({
   relistedFrom: relistedFrom,
   scoreBreakdown: estimate == null
       ? null
-      : {'market_price': estimate, 'market_listing_count': ?comparables},
+      : {
+          'market_price': estimate,
+          'market_listing_count': ?comparables,
+          'risk_reasons': ?riskReasons,
+        },
 );
 
 MarketBehaviour _market({
@@ -213,6 +218,44 @@ void main() {
         daysListed: 100,
       )!;
       expect(all.opening, 6300); // 18 % capped at 10: 6300
+    });
+
+    test('damage: the price below the estimate is no discount', () {
+      // The Honda ADV 350: 20 % below the estimate, a knock and parts to
+      // replace (risk 80). Without the damage rule it opened 1 % below.
+      final adv = suggestOffer(
+        _listing(
+          price: 8000,
+          estimate: 10000,
+          riskScore: 80,
+          riskReasons: const ['possible_accident', 'needs_repair'],
+        ),
+      )!;
+      expect(adv.ceiling, 8000);
+      expect(adv.opening, 6850); // 6 + 3 (risk) + 5 (damage) = 14 %: 6880
+      expect(adv.reasons.join(' '), contains('não um desconto'));
+      expect(adv.reasons.join(' '), contains('orçamento da reparação'));
+
+      final undamaged = suggestOffer(
+        _listing(price: 8000, estimate: 10000, riskScore: 80),
+      )!;
+      expect(undamaged.opening, 7900); // the 20 % already given: 1 %
+
+      // Everything together is capped at 15 % for a damaged bike.
+      final all = suggestOffer(
+        _listing(riskScore: 80, riskReasons: const ['needs_repair']),
+        market: _market(droppedCount: 10, medianDropPct: 10),
+        daysListed: 100,
+      )!;
+      expect(all.opening, 5950); // 7000 x 0.85
+    });
+
+    test('scratches add 2 %', () {
+      final offer = suggestOffer(
+        _listing(riskReasons: const ['cosmetic_damage']),
+      )!;
+      expect(offer.opening, 6400); // 8 %: 6440
+      expect(offer.reasons.last, contains('riscos ou mossas'));
     });
 
     test('nothing for a price below one step', () {
