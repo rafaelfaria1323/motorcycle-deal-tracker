@@ -38,7 +38,7 @@ Unchanged.
 - Tracked: Yamaha MT-07, Yamaha R7, Honda CB650R, Honda CBR650R.
 - ➕ Available in the app, off by default: Tracer 7, R1, R3, R9, CB125R, CB300R, CBR500R, CB750 Hornet, CBR600RR.
 
-*Each account switches its own models on or off, changes each model's first year, and adds new models, all in the app ("Modelos acompanhados"); the collection searches every model any account follows, so all accounts share the listings. New models are picked from the brands and models the sites list (with Standvirtual's ad counts), with an optional engine size ("Forza" + 350 = only the Forza 350); the searches are built automatically, or typed by hand. The collector searches only the models someone follows.*
+*Each account switches its own models on or off, changes each model's first year, and adds new models, all in the app ("Modelos acompanhados"); the collection searches every model any account follows, so all accounts share the listings. New models are picked from the sites' brand/model suggestions or entered by name, with an optional engine size ("Forza" + 350 = only the Forza 350). Every model is searched on both OLX and Standvirtual: known filters are kept and missing searches use model words, with the brand included when its filter is unknown. Existing single-source models are backfilled; no copied search URLs, source choices or Standvirtual-only counts in the form. Alternative names are optional, under "Outros nomes do modelo"; unavailable suggestions show an error but never prevent manual entry. The collector searches only the models someone follows.*
 
 ## 5. Sources 🟡
 

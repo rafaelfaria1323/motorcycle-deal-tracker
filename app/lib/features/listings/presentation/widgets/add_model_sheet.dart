@@ -17,10 +17,8 @@ typedef NewModel = ({
   int? engineCcMax,
 });
 
-/// Asks for a new model and its searches; returns null if cancelled. The
-/// brand and model are picked from the sites' own lists (filled by the
-/// collector), which also give the searches; typing everything by hand
-/// stays possible.
+/// Asks for a model to track on both sites; returns null if cancelled.
+/// Known site filters are kept; the database builds any missing searches.
 Future<NewModel?> showAddModelSheet(
   BuildContext context,
   CatalogRepository repository,
@@ -29,6 +27,7 @@ Future<NewModel?> showAddModelSheet(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
+    useSafeArea: true,
     builder: (_) => _AddModelSheet(repository),
   );
 }
@@ -47,14 +46,12 @@ class _AddModelSheetState extends State<_AddModelSheet> {
   final _model = TextEditingController();
   final _cc = TextEditingController();
   final _year = TextEditingController(text: '${DateTime.now().year - 3}');
-  final _olx = TextEditingController();
-  final _standvirtual = TextEditingController();
   final _aliases = TextEditingController();
   Map<String, String> _problems = const {};
 
-  /// The sites' brands; null while loading, empty when unknown (the
-  /// collector has not run yet, or loading failed): then only typing works.
   List<SiteMake>? _makes;
+  String? _makesProblem;
+  String? _modelsProblem;
   bool _byHand = false;
   SiteMake? _make;
   List<SiteModel> _makeModels = const [];
@@ -70,28 +67,26 @@ class _AddModelSheetState extends State<_AddModelSheet> {
 
   @override
   void dispose() {
-    for (final c in [
-      _brand,
-      _model,
-      _cc,
-      _year,
-      _olx,
-      _standvirtual,
-      _aliases,
-    ]) {
+    for (final c in [_brand, _model, _cc, _year, _aliases]) {
       c.dispose();
     }
     super.dispose();
   }
 
   Future<void> _loadMakes() async {
-    List<SiteMake> makes;
     try {
-      makes = sortedMakes(await widget.repository.getSiteMakes());
+      final makes = sortedMakes(await widget.repository.getSiteMakes());
+      if (mounted) setState(() => _makes = makes);
     } catch (_) {
-      makes = const [];
+      if (mounted) {
+        setState(() {
+          _makes = const [];
+          _makesProblem =
+              'Não foi possível carregar as marcas. '
+              'Pode escrever a marca e o modelo.';
+        });
+      }
     }
-    if (mounted) setState(() => _makes = makes);
   }
 
   Future<void> _pickMake(SiteMake? make) async {
@@ -100,19 +95,26 @@ class _AddModelSheetState extends State<_AddModelSheet> {
       _picked = null;
       _makeModels = const [];
       _loadingModels = make != null;
+      _modelsProblem = null;
     });
     if (make == null) return;
-    List<SiteModel> models;
     try {
-      models = await widget.repository.getSiteModels(make.id);
+      final models = await widget.repository.getSiteModels(make.id);
+      if (mounted && _make == make) {
+        setState(() {
+          _makeModels = models;
+          _loadingModels = false;
+        });
+      }
     } catch (_) {
-      models = const [];
-    }
-    if (mounted && _make == make) {
-      setState(() {
-        _makeModels = models;
-        _loadingModels = false;
-      });
+      if (mounted && _make == make) {
+        setState(() {
+          _modelsProblem =
+              'Não foi possível carregar os modelos. '
+              'Pode escrever o modelo à mão.';
+          _loadingModels = false;
+        });
+      }
     }
   }
 
@@ -141,11 +143,9 @@ class _AddModelSheetState extends State<_AddModelSheet> {
     final picked = _fromPicker;
     setState(() {
       _byHand = true;
+      _brand.text = _make?.name ?? _brand.text;
       if (picked != null) {
-        _brand.text = picked.brand;
         _model.text = picked.model;
-        _standvirtual.text = picked.standvirtual;
-        _olx.text = picked.olx ?? '';
       }
     });
   }
@@ -158,17 +158,10 @@ class _AddModelSheetState extends State<_AddModelSheet> {
         brand: _usePicker ? (_make?.name ?? '') : _brand.text,
         model: _usePicker ? (picked?.model ?? '') : _model.text,
         year: _year.text,
-        olxSearch: _usePicker ? (picked?.olx ?? '') : _olx.text,
-        standvirtualSearch: _usePicker
-            ? (picked?.standvirtual ?? '')
-            : _standvirtual.text,
       ),
       'cc': ?engine.error,
     };
     if (_usePicker) {
-      // The picker always gives a Standvirtual search once a model is
-      // chosen; a missing one only means no model was chosen.
-      problems.remove('olx');
       if (_make == null) problems['brand'] = 'Escolha a marca';
       if (picked == null) problems['model'] = 'Escolha o modelo';
     }
@@ -176,16 +169,13 @@ class _AddModelSheetState extends State<_AddModelSheet> {
       setState(() => _problems = problems);
       return;
     }
-    String? optional(String text) => text.trim().isEmpty ? null : text.trim();
     final range = engine.cc == null ? null : engineRange(engine.cc!);
     Navigator.of(context).pop((
       brand: picked?.brand ?? _brand.text.trim(),
-      model: picked?.model ?? _model.text.trim(),
+      model: picked?.model ?? pickedModelName(_model.text, engine.cc),
       minYear: int.parse(_year.text.trim()),
-      olxSearch: picked == null ? optional(_olx.text) : picked.olx,
-      standvirtualSearch: picked == null
-          ? optional(_standvirtual.text)
-          : picked.standvirtual,
+      olxSearch: picked?.olx,
+      standvirtualSearch: picked?.standvirtual,
       aliases: parseAliases(_aliases.text),
       engineCcMin: range?.min,
       engineCcMax: range?.max,
@@ -216,12 +206,9 @@ class _AddModelSheetState extends State<_AddModelSheet> {
     );
   }
 
-  List<Widget> _pickerFields(BuildContext context) {
+  List<Widget> _pickerFields() {
     final makes = _makes!;
     final models = pickerModels(_makeModels);
-    final picked = _fromPicker;
-    final muted = Theme.of(context).textTheme.bodySmall
-        ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant);
     return [
       Padding(
         padding: const EdgeInsets.only(bottom: 12),
@@ -253,68 +240,23 @@ class _AddModelSheetState extends State<_AddModelSheet> {
           errorText: _problems['model'],
           onSelected: (m) => setState(() => _picked = m),
           dropdownMenuEntries: [
-            for (final m in models)
-              DropdownMenuEntry(value: m, label: adsLabel(m.name, m.ads)),
+            for (final m in models) DropdownMenuEntry(value: m, label: m.name),
           ],
         ),
       ),
-      _field(
-        _cc,
-        'Cilindrada (opcional)',
-        problemKey: 'cc',
-        keyboard: TextInputType.number,
-        helper:
-            'Vazio: todas as cilindradas do modelo. Ex.: 350 para '
-            'acompanhar só a Forza 350.',
-      ),
-      if (picked != null)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: Text(
-            [
-              'Fica: ${picked.brand} ${picked.model}',
-              'Standvirtual: ${picked.standvirtual}',
-              picked.olx == null
-                  ? 'OLX: este modelo não está na lista conhecida do OLX, '
-                        'por isso só o Standvirtual é pesquisado. Para '
-                        'juntar o OLX, use "Escrever à mão".'
-                  : 'OLX: ${picked.olx}',
-            ].join('\n'),
-            style: muted,
-          ),
-        ),
     ];
   }
 
   List<Widget> _typedFields() => [
     _field(_brand, 'Marca', problemKey: 'brand'),
     _field(_model, 'Modelo', problemKey: 'model'),
-    _field(
-      _cc,
-      'Cilindrada (opcional)',
-      problemKey: 'cc',
-      keyboard: TextInputType.number,
-      helper:
-          'Vazio: todas as cilindradas. Só as motas desta cilindrada '
-          '(10 % para cima ou para baixo) contam como este modelo.',
-    ),
-    _field(
-      _olx,
-      'Pesquisa no OLX',
-      problemKey: 'olx',
-      keyboard: TextInputType.url,
-    ),
-    _field(
-      _standvirtual,
-      'Pesquisa no Standvirtual (opcional)',
-      problemKey: 'standvirtual',
-      keyboard: TextInputType.url,
-    ),
   ];
 
   @override
   Widget build(BuildContext context) {
-    final loading = _makes == null;
+    final loading = _makes == null && !_byHand;
+    final picked = _usePicker ? _fromPicker : null;
+    final problem = _makesProblem ?? (_usePicker ? _modelsProblem : null);
     return Padding(
       padding: EdgeInsets.fromLTRB(
         24,
@@ -332,45 +274,77 @@ class _AddModelSheetState extends State<_AddModelSheet> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
+            const Text(
+              'Escolha a marca e o modelo. Pesquisamos automaticamente '
+              'no OLX e no Standvirtual.',
+            ),
+            const SizedBox(height: 16),
             if (loading)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 24),
                 child: Center(child: CircularProgressIndicator()),
               )
             else ...[
-              Text(
-                _usePicker
-                    ? 'Escolha a marca e o modelo (com o número de anúncios '
-                          'no Standvirtual). As pesquisas são criadas '
-                          'automaticamente.'
-                    : 'Para a pesquisa: abra o OLX (ou o Standvirtual) no '
-                          'browser, escolha Motociclos, a marca e o modelo, e '
-                          'copie o endereço. O ano é acrescentado '
-                          'automaticamente.',
+              if (problem != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(
+                    problem,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ),
+              ...(_usePicker ? _pickerFields() : _typedFields()),
+              _field(
+                _cc,
+                'Cilindrada (opcional)',
+                problemKey: 'cc',
+                keyboard: TextInputType.number,
+                helper:
+                    'Deixe em branco para todas as cilindradas. '
+                    'Ex.: 350 para a Forza 350.',
               ),
-              const SizedBox(height: 16),
-              ...(_usePicker ? _pickerFields(context) : _typedFields()),
+              if (picked != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(
+                    'A acompanhar: ${picked.brand} ${picked.model}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
               _field(
                 _year,
                 'Desde o ano',
                 problemKey: 'year',
                 keyboard: TextInputType.number,
               ),
-              _field(
-                _aliases,
-                'Outros nomes (opcional)',
-                helper:
-                    'Como os vendedores também escrevem o modelo, separados '
-                    'por vírgulas. Ex.: Z 650, Z-650',
+              ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: const EdgeInsets.only(top: 8),
+                shape: const Border(),
+                collapsedShape: const Border(),
+                title: const Text('Outros nomes do modelo'),
+                children: [
+                  _field(
+                    _aliases,
+                    'Outros nomes (opcional)',
+                    helper:
+                        'Como os vendedores também escrevem o modelo, '
+                        'separados por vírgulas. Ex.: Z 650, Z-650',
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 12),
               FilledButton(onPressed: _submit, child: const Text('Adicionar')),
-              if (_usePicker)
-                TextButton(
-                  onPressed: _typeByHand,
-                  child: const Text('Escrever à mão'),
-                ),
             ],
+            if (_usePicker || loading)
+              TextButton(
+                onPressed: _typeByHand,
+                child: const Text('Escrever à mão'),
+              ),
           ],
         ),
       ),

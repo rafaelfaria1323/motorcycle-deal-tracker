@@ -22,6 +22,10 @@ price and score hierarchy, and photo-led listing cards. It adapts from a
 phone's bottom navigation to a desktop sidebar and three-column listings;
 filters, sorting, saving searches and comparing ads have visible controls.
 
+Add a bike by brand, model and first year, with an optional engine size.
+Every model is searched on **both OLX and Standvirtual**: known site filters
+are kept, and missing ones get a name-based search. No search URLs to copy.
+
 ## How it works
 
 ```text

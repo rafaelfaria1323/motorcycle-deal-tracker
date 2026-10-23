@@ -18,13 +18,6 @@ List<SiteModel> pickerModels(List<SiteModel> models) =>
       return ads != 0 ? ads : a.name.compareTo(b.name);
     });
 
-/// "Forza (32 anúncios)".
-String adsLabel(String name, int? ads) => switch (ads) {
-  null => name,
-  1 => '$name (1 anúncio)',
-  _ => '$name ($ads anúncios)',
-};
-
 /// Reads the optional engine size ("350", "350 cc"); empty means every
 /// size.
 ({int? cc, String? error}) parseEngineCc(String text) {

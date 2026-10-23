@@ -81,27 +81,17 @@ Map<String, String> newModelProblems({
   required String brand,
   required String model,
   required String year,
-  required String olxSearch,
-  required String standvirtualSearch,
   int? currentYear,
 }) {
   final maxYear = (currentYear ?? DateTime.now().year) + 1;
   final parsedYear = int.tryParse(year.trim());
-  final olx = olxSearch.trim();
-  final sv = standvirtualSearch.trim();
+  final nameCharacters = RegExp(r'[\p{L}\p{N}]', unicode: true);
 
   return {
-    if (brand.trim().isEmpty) 'brand': 'Indique a marca',
-    if (model.trim().isEmpty) 'model': 'Indique o modelo',
+    if (!nameCharacters.hasMatch(brand)) 'brand': 'Indique a marca',
+    if (!nameCharacters.hasMatch(model)) 'model': 'Indique o modelo',
     if (parsedYear == null || parsedYear < 1990 || parsedYear > maxYear)
       'year': 'Ano entre 1990 e $maxYear',
-    if (olx.isEmpty && sv.isEmpty)
-      'olx': 'Indique pelo menos uma pesquisa (OLX ou Standvirtual)',
-    if (olx.isNotEmpty && !olx.startsWith(olxSearchPrefix))
-      'olx': 'Tem de ser uma pesquisa de motociclos do OLX ($olxSearchPrefix…)',
-    if (sv.isNotEmpty && !sv.startsWith(standvirtualSearchPrefix))
-      'standvirtual':
-          'Tem de ser uma pesquisa do Standvirtual ($standvirtualSearchPrefix…)',
   };
 }
 

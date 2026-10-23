@@ -80,36 +80,25 @@ void main() {
       String brand = 'Kawasaki',
       String model = 'Z650',
       String year = '2023',
-      String olx = '${olxSearchPrefix}kawasaki/',
-      String standvirtual = '',
     }) => newModelProblems(
       brand: brand,
       model: model,
       year: year,
-      olxSearch: olx,
-      standvirtualSearch: standvirtual,
       currentYear: 2026,
     );
 
-    test('a complete model is fine', () {
+    test('names and year are enough; both searches are automatic', () {
       expect(check(), isEmpty);
     });
 
     test('names each problem by field', () {
       expect(check(brand: ' ', model: '').keys, ['brand', 'model']);
+      expect(check(brand: '---', model: '///').keys, ['brand', 'model']);
+      expect(check(brand: 'Yamaha', model: 'Ténéré 700'), isEmpty);
       expect(check(year: '2030').keys, ['year']);
-      expect(check(olx: '').keys, ['olx']);
-      expect(check(olx: 'https://www.olx.pt/imoveis/').keys, ['olx']);
-      expect(check(standvirtual: 'https://example.com/').keys, [
-        'standvirtual',
-      ]);
-    });
-
-    test('a Standvirtual search alone is enough', () {
-      expect(
-        check(olx: '', standvirtual: '${standvirtualSearchPrefix}kawasaki'),
-        isEmpty,
-      );
+      expect(check(year: '1989').keys, ['year']);
+      expect(check(year: 'abc').keys, ['year']);
+      expect(check(year: '2027'), isEmpty);
     });
   });
 
