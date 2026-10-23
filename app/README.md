@@ -120,7 +120,8 @@ test/           unit tests for the cubits and *_text.dart functions; responsive
 ```
 
 The four tabs share editorial headings (`core/widgets/page_intro.dart`).
-A compact motorcycle wordmark (`app_brand.dart`) anchors Ofertas and the
+A compact wordmark with the app logo (`app_brand.dart`,
+`assets/brand/app_logo.png`) anchors Ofertas and the
 desktop navigation. Bottom navigation on
 phones becomes a compact rail on tablets and an extended sidebar on
 desktops. Empty/error messages scroll when space is short or text is
