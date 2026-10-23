@@ -294,6 +294,9 @@ Do not implement several unrelated features at once.
 ## 15.26 Damage in "Quanto oferecer" ✅
 *Rafael, 2026-10-23: "if it had a collision we can try to get a lower value even if the person already posted it cheaper than usual because of that". The offer took the asking price's distance below the estimate off the room to negotiate and never opened under 90 % of the estimate, so the damaged Honda ADV 350 (8 000 € against 10 000 €, risk 80) opened at 7 900 €, 1 % below. But the estimate is of bikes without damage: the lower price is the damage, not a discount. Now, when the risk reasons hold `possible_accident` or `needs_repair` (the ones that cap the Deal Score at 50), the price below the estimate takes nothing off, the estimate sets no floor, the room grows 5 % and may reach 15 % (10 % otherwise); the reasons say so and ask for photos or a repair quote to take off (the visit's checklist still takes a repair found off both offers). Scratches (`cosmetic_damage`) add 2 %. The ADV now opens at 6 850 € (14 %), the most to pay stays the asking price. App only (`offer_text.dart`); tests in `offer_text_test.dart`.*
 
+## 15.27 Detalhes before Negociar on the listing page ✅
+*Rafael, 2026-10-23: "swap the \"Detalhes\" with \"Negociar\"". The listing page's four parts now read Avaliação, Detalhes, Mercado, Negociar: the bike's facts and description come right after the verdict, and negotiating comes last, once the bike has been looked at. Only the order changed (`_Section` in `listing_detail_page.dart`); the part last picked still opens for the next listing.*
+
 # Sprint 14 — More than one person 🟡
 
 *Rafael, 2026-10-21: each account has its own models, searches and alerts, while one collection fetches for everyone (A follows the MT-07 from 2026, B the CBR650R from 2025: one run fetches both and fills the database for both).*
