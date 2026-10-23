@@ -17,17 +17,15 @@ class AppBrand extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: scheme.primary,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              Icons.two_wheeler_rounded,
-              color: scheme.onPrimary,
-              size: 25,
+          // The app icon (assets/icon/app_icon.jpeg) cut down to 144 px,
+          // enough for 36 px on a 4x screen.
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Image.asset(
+              'assets/brand/app_logo.png',
+              width: 36,
+              height: 36,
+              filterQuality: FilterQuality.medium,
             ),
           ),
           if (!compact) ...[

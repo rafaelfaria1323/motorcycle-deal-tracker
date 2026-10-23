@@ -92,6 +92,10 @@ flutter_launcher_icons:
 flutter:
   uses-material-design: true
 
+  # The app icon, small, for the header (AppBrand).
+  assets:
+    - assets/brand/app_logo.png
+
   # Barlow (SIL Open Font License, assets/fonts/OFL.txt), cut down to the
   # Latin characters the app uses, plus arrows drawn by tool/font_arrows.py
   # (tool/font_coverage.py checks that nothing the app writes is missing,
