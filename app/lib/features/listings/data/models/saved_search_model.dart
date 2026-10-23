@@ -11,7 +11,9 @@ class SavedSearchModel {
       id: json['id'] as String,
       name: json['name'] as String?,
       filters: ListingFilters(
-        motorcycleId: json['motorcycle_id'] as String?,
+        motorcycleIds: List<String>.from(
+          json['motorcycle_ids'] as List? ?? const [],
+        ),
         minYear: json['min_year'] as int?,
         maxPrice: (json['max_price'] as num?)?.toDouble(),
         maxMileage: json['max_mileage'] as int?,
@@ -32,7 +34,7 @@ class SavedSearchModel {
   }
 
   static Map<String, Object?> _criteria(ListingFilters filters) => {
-    'motorcycle_id': filters.motorcycleId,
+    'motorcycle_ids': filters.motorcycleIds,
     'min_year': filters.minYear,
     'max_price': filters.maxPrice,
     'max_mileage': filters.maxMileage,

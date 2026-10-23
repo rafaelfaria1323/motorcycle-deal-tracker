@@ -74,7 +74,7 @@ extension ListingFiltersCriteria on ListingFilters {
   /// True when at least one search criterion is set. "Only live listings" is
   /// not a criterion: a saved search always looks at live listings.
   bool get hasCriteria =>
-      motorcycleId != null ||
+      motorcycleIds.isNotEmpty ||
       minYear != null ||
       maxPrice != null ||
       maxMileage != null ||
@@ -88,7 +88,7 @@ extension ListingFiltersCriteria on ListingFilters {
 
   /// The same criteria without the live-only switch, which is not saved.
   ListingFilters get criteriaOnly => ListingFilters(
-    motorcycleId: motorcycleId,
+    motorcycleIds: motorcycleIds,
     minYear: minYear,
     maxPrice: maxPrice,
     maxMileage: maxMileage,

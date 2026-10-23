@@ -34,8 +34,8 @@ class SupabaseListingsRepository implements ListingsRepository {
         .eq('in_my_models', true);
     query = query.isFilter('duplicate_of', null);
 
-    if (filters.motorcycleId != null) {
-      query = query.eq('motorcycle_id', filters.motorcycleId!);
+    if (filters.motorcycleIds.isNotEmpty) {
+      query = query.inFilter('motorcycle_id', filters.motorcycleIds);
     }
     if (filters.minYear != null) {
       query = query.gte('year', filters.minYear!);

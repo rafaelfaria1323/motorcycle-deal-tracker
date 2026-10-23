@@ -17,14 +17,14 @@ void main() {
     final row = SavedSearchModel.toInsert(
       'MT-07 barata',
       const ListingFilters(
-        motorcycleId: 'm1',
+        motorcycleIds: ['m1'],
         minYear: 2026,
         maxPrice: 8000,
         sellerType: SellerType.dealer,
       ),
     );
     expect(row['name'], 'MT-07 barata');
-    expect(row['motorcycle_id'], 'm1');
+    expect(row['motorcycle_ids'], ['m1']);
     expect(row['max_price'], 8000);
     expect(row['seller_type'], 'dealer');
     expect(row.containsKey('user_id'), isFalse);
@@ -34,7 +34,7 @@ void main() {
     final search = SavedSearchModel.fromJson({
       'id': 's1',
       'name': 'Teste',
-      'motorcycle_id': 'm1',
+      'motorcycle_ids': ['m1'],
       'min_year': 2026,
       'max_price': 8000,
       'max_mileage': null,
@@ -45,7 +45,7 @@ void main() {
     expect(
       search.filters,
       const ListingFilters(
-        motorcycleId: 'm1',
+        motorcycleIds: ['m1'],
         minYear: 2026,
         maxPrice: 8000,
         location: 'Porto',
@@ -56,7 +56,7 @@ void main() {
 
   test('the summary names the model and the criteria', () {
     final text = summarizeFilters(
-      const ListingFilters(motorcycleId: 'm1', minYear: 2026),
+      const ListingFilters(motorcycleIds: ['m1'], minYear: 2026),
       const [MotorcycleOption(id: 'm1', brand: 'Yamaha', model: 'MT-07')],
     );
     expect(text, contains('Yamaha MT-07'));
@@ -67,7 +67,7 @@ void main() {
     final search = SavedSearchModel.fromJson({
       'id': 's1',
       'name': 'Teste',
-      'motorcycle_id': 'm1',
+      'motorcycle_ids': ['m1'],
       'min_year': 2026,
       'created_at': '2026-10-18T12:00:00Z',
     });

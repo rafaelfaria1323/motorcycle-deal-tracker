@@ -26,11 +26,8 @@ String summarizeFilters(
 ) {
   final parts = <String>[];
 
-  final id = filters.motorcycleId;
-  if (id != null) {
-    final match = motorcycles.where((m) => m.id == id).firstOrNull;
-    if (match != null) parts.add('${match.brand} ${match.model}');
-  }
+  final models = modelsText(filters.motorcycleIds, motorcycles);
+  if (models.isNotEmpty) parts.add(models);
   if (filters.minYear != null) parts.add('desde ${filters.minYear}');
   if (filters.maxPrice != null) {
     parts.add('até ${Formatters.price(filters.maxPrice)}');
@@ -52,6 +49,33 @@ String summarizeFilters(
   if (filters.onlyMyColours) parts.add(onlyMyColoursLabel);
 
   return parts.join(' · ');
+}
+
+/// "Honda CB650R ou CBR650R ou Yamaha MT-07": the models asked for, each
+/// brand named once, in the catalog's order; models no longer in the
+/// list are left out.
+String modelsText(List<String> ids, List<MotorcycleOption> motorcycles) => [
+  for (final MapEntry(key: brand, value: models) in modelsByBrand(
+    motorcycles.where((m) => ids.contains(m.id)),
+  ).entries)
+    '$brand ${models.map((m) => m.model).join(' ou ')}',
+].join(' ou ');
+
+/// The models grouped by brand, keeping their order (the filter's chips).
+Map<String, List<MotorcycleOption>> modelsByBrand(
+  Iterable<MotorcycleOption> motorcycles,
+) {
+  final byBrand = <String, List<MotorcycleOption>>{};
+  for (final m in motorcycles) {
+    (byBrand[m.brand] ??= []).add(m);
+  }
+  return byBrand;
+}
+
+/// "Honda CB650R", or "Modelo" for a model no longer in the list.
+String modelLabel(String id, List<MotorcycleOption> motorcycles) {
+  final m = motorcycles.where((m) => m.id == id).firstOrNull;
+  return m == null ? 'Modelo' : '${m.brand} ${m.model}';
 }
 
 /// The choices of the distance filter, in km.
@@ -76,7 +100,7 @@ List<FilterChipData> filterChips(
   List<MotorcycleOption> motorcycles,
 ) {
   ListingFilters copy({
-    bool model = true,
+    String? withoutModel,
     bool year = true,
     bool price = true,
     bool mileage = true,
@@ -89,7 +113,10 @@ List<FilterChipData> filterChips(
     bool colours = true,
     bool activeOnly = false,
   }) => ListingFilters(
-    motorcycleId: model ? f.motorcycleId : null,
+    motorcycleIds: [
+      for (final id in f.motorcycleIds)
+        if (id != withoutModel) id,
+    ],
     minYear: year ? f.minYear : null,
     maxPrice: price ? f.maxPrice : null,
     maxMileage: mileage ? f.maxMileage : null,
@@ -106,20 +133,13 @@ List<FilterChipData> filterChips(
     activeOnly: activeOnly || f.activeOnly,
   );
 
-  final id = f.motorcycleId;
-  final model = id == null
-      ? null
-      : motorcycles.where((m) => m.id == id).firstOrNull;
   final minScore = f.minDealScore;
   final maxRisk = f.maxRiskScore;
   final maxKm = f.maxDistanceKm;
 
   return [
-    if (id != null)
-      (
-        label: model == null ? 'Modelo' : '${model.brand} ${model.model}',
-        without: copy(model: false),
-      ),
+    for (final id in f.motorcycleIds)
+      (label: modelLabel(id, motorcycles), without: copy(withoutModel: id)),
     if (f.minYear != null)
       (label: 'desde ${f.minYear}', without: copy(year: false)),
     if (f.maxPrice != null)

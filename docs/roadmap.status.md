@@ -302,6 +302,9 @@ Do not implement several unrelated features at once.
 ## 15.27 Detalhes before Negociar on the listing page ✅
 *Rafael, 2026-10-23: "swap the \"Detalhes\" with \"Negociar\"". The listing page's four parts now read Avaliação, Detalhes, Mercado, Negociar: the bike's facts and description come right after the verdict, and negotiating comes last, once the bike has been looked at. Only the order changed (`_Section` in `listing_detail_page.dart`); the part last picked still opens for the next listing.*
 
+## 15.28 Several models in one filter ✅
+*Rafael, 2026-10-23: "in the same brand display different models: a search with two of three Honda models". The filter's "Modelo" list (one model or all) is now "Modelos": your models as chips grouped by brand, any number picked; none picked is all of them. Ofertas shows one chip per model picked (each removes only itself), the summary names each brand once ("Honda CB650R ou CBR650R"), and saved searches keep the list, so their alerts cover just those models. `ListingFilters.motorcycleIds` and `saved_searches.motorcycle_ids` (empty: any) replace the single model; existing searches kept theirs. App builds still open from before still write the single `motorcycle_id`, which a trigger turns into the list. Migration `20261025050000_saved_search_models.sql`; tests in `saved_search_models_test.sql`, `model_filter_test.dart`, `saved_searches_test.dart`, `filter_chips_test.dart`.*
+
 # Sprint 14 — More than one person 🟡
 
 *Rafael, 2026-10-21: each account has its own models, searches and alerts, while one collection fetches for everyone (A follows the MT-07 from 2026, B the CBR650R from 2025: one run fetches both and fills the database for both).*
