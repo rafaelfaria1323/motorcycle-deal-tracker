@@ -663,7 +663,10 @@ functions for manual work.
   model's typical time), relisted (+2 %), a model whose sellers often
   drop, high risk; less after a drop and less by however far the asking
   price is already below the estimate; 1-10 %, and never under 90 % of the
-  estimated value; rounded down to 50 €. The plan: the opening, one offer
+  estimated value; a bike whose text tells of an accident or a repair
+  (`damageReasons`) gets +5 %, up to 15 %, its price below the estimate
+  takes nothing off and the estimate sets no floor (it is of bikes
+  without damage); scratches +2 %; rounded down to 50 €. The plan: the opening, one offer
   halfway ("Se recusar") and the ceiling as the last, each with a message
   to copy; "O vendedor pediu" answers a counter-offer (accept up to the
   second offer, propose halfway up to the ceiling, above it offer the
