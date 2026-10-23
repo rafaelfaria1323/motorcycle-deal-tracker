@@ -40,6 +40,14 @@ sign-in encrypted with a key in the Android Keystore
     on both sites: relists, sharp price changes, missing mileage, repeated
     ads, price drops; from 5 bikes it also counts in the Deal Score, and
     the reasons say how the dealer scored).
+  - **Detalhes:** the bike's facts, the seller's description, the ad's
+    facts.
+  - **Mercado:** market behaviour for the model (with where the asking
+    price sits among the model's live listings), the price history, the
+    comparison with a new one, "Custo de ter esta mota" (yearly cost:
+    depreciation, IUC, your insurance, tyres, services, chain; "Alterar"
+    sets your insurance, km per year and years to keep, saved to your
+    account).
   - **Negociar:** "Quanto oferecer" (where to start, a second offer if
     refused, the most to pay, each with a message to copy; "Argumentos" to
     quote to the seller; "O vendedor pediu": type the seller's counter-offer
@@ -51,14 +59,6 @@ sign-in encrypted with a key in the Android Keystore
     questions the ad leaves open, optionally with the suggested offer; one
     tap copies it), "Para a visita" for favourites (12 points to check when
     seeing the bike, each "Está bem" or "Problema" with a note).
-  - **Mercado:** market behaviour for the model (with where the asking
-    price sits among the model's live listings), the price history, the
-    comparison with a new one, "Custo de ter esta mota" (yearly cost:
-    depreciation, IUC, your insurance, tyres, services, chain; "Alterar"
-    sets your insurance, km per year and years to keep, saved to your
-    account).
-  - **Detalhes:** the bike's facts, the seller's description, the ad's
-    facts.
 - **Pesquisas:** saved searches, each with its "N ofertas" and alert
   preferences; "Nova pesquisa" creates one (Ofertas can also save its
   current filters).

@@ -89,12 +89,12 @@ class ListingDetailPage extends StatelessWidget {
 }
 
 /// The four parts of the page, picked at the top so the page stays short:
-/// the verdict, negotiating, the market and the ad's own details.
+/// the verdict, the ad's own details, the market and negotiating.
 enum _Section {
   verdict('Avaliação'),
-  negotiate('Negociar'),
+  details('Detalhes'),
   market('Mercado'),
-  details('Detalhes');
+  negotiate('Negociar');
 
   const _Section(this.label);
 
