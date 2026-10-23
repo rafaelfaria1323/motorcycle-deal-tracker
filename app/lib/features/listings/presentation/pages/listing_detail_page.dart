@@ -17,6 +17,7 @@ import '../cubit/listing_detail_cubit.dart';
 import '../cubit/listing_detail_state.dart';
 import '../listing_dates_text.dart';
 import '../listing_detail_text.dart';
+import '../listing_labels.dart';
 import '../score_explanation.dart';
 import '../widgets/also_listed_section.dart';
 import '../widgets/deal_score_badge.dart';
@@ -46,7 +47,7 @@ class ListingDetailPage extends StatelessWidget {
         leading: BackButton(
           onPressed: () => goBack(context, fallback: AppRoutes.deals),
         ),
-        title: const Text('Detalhe'),
+        title: const Text('O anúncio'),
         actions: [
           // The star needs the listing (the favourites page shows it).
           BlocBuilder<ListingDetailCubit, ListingDetailState>(
@@ -188,36 +189,56 @@ class _ContentState extends State<_Content> {
           child: Align(
             alignment: Alignment.topCenter,
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 800),
+              constraints: const BoxConstraints(maxWidth: 1040),
               child: ListView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 children: [
-                  PhotoGallery(listingId: listing.id, images: listing.images),
-                  const SizedBox(height: 16),
-                  _Header(listing: listing),
-                  const SizedBox(height: 12),
-                  ..._statusCards(context),
-                  FavouriteNoteCard(listingId: listing.id),
-                  const SizedBox(height: 8),
-                  SegmentedButton<_Section>(
-                    segments: [
-                      for (final section in _Section.values)
-                        ButtonSegment(
-                          value: section,
-                          label: Text(section.label),
-                        ),
-                    ],
-                    selected: {_section},
-                    showSelectedIcon: false,
-                    // Room for four labels on a phone.
-                    style: const ButtonStyle(
-                      padding: WidgetStatePropertyAll(
-                        EdgeInsets.symmetric(horizontal: 4),
-                      ),
-                    ),
-                    onSelectionChanged: (selected) => _select(selected.first),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final photo = PhotoGallery(
+                        listingId: listing.id,
+                        images: listing.images,
+                      );
+                      final summary = Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _Header(listing: listing),
+                          const SizedBox(height: 16),
+                          ..._statusCards(context),
+                          FavouriteNoteCard(listingId: listing.id),
+                        ],
+                      );
+                      if (constraints.maxWidth >= 800) {
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(flex: 5, child: photo),
+                            const SizedBox(width: 28),
+                            Expanded(flex: 4, child: summary),
+                          ],
+                        );
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [photo, const SizedBox(height: 24), summary],
+                      );
+                    },
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 20),
+                  DefaultTabController(
+                    length: _Section.values.length,
+                    initialIndex: _section.index,
+                    child: TabBar(
+                      isScrollable: true,
+                      tabAlignment: TabAlignment.start,
+                      tabs: [
+                        for (final section in _Section.values)
+                          Tab(text: section.label),
+                      ],
+                      onTap: (index) => _select(_Section.values[index]),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
                   for (final section in _Section.values)
                     if (_opened.contains(section))
                       Offstage(
@@ -239,21 +260,52 @@ class _ContentState extends State<_Content> {
         // The tab bar's colour, which Safari's bottom toolbar is tinted with.
         Material(
           color: theme.colorScheme.surfaceContainerLowest,
-          elevation: 3,
-          child: SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              child: Center(
-                heightFactor: 1,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 768),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      onPressed: () => _openOriginal(context),
-                      icon: const Icon(Icons.open_in_new),
-                      label: Text(originalLinkLabel(listing.source)),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(color: theme.colorScheme.outlineVariant),
+              ),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                child: Center(
+                  heightFactor: 1,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1000),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final button = FilledButton.icon(
+                          onPressed: () => _openOriginal(context),
+                          icon: const Icon(Icons.open_in_new),
+                          label: Text(originalLinkLabel(listing.source)),
+                        );
+                        if (constraints.maxWidth < 600) {
+                          return SizedBox(
+                            width: double.infinity,
+                            child: button,
+                          );
+                        }
+                        return Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                Formatters.price(listing.price),
+                                style: theme.textTheme.headlineSmall?.copyWith(
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures(),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            button,
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -307,8 +359,6 @@ class _ContentState extends State<_Content> {
   }
 }
 
-/// Model, price and the main facts on the left; the Deal Score and its
-/// verdict on the right, visible whichever part is open below.
 class _Header extends StatelessWidget {
   const _Header({required this.listing});
 
@@ -320,58 +370,77 @@ class _Header extends StatelessWidget {
     final textTheme = theme.textTheme;
     final score = listing.dealScore;
 
-    return Row(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${listing.brand} ${listing.model}',
-                style: textTheme.titleLarge,
+        Text(
+          sourceLabel(listing.source).toUpperCase(),
+          style: textTheme.labelSmall?.copyWith(
+            letterSpacing: 1.5,
+            fontWeight: FontWeight.w700,
+            color: theme.colorScheme.primary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          '${listing.brand} ${listing.model}',
+          style: textTheme.headlineLarge?.copyWith(height: 1.05),
+        ),
+        const SizedBox(height: 14),
+        Wrap(
+          spacing: 12,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text(
+              Formatters.price(listing.price),
+              style: textTheme.displaySmall?.copyWith(
+                fontSize: 42,
+                fontFeatures: const [FontFeature.tabularFigures()],
               ),
-              const SizedBox(height: 2),
-              Wrap(
-                spacing: 12,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text(
-                    Formatters.price(listing.price),
-                    style: textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  PriceChangeTag(listing: listing),
-                ],
-              ),
-              const SizedBox(height: 2),
-              Text(
-                keyFactsLine(listing),
-                style: textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
+            ),
+            PriceChangeTag(listing: listing),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Text(
+          keyFactsLine(listing),
+          style: textTheme.bodyLarge?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
         if (score != null) ...[
-          const SizedBox(width: 12),
-          Column(
-            children: [
-              DealScoreBadge(score: score, large: true),
-              const SizedBox(height: 4),
-              SizedBox(
-                width: 84,
-                child: Text(
-                  ScoreExplainer.label(score),
-                  textAlign: TextAlign.center,
-                  style: textTheme.labelMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: theme.colorScheme.outlineVariant),
+            ),
+            child: Row(
+              children: [
+                DealScoreBadge(score: score, large: true),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        ScoreExplainer.label(score),
+                        style: textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Deal Score · 0 a 100',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ],

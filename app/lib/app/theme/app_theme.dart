@@ -139,8 +139,8 @@ abstract final class AppTheme {
       fontFamily: bodyFont,
     );
     final text = _textTheme(base.textTheme, scheme);
-    const radius = 16.0;
-    const controlRadius = BorderRadius.all(Radius.circular(12));
+    const radius = 14.0;
+    const controlRadius = BorderRadius.all(Radius.circular(10));
     final hairline = BorderSide(color: scheme.outlineVariant);
 
     return base.copyWith(
@@ -167,12 +167,14 @@ abstract final class AppTheme {
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
         centerTitle: false,
-        titleSpacing: 16,
-        titleTextStyle: text.headlineSmall?.copyWith(fontSize: 26),
+        titleSpacing: 20,
+        toolbarHeight: 68,
+        titleTextStyle: text.headlineSmall?.copyWith(fontSize: 24),
       ),
       cardTheme: CardThemeData(
         color: scheme.surfaceContainerLowest,
         elevation: 0,
+        margin: const EdgeInsets.only(bottom: 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radius),
           side: hairline,
@@ -182,7 +184,10 @@ abstract final class AppTheme {
         backgroundColor: scheme.surfaceContainerLowest,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        height: 64,
+        height: 72,
+        indicatorShape: const RoundedRectangleBorder(
+          borderRadius: controlRadius,
+        ),
         indicatorColor: scheme.primaryContainer,
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => text.labelMedium?.copyWith(
@@ -205,6 +210,9 @@ abstract final class AppTheme {
       navigationRailTheme: NavigationRailThemeData(
         backgroundColor: scheme.surfaceContainerLowest,
         indicatorColor: scheme.primaryContainer,
+        indicatorShape: const RoundedRectangleBorder(
+          borderRadius: controlRadius,
+        ),
         selectedIconTheme: IconThemeData(color: scheme.onPrimaryContainer),
         unselectedIconTheme: IconThemeData(color: scheme.onSurfaceVariant),
         selectedLabelTextStyle: text.labelMedium?.copyWith(
@@ -236,6 +244,16 @@ abstract final class AppTheme {
           shape: const RoundedRectangleBorder(borderRadius: controlRadius),
           textStyle: text.labelLarge,
         ),
+      ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: scheme.primary,
+        foregroundColor: scheme.onPrimary,
+        elevation: 0,
+        focusElevation: 0,
+        hoverElevation: 0,
+        highlightElevation: 0,
+        shape: const RoundedRectangleBorder(borderRadius: controlRadius),
+        extendedTextStyle: text.labelLarge?.copyWith(fontSize: 16),
       ),
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(foregroundColor: scheme.onSurface),
@@ -310,6 +328,15 @@ abstract final class AppTheme {
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: scheme.primary,
         linearTrackColor: scheme.surfaceContainerHighest,
+      ),
+      tabBarTheme: TabBarThemeData(
+        labelStyle: text.labelLarge?.copyWith(fontWeight: FontWeight.w700),
+        unselectedLabelStyle: text.labelLarge,
+        labelColor: scheme.primary,
+        unselectedLabelColor: scheme.onSurfaceVariant,
+        indicatorColor: scheme.primary,
+        dividerColor: scheme.outlineVariant,
+        indicatorSize: TabBarIndicatorSize.tab,
       ),
     );
   }

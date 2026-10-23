@@ -7,50 +7,79 @@ import '../../../../app/theme/app_theme.dart';
 /// 70+ interesting, 60+ normal, below 60 poor). [large] is the square
 /// shown at the top of the score explanation.
 class DealScoreBadge extends StatelessWidget {
-  const DealScoreBadge({required this.score, this.large = false, super.key});
+  const DealScoreBadge({
+    required this.score,
+    this.large = false,
+    this.showLabel = false,
+    super.key,
+  });
 
   final int score;
   final bool large;
+  final bool showLabel;
 
   @override
   Widget build(BuildContext context) {
     final color = AppColors.of(context).score(score);
 
-    return Semantics(
-      label: 'Deal Score $score',
-      excludeSemantics: true,
-      child: Container(
-        constraints: large
-            ? const BoxConstraints.tightFor(width: 56, height: 56)
-            : const BoxConstraints(minWidth: 40),
-        padding: large
-            ? null
-            : const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        alignment: large ? Alignment.center : null,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(large ? 14 : 10),
-          boxShadow: const [
-            BoxShadow(
-              color: AppColors.badgeShadow,
-              blurRadius: 6,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
+    final badge = Container(
+      constraints: BoxConstraints(
+        minWidth: large ? 64 : 44,
+        minHeight: large ? 64 : 32,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(large ? 12 : 7),
+      ),
+      child: Center(
+        widthFactor: 1,
+        heightFactor: 1,
         child: Text(
           '$score',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontFamily: AppTheme.displayFont,
             fontWeight: FontWeight.w700,
-            fontSize: large ? 28 : 18,
+            fontSize: large ? 32 : 22,
             height: 1.1,
             color: AppColors.onPhoto,
             fontFeatures: const [FontFeature.tabularFigures()],
           ),
         ),
       ),
+    );
+
+    return Semantics(
+      label: 'Deal Score $score de 100',
+      excludeSemantics: true,
+      child: showLabel
+          ? DecoratedBox(
+              decoration: BoxDecoration(
+                color: AppColors.photoPillScrim,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(5),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    badge,
+                    const SizedBox(height: 3),
+                    const Text(
+                      'Deal Score',
+                      style: TextStyle(
+                        fontFamily: AppTheme.bodyFont,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.onPhoto,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : badge,
     );
   }
 }

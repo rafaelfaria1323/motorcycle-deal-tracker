@@ -3,14 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:motorcycle_deal_tracker/features/listings/domain/entities/saved_search.dart';
-
 import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
+import '../../../../core/widgets/app_brand.dart';
+import '../../../../core/widgets/page_intro.dart';
 import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/listing_filters.dart';
 import '../../domain/entities/listing_sort.dart';
+import '../../domain/entities/saved_search.dart';
 import '../compare_text.dart';
 import '../cubit/compare_cubit.dart';
 import '../cubit/favourites_cubit.dart';
@@ -18,6 +19,7 @@ import '../cubit/favourites_state.dart';
 import '../cubit/listings_cubit.dart';
 import '../cubit/listings_state.dart';
 import '../cubit/saved_searches_cubit.dart';
+import '../dashboard_text.dart';
 import '../listing_labels.dart';
 import '../saved_search_summary.dart';
 import '../widgets/filters_sheet.dart';
@@ -27,13 +29,6 @@ import '../widgets/save_search_dialog.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
-
-  static const _grid = SliverGridDelegateWithMaxCrossAxisExtent(
-    maxCrossAxisExtent: 420,
-    mainAxisExtent: ListingCard.height,
-    crossAxisSpacing: 16,
-    mainAxisSpacing: 16,
-  );
 
   Future<void> _openFilters(BuildContext context) async {
     final cubit = context.read<ListingsCubit>();
@@ -102,215 +97,339 @@ class DashboardPage extends StatelessWidget {
                 ..hideCurrentSnackBar();
               showMessage(
                 messenger,
-                'Mantenha premido outro anúncio para o comparar.',
+                'Toque em Comparar noutro anúncio para o juntar.',
               );
             },
           );
         },
       ),
       appBar: AppBar(
-        title: const Text('Ofertas'),
+        title: MediaQuery.sizeOf(context).width < 840
+            ? LayoutBuilder(
+                builder: (context, constraints) => AppBrand(
+                  compact:
+                      constraints.maxWidth < 200 ||
+                      MediaQuery.textScalerOf(context).scale(16) > 20,
+                ),
+              )
+            : const Text('Ofertas'),
         actions: [
-          IconButton(
-            tooltip: 'Favoritos',
+          TextButton.icon(
             icon: const Icon(Icons.star_border),
+            label: const Text('Favoritos'),
             onPressed: () => context.push(AppRoutes.favourites),
           ),
-          BlocBuilder<ListingsCubit, ListingsState>(
-            buildWhen: (previous, current) => previous.sort != current.sort,
-            builder: (context, state) => PopupMenuButton<ListingSort>(
-              tooltip: 'Ordenar',
-              icon: const Icon(Icons.sort),
-              initialValue: state.sort,
-              onSelected: context.read<ListingsCubit>().applySort,
-              itemBuilder: (_) => [
-                for (final sort in ListingSort.values)
-                  CheckedPopupMenuItem(
-                    value: sort,
-                    checked: sort == state.sort,
-                    child: Text(sort.label),
-                  ),
-              ],
-            ),
-          ),
-          BlocBuilder<ListingsCubit, ListingsState>(
-            buildWhen: (previous, current) =>
-                previous.filters != current.filters,
-            builder: (context, state) => IconButton(
-              tooltip: 'Filtros',
-              icon: Badge(
-                isLabelVisible: state.filters.appliedCount > 0,
-                label: Text('${state.filters.appliedCount}'),
-                child: const Icon(Icons.tune),
-              ),
-              onPressed: () => _openFilters(context),
-            ),
-          ),
-          IconButton(
-            tooltip: 'Guardar pesquisa',
-            icon: const Icon(Icons.bookmark_add_outlined),
-            onPressed: () => _saveSearch(context),
-          ),
+          const SizedBox(width: 12),
         ],
       ),
-      body: Column(
-        children: [
-          BlocBuilder<ListingsCubit, ListingsState>(
-            buildWhen: (previous, current) =>
-                previous.filters != current.filters ||
-                previous.motorcycles != current.motorcycles,
-            builder: (context, state) {
-              final chips = filterChips(state.filters, state.motorcycles);
-              if (chips.isEmpty) return const SizedBox.shrink();
-              final cubit = context.read<ListingsCubit>();
-              return SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-                child: Row(
-                  children: [
-                    for (final chip in chips)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: InputChip(
-                          label: Text(chip.label),
-                          onDeleted: () => cubit.applyFilters(chip.without),
-                          deleteButtonTooltipMessage: 'Remover filtro',
-                        ),
+      body: BlocBuilder<ListingsCubit, ListingsState>(
+        builder: (context, state) {
+          final cubit = context.read<ListingsCubit>();
+          final chips = filterChips(state.filters, state.motorcycles);
+          final loading =
+              state.status == ListingsStatus.initial ||
+              state.status == ListingsStatus.loading;
+
+          return RefreshIndicator(
+            onRefresh: cubit.load,
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (notification) {
+                if (notification.depth == 0 &&
+                    notification.metrics.axis == Axis.vertical &&
+                    notification.metrics.extentAfter < 800) {
+                  Future.microtask(cubit.loadMore);
+                }
+                return false;
+              },
+              child: CustomScrollView(
+                key: ValueKey((state.filters, state.sort)),
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const PageIntro(
+                            eyebrow: 'O seu radar de motas',
+                            title: 'A próxima mota começa aqui.',
+                            description:
+                                'Compare o preço, conheça o histórico '
+                                'e escolha com confiança.',
+                          ),
+                          const SizedBox(height: 24),
+                          _OffersToolbar(
+                            state: state,
+                            onFilters: () => _openFilters(context),
+                            onSave: () => _saveSearch(context),
+                          ),
+                          if (chips.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 4,
+                              children: [
+                                for (final chip in chips)
+                                  InputChip(
+                                    label: Text(chip.label),
+                                    onDeleted: () =>
+                                        cubit.applyFilters(chip.without),
+                                    deleteButtonTooltipMessage:
+                                        'Remover filtro',
+                                  ),
+                                if (chips.length > 1)
+                                  ActionChip(
+                                    label: const Text('Limpar tudo'),
+                                    onPressed: () => cubit.applyFilters(
+                                      ListingFilters.empty,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
+                          if (state.status == ListingsStatus.success &&
+                              state.listings.isNotEmpty) ...[
+                            const SizedBox(height: 24),
+                            const Divider(),
+                            const SizedBox(height: 16),
+                            Wrap(
+                              spacing: 16,
+                              runSpacing: 4,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Text(
+                                  listingsResultsText(
+                                    state.listings.length,
+                                    hasMore: state.hasMore,
+                                  ),
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
+                                ),
+                                Text(
+                                  'Compare até 3 anúncios',
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
                       ),
-                    if (chips.length > 1)
-                      ActionChip(
-                        label: const Text('Limpar tudo'),
-                        onPressed: () =>
-                            cubit.applyFilters(ListingFilters.empty),
+                    ),
+                  ),
+                  if (loading)
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      sliver: _OffersGrid(
+                        itemCount: 6,
+                        itemBuilder: (_, _) => const ListingCardSkeleton(),
                       ),
-                  ],
-                ),
-              );
-            },
-          ),
-          Expanded(
-            child: BlocBuilder<ListingsCubit, ListingsState>(
-              builder: (context, state) {
-                switch (state.status) {
-                  case ListingsStatus.initial:
-                  case ListingsStatus.loading:
-                    return GridView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(16),
-                      gridDelegate: _grid,
-                      itemCount: 6,
-                      itemBuilder: (_, _) => const ListingCardSkeleton(),
-                    );
-                  case ListingsStatus.failure:
-                    return StateMessage(
-                      icon: Icons.cloud_off,
-                      title: 'Não foi possível carregar as ofertas',
-                      message: 'Verifique a ligação e tente novamente.',
-                      actionLabel: 'Tentar novamente',
-                      onAction: () => context.read<ListingsCubit>().load(),
-                    );
-                  case ListingsStatus.success:
-                    if (state.listings.isEmpty) {
-                      final hasFilters = state.filters.appliedCount > 0;
-                      return StateMessage(
+                    )
+                  else if (state.status == ListingsStatus.failure)
+                    SliverFillRemaining(
+                      child: StateMessage(
+                        icon: Icons.cloud_off,
+                        title: 'Não foi possível carregar as ofertas',
+                        message: 'Verifique a ligação e tente novamente.',
+                        actionLabel: 'Tentar novamente',
+                        onAction: cubit.load,
+                      ),
+                    )
+                  else if (state.listings.isEmpty)
+                    SliverFillRemaining(
+                      child: StateMessage(
                         icon: Icons.search_off,
-                        title: hasFilters
+                        title: state.filters.appliedCount > 0
                             ? 'Nenhuma oferta com estes filtros'
                             : 'Ainda não há ofertas',
-                        message: hasFilters
+                        message: state.filters.appliedCount > 0
                             ? 'Experimente alargar os critérios de pesquisa.'
                             : 'Escolha os modelos que quer acompanhar, ou '
                                   'volte depois da próxima recolha.',
-                        actionLabel: hasFilters
+                        actionLabel: state.filters.appliedCount > 0
                             ? 'Limpar filtros'
                             : 'Escolher modelos',
-                        onAction: hasFilters
-                            ? () => context.read<ListingsCubit>().applyFilters(
-                                ListingFilters.empty,
-                              )
+                        onAction: state.filters.appliedCount > 0
+                            ? () => cubit.applyFilters(ListingFilters.empty)
                             : () {
-                                final cubit = context.read<ListingsCubit>();
                                 unawaited(
                                   context
                                       .push<void>(AppRoutes.models)
                                       .then((_) => cubit.load()),
                                 );
                               },
-                      );
-                    }
-
-                    final cubit = context.read<ListingsCubit>();
-                    return NotificationListener<ScrollNotification>(
-                      // Asks for the next page a screen before the end.
-                      onNotification: (notification) {
-                        // Deferred: a notification can arrive mid-layout.
-                        if (notification.metrics.extentAfter < 800) {
-                          Future.microtask(cubit.loadMore);
-                        }
-                        return false;
-                      },
-                      child: CustomScrollView(
-                        slivers: [
-                          SliverPadding(
-                            padding: const EdgeInsets.all(16),
-                            sliver: SliverGrid.builder(
-                              gridDelegate: _grid,
-                              itemCount: state.listings.length,
-                              itemBuilder: (context, index) {
-                                final listing = state.listings[index];
-                                return BlocBuilder<
-                                  FavouritesCubit,
-                                  FavouritesState
-                                >(
-                                  bloc: getIt<FavouritesCubit>(),
-                                  buildWhen: (previous, current) =>
-                                      previous.isFavourite(listing.id) !=
-                                      current.isFavourite(listing.id),
-                                  builder: (context, favourites) =>
-                                      BlocBuilder<CompareCubit, List<String>>(
-                                        bloc: getIt<CompareCubit>(),
-                                        builder: (context, compared) =>
-                                            ListingCard(
-                                              listing: listing,
-                                              selected: compared.contains(
-                                                listing.id,
-                                              ),
-                                              favourite: favourites.isFavourite(
-                                                listing.id,
-                                              ),
-                                              onTap: () => context.push(
-                                                AppRoutes.listingDetail(
-                                                  listing.id,
-                                                ),
-                                              ),
-                                              onLongPress: () => _toggleCompare(
-                                                context,
-                                                listing.id,
-                                              ),
-                                            ),
-                                      ),
-                                );
-                              },
-                            ),
-                          ),
-                          if (state.loadingMore)
-                            const SliverToBoxAdapter(
-                              child: Padding(
-                                padding: EdgeInsets.only(bottom: 24),
-                                child: Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              ),
-                            ),
-                        ],
                       ),
-                    );
-                }
-              },
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      sliver: _OffersGrid(
+                        itemCount: state.listings.length,
+                        itemBuilder: (context, index) {
+                          final listing = state.listings[index];
+                          return BlocBuilder<FavouritesCubit, FavouritesState>(
+                            bloc: getIt<FavouritesCubit>(),
+                            buildWhen: (previous, current) =>
+                                previous.isFavourite(listing.id) !=
+                                current.isFavourite(listing.id),
+                            builder: (context, favourites) =>
+                                BlocBuilder<CompareCubit, List<String>>(
+                                  bloc: getIt<CompareCubit>(),
+                                  builder: (context, compared) => ListingCard(
+                                    listing: listing,
+                                    selected: compared.contains(listing.id),
+                                    favourite: favourites.isFavourite(
+                                      listing.id,
+                                    ),
+                                    onTap: () => context.push(
+                                      AppRoutes.listingDetail(listing.id),
+                                    ),
+                                    onLongPress: () =>
+                                        _toggleCompare(context, listing.id),
+                                  ),
+                                ),
+                          );
+                        },
+                      ),
+                    ),
+                  if (state.loadingMore)
+                    const SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.all(24),
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                    ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 96)),
+                ],
+              ),
             ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _OffersToolbar extends StatelessWidget {
+  const _OffersToolbar({
+    required this.state,
+    required this.onFilters,
+    required this.onSave,
+  });
+
+  final ListingsState state;
+  final VoidCallback onFilters;
+  final VoidCallback onSave;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return LayoutBuilder(
+      builder: (context, constraints) => Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          OutlinedButton.icon(
+            onPressed: onFilters,
+            icon: Badge(
+              isLabelVisible: state.filters.appliedCount > 0,
+              label: Text('${state.filters.appliedCount}'),
+              child: const Icon(Icons.tune, size: 18),
+            ),
+            label: const Text('Filtros'),
+          ),
+          PopupMenuButton<ListingSort>(
+            tooltip: 'Ordenar',
+            initialValue: state.sort,
+            onSelected: context.read<ListingsCubit>().applySort,
+            itemBuilder: (_) => [
+              for (final sort in ListingSort.values)
+                CheckedPopupMenuItem(
+                  value: sort,
+                  checked: sort == state.sort,
+                  child: Text(sort.label),
+                ),
+            ],
+            child: Container(
+              constraints: BoxConstraints(
+                minHeight: 48,
+                maxWidth: constraints.maxWidth,
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerLowest,
+                border: Border.all(color: scheme.outline),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.sort, size: 18),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      state.sort.label,
+                      style: theme.textTheme.labelLarge,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.expand_more, size: 18),
+                ],
+              ),
+            ),
+          ),
+          TextButton.icon(
+            onPressed: onSave,
+            icon: const Icon(Icons.bookmark_add_outlined, size: 18),
+            label: const Text('Guardar pesquisa'),
           ),
         ],
       ),
     );
   }
+}
+
+class _OffersGrid extends StatelessWidget {
+  const _OffersGrid({required this.itemCount, required this.itemBuilder});
+
+  final int itemCount;
+  final IndexedWidgetBuilder itemBuilder;
+
+  @override
+  Widget build(BuildContext context) => SliverLayoutBuilder(
+    builder: (context, constraints) {
+      final columns = ((constraints.crossAxisExtent + 16) / 316).floor().clamp(
+        1,
+        3,
+      );
+      // Natural-height cards keep enlarged text readable instead of clipping
+      // it into a fixed grid cell.
+      if (columns == 1 || MediaQuery.textScalerOf(context).scale(16) > 20) {
+        return SliverList.separated(
+          itemCount: itemCount,
+          itemBuilder: itemBuilder,
+          separatorBuilder: (_, _) => const SizedBox(height: 16),
+        );
+      }
+      return SliverGrid.builder(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: columns,
+          mainAxisExtent: ListingCard.gridHeight(context),
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+        ),
+        itemCount: itemCount,
+        itemBuilder: itemBuilder,
+      );
+    },
+  );
 }

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/widgets/page_intro.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/listing_alert.dart';
 import '../alerts_text.dart';
@@ -73,7 +74,8 @@ class AlertsPage extends StatelessWidget {
                 return StateMessage(
                   icon: Icons.notifications_none,
                   title: 'Ainda não tem alertas',
-                  message: 'Guarde uma pesquisa e avisamos quando surgir um anúncio novo.',
+                  message:
+                      'Guarde uma pesquisa e avisamos quando surgir um anúncio novo.',
                   actionLabel: 'Ver pesquisas',
                   onAction: () => context.go(AppRoutes.searches),
                 );
@@ -86,17 +88,40 @@ class AlertsPage extends StatelessWidget {
                     constraints: const BoxConstraints(maxWidth: 800),
                     child: ListView(
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
                       children: [
+                        const PageIntro(
+                          eyebrow: 'Alertas',
+                          title: 'O que mudou',
+                          description:
+                              'Novos anúncios, baixas de preço e novidades '
+                              'das motas que acompanha.',
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          unreadAlertsText(state.unreadCount),
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: state.unreadCount > 0
+                                ? theme.colorScheme.primary
+                                : theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
                         for (final day in groupAlertsByDay(state.alerts)) ...[
                           Padding(
                             padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
-                            child: Text(
-                              day.label.toUpperCase(),
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                letterSpacing: 1.2,
-                              ),
+                            child: Row(
+                              children: [
+                                Text(
+                                  day.label.toUpperCase(),
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                const Expanded(child: Divider()),
+                              ],
                             ),
                           ),
                           for (final alert in day.alerts)
@@ -158,34 +183,78 @@ class _AlertTile extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        isThreeLine: true,
-        leading: CircleAvatar(
-          backgroundColor: background,
-          foregroundColor: foreground,
-          child: Icon(icon, size: 22),
-        ),
-        title: Text(
-          title,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: alert.isRead ? FontWeight.w500 : FontWeight.w700,
-          ),
-        ),
-        subtitle: Text('${alertDetailsLine(alert)}\n${alertOriginLine(alert)}'),
-        trailing: alert.isRead
-            ? null
-            : Semantics(
-                label: 'Não lido',
-                child: Container(
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: scheme.primary,
-                    shape: BoxShape.circle,
-                  ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: background,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, size: 22, color: foreground),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: alert.isRead
+                                  ? FontWeight.w500
+                                  : FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        if (!alert.isRead) ...[
+                          const SizedBox(width: 10),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 6),
+                            child: Semantics(
+                              label: 'Não lido',
+                              child: Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: scheme.primary,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      alertDetailsLine(alert),
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      alertOriginLine(alert),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-        onTap: onTap,
+            ],
+          ),
+        ),
       ),
     );
   }

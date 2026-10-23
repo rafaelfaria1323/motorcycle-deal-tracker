@@ -30,7 +30,7 @@ Unchanged.
 - ✅ Calculate a separate Risk Score.
 - ✅ Create saved searches. *Also by minimum Deal Score / maximum Risk Score.*
 - ✅ Send alerts. *In the app and as notifications on each account's phone (Web Push; FCM in the Android app), plus each account's weekly summary on Mondays (a notification that opens "Resumo da semana" in the app). An alert whose push fails is tried again on the next runs (for a day); signing out stops a device's notifications. Only events of the last day alert (following a model doesn't bring old news), and a listing that goes, comes back and goes again alerts each time.*
-- ✅ Compare motorcycles. *Up to 3 listings side by side (long press in Ofertas or "Comparar" on a listing), best value per row highlighted.*
+- ✅ Compare motorcycles. *Up to 3 listings side by side ("Comparar" on a card, long press in Ofertas or "Comparar" on a listing), best value per row highlighted.*
 - 🟡 Show market trends. *Time on market, price drops, depreciation and the spread of live asking prices per model, and the tracked models compared side by side ("Comparar modelos"); price trends need more history.*
 
 ## 4. Motorcycle Models ✅
@@ -52,6 +52,8 @@ Unchanged.
 
 - Phase 1 — Flutter Web/PWA ✅ *Hosted on Cloudflare Pages, installed on the iPhone Home Screen; deployed on every merge, with the migrations the database is missing applied first (Security S.3). UI/UX redesign done (roadmap Sprint 13: Mais tab, Ofertas, listing page, Pesquisas/Alertas, its own look and fonts, one voice in pt-PT); models per account (Sprint 14); accounts from invite links made in the app (14.3), Telegram only for admins' alerts; admins can start a collection from Mais (14.5), any account its own weekly summary (14.4d) and see each run's errors, the sites' requests and pauses and the GitHub token's expiry in "Estado da recolha" (14.6; checked from the app since 14.6b, with the database's size too). Start speed: each PR's preview is measured by Lighthouse, which now shows what the download is made of (roadmap N.13); the first load no longer fetches fonts from Google (N.14), and asks for the first listings while it signs in, with its connections opened early (N.15); a loading screen shows while the app downloads (N.16), and the first listings and photos are asked for during the download (N.17); the fonts are smaller (N.18); what is left is the app's own size (N.19).*
 - Phase 2 — Flutter iOS/Android 🟡 *Android ✅: every deploy builds a signed APK and replaces it on the GitHub release `android`; Mais offers it on Android phones, and the app updates itself from there (it says when a newer build is out, downloads it and opens Android's installer; roadmap 12.5). Notifications too, through Firebase Cloud Messaging (roadmap 12.6), a tap opening the page in the app. Android's back gesture and the browser's back/forward follow the screens the person went through (roadmap 12.7). iPhone: not needed, a native build requires a paid Apple Developer account.*
+
+*Responsive visual refinement (13.7): shared motorcycle wordmark and editorial headings, restrained orange accents, clearer price/score hierarchy, bottom navigation on phones and a sidebar on desktop. Natural-height layouts and scrollable states preserve usability with enlarged text.*
 
 ## 7. Stack
 
@@ -119,7 +121,7 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 
 ## 15. Saved Searches ✅
 
-All criteria (➕ plus minimum Deal Score and maximum Risk Score) and all four notification preferences, with edit, delete and "N ofertas". Created from Ofertas (current filters) or from Pesquisas ("Nova pesquisa").
+All criteria (➕ plus minimum Deal Score and maximum Risk Score) and all four notification preferences, with configured alert types and "N anúncios encontrados" shown on each card. Tap the card to apply it; edit and delete are in its options menu. Created from Ofertas (current filters) or from Pesquisas ("Nova pesquisa").
 
 ## 16. Alerts ✅
 
@@ -129,9 +131,13 @@ All four types, each at most once per event, only for events after the search wa
 
 ✅ Best deals sorted by Deal Score (or newest, cheapest, most expensive); only tracked models; filters for model, price, mileage, year, location, seller type, Deal Score, Risk Score, active only, shown as removable chips. ➕ Distance from the owner's home on every listing, a maximum-distance filter (also for saved searches) and a nearest-first sort (15.11). ➕ Equipment filter (quickshifter, exhaust, luggage, heated grips, protection, new tyres and, since 15.15, short plate holder, screen, levers, mirrors, phone mount, alarm, steering damper, centre stand, cruise control, suspension, LED indicators, passenger grab handles, original parts included), also for saved searches (15.13). ➕ Collection status (last run, duration, what it found, requests, next run; a warning card when a run failed or was blocked) in Mais. ➕ Favourites: a star on cards of starred listings; "Favoritos" (Ofertas app bar or Mais) lists them with the owner's notes.
 
+*13.7: visible filter, sort, save and comparison actions; removable wrapping filter chips; explicit loaded-result counts while another page remains; pull to refresh. Photo-led cards show the source and a labelled Deal Score; up to three columns on desktop, natural heights on phones or with enlarged text.*
+
 ## 18. Listing Detail Page ✅
 
 ✅ Photos (gallery, full screen; every photo of the ad, up to 30, 14.4h), price, year, mileage (read from the description when the ad's field is empty, 14.4i), location, seller, seller type, source, original link, Deal Score, Risk Score, explanation, estimated value, price history, first/last seen, status, new-motorcycle comparison. ➕ Owners, service book, origin, colour (marked when it is one of the person's favourites, 15.23), warranty, publication date, full description, market behaviour card (with depreciation and where the asking price sits among the model's live listings), "also listed as" duplicates. *The Deal Score and its verdict sit beside the price; below, four parts picked at the top (Avaliação, Detalhes, Mercado, Negociar, 15.17; Detalhes second since 15.27) instead of one long list of cards; the button to the ad stays at the bottom of the screen.*
+
+*13.7: photo and summary side by side on wide screens, stacked on phones; explicit fullscreen photo control; scrollable section tabs retaining opened content; fixed original-listing action with the price beside it on wide screens.*
 
 ## 19. New Motorcycle Comparison 🟡
 

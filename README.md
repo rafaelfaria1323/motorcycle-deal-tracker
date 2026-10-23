@@ -17,6 +17,11 @@ Messaging in the Android app).
 The app is in Portuguese and installs on the iPhone from Safari
 ("Adicionar ao ecrã principal").
 
+The interface pairs Barlow typography with an orange-and-ink palette, clear
+price and score hierarchy, and photo-led listing cards. It adapts from a
+phone's bottom navigation to a desktop sidebar and three-column listings;
+filters, sorting, saving searches and comparing ads have visible controls.
+
 ## How it works
 
 ```text

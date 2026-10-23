@@ -21,19 +21,27 @@ sign-in encrypted with a key in the Android Keystore
   e.g. quickshifter, escape, malas, proteções, suporte de matrícula curto,
   bolha, and "Só nas suas cores": each model's favourite colours; with
   "Mais barato" that is the best price in your colour) and paged 40 at a
-  time.
-  Each card shows the place and its distance from your home.
+  time. Labelled filter, sort and save controls sit above the results;
+  while more pages remain, the count explicitly describes loaded ads.
+  Photo-led cards show the source, Deal Score, price change, year, mileage,
+  place and distance from your home, with a visible "Comparar" action.
+  The grid grows to three columns; phone and enlarged-text layouts use
+  naturally sized cards.
 - **Favoritos:** the listings you starred (star on a listing's page; star
   in the Ofertas app bar or Mais opens the list), newest first, each with
   your private note and the problems found on the viewing checklist;
   removed ones stay, marked. A favourite always alerts
   you about price drops and its removal.
-- **Comparar:** up to 3 listings side by side (long press a card in Ofertas,
-  or "Comparar" on a listing's page), the best value of each row marked.
+- **Comparar:** up to 3 listings side by side ("Comparar" on a card in
+  Ofertas, long press the card, or "Comparar" on a listing's page), the best
+  value of each row marked.
 - **Listing page:** photo gallery (full screen on a tap; there pinch, the
   mouse wheel or a double tap zooms); model, price and facts with the Deal
   Score and its verdict beside them; removed / duplicate / relisted notices;
-  your note when it is a favourite. Below, four parts picked at the top
+  your note when it is a favourite. Photos and summary sit side by side
+  on wide screens and stack on phones, with a visible fullscreen control.
+  The original-listing button stays at the bottom, with the price beside
+  it on wide screens. Below, four parts picked using scrollable tabs
   (the last one picked stays open for the next listing):
   - **Avaliação:** why this score (the reasons and the risk), the same bike
     on the other site, "O stand" for dealers (what we have seen of its ads
@@ -59,12 +67,14 @@ sign-in encrypted with a key in the Android Keystore
     questions the ad leaves open, optionally with the suggested offer; one
     tap copies it), "Para a visita" for favourites (12 points to check when
     seeing the bike, each "Está bem" or "Problema" with a note).
-- **Pesquisas:** saved searches, each with its "N ofertas" and alert
-  preferences; "Nova pesquisa" creates one (Ofertas can also save its
-  current filters).
+- **Pesquisas:** saved searches, each with its criteria, configured alert
+  types and "N anúncios encontrados". Tap the card to apply it; the
+  options menu edits or deletes it. "Nova pesquisa" creates one (Ofertas
+  can also save its current filters).
 - **Alertas:** new listings, price drops, excellent opportunities, bikes
   you followed back on the market in a new ad ("Voltou ao mercado") and
-  removed listings, grouped by day; the tab shows the unread count.
+  removed listings, grouped by day, with an unread summary above them;
+  the tab also shows the unread count.
 - **Mais:** account, sharing (the app's link; admins: "Contas e convites"), "Notificações neste aparelho" (with "Enviar notificação de teste", an example of any alert or collection message, and "Enviar o resumo da semana"), "Resumo da semana" (your models' last 7 days, made every Monday and sent as a notification that opens it: counts, new listings per model, the best deals and the biggest drops, each opening its listing), "A sua localidade" (your home town: every listing
   shows its distance from it), "Modelos acompanhados" (your own models: switch on/off, first
   year, favourite colours of each (listings in them are marked "Cor
@@ -102,8 +112,17 @@ lib/features/   listings, collector_status, settings
   <feature>/domain/        entities, repository interfaces
   <feature>/data/          models (fromJson), Supabase repositories
   <feature>/presentation/  cubits, pages, widgets, *_text.dart (text built from data)
-test/           unit tests, mostly for the cubits and *_text.dart functions
+test/           unit tests for the cubits and *_text.dart functions; responsive
+                widget and interaction regressions in interface_test.dart
 ```
+
+The four tabs share editorial headings (`core/widgets/page_intro.dart`).
+A compact motorcycle wordmark (`app_brand.dart`) anchors Ofertas and the
+desktop navigation. Bottom navigation on
+phones becomes a compact rail on tablets and an extended sidebar on
+desktops. Empty/error messages scroll when space is short or text is
+enlarged. Widget regressions use the actual bundled fonts, not test
+substitutes (`test/support/interface_fixture.dart`).
 
 The look lives in `lib/app/theme/`: `AppTheme` (light and dark colour
 schemes, component styles) and `AppColors` (good/bad and Deal Score

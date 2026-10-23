@@ -5,6 +5,7 @@ import '../../../../app/theme/app_theme.dart';
 import '../../../../core/formatting/formatters.dart';
 import '../../domain/entities/listing.dart';
 import '../listing_detail_text.dart';
+import '../listing_labels.dart';
 import 'deal_score_badge.dart';
 import 'listing_photo.dart';
 import 'price_change_tag.dart';
@@ -25,24 +26,19 @@ class ListingCard extends StatelessWidget {
   /// Picks the listing for the comparison.
   final VoidCallback? onLongPress;
 
-  /// In the comparison: a primary border and a check mark.
   final bool selected;
-
-  /// In the favourites: a star on the photo.
   final bool favourite;
 
   static const photoHeight = 180.0;
 
-  /// The card's full height, for the grid's `mainAxisExtent`.
-  static const height = 300.0;
+  static double gridHeight(BuildContext context) =>
+      390 + (MediaQuery.textScalerOf(context).scale(16) - 16) * 10;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final muted = theme.colorScheme.onSurfaceVariant;
-
     final shape = theme.cardTheme.shape;
+
     return Card(
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
@@ -51,141 +47,237 @@ class ListingCard extends StatelessWidget {
               side: BorderSide(color: theme.colorScheme.primary, width: 2),
             )
           : null,
-      child: InkWell(
-        onTap: onTap,
-        onLongPress: onLongPress,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              height: photoHeight,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  ListingPhoto(
-                    url: listing.images.isEmpty ? null : listing.images.first,
-                  ),
-                  if (listing.dealScore != null)
-                    Positioned(
-                      top: 10,
-                      right: 10,
-                      child: DealScoreBadge(score: listing.dealScore!),
-                    ),
-                  if (listing.isRemoved || listing.myColour)
-                    Positioned(
-                      top: 10,
-                      left: 10,
-                      child: Row(
-                        spacing: 6,
-                        children: [
-                          if (listing.isRemoved) const _PhotoPill('Removido'),
-                          // A plus for the person; the score ignores it.
-                          if (listing.myColour)
-                            const _PhotoPill(
-                              'Cor preferida',
-                              icon: Icons.palette_outlined,
-                            ),
-                        ],
-                      ),
-                    ),
-                  if (favourite)
-                    Positioned(
-                      bottom: 10,
-                      right: 10,
-                      child: CircleAvatar(
-                        radius: 14,
-                        backgroundColor: AppColors.photoPillScrim,
-                        child: Icon(
-                          Icons.star,
-                          size: 16,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                  if (selected)
-                    Positioned(
-                      bottom: 10,
-                      left: 10,
-                      child: CircleAvatar(
-                        radius: 14,
-                        backgroundColor: theme.colorScheme.primary,
-                        child: Icon(
-                          Icons.compare_arrows,
-                          size: 16,
-                          color: theme.colorScheme.onPrimary,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+      child: Semantics(
+        selected: selected,
+        child: InkWell(
+          onTap: onTap,
+          onLongPress: onLongPress,
+          child: LayoutBuilder(
+            builder: (context, constraints) => Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _CardPhoto(listing: listing, favourite: favourite),
+                _CardDetails(listing: listing),
+                if (constraints.hasBoundedHeight) const Spacer(),
+                const Divider(),
+                _CardFooter(
+                  listing: listing,
+                  selected: selected,
+                  onCompare: onLongPress,
+                ),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${listing.brand} ${listing.model}',
-                    style: textTheme.titleMedium,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      Text(
-                        Formatters.price(listing.price),
-                        style: textTheme.headlineSmall?.copyWith(
-                          fontFeatures: const [FontFeature.tabularFigures()],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      PriceChangeTag(listing: listing),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  DefaultTextStyle.merge(
-                    style: textTheme.bodyMedium?.copyWith(color: muted),
-                    child: IconTheme.merge(
-                      data: IconThemeData(size: 16, color: muted),
-                      child: Row(
-                        children: [
-                          if (listing.year != null) ...[
-                            const Icon(Icons.calendar_today_outlined),
-                            const SizedBox(width: 4),
-                            Text('${listing.year}'),
-                            const SizedBox(width: 12),
-                          ],
-                          const Icon(Icons.speed),
-                          const SizedBox(width: 4),
-                          Text(Formatters.mileage(listing.mileage)),
-                          if (placeText(listing) case final place?) ...[
-                            const SizedBox(width: 12),
-                            const Icon(Icons.place_outlined),
-                            const SizedBox(width: 2),
-                            Flexible(
-                              child: Text(
-                                place,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
-/// A label on the photo: "Removido", "Cor preferida".
+class _CardPhoto extends StatelessWidget {
+  const _CardPhoto({required this.listing, required this.favourite});
+
+  final Listing listing;
+  final bool favourite;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: ListingCard.photoHeight,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ListingPhoto(
+            url: listing.images.isEmpty ? null : listing.images.first,
+          ),
+          Positioned(
+            top: 12,
+            left: 12,
+            right: 100,
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: _PhotoPill(sourceLabel(listing.source)),
+            ),
+          ),
+          if (listing.dealScore case final score?)
+            Positioned(
+              top: 12,
+              right: 12,
+              child: DealScoreBadge(score: score, showLabel: true),
+            ),
+          if (listing.isRemoved || listing.myColour)
+            Positioned(
+              bottom: 12,
+              left: 12,
+              right: favourite ? 52 : 12,
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  if (listing.isRemoved) const _PhotoPill('Removido'),
+                  if (listing.myColour)
+                    const _PhotoPill(
+                      'Cor preferida',
+                      icon: Icons.palette_outlined,
+                    ),
+                ],
+              ),
+            ),
+          if (favourite)
+            Positioned(
+              bottom: 10,
+              right: 10,
+              child: CircleAvatar(
+                radius: 14,
+                backgroundColor: AppColors.photoPillScrim,
+                child: const Icon(
+                  Icons.star,
+                  size: 16,
+                  color: AppColors.onPhoto,
+                  semanticLabel: 'Nos favoritos',
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CardDetails extends StatelessWidget {
+  const _CardDetails({required this.listing});
+
+  final Listing listing;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final muted = theme.colorScheme.onSurfaceVariant;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${listing.brand} ${listing.model}',
+            style: textTheme.titleLarge?.copyWith(fontSize: 23),
+            maxLines: MediaQuery.textScalerOf(context).scale(16) > 20
+                ? null
+                : 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                Formatters.price(listing.price),
+                style: textTheme.headlineSmall?.copyWith(
+                  fontSize: 30,
+                  height: 1.1,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+              PriceChangeTag(listing: listing),
+            ],
+          ),
+          const SizedBox(height: 12),
+          DefaultTextStyle.merge(
+            style: textTheme.bodyMedium?.copyWith(color: muted),
+            child: IconTheme.merge(
+              data: IconThemeData(size: 16, color: muted),
+              child: Wrap(
+                spacing: 16,
+                runSpacing: 6,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  if (listing.year != null)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 5,
+                      children: [
+                        const Icon(Icons.calendar_today_outlined),
+                        Text('${listing.year}'),
+                      ],
+                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: 5,
+                    children: [
+                      const Icon(Icons.speed),
+                      Text(Formatters.mileage(listing.mileage)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CardFooter extends StatelessWidget {
+  const _CardFooter({
+    required this.listing,
+    required this.selected,
+    required this.onCompare,
+  });
+
+  final Listing listing;
+  final bool selected;
+  final VoidCallback? onCompare;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final muted = scheme.onSurfaceVariant;
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, right: 4),
+      child: Row(
+        children: [
+          Icon(Icons.place_outlined, size: 16, color: muted),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Text(
+              placeText(listing) ?? 'Localização não indicada',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(color: muted),
+            ),
+          ),
+          if (onCompare != null)
+            Tooltip(
+              message: selected ? 'Retirar da comparação' : 'Comparar',
+              child: TextButton.icon(
+                onPressed: onCompare,
+                style: TextButton.styleFrom(
+                  foregroundColor: selected ? scheme.primary : muted,
+                  minimumSize: const Size(48, 48),
+                ),
+                icon: Icon(
+                  selected ? Icons.check_circle : Icons.compare_arrows,
+                  size: 18,
+                ),
+                label: Text(selected ? 'Retirar' : 'Comparar'),
+              ),
+            )
+          else
+            const SizedBox(height: 48, width: 12),
+        ],
+      ),
+    );
+  }
+}
+
 class _PhotoPill extends StatelessWidget {
   const _PhotoPill(this.text, {this.icon});
 
@@ -206,12 +298,17 @@ class _PhotoPill extends StatelessWidget {
           spacing: 4,
           children: [
             if (icon != null) Icon(icon, size: 14, color: AppColors.onPhoto),
-            Text(
-              text,
-              style: const TextStyle(
-                fontFamily: AppTheme.bodyFont,
-                fontWeight: FontWeight.w600,
-                color: AppColors.onPhoto,
+            Flexible(
+              child: Text(
+                text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontFamily: AppTheme.bodyFont,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.onPhoto,
+                ),
               ),
             ),
           ],

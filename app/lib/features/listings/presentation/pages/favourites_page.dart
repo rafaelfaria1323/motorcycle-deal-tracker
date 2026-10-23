@@ -71,14 +71,11 @@ class FavouritesPage extends StatelessWidget {
                         Text(favouritesCountText(favourites), style: muted),
                         const SizedBox(height: 12),
                         for (final f in favourites) ...[
-                          SizedBox(
-                            height: ListingCard.height,
-                            child: ListingCard(
-                              listing: f.listing!,
-                              favourite: true,
-                              onTap: () => context.push(
-                                AppRoutes.listingDetail(f.listingId),
-                              ),
+                          ListingCard(
+                            listing: f.listing!,
+                            favourite: true,
+                            onTap: () => context.push(
+                              AppRoutes.listingDetail(f.listingId),
                             ),
                           ),
                           Padding(

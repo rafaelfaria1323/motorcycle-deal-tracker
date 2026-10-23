@@ -67,6 +67,15 @@ class _PhotoGalleryState extends State<PhotoGallery> {
                           ListingPhoto(url: images[index]),
                     ),
                   ),
+                  Positioned(
+                    left: 8,
+                    bottom: 8,
+                    child: _RoundButton(
+                      icon: Icons.fullscreen,
+                      tooltip: 'Ampliar fotografias',
+                      onPressed: _openFullScreen,
+                    ),
+                  ),
                   if (images.length > 1)
                     _GalleryControls(
                       index: _index,

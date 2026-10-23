@@ -24,23 +24,26 @@ class SectionCard extends StatelessWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(
-              // The same height with or without an action button.
-              height: 32,
+            ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 32),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: Text(title, style: theme.textTheme.titleMedium),
+                    child: Semantics(
+                      header: true,
+                      child: Text(title, style: theme.textTheme.titleLarge),
+                    ),
                   ),
                   ?action,
                 ],
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             ...children,
             if (footnote != null) ...[
               const SizedBox(height: 12),

@@ -32,14 +32,23 @@ class ListingCardSkeleton extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                bar(160, 16),
+                FractionallySizedBox(
+                  widthFactor: 0.6,
+                  child: bar(double.infinity, 20),
+                ),
                 const SizedBox(height: 12),
-                bar(100, 24),
+                bar(100, 30),
                 const SizedBox(height: 12),
-                bar(200, 14),
+                FractionallySizedBox(
+                  widthFactor: 0.8,
+                  child: bar(double.infinity, 14),
+                ),
               ],
             ),
           ),
+          const SizedBox(height: 14),
+          const Divider(),
+          Padding(padding: const EdgeInsets.all(16), child: bar(120, 12)),
         ],
       ),
     );
