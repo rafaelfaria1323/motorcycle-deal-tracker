@@ -19,6 +19,7 @@ import '../cubit/favourites_state.dart';
 import '../cubit/listings_cubit.dart';
 import '../cubit/listings_state.dart';
 import '../cubit/saved_searches_cubit.dart';
+import '../cubit/saved_searches_state.dart';
 import '../dashboard_text.dart';
 import '../listing_labels.dart';
 import '../saved_search_summary.dart';
@@ -49,11 +50,22 @@ class DashboardPage extends StatelessWidget {
     final state = context.read<ListingsCubit>().state;
     final filters = state.filters;
     final messenger = ScaffoldMessenger.of(context);
+    final searches = getIt<SavedSearchesCubit>();
 
     if (!filters.hasCriteria) {
       showMessage(messenger, 'Escolha pelo menos um filtro antes de guardar.');
       return;
     }
+    // The list loads with the Pesquisas tab: without it the same search
+    // could be saved again.
+    if (searches.state.status != SavedSearchesStatus.success) {
+      await searches.load();
+    }
+    if (savedSearchLike(searches.state.searches, filters) case final same?) {
+      showMessage(messenger, alreadySavedText(same));
+      return;
+    }
+    if (!context.mounted) return;
 
     final name = await showSaveSearchDialog(
       context,
@@ -61,7 +73,7 @@ class DashboardPage extends StatelessWidget {
     );
     if (name == null) return;
 
-    final saved = await getIt<SavedSearchesCubit>().create(name, filters);
+    final saved = await searches.create(name, filters);
     showMessage(
       messenger,
       saved ? 'Pesquisa guardada' : 'Não foi possível guardar a pesquisa',
@@ -159,10 +171,17 @@ class DashboardPage extends StatelessWidget {
                                 'e escolha com confiança.',
                           ),
                           const SizedBox(height: 24),
-                          _OffersToolbar(
-                            state: state,
-                            onFilters: () => _openFilters(context),
-                            onSave: () => _saveSearch(context),
+                          BlocBuilder<SavedSearchesCubit, SavedSearchesState>(
+                            bloc: getIt<SavedSearchesCubit>(),
+                            builder: (context, searches) => _OffersToolbar(
+                              state: state,
+                              saved: savedSearchLike(
+                                searches.searches,
+                                state.filters,
+                              ),
+                              onFilters: () => _openFilters(context),
+                              onSave: () => _saveSearch(context),
+                            ),
                           ),
                           if (chips.isNotEmpty) ...[
                             const SizedBox(height: 12),
@@ -319,11 +338,16 @@ class DashboardPage extends StatelessWidget {
 class _OffersToolbar extends StatelessWidget {
   const _OffersToolbar({
     required this.state,
+    required this.saved,
     required this.onFilters,
     required this.onSave,
   });
 
   final ListingsState state;
+
+  /// The saved search these filters already are, if any: then there is
+  /// nothing to save, and the button says so and opens Pesquisas.
+  final SavedSearch? saved;
   final VoidCallback onFilters;
   final VoidCallback onSave;
 
@@ -387,11 +411,18 @@ class _OffersToolbar extends StatelessWidget {
               ),
             ),
           ),
-          TextButton.icon(
-            onPressed: onSave,
-            icon: const Icon(Icons.bookmark_add_outlined, size: 18),
-            label: const Text('Guardar pesquisa'),
-          ),
+          if (saved == null)
+            TextButton.icon(
+              onPressed: onSave,
+              icon: const Icon(Icons.bookmark_add_outlined, size: 18),
+              label: const Text('Guardar pesquisa'),
+            )
+          else
+            TextButton.icon(
+              onPressed: () => context.go(AppRoutes.searches),
+              icon: const Icon(Icons.bookmark_added, size: 18),
+              label: const Text('Pesquisa guardada'),
+            ),
         ],
       ),
     );

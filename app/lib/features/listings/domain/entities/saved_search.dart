@@ -101,3 +101,39 @@ extension ListingFiltersCriteria on ListingFilters {
     onlyMyColours: onlyMyColours,
   );
 }
+
+extension SameCriteria on ListingFilters {
+  /// True when both ask for the same thing: the live-only switch is left
+  /// out (it is not saved) and the order of models and extras doesn't count.
+  bool sameCriteriaAs(ListingFilters other) =>
+      _sorted(criteriaOnly) == _sorted(other.criteriaOnly);
+}
+
+ListingFilters _sorted(ListingFilters f) => ListingFilters(
+  motorcycleIds: [...f.motorcycleIds]..sort(),
+  minYear: f.minYear,
+  maxPrice: f.maxPrice,
+  maxMileage: f.maxMileage,
+  location: f.location,
+  sellerType: f.sellerType,
+  minDealScore: f.minDealScore,
+  maxRiskScore: f.maxRiskScore,
+  maxDistanceKm: f.maxDistanceKm,
+  extras: [...f.extras]..sort(),
+  onlyMyColours: f.onlyMyColours,
+);
+
+/// The saved search asking for the same as [filters], other than the one
+/// with id [except] (the search being edited); null when there is none.
+SavedSearch? savedSearchLike(
+  Iterable<SavedSearch> searches,
+  ListingFilters filters, {
+  String? except,
+}) {
+  for (final search in searches) {
+    if (search.id != except && search.filters.sameCriteriaAs(filters)) {
+      return search;
+    }
+  }
+  return null;
+}

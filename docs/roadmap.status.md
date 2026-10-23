@@ -308,6 +308,9 @@ Do not implement several unrelated features at once.
 ## 15.29 The app logo in the header ✅
 *Rafael, 2026-10-23: "we don't use our app logo, we've a container with a motorcycle icon". The brand in Ofertas and the desktop sidebar (`AppBrand`) shows the app icon (the blue "A" with the road) in place of the orange box with a motorcycle icon: `assets/brand/app_logo.png`, the icon cut down to 144 px (11 KB), with the same rounded corners.*
 
+## 15.30 A search is saved only once ✅
+*Rafael, 2026-10-23: a saved search opened from Pesquisas still offered "Guardar pesquisa" in Ofertas, so the same search could be saved again and again. When Ofertas' filters are a saved search's (the live-only switch and the order of models and extras don't count: `sameCriteriaAs`, `savedSearchLike` in `saved_search.dart`), the button reads "Pesquisa guardada" and opens Pesquisas. Saving checks again (loading the searches first if Pesquisas wasn't opened yet), and so do "Nova pesquisa" and editing a search into another's criteria: "Esta pesquisa já está guardada como ...". Tests in `saved_search_duplicate_test.dart` and `interface_test.dart`.*
+
 # Sprint 14 — More than one person 🟡
 
 *Rafael, 2026-10-21: each account has its own models, searches and alerts, while one collection fetches for everyone (A follows the MT-07 from 2026, B the CBR650R from 2025: one run fetches both and fills the database for both).*

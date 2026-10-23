@@ -71,7 +71,8 @@ sign-in encrypted with a key in the Android Keystore
 - **Pesquisas:** saved searches, each with its criteria, configured alert
   types and "N anúncios encontrados". Tap the card to apply it; the
   options menu edits or deletes it. "Nova pesquisa" creates one (Ofertas
-  can also save its current filters).
+  can also save its current filters; filters already saved read "Pesquisa
+  guardada", and the same search is never saved twice).
 - **Alertas:** new listings, price drops, excellent opportunities, bikes
   you followed back on the market in a new ad ("Voltou ao mercado") and
   removed listings, grouped by day, with an unread summary above them;
