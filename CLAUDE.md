@@ -628,10 +628,17 @@ functions for manual work.
   never change, the app's `extraLabels` and the saved-search check list the
   same). Extras are a bonus, not a slice: as a slice they lowered good
   scores. Without the price slice the score is at most 70
-  (`capped_without_price`). Missing slices are skipped.
+  (`capped_without_price`); with an accident or a repair in the text
+  (`possible_accident`, `needs_repair`) at most 50 (`damage_cap`,
+  `capped_for_damage`: the estimate is of bikes without damage). Missing
+  slices are skipped.
 - Risk signals: price far below market, possible accident (text,
-  `mentions_accident`: "nunca teve acidentes", "livre de sinistros" and
-  insurance wording don't count), missing
+  `mentions_accident`: also falls and knocks, "caiu", "foi ao chão", "teve
+  um toque"; "nunca teve acidentes", "livre de sinistros", "macia ao
+  toque", "o preço caiu" and insurance wording don't count), repairs or
+  missing/broken parts (`needs_repair` 20: "precisa do suporte", "falta o
+  pisca", "para peças"; not "não precisa de nada", "precisa de carta",
+  "partida elétrica"), scratches (`cosmetic_damage` 5), missing
   mileage/year/location, thin description (only private sellers with details
   read, or on OLX, whose results hold the whole description), 3+ owners, no service book, imported, implausible mileage (under
   100 km on a bike 3+ years old, or over 25 000 km a year), relisted (5;

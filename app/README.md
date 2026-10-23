@@ -30,7 +30,8 @@ sign-in encrypted with a key in the Android Keystore
   you about price drops and its removal.
 - **Comparar:** up to 3 listings side by side (long press a card in Ofertas,
   or "Comparar" on a listing's page), the best value of each row marked.
-- **Listing page:** photo gallery; model, price and facts with the Deal
+- **Listing page:** photo gallery (full screen on a tap; there pinch, the
+  mouse wheel or a double tap zooms); model, price and facts with the Deal
   Score and its verdict beside them; removed / duplicate / relisted notices;
   your note when it is a favourite. Below, four parts picked at the top
   (the last one picked stays open for the next listing):
