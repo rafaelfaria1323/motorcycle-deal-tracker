@@ -749,7 +749,8 @@ ad; relists first seen in the last 14 days). Only events after the saved search 
 and in the last day (a listing first seen, a drop or a removal older than
 that, e.g. of a model just followed, never alerts). Saved
 searches can also require a minimum Deal Score / maximum Risk Score,
-a maximum distance from the owner's home, equipment (`extras`, all
+several models (`motorcycle_ids`, empty: any; as Ofertas'
+`ListingFilters.motorcycleIds`), a maximum distance from the owner's home, equipment (`extras`, all
 required; `listing_extras` codes) and only the owner's colours of each
 model (`only_my_colours`); all in `saved_search_matches`.
 `notified_at` marks alerts already sent (only real accounts; up to 200

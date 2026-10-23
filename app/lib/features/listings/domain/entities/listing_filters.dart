@@ -4,7 +4,7 @@ import 'listing.dart';
 
 class ListingFilters extends Equatable {
   const ListingFilters({
-    this.motorcycleId,
+    this.motorcycleIds = const [],
     this.minYear,
     this.maxPrice,
     this.maxMileage,
@@ -20,7 +20,8 @@ class ListingFilters extends Equatable {
 
   static const empty = ListingFilters();
 
-  final String? motorcycleId;
+  /// The models asked for (catalog ids); empty: any model.
+  final List<String> motorcycleIds;
   final int? minYear;
   final double? maxPrice;
   final int? maxMileage;
@@ -44,7 +45,7 @@ class ListingFilters extends Equatable {
 
   /// How many filters differ from the defaults (shown on the filter button).
   int get appliedCount => [
-    motorcycleId != null,
+    motorcycleIds.isNotEmpty,
     minYear != null,
     maxPrice != null,
     maxMileage != null,
@@ -60,7 +61,7 @@ class ListingFilters extends Equatable {
 
   @override
   List<Object?> get props => [
-    motorcycleId,
+    motorcycleIds,
     minYear,
     maxPrice,
     maxMileage,

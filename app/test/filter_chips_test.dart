@@ -16,7 +16,7 @@ void main() {
 
   test('each chip removes only its own filter', () {
     const filters = ListingFilters(
-      motorcycleId: 'mt',
+      motorcycleIds: ['mt'],
       maxPrice: 7500,
       sellerType: SellerType.private,
       activeOnly: false,
@@ -33,7 +33,7 @@ void main() {
     expect(
       chips[1].without,
       const ListingFilters(
-        motorcycleId: 'mt',
+        motorcycleIds: ['mt'],
         sellerType: SellerType.private,
         activeOnly: false,
       ),

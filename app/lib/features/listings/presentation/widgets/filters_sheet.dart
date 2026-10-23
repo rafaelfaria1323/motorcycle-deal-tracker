@@ -23,7 +23,7 @@ class FiltersSheet extends StatefulWidget {
 }
 
 class _FiltersSheetState extends State<FiltersSheet> {
-  late String? _motorcycleId = widget.initial.motorcycleId;
+  late final Set<String> _motorcycleIds = {...widget.initial.motorcycleIds};
   late SellerType? _sellerType = widget.initial.sellerType;
   late bool _activeOnly = widget.initial.activeOnly;
   late int? _minDealScore = widget.initial.minDealScore;
@@ -56,7 +56,15 @@ class _FiltersSheetState extends State<FiltersSheet> {
 
   ListingFilters _build() {
     return ListingFilters(
-      motorcycleId: _motorcycleId,
+      // In the catalog's order, so equal choices compare equal; a model no
+      // longer in the list stays asked for.
+      motorcycleIds: [
+        for (final m in widget.motorcycles)
+          if (_motorcycleIds.contains(m.id)) m.id,
+        ..._motorcycleIds.where(
+          (id) => !widget.motorcycles.any((m) => m.id == id),
+        ),
+      ],
       minYear: parseWholeNumberField(_year.text),
       maxPrice: parsePriceField(_price.text),
       maxMileage: parseWholeNumberField(_mileage.text),
@@ -106,22 +114,33 @@ class _FiltersSheetState extends State<FiltersSheet> {
             ],
           ),
           const SizedBox(height: 8),
-          DropdownButtonFormField<String?>(
-            initialValue: _motorcycleId,
-            decoration: const InputDecoration(
-              labelText: 'Modelo',
-              border: OutlineInputBorder(),
-            ),
-            items: [
-              const DropdownMenuItem(value: null, child: Text('Todos')),
-              for (final m in widget.motorcycles)
-                DropdownMenuItem(
-                  value: m.id,
-                  child: Text('${m.brand} ${m.model}'),
-                ),
-            ],
-            onChanged: (value) => setState(() => _motorcycleId = value),
+          Text('Modelos', style: Theme.of(context).textTheme.titleSmall),
+          Text(
+            'Escolha um ou mais; sem nenhum, todos os seus modelos.',
+            style: Theme.of(context).textTheme.bodySmall,
           ),
+          for (final MapEntry(key: brand, value: models)
+              in modelsByBrand(widget.motorcycles).entries) ...[
+            const SizedBox(height: 8),
+            Text(brand, style: Theme.of(context).textTheme.labelLarge),
+            const SizedBox(height: 4),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final m in models)
+                  FilterChip(
+                    label: Text(m.model),
+                    selected: _motorcycleIds.contains(m.id),
+                    onSelected: (selected) => setState(
+                      () => selected
+                          ? _motorcycleIds.add(m.id)
+                          : _motorcycleIds.remove(m.id),
+                    ),
+                  ),
+              ],
+            ),
+          ],
           const SizedBox(height: 12),
           _NumberField(controller: _year, label: 'Ano mínimo'),
           const SizedBox(height: 12),

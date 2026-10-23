@@ -17,7 +17,8 @@ sign-in encrypted with a key in the Android Keystore
 
 - **Ofertas:** listings of your models (from your years), sorted by Deal Score (or
   newest, cheapest, most expensive, nearest), with filters shown as chips
-  (including "Distância máxima" from your home and equipment: 19 kinds,
+  (including several models at once, picked by brand, e.g. two of the
+  Hondas; "Distância máxima" from your home and equipment: 19 kinds,
   e.g. quickshifter, escape, malas, proteções, suporte de matrícula curto,
   bolha, and "Só nas suas cores": each model's favourite colours; with
   "Mais barato" that is the best price in your colour) and paged 40 at a
