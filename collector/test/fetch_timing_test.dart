@@ -127,6 +127,177 @@ void main() {
     );
   });
 
+  for (final status in [403, 429, 503]) {
+    for (final unreadable in [false, true]) {
+      test('HTTP $status persists a block without waiting for '
+          '${unreadable ? 'an unreadable' : 'a stalled'} body', () {
+        _withFetcher((async, fetcher, client, files) {
+          unawaited(fetcher.prepare());
+          async.flushMicrotasks();
+          var cancelled = false;
+          final body = StreamController<List<int>>(
+            onCancel: () async {
+              await Future<void>.delayed(const Duration(milliseconds: 1));
+              cancelled = true;
+            },
+          );
+          if (unreadable) {
+            body.addError(const HttpException('body truncated'));
+          }
+          client
+            ..statusCode = status
+            ..body = body.stream;
+          Object? failure;
+          unawaited(
+            fetcher
+                .get(_url)
+                .then<void>((_) {}, onError: (Object error) => failure = error),
+          );
+          async.flushMicrotasks();
+          try {
+            final state = FetchState.fromJson(
+              jsonDecode(files['state.json']!) as Map<String, dynamic>,
+            );
+            expect(state.blockedAt, _now);
+            expect(state.robots, isNull);
+            expect(state.robotsReadAt, isNull);
+            expect(
+              state.report(fetcher.policy, _now)['paused_until'],
+              _now.add(const Duration(hours: 24)).toIso8601String(),
+            );
+            expect(failure, isNull);
+            async.elapse(const Duration(milliseconds: 1));
+            expect(failure, isA<FetchBlocked>());
+            expect(cancelled, isTrue);
+            unawaited(
+              expectLater(fetcher.prepare(), throwsA(isA<FetchRefused>())),
+            );
+            async.flushMicrotasks();
+            expect(client.requests, hasLength(2));
+          } finally {
+            unawaited(body.close());
+            async.flushMicrotasks();
+          }
+        });
+      });
+    }
+  }
+
+  test('the total body deadline cancels a response before the next get', () {
+    _withFetcher((async, fetcher, client, _) {
+      unawaited(fetcher.prepare());
+      async.flushMicrotasks();
+      var cancelling = false;
+      var cancelled = false;
+      final body = StreamController<List<int>>(
+        onCancel: () async {
+          cancelling = true;
+          await Future<void>.delayed(const Duration(seconds: 1));
+          cancelled = true;
+        },
+      );
+      client.body = body.stream;
+      Object? failure;
+      unawaited(
+        fetcher
+            .get(_url)
+            .then<void>((_) {}, onError: (Object error) => failure = error),
+      );
+      async.elapse(const Duration(seconds: 30));
+      body.add(utf8.encode('partial'));
+      async.elapse(const Duration(seconds: 29));
+      body.add(utf8.encode('still arriving'));
+      async.elapse(const Duration(milliseconds: 999));
+      expect(failure, isNull);
+      async.elapse(const Duration(milliseconds: 1));
+      expect(cancelling, isTrue);
+      expect(failure, isNull);
+      async.elapse(const Duration(seconds: 1));
+      try {
+        expect(
+          failure,
+          isA<FetchFailed>().having((e) => e.statusCode, 'statusCode', isNull),
+        );
+        expect(failure.toString(), '$_url: timed out');
+        expect(cancelled, isTrue);
+        expect(body.hasListener, isFalse);
+        client.body = null;
+        unawaited(fetcher.get(_url));
+        async.flushMicrotasks();
+        expect(client.requests, hasLength(3));
+      } finally {
+        unawaited(body.close());
+        async.flushMicrotasks();
+      }
+    });
+  });
+
+  test('a header timeout aborts its request before the next get', () {
+    _withFetcher((async, fetcher, client, _) {
+      unawaited(fetcher.prepare());
+      async.flushMicrotasks();
+      client.responseDelay = const Duration(seconds: 30);
+      Object? failure;
+      unawaited(
+        fetcher
+            .get(_url)
+            .then<void>((_) {}, onError: (Object error) => failure = error),
+      );
+      async.elapse(const Duration(seconds: 20));
+      expect(
+        failure,
+        isA<FetchFailed>().having((e) => e.statusCode, 'statusCode', isNull),
+      );
+      expect(client.opened.last.aborted, isTrue);
+      client.responseDelay = Duration.zero;
+      unawaited(fetcher.get(_url));
+      async.flushMicrotasks();
+      expect(client.requests, hasLength(3));
+      async.elapse(const Duration(seconds: 10));
+    });
+  });
+
+  for (final status in [404, 410, 500]) {
+    test('HTTP $status keeps its status without reading its stalled body', () {
+      _withFetcher((async, fetcher, client, _) {
+        unawaited(fetcher.prepare());
+        async.flushMicrotasks();
+        var cancelled = false;
+        final body = StreamController<List<int>>(
+          onCancel: () async {
+            cancelled = true;
+          },
+        );
+        client
+          ..statusCode = status
+          ..body = body.stream;
+        Object? failure;
+        unawaited(
+          fetcher
+              .get(_url)
+              .then<void>((_) {}, onError: (Object error) => failure = error),
+        );
+        async.flushMicrotasks();
+        try {
+          expect(
+            failure,
+            isA<FetchFailed>().having(
+              (e) => e.statusCode,
+              'statusCode',
+              status,
+            ),
+          );
+          expect(failure.toString(), '$_url: HTTP $status');
+          expect(cancelled, isTrue);
+          expect(body.hasListener, isFalse);
+        } finally {
+          unawaited(body.close());
+          async.flushMicrotasks();
+        }
+      });
+    });
+  }
+
   for (final age in [
     const Duration(hours: 24) - const Duration(milliseconds: 1),
     const Duration(hours: 24),
@@ -244,15 +415,25 @@ class _MemoryFile implements File {
 
 class _Client implements HttpClient {
   final requests = <DateTime>[];
+  final opened = <_Request>[];
   Duration responseDelay = Duration.zero;
+  int statusCode = 200;
+  Stream<List<int>>? body;
 
   @override
   Future<HttpClientRequest> getUrl(Uri url) async {
     requests.add(clock.now());
-    return _Request(
-      url.path == '/robots.txt' ? _robots : '__PRERENDERED_STATE__',
+    final robots = url.path == '/robots.txt';
+    final request = _Request(
+      _Response(
+        robots ? _robots : '__PRERENDERED_STATE__',
+        statusCode: robots ? 200 : statusCode,
+        stream: robots ? null : body,
+      ),
       responseDelay,
     );
+    opened.add(request);
+    return request;
   }
 
   @override
@@ -269,10 +450,11 @@ class _Client implements HttpClient {
 }
 
 class _Request implements HttpClientRequest {
-  _Request(this.body, this.delay);
+  _Request(this.response, this.delay);
 
-  final String body;
+  final _Response response;
   final Duration delay;
+  bool aborted = false;
 
   @override
   final headers = _Headers();
@@ -283,27 +465,43 @@ class _Request implements HttpClientRequest {
   @override
   Future<HttpClientResponse> close() async {
     if (delay > Duration.zero) await Future<void>.delayed(delay);
-    return _Response(body);
+    if (aborted) throw const HttpException('request aborted');
+    return response;
+  }
+
+  @override
+  void abort([Object? exception, StackTrace? stackTrace]) {
+    aborted = true;
   }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _Response implements HttpClientResponse {
-  _Response(this.body);
-
-  final String body;
+class _Response extends Stream<List<int>> implements HttpClientResponse {
+  _Response(this.body, {this.statusCode = 200, Stream<List<int>>? stream})
+    : _stream = stream;
 
   @override
-  int get statusCode => 200;
+  final int statusCode;
+  final String body;
+  final Stream<List<int>>? _stream;
 
   @override
   final headers = _Headers();
 
   @override
-  Stream<S> transform<S>(StreamTransformer<List<int>, S> streamTransformer) =>
-      Stream<List<int>>.value(utf8.encode(body)).transform(streamTransformer);
+  StreamSubscription<List<int>> listen(
+    void Function(List<int>)? onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError,
+  }) => (_stream ?? Stream.value(utf8.encode(body))).listen(
+    onData,
+    onError: onError,
+    onDone: onDone,
+    cancelOnError: cancelOnError,
+  );
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

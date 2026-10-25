@@ -89,7 +89,9 @@ const _blockEnds = {'br', 'p', 'div', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'};
 final _spaces = RegExp(r'[ \t]+');
 final _numericReference = RegExp(r'&#([xX][0-9a-fA-F]+|[0-9]+);?');
 
-String _safeNumericReferences(String html) =>
+/// Protects the HTML tokenizer from overflowing numeric references.
+/// [preserveLength] keeps source offsets usable against the original HTML.
+String safeNumericReferences(String html, {bool preserveLength = false}) =>
     html.replaceAllMapped(_numericReference, (match) {
       final digits = match[1]!;
       final hex = digits.startsWith('x') || digits.startsWith('X');
@@ -99,7 +101,7 @@ String _safeNumericReferences(String html) =>
       );
       // The HTML tokenizer's int.parse throws on oversized references.
       return value == null || value < 0 || value > 0x10FFFF
-          ? '\uFFFD'
+          ? '\uFFFD' * (preserveLength ? match[0]!.length : 1)
           : match[0]!;
     });
 
@@ -124,7 +126,7 @@ String? cleanDescription(Object? html) {
   if (html is! String) return null;
 
   final buffer = StringBuffer();
-  for (final node in parseFragment(_safeNumericReferences(html)).nodes) {
+  for (final node in parseFragment(safeNumericReferences(html)).nodes) {
     _descriptionText(node, buffer);
   }
   var text = buffer.toString().replaceAll('\u00a0', ' ');

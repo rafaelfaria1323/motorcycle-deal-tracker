@@ -8,6 +8,8 @@ class _Store implements ListingStore {
   final calls = <String>[];
   List<String>? removedSeen;
   bool? removedForced;
+  List<String>? removedSearches;
+  bool? removedIncludeUnkeyed;
 
   @override
   Future<StoreResult> save(List<NormalizedListing> l, Catalog c) async {
@@ -72,6 +74,8 @@ class _Store implements ListingStore {
     calls.add('markRemoved');
     removedSeen = seenIds;
     removedForced = force;
+    removedSearches = searches;
+    removedIncludeUnkeyed = includeUnkeyed;
     return 0;
   }
 
@@ -96,8 +100,14 @@ void main() {
 
   test('a dry run only describes the batch', () async {
     final out = StringBuffer();
-    await importBatch(_batch(), catalog, store: null, out: out);
+    final cleanInput = await importBatch(
+      _batch(),
+      catalog,
+      store: null,
+      out: out,
+    );
 
+    expect(cleanInput, isTrue);
     expect(out.toString(), contains('Mapped 2, rejected 1.'));
     expect(out.toString(), contains('Dry run: nothing was written.'));
   });
@@ -219,7 +229,7 @@ void main() {
   test('an input with unreadable records removes nothing', () async {
     final store = _Store();
     final out = StringBuffer();
-    await importBatch(
+    final cleanInput = await importBatch(
       _batch(issues: [const ParseIssue(3, 'bad JSON')]),
       catalog,
       store: store,
@@ -227,13 +237,48 @@ void main() {
       out: out,
     );
 
+    expect(cleanInput, isFalse);
+    expect(store.calls.first, 'save 2');
+    expect(store.calls, contains('markSeen a,b'));
     expect(store.calls, isNot(contains('markRemoved')));
     expect(out.toString(), contains('Removal skipped'));
+    expect(out.toString(), contains('Read issue: '));
   });
+
+  test(
+    'read issues fail the input without blocking a trusted search',
+    () async {
+      const a = 'https://www.olx.pt/a', b = 'https://www.olx.pt/b';
+      final store = _Store();
+      final cleanInput = await importBatch(
+        SourceBatch(
+          'olx',
+          const [ParseIssue(3, 'bad JSON', search: b)],
+          [MappedRecord('a', Mapped(testListing('a')), search: a)],
+          manifest: const SearchManifest(
+            planned: [a, b],
+            files: {'a.html': a, 'b.html': b},
+            pages: {a: 1, b: 1},
+          ),
+        ),
+        catalog,
+        store: store,
+        full: true,
+        out: StringBuffer(),
+      );
+
+      expect(cleanInput, isFalse);
+      expect(store.calls.first, 'save 1');
+      expect(store.calls.last, 'markRemoved');
+      expect(store.removedSeen, ['a']);
+      expect(store.removedSearches, [a]);
+      expect(store.removedIncludeUnkeyed, isFalse);
+    },
+  );
 
   test('--force removes even then', () async {
     final store = _Store();
-    await importBatch(
+    final cleanInput = await importBatch(
       _batch(issues: [const ParseIssue(3, 'bad JSON')]),
       catalog,
       store: store,
@@ -242,6 +287,7 @@ void main() {
       out: StringBuffer(),
     );
 
+    expect(cleanInput, isFalse);
     expect(store.calls.last, 'markRemoved');
     expect(store.removedForced, isTrue);
     expect(store.removedSeen, unorderedEquals(['a', 'b', 'c']));

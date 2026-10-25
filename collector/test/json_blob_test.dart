@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:collector/src/adapters/json_blob.dart';
 import 'package:test/test.dart';
 
@@ -33,6 +35,64 @@ void main() {
     expect(
       () => extractNextData('<div id="__NEXT_DATA__">{}</div>'),
       throwsFormatException,
+    );
+  });
+
+  test('overflowing entities outside scripts do not discard valid JSON', () {
+    for (final entity in [
+      '&#99999999999999999999;',
+      '&#xFFFFFFFFFFFFFFFFFFFF;',
+      '&#99999999999999999999',
+      '&#XFFFFFFFFFFFFFFFFFFFF',
+    ]) {
+      for (final before in [true, false]) {
+        final paragraph = '<p>$entity</p>';
+        const script = '<script id="__NEXT_DATA__">{"ok":true}</script>';
+
+        expect(
+          extractNextData(before ? '$paragraph$script' : '$script$paragraph'),
+          {'ok': true},
+          reason: '$entity ${before ? 'before' : 'after'} the script',
+        );
+      }
+    }
+  });
+
+  test('keeps raw JSON and HTML-aware script attributes', () {
+    final data = {
+      'named': '&quot;',
+      'decimal': '&#99999999999999999999;',
+      'hex': '&#XFFFFFFFFFFFFFFFFFFFF;',
+      'encoded': '&amp;#99999999999999999999;',
+      'less': 'km < 8000',
+      'tags': '<b title="a > b">Mota</b>',
+      'script': '<script>literal',
+      'comment': '<!-- literal -->',
+      'unicode': '🏍️ Revisão',
+    };
+
+    expect(
+      extractNextData(
+        '<p>🏍️ &#99999999999999999999;</p>\r\n'
+        '<SCRIPT nonce="a > b" id="__NE&#88;T_DATA__" type=application/json>'
+        '\r\n${jsonEncode(data)}\r\n</SCRIPT>',
+      ),
+      data,
+    );
+  });
+
+  test('does not repair invalid raw JSON through HTML normalization', () {
+    expect(
+      () => extractNextData(
+        '<script id="__NEXT_DATA__">{"text":"a\u0000b"}</script>',
+      ),
+      throwsA(
+        isA<FormatException>().having(
+          (e) => e.message,
+          'message',
+          '__NEXT_DATA__ is not valid JSON',
+        ),
+      ),
     );
   });
 

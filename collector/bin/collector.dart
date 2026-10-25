@@ -33,7 +33,14 @@ Future<void> main(List<String> args) async {
     final batch = await loadBatch(positional.first, positional[1], catalog);
 
     final store = dryRun ? null : ListingStore(client);
-    await importBatch(batch, catalog, store: store, full: full, force: force);
+    final cleanInput = await importBatch(
+      batch,
+      catalog,
+      store: store,
+      full: full,
+      force: force,
+    );
+    if (!cleanInput) exitCode = 65;
     if (store != null) await finishRun(store);
   });
 }

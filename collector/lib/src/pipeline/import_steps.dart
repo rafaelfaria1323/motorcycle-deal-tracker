@@ -33,8 +33,10 @@ String searchReportLine(String source, SearchReport r, String? label) =>
 /// Steps 1-4 of an import: store what the batch holds, mark it seen, apply
 /// price changes and search keys, and (with [full]) remove what is gone.
 /// A null [store] is a dry run: the batch is only described. [labels]
-/// names searches in the log (search address -> its models).
-Future<void> importBatch(
+/// names searches in the log (search address -> its models). Returns
+/// whether the input was clean; readable records are still imported when
+/// other records could not be read.
+Future<bool> importBatch(
   SourceBatch batch,
   Catalog catalog, {
   required ListingStore? store,
@@ -51,7 +53,7 @@ Future<void> importBatch(
     '${batch.issues.length} read issue(s).',
   );
   for (final issue in batch.issues) {
-    log.writeln('  ! $issue');
+    log.writeln('Read issue: $issue');
   }
 
   final listings = <NormalizedListing>[];
@@ -84,7 +86,7 @@ Future<void> importBatch(
 
   if (store == null) {
     log.writeln('Dry run: nothing was written.');
-    return;
+    return batch.issues.isEmpty;
   }
 
   // 1. Insert new listings (the database adds their first price-history row).
@@ -161,6 +163,7 @@ Future<void> importBatch(
       log.writeln('Removed: $removed');
     }
   }
+  return batch.issues.isEmpty;
 }
 
 /// Steps 5-7, once per run after every import: duplicates, scores, alerts

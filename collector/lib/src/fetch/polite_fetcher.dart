@@ -36,9 +36,10 @@ class FetchBlocked implements Exception {
 
 /// A network or HTTP problem that is not a block.
 class FetchFailed implements Exception {
-  const FetchFailed(this.reason);
+  const FetchFailed(this.reason, {this.statusCode});
 
   final String reason;
+  final int? statusCode;
 
   @override
   String toString() => reason;
@@ -323,7 +324,7 @@ class PoliteFetcher {
         current = current.resolve(response.location!);
         continue;
       }
-      throw FetchFailed('$current: HTTP $status');
+      throw FetchFailed('$current: HTTP $status', statusCode: status);
     }
     throw FetchFailed('$url: too many redirects');
   }
@@ -359,25 +360,37 @@ class PoliteFetcher {
     _state.requests++;
     await _saveState();
 
+    HttpClientRequest? request;
+    HttpClientResponse? response;
+    StreamSubscription<String>? subscription;
     try {
-      final request = await _client.getUrl(url).timeout(policy.timeout);
+      request = await _client.getUrl(url).timeout(policy.timeout);
       request.followRedirects = false;
       request.headers
         ..set(HttpHeaders.acceptHeader, 'text/html,application/xhtml+xml')
         ..set(HttpHeaders.acceptLanguageHeader, 'pt-PT,pt;q=0.9');
-      final response = await request.close().timeout(policy.timeout);
-      final body = await response
-          .transform(const Utf8Decoder(allowMalformed: true))
-          .join()
-          .timeout(policy.readTimeout);
+      response = await request.close().timeout(policy.timeout);
 
-      if ({403, 429, 503}.contains(response.statusCode)) {
-        await _markBlocked();
-        throw FetchBlocked('$url: HTTP ${response.statusCode}');
+      final body = StringBuffer();
+      if (response.statusCode == 200) {
+        subscription = response
+            .transform(const Utf8Decoder(allowMalformed: true))
+            .listen(body.write);
+        await subscription.asFuture<void>().timeout(policy.readTimeout);
+        subscription = null;
+      } else {
+        try {
+          if ({403, 429, 503}.contains(response.statusCode)) {
+            await _markBlocked();
+            throw FetchBlocked('$url: HTTP ${response.statusCode}');
+          }
+        } finally {
+          await response.listen(null).cancel();
+        }
       }
       return (
         status: response.statusCode,
-        body: body,
+        body: body.toString(),
         location: response.headers.value(HttpHeaders.locationHeader),
       );
     } on TimeoutException {
@@ -390,6 +403,8 @@ class PoliteFetcher {
       // e.g. the connection closed while the page was coming in.
       throw FetchFailed('$url: ${e.message}');
     } finally {
+      if (response == null) request?.abort();
+      if (subscription != null) await subscription.cancel();
       _lastRequestAt = clock.now();
     }
   }

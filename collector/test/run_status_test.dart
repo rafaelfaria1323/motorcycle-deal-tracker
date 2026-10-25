@@ -13,6 +13,7 @@ void main() {
 
   test('anything else is a failure', () {
     expect(runStatus(2, 'Database error: timeout'), 'failed');
+    expect(runStatus(65, 'Read issue: page-2.html: bad JSON'), 'failed');
   });
 
   test('the tail keeps the last lines', () {

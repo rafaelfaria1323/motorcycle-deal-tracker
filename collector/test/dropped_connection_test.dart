@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -36,28 +37,54 @@ class _ToLocal implements HttpClient {
 void main() {
   late ServerSocket server;
   late Directory dir;
+  late bool stallPages;
+  late int pageStatus;
+  late Completer<void> stalledDisconnected;
+  final sockets = <Socket>[];
 
   setUp(() async {
     dir = Directory.systemTemp.createTempSync('dropped');
+    stallPages = false;
+    pageStatus = 200;
+    stalledDisconnected = Completer<void>();
+    sockets.clear();
     server = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
     server.listen((socket) {
-      socket.listen((bytes) {
-        final robots = utf8.decode(bytes).startsWith('GET /robots.txt');
-        // robots.txt is answered in full; anything else is cut off after
-        // a few of the promised bytes, as a dropped connection is.
-        const robotsTxt = 'User-agent: *\nAllow: /\n';
-        socket.write(
-          robots
-              ? 'HTTP/1.1 200 OK\r\nContent-Length: ${robotsTxt.length}\r\n'
-                    'Connection: close\r\n\r\n$robotsTxt'
-              : 'HTTP/1.1 200 OK\r\nContent-Length: 1000\r\n\r\nabc',
-        );
-        socket.close();
-      });
+      sockets.add(socket);
+      var stalled = false;
+      void disconnected() {
+        if (stalled && !stalledDisconnected.isCompleted) {
+          stalledDisconnected.complete();
+        }
+        socket.destroy();
+      }
+
+      socket.listen(
+        (bytes) {
+          final robots = utf8.decode(bytes).startsWith('GET /robots.txt');
+          // robots.txt is answered in full; other pages are cut off or
+          // left open after a few of the promised bytes.
+          const robotsTxt = 'User-agent: *\nAllow: /\n';
+          socket.write(
+            robots
+                ? 'HTTP/1.1 200 OK\r\nContent-Length: ${robotsTxt.length}\r\n'
+                      'Connection: close\r\n\r\n$robotsTxt'
+                : 'HTTP/1.1 $pageStatus Test\r\n'
+                      'Content-Length: 1000\r\n\r\nabc',
+          );
+          stalled = !robots && stallPages;
+          if (!stalled) unawaited(socket.close());
+        },
+        onDone: disconnected,
+        onError: (Object _) => disconnected(),
+      );
     });
   });
 
   tearDown(() async {
+    for (final socket in sockets) {
+      socket.destroy();
+    }
     await server.close();
     dir.deleteSync(recursive: true);
   });
@@ -97,6 +124,38 @@ void main() {
       }
     });
   });
+
+  for (final status in [200, 503]) {
+    test('a stalled HTTP $status response closes its actual socket', () {
+      stallPages = true;
+      pageStatus = status;
+      return local(() async {
+        final fetcher = PoliteFetcher(
+          site: FetchSite(
+            host: FetchSite.standvirtual.host,
+            pathPrefix: FetchSite.standvirtual.pathPrefix,
+            pageMarker: FetchSite.standvirtual.pageMarker,
+            statePath: '${dir.path}/state.json',
+          ),
+          policy: const FetchPolicy(
+            minDelay: Duration.zero,
+            jitter: Duration.zero,
+            readTimeout: Duration(milliseconds: 200),
+          ),
+        );
+        try {
+          await fetcher.prepare();
+          await expectLater(
+            fetcher.get(Uri.parse('https://www.standvirtual.com/motos/yamaha')),
+            throwsA(status == 200 ? isA<FetchFailed>() : isA<FetchBlocked>()),
+          );
+          await stalledDisconnected.future.timeout(const Duration(seconds: 2));
+        } finally {
+          fetcher.close();
+        }
+      });
+    });
+  }
 
   test('a dropped Telegram connection fails the send without the token', () {
     return local(() async {

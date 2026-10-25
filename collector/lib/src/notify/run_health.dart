@@ -43,6 +43,7 @@ List<String> runProblems(String log, {int max = 5, int maxChars = 200}) {
     'Failed: ',
     'Cannot read the saved pages: ',
     'Not a search results page: ',
+    'Read issue: ',
     'Database error: ',
   ];
   final lines = log.split('\n').map((l) => l.trim()).where((l) => l != '');

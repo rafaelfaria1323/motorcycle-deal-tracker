@@ -93,6 +93,10 @@ per run, day and month in the app), and a 24-hour pause after any refusal.
 Private sellers' names and phone numbers are never stored, and saved pages
 are never committed.
 
+Partial imports keep readable listings but report parsing or transport
+failures instead of a successful run. Repeated Standvirtual pages are not
+treated as complete searches for removal.
+
 ## Docs
 
 - [`docs/roadmap.status.md`](docs/roadmap.status.md): the roadmap, step by step, with what is done.

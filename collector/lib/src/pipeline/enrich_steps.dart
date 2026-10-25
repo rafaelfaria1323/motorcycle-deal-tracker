@@ -13,8 +13,8 @@ const _source = 'standvirtual';
 /// rules (e.g. a redirect off /motos/) is skipped and marked failed, and so
 /// is one that turns out to be another ad, so the next runs try the
 /// listings never read first. Running out of requests
-/// stops quietly; a block stops too, and is rethrown once what was read is
-/// stored.
+/// stops quietly; a block, transport failure or other HTTP error stops
+/// and is rethrown once what was read is stored.
 Future<int> enrichDetails(
   ListingStore store,
   PoliteFetcher fetcher,
@@ -25,7 +25,7 @@ Future<int> enrichDetails(
   final adapter = StandvirtualPageAdapter('unused');
   final details = <ListingDetails>[];
   final failed = <String>[];
-  FetchBlocked? stop;
+  Object? stop;
 
   try {
     for (final p in pending) {
@@ -44,8 +44,8 @@ Future<int> enrichDetails(
         details.add(read);
         log.writeln('  read ${p.sourceListingId}');
       } on FetchFailed catch (e) {
-        // e.g. 404 for a listing removed since the last search: skip it.
         failed.add(p.sourceListingId);
+        if (e.statusCode != 404 && e.statusCode != 410) rethrow;
         log.writeln('  - skipped ${p.sourceListingId}: $e');
       } on FormatException catch (e) {
         failed.add(p.sourceListingId);
@@ -60,6 +60,8 @@ Future<int> enrichDetails(
   } on FetchLimitReached catch (e) {
     log.writeln('Stopped: $e; the rest waits for the next run.');
   } on FetchBlocked catch (e) {
+    stop = e;
+  } on FetchFailed catch (e) {
     stop = e;
   }
 

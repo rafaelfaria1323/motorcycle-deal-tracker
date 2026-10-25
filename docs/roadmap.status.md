@@ -197,6 +197,19 @@ outside this smoke's scope.*
 *Every scheduled run is recorded in `collector_runs` with a log tail; Actions keeps the full log for 7 days. Each run also stores what it did (`counts`: new listings, price changes, removed listings and alerts created, summed over both sites, read from the log by `runCounts` in `report_run.dart`; `20261020220000_run_counts.sql`), shown in Mais under the last run ("3 anúncios novos, 2 preços alterados, 4 alertas", or "Sem anúncios novos nem alterações"; `runCountsText`, tested). Older runs show nothing there.*
 ## 11.4 Error handling ✅
 *Fetcher stops and pauses on blocks; incomplete searches never trigger removals; the dashboard shows when the last run failed, was blocked or is too old. A run whose status differs from the previous run's (ok, blocked, failed) sends one message (Telegram until 14.4c, now a notification to the admins' devices): the error lines with the site each happened on (`run_health.dart`, tested, every mutation caught), or that the collection works again; the same problem is never repeated every 4 hours, and a failed message never fails the run. A run that never starts (expired GitHub token, the `collect-listings` job gone, a job dying before it records itself) is caught in Postgres: the hourly pg_cron job `collection-watchdog` (`check_collection_runs()`, `20261020210000_collection_watchdog.sql`) sends a Telegram message through pg_net after 9 hours without a run, once a day while it lasts, and the recovery after the next run (needs the Vault secrets `telegram_bot_token` and `telegram_chat_id`, see `docs/hosting.md`); tested in `watchdog_test.sql`, including that the app can neither call it nor read its state.*
+*Collector reliability follow-up (11.1, 11.4): blocking HTTP headers now
+start the cooldown even when the body fails; timed-out requests are
+cancelled before the next request. Repeated Standvirtual page offsets
+cannot make an incomplete search safe for removal, and exact model names
+cannot undo the resolver's engine-size guard. Oversized numeric entities
+elsewhere in a page do not break its JSON script or rewrite its strings.
+Read issues and enrichment transport/server failures keep valid partial
+data but fail the run and retain their cause in its health report; gone
+listing pages (404/410) remain skips. Offline regressions include actual
+saved-file CLI exit codes, with a loopback database stand-in, not Supabase.
+Removed the unused direct `args` dependency (still needed transitively by
+the test tooling). No fetching-policy changes.*
+
 ## 11.5 Data-quality monitoring ✅
 *Collector failures and blocks are tracked; requests used per site and run, run duration and monthly runs are shown in Mais. "Qualidade dos dados" in Mais (view `source_data_quality`): per site, live listings, how many are tracked models, unmatched or duplicates, the share of scored listings missing year, mileage or location, and Standvirtual listing pages still to read. Each site also shows when its listings were last seen on the site, with "verifique a recolha" after 24 hours (a site that stops answering keeps its listings live, so this is what goes stale), and how many live listings had their price halved or raised by half or more in one step in the last 30 days (likely misreads). Both added to the view in `20261020200000_data_quality_freshness.sql`, checked on a local Postgres; text in `data_quality_text.dart`, tested (every mutation of the new lines caught).*
 

@@ -222,6 +222,59 @@ void main() {
       expect(full.records, hasLength(33));
     });
 
+    for (final total in [32, 33]) {
+      test(
+        'duplicate offsets cannot make a $total-listing search removable',
+        () async {
+          for (final name in ['p1.html', 'p2.html']) {
+            File(
+              '${dir.path}/$name',
+            ).writeAsStringSync(searchPage(first, total: total));
+          }
+          await const SearchManifest(
+            planned: [url],
+            files: {'p1.html': url, 'p2.html': url},
+          ).writeTo(dir.path);
+
+          final batch = await loadBatch(
+            'standvirtual-search',
+            dir.path,
+            catalog,
+          );
+          final plan = removalPlan(batch);
+
+          expect(batch.issues, hasLength(1));
+          expect(
+            batch.issues.single.message,
+            contains('duplicate page offset'),
+          );
+          expect(batch.issues.single.message, contains('holds 32 of $total'));
+          expect(batch.issues.single.search, url);
+          expect(plan.searches, isNull);
+          expect(plan.seenIds, isEmpty);
+          expect(plan.includeUnkeyed, isFalse);
+        },
+      );
+    }
+
+    test(
+      'the full listing count can complete a search before every page',
+      () async {
+        File(
+          '${dir.path}/p1.html',
+        ).writeAsStringSync(searchPage([...first, node(id: '33')], total: 33));
+        await const SearchManifest(
+          planned: [url],
+          files: {'p1.html': url},
+        ).writeTo(dir.path);
+
+        final full = await StandvirtualSearchAdapter(dir.path).read();
+
+        expect(full.issues, isEmpty);
+        expect(full.records, hasLength(33));
+      },
+    );
+
     test('promoted ads never make a search cut short look read', () async {
       // 32 results and 2 promoted ads on page 1 of a 34-listing search.
       File('${dir.path}/p1.html').writeAsStringSync(

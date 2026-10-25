@@ -32,8 +32,8 @@ class StandvirtualMapper {
       engineCc: raw.engineCc,
     );
 
-    // Unresolved: keep the full text, so the base mapper cannot match the
-    // bare family name ("R", "CB") or the base of a variant by accident.
+    // Unresolved: keep the source's full text, without letting the base
+    // mapper's exact lookup undo the resolver's decision.
     final model =
         entry?.model ?? [raw.model, raw.version].whereType<String>().join(' ');
 
@@ -52,6 +52,7 @@ class StandvirtualMapper {
         description: raw.description,
         images: raw.images,
       ),
+      matchCatalog: entry != null,
     );
 
     return switch (outcome) {
