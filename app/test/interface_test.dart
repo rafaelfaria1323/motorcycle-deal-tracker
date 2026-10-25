@@ -129,7 +129,7 @@ void main() {
     });
   }
 
-  for (final scale in [1.0, 1.25]) {
+  for (final scale in [1.0, 1.1, 1.25]) {
     for (final preferences in [
       const ListingCardPreferences.defaults(),
       ListingCardPreferences(ListingCardField.values),
@@ -143,41 +143,55 @@ void main() {
             MaterialApp(
               theme: AppTheme.light,
               home: Scaffold(
-                body: MediaQuery(
-                  data: MediaQueryData(textScaler: TextScaler.linear(scale)),
-                  child: Builder(
-                    builder: (context) => Align(
-                      alignment: Alignment.topLeft,
-                      child: SizedBox(
-                        width: 300,
-                        height: ListingCard.gridHeight(
-                          context,
-                          preferences: preferences,
-                        ),
-                        child: ListingCard(
-                          preferences: preferences,
-                          listing: Listing(
-                            id: 'long-model',
-                            source: 'standvirtual',
-                            url:
-                                'https://www.standvirtual.com/motos/anuncio/test',
-                            brand: 'Harley-Davidson',
-                            model: 'Sportster S 1250 Revolution Max',
-                            status: ListingStatus.active,
-                            sellerType: SellerType.private,
-                            images: const [],
-                            year: 2023,
-                            mileage: 123456,
-                            price: 12990,
-                            initialPrice: 13990,
-                            dealScore: 80,
-                            riskScore: 10,
-                            firstSeenAt: DateTime.utc(2026, 10, 23),
-                            location: 'Vila Nova de Gaia',
-                            distanceKm: 128,
+                body: SingleChildScrollView(
+                  child: MediaQuery(
+                    data: MediaQueryData(textScaler: TextScaler.linear(scale)),
+                    child: Builder(
+                      builder: (context) => Align(
+                        alignment: Alignment.topLeft,
+                        child: SizedBox(
+                          width: 300,
+                          height: ListingCard.gridHeight(
+                            context,
+                            preferences: preferences,
                           ),
-                          onTap: () {},
-                          onLongPress: () {},
+                          child: ListingCard(
+                            preferences: preferences,
+                            listing: Listing(
+                              id: 'long-model',
+                              source: 'standvirtual',
+                              url:
+                                  'https://www.standvirtual.com/motos/anuncio/test',
+                              brand: 'Harley-Davidson',
+                              model: 'Sportster S 1250 Revolution Max',
+                              status: ListingStatus.active,
+                              sellerType: SellerType.dealer,
+                              sellerName: List.filled(
+                                8,
+                                'Motos e acessórios do Norte',
+                              ).join(' '),
+                              images: const [],
+                              year: 2023,
+                              mileage: 123456,
+                              price: 12990,
+                              initialPrice: 13990,
+                              dealScore: 80,
+                              riskScore: 10,
+                              firstSeenAt: DateTime.utc(2026, 10, 23),
+                              publishedAt: DateTime.utc(2026, 4, 3),
+                              siteRefreshedAt: DateTime.utc(2026, 10, 24),
+                              registrations: 1,
+                              serviceBook: true,
+                              origin: 'imported',
+                              colour: 'blue',
+                              warrantyUntil: DateTime.utc(2027, 3, 1),
+                              dealerWarrantyMonths: 18,
+                              location: 'Vila Nova de Gaia',
+                              distanceKm: 128,
+                            ),
+                            onTap: () {},
+                            onLongPress: () {},
+                          ),
                         ),
                       ),
                     ),
@@ -188,6 +202,25 @@ void main() {
           );
           await tester.pumpAndSettle();
           expect(find.text('Comparar'), findsOneWidget);
+          if (preferences.shows(ListingCardField.registrations)) {
+            expect(find.text('Primeiro dono'), findsOneWidget);
+          }
+          if (preferences.shows(ListingCardField.sellerName)) {
+            final seller = find.byWidgetPredicate(
+              (widget) =>
+                  widget is Text &&
+                  (widget.data?.startsWith('Stand: ') ?? false),
+            );
+            expect(tester.widget<Text>(seller).maxLines, 2);
+          }
+          final card = find.byType(ListingCard);
+          expect(
+            tester.getSize(card).height,
+            ListingCard.gridHeight(
+              tester.element(card),
+              preferences: preferences,
+            ),
+          );
           expect(tester.takeException(), isNull);
         },
       );
@@ -195,6 +228,55 @@ void main() {
   }
 
   for (final scale in [1.0, 2.0]) {
+    testWidgets('owners and publication can be chosen at ${scale}x text', (
+      tester,
+    ) async {
+      final fixture = InterfaceFixture(signedIn: true);
+      await _open(
+        tester,
+        fixture,
+        size: const Size(320, 720),
+        textScale: scale,
+      );
+      final customize = find.widgetWithText(OutlinedButton, 'Cartões');
+      await _reveal(tester, customize);
+      await tester.tap(customize);
+      await tester.pumpAndSettle();
+      await _toggleCardField(tester, 'Donos / primeiro dono');
+      await _toggleCardField(tester, 'Data de publicação');
+      await tester.tap(find.widgetWithText(FilledButton, 'Guardar'));
+      await tester.pumpAndSettle();
+      final card = find.byType(ListingCard).first;
+      await _reveal(tester, card);
+      expect(
+        find.descendant(of: card, matching: find.text('Primeiro dono')),
+        findsOneWidget,
+      );
+      final published = find.descendant(
+        of: card,
+        matching: find.byWidgetPredicate(
+          (widget) =>
+              widget is Text &&
+              (widget.data?.startsWith('Publicado: 09/10/2026') ?? false),
+        ),
+      );
+      expect(published, findsOneWidget);
+      expect(tester.widget<Text>(published).maxLines, isNull);
+      expect(
+        fixture.cardPreferencesRepository.value.shows(
+          ListingCardField.registrations,
+        ),
+        isTrue,
+      );
+      expect(
+        fixture.cardPreferencesRepository.value.shows(
+          ListingCardField.publishedAt,
+        ),
+        isTrue,
+      );
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('card choices save, cancel and reset at ${scale}x text', (
       tester,
     ) async {
@@ -272,6 +354,8 @@ void main() {
       final fixture = InterfaceFixture(signedIn: true);
       fixture.cardPreferencesRepository.value = ListingCardPreferences([
         ListingCardField.riskScore,
+        ListingCardField.registrations,
+        ListingCardField.publishedAt,
       ]);
       fixture.favouritesRepository.values.add(
         Favourite(
@@ -288,6 +372,15 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Risk Score: 10/100'), findsOneWidget);
+      expect(find.text('Primeiro dono'), findsOneWidget);
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is Text &&
+              (widget.data?.startsWith('Publicado: 09/10/2026') ?? false),
+        ),
+        findsOneWidget,
+      );
       expect(find.byType(DealScoreBadge), findsNothing);
       expect(find.byType(PriceChangeTag), findsNothing);
       expect(find.byIcon(Icons.speed), findsNothing);
@@ -303,6 +396,7 @@ void main() {
       expect(find.byType(DealScoreBadge), findsOneWidget);
       expect(find.byType(PriceChangeTag), findsOneWidget);
       expect(find.text('Risk Score: 10/100'), findsNothing);
+      expect(find.text('Primeiro dono'), findsNothing);
     },
   );
 

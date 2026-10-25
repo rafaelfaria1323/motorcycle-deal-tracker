@@ -105,7 +105,7 @@ class _CardPreferencesDialogState extends State<_CardPreferencesDialog> {
               ),
               const SizedBox(height: 12),
               const Text(
-                'A fotografia, o modelo, o preço, o estado e as ações '
+                'A fotografia, o modelo, o preço, os avisos de remoção e as ações '
                 'ficam sempre visíveis.',
               ),
               const SizedBox(height: 12),

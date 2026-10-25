@@ -42,6 +42,16 @@ extension ListingCardFieldLabel on ListingCardField {
     ListingCardField.riskScore => 'Risk Score',
     ListingCardField.sellerType => 'Tipo de vendedor',
     ListingCardField.firstSeenAt => 'Quando foi encontrado',
+    ListingCardField.colour => 'Cor',
+    ListingCardField.registrations => 'Donos / primeiro dono',
+    ListingCardField.serviceBook => 'Livro de revisões',
+    ListingCardField.origin => 'Origem',
+    ListingCardField.warrantyUntil => 'Garantia de fábrica',
+    ListingCardField.dealerWarrantyMonths => 'Garantia do vendedor',
+    ListingCardField.sellerName => 'Nome do stand',
+    ListingCardField.publishedAt => 'Data de publicação',
+    ListingCardField.siteRefreshedAt => 'Renovação no site',
+    ListingCardField.status => 'Estado do anúncio',
   };
 }
 

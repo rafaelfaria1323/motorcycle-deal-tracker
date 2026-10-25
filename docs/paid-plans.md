@@ -141,10 +141,13 @@ sale, and neither is a place in the list.
 **Possible subscription benefit (Rafael, 2026-10-25): card customization.**
 The feature is available now to every signed-in account, free: choose the
 details shown in Ofertas and Favoritos, with the existing layout as the
-default and a reset option. If paid plans launch, keeping the standard
-layout free and offering the personal choice of fields with Pro/Passe is
-an option, not a decision. This does not put scores or explanations behind
-a paywall: they remain available in the standard cards and listing pages.
+default and a reset option. Optional facts include first owner / owner
+count, service book, origin, warranties, colour, stand name and the ad's
+publication, renewal and first-found dates. If paid plans launch, keeping
+the standard layout free and offering the personal choice of fields with
+Pro/Passe is an option, not a decision. This does not put scores or
+explanations behind a paywall: Deal Score stays on the standard cards, and
+the full scores and explanations remain available on listing pages.
 No subscription check, payment flow or restriction is implemented by this
 feature; the permission and invited-account rules above still apply.
 

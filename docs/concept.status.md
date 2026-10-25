@@ -152,7 +152,7 @@ All four types, each at most once per event, only for events after the search wa
 
 *13.7: visible filter, sort, save and comparison actions; removable wrapping filter chips; explicit loaded-result counts while another page remains; pull to refresh. Photo-led cards show the source and a labelled Deal Score; up to three columns on desktop, natural heights on phones or with enlarged text.*
 
-➕ Card details per account ✅ (15.31): Ofertas › "Cartões" or Mais › "Cartões dos anúncios" selects the details shown in Ofertas and Favoritos, saved to the account across devices. The current layout is the default; Risk Score, seller type and first-found date can also be shown. Photo, model, price, status notices and actions stay visible. Cancel and reset-to-defaults are available; anonymous visitors retain the default layout.
+➕ Card details per account ✅ (15.31): Ofertas › "Cartões" or Mais › "Cartões dos anúncios" selects the details shown in Ofertas and Favoritos, saved to the account across devices. The current layout is the default; additional choices cover Risk Score, seller type, colour, owners / first owner, service book, origin, factory and seller warranties, stand name, status, and publication, renewal and first-found dates. A first-owner statement can come from the existing ad-text signal when no owner count is known; publication, renewal and discovery stay distinct, and missing facts are omitted. Photo, model, price, removal notices and actions stay visible. Cancel and reset-to-defaults are available; anonymous visitors retain the default layout.
 
 ## 18. Listing Detail Page ✅
 

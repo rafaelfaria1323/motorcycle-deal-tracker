@@ -31,6 +31,7 @@ class Listing extends Equatable {
     this.firstSeenAt,
     this.lastSeenAt,
     this.registrations,
+    this.hasFirstOwnerSignal = false,
     this.serviceBook,
     this.origin,
     this.warrantyUntil,
@@ -79,6 +80,10 @@ class Listing extends Equatable {
   final DateTime? firstSeenAt;
   final DateTime? lastSeenAt;
   final int? registrations;
+
+  /// The existing `first_owner` scoring signal, including claims in the ad
+  /// when no owner count is known. Lists load only the risk-reason codes.
+  final bool hasFirstOwnerSignal;
   final bool? serviceBook;
   final String? origin;
   final DateTime? warrantyUntil;

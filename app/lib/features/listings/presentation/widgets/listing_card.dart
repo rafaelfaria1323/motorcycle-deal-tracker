@@ -34,6 +34,7 @@ class ListingCard extends StatelessWidget {
   final ListingCardPreferences preferences;
 
   static const photoHeight = 180.0;
+  static const _gridFactLines = 2;
 
   static double gridHeight(
     BuildContext context, {
@@ -47,11 +48,15 @@ class ListingCard extends StatelessWidget {
         preferences.shows(ListingCardField.year) ||
         preferences.shows(ListingCardField.mileage) ||
         extraRows > 0;
+    final scaler = MediaQuery.textScalerOf(context);
+    final factStyle = Theme.of(context).textTheme.bodyMedium;
+    final factLineHeight =
+        (scaler.scale(factStyle?.fontSize ?? 14) * (factStyle?.height ?? 1.5))
+            .ceilToDouble();
     return 390 -
         (hasFacts ? 0 : 32) +
-        extraRows * 30 +
-        (MediaQuery.textScalerOf(context).scale(16) - 16) *
-            (10 + extraRows * 2);
+        extraRows * (factLineHeight * _gridFactLines + 8) +
+        (scaler.scale(16) - 16) * 10;
   }
 
   @override
@@ -83,7 +88,13 @@ class ListingCard extends StatelessWidget {
                   favourite: favourite,
                   preferences: preferences,
                 ),
-                _CardDetails(listing: listing, preferences: preferences),
+                _CardDetails(
+                  listing: listing,
+                  preferences: preferences,
+                  maxFactLines: constraints.hasBoundedHeight
+                      ? _gridFactLines
+                      : null,
+                ),
                 if (constraints.hasBoundedHeight) const Spacer(),
                 if (showLocation || onLongPress != null) ...[
                   const Divider(),
@@ -185,10 +196,15 @@ class _CardPhoto extends StatelessWidget {
 }
 
 class _CardDetails extends StatelessWidget {
-  const _CardDetails({required this.listing, required this.preferences});
+  const _CardDetails({
+    required this.listing,
+    required this.preferences,
+    this.maxFactLines,
+  });
 
   final Listing listing;
   final ListingCardPreferences preferences;
+  final int? maxFactLines;
 
   @override
   Widget build(BuildContext context) {
@@ -275,9 +291,30 @@ class _CardDetails extends StatelessWidget {
                             ListingCardField.riskScore => Icons.shield_outlined,
                             ListingCardField.sellerType => Icons.store_outlined,
                             ListingCardField.firstSeenAt => Icons.schedule,
+                            ListingCardField.colour => Icons.palette_outlined,
+                            ListingCardField.registrations =>
+                              Icons.person_outline,
+                            ListingCardField.serviceBook =>
+                              Icons.menu_book_outlined,
+                            ListingCardField.origin => Icons.public_outlined,
+                            ListingCardField.warrantyUntil ||
+                            ListingCardField.dealerWarrantyMonths =>
+                              Icons.verified_user_outlined,
+                            ListingCardField.sellerName =>
+                              Icons.storefront_outlined,
+                            ListingCardField.publishedAt =>
+                              Icons.calendar_month_outlined,
+                            ListingCardField.siteRefreshedAt => Icons.update,
+                            ListingCardField.status => Icons.info_outline,
                             _ => throw ArgumentError.value(field),
                           }),
-                          Expanded(child: Text(text)),
+                          Expanded(
+                            child: Text(
+                              text,
+                              maxLines: maxFactLines,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ],
                       ),
                   ],

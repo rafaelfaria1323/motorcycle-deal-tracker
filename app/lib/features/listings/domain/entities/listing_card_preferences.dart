@@ -10,7 +10,17 @@ enum ListingCardField {
   preferredColour('preferred_colour'),
   riskScore('risk_score'),
   sellerType('seller_type'),
-  firstSeenAt('first_seen_at');
+  firstSeenAt('first_seen_at'),
+  colour('colour'),
+  registrations('registrations'),
+  serviceBook('service_book'),
+  origin('origin'),
+  warrantyUntil('warranty_until'),
+  dealerWarrantyMonths('dealer_warranty_months'),
+  sellerName('seller_name'),
+  publishedAt('published_at'),
+  siteRefreshedAt('site_refreshed_at'),
+  status('status');
 
   const ListingCardField(this.code);
 
@@ -37,6 +47,16 @@ class ListingCardPreferences extends Equatable {
     ListingCardField.riskScore,
     ListingCardField.sellerType,
     ListingCardField.firstSeenAt,
+    ListingCardField.colour,
+    ListingCardField.registrations,
+    ListingCardField.serviceBook,
+    ListingCardField.origin,
+    ListingCardField.warrantyUntil,
+    ListingCardField.dealerWarrantyMonths,
+    ListingCardField.sellerName,
+    ListingCardField.publishedAt,
+    ListingCardField.siteRefreshedAt,
+    ListingCardField.status,
   };
 
   final Set<ListingCardField> fields;

@@ -374,8 +374,15 @@ invites; written by the collector on each run).
   Ofertas › "Cartões" and Mais › "Cartões dos anúncios" choose the card
   details for Ofertas and Favoritos (`listing_card_preferences`, one
   owner-only row per non-anonymous account). Defaults are the existing
-  layout; Risk Score, seller type and first-found date are opt-in.
-  Photo, model, price, state notices and actions stay visible. Cancel
+  layout; Risk Score, seller type, colour, owners / first owner, service
+  book, origin, warranties, stand name, status and publication, renewal
+  and first-found dates are opt-in. A known owner count takes precedence
+  over the existing `first_owner` risk signal; the signal is used only
+  when the count is unknown. Dates stay distinct and absent facts are
+  omitted. `ListingModel.summaryColumns` and the matching startup prefetch
+  in `web/index.html` include these facts and only
+  `score_breakdown->risk_reasons`, never descriptions or the full score breakdown.
+  Photo, model, price, removal notices and actions stay visible. Cancel
   discards the draft; "Repor predefinições" still needs "Guardar".
   This is free for all accounts today; `docs/paid-plans.md` records it
   only as a possible future subscription benefit, not a paywall.

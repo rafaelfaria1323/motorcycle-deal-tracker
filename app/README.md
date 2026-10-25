@@ -27,11 +27,16 @@ sign-in encrypted with a key in the Android Keystore
   By default, photo-led cards show the source, Deal Score, price change,
   year, mileage, place and distance from your home, and preferred-colour
   indicator, with a visible "Comparar" action. "Cartões" lets each signed-in
-  account show or hide these details, or add Risk Score, seller type and
-  when the ad was first found. Choices apply to Ofertas and Favoritos,
-  are saved to the account across devices, and can be reset to the defaults.
-  Photo, model, price, status notices, favourite star and comparison actions
-  stay visible; the listing page, filters, scores and alerts are unchanged.
+  account show or hide these details, or add Risk Score, seller type,
+  colour, owners / first owner, service book, origin, factory and seller
+  warranties, the stand's name, status, and publication, renewal and
+  first-found dates. Publication is the site's date, never our discovery
+  date; first-owner information also uses the ad's existing risk signal
+  when no owner count is known. Missing facts are omitted. Choices apply to
+  Ofertas and Favoritos, are saved across devices, and can be reset to the
+  defaults. Photo, model, price, removal notices, favourite star and
+  comparison actions stay visible; the listing page, filters, scores and
+  alerts are unchanged.
   The grid grows to three columns; phone and enlarged-text layouts use
   naturally sized cards.
 - **Favoritos:** the listings you starred (star on a listing's page; star

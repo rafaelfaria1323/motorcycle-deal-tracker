@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:motorcycle_deal_tracker/core/auth/session_cubit.dart';
+import 'package:motorcycle_deal_tracker/features/listings/data/models/listing_model.dart';
 import 'package:motorcycle_deal_tracker/features/listings/data/repositories/supabase_listing_card_preferences_repository.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_card_preferences.dart';
@@ -16,6 +17,18 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 final _minimal = ListingCardPreferences([]);
 final _riskOnly = ListingCardPreferences([ListingCardField.riskScore]);
 const _defaults = ListingCardPreferences.defaults();
+
+Listing _cardListing([Map<String, dynamic> fields = const {}]) =>
+    ListingModel.fromJson({
+      'id': 'card',
+      'source': 'olx',
+      'url': 'https://example.pt/card',
+      'brand': 'Yamaha',
+      'model': 'MT-07',
+      'status': 'active',
+      'seller_type': 'private',
+      ...fields,
+    });
 
 Future<void> _settle() => Future<void>.delayed(Duration.zero);
 
@@ -100,6 +113,16 @@ void main() {
       'Risk Score',
       'Tipo de vendedor',
       'Quando foi encontrado',
+      'Cor',
+      'Donos / primeiro dono',
+      'Livro de revisões',
+      'Origem',
+      'Garantia de fábrica',
+      'Garantia do vendedor',
+      'Nome do stand',
+      'Data de publicação',
+      'Renovação no site',
+      'Estado do anúncio',
     ]);
   });
 
@@ -142,6 +165,7 @@ void main() {
         (ListingCardField.riskScore, 'Risk Score: 23/100'),
         (ListingCardField.sellerType, 'Profissional'),
         (ListingCardField.firstSeenAt, 'Encontrado há 2 dias'),
+        (ListingCardField.status, 'Estado: Ativo'),
       ],
     );
     expect(listingCardExtraFacts(listing, _defaults), isEmpty);
@@ -153,7 +177,7 @@ void main() {
           url: 'https://example.pt/l2',
           brand: 'Honda',
           model: 'CB650R',
-          status: ListingStatus.active,
+          status: ListingStatus.unknown,
           sellerType: SellerType.unknown,
           images: [],
         ),
@@ -162,6 +186,175 @@ void main() {
       isEmpty,
     );
   });
+
+  test('cards offer the structured bike and ad facts from the detail page', () {
+    final listing = _cardListing({
+      'seller_type': 'dealer',
+      'seller_name': '  Motos do Norte  ',
+      'status': 'price_changed',
+      'risk_score': 23,
+      'first_seen_at': '2026-10-23T12:00:00Z',
+      'colour': 'blue',
+      'registrations': 1,
+      'service_book': true,
+      'origin': 'national',
+      'warranty_until': '2027-03-01',
+      'dealer_warranty_months': 18,
+      'published_at': '2026-10-09T12:00:00Z',
+      'site_refreshed_at': '2026-10-24T12:00:00Z',
+    });
+    expect(
+      listingCardExtraFacts(
+        listing,
+        ListingCardPreferences(ListingCardField.values),
+        now: DateTime.utc(2026, 10, 25, 12),
+      ),
+      [
+        (ListingCardField.riskScore, 'Risk Score: 23/100'),
+        (ListingCardField.sellerType, 'Profissional'),
+        (ListingCardField.firstSeenAt, 'Encontrado há 2 dias'),
+        (ListingCardField.colour, 'Cor: Azul'),
+        (ListingCardField.registrations, 'Primeiro dono'),
+        (ListingCardField.serviceBook, 'Livro de revisões completo'),
+        (ListingCardField.origin, 'Nacional'),
+        (ListingCardField.warrantyUntil, 'Garantia de fábrica até 01/03/2027'),
+        (
+          ListingCardField.dealerWarrantyMonths,
+          '18 meses de garantia do vendedor',
+        ),
+        (ListingCardField.sellerName, 'Stand: Motos do Norte'),
+        (ListingCardField.publishedAt, 'Publicado: 09/10/2026 (há 16 dias)'),
+        (
+          ListingCardField.siteRefreshedAt,
+          'Renovado no site: 24/10/2026 (ontem)',
+        ),
+        (ListingCardField.status, 'Estado: Preço alterado'),
+      ],
+    );
+    expect(listingCardExtraFacts(listing, _defaults), isEmpty);
+  });
+
+  test('owner counts take precedence over first-owner scoring signals', () {
+    final preferences = ListingCardPreferences([
+      ListingCardField.registrations,
+    ]);
+    final cases = <(Map<String, dynamic>, String?)>[
+      ({'registrations': 1}, 'Primeiro dono'),
+      (
+        {
+          'card_risk_reasons': ['first_owner'],
+        },
+        'Primeiro dono (indicado no anúncio)',
+      ),
+      (
+        {
+          'registrations': 3,
+          'card_risk_reasons': ['first_owner'],
+        },
+        '3 registos (donos)',
+      ),
+      ({'registrations': 2}, '2 registos (donos)'),
+      (
+        {
+          'card_risk_reasons': ['service_book'],
+        },
+        null,
+      ),
+      ({}, null),
+    ];
+    for (final (fields, expected) in cases) {
+      expect(listingCardExtraFacts(_cardListing(fields), preferences), [
+        if (expected != null) (ListingCardField.registrations, expected),
+      ]);
+    }
+  });
+
+  test(
+    'negative facts remain visible and missing or private data is omitted',
+    () {
+      final preferences = ListingCardPreferences([
+        ListingCardField.serviceBook,
+        ListingCardField.origin,
+        ListingCardField.colour,
+        ListingCardField.dealerWarrantyMonths,
+        ListingCardField.sellerName,
+      ]);
+      expect(
+        listingCardExtraFacts(
+          _cardListing({
+            'service_book': false,
+            'origin': 'imported',
+            'dealer_warranty_months': 1,
+            'seller_name': 'Not a dealer',
+          }),
+          preferences,
+        ),
+        [
+          (ListingCardField.serviceBook, 'Sem livro de revisões completo'),
+          (ListingCardField.origin, 'Importada'),
+          (
+            ListingCardField.dealerWarrantyMonths,
+            '1 mês de garantia do vendedor',
+          ),
+        ],
+      );
+      expect(
+        listingCardExtraFacts(
+          _cardListing({
+            'colour': 'unknown',
+            'origin': 'unknown',
+            'seller_type': 'dealer',
+            'seller_name': '   ',
+          }),
+          preferences,
+        ),
+        isEmpty,
+      );
+    },
+  );
+
+  test(
+    'publication is not discovery and renewal follows the detail-page rule',
+    () {
+      final preferences = ListingCardPreferences([
+        ListingCardField.publishedAt,
+        ListingCardField.siteRefreshedAt,
+      ]);
+      final now = DateTime.utc(2026, 10, 25, 12);
+      expect(
+        listingCardExtraFacts(
+          _cardListing({'first_seen_at': '2026-10-23T12:00:00Z'}),
+          preferences,
+          now: now,
+        ),
+        isEmpty,
+      );
+      expect(
+        listingCardExtraFacts(
+          _cardListing({
+            'published_at': '2026-10-24T12:00:00Z',
+            'site_refreshed_at': '2026-10-24T18:00:00Z',
+          }),
+          preferences,
+          now: now,
+        ),
+        [(ListingCardField.publishedAt, 'Publicado: 24/10/2026 (ontem)')],
+      );
+      expect(
+        listingCardExtraFacts(
+          _cardListing({'site_refreshed_at': '2026-10-24T12:00:00Z'}),
+          preferences,
+          now: now,
+        ),
+        [
+          (
+            ListingCardField.siteRefreshedAt,
+            'Renovado no site: 24/10/2026 (ontem)',
+          ),
+        ],
+      );
+    },
+  );
 
   group('Supabase card preferences', () {
     late _Recorder recorder;
@@ -240,6 +433,23 @@ void main() {
         });
       },
     );
+
+    test('all detail-field choices survive saving and loading', () async {
+      final preferences = ListingCardPreferences(
+        ListingCardField.values.reversed,
+      );
+      await repository.save('a', preferences);
+      final saved =
+          jsonDecode(recorder.calls.single.$3) as Map<String, dynamic>;
+      expect(
+        saved['visible_fields'],
+        ListingCardField.values.map((field) => field.code).toList(),
+      );
+      recorder.rows = [
+        {'visible_fields': saved['visible_fields']},
+      ];
+      expect(await repository.get('a'), preferences);
+    });
   });
 
   group('Card preferences cubit', () {

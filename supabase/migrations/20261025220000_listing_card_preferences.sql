@@ -9,7 +9,10 @@ create table public.listing_card_preferences (
   constraint listing_card_preferences_known_fields check (
     visible_fields <@ array[
       'source', 'deal_score', 'price_change', 'year', 'mileage', 'location',
-      'preferred_colour', 'risk_score', 'seller_type', 'first_seen_at'
+      'preferred_colour', 'risk_score', 'seller_type', 'first_seen_at',
+      'colour', 'registrations', 'service_book', 'origin', 'warranty_until',
+      'dealer_warranty_months', 'seller_name', 'published_at',
+      'site_refreshed_at', 'status'
     ]::text[]
     and coalesce(array_ndims(visible_fields), 1) = 1
   )

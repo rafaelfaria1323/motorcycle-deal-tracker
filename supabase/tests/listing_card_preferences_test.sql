@@ -19,10 +19,17 @@ begin
   ] from public.listing_card_preferences), 'defaults preserve the current card';
 
   insert into public.listing_card_preferences (visible_fields)
-  values (array['risk_score', 'seller_type', 'first_seen_at'])
+  values (array[
+    'risk_score', 'seller_type', 'first_seen_at', 'colour', 'registrations',
+    'service_book', 'origin', 'warranty_until', 'dealer_warranty_months',
+    'seller_name', 'published_at', 'site_refreshed_at', 'status'
+  ])
   on conflict (user_id) do update set visible_fields = excluded.visible_fields;
-  assert (select visible_fields = array['risk_score', 'seller_type', 'first_seen_at']
-          from public.listing_card_preferences), 'choices survive an upsert';
+  assert (select visible_fields = array[
+    'risk_score', 'seller_type', 'first_seen_at', 'colour', 'registrations',
+    'service_book', 'origin', 'warranty_until', 'dealer_warranty_months',
+    'seller_name', 'published_at', 'site_refreshed_at', 'status'
+  ] from public.listing_card_preferences), 'all detail choices survive an upsert';
 
   foreach invalid_fields slice 1 in array array[
     array['description', 'year'], array['year', null]
