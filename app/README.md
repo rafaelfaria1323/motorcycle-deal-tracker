@@ -24,8 +24,19 @@ sign-in encrypted with a key in the Android Keystore
   "Mais barato" that is the best price in your colour) and paged 40 at a
   time. Labelled filter, sort and save controls sit above the results;
   while more pages remain, the count explicitly describes loaded ads.
-  Photo-led cards show the source, Deal Score, price change, year, mileage,
-  place and distance from your home, with a visible "Comparar" action.
+  By default, photo-led cards show the source, Deal Score, price change,
+  year, mileage, place and distance from your home, and preferred-colour
+  indicator, with a visible "Comparar" action. "Cartões" lets each signed-in
+  account show or hide these details, or add Risk Score, seller type,
+  colour, owners / first owner, service book, origin, factory and seller
+  warranties, the stand's name, status, and publication, renewal and
+  first-found dates. Publication is the site's date, never our discovery
+  date; first-owner information also uses the ad's existing risk signal
+  when no owner count is known. Missing facts are omitted. Choices apply to
+  Ofertas and Favoritos, are saved across devices, and can be reset to the
+  defaults. Photo, model, price, removal notices, favourite star and
+  comparison actions stay visible; the listing page, filters, scores and
+  alerts are unchanged.
   The grid grows to three columns; phone and enlarged-text layouts use
   naturally sized cards.
 - **Favoritos:** the listings you starred (star on a listing's page; star
@@ -77,7 +88,7 @@ sign-in encrypted with a key in the Android Keystore
   you followed back on the market in a new ad ("Voltou ao mercado") and
   removed listings, grouped by day, with an unread summary above them;
   the tab also shows the unread count.
-- **Mais:** account, sharing (the app's link; admins: "Contas e convites"), "Notificações neste aparelho" (with "Enviar notificação de teste", an example of any alert or collection message, and "Enviar o resumo da semana"), "Resumo da semana" (your models' last 7 days, made every Monday and sent as a notification that opens it: counts, new listings per model, the best deals and the biggest drops, each opening its listing), "A sua localidade" (your home town: every listing
+- **Mais:** account, "Cartões dos anúncios" (the same card display choices as Ofertas), sharing (the app's link; admins: "Contas e convites"), "Notificações neste aparelho" (with "Enviar notificação de teste", an example of any alert or collection message, and "Enviar o resumo da semana"), "Resumo da semana" (your models' last 7 days, made every Monday and sent as a notification that opens it: counts, new listings per model, the best deals and the biggest drops, each opening its listing), "A sua localidade" (your home town: every listing
   shows its distance from it), "Modelos acompanhados" (your own models: switch on/off, first
   year, favourite colours of each (listings in them are marked "Cor
   preferida", never scored), new-bike price, add models: brand and model picked from the sites'

@@ -195,7 +195,10 @@
     var LISTINGS = 'listings?select=id,source,url,brand,model,motorcycle_id,' +
       'duplicate_of,year,mileage,price,initial_price,price_before_drop,' +
       'deal_score,risk_score,seller_type,location,images,status,' +
-      'first_seen_at,last_seen_at,distance_km,colour,my_colour' +
+      'first_seen_at,last_seen_at,distance_km,colour,my_colour,registrations,' +
+      'service_book,origin,warranty_until,dealer_warranty_months,' +
+      'seller_name,published_at,site_refreshed_at,' +
+      'card_risk_reasons:score_breakdown->risk_reasons' +
       '&in_my_models=eq.true' +
       '&duplicate_of=is.null&status=in.(%22active%22,%22price_changed%22)' +
       '&order=deal_score.desc.nullslast,id.desc.nullslast&offset=0&limit=40';

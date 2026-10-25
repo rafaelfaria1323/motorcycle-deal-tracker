@@ -7,19 +7,21 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// Who is using the app: an owner signed in with an email, or an anonymous
 /// visitor.
 class SessionState extends Equatable {
-  const SessionState({this.email, this.signedIn = false});
+  const SessionState({this.userId, this.email, this.signedIn = false});
 
   /// Anonymous visitors (and no session at all) are not signed in.
   factory SessionState.of(User? user) => SessionState(
+    userId: user?.id,
     email: user?.email,
     signedIn: user != null && !user.isAnonymous,
   );
 
+  final String? userId;
   final String? email;
   final bool signedIn;
 
   @override
-  List<Object?> get props => [email, signedIn];
+  List<Object?> get props => [userId, email, signedIn];
 }
 
 /// The current [SessionState], kept up to date as the user signs in and out,

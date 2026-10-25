@@ -9,6 +9,8 @@ import '../../../../core/widgets/app_brand.dart';
 import '../../../../core/widgets/page_intro.dart';
 import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
+import '../../../settings/presentation/listing_card_preferences_tile.dart';
+import '../../domain/entities/listing_card_preferences.dart';
 import '../../domain/entities/listing_filters.dart';
 import '../../domain/entities/listing_sort.dart';
 import '../../domain/entities/saved_search.dart';
@@ -16,6 +18,7 @@ import '../compare_text.dart';
 import '../cubit/compare_cubit.dart';
 import '../cubit/favourites_cubit.dart';
 import '../cubit/favourites_state.dart';
+import '../cubit/listing_card_preferences_cubit.dart';
 import '../cubit/listings_cubit.dart';
 import '../cubit/listings_state.dart';
 import '../cubit/saved_searches_cubit.dart';
@@ -286,35 +289,46 @@ class DashboardPage extends StatelessWidget {
                       ),
                     )
                   else
-                    SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      sliver: _OffersGrid(
-                        itemCount: state.listings.length,
-                        itemBuilder: (context, index) {
-                          final listing = state.listings[index];
-                          return BlocBuilder<FavouritesCubit, FavouritesState>(
-                            bloc: getIt<FavouritesCubit>(),
-                            buildWhen: (previous, current) =>
-                                previous.isFavourite(listing.id) !=
-                                current.isFavourite(listing.id),
-                            builder: (context, favourites) =>
-                                BlocBuilder<CompareCubit, List<String>>(
-                                  bloc: getIt<CompareCubit>(),
-                                  builder: (context, compared) => ListingCard(
-                                    listing: listing,
-                                    selected: compared.contains(listing.id),
-                                    favourite: favourites.isFavourite(
-                                      listing.id,
+                    BlocBuilder<
+                      ListingCardPreferencesCubit,
+                      ListingCardPreferencesState
+                    >(
+                      bloc: getIt<ListingCardPreferencesCubit>(),
+                      builder: (context, cards) => SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        sliver: _OffersGrid(
+                          preferences: cards.preferences,
+                          itemCount: state.listings.length,
+                          itemBuilder: (context, index) {
+                            final listing = state.listings[index];
+                            return BlocBuilder<
+                              FavouritesCubit,
+                              FavouritesState
+                            >(
+                              bloc: getIt<FavouritesCubit>(),
+                              buildWhen: (previous, current) =>
+                                  previous.isFavourite(listing.id) !=
+                                  current.isFavourite(listing.id),
+                              builder: (context, favourites) =>
+                                  BlocBuilder<CompareCubit, List<String>>(
+                                    bloc: getIt<CompareCubit>(),
+                                    builder: (context, compared) => ListingCard(
+                                      listing: listing,
+                                      preferences: cards.preferences,
+                                      selected: compared.contains(listing.id),
+                                      favourite: favourites.isFavourite(
+                                        listing.id,
+                                      ),
+                                      onTap: () => context.push(
+                                        AppRoutes.listingDetail(listing.id),
+                                      ),
+                                      onLongPress: () =>
+                                          _toggleCompare(context, listing.id),
                                     ),
-                                    onTap: () => context.push(
-                                      AppRoutes.listingDetail(listing.id),
-                                    ),
-                                    onLongPress: () =>
-                                        _toggleCompare(context, listing.id),
                                   ),
-                                ),
-                          );
-                        },
+                            );
+                          },
+                        ),
                       ),
                     ),
                   if (state.loadingMore)
@@ -370,6 +384,23 @@ class _OffersToolbar extends StatelessWidget {
               child: const Icon(Icons.tune, size: 18),
             ),
             label: const Text('Filtros'),
+          ),
+          BlocBuilder<ListingCardPreferencesCubit, ListingCardPreferencesState>(
+            bloc: getIt<ListingCardPreferencesCubit>(),
+            builder: (context, cards) => OutlinedButton.icon(
+              onPressed: () => showListingCardPreferences(context),
+              icon: Icon(
+                cards.status == ListingCardPreferencesStatus.failure
+                    ? Icons.warning_amber_outlined
+                    : Icons.view_agenda_outlined,
+                size: 18,
+              ),
+              label: Text(
+                cards.status == ListingCardPreferencesStatus.failure
+                    ? 'Cartões: tentar novamente'
+                    : 'Cartões',
+              ),
+            ),
           ),
           PopupMenuButton<ListingSort>(
             tooltip: 'Ordenar',
@@ -430,10 +461,15 @@ class _OffersToolbar extends StatelessWidget {
 }
 
 class _OffersGrid extends StatelessWidget {
-  const _OffersGrid({required this.itemCount, required this.itemBuilder});
+  const _OffersGrid({
+    required this.itemCount,
+    required this.itemBuilder,
+    this.preferences = const ListingCardPreferences.defaults(),
+  });
 
   final int itemCount;
   final IndexedWidgetBuilder itemBuilder;
+  final ListingCardPreferences preferences;
 
   @override
   Widget build(BuildContext context) => SliverLayoutBuilder(
@@ -454,7 +490,10 @@ class _OffersGrid extends StatelessWidget {
       return SliverGrid.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: columns,
-          mainAxisExtent: ListingCard.gridHeight(context),
+          mainAxisExtent: ListingCard.gridHeight(
+            context,
+            preferences: preferences,
+          ),
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
         ),

@@ -4,7 +4,8 @@ Rafael, 2026-10-22: "plan the paid features if in the future we want to
 start having paid subscriptions: what could we offer to people that pay
 (features we already have or don't have yet), and what would be other ways
 to make money". This file is the plan. Its steps are in the roadmap
-(Sprint 16) and nothing here is built yet. It waits for the sites'
+(Sprint 16); subscriptions, entitlements, checkout and paywalls are not built.
+It waits for the sites'
 permission (1.1, Rafael's decision). It is not legal or tax advice.
 Where it says "check", a lawyer or an accountant decides.
 
@@ -121,6 +122,7 @@ sale, and neither is a place in the list.
 | Feature (in the app) | Grátis | Pro / Passe |
 |---|---|---|
 | Ofertas with Deal Score, Risk Score and why | ✅ | ✅ |
+| Personalizar cartões dos anúncios (15.31; possible paid extra, not decided) | standard layout | choose the details shown |
 | Anúncio: price history, estimate, comparables, risk reasons | ✅ | ✅ |
 | Modelos acompanhados | 2 | 10 |
 | Pesquisas guardadas | 1 | unlimited |
@@ -135,6 +137,19 @@ sale, and neither is a place in the list.
 | Target-price and "back on the market" alerts | ⬜ | ✅ |
 | Mercado deste modelo, Comparar modelos (depreciation, time on sale) | ⬜ | ✅ |
 | "O stand": dealer figures | score only | ✅ |
+
+**Possible subscription benefit (Rafael, 2026-10-25): card customization.**
+The feature is available now to every signed-in account, free: choose the
+details shown in Ofertas and Favoritos, with the existing layout as the
+default and a reset option. Optional facts include first owner / owner
+count, service book, origin, warranties, colour, stand name and the ad's
+publication, renewal and first-found dates. If paid plans launch, keeping
+the standard layout free and offering the personal choice of fields with
+Pro/Passe is an option, not a decision. This does not put scores or
+explanations behind a paywall: Deal Score stays on the standard cards, and
+the full scores and explanations remain available on listing pages.
+No subscription check, payment flow or restriction is implemented by this
+feature; the permission and invited-account rules above still apply.
 
 ### 2.2 New features worth paying for (⬜)
 

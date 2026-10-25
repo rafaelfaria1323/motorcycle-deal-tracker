@@ -75,6 +75,10 @@ void main() {
             'model': 'MT-07',
             'images': ['https://ireland.apollo.olxcdn.com/v1/files/a/image'],
             'status': 'active',
+            'registrations': 1,
+            'service_book': true,
+            'published_at': '2026-10-09T12:00:00Z',
+            'card_risk_reasons': ['first_owner'],
           },
         ],
         'motorcycles': [
@@ -85,6 +89,11 @@ void main() {
 
     expect(page!.listings.single.id, 'l1');
     expect(page.listings.single.images, hasLength(1));
+    expect(page.listings.single.registrations, 1);
+    expect(page.listings.single.serviceBook, isTrue);
+    expect(page.listings.single.publishedAt, DateTime.utc(2026, 10, 9, 12));
+    expect(page.listings.single.hasFirstOwnerSignal, isTrue);
+    expect(page.listings.single.scoreBreakdown, isNull);
     expect(page.motorcycles.single.model, 'MT-07');
   });
 

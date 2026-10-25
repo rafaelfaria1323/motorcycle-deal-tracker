@@ -27,6 +27,85 @@ void main() {
     expect(listing.lastSeenAt, DateTime.utc(2026, 10, 19, 8));
     expect(listing.description, isNull);
     expect(listing.newPrice, isNull);
+    expect(listing.hasFirstOwnerSignal, isFalse);
+  });
+
+  test(
+    'summary queries fetch card facts without descriptions or full scores',
+    () {
+      final columns = ListingModel.summaryColumns
+          .split(',')
+          .map((column) => column.trim())
+          .toSet();
+      expect(
+        columns,
+        containsAll([
+          'registrations',
+          'service_book',
+          'origin',
+          'warranty_until',
+          'dealer_warranty_months',
+          'seller_name',
+          'published_at',
+          'site_refreshed_at',
+          'card_risk_reasons:score_breakdown->risk_reasons',
+        ]),
+      );
+      expect(columns, isNot(contains('description')));
+      expect(columns, isNot(contains('score_breakdown')));
+      expect(columns, isNot(contains('*')));
+
+      final listing = ListingModel.fromJson(
+        _row({
+          'registrations': 1,
+          'service_book': true,
+          'origin': 'national',
+          'warranty_until': '2027-03-01',
+          'dealer_warranty_months': 18,
+          'seller_name': 'Motos do Norte',
+          'published_at': '2026-10-09T12:00:00Z',
+          'site_refreshed_at': '2026-10-24T12:00:00Z',
+        }),
+      );
+      expect(listing.registrations, 1);
+      expect(listing.serviceBook, isTrue);
+      expect(listing.origin, 'national');
+      expect(listing.warrantyUntil, DateTime(2027, 3, 1));
+      expect(listing.dealerWarrantyMonths, 18);
+      expect(listing.sellerName, 'Motos do Norte');
+      expect(listing.publishedAt, DateTime.utc(2026, 10, 9, 12));
+      expect(listing.siteRefreshedAt, DateTime.utc(2026, 10, 24, 12));
+    },
+  );
+
+  test('first-owner signals work in summary and detail responses', () {
+    for (final fields in [
+      {
+        'card_risk_reasons': ['first_owner', 'service_book'],
+      },
+      {
+        'score_breakdown': {
+          'risk_reasons': ['first_owner'],
+        },
+      },
+    ]) {
+      expect(ListingModel.fromJson(_row(fields)).hasFirstOwnerSignal, isTrue);
+    }
+    final summary = ListingModel.fromJson(
+      _row({
+        'card_risk_reasons': ['first_owner'],
+      }),
+    );
+    expect(summary.scoreBreakdown, isNull);
+    expect(summary.description, isNull);
+    expect(
+      ListingModel.fromJson(
+        _row({
+          'card_risk_reasons': ['imported'],
+        }),
+      ).hasFirstOwnerSignal,
+      isFalse,
+    );
   });
 
   test('reads the colour and whether it is a favourite', () {

@@ -14,6 +14,7 @@ import 'package:motorcycle_deal_tracker/features/collector_status/domain/source_
 import 'package:motorcycle_deal_tracker/features/collector_status/presentation/collector_status_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/favourite.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_card_preferences.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_alert.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_filters.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_sort.dart';
@@ -22,16 +23,19 @@ import 'package:motorcycle_deal_tracker/features/listings/domain/entities/price_
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/saved_search.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/repositories/alerts_repository.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/repositories/favourites_repository.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/repositories/listing_card_preferences_repository.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/repositories/listings_repository.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/repositories/saved_searches_repository.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/alerts_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/compare_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/favourites_cubit.dart';
+import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/listing_card_preferences_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/listing_detail_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/listings_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/saved_searches_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/alerts_page.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/dashboard_page.dart';
+import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/favourites_page.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/listing_detail_page.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/saved_searches_page.dart';
 import 'package:motorcycle_deal_tracker/features/settings/domain/accounts_repository.dart';
@@ -39,6 +43,7 @@ import 'package:motorcycle_deal_tracker/features/settings/domain/home_repository
 import 'package:motorcycle_deal_tracker/features/settings/domain/place.dart';
 import 'package:motorcycle_deal_tracker/features/settings/domain/push_repository.dart';
 import 'package:motorcycle_deal_tracker/features/settings/presentation/more_page.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> loadInterfaceFonts() async {
   final body = FontLoader(AppTheme.bodyFont);
@@ -67,6 +72,14 @@ Listing interfaceListing(int index) => Listing(
   initialPrice: 6800 + index * 100.0,
   dealScore: 92 - index,
   riskScore: 10,
+  firstSeenAt: DateTime.utc(2026, 10, 23),
+  publishedAt: DateTime.utc(2026, 10, 9),
+  siteRefreshedAt: DateTime.utc(2026, 10, 24),
+  registrations: 1,
+  serviceBook: true,
+  origin: 'national',
+  colour: 'blue',
+  warrantyUntil: DateTime.utc(2027, 3, 1),
   location: 'Matosinhos',
   distanceKm: 8,
   myColour: index == 0,
@@ -77,17 +90,25 @@ Listing interfaceListing(int index) => Listing(
 );
 
 class InterfaceFixture {
-  InterfaceFixture({int total = 6, bool emptySearches = false})
-    : repository = InterfaceListings(total),
-      searchesRepository = InterfaceSearches(empty: emptySearches);
+  InterfaceFixture({
+    int total = 6,
+    bool emptySearches = false,
+    this.signedIn = false,
+    this.userChanges = const Stream.empty(),
+  }) : repository = InterfaceListings(total),
+       searchesRepository = InterfaceSearches(empty: emptySearches);
 
   final InterfaceListings repository;
   final InterfaceSearches searchesRepository;
+  final bool signedIn;
+  final Stream<User?> userChanges;
+  final cardPreferencesRepository = InterfaceCardPreferences();
   final alertsRepository = InterfaceAlerts();
   late final listings = ListingsCubit(repository);
   late final searches = SavedSearchesCubit(searchesRepository, repository);
   late final alerts = AlertsCubit(alertsRepository);
-  final favourites = FavouritesCubit(_Favourites());
+  final favouritesRepository = InterfaceFavourites();
+  late final favourites = FavouritesCubit(favouritesRepository);
   final compare = CompareCubit();
 
   Future<void> initialize() async {
@@ -104,8 +125,19 @@ class InterfaceFixture {
       dispose: (c) => c.close(),
     );
     getIt.registerSingleton<CompareCubit>(compare, dispose: (c) => c.close());
-    getIt.registerSingleton<SessionCubit>(
-      SessionCubit(const SessionState(), const Stream.empty()),
+    final session = SessionCubit(
+      signedIn
+          ? const SessionState(
+              userId: 'interface-user',
+              email: 'owner@example.pt',
+              signedIn: true,
+            )
+          : const SessionState(),
+      userChanges,
+    );
+    getIt.registerSingleton<SessionCubit>(session, dispose: (c) => c.close());
+    getIt.registerSingleton<ListingCardPreferencesCubit>(
+      ListingCardPreferencesCubit(cardPreferencesRepository, session),
       dispose: (c) => c.close(),
     );
     final runs = _Runs();
@@ -174,6 +206,10 @@ class InterfaceFixture {
             ],
           ),
         ],
+      ),
+      GoRoute(
+        path: AppRoutes.favourites,
+        builder: (_, _) => const FavouritesPage(),
       ),
       GoRoute(
         path: '/deals/:id',
@@ -322,9 +358,33 @@ class InterfaceAlerts implements AlertsRepository {
   Future<void> markAllRead() async => allRead = true;
 }
 
-class _Favourites implements FavouritesRepository {
+class InterfaceCardPreferences implements ListingCardPreferencesRepository {
+  ListingCardPreferences value = const ListingCardPreferences.defaults();
+  bool failReads = false;
+  bool failWrites = false;
+  Future<void>? saveDelay;
+  int saves = 0;
+
   @override
-  Future<List<Favourite>> getAll() async => [];
+  Future<ListingCardPreferences> get(String userId) async {
+    if (failReads) throw StateError('Offline');
+    return value;
+  }
+
+  @override
+  Future<void> save(String userId, ListingCardPreferences preferences) async {
+    if (failWrites) throw StateError('Offline');
+    if (saveDelay case final delay?) await delay;
+    value = preferences;
+    ++saves;
+  }
+}
+
+class InterfaceFavourites implements FavouritesRepository {
+  final values = <Favourite>[];
+
+  @override
+  Future<List<Favourite>> getAll() async => values;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

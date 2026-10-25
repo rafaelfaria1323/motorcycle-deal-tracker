@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,14 +9,21 @@ import 'package:motorcycle_deal_tracker/app/router/app_routes.dart';
 import 'package:motorcycle_deal_tracker/app/theme/app_theme.dart';
 import 'package:motorcycle_deal_tracker/core/widgets/section_card.dart';
 import 'package:motorcycle_deal_tracker/core/widgets/state_message.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/entities/favourite.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_card_preferences.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_filters.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_sort.dart';
+import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/listing_card_preferences_cubit.dart';
+import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/favourites_page.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/listing_detail_page.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/photo_viewer_args.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/deal_score_badge.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/listing_card.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/photo_gallery.dart';
+import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/price_change_tag.dart';
+import 'package:motorcycle_deal_tracker/features/settings/presentation/listing_card_preferences_tile.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../integration_test/support/interface_fixture.dart';
 
@@ -54,6 +63,13 @@ Future<void> _reveal(WidgetTester tester, Finder finder) async {
     200,
     scrollable: find.byType(Scrollable).first,
   );
+  await tester.pumpAndSettle();
+}
+
+Future<void> _toggleCardField(WidgetTester tester, String label) async {
+  final field = find.widgetWithText(CheckboxListTile, label);
+  await tester.ensureVisible(field);
+  await tester.tap(field);
   await tester.pumpAndSettle();
 }
 
@@ -113,55 +129,441 @@ void main() {
     });
   }
 
-  for (final scale in [1.0, 1.25]) {
-    testWidgets('grid cards accommodate long model names at ${scale}x text', (
-      tester,
-    ) async {
-      _screen(tester, const Size(660, 1000));
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.light,
-          home: Scaffold(
-            body: MediaQuery(
-              data: MediaQueryData(textScaler: TextScaler.linear(scale)),
-              child: Builder(
-                builder: (context) => Align(
-                  alignment: Alignment.topLeft,
-                  child: SizedBox(
-                    width: 300,
-                    height: ListingCard.gridHeight(context),
-                    child: ListingCard(
-                      listing: const Listing(
-                        id: 'long-model',
-                        source: 'standvirtual',
-                        url: 'https://www.standvirtual.com/motos/anuncio/test',
-                        brand: 'Harley-Davidson',
-                        model: 'Sportster S 1250 Revolution Max',
-                        status: ListingStatus.active,
-                        sellerType: SellerType.private,
-                        images: [],
-                        year: 2023,
-                        mileage: 123456,
-                        price: 12990,
-                        initialPrice: 13990,
-                        dealScore: 80,
-                        riskScore: 10,
-                        location: 'Vila Nova de Gaia',
-                        distanceKm: 128,
+  for (final scale in [1.0, 1.1, 1.25]) {
+    for (final preferences in [
+      const ListingCardPreferences.defaults(),
+      ListingCardPreferences(ListingCardField.values),
+      ListingCardPreferences([]),
+    ]) {
+      testWidgets(
+        'grid cards fit long names with ${preferences.fields.length} fields at ${scale}x text',
+        (tester) async {
+          _screen(tester, const Size(660, 1000));
+          await tester.pumpWidget(
+            MaterialApp(
+              theme: AppTheme.light,
+              home: Scaffold(
+                body: SingleChildScrollView(
+                  child: MediaQuery(
+                    data: MediaQueryData(textScaler: TextScaler.linear(scale)),
+                    child: Builder(
+                      builder: (context) => Align(
+                        alignment: Alignment.topLeft,
+                        child: SizedBox(
+                          width: 300,
+                          height: ListingCard.gridHeight(
+                            context,
+                            preferences: preferences,
+                          ),
+                          child: ListingCard(
+                            preferences: preferences,
+                            listing: Listing(
+                              id: 'long-model',
+                              source: 'standvirtual',
+                              url:
+                                  'https://www.standvirtual.com/motos/anuncio/test',
+                              brand: 'Harley-Davidson',
+                              model: 'Sportster S 1250 Revolution Max',
+                              status: ListingStatus.active,
+                              sellerType: SellerType.dealer,
+                              sellerName: List.filled(
+                                8,
+                                'Motos e acessórios do Norte',
+                              ).join(' '),
+                              images: const [],
+                              year: 2023,
+                              mileage: 123456,
+                              price: 12990,
+                              initialPrice: 13990,
+                              dealScore: 80,
+                              riskScore: 10,
+                              firstSeenAt: DateTime.utc(2026, 10, 23),
+                              publishedAt: DateTime.utc(2026, 4, 3),
+                              siteRefreshedAt: DateTime.utc(2026, 10, 24),
+                              registrations: 1,
+                              serviceBook: true,
+                              origin: 'imported',
+                              colour: 'blue',
+                              warrantyUntil: DateTime.utc(2027, 3, 1),
+                              dealerWarrantyMonths: 18,
+                              location: 'Vila Nova de Gaia',
+                              distanceKm: 128,
+                            ),
+                            onTap: () {},
+                            onLongPress: () {},
+                          ),
+                        ),
                       ),
-                      onTap: () {},
-                      onLongPress: () {},
                     ),
                   ),
                 ),
               ),
             ),
+          );
+          await tester.pumpAndSettle();
+          expect(find.text('Comparar'), findsOneWidget);
+          if (preferences.shows(ListingCardField.registrations)) {
+            expect(find.text('Primeiro dono'), findsOneWidget);
+          }
+          if (preferences.shows(ListingCardField.sellerName)) {
+            final seller = find.byWidgetPredicate(
+              (widget) =>
+                  widget is Text &&
+                  (widget.data?.startsWith('Stand: ') ?? false),
+            );
+            expect(tester.widget<Text>(seller).maxLines, 2);
+          }
+          final card = find.byType(ListingCard);
+          expect(
+            tester.getSize(card).height,
+            ListingCard.gridHeight(
+              tester.element(card),
+              preferences: preferences,
+            ),
+          );
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
+
+  for (final scale in [1.0, 2.0]) {
+    testWidgets('owners and publication can be chosen at ${scale}x text', (
+      tester,
+    ) async {
+      final fixture = InterfaceFixture(signedIn: true);
+      await _open(
+        tester,
+        fixture,
+        size: const Size(320, 720),
+        textScale: scale,
+      );
+      final customize = find.widgetWithText(OutlinedButton, 'Cartões');
+      await _reveal(tester, customize);
+      await tester.tap(customize);
+      await tester.pumpAndSettle();
+      await _toggleCardField(tester, 'Donos / primeiro dono');
+      await _toggleCardField(tester, 'Data de publicação');
+      await tester.tap(find.widgetWithText(FilledButton, 'Guardar'));
+      await tester.pumpAndSettle();
+      final card = find.byType(ListingCard).first;
+      await _reveal(tester, card);
+      expect(
+        find.descendant(of: card, matching: find.text('Primeiro dono')),
+        findsOneWidget,
+      );
+      final published = find.descendant(
+        of: card,
+        matching: find.byWidgetPredicate(
+          (widget) =>
+              widget is Text &&
+              (widget.data?.startsWith('Publicado: 09/10/2026') ?? false),
+        ),
+      );
+      expect(published, findsOneWidget);
+      expect(tester.widget<Text>(published).maxLines, isNull);
+      expect(
+        fixture.cardPreferencesRepository.value.shows(
+          ListingCardField.registrations,
+        ),
+        isTrue,
+      );
+      expect(
+        fixture.cardPreferencesRepository.value.shows(
+          ListingCardField.publishedAt,
+        ),
+        isTrue,
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('card choices save, cancel and reset at ${scale}x text', (
+      tester,
+    ) async {
+      final fixture = InterfaceFixture(signedIn: true);
+      await _open(
+        tester,
+        fixture,
+        size: const Size(320, 720),
+        textScale: scale,
+      );
+      final customize = find.widgetWithText(OutlinedButton, 'Cartões');
+      await _reveal(tester, customize);
+      await tester.tap(customize);
+      await tester.pumpAndSettle();
+      await _toggleCardField(tester, 'Quilometragem');
+      await _toggleCardField(tester, 'Risk Score');
+      expect(fixture.cardPreferencesRepository.saves, 0);
+      await tester.tap(find.text('Cancelar'));
+      await tester.pumpAndSettle();
+      expect(
+        fixture.cardPreferencesRepository.value,
+        const ListingCardPreferences.defaults(),
+      );
+
+      await tester.tap(customize);
+      await tester.pumpAndSettle();
+      await _toggleCardField(tester, 'Quilometragem');
+      await _toggleCardField(tester, 'Risk Score');
+      await tester.tap(find.widgetWithText(FilledButton, 'Guardar'));
+      await tester.pumpAndSettle();
+      expect(fixture.cardPreferencesRepository.saves, 1);
+      expect(
+        fixture.cardPreferencesRepository.value.shows(ListingCardField.mileage),
+        isFalse,
+      );
+      final card = find.byType(ListingCard).first;
+      await _reveal(tester, card);
+      expect(
+        tester.widget<ListingCard>(card).preferences,
+        fixture.cardPreferencesRepository.value,
+      );
+      expect(
+        find.descendant(of: card, matching: find.byIcon(Icons.speed)),
+        findsNothing,
+      );
+      expect(
+        find.descendant(of: card, matching: find.text('Risk Score: 10/100')),
+        findsOneWidget,
+      );
+
+      await tester.scrollUntilVisible(
+        customize,
+        -200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await Scrollable.ensureVisible(tester.element(customize), alignment: 0.5);
+      await tester.pumpAndSettle();
+      await tester.tap(customize);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Repor predefinições'));
+      await tester.tap(find.text('Repor predefinições'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Guardar'));
+      await tester.pumpAndSettle();
+      expect(
+        fixture.cardPreferencesRepository.value,
+        const ListingCardPreferences.defaults(),
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets(
+    'saved choices apply to favourites without hiding essential state',
+    (tester) async {
+      final fixture = InterfaceFixture(signedIn: true);
+      fixture.cardPreferencesRepository.value = ListingCardPreferences([
+        ListingCardField.riskScore,
+        ListingCardField.registrations,
+        ListingCardField.publishedAt,
+      ]);
+      fixture.favouritesRepository.values.add(
+        Favourite(
+          listingId: interfaceListing(0).id,
+          createdAt: DateTime.utc(2026, 10, 23),
+          listing: interfaceListing(0),
+          note: 'Ver no sábado',
+        ),
+      );
+      await _open(tester, fixture, location: AppRoutes.favourites);
+      final card = find.byType(ListingCard);
+      expect(
+        find.descendant(of: card, matching: find.text('Yamaha MT-07')),
+        findsOneWidget,
+      );
+      expect(find.text('Risk Score: 10/100'), findsOneWidget);
+      expect(find.text('Primeiro dono'), findsOneWidget);
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is Text &&
+              (widget.data?.startsWith('Publicado: 09/10/2026') ?? false),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byType(DealScoreBadge), findsNothing);
+      expect(find.byType(PriceChangeTag), findsNothing);
+      expect(find.byIcon(Icons.speed), findsNothing);
+      expect(find.byIcon(Icons.place_outlined), findsNothing);
+      expect(find.byIcon(Icons.star), findsOneWidget);
+      expect(find.text('Ver no sábado'), findsOneWidget);
+
+      await getIt<ListingCardPreferencesCubit>().save(
+        const ListingCardPreferences.defaults(),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.speed), findsOneWidget);
+      expect(find.byType(DealScoreBadge), findsOneWidget);
+      expect(find.byType(PriceChangeTag), findsOneWidget);
+      expect(find.text('Risk Score: 10/100'), findsNothing);
+      expect(find.text('Primeiro dono'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'a card with no optional fields retains removed and comparison controls',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light,
+          home: Scaffold(
+            body: ListingCard(
+              preferences: ListingCardPreferences([]),
+              listing: const Listing(
+                id: 'removed',
+                source: 'olx',
+                url: 'https://example.pt/removed',
+                brand: 'Yamaha',
+                model: 'MT-07',
+                status: ListingStatus.removed,
+                sellerType: SellerType.private,
+                images: [],
+                price: 6500,
+                myColour: true,
+              ),
+              favourite: true,
+              onLongPress: () {},
+            ),
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      expect(find.text('Yamaha MT-07'), findsOneWidget);
+      expect(find.text('Removido'), findsOneWidget);
       expect(find.text('Comparar'), findsOneWidget);
-    });
+      expect(find.byIcon(Icons.star), findsOneWidget);
+      expect(find.text('Cor preferida'), findsNothing);
+      expect(find.text('OLX'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'card preference load and save errors are visible and retryable',
+    (tester) async {
+      final fixture = InterfaceFixture(signedIn: true);
+      fixture.cardPreferencesRepository.failReads = true;
+      await _open(tester, fixture);
+      await tester.tap(find.text('Cartões: tentar novamente'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          'Não foi possível carregar as suas escolhas. Tente novamente.',
+        ),
+        findsOneWidget,
+      );
+      fixture.cardPreferencesRepository.failReads = false;
+      await tester.ensureVisible(find.text('Tentar novamente'));
+      await tester.tap(find.text('Tentar novamente'));
+      await tester.pumpAndSettle();
+      await _toggleCardField(tester, 'Quilometragem');
+      fixture.cardPreferencesRepository.failWrites = true;
+      await tester.tap(find.widgetWithText(FilledButton, 'Guardar'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.text(
+          'Não foi possível guardar as suas escolhas. Tente novamente.',
+        ),
+      );
+      expect(
+        find.text(
+          'Não foi possível guardar as suas escolhas. Tente novamente.',
+        ),
+        findsOneWidget,
+      );
+      expect(fixture.cardPreferencesRepository.saves, 0);
+      fixture.cardPreferencesRepository.failWrites = false;
+      await tester.tap(find.widgetWithText(FilledButton, 'Guardar'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(fixture.cardPreferencesRepository.saves, 1);
+    },
+  );
+
+  testWidgets(
+    'anonymous visitors keep default cards and are asked to sign in',
+    (tester) async {
+      final fixture = InterfaceFixture();
+      await _open(tester, fixture);
+      await tester.tap(find.text('Cartões'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Inicie sessão para personalizar os cartões dos anúncios.'),
+        findsOneWidget,
+      );
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(fixture.cardPreferencesRepository.saves, 0);
+    },
+  );
+
+  testWidgets('signing out closes an open card draft and clears its choices', (
+    tester,
+  ) async {
+    final users = StreamController<User?>();
+    addTearDown(users.close);
+    final fixture = InterfaceFixture(signedIn: true, userChanges: users.stream);
+    await _open(tester, fixture);
+    await tester.tap(find.text('Cartões'));
+    await tester.pumpAndSettle();
+    await _toggleCardField(tester, 'Risk Score');
+    users.add(null);
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(getIt<ListingCardPreferencesCubit>().state.userId, isNull);
+    expect(
+      getIt<ListingCardPreferencesCubit>().state.preferences,
+      const ListingCardPreferences.defaults(),
+    );
+    expect(fixture.cardPreferencesRepository.saves, 0);
+  });
+
+  for (final lateSave in [false, true]) {
+    testWidgets(
+      'card dialog keeps the page beneath during ${lateSave ? 'a late save' : 'an account switch'}',
+      (tester) async {
+        final users = StreamController<User?>();
+        addTearDown(users.close);
+        final fixture = InterfaceFixture(
+          signedIn: true,
+          userChanges: users.stream,
+        );
+        final pendingSave = Completer<void>();
+        if (lateSave) {
+          fixture.cardPreferencesRepository.saveDelay = pendingSave.future;
+        }
+        final router = await _open(tester, fixture, location: AppRoutes.more);
+        unawaited(router.push<void>(AppRoutes.favourites));
+        await tester.pumpAndSettle();
+        unawaited(
+          showListingCardPreferences(
+            tester.element(find.byType(FavouritesPage)),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        if (lateSave) {
+          await _toggleCardField(tester, 'Quilometragem');
+          await tester.tap(find.widgetWithText(FilledButton, 'Guardar'));
+          await tester.pump();
+          await tester.tapAt(const Offset(2, 2));
+          await tester.pump();
+          pendingSave.complete();
+        } else {
+          users.add(
+            User(
+              id: 'another-user',
+              appMetadata: const {},
+              userMetadata: const {},
+              aud: 'authenticated',
+              createdAt: '2026-10-25T00:00:00Z',
+            ),
+          );
+        }
+        await tester.pumpAndSettle();
+        expect(find.byType(AlertDialog), findsNothing);
+        expect(find.byType(FavouritesPage), findsOneWidget);
+        expect(router.canPop(), isTrue);
+        expect(tester.takeException(), isNull);
+      },
+    );
   }
 
   testWidgets('comparison has a visible control and does not open the ad', (
