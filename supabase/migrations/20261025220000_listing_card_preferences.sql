@@ -25,9 +25,9 @@ create policy "Accounts manage their own card preferences"
   for all to authenticated
   using (
     user_id = (select auth.uid())
-    and not (select coalesce((auth.jwt() ->> 'is_anonymous')::boolean, true))
+    and not coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, true)
   )
   with check (
     user_id = (select auth.uid())
-    and not (select coalesce((auth.jwt() ->> 'is_anonymous')::boolean, true))
+    and not coalesce(((select auth.jwt()) ->> 'is_anonymous')::boolean, true)
   );

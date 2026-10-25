@@ -15,12 +15,14 @@ import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listin
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_filters.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_sort.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/listing_card_preferences_cubit.dart';
+import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/favourites_page.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/listing_detail_page.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/photo_viewer_args.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/deal_score_badge.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/listing_card.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/photo_gallery.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/price_change_tag.dart';
+import 'package:motorcycle_deal_tracker/features/settings/presentation/listing_card_preferences_tile.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../integration_test/support/interface_fixture.dart';
@@ -418,6 +420,57 @@ void main() {
     );
     expect(fixture.cardPreferencesRepository.saves, 0);
   });
+
+  for (final lateSave in [false, true]) {
+    testWidgets(
+      'card dialog keeps the page beneath during ${lateSave ? 'a late save' : 'an account switch'}',
+      (tester) async {
+        final users = StreamController<User?>();
+        addTearDown(users.close);
+        final fixture = InterfaceFixture(
+          signedIn: true,
+          userChanges: users.stream,
+        );
+        final pendingSave = Completer<void>();
+        if (lateSave) {
+          fixture.cardPreferencesRepository.saveDelay = pendingSave.future;
+        }
+        final router = await _open(tester, fixture, location: AppRoutes.more);
+        unawaited(router.push<void>(AppRoutes.favourites));
+        await tester.pumpAndSettle();
+        unawaited(
+          showListingCardPreferences(
+            tester.element(find.byType(FavouritesPage)),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        if (lateSave) {
+          await _toggleCardField(tester, 'Quilometragem');
+          await tester.tap(find.widgetWithText(FilledButton, 'Guardar'));
+          await tester.pump();
+          await tester.tapAt(const Offset(2, 2));
+          await tester.pump();
+          pendingSave.complete();
+        } else {
+          users.add(
+            User(
+              id: 'another-user',
+              appMetadata: const {},
+              userMetadata: const {},
+              aud: 'authenticated',
+              createdAt: '2026-10-25T00:00:00Z',
+            ),
+          );
+        }
+        await tester.pumpAndSettle();
+        expect(find.byType(AlertDialog), findsNothing);
+        expect(find.byType(FavouritesPage), findsOneWidget);
+        expect(router.canPop(), isTrue);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
 
   testWidgets('comparison has a visible control and does not open the ad', (
     tester,

@@ -70,7 +70,9 @@ class _CardPreferencesDialogState extends State<_CardPreferencesDialog> {
     final saved = await widget.cubit.save(
       _draft ?? widget.cubit.state.preferences,
     );
-    if (saved && mounted) Navigator.of(context).pop(true);
+    if (saved && mounted && ModalRoute.of(context)?.isCurrent == true) {
+      Navigator.of(context).pop(true);
+    }
   }
 
   @override
@@ -79,7 +81,10 @@ class _CardPreferencesDialogState extends State<_CardPreferencesDialog> {
   ) => BlocConsumer<ListingCardPreferencesCubit, ListingCardPreferencesState>(
     bloc: widget.cubit,
     listener: (context, state) {
-      if (state.userId != _userId) Navigator.of(context).pop();
+      if (state.userId != _userId &&
+          ModalRoute.of(context)?.isCurrent == true) {
+        Navigator.of(context).pop();
+      }
     },
     builder: (context, state) {
       final preferences = _draft ?? state.preferences;

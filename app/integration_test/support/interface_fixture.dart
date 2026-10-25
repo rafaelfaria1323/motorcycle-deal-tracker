@@ -355,6 +355,7 @@ class InterfaceCardPreferences implements ListingCardPreferencesRepository {
   ListingCardPreferences value = const ListingCardPreferences.defaults();
   bool failReads = false;
   bool failWrites = false;
+  Future<void>? saveDelay;
   int saves = 0;
 
   @override
@@ -366,6 +367,7 @@ class InterfaceCardPreferences implements ListingCardPreferencesRepository {
   @override
   Future<void> save(String userId, ListingCardPreferences preferences) async {
     if (failWrites) throw StateError('Offline');
+    if (saveDelay case final delay?) await delay;
     value = preferences;
     ++saves;
   }
