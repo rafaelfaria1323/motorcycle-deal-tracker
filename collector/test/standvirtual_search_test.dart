@@ -317,6 +317,7 @@ void main() {
   final savedPage = File('samples/standvirtual/search/motos-yamaha-mt-07.html');
   test(
     'a saved search page has every listing\'s publication date',
+    skip: savedPage.existsSync() ? false : 'no saved search page here',
     () async {
       final page = adapter.parseSearchPage(await savedPage.readAsString());
 
@@ -325,7 +326,6 @@ void main() {
       // Only ads the seller pushed back to the top have a bump date.
       expect(page.records.any((r) => r.bumpedAt != null), isTrue);
     },
-    skip: savedPage.existsSync() ? false : 'no saved search page here',
   );
 
   group('price cuts the site reports', () {
