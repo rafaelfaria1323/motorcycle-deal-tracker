@@ -8,6 +8,7 @@ import '../../../../core/widgets/page_back_button.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../cubit/favourites_cubit.dart';
 import '../cubit/favourites_state.dart';
+import '../cubit/listing_card_preferences_cubit.dart';
 import '../favourites_text.dart';
 import '../viewing_checklist.dart';
 import '../widgets/listing_card.dart';
@@ -59,51 +60,69 @@ class FavouritesPage extends StatelessWidget {
               final muted = theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               );
-              return RefreshIndicator(
-                onRefresh: cubit.load,
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 560),
-                    child: ListView(
-                      padding: const EdgeInsets.all(16),
-                      children: [
-                        Text(favouritesCountText(favourites), style: muted),
-                        const SizedBox(height: 12),
-                        for (final f in favourites) ...[
-                          ListingCard(
-                            listing: f.listing!,
-                            favourite: true,
-                            onTap: () => context.push(
-                              AppRoutes.listingDetail(f.listingId),
+              return BlocBuilder<
+                ListingCardPreferencesCubit,
+                ListingCardPreferencesState
+              >(
+                bloc: getIt<ListingCardPreferencesCubit>(),
+                builder: (context, cards) => RefreshIndicator(
+                  onRefresh: cubit.load,
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 560),
+                      child: ListView(
+                        padding: const EdgeInsets.all(16),
+                        children: [
+                          Text(favouritesCountText(favourites), style: muted),
+                          if (cards.status ==
+                              ListingCardPreferencesStatus.failure)
+                            TextButton.icon(
+                              onPressed:
+                                  getIt<ListingCardPreferencesCubit>().load,
+                              icon: const Icon(Icons.refresh),
+                              label: const Text(
+                                'Não foi possível carregar os cartões. '
+                                'Tentar novamente',
+                              ),
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(4, 8, 4, 24),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (f.note != null) ...[
-                                  Text(
-                                    f.note!,
-                                    style: theme.textTheme.bodyMedium,
-                                  ),
-                                  const SizedBox(height: 4),
-                                ],
-                                if (f.checklist.isNotEmpty) ...[
-                                  Text(
-                                    checklistIssuesText(f.checklist) ??
-                                        checklistSummaryText(f.checklist),
-                                    style: theme.textTheme.bodyMedium,
-                                  ),
-                                  const SizedBox(height: 4),
-                                ],
-                                Text(favouriteSinceText(f), style: muted),
-                              ],
+                          const SizedBox(height: 12),
+                          for (final f in favourites) ...[
+                            ListingCard(
+                              listing: f.listing!,
+                              favourite: true,
+                              preferences: cards.preferences,
+                              onTap: () => context.push(
+                                AppRoutes.listingDetail(f.listingId),
+                              ),
                             ),
-                          ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(4, 8, 4, 24),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (f.note != null) ...[
+                                    Text(
+                                      f.note!,
+                                      style: theme.textTheme.bodyMedium,
+                                    ),
+                                    const SizedBox(height: 4),
+                                  ],
+                                  if (f.checklist.isNotEmpty) ...[
+                                    Text(
+                                      checklistIssuesText(f.checklist) ??
+                                          checklistSummaryText(f.checklist),
+                                      style: theme.textTheme.bodyMedium,
+                                    ),
+                                    const SizedBox(height: 4),
+                                  ],
+                                  Text(favouriteSinceText(f), style: muted),
+                                ],
+                              ),
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
                 ),

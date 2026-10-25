@@ -1,4 +1,5 @@
 import '../domain/entities/listing.dart';
+import '../domain/entities/listing_card_preferences.dart';
 import '../domain/entities/listing_sort.dart';
 
 extension ListingSortLabel on ListingSort {
@@ -26,6 +27,21 @@ extension SellerTypeLabel on SellerType {
     SellerType.private => 'Particular',
     SellerType.dealer => 'Profissional',
     SellerType.unknown => 'Desconhecido',
+  };
+}
+
+extension ListingCardFieldLabel on ListingCardField {
+  String get label => switch (this) {
+    ListingCardField.source => 'Site de origem',
+    ListingCardField.dealScore => 'Deal Score',
+    ListingCardField.priceChange => 'Variação do preço',
+    ListingCardField.year => 'Ano',
+    ListingCardField.mileage => 'Quilometragem',
+    ListingCardField.location => 'Localização e distância',
+    ListingCardField.preferredColour => 'Indicação de cor preferida',
+    ListingCardField.riskScore => 'Risk Score',
+    ListingCardField.sellerType => 'Tipo de vendedor',
+    ListingCardField.firstSeenAt => 'Quando foi encontrado',
   };
 }
 

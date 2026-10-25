@@ -4,6 +4,8 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/formatting/formatters.dart';
 import '../../domain/entities/listing.dart';
+import '../../domain/entities/listing_card_preferences.dart';
+import '../listing_card_text.dart';
 import '../listing_detail_text.dart';
 import '../listing_labels.dart';
 import 'deal_score_badge.dart';
@@ -17,6 +19,7 @@ class ListingCard extends StatelessWidget {
     this.onLongPress,
     this.selected = false,
     this.favourite = false,
+    this.preferences = const ListingCardPreferences.defaults(),
     super.key,
   });
 
@@ -28,16 +31,34 @@ class ListingCard extends StatelessWidget {
 
   final bool selected;
   final bool favourite;
+  final ListingCardPreferences preferences;
 
   static const photoHeight = 180.0;
 
-  static double gridHeight(BuildContext context) =>
-      390 + (MediaQuery.textScalerOf(context).scale(16) - 16) * 10;
+  static double gridHeight(
+    BuildContext context, {
+    ListingCardPreferences preferences =
+        const ListingCardPreferences.defaults(),
+  }) {
+    final extraRows = ListingCardPreferences.additionalFields
+        .where(preferences.shows)
+        .length;
+    final hasFacts =
+        preferences.shows(ListingCardField.year) ||
+        preferences.shows(ListingCardField.mileage) ||
+        extraRows > 0;
+    return 390 -
+        (hasFacts ? 0 : 32) +
+        extraRows * 30 +
+        (MediaQuery.textScalerOf(context).scale(16) - 16) *
+            (10 + extraRows * 2);
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final shape = theme.cardTheme.shape;
+    final showLocation = preferences.shows(ListingCardField.location);
 
     return Card(
       margin: EdgeInsets.zero,
@@ -57,15 +78,22 @@ class ListingCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
               children: [
-                _CardPhoto(listing: listing, favourite: favourite),
-                _CardDetails(listing: listing),
-                if (constraints.hasBoundedHeight) const Spacer(),
-                const Divider(),
-                _CardFooter(
+                _CardPhoto(
                   listing: listing,
-                  selected: selected,
-                  onCompare: onLongPress,
+                  favourite: favourite,
+                  preferences: preferences,
                 ),
+                _CardDetails(listing: listing, preferences: preferences),
+                if (constraints.hasBoundedHeight) const Spacer(),
+                if (showLocation || onLongPress != null) ...[
+                  const Divider(),
+                  _CardFooter(
+                    listing: listing,
+                    selected: selected,
+                    onCompare: onLongPress,
+                    showLocation: showLocation,
+                  ),
+                ],
               ],
             ),
           ),
@@ -76,13 +104,23 @@ class ListingCard extends StatelessWidget {
 }
 
 class _CardPhoto extends StatelessWidget {
-  const _CardPhoto({required this.listing, required this.favourite});
+  const _CardPhoto({
+    required this.listing,
+    required this.favourite,
+    required this.preferences,
+  });
 
   final Listing listing;
   final bool favourite;
+  final ListingCardPreferences preferences;
 
   @override
   Widget build(BuildContext context) {
+    final score = preferences.shows(ListingCardField.dealScore)
+        ? listing.dealScore
+        : null;
+    final preferredColour =
+        preferences.shows(ListingCardField.preferredColour) && listing.myColour;
     return SizedBox(
       height: ListingCard.photoHeight,
       child: Stack(
@@ -91,22 +129,23 @@ class _CardPhoto extends StatelessWidget {
           ListingPhoto(
             url: listing.images.isEmpty ? null : listing.images.first,
           ),
-          Positioned(
-            top: 12,
-            left: 12,
-            right: 100,
-            child: Align(
-              alignment: Alignment.topLeft,
-              child: _PhotoPill(sourceLabel(listing.source)),
+          if (preferences.shows(ListingCardField.source))
+            Positioned(
+              top: 12,
+              left: 12,
+              right: preferences.shows(ListingCardField.dealScore) ? 100 : 12,
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: _PhotoPill(sourceLabel(listing.source)),
+              ),
             ),
-          ),
-          if (listing.dealScore case final score?)
+          if (score != null)
             Positioned(
               top: 12,
               right: 12,
               child: DealScoreBadge(score: score, showLabel: true),
             ),
-          if (listing.isRemoved || listing.myColour)
+          if (listing.isRemoved || preferredColour)
             Positioned(
               bottom: 12,
               left: 12,
@@ -116,7 +155,7 @@ class _CardPhoto extends StatelessWidget {
                 runSpacing: 6,
                 children: [
                   if (listing.isRemoved) const _PhotoPill('Removido'),
-                  if (listing.myColour)
+                  if (preferredColour)
                     const _PhotoPill(
                       'Cor preferida',
                       icon: Icons.palette_outlined,
@@ -146,15 +185,20 @@ class _CardPhoto extends StatelessWidget {
 }
 
 class _CardDetails extends StatelessWidget {
-  const _CardDetails({required this.listing});
+  const _CardDetails({required this.listing, required this.preferences});
 
   final Listing listing;
+  final ListingCardPreferences preferences;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final muted = theme.colorScheme.onSurfaceVariant;
+    final showYear =
+        preferences.shows(ListingCardField.year) && listing.year != null;
+    final showMileage = preferences.shows(ListingCardField.mileage);
+    final extraFacts = listingCardExtraFacts(listing, preferences);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
@@ -183,40 +227,64 @@ class _CardDetails extends StatelessWidget {
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
-              PriceChangeTag(listing: listing),
+              if (preferences.shows(ListingCardField.priceChange))
+                PriceChangeTag(listing: listing),
             ],
           ),
-          const SizedBox(height: 12),
-          DefaultTextStyle.merge(
-            style: textTheme.bodyMedium?.copyWith(color: muted),
-            child: IconTheme.merge(
-              data: IconThemeData(size: 16, color: muted),
-              child: Wrap(
-                spacing: 16,
-                runSpacing: 6,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  if (listing.year != null)
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      spacing: 5,
-                      children: [
-                        const Icon(Icons.calendar_today_outlined),
-                        Text('${listing.year}'),
-                      ],
-                    ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    spacing: 5,
-                    children: [
-                      const Icon(Icons.speed),
-                      Text(Formatters.mileage(listing.mileage)),
-                    ],
-                  ),
-                ],
+          if (showYear || showMileage || extraFacts.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            DefaultTextStyle.merge(
+              style: textTheme.bodyMedium?.copyWith(color: muted),
+              child: IconTheme.merge(
+                data: IconThemeData(size: 16, color: muted),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 8,
+                  children: [
+                    if (showYear || showMileage)
+                      Wrap(
+                        spacing: 16,
+                        runSpacing: 6,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          if (showYear)
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              spacing: 5,
+                              children: [
+                                const Icon(Icons.calendar_today_outlined),
+                                Text('${listing.year}'),
+                              ],
+                            ),
+                          if (showMileage)
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              spacing: 5,
+                              children: [
+                                const Icon(Icons.speed),
+                                Text(Formatters.mileage(listing.mileage)),
+                              ],
+                            ),
+                        ],
+                      ),
+                    for (final (field, text) in extraFacts)
+                      Row(
+                        spacing: 5,
+                        children: [
+                          Icon(switch (field) {
+                            ListingCardField.riskScore => Icons.shield_outlined,
+                            ListingCardField.sellerType => Icons.store_outlined,
+                            ListingCardField.firstSeenAt => Icons.schedule,
+                            _ => throw ArgumentError.value(field),
+                          }),
+                          Expanded(child: Text(text)),
+                        ],
+                      ),
+                  ],
+                ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -228,11 +296,13 @@ class _CardFooter extends StatelessWidget {
     required this.listing,
     required this.selected,
     required this.onCompare,
+    required this.showLocation,
   });
 
   final Listing listing;
   final bool selected;
   final VoidCallback? onCompare;
+  final bool showLocation;
 
   @override
   Widget build(BuildContext context) {
@@ -244,16 +314,19 @@ class _CardFooter extends StatelessWidget {
       padding: const EdgeInsets.only(left: 16, right: 4),
       child: Row(
         children: [
-          Icon(Icons.place_outlined, size: 16, color: muted),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Text(
-              placeText(listing) ?? 'Localização não indicada',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodySmall?.copyWith(color: muted),
+          if (showLocation) ...[
+            Icon(Icons.place_outlined, size: 16, color: muted),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(
+                placeText(listing) ?? 'Localização não indicada',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodySmall?.copyWith(color: muted),
+              ),
             ),
-          ),
+          ] else
+            const Spacer(),
           if (onCompare != null)
             Tooltip(
               message: selected ? 'Retirar da comparação' : 'Comparar',

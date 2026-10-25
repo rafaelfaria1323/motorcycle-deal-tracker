@@ -261,12 +261,15 @@ invites; written by the collector on each run).
 - Text built from data lives in pure functions (`*_text.dart`) with tests.
 - State: flutter_bloc Cubits + Equatable states. DI: get_it. Shared cubits
   (`ListingsCubit`, `SavedSearchesCubit`, `AlertsCubit`, `CollectorStatusCubit`,
-  `FavouritesCubit`, and `SessionCubit` for the signed-in state: widgets never
+  `FavouritesCubit`, `ListingCardPreferencesCubit`, and `SessionCubit` for the signed-in state: widgets never
   read Supabase's auth directly) are lazy singletons, provided in routes with
   `BlocProvider.value`. The shell (`AppShell`) loads `AlertsCubit` at start
   and on app resume for the unread badge on Alertas, and `FavouritesCubit`
   at start for the stars on the cards; the account sheet reloads the shared
   cubits after sign-in/out.
+  `ListingCardPreferencesCubit` loads on first use and follows
+  `SessionCubit`'s user id itself: a different account or sign-out resets
+  the cards at once, ignoring earlier in-flight loads and saves.
 - Routing: go_router `StatefulShellRoute` (Ofertas / Pesquisas / Alertas /
   Mais). Account, "Modelos acompanhados" and collection status live in Mais.
   Switching tabs uses `context.go`; full pages outside the shell
@@ -368,6 +371,14 @@ invites; written by the collector on each run).
   stays fixed below. `interface_test.dart` covers responsive layouts and
   interactions with the real bundled fonts; keep narrow and enlarged-text
   layouts free of overflow.
+  Ofertas › "Cartões" and Mais › "Cartões dos anúncios" choose the card
+  details for Ofertas and Favoritos (`listing_card_preferences`, one
+  owner-only row per non-anonymous account). Defaults are the existing
+  layout; Risk Score, seller type and first-found date are opt-in.
+  Photo, model, price, state notices and actions stay visible. Cancel
+  discards the draft; "Repor predefinições" still needs "Guardar".
+  This is free for all accounts today; `docs/paid-plans.md` records it
+  only as a possible future subscription benefit, not a paywall.
 - Look: `app/theme/app_theme.dart` (hand-made colour schemes: cool greys,
   racing-orange primary, white cards with a hairline border, no shadows or
   tints) and `app_colors.dart` (`AppColors.of(context)`: positive/negative

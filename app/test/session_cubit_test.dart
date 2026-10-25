@@ -23,6 +23,7 @@ void main() {
   test('a user with an email is signed in', () {
     final state = SessionState.of(_user(email: 'a@b.pt'));
     expect(state.signedIn, isTrue);
+    expect(state.userId, 'u1');
     expect(state.email, 'a@b.pt');
   });
 
@@ -37,7 +38,7 @@ void main() {
     await Future<void>.delayed(Duration.zero);
 
     expect(seen, [
-      const SessionState(email: 'a@b.pt', signedIn: true),
+      const SessionState(userId: 'u1', email: 'a@b.pt', signedIn: true),
       const SessionState(),
     ]);
     await cubit.close();

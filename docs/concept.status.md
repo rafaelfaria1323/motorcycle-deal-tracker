@@ -152,6 +152,8 @@ All four types, each at most once per event, only for events after the search wa
 
 *13.7: visible filter, sort, save and comparison actions; removable wrapping filter chips; explicit loaded-result counts while another page remains; pull to refresh. Photo-led cards show the source and a labelled Deal Score; up to three columns on desktop, natural heights on phones or with enlarged text.*
 
+➕ Card details per account ✅ (15.31): Ofertas › "Cartões" or Mais › "Cartões dos anúncios" selects the details shown in Ofertas and Favoritos, saved to the account across devices. The current layout is the default; Risk Score, seller type and first-found date can also be shown. Photo, model, price, status notices and actions stay visible. Cancel and reset-to-defaults are available; anonymous visitors retain the default layout.
+
 ## 18. Listing Detail Page ✅
 
 ✅ Photos (gallery, full screen; every photo of the ad, up to 30, 14.4h), price, year, mileage (read from the description when the ad's field is empty, 14.4i), location, seller, seller type, source, original link, Deal Score, Risk Score, explanation, estimated value, price history, first/last seen, status, new-motorcycle comparison. ➕ Owners, service book, origin, colour (marked when it is one of the person's favourites, 15.23), warranty, publication date, full description, market behaviour card (with depreciation and where the asking price sits among the model's live listings), "also listed as" duplicates. *The Deal Score and its verdict sit beside the price; below, four parts picked at the top (Avaliação, Detalhes, Mercado, Negociar, 15.17; Detalhes second since 15.27) instead of one long list of cards; the button to the ad stays at the bottom of the screen.*
@@ -182,6 +184,10 @@ Comparison ✅ (listings side by side), buying assistant, checklists, cost calcu
 Planned in roadmap Sprint 15 ("Deciding and buying"): ➕ favourites with private notes ✅ (15.1; a favourite always alerts on price drops and removal), price to offer (buying assistant, 15.2; more room for a bike with damage in its text, 15.26) ✅, ➕ negotiation arguments, visit repairs off the offer, messages per step and a target price alert (15.19) ✅, ➕ "back on the market" alert for followed bikes (15.14) ✅, ➕ message to the seller (15.12) ✅, viewing checklist (15.3) ✅, cost of ownership (cost calculator, 15.4) ✅, relists as a risk signal (15.5) ✅, text contradictions as risk signals (15.6) ✅, dealer reliability (15.7) ✅ (figures shown and scored), price trends (model price history, 15.8) ⬜, more sources and imports (15.9) ⬜, web push (15.10) ✅.
 
 ➕ Paid plans ⬜: planned in roadmap Sprint 16 and `docs/paid-plans.md`. The plan covers free and paid features, a purchase pass, one-ad reports, seller valuation, an import calculator, affiliate links and a stand plan. On hold: Rafael decided (2026-10-22) to charge only if the sites give us their data through an API or a licence (the collection is personal and non-commercial today); until then the app stays free for invited accounts. The business, legal pages and infrastructure decisions come only then.
+
+Card customization (15.31) is a possible Pro/Passe benefit in that plan,
+not a decided restriction: every account can use it for free today, and
+the standard card layout would remain free.
 
 ## 24. Product Philosophy ✅
 

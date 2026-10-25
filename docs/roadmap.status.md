@@ -1,4 +1,4 @@
-# Motorcycle Deal Tracker — Small Interaction Roadmap (status 2026-10-23)
+# Motorcycle Deal Tracker — Small Interaction Roadmap (status 2026-10-25)
 
 **Legend:** ✅ done · 🟡 partly done / in progress · ⬜ not started · ➕ added along the way (not in the original plan)
 
@@ -346,6 +346,9 @@ the test tooling). No fetching-policy changes.*
 ## 15.30 A search is saved only once ✅
 *Rafael, 2026-10-23: a saved search opened from Pesquisas still offered "Guardar pesquisa" in Ofertas, so the same search could be saved again and again. When Ofertas' filters are a saved search's (the live-only switch and the order of models and extras don't count: `sameCriteriaAs`, `savedSearchLike` in `saved_search.dart`), the button reads "Pesquisa guardada" and opens Pesquisas. Saving checks again (loading the searches first if Pesquisas wasn't opened yet), and so do "Nova pesquisa" and editing a search into another's criteria: "Esta pesquisa já está guardada como ...". Tests in `saved_search_duplicate_test.dart` and `interface_test.dart`.*
 
+## 15.31 Card details chosen per account ✅
+*Rafael, 2026-10-25: each person chooses the information shown on listing cards, with today's card as the default. Ofertas › "Cartões" and Mais › "Cartões dos anúncios" open the same choices: site, Deal Score, price change, year, mileage, location/distance and preferred-colour indicator (all on by default), plus Risk Score, seller type and when the ad was first found (off by default). They apply to both Ofertas and Favoritos, across devices (`listing_card_preferences`, owner-only RLS, non-anonymous accounts only). Photo, model, price, removed notices, favourite star and comparison actions stay visible; filters, scoring, alerts and the detail page do not change. Cancel discards a draft; "Repor predefinições" restores the current layout when saved. Failed loads and saves are shown with a retry, and switching accounts clears the previous preferences and ignores old responses. Migration `20261025220000_listing_card_preferences.sql`; tests in `listing_card_preferences_test.sql`, `listing_card_preferences_test.dart` and `interface_test.dart`. Free for accounts today; a possible future Pro/Passe benefit is recorded in `docs/paid-plans.md`, with no subscription gating implemented.*
+
 # Sprint 14 — More than one person 🟡
 
 *Rafael, 2026-10-21: each account has its own models, searches and alerts, while one collection fetches for everyone (A follows the MT-07 from 2026, B the CBR650R from 2025: one run fetches both and fills the database for both).*
@@ -540,6 +543,8 @@ ChromeDriver; the test's data never comes from Supabase.*
 - *`subscriptions`: user, plan, status, `current_period_end`, provider and its reference. No API writes; only the webhook writes.*
 
 *`my_plan()` and `has_feature(code)`. The limits are enforced where the writes happen: the catalog RPCs for models, triggers on `saved_searches` and `listing_favourites`, the collector's notifications for pushes after each run. Invited accounts and admins get the free `convidado` plan, with Pro's features. SQL tests per limit. The app reads the plan through `PlanCubit`.*
+
+*Possible additional entitlement, not decided: card customization (15.31). The standard layout would remain free and choosing its details could be a Pro/Passe benefit. It is available to every account today; no payment or entitlement checks are part of 15.31.*
 ## 16.2 Payments ⬜
 *The Merchant of Record's hosted checkout (no card data reaches us). Its signed webhook goes to a Supabase Edge Function, which updates `subscriptions`. The Merchant of Record's portal handles cancelling, cards and invoices. Built in its test mode first. The pass (60 days, no renewal) and one-off reports are single payments; Pro is a subscription.*
 ## 16.3 Open sign-up ⬜

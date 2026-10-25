@@ -21,6 +21,9 @@ The interface pairs Barlow typography with an orange-and-ink palette, clear
 price and score hierarchy, and photo-led listing cards. It adapts from a
 phone's bottom navigation to a desktop sidebar and three-column listings;
 filters, sorting, saving searches and comparing ads have visible controls.
+Each account can choose the details shown on its cards in Ofertas and
+Favoritos ("Cartões" in Ofertas, or Mais › "Cartões dos anúncios"); the
+current layout remains the default.
 
 Add a bike by brand, model and first year, with an optional engine size.
 Every model is searched on **both OLX and Standvirtual**: known site filters
