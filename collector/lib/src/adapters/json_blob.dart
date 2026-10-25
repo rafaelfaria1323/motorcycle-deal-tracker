@@ -1,10 +1,13 @@
 import 'dart:convert';
 
-/// The `<script id="__NEXT_DATA__">` block of Standvirtual's pages.
-final nextDataBlock = RegExp(
-  r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>',
-  dotAll: true,
-);
+import 'package:html/parser.dart';
+
+/// Decodes Standvirtual's JSON script, regardless of attribute order or quotes.
+Object? extractNextData(String html, {String hint = ''}) {
+  final script = parse(html).querySelector('script#__NEXT_DATA__');
+  if (script == null) throw FormatException('no __NEXT_DATA__ block$hint');
+  return _decodeJsonBlob(script.text, '__NEXT_DATA__');
+}
 
 /// Decodes the JSON that [pattern] captures (group 1) in [html].
 ///
@@ -22,10 +25,16 @@ Object? extractJsonBlob(
   final match = pattern.firstMatch(html);
   if (match == null) throw FormatException('no $name block$hint');
 
+  return _decodeJsonBlob(match.group(1)!, name, quoted: quoted);
+}
+
+Object? _decodeJsonBlob(String text, String name, {bool quoted = false}) {
   try {
-    final text = match.group(1)!;
-    return jsonDecode(quoted ? jsonDecode(text) as String : text);
-  } on Object {
+    final decoded = jsonDecode(text);
+    if (!quoted) return decoded;
+    if (decoded is! String) throw const FormatException();
+    return jsonDecode(decoded);
+  } on FormatException {
     throw FormatException('$name is not valid JSON');
   }
 }

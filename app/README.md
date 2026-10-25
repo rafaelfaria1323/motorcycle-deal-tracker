@@ -96,8 +96,18 @@ sign-in encrypted with a key in the Android Keystore
 cp env/dev.example.json env/dev.json   # SUPABASE_URL + SUPABASE_PUBLISHABLE_KEY
 make app-run                           # from the repo root: Chrome
 make app-check                         # analyze and test
+make app-smoke                         # offline Chrome flow; matching ChromeDriver on PATH
 make app-serve                         # release build on http://localhost:8080
 ```
+
+`make app-smoke` uses Flutter's SDK `integration_test` with the real app and
+router and the widget tests' in-memory repositories. It applies a saved
+search, changes and saves its filters, opens a listing, then opens an alert
+and returns to Alertas through browser history. No Supabase credentials,
+live data, sign-in or native notification delivery are involved. It needs
+Chrome and a matching ChromeDriver on PATH; the runner starts and cleans up
+its own driver on an automatically allocated port. `check.yml` runs it
+separately from `make check`.
 
 Visitors get an anonymous session. Accounts come from invites: an admin
 (Mais › Partilhar › "Contas e convites") creates a link and shares it, and
@@ -118,6 +128,8 @@ lib/features/   listings, collector_status, settings
   <feature>/presentation/  cubits, pages, widgets, *_text.dart (text built from data)
 test/           unit tests for the cubits and *_text.dart functions; responsive
                 widget and interaction regressions in interface_test.dart
+integration_test/  offline browser smoke and shared in-memory interface fixtures
+test_driver/    Flutter browser integration driver
 ```
 
 The four tabs share editorial headings (`core/widgets/page_intro.dart`).
@@ -127,7 +139,8 @@ desktop navigation. Bottom navigation on
 phones becomes a compact rail on tablets and an extended sidebar on
 desktops. Empty/error messages scroll when space is short or text is
 enlarged. Widget regressions use the actual bundled fonts, not test
-substitutes (`test/support/interface_fixture.dart`).
+substitutes (`integration_test/support/interface_fixture.dart`, also used by
+the browser smoke).
 
 The look lives in `lib/app/theme/`: `AppTheme` (light and dark colour
 schemes, component styles) and `AppColors` (good/bad and Deal Score

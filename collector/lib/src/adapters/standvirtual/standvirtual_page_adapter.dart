@@ -41,10 +41,8 @@ class StandvirtualPageAdapter implements SourceAdapter<StandvirtualRawListing> {
   /// The listing object inside the page.
   /// Throws [FormatException] when the page is not a listing page.
   Map<String, dynamic> _advert(String html) {
-    final data = extractJsonBlob(
+    final data = extractNextData(
       html,
-      nextDataBlock,
-      '__NEXT_DATA__',
       hint: ' (is this a Standvirtual listing page?)',
     );
 

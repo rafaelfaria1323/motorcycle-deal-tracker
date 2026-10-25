@@ -117,9 +117,9 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   devices of whoever asked in the app; input
                                   `kind`: an example of one alert or
                                   collection message (`pushTestKinds`)
-.github/workflows/check.yml       `make check` (with Flutter) and `make
-                                  db-test` (Postgres service) on every pull
-                                  request to main
+.github/workflows/check.yml       `make check` (with Flutter), `make app-smoke`
+                                  (offline Chrome flow) and `make db-test`
+                                  (Postgres service) on every pull request to main
 .github/workflows/preview-web.yml Every PR touching app/: the app built and
                                   published to pr-<number>.<project>.pages.dev,
                                   linked in one comment on the PR (real
@@ -198,6 +198,7 @@ make coverage / duplication    coverage floors and copy-paste check (also in CI)
 make lint-scripts              actionlint on the workflows, shellcheck on tool/*.sh (also in CI)
 make dead-code                 unused code and files in the app (dart_code_linter; also in CI)
 make app-run                   run the app in Chrome (app/env/dev.json)
+make app-smoke                 offline Chrome flow; matching ChromeDriver on PATH
 make db-new NAME=x / db-push   create / apply migrations (merging applies them too)
 make db-test                   migrations + SQL tests on a local Postgres
 make sql-lint                  db-test, then plpgsql_check, splinter (supabase/lint_allow.txt),
@@ -215,6 +216,14 @@ make weekly-summary [ARGS=--dry-run]   make and send (or print) each account's w
 make mutation PKG=collector|app FILES="lib/..."   mutation testing of those files
                                (needs `dart pub global activate mutation_test`)
 ```
+
+The browser smoke uses the SDK's `integration_test`, the real `App` and
+router, and in-memory repositories from
+`app/integration_test/support/interface_fixture.dart` (also used by the
+widget tests). It needs no Supabase credentials and does not test sign-in
+or native pushes. CI runs it separately from `make check`. Collector HTML
+parsing uses pure-Dart `html`; the fetcher's time comes from `clock`, with
+`fake_async` for deterministic timing tests and no fetching-policy changes.
 
 Local secrets live in `collector/.env` (gitignored, loaded by the Makefile):
 `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN`,
