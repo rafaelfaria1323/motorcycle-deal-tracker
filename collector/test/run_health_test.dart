@@ -64,6 +64,17 @@ void main() {
   });
 
   group('runProblems', () {
+    test('read issues keep their site and cause after a partial import', () {
+      const log =
+          '== olx ==\n'
+          'Read issue: page-2.html: bad JSON\n'
+          'Stored 1 new, 0 already stored, 0 duplicate(s) in the input.\n'
+          '== all sites ==\n'
+          'Notifications sent: 0 (0 to devices)\n';
+
+      expect(runProblems(log), ['olx: Read issue: page-2.html: bad JSON']);
+    });
+
     test('error lines with their site; other lines and Skipped ignored', () {
       const log =
           '== standvirtual ==\n'

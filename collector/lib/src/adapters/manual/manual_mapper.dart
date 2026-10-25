@@ -15,7 +15,7 @@ class ManualMapper {
   static const _oldestYear = 1980;
   static const _maxMileageKm = 500000;
 
-  MapOutcome map(ManualRawListing raw) {
+  MapOutcome map(ManualRawListing raw, {bool matchCatalog = true}) {
     final warnings = <String>[];
 
     final price = raw.priceEur.toDouble();
@@ -33,7 +33,7 @@ class ManualMapper {
 
     // Exact catalog match only: a near miss such as "MT-07 Tracer" is a
     // different bike, and a wrong match would distort the market prices.
-    final entry = catalog.find(raw.brand, raw.model);
+    final entry = matchCatalog ? catalog.find(raw.brand, raw.model) : null;
     if (entry == null) {
       final near = catalog.nearMiss(raw.brand, raw.model);
       warnings.add(

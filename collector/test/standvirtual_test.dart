@@ -225,6 +225,12 @@ void main() {
       expect(slugOf('Yamaha', 'R', '9 Ediçao 70 anos', cc: '890'), isNull);
     });
 
+    test('an exact model cannot undo an engine-size rejection', () {
+      expect(slugOf('Yamaha', 'MT-07', null, cc: '321'), isNull);
+      expect(slugOf('Honda', 'CB650R', null, cc: '125'), isNull);
+      expect(slugOf('Yamaha', 'MT-07', null, cc: '689'), 'yamaha-mt-07');
+    });
+
     test('a CB650F is not a CB650R, whatever the engine size', () {
       expect(slugOf('Honda', 'CB', '650 F', cc: '650'), isNull);
     });

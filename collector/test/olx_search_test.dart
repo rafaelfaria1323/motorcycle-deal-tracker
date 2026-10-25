@@ -216,6 +216,14 @@ void main() {
     expect(listing.model, 'Tracer 7 2023');
   });
 
+  test('an exact title cannot undo an ambiguous model resolution', () {
+    final raw = one(ad(title: 'Yamaha R7'));
+    final listing = (mapper.map(raw) as Mapped).listing;
+
+    expect(listing.motorcycleSlug, isNull);
+    expect(listing.model, 'R7');
+  });
+
   test('a copy of a Standvirtual ad is skipped but still counts as live', () {
     const url = 'https://www.standvirtual.com/motos/anuncio/x-ID8Q0wf4.html';
     final raw = one(ad(partner: 'standvirtual', externalUrl: url));

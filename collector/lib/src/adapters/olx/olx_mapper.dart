@@ -41,8 +41,8 @@ class OlxMapper {
       text: '$family $title',
     );
 
-    // Unresolved: keep the title, so the base mapper cannot match the
-    // site's model field ("MT-07" for a Tracer 7) by accident.
+    // Unresolved: keep the title, without letting the base mapper's
+    // exact lookup undo the resolver's decision.
     final model = entry?.model ?? title;
 
     final outcome = _base.map(
@@ -63,6 +63,7 @@ class OlxMapper {
         description: raw.description,
         images: raw.images,
       ),
+      matchCatalog: entry != null,
     );
 
     return switch (outcome) {

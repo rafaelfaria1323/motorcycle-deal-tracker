@@ -509,6 +509,12 @@ notifications (Web Push). The single-step commands (`fetch.dart`,
 `collector.dart`, `enrich.dart`, `searches.dart`) reuse the same library
 functions for manual work.
 
+- **Read failures**: `importBatch` keeps readable records and returns
+  whether the input was clean. `refresh.dart` and `collector.dart` report
+  a failed run for read issues (also dry runs and `--force`), without
+  skipping final scores/alerts. `Read issue:` lines feed `runProblems`;
+  ordinary rejections, unmatched models and mapper warnings are not read
+  failures.
 - **Searches** come from `motorcycles.olx_search` / `standvirtual_search` of
   the tracked models (`planSearches`). Models with the same address share one
   search, asking for the earliest `min_year` of those models (OLX
@@ -523,7 +529,7 @@ functions for manual work.
 - **Removal is per search** (`removalPlan`): each listing stores the search
   that found it (`listings.search_key`); a run removes only listings of the
   searches it read in full. A search with a problem (unreadable page,
-  missing pages, stale page, rejected record without an id) or not fetched
+  missing or repeated pages, stale page, rejected record without an id) or not fetched
   keeps its listings. Listings with no search key, or one no planned
   search has any more (the address changed), are covered only when every
   planned search was read in full; the latter only for a tracked model and
@@ -539,10 +545,12 @@ functions for manual work.
   `maxImages`); then for listings read before the photos were kept
   (`photos_read_at is null`); a page that failed (gone, unreadable, refused, another ad) is marked
   `details_failed_at` (`mark_details_failed`) and waits behind the
-  listings never tried. The page's colour field is stored as
+  listings never tried. HTTP 404/410 are gone-page skips; transport failures
+  and other HTTP errors stop enrichment and fail the run after storing the
+  details already read. The page's colour field is stored as
   `site_colour`. A search counts as read in full when every page
-  it spans was saved, or its pages hold the site's count (promoted ads
-  never count). The search
+  it spans was saved, or its distinct page offsets hold the site's count
+  (promoted ads never count); duplicate offsets make it incomplete. The search
   result's `priceDrop` is stored as `price_before_drop` (highest seen, never
   creates alerts).
 - **OLX** search results (`__PRERENDERED_STATE__`, 40 per page, `page=N`)
@@ -559,7 +567,8 @@ functions for manual work.
   suffixes (A, AC), per-model `excluded_words` ("tracer" for the MT-07,
   "650f", "125f"), on OLX the title read after the brand (also after sale words: "Vendo mota Honda ..."), `engine_cc_min/max` as tiebreaker and guard (a model
   without limits is never picked by engine size alone; "350cc" reads as
-  "350"). Ambiguous stays unmatched. Every import re-checks the model of
+  "350"). Ambiguous stays unmatched; Standvirtual's exact-name fallback
+  cannot override an engine-size rejection. Every import re-checks the model of
   the ads it read (`rematch_listings`), so a better rule also fixes
   listings already stored. When the last account stops following a model
   its listings are unmatched at once; when one follows it again they are
@@ -595,6 +604,8 @@ functions for manual work.
   `collector/.fetch_state.json` and `.fetch_state.olx.json`, cached
   between Actions runs; written whole through a temporary file; a damaged
   one starts afresh, and a site still refusing pauses again at once).
+  Blocking statuses are handled from the headers, before reading the body.
+  A timeout cancels the active request/response before the next request.
 - No request caps since 2026-10-22 (Rafael: remove them, show the amounts,
   adjust later): a run reads every page of the searches and every
   Standvirtual listing page still waiting, at most 30 minutes per site

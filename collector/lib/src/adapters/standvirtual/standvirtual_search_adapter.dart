@@ -72,6 +72,7 @@ class StandvirtualSearchAdapter
     final totals = <String, int>{};
     final shown = <String, int>{};
     final pages = <String, Set<int>>{};
+    final repeated = <String>{};
     final pageCount = <String, int>{};
     final firstFile = <String, (int, String, String?)>{};
 
@@ -87,15 +88,25 @@ class StandvirtualSearchAdapter
       onPage: (page, i, name, search) {
         final key = search ?? name;
         totals[key] = page.total;
-        shown[key] = (shown[key] ?? 0) + page.shown;
-        (pages[key] ??= {}).add(page.offset ~/ page.pageSize);
+        if ((pages[key] ??= {}).add(page.offset ~/ page.pageSize)) {
+          shown[key] = (shown[key] ?? 0) + page.shown;
+        } else {
+          repeated.add(key);
+        }
         pageCount[key] = page.totalPages;
         firstFile.putIfAbsent(key, () => (i, name, search));
       },
       finish: () => [
         for (final MapEntry(:key, value: (i, name, search))
             in firstFile.entries)
-          if (shown[key]! < totals[key]! &&
+          if (repeated.contains(key))
+            ParseIssue(
+              i,
+              '$name: duplicate page offset; '
+              'holds ${shown[key]} of ${totals[key]} listings',
+              search: search,
+            )
+          else if (shown[key]! < totals[key]! &&
               pages[key]!.length < pageCount[key]!)
             ParseIssue(
               i,

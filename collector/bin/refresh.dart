@@ -129,7 +129,7 @@ Future<int> _refreshSite(
     ], directory);
 
     final batch = await loadBatch('$name-search', directory, catalog);
-    await importBatch(
+    final cleanInput = await importBatch(
       batch,
       catalog,
       store: store,
@@ -147,7 +147,7 @@ Future<int> _refreshSite(
       stdout.writeln('${pending.length} listing(s) need details.');
       if (pending.isNotEmpty) await enrichDetails(store, fetcher, pending);
     }
-    return 0;
+    return cleanInput ? 0 : 65;
   } on FetchLimitReached catch (e) {
     // The run's time is up (before any search was read): nothing is wrong,
     // the next run carries on.

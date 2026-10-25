@@ -50,6 +50,20 @@ sends one notification to the admins' devices (Web Push; a tap opens
 (`notify/run_health.dart`), or that the collection works again. The same
 problem is not repeated on every run.
 
+Readable records are kept even when other records cannot be read. These
+`Read issue:` lines fail the run (also for a saved-file import or dry run),
+while ordinary rejected/unmatched listings and mapper warnings do not.
+Only trusted searches may remove missing listings; repeated Standvirtual
+page offsets make that search incomplete, not artificially complete.
+`--force` can override removal safeguards, but never hides read failures.
+
+For listing details, gone pages (HTTP 404/410), unreadable individual
+pages, refused addresses and redirects to another ad remain skips.
+Transport failures and other HTTP errors stop enrichment, store the
+details already read, then fail the run. Blocking HTTP statuses start the
+24-hour pause as soon as their headers arrive, even if their body is
+broken. Timed-out requests are cancelled before another request can start.
+
 Every Monday `bin/weekly_summary.dart` (workflow `weekly-summary.yml`) makes
 each account's summary of its own models' last 7 days: new listings per
 model, price drops (1 % or more, biggest first), listings gone, and the 5
@@ -92,7 +106,10 @@ cleans description fragments using HTML5 entity decoding. Paragraphs,
 breaks and list markers are kept; comments, scripts, styles and known
 dealer boilerplate are left out. OLX's JavaScript state still uses its
 source-specific reader. Matching and phone-number removal stay in the
-shared normalization pipeline.
+shared normalization pipeline. Oversized numeric entities in surrounding
+HTML cannot break JSON extraction or change literal strings inside the
+script. Standvirtual's exact model names cannot bypass the resolver's
+engine-size guard; those listings remain unmatched.
 
 `clock` supplies the fetcher's current time. `fake_async` tests request
 spacing, run deadlines, robots-cache expiry, block cooldowns and UTC-day

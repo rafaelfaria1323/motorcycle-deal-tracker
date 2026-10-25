@@ -83,6 +83,14 @@ real router and in-memory repositories: saved filters, listing navigation,
 alert read state and browser back. CI runs it separately from the unit
 tests; it does not cover Supabase authentication or native pushes.*
 
+*Collector safety follow-up: repeated Standvirtual pages never count as
+complete removal input, engine-size rejections stay unmatched, and malformed
+numeric entities outside the JSON script do not damage extraction. Blocks
+take effect from HTTP headers; timed-out requests are cancelled. Partial
+imports and enrichment preserve valid data but report read/transport
+failures instead of success; missing individual ads remain skips. Fetching
+rules are unchanged, and the unused direct `args` dependency is removed.*
+
 ## 9. Listing Data Model ✅
 
 All fields exist. ➕ Added: `initial_price`, `price_before_drop`, `duplicate_of`/`duplicate_score`, `score_breakdown`, `excellent_since`, `registrations`, `service_book`, `origin`, `warranty_until`, `dealer_warranty_months`, `published_at`, `details_checked_at`, `search_key`.
