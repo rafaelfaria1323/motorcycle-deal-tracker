@@ -115,7 +115,7 @@ class StandvirtualSearchAdapter
   /// Pure parsing step, so it can be tested without files.
   /// Throws [FormatException] when the page is not a search results page.
   StandvirtualSearchPage parseSearchPage(String html) {
-    final data = extractJsonBlob(html, nextDataBlock, '__NEXT_DATA__');
+    final data = extractNextData(html);
 
     final urql = asMap(
       asMap(asMap(data)?['props'])?['pageProps'],

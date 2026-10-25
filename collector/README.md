@@ -86,5 +86,18 @@ test/       unit tests
 samples/    small listing files for trying `make collect` by hand
 ```
 
+The collector remains pure Dart. `html` reads Standvirtual's
+`__NEXT_DATA__` script without relying on attribute order or quoting and
+cleans description fragments using HTML5 entity decoding. Paragraphs,
+breaks and list markers are kept; comments, scripts, styles and known
+dealer boilerplate are left out. OLX's JavaScript state still uses its
+source-specific reader. Matching and phone-number removal stay in the
+shared normalization pipeline.
+
+`clock` supplies the fetcher's current time. `fake_async` tests request
+spacing, run deadlines, robots-cache expiry, block cooldowns and UTC-day
+rollover without real waits or network/filesystem I/O. Separate local-HTTP
+tests still cover fetching pages. The fetching rules are unchanged.
+
 Saved pages, `searches.json` and the fetch state (`.fetch_state*.json`) hold
 sellers' contact details and are never committed.

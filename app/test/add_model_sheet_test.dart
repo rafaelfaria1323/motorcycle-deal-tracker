@@ -7,7 +7,7 @@ import 'package:motorcycle_deal_tracker/features/listings/domain/entities/site_m
 import 'package:motorcycle_deal_tracker/features/listings/domain/repositories/catalog_repository.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/add_model_sheet.dart';
 
-import 'support/interface_fixture.dart';
+import '../integration_test/support/interface_fixture.dart';
 
 class _Catalog extends Fake implements CatalogRepository {
   List<SiteMake> makes = const [SiteMake(id: 'honda', name: 'Honda', ads: 32)];

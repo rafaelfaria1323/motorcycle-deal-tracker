@@ -1,4 +1,4 @@
-# Motorcycle Deal Tracker — Concept & Architecture (status 2026-10-23)
+# Motorcycle Deal Tracker — Concept & Architecture (status 2026-10-25)
 
 **Legend:** ✅ done · 🟡 partly done · ⬜ not started · ➕ added along the way
 
@@ -71,6 +71,17 @@ Tracked models (catalog) → searches → Collectors / Adapters → Normalizatio
 ```
 
 *Each source has its own adapter + mapper (`manual`, `standvirtual`, `standvirtual-search`, `olx-search`); model matching (`ModelResolver`) and everything after normalization are shared.*
+
+*The collector remains pure Dart: `html` selects Standvirtual's JSON script
+and decodes HTML description fragments without hand-maintained entity
+tables. Formatting and dealer-boilerplate removal are preserved; invisible
+comments/scripts/styles are excluded. `clock` and `fake_async` cover exact
+fetch timing and expiry boundaries without real delays, alongside the
+local-HTTP tests. No fetching or privacy rules change. The app also has an
+offline Chrome smoke (`make app-smoke`, SDK `integration_test`) using its
+real router and in-memory repositories: saved filters, listing navigation,
+alert read state and browser back. CI runs it separately from the unit
+tests; it does not cover Supabase authentication or native pushes.*
 
 ## 9. Listing Data Model ✅
 

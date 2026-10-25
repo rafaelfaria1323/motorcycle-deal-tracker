@@ -168,8 +168,30 @@ Do not implement several unrelated features at once.
 # Sprint 11 — Quality 🟡
 
 ## 11.1 Unit tests 🟡
-*App: alerts, saved searches, score explainer, risk reasons, market behaviour, collector status, new-price text, catalog, tracked-models, model-picker, price-position and model-market text. Collector (186 tests): import, enrich and notify steps (with fakes), JSON readers, adapters, mappers, model resolver (real OLX titles), search plan, removal plan, normalizers, store, fetcher, robots.txt, run status. SQL has its own tests since 11.2.*
+*App: alerts, saved searches, score explainer, risk reasons, market behaviour, collector status, new-price text, catalog, tracked-models, model-picker, price-position and model-market text. Collector: import, enrich and notify steps (with fakes), JSON readers, adapters, mappers, model resolver (real OLX titles), search plan, removal plan, normalizers, store, fetcher, robots.txt, run status. SQL has its own tests since 11.2.*
+
+*Collector parser/timing coverage (11.1): pure-Dart `html` now selects
+Standvirtual's JSON script and decodes description fragments, preserving
+paragraphs and list markers while excluding comments/scripts/styles and
+dealer boilerplate. Regression cases include reordered/single-quoted
+attributes, encoded Portuguese characters, one-pass entity decoding and
+oversized numeric references. The fetcher uses `clock`; `fake_async` with
+in-memory HTTP/files tests exact request spacing, deadline handling,
+24-hour robots/block boundaries and UTC-day rollover. Real local-HTTP
+pagination/error tests remain. Fetching and privacy rules are unchanged.*
+
 ## 11.2 Integration tests ✅
+
+*Offline app smoke: `make app-smoke` (also run by `check.yml`, separately
+from `make check`) uses Flutter's SDK `integration_test` in Chrome with
+the real app/router and the existing interface fixtures' in-memory
+repositories. Applies a saved search, removes a filter, saves and applies
+the changed search, opens an ad, then opens an alert and goes back to
+Alertas through browser history. ChromeDriver must match Chrome; the
+runner owns its driver and automatically allocates its port. No Supabase
+credentials or live data; authentication and native notifications are
+outside this smoke's scope.*
+
 *`make db-test` (and every pull request, in `check.yml` with a Postgres service): all migrations applied to an empty Postgres, with stand-ins for what only Supabase has (API roles and its default grants, `auth`, pg_cron, pg_net, Vault), then the SQL tests in `supabase/tests/`, each in a transaction rolled back at the end: price tracking (first price, history, `price_changed`), alerts (only events after the saved search, drops from 1 %, never twice), duplicates across sites (left out of market prices), scoring (equipment slice, extras, a cheaper bike ranks higher), access (anonymous and signed-out users can't read runs or change the catalog, the collector's functions aren't callable from the app), data quality, the watchdog, removal (only the searches read in full, unkeyed listings only when asked, never the other site's, more than half refused unless forced, an empty import refused) the import steps (`rematch_listings` changes only listings whose model changed, `set_search_keys`, `apply_listing_dates` keeps the earliest publication and latest renewal, `apply_prices_before_drop` keeps the highest, switching a model off and on unmatches and rematches its listings, removed ones too, never the other site's; `mark_listings_seen` brings a removed listing back, `apply_listing_details` never erases what a page left out), the pure scoring functions with literal values (price, year and mileage scores, the deal-score combiner and its breakdown, the age/mileage factor and its limits, duplicate similarity, every risk signal and the 0-100 limits), the catalog RPCs (a new model is trimmed, tracked and never added twice; bad years, prices, engine ranges and other sites' addresses are refused; anonymous sessions can't), Telegram notifications (only real accounts' alerts, oldest first, each marked sent once), the schedules (the pg_cron jobs' times and workflows; `dispatch_workflow` posts to the workflow's dispatch address with the Vault token, sends nothing without it, starts no other workflow and can't be called from the app) and relists (old ad, first date on sale through a chain, old price; not after 90 days, not a dealer's identical new bikes). A deliberately wrong assertion fails the run.*
 ## 11.3 Logging ✅
 *Every scheduled run is recorded in `collector_runs` with a log tail; Actions keeps the full log for 7 days. Each run also stores what it did (`counts`: new listings, price changes, removed listings and alerts created, summed over both sites, read from the log by `runCounts` in `report_run.dart`; `20261020220000_run_counts.sql`), shown in Mais under the last run ("3 anúncios novos, 2 preços alterados, 4 alertas", or "Sem anúncios novos nem alterações"; `runCountsText`, tested). Older runs show nothing there.*
@@ -381,6 +403,11 @@ Do not implement several unrelated features at once.
 
 ## T.2 Checks on pull requests ✅
 *`.github/workflows/check.yml` runs `make check` with Flutter installed (app analyze and tests, collector format, analyze and tests) on every pull request to main, so app changes made where Flutter isn't installed are compiled and tested before merging, not only by the deploy afterwards.*
+
+*Also runs `make app-smoke`: an offline Chrome flow through the real app
+and browser history, using the SDK's `integration_test` and shared
+in-memory repositories. The runner image supplies matching Chrome and
+ChromeDriver; the test's data never comes from Supabase.*
 
 ## T.3 Automatic test hardening ✅
 *Paused with T.1 on 2026-10-20 (Rafael): neither starts after merges until he says so; "Run workflow" still works.*

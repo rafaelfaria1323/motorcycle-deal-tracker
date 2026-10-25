@@ -43,13 +43,58 @@ void main() {
       expect(cleanDescription('<li></li>'), isNull);
     });
 
-    test('leaves numeric entities it cannot turn into a character as text', () {
-      expect(cleanDescription('a &#99999999; b'), 'a &#99999999; b');
-      expect(
-        cleanDescription('&#99999999999999999999;'),
-        '&#99999999999999999999;',
-      );
+    test('invalid numeric entities follow HTML5 replacement rules', () {
+      expect(cleanDescription('a &#99999999; b'), 'a \uFFFD b');
+      expect(cleanDescription('&#99999999999999999999;'), '\uFFFD');
+      expect(cleanDescription('&#xFFFFFFFFFFFFFFFF;'), '\uFFFD');
+      expect(cleanDescription('&#XFFFFFFFFFFFFFFFFFFFF;'), '\uFFFD');
       expect(cleanDescription('it&#39;s &#65;'), "it's A");
+    });
+
+    test('decodes named, decimal and hexadecimal entities exactly once', () {
+      expect(
+        cleanDescription('Revis&atilde;o &#231; &#xE3; &amp;nbsp; &nbsp; fim'),
+        'Revisão ç ã &nbsp; fim',
+      );
+      expect(cleanDescription('&lt;b&gt;texto&lt;/b&gt;'), '<b>texto</b>');
+    });
+
+    test('keeps paragraphs, breaks, headings and list items', () {
+      expect(
+        cleanDescription(
+          '<h2>Extras</h2><p>Mota <strong>estimada</strong><br>Garagem</p>'
+          '<ul><li>Escape<li>Pneus novos<li></ul><div>Fim</div>',
+        ),
+        'Extras\nMota estimada\nGaragem\n- Escape\n- Pneus novos\nFim',
+      );
+    });
+
+    test(
+      'handles quoted tag attributes and ignores non-description content',
+      () {
+        expect(
+          cleanDescription(
+            '<p title="a > b">Texto</p><!-- comentário -->'
+            '<script>acidente</script><style>.x { color: red; }</style>'
+            '<p>km < 8000</p>',
+          ),
+          'Texto\nkm < 8000',
+        );
+      },
+    );
+
+    test('still removes dealer boilerplate after decoding entities', () {
+      expect(
+        cleanDescription(
+          '<p>Mota estimada.</p><p>An&uacute;ncio introduzido por rotina '
+          'inform&aacute;tica.</p><p>Todos os dados carecem de '
+          'confirmação presencial.</p><p>Revisão feita.</p>',
+        ),
+        'Mota estimada.\nRevisão feita.',
+      );
+      expect(cleanDescription(null), isNull);
+      expect(cleanDescription(42), isNull);
+      expect(cleanDescription(' <br><!-- vazio -->'), isNull);
     });
   });
 

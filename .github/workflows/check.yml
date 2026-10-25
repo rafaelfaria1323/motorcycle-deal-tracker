@@ -1,8 +1,9 @@
 name: Check
 
 # Every pull request to main: the same checks as `make check` (app analyze
-# and tests with Flutter; collector format, analyze and tests) and
-# `make db-test` (migrations and SQL tests on Postgres), so a change is
+# and tests with Flutter; collector format, analyze and tests),
+# `make app-smoke` (offline Chrome flow), and `make db-test`
+# (migrations and SQL tests on Postgres), so a change is
 # proven before it is merged rather than when the deploy runs.
 # PRs opened by a workflow (code quality, test hardening) don't trigger
 # pull_request runs (GitHub's rule for GITHUB_TOKEN), so backlog-pass.yml
@@ -68,6 +69,9 @@ jobs:
 
       - name: make check
         run: make check
+
+      - name: make app-smoke
+        run: make app-smoke
 
       # Checks without AI: copy-pasted code above 1 % fails; line coverage
       # of the app's logic and of the collector below their floors (the

@@ -46,7 +46,7 @@ Tracked models (chosen in the app)
 | [`collector/`](collector/README.md) | Dart command line: fetches, parses and stores listings, then scores and alerts |
 | `supabase/` | Database migrations: tables, scoring, alerts, views, access rules; `tests/`: SQL tests (`make db-test`) |
 | `docs/` | Progress and decisions (see below) |
-| `.github/workflows/` | `collect.yml` (00:00, 08:00 and every 2 hours from 12:00 to 20:00, Lisbon time, started by Supabase pg_cron), `check.yml` (`make check` and `make db-test` on every pull request), `deploy-web.yml` (new migrations, then the app, on merge, and the Android APK on the release `android`, which the Android app installs as its update), `android-check.yml` (the APK built on pull requests that touch the Android side), `weekly-summary.yml` (Mondays, each account's week in the app and on its devices; or one account's when asked in the app), `notify-test.yml` (Telegram test), `push-test.yml` (a test notification to the devices of whoever asked in the app), `mutation.yml` (mutation testing without AI: after merges the changed files, by hand all of them; report on the run's page), `code-quality.yml` and `test-hardening.yml` (Claude works through the backlogs, fixing every 5 merged PRs and finding new items after 10 in `docs/code-quality.md` and `docs/test-hardening.md`; shared steps in `backlog-pass.yml`) |
+| `.github/workflows/` | `collect.yml` (00:00, 08:00 and every 2 hours from 12:00 to 20:00, Lisbon time, started by Supabase pg_cron), `check.yml` (`make check`, `make app-smoke` and `make db-test` on every pull request), `deploy-web.yml` (new migrations, then the app, on merge, and the Android APK on the release `android`, which the Android app installs as its update), `android-check.yml` (the APK built on pull requests that touch the Android side), `weekly-summary.yml` (Mondays, each account's week in the app and on its devices; or one account's when asked in the app), `notify-test.yml` (Telegram test), `push-test.yml` (a test notification to the devices of whoever asked in the app), `mutation.yml` (mutation testing without AI: after merges the changed files, by hand all of them; report on the run's page), `code-quality.yml` and `test-hardening.yml` (Claude works through the backlogs, fixing every 5 merged PRs and finding new items after 10 in `docs/code-quality.md` and `docs/test-hardening.md`; shared steps in `backlog-pass.yml`) |
 
 ## Getting started
 
@@ -59,7 +59,13 @@ make app-get app-run      # the app in Chrome
 make collector-get        # collector dependencies; secrets in collector/.env
 make refresh              # one collection run for both sites
 make check                # analyze and test everything (before each commit)
+make app-smoke            # offline browser flow (Chrome + matching ChromeDriver)
 ```
+
+The browser smoke uses Flutter's SDK `integration_test` and in-memory
+repositories, not Supabase credentials or live listings. It runs separately
+from `make check`; CI runs both. The collector stays pure Dart, using `html`
+for HTML5 parsing and `clock` / `fake_async` for deterministic timing tests.
 
 `collector/.env` (never committed) holds `SUPABASE_URL`,
 `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`.

@@ -16,7 +16,7 @@ import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/d
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/listing_card.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/photo_gallery.dart';
 
-import 'support/interface_fixture.dart';
+import '../integration_test/support/interface_fixture.dart';
 
 void _screen(WidgetTester tester, Size size) {
   tester.view

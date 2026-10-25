@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help app-get app-run app-check app-build app-serve \
+.PHONY: help app-get app-run app-check app-smoke app-build app-serve \
         collector-get collector-check collect-dry collect \
         db-push db-new db-test sql-lint check tool-check lint-scripts format clean mutation \
         coverage duplication dead-code \
@@ -38,6 +38,9 @@ app-run: ## Run the app in Chrome (uses app/env/dev.json)
 
 app-check: ## Analyze and test the app
 	cd app && flutter analyze && flutter test
+
+app-smoke: ## Offline Chrome smoke test (needs matching ChromeDriver on PATH)
+	bash tool/app_smoke.sh
 
 app-build: ## Release web build
 	cd app && flutter build web --wasm --dart-define-from-file=env/dev.json

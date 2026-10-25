@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:clock/clock.dart';
+
 import 'robots.dart';
 
 /// We decided not to fetch this (our own rules said no). Nothing was sent.
@@ -250,7 +252,7 @@ class PoliteFetcher {
   DateTime? _lastRequestAt;
 
   static String _today() =>
-      DateTime.now().toUtc().toIso8601String().substring(0, 10);
+      clock.now().toUtc().toIso8601String().substring(0, 10);
 
   /// When the robots.txt in use was read: in this run, or by an earlier one
   /// less than [FetchPolicy.robotsMaxAge] ago. Known after [prepare].
@@ -259,13 +261,13 @@ class PoliteFetcher {
   /// Checks the pause after a block, loads robots.txt (the one kept in the
   /// state file while it is fresh, else from the site). Call before [get].
   Future<void> prepare() async {
-    _startedAt = DateTime.now();
+    _startedAt = clock.now();
     _state = (await _loadState()).rolledTo(_today());
 
     final blocked = _state.blockedAt;
     if (blocked != null) {
       final until = blocked.add(policy.cooldownAfterBlock);
-      if (DateTime.now().toUtc().isBefore(until)) {
+      if (clock.now().toUtc().isBefore(until)) {
         throw FetchRefused(
           'paused until ${until.toIso8601String()} because the site pushed '
           'back on ${blocked.toIso8601String()}; not retrying sooner',
@@ -274,7 +276,7 @@ class PoliteFetcher {
       _state.blockedAt = null;
     }
 
-    final kept = _state.keptRobots(policy.robotsMaxAge, DateTime.now());
+    final kept = _state.keptRobots(policy.robotsMaxAge, clock.now());
     if (kept != null) {
       _robots = RobotsRules.parse(kept);
       return;
@@ -289,7 +291,7 @@ class PoliteFetcher {
     _robots = RobotsRules.parse(robots.body);
     _state
       ..robots = robots.body
-      ..robotsReadAt = DateTime.now().toUtc();
+      ..robotsReadAt = clock.now().toUtc();
     await _saveState();
   }
 
@@ -341,7 +343,7 @@ class PoliteFetcher {
     final started = _startedAt;
     if (runTime != null &&
         started != null &&
-        DateTime.now().difference(started) >= runTime) {
+        clock.now().difference(started) >= runTime) {
       throw FetchLimitReached('run time of ${runTime.inMinutes} min reached');
     }
     // The pause runs from the end of the previous request, so time spent in
@@ -350,7 +352,7 @@ class PoliteFetcher {
     if (last != null) {
       final extra = _random.nextInt(policy.jitter.inMilliseconds + 1);
       final pause = policy.minDelay + Duration(milliseconds: extra);
-      final rest = pause - DateTime.now().difference(last);
+      final rest = pause - clock.now().difference(last);
       if (rest > Duration.zero) await Future<void>.delayed(rest);
     }
     _runRequests++;
@@ -388,14 +390,14 @@ class PoliteFetcher {
       // e.g. the connection closed while the page was coming in.
       throw FetchFailed('$url: ${e.message}');
     } finally {
-      _lastRequestAt = DateTime.now();
+      _lastRequestAt = clock.now();
     }
   }
 
   /// After the pause, the first run reads robots.txt again.
   Future<void> _markBlocked() async {
     _state
-      ..blockedAt = DateTime.now().toUtc()
+      ..blockedAt = clock.now().toUtc()
       ..robots = null
       ..robotsReadAt = null;
     await _saveState();

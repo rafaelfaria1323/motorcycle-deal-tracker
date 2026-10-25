@@ -1,3 +1,6 @@
+import 'package:html/dom.dart' as dom;
+import 'package:html/parser.dart';
+
 import 'normalized_listing.dart';
 
 /// Stable id derived from a listing URL: host without "www." + path + the
@@ -82,38 +85,49 @@ final _boilerplate = [
   ),
 ];
 
-// Compiled once: cleanDescription runs for every OLX ad and listing page.
-final _blockEnd = RegExp(
-  r'<br\s*/?>|</p>|</div>|</li>|</h\d>',
-  caseSensitive: false,
-);
-final _listItem = RegExp(r'<li[^>]*>', caseSensitive: false);
-final _tag = RegExp(r'<[^>]+>');
-final _charCode = RegExp(r'&#(\d+);');
+const _blockEnds = {'br', 'p', 'div', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'};
 final _spaces = RegExp(r'[ \t]+');
+final _numericReference = RegExp(r'&#([xX][0-9a-fA-F]+|[0-9]+);?');
+
+String _safeNumericReferences(String html) =>
+    html.replaceAllMapped(_numericReference, (match) {
+      final digits = match[1]!;
+      final hex = digits.startsWith('x') || digits.startsWith('X');
+      final value = int.tryParse(
+        hex ? digits.substring(1) : digits,
+        radix: hex ? 16 : 10,
+      );
+      // The HTML tokenizer's int.parse throws on oversized references.
+      return value == null || value < 0 || value > 0x10FFFF
+          ? '\uFFFD'
+          : match[0]!;
+    });
+
+void _descriptionText(dom.Node node, StringBuffer text) {
+  if (node is dom.Text) {
+    text.write(node.data);
+    return;
+  }
+  if (node is! dom.Element) return;
+  final tag = node.localName;
+  if (tag == 'script' || tag == 'style') return;
+  if (tag == 'li') text.write('- ');
+  for (final child in node.nodes) {
+    _descriptionText(child, text);
+  }
+  if (_blockEnds.contains(tag)) text.writeln();
+}
 
 /// Plain text from a listing's HTML description, without the boilerplate
 /// sentences dealers' systems add; null when nothing is left.
 String? cleanDescription(Object? html) {
   if (html is! String) return null;
 
-  var text = html
-      // Block ends and line breaks become new lines; list items get a dash.
-      .replaceAll(_blockEnd, '\n')
-      .replaceAll(_listItem, '- ')
-      .replaceAll(_tag, '')
-      .replaceAllMapped(_charCode, (m) {
-        // Not a Unicode code point (or too big for an int): keep the text.
-        final code = int.tryParse(m[1]!);
-        return code == null || code > 0x10FFFF
-            ? m[0]!
-            : String.fromCharCode(code);
-      })
-      .replaceAll('&nbsp;', ' ')
-      .replaceAll('&lt;', '<')
-      .replaceAll('&gt;', '>')
-      .replaceAll('&quot;', '"')
-      .replaceAll('&amp;', '&');
+  final buffer = StringBuffer();
+  for (final node in parseFragment(_safeNumericReferences(html)).nodes) {
+    _descriptionText(node, buffer);
+  }
+  var text = buffer.toString().replaceAll('\u00a0', ' ');
 
   for (final sentence in _boilerplate) {
     text = text.replaceAll(sentence, '');
