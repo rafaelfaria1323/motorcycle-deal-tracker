@@ -13,6 +13,7 @@ class ListingAlertModel {
       type: _type(json['type'] as String?),
       listing: ListingModel.fromJson(json['listings'] as Map<String, dynamic>),
       createdAt: DateTime.parse(json['created_at'] as String).toLocal(),
+      searchId: json['saved_search_id'] as String?,
       searchName: search?['name'] as String?,
       oldPrice: (json['old_price'] as num?)?.toDouble(),
       newPrice: (json['new_price'] as num?)?.toDouble(),

@@ -103,7 +103,7 @@ class InterfaceFixture {
   final bool signedIn;
   final Stream<User?> userChanges;
   final cardPreferencesRepository = InterfaceCardPreferences();
-  final alertsRepository = InterfaceAlerts();
+  late final alertsRepository = InterfaceAlerts(searchesRepository);
   late final listings = ListingsCubit(repository);
   late final searches = SavedSearchesCubit(searchesRepository, repository);
   late final alerts = AlertsCubit(alertsRepository);
@@ -301,9 +301,14 @@ class InterfaceSearches implements SavedSearchesRepository {
             ];
 
   final List<SavedSearch> values;
+  bool failReads = false;
+  bool failWrites = false;
 
   @override
-  Future<List<SavedSearch>> getAll() async => List.of(values);
+  Future<List<SavedSearch>> getAll() async {
+    if (failReads) throw StateError('Offline');
+    return List.of(values);
+  }
 
   @override
   Future<Map<String, int>> getMatchCounts() async => {
@@ -326,13 +331,25 @@ class InterfaceSearches implements SavedSearchesRepository {
   }
 
   @override
-  Future<SavedSearch> update(SavedSearch search) async => search;
+  Future<SavedSearch> update(SavedSearch search) async {
+    if (failWrites) throw StateError('Offline');
+    final index = values.indexWhere((value) => value.id == search.id);
+    if (index == -1) throw StateError('Search not found');
+    values[index] = search;
+    return search;
+  }
 
   @override
-  Future<void> delete(String id) async => values.removeWhere((s) => s.id == id);
+  Future<void> delete(String id) async {
+    if (failWrites) throw StateError('Offline');
+    values.removeWhere((s) => s.id == id);
+  }
 }
 
 class InterfaceAlerts implements AlertsRepository {
+  InterfaceAlerts(this.searches);
+
+  final InterfaceSearches searches;
   final values = [
     for (var i = 0; i < 3; i++)
       ListingAlert(
@@ -342,20 +359,63 @@ class InterfaceAlerts implements AlertsRepository {
         createdAt: DateTime(2026, 10, 23, 10, i * 10),
         oldPrice: 6800,
         newPrice: 6400,
-        searchName: 'Até 7 000 euros',
+        searchId: i == 0 ? 'search-1' : null,
       ),
   ];
   final markedRead = <String>[];
+  final dismissed = <String>{};
   bool allRead = false;
+  bool failDismiss = false;
+  Future<void>? dismissDelay;
 
   @override
-  Future<List<ListingAlert>> getAll() async => values;
+  Future<List<ListingAlert>> getAll() async => [
+    for (final alert in values)
+      if (!dismissed.contains(alert.id)) _withSearch(alert),
+  ];
+
+  ListingAlert _withSearch(ListingAlert alert) {
+    final search = searches.values
+        .where((search) => search.id == alert.searchId)
+        .firstOrNull;
+    return ListingAlert(
+      id: alert.id,
+      type: alert.type,
+      listing: alert.listing,
+      createdAt: alert.createdAt,
+      searchId: search?.id,
+      searchName: search?.displayName,
+      oldPrice: alert.oldPrice,
+      newPrice: alert.newPrice,
+      readAt: alert.readAt,
+    );
+  }
 
   @override
-  Future<void> markRead(String id) async => markedRead.add(id);
+  Future<void> markRead(String id) async {
+    markedRead.add(id);
+    for (var i = 0; i < values.length; i++) {
+      if (values[i].id == id) {
+        values[i] = values[i].copyWith(readAt: DateTime.now());
+      }
+    }
+  }
 
   @override
-  Future<void> markAllRead() async => allRead = true;
+  Future<void> markAllRead() async {
+    allRead = true;
+    final now = DateTime.now();
+    for (var i = 0; i < values.length; i++) {
+      if (!values[i].isRead) values[i] = values[i].copyWith(readAt: now);
+    }
+  }
+
+  @override
+  Future<void> dismiss(String id) async {
+    if (dismissDelay case final delay?) await delay;
+    if (failDismiss) throw StateError('Offline');
+    dismissed.add(id);
+  }
 }
 
 class InterfaceCardPreferences implements ListingCardPreferencesRepository {

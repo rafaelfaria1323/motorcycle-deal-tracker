@@ -26,6 +26,10 @@ Favoritos ("Cartões" in Ofertas, or Mais › "Cartões dos anúncios"); the
 current layout remains the default. Options include first owner / number
 of owners, service book, origin, warranties, colour and the ad's publication
 and renewal dates, distinct from when it was first found.
+Saved-search and alert cards support swipe actions: right to edit (an
+alert opens its originating saved search), left to confirm deletion.
+The options menus remain available without gestures. Dismissing an alert
+hides it without erasing the history that prevents repeated notifications.
 
 Add a bike by brand, model and first year, with an optional engine size.
 Every model is searched on **both OLX and Standvirtual**: known site filters

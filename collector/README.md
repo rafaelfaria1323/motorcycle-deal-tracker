@@ -33,6 +33,11 @@ generate the alerts and send the new ones to each account's devices (Web
 Push; the Android app's through Firebase Cloud Messaging, `notify/fcm.dart`,
 with the service account in env `FIREBASE_SERVICE_ACCOUNT`).
 
+Alerts dismissed in the app keep their event history. The owner-checked
+`dismiss_alert` RPC sets `dismissed_at` and marks them read and handled
+(`notified_at`), preserving existing timestamps, so the collector neither
+regenerates the same event nor picks it up as a pending notification.
+
 Every catalog model has searches for both OLX and Standvirtual, including
 models added before automatic source coverage. The database keeps existing
 addresses and fills missing ones from known site filters or a word search

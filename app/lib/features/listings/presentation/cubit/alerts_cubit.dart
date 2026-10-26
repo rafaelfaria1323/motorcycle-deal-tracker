@@ -7,17 +7,32 @@ class AlertsCubit extends Cubit<AlertsState> {
   AlertsCubit(this._repository) : super(const AlertsState());
 
   final AlertsRepository _repository;
+  // An in-flight refresh may still contain an alert just dismissed.
+  final _dismissedIds = <String>{};
+  int _loadGeneration = 0;
 
   /// Loads (or refreshes) the alerts. A failed refresh keeps the list that is
   /// already on screen.
   Future<void> load() async {
+    if (isClosed) return;
+    final generation = ++_loadGeneration;
     if (state.status != AlertsStatus.success) {
       emit(state.copyWith(status: AlertsStatus.loading));
     }
     try {
       final alerts = await _repository.getAll();
-      emit(state.copyWith(status: AlertsStatus.success, alerts: alerts));
+      if (isClosed || generation != _loadGeneration) return;
+      emit(
+        state.copyWith(
+          status: AlertsStatus.success,
+          alerts: [
+            for (final alert in alerts)
+              if (!_dismissedIds.contains(alert.id)) alert,
+          ],
+        ),
+      );
     } catch (_) {
+      if (isClosed || generation != _loadGeneration) return;
       if (state.status != AlertsStatus.success) {
         emit(state.copyWith(status: AlertsStatus.failure));
       }
@@ -41,7 +56,7 @@ class AlertsCubit extends Cubit<AlertsState> {
     try {
       await _repository.markRead(id);
     } catch (_) {
-      emit(state.copyWith(alerts: before));
+      _restoreUnread({id}, now);
     }
   }
 
@@ -60,7 +75,43 @@ class AlertsCubit extends Cubit<AlertsState> {
     try {
       await _repository.markAllRead();
     } catch (_) {
-      emit(state.copyWith(alerts: before));
+      _restoreUnread({
+        for (final alert in before)
+          if (!alert.isRead) alert.id,
+      }, now);
+    }
+  }
+
+  void _restoreUnread(Set<String> ids, DateTime changedAt) {
+    if (isClosed) return;
+    emit(
+      state.copyWith(
+        alerts: [
+          for (final alert in state.alerts)
+            ids.contains(alert.id) && alert.readAt == changedAt
+                ? alert.copyWith(clearReadAt: true)
+                : alert,
+        ],
+      ),
+    );
+  }
+
+  Future<bool> dismiss(String id) async {
+    try {
+      await _repository.dismiss(id);
+      if (isClosed) return false;
+      _dismissedIds.add(id);
+      emit(
+        state.copyWith(
+          alerts: [
+            for (final alert in state.alerts)
+              if (alert.id != id) alert,
+          ],
+        ),
+      );
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 }

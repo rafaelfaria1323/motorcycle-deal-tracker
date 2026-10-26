@@ -51,6 +51,7 @@ void main() {
 
     test('optional fields stay null when absent', () {
       final alert = ListingAlertModel.fromJson(row('new_listing'));
+      expect(alert.searchId, isNull);
       expect(alert.searchName, isNull);
       expect(alert.oldPrice, isNull);
       expect(alert.readAt, isNull);
