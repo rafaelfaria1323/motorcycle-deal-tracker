@@ -2,14 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/widgets/confirm_delete.dart';
 import '../../../../core/widgets/page_intro.dart';
+import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
+import '../../../../core/widgets/swipe_actions.dart';
 import '../../domain/entities/listing_alert.dart';
 import '../alerts_text.dart';
 import '../cubit/alerts_cubit.dart';
 import '../cubit/alerts_state.dart';
+import '../cubit/saved_searches_cubit.dart';
+import '../cubit/saved_searches_state.dart';
+import '../widgets/edit_saved_search_sheet.dart';
 
 class AlertsPage extends StatelessWidget {
   const AlertsPage({super.key});
@@ -27,6 +34,52 @@ class AlertsPage extends StatelessWidget {
   void _open(BuildContext context, ListingAlert alert) {
     context.read<AlertsCubit>().markRead(alert.id);
     context.push(AppRoutes.listingDetail(alert.listing.id));
+  }
+
+  Future<void> _edit(BuildContext context, ListingAlert alert) async {
+    final searches = getIt<SavedSearchesCubit>();
+    final alerts = context.read<AlertsCubit>();
+    final messenger = ScaffoldMessenger.of(context);
+    await searches.load();
+    if (!context.mounted) return;
+    if (searches.state.status != SavedSearchesStatus.success) {
+      showMessage(
+        messenger,
+        'Não foi possível carregar a pesquisa deste alerta',
+      );
+      return;
+    }
+    final search = searches.state.searches
+        .where((search) => search.id == alert.searchId)
+        .firstOrNull;
+    if (search == null) {
+      showMessage(messenger, 'A pesquisa deste alerta já não existe');
+      return;
+    }
+    if (await editSavedSearch(context, search: search, cubit: searches)) {
+      await alerts.load();
+    }
+  }
+
+  Future<void> _delete(BuildContext context, ListingAlert alert) async {
+    final cubit = context.read<AlertsCubit>();
+    final messenger = ScaffoldMessenger.of(context);
+    if (!await confirmDelete(
+      context,
+      title: 'Eliminar alerta?',
+      message:
+          'Este alerta será eliminado da sua lista. '
+          'A pesquisa e os restantes alertas não serão alterados.',
+    )) {
+      return;
+    }
+    final deleted = await cubit.dismiss(alert.id);
+    if (messenger.mounted) {
+      showMessage(
+        messenger,
+        deleted ? 'Alerta eliminado' : 'Não foi possível eliminar o alerta',
+      );
+    }
   }
 
   @override
@@ -95,7 +148,9 @@ class AlertsPage extends StatelessWidget {
                           title: 'O que mudou',
                           description:
                               'Novos anúncios, baixas de preço e novidades '
-                              'das motas que acompanha.',
+                              'das motas que acompanha. Deslize para a esquerda '
+                              'para eliminar ou para a direita para editar '
+                              'a pesquisa de origem.',
                         ),
                         const SizedBox(height: 20),
                         Text(
@@ -126,10 +181,15 @@ class AlertsPage extends StatelessWidget {
                           ),
                           for (final alert in day.alerts)
                             _AlertTile(
+                              key: ValueKey(alert.id),
                               alert: alert,
                               title: alertTitle(alert),
                               icon: _icon(alert.type),
                               onTap: () => _open(context, alert),
+                              onEdit: alert.searchId == null
+                                  ? null
+                                  : () => _edit(context, alert),
+                              onDelete: () => _delete(context, alert),
                             ),
                         ],
                       ],
@@ -144,18 +204,25 @@ class AlertsPage extends StatelessWidget {
   }
 }
 
+enum _AlertAction { edit, delete }
+
 class _AlertTile extends StatelessWidget {
   const _AlertTile({
     required this.alert,
     required this.title,
     required this.icon,
     required this.onTap,
+    required this.onDelete,
+    this.onEdit,
+    super.key,
   });
 
   final ListingAlert alert;
   final String title;
   final IconData icon;
   final VoidCallback onTap;
+  final Future<void> Function() onDelete;
+  final Future<void> Function()? onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -184,75 +251,98 @@ class _AlertTile extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: background,
-                  borderRadius: BorderRadius.circular(10),
+      child: SwipeActions(
+        id: alert.id,
+        onEdit: onEdit,
+        onDelete: onDelete,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: background,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, size: 22, color: foreground),
                 ),
-                child: Icon(icon, size: 22, color: foreground),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            title,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: alert.isRead
-                                  ? FontWeight.w500
-                                  : FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                        if (!alert.isRead) ...[
-                          const SizedBox(width: 10),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 6),
-                            child: Semantics(
-                              label: 'Não lido',
-                              child: Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  color: scheme.primary,
-                                  shape: BoxShape.circle,
-                                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              title,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: alert.isRead
+                                    ? FontWeight.w500
+                                    : FontWeight.w700,
                               ),
                             ),
                           ),
+                          if (!alert.isRead) ...[
+                            const SizedBox(width: 10),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Semantics(
+                                label: 'Não lido',
+                                child: Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: scheme.primary,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                          PopupMenuButton<_AlertAction>(
+                            tooltip: 'Opções do alerta',
+                            onSelected: (action) => switch (action) {
+                              _AlertAction.edit => onEdit?.call(),
+                              _AlertAction.delete => onDelete(),
+                            },
+                            itemBuilder: (_) => [
+                              if (onEdit != null)
+                                const PopupMenuItem(
+                                  value: _AlertAction.edit,
+                                  child: Text('Editar pesquisa'),
+                                ),
+                              const PopupMenuItem(
+                                value: _AlertAction.delete,
+                                child: Text('Eliminar alerta'),
+                              ),
+                            ],
+                          ),
                         ],
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      alertDetailsLine(alert),
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      alertOriginLine(alert),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      Text(
+                        alertDetailsLine(alert),
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        alertOriginLine(alert),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

@@ -24,6 +24,8 @@ sign-in encrypted with a key in the Android Keystore
   "Mais barato" that is the best price in your colour) and paged 40 at a
   time. Labelled filter, sort and save controls sit above the results;
   while more pages remain, the count explicitly describes loaded ads.
+  The count and "Compare até 3 anúncios" share a text baseline, wrapping
+  on narrow screens and respecting enlarged text.
   By default, photo-led cards show the source, Deal Score, price change,
   year, mileage, place and distance from your home, and preferred-colour
   indicator, with a visible "Comparar" action. "Cartões" lets each signed-in
@@ -81,13 +83,19 @@ sign-in encrypted with a key in the Android Keystore
     seeing the bike, each "Está bem" or "Problema" with a note).
 - **Pesquisas:** saved searches, each with its criteria, configured alert
   types and "N anúncios encontrados". Tap the card to apply it; the
-  options menu edits or deletes it. "Nova pesquisa" creates one (Ofertas
+  options menu edits or deletes it; swipe right to edit, left to confirm
+  deletion. "Nova pesquisa" creates one (Ofertas
   can also save its current filters; filters already saved read "Pesquisa
   guardada", and the same search is never saved twice).
 - **Alertas:** new listings, price drops, excellent opportunities, bikes
   you followed back on the market in a new ad ("Voltou ao mercado") and
   removed listings, grouped by day, with an unread summary above them;
-  the tab also shows the unread count.
+  the tab also shows the unread count. Swipe left to confirm deletion, or
+  right to edit the saved search that created the alert; the same actions
+  are in its options menu. Without a source search, only deletion is
+  available. Deleted alerts leave the list and unread count but retain
+  their database history, so the same event cannot be generated again;
+  pending notifications are marked handled without a push.
 - **Mais:** account, "Cartões dos anúncios" (the same card display choices as Ofertas), sharing (the app's link; admins: "Contas e convites"), "Notificações neste aparelho" (with "Enviar notificação de teste", an example of any alert or collection message, and "Enviar o resumo da semana"), "Resumo da semana" (your models' last 7 days, made every Monday and sent as a notification that opens it: counts, new listings per model, the best deals and the biggest drops, each opening its listing), "A sua localidade" (your home town: every listing
   shows its distance from it), "Modelos acompanhados" (your own models: switch on/off, first
   year, favourite colours of each (listings in them are marked "Cor

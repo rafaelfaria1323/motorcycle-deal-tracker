@@ -9,6 +9,7 @@ import '../../../../app/router/app_routes.dart';
 import '../../../../core/widgets/page_intro.dart';
 import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
+import '../../../../core/widgets/swipe_actions.dart';
 import '../../domain/entities/motorcycle_option.dart';
 import '../../domain/entities/saved_search.dart';
 import '../cubit/listings_cubit.dart';
@@ -30,37 +31,6 @@ class SavedSearchesPage extends StatelessWidget {
     }
     unawaited(listings.applyFilters(search.filters));
     if (context.mounted) context.go(AppRoutes.deals);
-  }
-
-  Future<void> _edit(
-    BuildContext context,
-    SavedSearch search,
-    List<MotorcycleOption> motorcycles,
-  ) async {
-    final cubit = context.read<SavedSearchesCubit>();
-    final messenger = ScaffoldMessenger.of(context);
-
-    final edited = await showEditSavedSearchSheet(
-      context,
-      search: search,
-      motorcycles: motorcycles,
-    );
-    if (edited == null) return;
-    final same = savedSearchLike(
-      cubit.state.searches,
-      edited.filters,
-      except: edited.id,
-    );
-    if (same != null) {
-      showMessage(messenger, alreadySavedText(same));
-      return;
-    }
-
-    final saved = await cubit.update(edited);
-    showMessage(
-      messenger,
-      saved ? 'Pesquisa atualizada' : 'Não foi possível atualizar a pesquisa',
-    );
   }
 
   Future<void> _create(
@@ -95,10 +65,12 @@ class SavedSearchesPage extends StatelessWidget {
     if (!await confirmDeleteSavedSearch(context, search)) return;
 
     final deleted = await cubit.delete(search.id);
-    showMessage(
-      messenger,
-      deleted ? 'Pesquisa eliminada' : 'Não foi possível eliminar a pesquisa',
-    );
+    if (messenger.mounted) {
+      showMessage(
+        messenger,
+        deleted ? 'Pesquisa eliminada' : 'Não foi possível eliminar a pesquisa',
+      );
+    }
   }
 
   @override
@@ -160,11 +132,14 @@ class SavedSearchesPage extends StatelessWidget {
                         title: 'As suas pesquisas',
                         description:
                             'Os seus critérios, sempre à mão. Acompanhe os '
-                            'novos anúncios e as alterações de preço.',
+                            'novos anúncios e as alterações de preço. '
+                            'Deslize para a direita para editar ou para a '
+                            'esquerda para eliminar.',
                       ),
                       const SizedBox(height: 28),
                       for (final search in state.searches)
                         _SearchCard(
+                          key: ValueKey(search.id),
                           search: search,
                           summary: summarizeFilters(
                             search.filters,
@@ -172,8 +147,11 @@ class SavedSearchesPage extends StatelessWidget {
                           ),
                           matches: state.matchCounts[search.id] ?? 0,
                           onTap: () => _apply(context, search),
-                          onEdit: () =>
-                              _edit(context, search, state.motorcycles),
+                          onEdit: () => editSavedSearch(
+                            context,
+                            search: search,
+                            cubit: context.read<SavedSearchesCubit>(),
+                          ),
                           onDelete: () => _delete(context, search),
                         ),
                     ],
@@ -197,14 +175,15 @@ class _SearchCard extends StatelessWidget {
     required this.onTap,
     required this.onEdit,
     required this.onDelete,
+    super.key,
   });
 
   final SavedSearch search;
   final String summary;
   final int matches;
   final VoidCallback onTap;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
+  final Future<void> Function() onEdit;
+  final Future<void> Function() onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -213,99 +192,108 @@ class _SearchCard extends StatelessWidget {
 
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 8, 0),
-              child: Row(
-                children: [
-                  Icon(Icons.bookmark_outline, size: 20, color: scheme.primary),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      search.displayName,
-                      style: theme.textTheme.titleLarge,
+      child: SwipeActions(
+        id: search.id,
+        onEdit: onEdit,
+        onDelete: onDelete,
+        child: InkWell(
+          onTap: onTap,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 8, 0),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.bookmark_outline,
+                      size: 20,
+                      color: scheme.primary,
                     ),
-                  ),
-                  PopupMenuButton<_SearchAction>(
-                    tooltip: 'Opções da pesquisa',
-                    onSelected: (action) => switch (action) {
-                      _SearchAction.edit => onEdit(),
-                      _SearchAction.delete => onDelete(),
-                    },
-                    itemBuilder: (_) => const [
-                      PopupMenuItem(
-                        value: _SearchAction.edit,
-                        child: Text('Editar pesquisa'),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        search.displayName,
+                        style: theme.textTheme.titleLarge,
                       ),
-                      PopupMenuItem(
-                        value: _SearchAction.delete,
-                        child: Text('Eliminar pesquisa'),
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                    PopupMenuButton<_SearchAction>(
+                      tooltip: 'Opções da pesquisa',
+                      onSelected: (action) => switch (action) {
+                        _SearchAction.edit => onEdit(),
+                        _SearchAction.delete => onDelete(),
+                      },
+                      itemBuilder: (_) => const [
+                        PopupMenuItem(
+                          value: _SearchAction.edit,
+                          child: Text('Editar pesquisa'),
+                        ),
+                        PopupMenuItem(
+                          value: _SearchAction.delete,
+                          child: Text('Eliminar pesquisa'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    summary,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                      height: 1.45,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        Icons.notifications_none,
-                        size: 16,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      summary,
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         color: scheme.onSurfaceVariant,
+                        height: 1.45,
                       ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          searchNotificationText(search),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: scheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.notifications_none,
+                          size: 16,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            searchNotificationText(search),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  const Divider(),
-                  const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          searchMatchesText(matches),
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            color: scheme.primary,
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    const Divider(),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            searchMatchesText(matches),
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: scheme.primary,
+                            ),
                           ),
                         ),
-                      ),
-                      Icon(
-                        Icons.arrow_forward,
-                        size: 20,
-                        color: scheme.primary,
-                      ),
-                    ],
-                  ),
-                ],
+                        Icon(
+                          Icons.arrow_forward,
+                          size: 20,
+                          color: scheme.primary,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

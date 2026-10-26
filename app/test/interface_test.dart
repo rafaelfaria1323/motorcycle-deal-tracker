@@ -73,10 +73,76 @@ Future<void> _toggleCardField(WidgetTester tester, String label) async {
   await tester.pumpAndSettle();
 }
 
+Future<void> _swipe(
+  WidgetTester tester,
+  String id, {
+  required bool delete,
+  double fraction = 0.7,
+}) async {
+  final row = find.byKey(ValueKey('swipe-$id'));
+  await _reveal(tester, row);
+  final rect = tester.getRect(row);
+  await tester.dragFrom(
+    delete
+        ? rect.centerRight - const Offset(24, 0)
+        : rect.centerLeft + const Offset(24, 0),
+    Offset(rect.width * fraction * (delete ? -1 : 1), 0),
+  );
+  await tester.pumpAndSettle();
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(loadInterfaceFonts);
   tearDown(getIt.reset);
+
+  for (final scale in [1.0, 1.25, 2.0]) {
+    testWidgets('offers result labels share a text baseline at ${scale}x', (
+      tester,
+    ) async {
+      await _open(
+        tester,
+        InterfaceFixture(total: 45),
+        size: const Size(900, 1000),
+        textScale: scale,
+      );
+      final count = find.text('40 anúncios carregados');
+      final comparison = find.text('Compare até 3 anúncios');
+      final countText = tester.renderObject<RenderParagraph>(count);
+      final comparisonText = tester.renderObject<RenderParagraph>(comparison);
+      final countBaseline =
+          tester.getTopLeft(count).dy +
+          countText.getDryBaseline(
+            countText.constraints,
+            TextBaseline.alphabetic,
+          )!;
+      final comparisonBaseline =
+          tester.getTopLeft(comparison).dy +
+          comparisonText.getDryBaseline(
+            comparisonText.constraints,
+            TextBaseline.alphabetic,
+          )!;
+      expect(comparisonBaseline, closeTo(countBaseline, 0.01));
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('offers result labels wrap safely on a narrow enlarged screen', (
+    tester,
+  ) async {
+    await _open(
+      tester,
+      InterfaceFixture(total: 45),
+      size: const Size(320, 720),
+      textScale: 2,
+    );
+    final count = tester.getRect(find.text('40 anúncios carregados'));
+    final comparison = tester.getRect(find.text('Compare até 3 anúncios'));
+    expect(comparison.top, greaterThanOrEqualTo(count.bottom));
+    expect(comparison.left, closeTo(count.left, 0.5));
+    expect(comparison.right, lessThanOrEqualTo(300));
+    expect(tester.takeException(), isNull);
+  });
 
   for (final dark in [false, true]) {
     for (final width in [320.0, 390.0, 900.0, 1440.0]) {
@@ -780,6 +846,302 @@ void main() {
     );
     expect(find.text('Nova pesquisa'), findsOneWidget);
   });
+
+  for (final fail in [false, true]) {
+    testWidgets(
+      'saved search swipe editing ${fail ? 'reports failure' : 'saves'}',
+      (tester) async {
+        final fixture = InterfaceFixture();
+        await _open(tester, fixture, location: AppRoutes.searches);
+        final original = fixture.searchesRepository.values.single.name;
+        await _swipe(tester, 'search-1', delete: false);
+        expect(find.text('Editar pesquisa'), findsOneWidget);
+        await tester.enterText(
+          find.byType(TextFormField),
+          'A minha próxima mota',
+        );
+        fixture.searchesRepository.failWrites = fail;
+        final save = find.widgetWithText(FilledButton, 'Guardar');
+        await tester.ensureVisible(save);
+        await tester.tap(save);
+        await tester.pumpAndSettle();
+        expect(
+          fixture.searchesRepository.values.single.name,
+          fail ? original : 'A minha próxima mota',
+        );
+        expect(
+          find.text(
+            fail
+                ? 'Não foi possível atualizar a pesquisa'
+                : 'Pesquisa atualizada',
+          ),
+          findsOneWidget,
+        );
+        expect(find.byKey(const ValueKey('search-1')), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
+  testWidgets('cancelled search swipes keep the card and can be used again', (
+    tester,
+  ) async {
+    final fixture = InterfaceFixture();
+    await _open(tester, fixture, location: AppRoutes.searches);
+    final original = fixture.searchesRepository.values.single.name;
+    await _swipe(tester, 'search-1', delete: false);
+    await tester.enterText(find.byType(TextFormField), 'Não guardar');
+    await tester.tap(find.text('Cancelar'));
+    await tester.pumpAndSettle();
+    expect(fixture.searchesRepository.values.single.name, original);
+    await _swipe(tester, 'search-1', delete: true);
+    expect(find.text('Eliminar pesquisa?'), findsOneWidget);
+    await tester.tap(find.text('Cancelar'));
+    await tester.pumpAndSettle();
+    expect(fixture.searchesRepository.values, hasLength(1));
+    expect(find.byKey(const ValueKey('search-1')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'search swipe deletion preserves the other card and its actions',
+    (tester) async {
+      final fixture = InterfaceFixture();
+      await fixture.searchesRepository.create(
+        name: 'Outra pesquisa',
+        filters: const ListingFilters(minYear: 2021),
+      );
+      await _open(tester, fixture, location: AppRoutes.searches);
+      await _swipe(tester, 'search-1', delete: true);
+      await tester.tap(find.text('Eliminar'));
+      await tester.pumpAndSettle();
+      expect(fixture.searchesRepository.values.single.id, 'search-2');
+      expect(find.byKey(const ValueKey('search-1')), findsNothing);
+      await _swipe(tester, 'search-2', delete: false);
+      expect(
+        tester
+            .widget<TextFormField>(find.byType(TextFormField))
+            .controller!
+            .text,
+        'Outra pesquisa',
+      );
+      await tester.tap(find.text('Cancelar'));
+      await tester.pumpAndSettle();
+      expect(find.byType(TextFormField), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('a failed search swipe deletion keeps the search and shows why', (
+    tester,
+  ) async {
+    final fixture = InterfaceFixture();
+    await _open(tester, fixture, location: AppRoutes.searches);
+    fixture.searchesRepository.failWrites = true;
+    await _swipe(tester, 'search-1', delete: true);
+    await tester.tap(find.text('Eliminar'));
+    await tester.pumpAndSettle();
+    expect(fixture.searchesRepository.values, hasLength(1));
+    expect(find.byKey(const ValueKey('search-1')), findsOneWidget);
+    expect(find.text('Não foi possível eliminar a pesquisa'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final alerts in [false, true]) {
+    testWidgets('a short ${alerts ? 'alert' : 'search'} swipe does nothing', (
+      tester,
+    ) async {
+      final fixture = InterfaceFixture();
+      await _open(
+        tester,
+        fixture,
+        location: alerts ? AppRoutes.alerts : AppRoutes.searches,
+      );
+      await _swipe(
+        tester,
+        alerts ? 'alert-0' : 'search-1',
+        delete: true,
+        fraction: 0.15,
+      );
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.byType(TextFormField), findsNothing);
+      expect(fixture.alertsRepository.dismissed, isEmpty);
+      expect(fixture.searchesRepository.values, hasLength(1));
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('alert swipe deletion clears the badge without erasing history', (
+    tester,
+  ) async {
+    final fixture = InterfaceFixture();
+    await _open(tester, fixture, location: AppRoutes.alerts);
+    for (var i = 0; i < 3; i++) {
+      await _swipe(tester, 'alert-$i', delete: true);
+      expect(find.text('Eliminar alerta?'), findsOneWidget);
+      await tester.tap(find.text('Eliminar'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(ValueKey('alert-$i')), findsNothing);
+      expect(fixture.alerts.state.unreadCount, 2 - i);
+      expect(fixture.alertsRepository.dismissed, contains('alert-$i'));
+    }
+    await fixture.alerts.load();
+    await tester.pumpAndSettle();
+    expect(find.text('Ainda não tem alertas'), findsOneWidget);
+    expect(fixture.alertsRepository.values, hasLength(3));
+    expect(fixture.searchesRepository.values, hasLength(1));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'cancelled and failed alert swipes keep their unread notification',
+    (tester) async {
+      final fixture = InterfaceFixture();
+      await _open(tester, fixture, location: AppRoutes.alerts);
+      fixture.alertsRepository.failDismiss = true;
+      await _swipe(tester, 'alert-0', delete: true);
+      await tester.tap(find.text('Cancelar'));
+      await tester.pumpAndSettle();
+      expect(fixture.alertsRepository.dismissed, isEmpty);
+      await _swipe(tester, 'alert-0', delete: true);
+      await tester.tap(find.text('Eliminar'));
+      await tester.pumpAndSettle();
+      expect(find.text('Não foi possível eliminar o alerta'), findsOneWidget);
+      expect(find.byKey(const ValueKey('alert-0')), findsOneWidget);
+      expect(fixture.alerts.state.unreadCount, 3);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('a pending alert dismissal can finish after leaving the app', (
+    tester,
+  ) async {
+    final saved = Completer<void>();
+    final fixture = InterfaceFixture();
+    fixture.alertsRepository.dismissDelay = saved.future;
+    await _open(tester, fixture, location: AppRoutes.alerts);
+    await _swipe(tester, 'alert-0', delete: true);
+    await tester.tap(find.text('Eliminar'));
+    await tester.pumpAndSettle();
+    expect(fixture.alerts.state.unreadCount, 3);
+    await tester.pumpWidget(const SizedBox.shrink());
+    saved.complete();
+    await tester.pumpAndSettle();
+    expect(fixture.alerts.state.unreadCount, 2);
+    expect(fixture.alertsRepository.dismissed, contains('alert-0'));
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final menu in [false, true]) {
+    testWidgets(
+      'an alert can edit its source search by ${menu ? 'menu' : 'swipe'}',
+      (tester) async {
+        final fixture = InterfaceFixture();
+        await _open(tester, fixture, location: AppRoutes.alerts);
+        if (menu) {
+          final options = find.descendant(
+            of: find.byKey(const ValueKey('alert-0')),
+            matching: find.byTooltip('Opções do alerta'),
+          );
+          await tester.ensureVisible(options);
+          await tester.tap(options);
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Editar pesquisa'));
+          await tester.pumpAndSettle();
+        } else {
+          await _swipe(tester, 'alert-0', delete: false);
+        }
+        expect(find.text('Editar pesquisa'), findsOneWidget);
+        expect(
+          tester
+              .widget<TextFormField>(find.byType(TextFormField))
+              .controller!
+              .text,
+          fixture.searchesRepository.values.single.name,
+        );
+        await tester.enterText(
+          find.byType(TextFormField),
+          'MT-07 para a garagem',
+        );
+        final save = find.widgetWithText(FilledButton, 'Guardar');
+        await tester.ensureVisible(save);
+        await tester.tap(save);
+        await tester.pumpAndSettle();
+        expect(
+          fixture.searchesRepository.values.single.name,
+          'MT-07 para a garagem',
+        );
+        expect(
+          fixture.alerts.state.alerts
+              .firstWhere((alert) => alert.id == 'alert-0')
+              .searchName,
+          'MT-07 para a garagem',
+        );
+        expect(find.textContaining('MT-07 para a garagem'), findsOneWidget);
+        expect(fixture.alertsRepository.dismissed, isEmpty);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
+  testWidgets(
+    'alerts without a search only expose deletion, including large text',
+    (tester) async {
+      final fixture = InterfaceFixture();
+      await _open(
+        tester,
+        fixture,
+        location: AppRoutes.alerts,
+        size: const Size(320, 720),
+        textScale: 2,
+        dark: true,
+      );
+      await _swipe(tester, 'alert-1', delete: false);
+      expect(find.byType(TextFormField), findsNothing);
+      final options = find.descendant(
+        of: find.byKey(const ValueKey('alert-1')),
+        matching: find.byTooltip('Opções do alerta'),
+      );
+      await tester.ensureVisible(options);
+      await tester.tap(options);
+      await tester.pumpAndSettle();
+      expect(find.text('Editar pesquisa'), findsNothing);
+      await tester.tap(find.text('Eliminar alerta'));
+      await tester.pumpAndSettle();
+      expect(find.text('Eliminar alerta?'), findsOneWidget);
+      await tester.tap(find.text('Cancelar'));
+      await tester.pumpAndSettle();
+      expect(fixture.alertsRepository.dismissed, isEmpty);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  for (final offline in [false, true]) {
+    testWidgets(
+      'source editing reports a ${offline ? 'failed load' : 'deleted search'}',
+      (tester) async {
+        final fixture = InterfaceFixture();
+        await _open(tester, fixture, location: AppRoutes.alerts);
+        if (offline) {
+          fixture.searchesRepository.failReads = true;
+        } else {
+          fixture.searchesRepository.values.clear();
+        }
+        await _swipe(tester, 'alert-0', delete: false);
+        expect(find.byType(TextFormField), findsNothing);
+        expect(
+          find.text(
+            offline
+                ? 'Não foi possível carregar a pesquisa deste alerta'
+                : 'A pesquisa deste alerta já não existe',
+          ),
+          findsOneWidget,
+        );
+        expect(find.byKey(const ValueKey('alert-0')), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
 
   testWidgets('alerts remain readable and can all be marked read', (
     tester,

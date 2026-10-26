@@ -140,17 +140,19 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 
 ## 15. Saved Searches ✅
 
-All criteria (➕ plus minimum Deal Score and maximum Risk Score) and all four notification preferences, with configured alert types and "N anúncios encontrados" shown on each card. Tap the card to apply it; edit and delete are in its options menu. Created from Ofertas (current filters) or from Pesquisas ("Nova pesquisa").
+All criteria (➕ plus minimum Deal Score and maximum Risk Score) and all four notification preferences, with configured alert types and "N anúncios encontrados" shown on each card. Tap the card to apply it; edit and delete are in its options menu, or swipe right to edit and left to confirm deletion (15.32). Created from Ofertas (current filters) or from Pesquisas ("Nova pesquisa").
 
 ## 16. Alerts ✅
 
-All four types, each at most once per event, only for events after the search was created. ➕ Favourites alert their owner about price drops and removal without a saved search (once per event, also when a search covers the listing). ➕ "Chegou ao seu preço": a favourite's target price reached (15.19). Pushed to Telegram ✅ (confirmed on the phone). In the app: grouped by day, unread count on the Alertas tab.
+All four types, each at most once per event, only for events after the search was created. ➕ Favourites alert their owner about price drops and removal without a saved search (once per event, also when a search covers the listing). ➕ "Chegou ao seu preço": a favourite's target price reached (15.19). Delivered to each account's devices (Web Push / FCM). In the app: grouped by day, unread count on the Alertas tab. ➕ Swipe left to confirm deletion or right to edit the originating saved search, also available in the options menu (15.32); no edit action without a source search. Dismissed alerts leave the list and unread badge, and pending delivery is marked handled, while their history remains to prevent repeated events.
 
 ## 17. Dashboard ✅
 
 ✅ Best deals sorted by Deal Score (or newest, cheapest, most expensive); only tracked models; filters for model (➕ several at once, also in saved searches, 15.28), price, mileage, year, location, seller type, Deal Score, Risk Score, active only, shown as removable chips; filters already saved show "Pesquisa guardada" instead of a second save (15.30). ➕ Distance from the owner's home on every listing, a maximum-distance filter (also for saved searches) and a nearest-first sort (15.11). ➕ Equipment filter (quickshifter, exhaust, luggage, heated grips, protection, new tyres and, since 15.15, short plate holder, screen, levers, mirrors, phone mount, alarm, steering damper, centre stand, cruise control, suspension, LED indicators, passenger grab handles, original parts included), also for saved searches (15.13). ➕ Collection status (last run, duration, what it found, requests, next run; a warning card when a run failed or was blocked) in Mais. ➕ Favourites: a star on cards of starred listings; "Favoritos" (Ofertas app bar or Mais) lists them with the owner's notes.
 
 *13.7: visible filter, sort, save and comparison actions; removable wrapping filter chips; explicit loaded-result counts while another page remains; pull to refresh. Photo-led cards show the source and a labelled Deal Score; up to three columns on desktop, natural heights on phones or with enlarged text.*
+
+*15.32: loaded-result counts and "Compare até 3 anúncios" align on their text baseline, still wrapping on narrow screens and with enlarged text.*
 
 ➕ Card details per account ✅ (15.31): Ofertas › "Cartões" or Mais › "Cartões dos anúncios" selects the details shown in Ofertas and Favoritos, saved to the account across devices. The current layout is the default; additional choices cover Risk Score, seller type, colour, owners / first owner, service book, origin, factory and seller warranties, stand name, status, and publication, renewal and first-found dates. A first-owner statement can come from the existing ad-text signal when no owner count is known; publication, renewal and discovery stay distinct, and missing facts are omitted. Photo, model, price, removal notices and actions stay visible. Cancel and reset-to-defaults are available; anonymous visitors retain the default layout.
 

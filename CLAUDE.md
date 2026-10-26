@@ -774,6 +774,21 @@ functions for manual work.
 
 ## Alerts
 
+Pesquisas and Alertas use native `SwipeActions` (`core/widgets/`): right
+edits, left confirms deletion, with options menus kept as an accessible
+alternative. An alert edits its source saved search (`ListingAlert.searchId`)
+through the shared `editSavedSearch` action; favourites and deleted source
+searches have no edit action. The editor opens on the root navigator, above
+the shell and its snack bars.
+
+Deleting an alert hides it, never removes its event history:
+`dismiss_alert` requires a real account and its own alert, sets
+`dismissed_at`, `read_at` and `notified_at` only where absent, and leaves
+deduplication intact. The app loads only `dismissed_at is null`; direct
+alert deletion and writes beyond `read_at` remain forbidden. The collector's
+pending query already excludes handled notifications. Alert refreshes and
+failed read writes must not bring dismissed rows back.
+
 Types: `target_price_reached` (a favourite's `target_price`, set from
 "Quanto oferecer": the listing is live at that price or less, at a price
 seen after `target_set_at` (stamped by a trigger); old_price = the target,

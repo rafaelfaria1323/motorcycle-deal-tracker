@@ -18,12 +18,13 @@ class SupabaseAlertsRepository implements AlertsRepository {
         .select(
           '*, listings(${ListingModel.summaryColumns}), saved_searches(name)',
         )
+        .isFilter('dismissed_at', null)
         .order('created_at', ascending: false)
         .limit(100);
     return rows.map<ListingAlert>(ListingAlertModel.fromJson).toList();
   }
 
-  // The app may only change `read_at` (a column-level grant from Sprint 1).
+  // Only `read_at` is directly writable; dismissal uses an owner-checked RPC.
 
   @override
   Future<void> markRead(String id) async {
@@ -39,5 +40,10 @@ class SupabaseAlertsRepository implements AlertsRepository {
         .from('alerts')
         .update({'read_at': DateTime.now().toUtc().toIso8601String()})
         .isFilter('read_at', null);
+  }
+
+  @override
+  Future<void> dismiss(String id) async {
+    await _client.rpc<void>('dismiss_alert', params: {'p_alert': id});
   }
 }

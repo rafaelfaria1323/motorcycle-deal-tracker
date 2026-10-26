@@ -1,11 +1,45 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_theme.dart';
+import '../../../../core/widgets/show_message.dart';
 import '../../domain/entities/listing_filters.dart';
 import '../../domain/entities/motorcycle_option.dart';
 import '../../domain/entities/saved_search.dart';
+import '../cubit/saved_searches_cubit.dart';
 import '../saved_search_summary.dart';
 import 'filters_sheet.dart';
+
+Future<bool> editSavedSearch(
+  BuildContext context, {
+  required SavedSearch search,
+  required SavedSearchesCubit cubit,
+}) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final edited = await showEditSavedSearchSheet(
+    context,
+    search: search,
+    motorcycles: cubit.state.motorcycles,
+  );
+  if (edited == null || !context.mounted) return false;
+  final same = savedSearchLike(
+    cubit.state.searches,
+    edited.filters,
+    except: edited.id,
+  );
+  if (same != null) {
+    showMessage(messenger, alreadySavedText(same));
+    return false;
+  }
+
+  final saved = await cubit.update(edited);
+  if (messenger.mounted) {
+    showMessage(
+      messenger,
+      saved ? 'Pesquisa atualizada' : 'Não foi possível atualizar a pesquisa',
+    );
+  }
+  return saved;
+}
 
 /// Returns the edited search, or null if cancelled.
 Future<SavedSearch?> showEditSavedSearchSheet(
@@ -15,6 +49,7 @@ Future<SavedSearch?> showEditSavedSearchSheet(
 }) {
   return showModalBottomSheet<SavedSearch>(
     context: context,
+    useRootNavigator: true,
     isScrollControlled: true,
     useSafeArea: true,
     constraints: const BoxConstraints(maxWidth: 560),

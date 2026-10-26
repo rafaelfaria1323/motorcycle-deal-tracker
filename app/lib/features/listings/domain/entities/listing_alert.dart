@@ -24,6 +24,7 @@ class ListingAlert extends Equatable {
     required this.type,
     required this.listing,
     required this.createdAt,
+    this.searchId,
     this.searchName,
     this.oldPrice,
     this.newPrice,
@@ -35,7 +36,8 @@ class ListingAlert extends Equatable {
   final Listing listing;
   final DateTime createdAt;
 
-  /// The saved search that triggered it; null if that search was deleted.
+  /// The originating search; null for favourites or a deleted search.
+  final String? searchId;
   final String? searchName;
   final double? oldPrice;
   final double? newPrice;
@@ -43,19 +45,28 @@ class ListingAlert extends Equatable {
 
   bool get isRead => readAt != null;
 
-  ListingAlert copyWith({DateTime? readAt}) {
+  ListingAlert copyWith({DateTime? readAt, bool clearReadAt = false}) {
     return ListingAlert(
       id: id,
       type: type,
       listing: listing,
       createdAt: createdAt,
+      searchId: searchId,
       searchName: searchName,
       oldPrice: oldPrice,
       newPrice: newPrice,
-      readAt: readAt ?? this.readAt,
+      readAt: clearReadAt ? null : readAt ?? this.readAt,
     );
   }
 
   @override
-  List<Object?> get props => [id, type, listing, createdAt, readAt];
+  List<Object?> get props => [
+    id,
+    type,
+    listing,
+    createdAt,
+    searchId,
+    searchName,
+    readAt,
+  ];
 }

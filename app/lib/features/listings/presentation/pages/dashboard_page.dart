@@ -215,30 +215,42 @@ class DashboardPage extends StatelessWidget {
                             const SizedBox(height: 24),
                             const Divider(),
                             const SizedBox(height: 16),
-                            Wrap(
-                              spacing: 16,
-                              runSpacing: 4,
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              children: [
-                                Text(
-                                  listingsResultsText(
-                                    state.listings.length,
-                                    hasMore: state.hasMore,
-                                  ),
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
-                                ),
-                                Text(
-                                  'Compare até 3 anúncios',
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
+                            // Each child Text already applies text scaling.
+                            Text.rich(
+                              TextSpan(
+                                children: [
+                                  WidgetSpan(
+                                    alignment: PlaceholderAlignment.baseline,
+                                    baseline: TextBaseline.alphabetic,
+                                    child: Text(
+                                      listingsResultsText(
+                                        state.listings.length,
+                                        hasMore: state.hasMore,
                                       ),
-                                ),
-                              ],
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleMedium,
+                                    ),
+                                  ),
+                                  const TextSpan(text: '    '),
+                                  WidgetSpan(
+                                    alignment: PlaceholderAlignment.baseline,
+                                    baseline: TextBaseline.alphabetic,
+                                    child: Text(
+                                      'Compare até 3 anúncios',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onSurfaceVariant,
+                                          ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              textScaler: TextScaler.noScaling,
                             ),
                           ],
                         ],
