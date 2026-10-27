@@ -44,7 +44,10 @@ void main() {
           values.keys.where((key) => !key.startsWith('@')).toSet();
       expect(keys(en), keys(pt));
       expect(keys(pt).length, greaterThan(900));
-      final arguments = RegExp(r'\{([A-Za-z]\w*)(?:[,}])');
+      // A plural branch's text ("=1{Problema}") is not a placeholder.
+      final arguments = RegExp(
+        r'(?<!=\d+|zero|one|two|few|many|other)\{([A-Za-z]\w*)(?:[,}])',
+      );
       for (final key in keys(pt)) {
         final portuguese = pt[key] as String;
         final english = en[key] as String;
