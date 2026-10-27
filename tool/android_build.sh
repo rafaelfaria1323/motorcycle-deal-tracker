@@ -3,6 +3,7 @@
 # app/build/app/outputs/flutter-apk/app-release.apk, signed with the
 # template's throwaway debug key (deploy-web.yml signs it again with ours).
 # Used by deploy-web.yml and android-check.yml; needs Flutter and Java.
+# Both keep ~/.gradle and the NDK between runs (tool/android_cache_keys.sh).
 #
 # app/android is not in the repository: it is made afresh from this
 # Flutter's template (so it always matches it), then fitted by
@@ -26,6 +27,9 @@ cd "$(dirname "$0")/../app"
 flutter create --platforms=android --org io.github.rafaelfaria1323 \
   --project-name motorcycle_deal_tracker .
 python3 ../tool/android_manifest.py android/app/src/main/AndroidManifest.xml
+# Gradle's build cache: tasks whose inputs didn't change (the plugins' Java
+# and Kotlin, R8) come from ~/.gradle, which the workflows keep between runs.
+echo 'org.gradle.caching=true' >> android/gradle.properties
 if [[ -n "${FIREBASE_ANDROID_CONFIG:-}" ]]; then
   mkdir -p android/app/src/main/res/values
   printf '%s' "$FIREBASE_ANDROID_CONFIG" |
@@ -43,3 +47,6 @@ flutter build apk --release --target-platform android-arm64 \
   --dart-define=APK_URL="${APK_URL:-}" \
   --dart-define=APP_BUILD="$build" \
   --dart-define=WEB_URL="${WEB_URL:-}"
+
+# No Gradle daemon left writing to ~/.gradle while the workflow saves it.
+(cd android && ./gradlew --stop) || true

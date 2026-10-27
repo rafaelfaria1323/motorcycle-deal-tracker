@@ -14,6 +14,7 @@ on:
       - 'tool/android_build.sh'
       - 'tool/android_manifest.py'
       - 'tool/firebase_values.py'
+      - 'tool/android_cache_keys.sh'
       - '.github/workflows/android-check.yml'
 
 concurrency:
@@ -39,6 +40,28 @@ jobs:
         with:
           channel: stable
           cache: true
+
+      # The deploy's Gradle and NDK caches (deploy-web.yml), read only: a
+      # pull request saves none of its own.
+      - name: Android cache keys
+        id: android
+        run: tool/android_cache_keys.sh >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache/restore@v6
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            !~/.gradle/caches/**/*.lock
+            !~/.gradle/caches/**/gc.properties
+          key: android-gradle-${{ steps.android.outputs.flutter }}-${{ hashFiles('app/pubspec.lock', 'app/packages/**', 'tool/android_build.sh', 'tool/android_manifest.py', 'tool/firebase_values.py') }}
+          restore-keys: android-gradle-
+
+      - uses: actions/cache/restore@v6
+        if: steps.android.outputs.ndk != ''
+        with:
+          path: ${{ steps.android.outputs.ndk_path }}
+          key: android-ndk-${{ steps.android.outputs.ndk }}
 
       - name: Build APK
         env:
