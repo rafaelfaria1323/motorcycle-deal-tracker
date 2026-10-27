@@ -52,8 +52,9 @@ class FetchPolicy {
     this.maxRequestsPerRun,
     this.maxRequestsPerDay,
     this.maxRunTime = const Duration(minutes: 30),
-    this.timeout = const Duration(seconds: 20),
+    this.timeout = const Duration(seconds: 45),
     this.readTimeout = const Duration(seconds: 60),
+    this.retryDelay = const Duration(seconds: 60),
     this.cooldownAfterBlock = const Duration(hours: 24),
     this.robotsMaxAge = const Duration(hours: 24),
   });
@@ -72,12 +73,21 @@ class FetchPolicy {
   /// still to read) inside the job's time; the rest waits for the next run.
   final Duration? maxRunTime;
 
-  /// For connecting and the response's headers.
+  /// For connecting and the response's headers. OLX answers in 1-2 s, but
+  /// three runs (2026-10-24 to 26) lost a search when it sent no headers
+  /// within 20 s; a longer wait costs nothing when it answers.
   final Duration timeout;
 
   /// For reading the page once it is coming in: OLX's pages are 2 MB, and
   /// one took longer than [timeout] on a slow runner (it adds no request).
   final Duration readTimeout;
+
+  /// The wait before a page's one retry, after a timeout, a dropped
+  /// connection or HTTP 500/502/504 (Rafael, 2026-10-27: passing errors
+  /// lost whole searches). Blocks (403/429/503) and pages that aren't
+  /// normal are never retried; a second failure stops the run as before.
+  /// Null: no retry (tests, by hand).
+  final Duration? retryDelay;
   final Duration cooldownAfterBlock;
 
   /// How long a robots.txt read is kept (in the state file, across runs)
@@ -308,7 +318,7 @@ class PoliteFetcher {
         throw FetchRefused('$current: disallowed by robots.txt');
       }
 
-      final response = await _request(current);
+      final response = await _requestOnceMore(current);
       final status = response.status;
 
       if (status == 200) {
@@ -327,6 +337,38 @@ class PoliteFetcher {
       throw FetchFailed('$current: HTTP $status', statusCode: status);
     }
     throw FetchFailed('$url: too many redirects');
+  }
+
+  /// HTTP statuses of a passing server error, worth one retry.
+  static const _retryStatuses = {500, 502, 504};
+
+  /// [_request], and once more after [FetchPolicy.retryDelay] when it timed
+  /// out, the connection failed or the server had a passing error. The
+  /// retry is a request like any other (counted, never in parallel).
+  Future<({int status, String body, String? location})> _requestOnceMore(
+    Uri url,
+  ) async {
+    final delay = policy.retryDelay;
+    if (delay == null) return _request(url);
+    FetchFailed first;
+    try {
+      final response = await _request(url);
+      if (!_retryStatuses.contains(response.status)) return response;
+      first = FetchFailed(
+        '$url: HTTP ${response.status}',
+        statusCode: response.status,
+      );
+    } on FetchFailed catch (e) {
+      first = e;
+    }
+    stdout.writeln('Retrying once in ${delay.inSeconds} s: $first');
+    await Future<void>.delayed(delay);
+    try {
+      return await _request(url);
+    } on FetchLimitReached {
+      // The run's time ran out meanwhile: the page is still lost.
+      throw first;
+    }
   }
 
   Future<({int status, String body, String? location})> _request(

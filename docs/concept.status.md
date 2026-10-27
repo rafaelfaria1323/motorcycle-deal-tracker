@@ -46,7 +46,7 @@ Unchanged.
 - ✅ OLX (search result pages, which hold the full description; Standvirtual copies skipped; each search asks for the engine-size band of its models, so other models' ads aren't read).
 - ⬜ Future: CustoJusto, dealerships, European marketplaces, imports.
 
-*robots.txt checked, read once a day and kept up to 24 h (roadmap R.4); same polite rules per site (6-10 s apart, one at a time, 24 h pause on a refusal); no request caps since 2026-10-22, at most 30 min per site and run, the requests shown per run, day and month. Fewer requests (roadmap R): each run records each search's pages and ads (R.1, shown in "Estado da recolha"); planned next, light runs that read each search newest first and stop at ads already seen, with full runs a few times a day. **Terms of use still to be read and recorded** in `docs/sources.md`.*
+*robots.txt checked, read once a day and kept up to 24 h (roadmap R.4); same polite rules per site (6-10 s apart, one at a time, 24 h pause on a refusal; since N.22 one retry a minute later after a timeout or a passing server error, never after a refusal); no request caps since 2026-10-22, at most 30 min per site and run, the requests shown per run, day and month. Fewer requests (roadmap R): each run records each search's pages and ads (R.1, shown in "Estado da recolha"); planned next, light runs that read each search newest first and stop at ads already seen, with full runs a few times a day. **Terms of use still to be read and recorded** in `docs/sources.md`.*
 
 ## 6. Platform
 
@@ -125,7 +125,7 @@ Initial price, current price, every change with date, percentage, and time onlin
 | Market / listing behaviour | 10% | ⬜ data being collected |
 | Risk indicators | 10% | ✅ |
 
-Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are parameters of one SQL function ✅.
+Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are parameters of one SQL function ✅. *All live listings are scored again after each collection in one call (about 3 s for 1 500 listings since N.22: the description's signals are worked out once per text, not every run).*
 
 ➕ Favourite colours (15.23): each account picks its colours per model (blue MT-07, red CBR650R); a listing in one is marked and explained as a plus, can be filtered ("Só nas suas cores", with the cheapest sort: the best price in that colour) and alerted on by saved searches ("Novo anúncio na sua cor"), but never scored (an older bike or one with more km must not win on colour).
 

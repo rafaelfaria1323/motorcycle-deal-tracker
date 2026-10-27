@@ -253,6 +253,8 @@ void main() {
         minDelay: Duration.zero,
         jitter: Duration.zero,
         timeout: Duration(milliseconds: 300),
+        // Retried once, and it times out again.
+        retryDelay: Duration(milliseconds: 10),
       ),
     );
 
