@@ -10,15 +10,21 @@ class SupabaseLanguageRepository implements LanguageRepository {
   final SupabaseClient _client;
   final SharedPreferences _preferences;
 
-  static const deviceKey = 'app_language';
+  static const _deviceKey = 'app_language';
 
   static String _key(String? userId) =>
-      userId == null ? deviceKey : 'account_language:$userId';
+      userId == null ? _deviceKey : 'account_language:$userId';
 
   @override
-  AppLanguage cached(String? userId) => AppLanguage.fromCode(
-    _preferences.getString(_key(userId)) ?? AppLanguage.portuguese.code,
-  );
+  AppLanguage cached(String? userId) => cachedIn(_preferences, userId);
+
+  /// The language last used on this device ([userId] null) or by that
+  /// account here. A code this build doesn't know (written by a newer
+  /// build, or damaged) reads as no choice: at startup an error would keep
+  /// the app from opening, and "Tentar novamente" could never clear it.
+  static AppLanguage cachedIn(SharedPreferences preferences, String? userId) =>
+      AppLanguage.tryFromCode(preferences.getString(_key(userId))) ??
+      AppLanguage.portuguese;
 
   @override
   Future<AppLanguage> load(String userId) async {
@@ -43,7 +49,7 @@ class SupabaseLanguageRepository implements LanguageRepository {
   @override
   Future<void> remember(String? userId, AppLanguage language) async {
     final saved = await Future.wait([
-      _preferences.setString(deviceKey, language.code),
+      _preferences.setString(_deviceKey, language.code),
       if (userId != null) _preferences.setString(_key(userId), language.code),
     ]);
     if (saved.contains(false)) {

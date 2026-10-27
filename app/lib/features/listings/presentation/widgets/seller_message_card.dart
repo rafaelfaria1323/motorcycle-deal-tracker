@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../../../app/di/injection.dart';
 import '../../../../core/formatting/formatters.dart';
@@ -51,18 +50,6 @@ class _SellerMessageCardState extends State<SellerMessageCard> {
     );
   }
 
-  Future<void> _copy(String text) async {
-    final messageStrings = context.strings;
-
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      await Clipboard.setData(ClipboardData(text: text));
-      showMessage(messenger, messageStrings.messageCopied);
-    } catch (_) {
-      showMessage(messenger, messageStrings.couldNotCopySelectTextInstead);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final listing = widget.listing;
@@ -108,7 +95,7 @@ class _SellerMessageCardState extends State<SellerMessageCard> {
             ),
             const SizedBox(height: 12),
             FilledButton.tonalIcon(
-              onPressed: () => _copy(message),
+              onPressed: () => copyMessage(context, message),
               icon: const Icon(Icons.copy),
               label: Text(context.strings.copyMessageSellerMessageCard),
             ),

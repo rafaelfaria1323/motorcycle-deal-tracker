@@ -25,7 +25,7 @@ Future<int> enrichDetails(
   final adapter = StandvirtualPageAdapter('unused');
   final details = <ListingDetails>[];
   final failed = <String>[];
-  Object? stop;
+  Exception? stop;
 
   try {
     for (final p in pending) {

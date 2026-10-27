@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/di/injection.dart';
@@ -55,18 +54,6 @@ class _OfferCardState extends State<OfferCard> {
         .getCheaperSimilar(listing)
         .then((l) => l, onError: (Object _) => const <Listing>[]);
     return (await market, await cheaper);
-  }
-
-  Future<void> _copy(String text) async {
-    final messageStrings = context.strings;
-
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      await Clipboard.setData(ClipboardData(text: text));
-      showMessage(messenger, messageStrings.messageCopied);
-    } catch (_) {
-      showMessage(messenger, messageStrings.couldNotCopySelectTextInstead);
-    }
   }
 
   Future<void> _editTarget(Favourite favourite, double suggested) async {
@@ -194,7 +181,7 @@ class _OfferCardState extends State<OfferCard> {
           _StepRow(
             number: i + 1,
             step: step,
-            onCopy: () => _copy(step.message),
+            onCopy: () => copyMessage(context, step.message),
           ),
         if (arguments.isNotEmpty) ...[
           const SizedBox(height: 16),
@@ -215,7 +202,8 @@ class _OfferCardState extends State<OfferCard> {
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
-              onPressed: () => _copy(
+              onPressed: () => copyMessage(
+                context,
                 dealerMessage(
                   listing,
                   offer.opening,
@@ -246,12 +234,17 @@ class _OfferCardState extends State<OfferCard> {
             style: theme.textTheme.bodyMedium?.copyWith(color: scheme.primary),
           ),
           const SizedBox(height: 8),
-          _MessageBox(text: reply.message, onCopy: () => _copy(reply.message)),
+          _MessageBox(
+            text: reply.message,
+            onCopy: () => copyMessage(context, reply.message),
+          ),
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton(
-              onPressed: () =>
-                  _copy(walkAwayMessage(language: context.language)),
+              onPressed: () => copyMessage(
+                context,
+                walkAwayMessage(language: context.language),
+              ),
               child: Text(context.strings.copyMessageToWalkAway),
             ),
           ),

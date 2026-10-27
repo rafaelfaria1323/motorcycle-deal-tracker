@@ -67,9 +67,16 @@ void main() {
     },
   );
 
-  test('a corrupt cache is reported, not silently replaced', () async {
+  test('an unknown or damaged cached code reads as no choice', () async {
     await preferences.setString('app_language', 'es');
-    expect(() => repository.cached(null), throwsFormatException);
+    await preferences.setString('account_language:existing-account', '');
+    expect(repository.cached(null), AppLanguage.portuguese);
+    expect(
+      SupabaseLanguageRepository.cachedIn(preferences, null),
+      AppLanguage.portuguese,
+    );
+    expect(repository.cached('existing-account'), AppLanguage.portuguese);
+    expect(requests, isEmpty);
   });
 
   test('loads the explicitly requested account only', () async {

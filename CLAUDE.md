@@ -254,7 +254,9 @@ invites; written by the collector on each run).
   lifecycle: cached device choice at startup, that account's own choice
   on sign-in (Portuguese when unset), device choice retained on sign-out.
   Real accounts save to owner-only `account_languages`; anonymous choices
-  stay local. Load/save errors are explicit, not Portuguese fallbacks.
+  stay local. Load/save errors are explicit, not Portuguese fallbacks;
+  only a cached code this build doesn't know reads as no choice (an
+  error there would stop every start).
   Locale changes preserve the router and relocalize errors from structured
   state. Seller content, user-entered names/notes, model/place names and raw
   technical diagnostics are never translated. The collector's separate

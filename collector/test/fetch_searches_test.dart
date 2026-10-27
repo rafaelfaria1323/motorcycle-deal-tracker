@@ -200,50 +200,52 @@ void main() {
   );
 
   test('the request budget running out keeps what was saved', () async {
+    final r7 = search.replace(
+      queryParameters: {'search[filter_enum_modelo][0]': 'r7'},
+    );
+    final log = StringBuffer();
     final outcome = await local(() async {
       final fetcher = PoliteFetcher(
         site: site,
         policy: const FetchPolicy(
           minDelay: Duration.zero,
           jitter: Duration.zero,
-          maxRequestsPerRun: 3, // robots.txt + 2 of the 3 pages
+          // robots.txt, the first search's 3 pages and 1 of the second's.
+          maxRequestsPerRun: 5,
         ),
       );
       await fetcher.prepare();
       try {
-        return await fetchSearches(
-          fetcher,
-          [search],
-          dir.path,
-          out: StringBuffer(),
-        );
+        return await fetchSearches(fetcher, [search, r7], dir.path, out: log);
       } finally {
         fetcher.close();
       }
     });
 
-    expect(outcome.saved, 2);
+    expect(outcome.saved, 4);
     expect(outcome.stoppedBy, contains('run limit'));
+    expect('$log', contains('. 1 of 2 search(es) not read in full'));
     final manifest = (await SearchManifest.readFrom(dir.path))!;
-    expect(manifest.files, hasLength(2));
-    // The search still spans 3: the run read 2 of them.
-    expect(manifest.pages, {'$search': 3});
+    expect(manifest.files, hasLength(4));
+    // The second search still spans 3: the run read 1 of them.
+    expect(manifest.pages, {'$search': 3, '$r7': 3});
   });
 
-  Future<FetchOutcome> fetchWith(FetchPolicy policy) => local(() async {
-    final fetcher = PoliteFetcher(site: site, policy: policy);
-    await fetcher.prepare();
-    try {
-      return await fetchSearches(
-        fetcher,
-        [search],
-        dir.path,
-        out: StringBuffer(),
-      );
-    } finally {
-      fetcher.close();
-    }
-  });
+  Future<FetchOutcome> fetchWith(FetchPolicy policy, {StringSink? out}) =>
+      local(() async {
+        final fetcher = PoliteFetcher(site: site, policy: policy);
+        await fetcher.prepare();
+        try {
+          return await fetchSearches(
+            fetcher,
+            [search],
+            dir.path,
+            out: out ?? StringBuffer(),
+          );
+        } finally {
+          fetcher.close();
+        }
+      });
 
   test('a request that times out keeps what was saved, as a failure', () async {
     delay = (page) => page == 3 ? const Duration(seconds: 2) : Duration.zero;
@@ -269,12 +271,21 @@ void main() {
   test('a block after a page keeps that page, as a failure', () async {
     status = (page) => page == 2 ? 503 : 200;
 
+    final log = StringBuffer();
     final outcome = await fetchWith(
       const FetchPolicy(minDelay: Duration.zero, jitter: Duration.zero),
+      out: log,
     );
 
     expect(outcome.saved, 1);
     expect(outcome.failure, isA<FetchBlocked>());
+    expect(
+      '$log',
+      contains(
+        '. 1 of 1 search(es) not read in full this run; '
+        'the 1 page(s) saved are imported.',
+      ),
+    );
   });
 
   test('a page our rules refuse keeps what was saved, as a failure', () async {

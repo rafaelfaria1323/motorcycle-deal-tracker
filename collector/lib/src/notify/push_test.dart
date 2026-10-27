@@ -154,28 +154,29 @@ Future<({int devices, int sent})> sendTestPush(
     store,
     push,
     users,
-    (language) => samplePushMessage(kind, listing, language: language),
+    (_, language) => samplePushMessage(kind, listing, language: language),
   );
 }
 
-/// Builds the message in each recipient's language. A supplied [languages]
-/// map is the complete preference lookup for an existing batch.
+/// Sends each of [users] its message ([messageFor]: the account and its
+/// language) on all its devices. The languages and the devices are read
+/// once for the whole batch; a failed lookup sends nothing.
 Future<({int devices, int sent})> pushToUsers(
   ListingStore store,
   WebPushSender push,
   List<String> users,
-  Map<String, Object?> Function(NotificationLanguage) messageFor, {
-  Map<String, NotificationLanguage>? languages,
-}) async {
+  Map<String, Object?> Function(String user, NotificationLanguage language)
+  messageFor,
+) async {
   final recipients = users.toSet().toList();
-  final preferences = languages ?? await store.accountLanguages(recipients);
+  final preferences = await store.accountLanguages(recipients);
   final byUser = await store.pushTargets();
 
   final reached = <String>[];
   final gone = <String>[];
   var devices = 0;
   for (final user in recipients) {
-    final message = messageFor(preferences[user]!);
+    final message = messageFor(user, preferences[user]!);
     for (final device in byUser[user] ?? const <PushTarget>[]) {
       devices++;
       switch (await push.send(device, message)) {

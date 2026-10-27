@@ -59,8 +59,9 @@ void main() {
     expect((old as Rejected).reason, contains('out of range'));
   });
 
-  test('rejects a zero price and impossible mileage', () {
+  test('rejects a zero or negative price and impossible mileage', () {
     expect(mapper.map(_raw(price: 0)), isA<Rejected>());
+    expect(mapper.map(_raw(price: -5)), isA<Rejected>());
     expect(mapper.map(_raw(mileage: -1)), isA<Rejected>());
     expect(mapper.map(_raw(mileage: 900000)), isA<Rejected>());
   });

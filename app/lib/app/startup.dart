@@ -52,10 +52,7 @@ class _StartupState extends State<Startup> {
 
   Future<void> _start() async {
     final preferences = await SharedPreferences.getInstance();
-    _startupLanguage = AppLanguage.fromCode(
-      preferences.getString(SupabaseLanguageRepository.deviceKey) ??
-          AppLanguage.portuguese.code,
-    );
+    _startupLanguage = SupabaseLanguageRepository.cachedIn(preferences, null);
     setDocumentLanguage(
       _startupLanguage.locale.toLanguageTag(),
       _startupLanguage.messages.appOpening,

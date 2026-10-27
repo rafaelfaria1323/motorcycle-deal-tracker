@@ -26,6 +26,9 @@ void main() {
       expect(AppLanguage.portuguese.intlLocale, 'pt_PT');
       expect(AppLanguage.english.intlLocale, 'en_GB');
       expect(() => AppLanguage.fromCode('fr'), throwsFormatException);
+      expect(AppLanguage.tryFromCode('en'), AppLanguage.english);
+      expect(AppLanguage.tryFromCode('fr'), isNull);
+      expect(AppLanguage.tryFromCode(null), isNull);
     },
   );
 

@@ -7,8 +7,11 @@ enum AppLanguage {
   final String code;
   final String intlLocale;
 
-  static AppLanguage fromCode(String code) => values.firstWhere(
-    (language) => language.code == code,
-    orElse: () => throw FormatException('Unsupported app language: $code'),
-  );
+  static AppLanguage fromCode(String code) =>
+      tryFromCode(code) ??
+      (throw FormatException('Unsupported app language: $code'));
+
+  /// The language of [code], or null when this build has no such language.
+  static AppLanguage? tryFromCode(String? code) =>
+      values.where((language) => language.code == code).firstOrNull;
 }

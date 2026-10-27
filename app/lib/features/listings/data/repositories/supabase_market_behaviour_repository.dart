@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/entities/market_behaviour.dart';
@@ -5,12 +7,46 @@ import '../../domain/entities/model_market.dart';
 import '../../domain/repositories/market_behaviour_repository.dart';
 
 class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
-  SupabaseMarketBehaviourRepository(this._client);
+  SupabaseMarketBehaviourRepository(this._client, {DateTime Function()? clock})
+    : _clock = clock ?? DateTime.now;
 
   final SupabaseClient _client;
+  final DateTime Function() _clock;
 
+  /// How long a model's figures are reused. They change only when a
+  /// collection runs (hours apart), and one listing page asks for them
+  /// from four cards at once (offer, message, costs, market).
+  static const reuseFor = Duration(minutes: 10);
+
+  final _forModel =
+      <String, ({DateTime at, Future<MarketBehaviour?> figures})>{};
+
+  /// The figures of a model (the same for every account), read once for
+  /// all the cards asking within [reuseFor]; a failed read isn't kept, so
+  /// the next one asks again.
   @override
-  Future<MarketBehaviour?> getForModel(String motorcycleId) async {
+  Future<MarketBehaviour?> getForModel(String motorcycleId) {
+    final now = _clock();
+    final kept = _forModel[motorcycleId];
+    if (kept != null && now.difference(kept.at) < reuseFor) {
+      return kept.figures;
+    }
+    final figures = _readForModel(motorcycleId);
+    _forModel[motorcycleId] = (at: now, figures: figures);
+    unawaited(
+      figures.then<void>(
+        (_) {},
+        onError: (Object _) {
+          if (identical(_forModel[motorcycleId]?.figures, figures)) {
+            _forModel.remove(motorcycleId);
+          }
+        },
+      ),
+    );
+    return figures;
+  }
+
+  Future<MarketBehaviour?> _readForModel(String motorcycleId) async {
     final (row, depreciation) = await (
       _behaviour(motorcycleId),
       _depreciation(motorcycleId),
