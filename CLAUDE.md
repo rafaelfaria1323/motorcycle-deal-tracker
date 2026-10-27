@@ -110,7 +110,7 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
 .github/workflows/collect.yml     Collection at 00:00 and every 2 h
                                   from 08:00 to 22:00 (Lisbon time),
                                   started by Supabase pg_cron (see below)
-.github/workflows/weekly-summary.yml  Mondays 07:52 UTC (pg_cron): each account's
+.github/workflows/weekly-summary.yml  Mondays 08:52 Lisbon time (pg_cron): each account's
                                   summary of the week, kept for the app and
                                   pushed to its devices (bin/weekly_summary.dart);
                                   input `account`: only that one
@@ -544,7 +544,8 @@ invites; written by the collector on each run).
   started `collect.yml`): pg_cron jobs `collect-listings` (`0 * * * *`,
   `dispatch_collection()`: only at the Lisbon hours 0, 8, 10, 12, 14, 16,
   18, 20 and 22, `collection_due`, so summer time needs no change)
-  and `weekly-summary` (`52 7 * * 1`) call `dispatch_workflow()`, which
+  and `weekly-summary` (`52 * * * 1`, `dispatch_weekly_summary()`: only at
+  08:52 Lisbon time, `weekly_summary_due`) call `dispatch_workflow()`, which
   starts the workflow through GitHub's workflow_dispatch API with pg_net and
   the Vault secret `github_dispatch_token` (fine-grained, this repo only,
   Actions read/write; created by Rafael, see `docs/hosting.md`; admins can

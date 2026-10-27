@@ -58,7 +58,7 @@ its preview (`tool/pages_previews.py`). Previews cost nothing.
 GitHub's own scheduler never started `collect.yml`, so Supabase does:
 pg_cron jobs `collect-listings` (at 00:00 and every 2 hours from
 08:00 to 22:00, Lisbon time) and
-`weekly-summary` (Mondays 07:52 UTC; each account's summary to its devices)
+`weekly-summary` (Mondays 08:52, Lisbon time; each account's summary to its devices)
 call GitHub's "Run workflow" API.
 They need one token, created once:
 
@@ -126,8 +126,9 @@ the migration (`deploy-web.yml`) and deploys the app.
 5. **Docs.** This file, `CLAUDE.md` (Database conventions, Layout),
    `collect.yml`'s comment and `docs/roadmap.status.md`.
 
-The weekly summary works the same way (job `weekly-summary`, `52 7 * * 1`,
-UTC; the app shows no time for it).
+The weekly summary works the same way (job `weekly-summary`, `52 * * * 1`,
+checking every Monday hour; `weekly_summary_due()` lets only 08:52 Lisbon
+time through; the app shows no time for it).
 
 ### Requests per run (no caps)
 

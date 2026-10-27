@@ -6,7 +6,7 @@ name: Weekly summary
 # devices as a notification (Web Push) that opens it. It only reads the
 # database (no site is fetched).
 #
-# Started on Mondays at 07:52 UTC (08:52 in Lisbon in summer) by the
+# Started on Mondays at 08:52 Lisbon time, all year, by the
 # Supabase pg_cron job 'weekly-summary', like collect.yml, for every
 # account. "Enviar o resumo da semana" in the app starts it with that
 # account as `account` (start_workflow), for that account only; "Run
