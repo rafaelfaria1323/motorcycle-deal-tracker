@@ -56,6 +56,15 @@ void main() {
     expect(s.liveCount, 3);
   });
 
+  test('a sold listing is gone, a live one checked this week is not', () {
+    final sold = summary([
+      listing('sold', status: 'sold', lastCheckedAt: thisWeek),
+    ]);
+    final live = summary([listing('checked', lastCheckedAt: thisWeek)]);
+    expect((sold.goneCount, sold.liveCount), (1, 0));
+    expect((live.goneCount, live.liveCount), (0, 1));
+  });
+
   test('a drop compares the price the week started with and the last one', () {
     final s = summary(
       [
