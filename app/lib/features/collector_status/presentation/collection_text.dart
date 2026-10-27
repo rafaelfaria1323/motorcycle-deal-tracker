@@ -5,9 +5,9 @@ import '../../../core/localization/localizations.dart';
 
 /// The collection starts on the hour at these hours, Lisbon time (the
 /// pg_cron job 'collect-listings' and collection_due() in
-/// supabase/migrations/20261024210000_collection_hours.sql; keep them in
-/// step).
-const collectionHours = {0, 8, 12, 14, 16, 18, 20};
+/// supabase/migrations/20261027210000_collection_hours_every_two.sql; keep
+/// them in step).
+const collectionHours = {0, 8, 10, 12, 14, 16, 18, 20, 22};
 
 /// The next scheduled collection after [now], in UTC.
 DateTime nextCollection(DateTime now) {

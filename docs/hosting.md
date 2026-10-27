@@ -56,8 +56,8 @@ its preview (`tool/pages_previews.py`). Previews cost nothing.
 ## Scheduled runs (Supabase starts them)
 
 GitHub's own scheduler never started `collect.yml`, so Supabase does:
-pg_cron jobs `collect-listings` (at 00:00, 08:00 and every 2 hours from
-12:00 to 20:00, Lisbon time) and
+pg_cron jobs `collect-listings` (at 00:00 and every 2 hours from
+08:00 to 22:00, Lisbon time) and
 `weekly-summary` (Mondays 07:52 UTC; each account's summary to its devices)
 call GitHub's "Run workflow" API.
 They need one token, created once:
@@ -101,7 +101,7 @@ the migration (`deploy-web.yml`) and deploys the app.
    set search_path = ''
    as $$
      select extract(hour from p_now at time zone 'Europe/Lisbon')::integer
-            = any (array[0, 8, 12, 14, 16, 18, 20])
+            = any (array[0, 8, 10, 12, 14, 16, 18, 20, 22])
    $$;
    ```
 

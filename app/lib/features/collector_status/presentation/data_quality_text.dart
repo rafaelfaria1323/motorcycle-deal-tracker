@@ -62,7 +62,7 @@ String? qualityDetailsLine(
   return language.messages.listingPagesUnread(detailsPending: q.detailsPending);
 }
 
-/// Collections run 7 times a day; a day without seeing any listing means
+/// Collections run 9 times a day; a day without seeing any listing means
 /// the site stopped answering or the collection stopped.
 const staleAfter = Duration(hours: 24);
 

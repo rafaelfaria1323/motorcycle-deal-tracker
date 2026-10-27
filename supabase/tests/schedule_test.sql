@@ -10,14 +10,15 @@ begin
   assert (select command from cron.job where jobname = 'collect-listings') like '%dispatch_collection()%',
     'the collection job starts collect.yml when due';
 
-  -- Lisbon hours 0, 8, 12, 14, 16, 18, 20, in winter (UTC) and summer (UTC+1).
+  -- Lisbon hours 0, 8, 10, 12, 14, 16, 18, 20, 22, in winter (UTC) and summer (UTC+1).
   assert (select array_agg(h order by h) from generate_series(0, 23) h
           where public.collection_due(timestamptz '2026-12-01 00:00+00' + h * interval '1 hour'))
-       = array[0, 8, 12, 14, 16, 18, 20], 'winter: the Lisbon hours are UTC';
+       = array[0, 8, 10, 12, 14, 16, 18, 20, 22], 'winter: the Lisbon hours are UTC';
   assert (select array_agg(h order by h) from generate_series(0, 23) h
           where public.collection_due(timestamptz '2026-07-01 00:00+00' + h * interval '1 hour'))
-       = array[7, 11, 13, 15, 17, 19, 23], 'summer: one hour earlier in UTC';
+       = array[7, 9, 11, 13, 15, 17, 19, 21, 23], 'summer: one hour earlier in UTC';
   assert public.dispatch_collection(timestamptz '2026-12-01 09:00+00') is null, 'not due: nothing';
+  assert public.dispatch_collection(timestamptz '2026-12-01 03:00+00') is null, 'not due at night: nothing';
   assert (select count(*) from net.calls) = 0, 'and nothing is sent';
   assert (select schedule from cron.job where jobname = 'weekly-summary') = '52 7 * * 1',
     'weekly summary on Mondays at 07:52';

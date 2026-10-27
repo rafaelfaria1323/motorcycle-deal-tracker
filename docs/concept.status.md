@@ -11,7 +11,7 @@ A Web App/PWA that monitors the Portuguese used and semi-new motorcycle market, 
 
 > “Is this motorcycle actually a good deal right now?”
 
-*Answered for Standvirtual and OLX, with real data refreshed 7 times a day (every 2 hours in the afternoon).*
+*Answered for Standvirtual and OLX, with real data refreshed 9 times a day (every 2 hours from 08:00 to 22:00, and at midnight).*
 
 ## 2. Problem
 
@@ -58,7 +58,7 @@ Unchanged.
 ## 7. Stack
 
 - Frontend: Flutter Web, Dart ✅
-- Backend: Supabase, PostgreSQL ✅, Supabase Auth ✅ *(anonymous + owner email/password)*; scheduled jobs ➕ *on GitHub Actions instead of Edge Functions (a Dart CLI collector, one process per run, 7 times a day at fixed Lisbon hours), started by Supabase pg_cron (GitHub's own scheduler never started them).*
+- Backend: Supabase, PostgreSQL ✅, Supabase Auth ✅ *(anonymous + owner email/password)*; scheduled jobs ➕ *on GitHub Actions instead of Edge Functions (a Dart CLI collector, one process per run, 9 times a day at fixed Lisbon hours), started by Supabase pg_cron (GitHub's own scheduler never started them).*
 - Hosting: Cloudflare Pages ✅
 - Repository: GitHub ✅ *(stays public, Rafael 2026-10-21: free Actions minutes for the whole pipeline)*; ➕ automatic code-quality review by Claude after every 5 merged PRs
 - Notifications: Web push ✅ *(each account's alerts on its devices (in the Android app through Firebase Cloud Messaging), the admins' when the collection breaks or recovers, sent by the collector itself; a tap opens the listing in the app; "Enviar notificação de teste" in Mais checks a device with an example of any notification; stays on after the app is closed; the weekly summary on Mondays, kept in the app's "Resumo da semana")*; ➕ Telegram bot ✅ (alerts until 2026-10-21, the weekly summary until 14.4d; now only the database's warnings when no run starts or the GitHub token is ending)

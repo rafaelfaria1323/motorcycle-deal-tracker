@@ -51,6 +51,60 @@ void main() {
       );
     });
 
+    test('with the pages the failure left unread', () {
+      const olx =
+          '== olx ==\n'
+          'Retrying once in 60 s: https://www.olx.pt/x?page=2: timed out\n'
+          'Failed: https://www.olx.pt/x?page=2: timed out\n';
+      const unread =
+          'Read issue: #0: https://www.olx.pt/x: 1 of 2 page(s) saved '
+          '(the others were not read)\n';
+      expect(runStatus(2, '$olx$unread$end'), 'partial');
+      expect(
+        runStatus(
+          2,
+          '== standvirtual ==\n'
+          'Failed: https://www.standvirtual.com/motos/y?page=3: HTTP 502\n'
+          'Read issue: #4: y.html: holds 64 of 90 listings (more pages '
+          'exist and were not read)\n'
+          '$end',
+        ),
+        'partial',
+      );
+      // Unread pages without a failure on that site: not a passing one.
+      expect(
+        runStatus(
+          2,
+          '== standvirtual ==\n$unread== olx ==\n'
+          'Failed: https://www.olx.pt/z: timed out\n$end',
+        ),
+        'failed',
+      );
+    });
+
+    test('a page served without its results, another search read in full', () {
+      const olx =
+          '== olx ==\n'
+          'Read issue: #13: olx-mt-07.html: not a search results page\n'
+          'Search (olx): Yamaha MT-07 · read 1 of 1 page(s) · 0 ad(s), '
+          '0 followed · not in full\n';
+      const r7 =
+          'Search (olx): Yamaha R7 · read 1 of 1 page(s) · 4 ad(s), '
+          '1 followed · in full\n';
+      const standvirtual =
+          '== standvirtual ==\n'
+          'Search (standvirtual): Yamaha R7 · read 1 of 1 page(s) · 9 ad(s), '
+          '9 followed · in full\n';
+      expect(runStatus(2, '$olx$r7$end'), 'partial');
+      // No search of that site read in full: its pages may all be failing.
+      expect(runStatus(2, '$standvirtual$olx$end'), 'failed');
+      // Any other read issue still fails the run.
+      expect(
+        runStatus(2, '${olx}Read issue: #2: x.html: bad JSON\n$r7$end'),
+        'failed',
+      );
+    });
+
     test('any other problem, or a run that stopped early, is a failure', () {
       const olxFailed =
           '== olx ==\n'
