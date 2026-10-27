@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:collector/collector.dart';
 import 'package:test/test.dart';
@@ -22,7 +23,9 @@ Map<String, dynamic> param(String value, [String? label]) => {
 };
 
 Map<String, dynamic> advert({
+  String id = '123456',
   String status = 'ACTIVE',
+  String currency = 'EUR',
   String description = '<p>Mota muito cuidada.</p>',
   String year = '2025',
   String make = 'Yamaha',
@@ -30,10 +33,10 @@ Map<String, dynamic> advert({
   String? version,
   String? cc,
 }) => {
-  'id': '123456',
+  'id': id,
   'url': 'https://www.standvirtual.com/motos/anuncio/example-IDx.html',
   'status': status,
-  'price': {'value': '7800', 'currency': 'EUR'},
+  'price': {'value': '7800', 'currency': currency},
   'parametersDict': {
     'make': param(make.toLowerCase(), make),
     'model': param(model.toLowerCase(), model),
@@ -319,5 +322,38 @@ void main() {
       'Extras:\n- Escape Akrapovic\n- Quickshifter\nPrimeiro dono\n'
       'Livro de revisões',
     );
+  });
+
+  group('saved listing pages', () {
+    late Directory dir;
+    setUp(() => dir = Directory.systemTemp.createTempSync('standvirtual'));
+    tearDown(() => dir.deleteSync(recursive: true));
+
+    Future<RemovalPlan> planFor(Map<String, dynamic> other) async {
+      File('${dir.path}/a.html').writeAsStringSync(page(advert()));
+      File('${dir.path}/b.html').writeAsStringSync(page(other));
+      final batch = await loadBatch('standvirtual', dir.path, catalog);
+      expect(batch.records[1].outcome, isA<Rejected>());
+      return removalPlan(batch);
+    }
+
+    test('an active ad priced in another currency counts as seen', () async {
+      final plan = await planFor(advert(id: '2', currency: 'GBP'));
+
+      expect(plan.skipReason, isNull);
+      expect(
+        plan.seenIds,
+        unorderedEquals([
+          StandvirtualMapper.listingId('123456'),
+          StandvirtualMapper.listingId('2'),
+        ]),
+      );
+    });
+
+    test('an ad no longer active makes the input untrustworthy', () async {
+      final plan = await planFor(advert(id: '2', status: 'REMOVED_BY_USER'));
+
+      expect(plan.skipReason, isNotNull);
+    });
   });
 }

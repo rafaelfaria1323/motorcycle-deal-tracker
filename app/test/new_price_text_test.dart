@@ -25,6 +25,8 @@ void main() {
   test('nothing to compare without both prices', () {
     expect(newPriceLines(listing(price: 7000)), isEmpty);
     expect(newPriceLines(listing(newPrice: 8250)), isEmpty);
+    expect(newPriceLines(listing(price: 7000, newPrice: 0)), isEmpty);
+    expect(newPriceLines(listing(price: 7000, newPrice: -1)), isEmpty);
   });
 
   test('shows how much cheaper than a new one', () {

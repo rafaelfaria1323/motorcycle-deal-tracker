@@ -14,6 +14,7 @@ Map<String, dynamic> param(String key, String value, [String? normalized]) => {
 
 Map<String, dynamic> ad({
   int id = 1,
+  String status = 'active',
   String title = 'Yamaha MT-07 35Kw',
   String model = 'MT-07',
   int? price = 7400,
@@ -27,7 +28,7 @@ Map<String, dynamic> ad({
   'id': id,
   'title': title,
   'url': 'https://www.olx.pt/d/anuncio/x-ID$id.html',
-  'status': 'active',
+  'status': status,
   'description': 'Para venda Mt-07<br />\nDeslimitada<br />\n',
   'isBusiness': business,
   'params': [
@@ -131,6 +132,23 @@ void main() {
     );
 
     expect(uniqueSiteModels([mt07, r, mt07]), [mt07, r]);
+    // Each brand has its own "other" model.
+    const otherHonda = SiteModel(
+      makeId: 'honda',
+      makeName: 'Honda',
+      modelId: 'outro',
+      modelName: 'Outro',
+    );
+    const otherYamaha = SiteModel(
+      makeId: 'yamaha',
+      makeName: 'Yamaha',
+      modelId: 'outro',
+      modelName: 'Outro',
+    );
+    expect(uniqueSiteModels([otherHonda, otherYamaha]), [
+      otherHonda,
+      otherYamaha,
+    ]);
     expect(mt07.toRow('olx'), {
       'source': 'olx',
       'make_id': 'yamaha',
@@ -187,6 +205,72 @@ void main() {
     expect(listing.brand, 'Honda');
     // Not taken for a Yamaha of the catalog.
     expect(listing.motorcycleSlug, isNull);
+  });
+
+  group('the brand and the title after it', () {
+    final mapper = OlxMapper(
+      Catalog(const [
+        mt07Entry,
+        CatalogEntry(
+          slug: 'honda-cb650r',
+          brand: 'Honda',
+          model: 'CB650R',
+          minYear: 2023,
+        ),
+      ]),
+      currentYear: 2026,
+    );
+    NormalizedListing map(
+      String title, {
+      String? category = 'yamaha',
+      String model = 'MT-07',
+    }) =>
+        (mapper.map(
+                  OlxRawListing(
+                    id: '1',
+                    url: 'https://www.olx.pt/d/anuncio/x.html',
+                    status: 'active',
+                    title: title,
+                    price: 7000,
+                    currency: 'EUR',
+                    categoryBrand: category,
+                    model: model,
+                    year: 2025,
+                  ),
+                )
+                as Mapped)
+            .listing;
+
+    test('without a category, the catalog brand the title names', () {
+      expect(map('Moto Honda CB650R', category: null).brand, 'Honda');
+      expect(
+        map('Kawasaki Z650', category: null, model: 'Z650').brand,
+        'Kawasaki',
+      );
+    });
+
+    test('a category outside the catalog still names the brand', () {
+      expect(
+        map('Z650 de 2022', category: 'kawasaki', model: 'Z650').brand,
+        'Kawasaki',
+      );
+    });
+
+    test('the brand is skipped as the second word, whatever comes first', () {
+      expect(map('Nova Yamaha MT-07 A2').variant, 'MT-07 A2');
+    });
+
+    test('later in the title only after words of a sale', () {
+      expect(map('Vendo mota Yamaha MT-07 A2').variant, 'MT-07 A2');
+      expect(
+        map('MT-07 2024 Yamaha impecável').variant,
+        'MT-07 2024 Yamaha impecável',
+      );
+    });
+
+    test('a title that is only the brand stays whole', () {
+      expect(map('Yamaha', model: 'XJ6').model, 'Yamaha');
+    });
   });
 
   test("a private seller's name is never read", () {
@@ -296,6 +380,42 @@ void main() {
       final result = await OlxSearchAdapter(dir.path).read();
 
       expect(result.issues, isEmpty);
+    });
+
+    group('only active ads count as seen', () {
+      const url = 'https://www.olx.pt/carros-motos-e-barcos/x/';
+      Future<RemovalPlan> planFor(Map<String, dynamic> other) async {
+        File(
+          '${dir.path}/p1.html',
+        ).writeAsStringSync(searchPage([ad(), other]));
+        await const SearchManifest(
+          planned: [url],
+          files: {'p1.html': url},
+        ).writeTo(dir.path);
+        final batch = await loadBatch(
+          'olx-search',
+          dir.path,
+          Catalog(const [mt07Entry]),
+        );
+        expect(batch.records[1].outcome, isA<Rejected>());
+        return removalPlan(batch);
+      }
+
+      test('an active ad without a price is still on the site', () async {
+        final plan = await planFor(ad(id: 2, price: null));
+
+        expect(plan.searches, [url]);
+        expect(
+          plan.seenIds,
+          unorderedEquals([OlxMapper.listingId('1'), OlxMapper.listingId('2')]),
+        );
+      });
+
+      test('an inactive ad leaves its search unread', () async {
+        final plan = await planFor(ad(id: 2, status: 'removed_by_user'));
+
+        expect(plan.searches, isNull);
+      });
     });
 
     test('without a manifest nothing is tied to a search', () async {

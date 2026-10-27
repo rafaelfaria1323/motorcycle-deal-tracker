@@ -125,5 +125,6 @@ void main() {
     expect(parseNewPrice('  '), (price: null, error: null));
     expect(parseNewPrice('abc').error, 'Preço inválido');
     expect(parseNewPrice('0').error, 'Preço inválido');
+    expect(parseNewPrice('-5').error, 'Preço inválido');
   });
 }

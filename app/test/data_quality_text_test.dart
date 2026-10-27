@@ -35,6 +35,8 @@ void main() {
     expect(percent(1, 200), '<1 %');
     expect(percent(0, 10), '0 %');
     expect(percent(3, 0), '0 %');
+    expect(percent(-1, 10), '0 %');
+    expect(percent(3, -3), '0 %');
   });
 
   test('the title names the site and its live listings', () {
