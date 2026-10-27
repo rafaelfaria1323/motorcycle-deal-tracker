@@ -92,7 +92,8 @@ a device choice, and stale account operations cannot replace the current
 language. Notifications and weekly-summary pushes follow each recipient,
 including mixed-language admin notices. Stored summary data stays neutral;
 failed preference reads never masquerade as an unset preference or mark
-pending alerts handled. Original seller content, names/notes, model/place
+pending alerts handled. A cached code the build doesn't know reads as
+no choice, so it can't stop the app from starting (roadmap N.25). Original seller content, names/notes, model/place
 names and technical diagnostics remain unchanged. Typed ARB resources,
 regional formatting and a pure-Dart notification catalog need no translation
 service or runtime AI.*

@@ -522,6 +522,9 @@ switches language and checks the document language. Preview account saves
 need the migration (`20261027190000_account_languages.sql`, renamed after
 N.23's to sort after main's latest), applied on merge before deployment.*
 
+## N.25 Code review after N.24 ✅
+*Rafael, 2026-10-27: "check for improvements in the code". A bug: a language code in the device cache that the build doesn't know (written by a newer build, or damaged) stopped every start, and "Tentar novamente" could not clear it; it now reads as no choice (Portuguese), while the account's stored language still reports an unknown code. The listing page's model figures (four sections, two queries each) are read once and kept 10 minutes per model (`SupabaseMarketBehaviourRepository.reuseFor`); a failed read is not kept. The weekly summary reads the push devices once per run instead of once per account (`pushToUsers` with a message per account). The offer and seller-message cards share `copyMessage`. Tests for four mutants that survived (manual price, sold listings in the summary, the fetch's "not read in full" counts). What wasn't changed went to `docs/code-quality.md` (resource names, `const`) and stays in `docs/test-hardening.md`. No migration.*
+
 # Security and privacy ✅
 
 *Started 2026-10-22, before anyone else uses the app. Not done: Cloudflare Access in front of the site (Rafael, 2026-10-22: not wanted for now; `docs/hosting.md`, Privacy). Decided against: making the repository private (Rafael, 2026-10-21: the free Actions minutes are worth more; old saved pages with phone numbers stay in its git history unless it is rewritten) and encrypting notes, checklists and the home place in the app (Supabase already encrypts its disks; app-side keys would break `distance_km` and need key handling on every device).*
