@@ -1,57 +1,58 @@
 import '../domain/workflows_repository.dart';
+import '../../../core/localization/localizations.dart';
 
 /// What a run-now tile says, and asks before starting.
 ({String title, String subtitle, String started}) workflowText(
-  AppWorkflow workflow,
-) => switch (workflow) {
+  AppWorkflow workflow, {
+  AppLanguage language = AppLanguage.portuguese,
+}) => switch (workflow) {
   AppWorkflow.collect => (
-    title: 'Recolher agora',
-    subtitle:
-        'Lê os sites já, fora do horário (os pedidos ficam em Estado da '
-        'recolha)',
-    started:
-        'Recolha iniciada. Os anúncios novos aparecem daqui a cerca de 10 '
-        'minutos.',
+    title: language.messages.collectNow,
+    subtitle: language.messages.readSitesNowOutsideScheduleRequestsAppearIn,
+    started: language.messages.collectionStartedNewListingsShouldAppearInAbout,
   ),
   AppWorkflow.weeklySummary => (
-    title: 'Enviar o resumo da semana',
-    subtitle: 'Os últimos 7 dias dos seus modelos, já, neste aparelho',
-    started:
-        'Resumo pedido. Chega dentro de 1 a 2 minutos e fica em Mais › '
-        'Resumo da semana.',
+    title: language.messages.sendWeeklySummary,
+    subtitle: language.messages.last7DaysForYourModelsNowOn,
+    started: language.messages.summaryRequestedItShouldArriveIn1To,
   ),
   AppWorkflow.pushTest => (
-    title: 'Enviar notificação de teste',
-    subtitle:
-        'Escolha qual, para confirmar que os alertas chegam aos seus '
-        'aparelhos e abrem a página certa',
-    started:
-        'Notificação de teste pedida. Chega dentro de 1 a 2 minutos; se '
-        'não chegar, desative e volte a ativar as notificações.',
+    title: language.messages.sendTestNotification,
+    subtitle: language.messages.chooseTypeToConfirmThatAlertsReachYour,
+    started: language.messages.testNotificationRequestedItShouldArriveIn1,
   ),
 };
 
 /// How the test notification picker names each example.
-String pushTestKindText(PushTestKind kind) => switch (kind) {
-  PushTestKind.test => 'Notificação de teste simples',
-  PushTestKind.newListing => 'Novo anúncio',
-  PushTestKind.priceReduction => 'Baixa de preço',
-  PushTestKind.excellentOpportunity => 'Excelente oportunidade',
-  PushTestKind.targetPriceReached => 'Chegou ao seu preço',
-  PushTestKind.listingRemoved => 'Anúncio removido',
-  PushTestKind.backOnMarket => 'Voltou ao mercado',
-  PushTestKind.runFailed => 'A recolha falhou (administradores)',
-  PushTestKind.runBlocked => 'Um site recusou a recolha (administradores)',
-  PushTestKind.runRecovered => 'A recolha voltou a funcionar (administradores)',
+String pushTestKindText(
+  PushTestKind kind, {
+  AppLanguage language = AppLanguage.portuguese,
+}) => switch (kind) {
+  PushTestKind.test => language.messages.simpleTestNotification,
+  PushTestKind.newListing => language.messages.newListingWorkflowsText,
+  PushTestKind.priceReduction => language.messages.priceDrop,
+  PushTestKind.excellentOpportunity =>
+    language.messages.excellentOpportunityWorkflowsText,
+  PushTestKind.targetPriceReached =>
+    language.messages.targetPriceReachedWorkflowsText,
+  PushTestKind.listingRemoved =>
+    language.messages.listingRemovedListingDetailPage,
+  PushTestKind.backOnMarket => language.messages.backOnMarketWorkflowsText,
+  PushTestKind.runFailed => language.messages.collectionFailedAdministrators,
+  PushTestKind.runBlocked =>
+    language.messages.siteRefusedCollectionAdministrators,
+  PushTestKind.runRecovered =>
+    language.messages.collectionRecoveredAdministrators,
 };
 
 /// Why `start_workflow` refused, from its error code.
-String startErrorText(String? code) => switch (code) {
-  '55006' => 'Já foi pedido há pouco. Aguarde um momento e tente novamente.',
-  '55000' => 'Falta o token do GitHub no Vault do Supabase.',
-  '58000' =>
-    'O GitHub recusou o pedido. Verifique o token do GitHub (Actions: '
-        'leitura e escrita).',
-  '42501' => 'Só um administrador pode fazer isto.',
-  _ => 'Não foi possível iniciar. Tente novamente.',
+String startErrorText(
+  String? code, {
+  AppLanguage language = AppLanguage.portuguese,
+}) => switch (code) {
+  '55006' => language.messages.thisWasRequestedRecentlyWaitMomentAndTry,
+  '55000' => language.messages.githubTokenIsMissingFromSupabaseVault,
+  '58000' => language.messages.githubRejectedRequestCheckGitHubTokenActionsRead,
+  '42501' => language.messages.onlyAdministratorCanDoThis,
+  _ => language.messages.couldNotStartTryAgain,
 };

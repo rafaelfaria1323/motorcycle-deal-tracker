@@ -8,6 +8,7 @@ import '../../../core/platform/android_release.dart';
 import '../../../core/platform/apk_installer.dart';
 import '../../../core/platform/app_build.dart';
 import 'android_app_text.dart';
+import '../../../core/localization/localizations.dart';
 
 /// "App Android" in Mais. In an Android phone's browser: the latest APK,
 /// opened in the browser, which downloads it. In the app: whether a newer
@@ -19,14 +20,7 @@ class AndroidAppTile extends StatefulWidget {
   static final _android = defaultTargetPlatform == TargetPlatform.android;
 
   /// Whether there is anything to show here.
-  static bool get shown =>
-      androidAppOffer(
-        android: _android,
-        web: kIsWeb,
-        apkUrl: AppBuild.apkUrl,
-        build: AppBuild.number,
-      ) !=
-      null;
+  static bool get shown => _android && AppBuild.apkUrl.isNotEmpty;
 
   @override
   State<AndroidAppTile> createState() => _AndroidAppTileState();
@@ -55,16 +49,17 @@ class _AndroidAppTileState extends State<AndroidAppTile> {
   }
 
   Future<void> _update() async {
+    final messageStrings = context.strings;
+
     final messenger = ScaffoldMessenger.of(context);
     setState(() => _downloading = true);
     try {
       await ApkInstaller.install(AppBuild.apkUrl);
     } on Exception {
       messenger.showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
-            'Não foi possível descarregar a versão nova. Verifique a '
-            'ligação e tente de novo.',
+            messageStrings.couldNotDownloadNewVersionCheckYourConnection,
           ),
         ),
       );
@@ -82,6 +77,7 @@ class _AndroidAppTileState extends State<AndroidAppTile> {
       build: AppBuild.number,
       latest: _latest,
       downloading: _downloading,
+      language: context.language,
     );
     if (offer == null) return const SizedBox.shrink();
     return ListTile(

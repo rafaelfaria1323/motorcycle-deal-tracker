@@ -12,10 +12,12 @@ import '../../collector_status/presentation/collector_status_banner.dart';
 import '../../collector_status/presentation/data_quality_details.dart';
 import 'android_app_tile.dart';
 import 'home_place_tile.dart';
+import 'language_tile.dart';
 import 'listing_card_preferences_tile.dart';
 import 'push_tile.dart';
 import 'run_now_tiles.dart';
 import 'share_tiles.dart';
+import '../../../core/localization/localizations.dart';
 
 /// Everything that is not a list of offers: the account, the tracked
 /// models and how the data collection is doing.
@@ -25,7 +27,7 @@ class MorePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Mais')),
+      appBar: AppBar(title: Text(context.strings.more)),
       // Rebuilt on sign-in and sign-out.
       body: BlocBuilder<SessionCubit, SessionState>(
         bloc: getIt<SessionCubit>(),
@@ -38,17 +40,16 @@ class MorePage extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 880),
               child: ListView(
                 children: [
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.fromLTRB(20, 16, 20, 4),
                     child: PageIntro(
-                      eyebrow: 'Mais',
-                      title: 'A sua garagem',
+                      eyebrow: context.strings.more,
+                      title: context.strings.yourGarage,
                       description:
-                          'A sua conta, os modelos que acompanha e as '
-                          'ferramentas para decidir melhor.',
+                          context.strings.yourAccountModelsYouFollowAndToolsTo,
                     ),
                   ),
-                  const _Header('Conta'),
+                  _Header(context.strings.account),
                   _Group(
                     child: ListTile(
                       contentPadding: const EdgeInsets.symmetric(
@@ -66,28 +67,32 @@ class MorePage extends StatelessWidget {
                       ),
                       title: Text(
                         signedIn
-                            ? session.email ?? 'Sessão iniciada'
-                            : 'Sem sessão',
+                            ? session.email ?? context.strings.signedIn
+                            : context.strings.notSignedIn,
                       ),
                       subtitle: Text(
                         signedIn
-                            ? 'Toque para terminar a sessão'
-                            : 'Inicie sessão para ter as pesquisas e os alertas '
-                                  'em qualquer dispositivo',
+                            ? context.strings.tapToSignOut
+                            : context
+                                  .strings
+                                  .signInToAccessYourSearchesAndAlerts,
                       ),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => showAccountSheet(context),
                     ),
                   ),
-                  const _Header('Mercado'),
+                  const _Group(child: LanguageTile()),
+                  _Header(context.strings.market),
                   _Group(
                     child: Column(
                       children: [
                         ListTile(
                           leading: const Icon(Icons.star_border),
-                          title: const Text('Favoritos'),
-                          subtitle: const Text(
-                            'Os anúncios que está a considerar, com as suas notas',
+                          title: Text(context.strings.favourites),
+                          subtitle: Text(
+                            context
+                                .strings
+                                .listingsYouAreConsideringWithYourNotes,
                           ),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () => context.push(AppRoutes.favourites),
@@ -95,12 +100,13 @@ class MorePage extends StatelessWidget {
                         const Divider(height: 1),
                         ListTile(
                           leading: const Icon(Icons.summarize_outlined),
-                          title: const Text('Resumo da semana'),
+                          title: Text(context.strings.weeklySummary),
                           subtitle: Text(
                             signedIn
-                                ? 'Novos anúncios, baixas de preço e os melhores '
-                                      'negócios dos últimos 7 dias'
-                                : 'Disponível com sessão iniciada',
+                                ? context
+                                      .strings
+                                      .newListingsPriceDropsAndBestDealsFrom
+                                : context.strings.availableWhenSignedIn,
                           ),
                           trailing: const Icon(Icons.chevron_right),
                           enabled: signedIn,
@@ -113,12 +119,13 @@ class MorePage extends StatelessWidget {
                         const Divider(height: 1),
                         ListTile(
                           leading: const Icon(Icons.two_wheeler),
-                          title: const Text('Modelos acompanhados'),
+                          title: Text(context.strings.followedModels),
                           subtitle: Text(
                             signedIn
-                                ? 'Que modelos recolher, desde que ano, as suas '
-                                      'cores e o preço de uma nova'
-                                : 'Disponível com sessão iniciada',
+                                ? context
+                                      .strings
+                                      .whichModelsToCollectFromWhichYearYour
+                                : context.strings.availableWhenSignedIn,
                           ),
                           trailing: const Icon(Icons.chevron_right),
                           enabled: signedIn,
@@ -127,10 +134,11 @@ class MorePage extends StatelessWidget {
                         const Divider(height: 1),
                         ListTile(
                           leading: const Icon(Icons.leaderboard_outlined),
-                          title: const Text('Comparar modelos'),
-                          subtitle: const Text(
-                            'Preços pedidos, tempo até sair do mercado e '
-                            'desvalorização dos modelos acompanhados',
+                          title: Text(context.strings.compareModels),
+                          subtitle: Text(
+                            context
+                                .strings
+                                .askingPricesTimeUntilLeavingMarketAndDepreciation,
                           ),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () => context.push(AppRoutes.modelMarket),
@@ -138,14 +146,14 @@ class MorePage extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const _Header('Notificações'),
+                  _Header(context.strings.notifications),
                   _Group(
                     child: PushTile(
                       key: ValueKey(signedIn),
                       signedIn: signedIn,
                     ),
                   ),
-                  const _Header('Partilhar'),
+                  _Header(context.strings.share),
                   _Group(
                     child: ShareTiles(
                       key: ValueKey(signedIn),
@@ -153,10 +161,10 @@ class MorePage extends StatelessWidget {
                     ),
                   ),
                   if (AndroidAppTile.shown) ...[
-                    const _Header('App Android'),
+                    _Header(context.strings.androidApp),
                     const _Group(child: AndroidAppTile()),
                   ],
-                  const _Header('Recolha de dados'),
+                  _Header(context.strings.dataCollection),
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20),
                     child: CollectorStatusBanner(),
@@ -173,18 +181,19 @@ class MorePage extends StatelessWidget {
                             signedIn: signedIn,
                           ),
                           if (!signedIn)
-                            const Padding(
+                            Padding(
                               padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
                               child: Text(
-                                'O estado e a duração das recolhas aparecem com '
-                                'sessão iniciada.',
+                                context
+                                    .strings
+                                    .collectionStatusAndDurationAreAvailableWhenSigned,
                               ),
                             ),
                         ],
                       ),
                     ),
                   ),
-                  const _Header('Qualidade dos dados'),
+                  _Header(context.strings.dataQuality),
                   const _Group(child: DataQualityDetails()),
                   const SizedBox(height: 24),
                 ],

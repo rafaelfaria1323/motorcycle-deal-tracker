@@ -26,6 +26,7 @@ import 'package:motorcycle_deal_tracker/features/settings/presentation/listing_c
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../integration_test/support/interface_fixture.dart';
+import 'package:motorcycle_deal_tracker/core/localization/localizations.dart';
 
 void _screen(WidgetTester tester, Size size) {
   tester.view
@@ -207,6 +208,9 @@ void main() {
           _screen(tester, const Size(660, 1000));
           await tester.pumpWidget(
             MaterialApp(
+              locale: AppLanguage.portuguese.locale,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: appLocales,
               theme: AppTheme.light,
               home: Scaffold(
                 body: SingleChildScrollView(
@@ -471,6 +475,9 @@ void main() {
     (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          locale: AppLanguage.portuguese.locale,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: appLocales,
           theme: AppTheme.light,
           home: Scaffold(
             body: ListingCard(
@@ -1343,6 +1350,9 @@ void main() {
       ) async {
         await tester.pumpWidget(
           MaterialApp(
+            locale: AppLanguage.portuguese.locale,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: appLocales,
             theme: AppTheme.light,
             home: Scaffold(
               body: MediaQuery(
@@ -1433,6 +1443,9 @@ void main() {
     var acted = false;
     await tester.pumpWidget(
       MaterialApp(
+        locale: AppLanguage.portuguese.locale,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: appLocales,
         theme: AppTheme.light,
         builder: (context, child) => MediaQuery(
           data: MediaQuery.of(
@@ -1464,6 +1477,9 @@ void main() {
     _screen(tester, const Size(320, 720));
     await tester.pumpWidget(
       MaterialApp(
+        locale: AppLanguage.portuguese.locale,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: appLocales,
         theme: AppTheme.light,
         home: MediaQuery(
           data: const MediaQueryData(textScaler: TextScaler.linear(2)),

@@ -14,6 +14,7 @@ import '../cubit/favourites_cubit.dart';
 import '../cubit/listings_cubit.dart';
 import '../tracked_models_text.dart';
 import '../widgets/add_model_sheet.dart';
+import '../../../../core/localization/localizations.dart';
 
 /// Lets the account choose which catalog models it follows, from which
 /// year, and add new ones. The collector runs the searches of the models
@@ -132,6 +133,8 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
       a.toSet().containsAll(b) && b.toSet().containsAll(a);
 
   Future<void> _add() async {
+    final messageStrings = context.strings;
+
     final messenger = ScaffoldMessenger.of(context);
     final added = await showAddModelSheet(context, _repository);
     if (added == null) return;
@@ -149,7 +152,10 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
       _changed = true;
       showMessage(
         messenger,
-        '${added.brand} ${added.model} adicionado: entra na próxima recolha',
+        messageStrings.addedIncludedInNextCollection(
+          brand: added.brand,
+          model: added.model,
+        ),
       );
       await _load();
     } catch (e) {
@@ -157,8 +163,10 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
     }
   }
 
-  String _errorText(Object e) =>
-      catalogSaveErrorText(e is PostgrestException ? e.code : null);
+  String _errorText(Object e) => catalogSaveErrorText(
+    e is PostgrestException ? e.code : null,
+    language: context.language,
+  );
 
   void _replace(CatalogModel model) {
     _models = [for (final m in _models!) m.id == model.id ? model : m];
@@ -169,14 +177,14 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
     return Scaffold(
       appBar: AppBar(
         leading: const PageBackButton(),
-        title: const Text('Modelos acompanhados'),
+        title: Text(context.strings.followedModels),
       ),
       floatingActionButton: _models == null
           ? null
           : FloatingActionButton.extended(
               onPressed: _add,
               icon: const Icon(Icons.add),
-              label: const Text('Adicionar modelo'),
+              label: Text(context.strings.addModel),
             ),
       body: _body(context),
     );
@@ -186,8 +194,8 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
     if (_failed) {
       return StateMessage(
         icon: Icons.cloud_off_outlined,
-        title: 'Não foi possível carregar os modelos',
-        actionLabel: 'Tentar novamente',
+        title: context.strings.couldNotLoadModels,
+        actionLabel: context.strings.retry,
         onAction: _load,
       );
     }
@@ -207,18 +215,16 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
           child: Text(
-            'Escolha os modelos que quer acompanhar e desde que ano: só esses '
-            'aparecem em Ofertas, nos alertas e no mercado. A recolha pesquisa '
-            'os modelos de todas as contas, por isso um modelo novo pode já '
-            'ter anúncios. Os anúncios novos chegam na próxima recolha (até 8 '
-            'horas, de noite). Toque num modelo para mudar o ano, as suas '
-            'cores preferidas ou o preço de uma nova.',
+            context.strings.chooseModelsYouWantToFollowAndEarliest,
             style: muted,
           ),
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-          child: Text(searchesLine(models), style: muted),
+          child: Text(
+            searchesLine(models, language: context.language),
+            style: muted,
+          ),
         ),
         for (final MapEntry(key: brand, value: brandModels) in modelsByBrand(
           models,
@@ -230,7 +236,9 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
           for (final m in brandModels)
             ListTile(
               title: Text(m.model),
-              subtitle: Text('${modelSubtitle(m)}\n${newPriceSubtitle(m)}'),
+              subtitle: Text(
+                '${modelSubtitle(m, language: context.language)}\n${newPriceSubtitle(m, language: context.language)}',
+              ),
               isThreeLine: true,
               onTap: _saving.contains(m.id) ? null : () => _edit(m),
               trailing: Switch(
@@ -275,7 +283,7 @@ class _ModelDialogState extends State<_ModelDialog> {
   }
 
   void _submit() {
-    final parsed = parseNewPrice(_price.text);
+    final parsed = parseNewPrice(_price.text, language: context.language);
     if (parsed.error != null) {
       setState(() => _priceError = parsed.error);
       return;
@@ -285,7 +293,7 @@ class _ModelDialogState extends State<_ModelDialog> {
       price: parsed.price,
       // In the offered order, so equal choices compare equal.
       colours: [
-        for (final code in colourLabels.keys)
+        for (final code in colourLabels(language: context.language).keys)
           if (_colours.contains(code)) code,
       ],
     ));
@@ -301,7 +309,7 @@ class _ModelDialogState extends State<_ModelDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Desde o ano', style: theme.textTheme.titleSmall),
+            Text(context.strings.fromYear, style: theme.textTheme.titleSmall),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -320,19 +328,20 @@ class _ModelDialogState extends State<_ModelDialog> {
                 ),
               ],
             ),
-            const Text(
-              'Anúncios mais antigos são ignorados. Um ano mais antigo traz '
-              'mais anúncios, mas a pesquisa ocupa mais pedidos.',
-            ),
+            Text(context.strings.olderListingsAreIgnoredEarlierYearBringsMore),
             const SizedBox(height: 16),
-            Text('Cores preferidas', style: theme.textTheme.titleSmall),
+            Text(
+              context.strings.preferredColours,
+              style: theme.textTheme.titleSmall,
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (final MapEntry(key: code, value: label)
-                    in colourLabels.entries)
+                for (final MapEntry(key: code, value: label) in colourLabels(
+                  language: context.language,
+                ).entries)
                   FilterChip(
                     label: Text(label),
                     selected: _colours.contains(code),
@@ -344,10 +353,7 @@ class _ModelDialogState extends State<_ModelDialog> {
               ],
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Os anúncios nestas cores ficam marcados e pode filtrá-los ou '
-              'ser avisado deles. A cor não conta na pontuação.',
-            ),
+            Text(context.strings.listingsInTheseColoursAreMarkedAndYou),
             const SizedBox(height: 16),
             TextField(
               controller: _price,
@@ -355,10 +361,9 @@ class _ModelDialogState extends State<_ModelDialog> {
                 decimal: true,
               ),
               decoration: InputDecoration(
-                labelText: 'Preço de uma nova (€)',
+                labelText: context.strings.newBikePriceInput,
                 helperText:
-                    'Preço de tabela no site da marca. Fica registado com a '
-                    'data de hoje; deixe vazio para apagar.',
+                    context.strings.listPriceOnManufacturerSWebsiteRecordedWith,
                 helperMaxLines: 3,
                 errorText: _priceError,
                 border: const OutlineInputBorder(),
@@ -371,9 +376,9 @@ class _ModelDialogState extends State<_ModelDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancelar'),
+          child: Text(context.strings.cancel),
         ),
-        FilledButton(onPressed: _submit, child: const Text('Guardar')),
+        FilledButton(onPressed: _submit, child: Text(context.strings.save)),
       ],
     );
   }

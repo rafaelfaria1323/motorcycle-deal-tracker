@@ -30,6 +30,7 @@ import '../widgets/filters_sheet.dart';
 import '../widgets/listing_card.dart';
 import '../widgets/listing_card_skeleton.dart';
 import '../widgets/save_search_dialog.dart';
+import '../../../../core/localization/localizations.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -50,13 +51,16 @@ class DashboardPage extends StatelessWidget {
   }
 
   Future<void> _saveSearch(BuildContext context) async {
+    final messageStrings = context.strings;
+    final messageLanguage = context.language;
+
     final state = context.read<ListingsCubit>().state;
     final filters = state.filters;
     final messenger = ScaffoldMessenger.of(context);
     final searches = getIt<SavedSearchesCubit>();
 
     if (!filters.hasCriteria) {
-      showMessage(messenger, 'Escolha pelo menos um filtro antes de guardar.');
+      showMessage(messenger, messageStrings.chooseAtLeastOneFilterBeforeSaving);
       return;
     }
     // The list loads with the Pesquisas tab: without it the same search
@@ -65,21 +69,25 @@ class DashboardPage extends StatelessWidget {
       await searches.load();
     }
     if (savedSearchLike(searches.state.searches, filters) case final same?) {
-      showMessage(messenger, alreadySavedText(same));
+      showMessage(messenger, alreadySavedText(same, language: messageLanguage));
       return;
     }
     if (!context.mounted) return;
 
     final name = await showSaveSearchDialog(
       context,
-      suggestion: summarizeFilters(filters, state.motorcycles),
+      suggestion: summarizeFilters(
+        filters,
+        state.motorcycles,
+        language: messageLanguage,
+      ),
     );
     if (name == null) return;
 
     final saved = await searches.create(name, filters);
     showMessage(
       messenger,
-      saved ? 'Pesquisa guardada' : 'Não foi possível guardar a pesquisa',
+      saved ? messageStrings.searchSaved : messageStrings.couldNotSaveSearch,
     );
   }
 
@@ -88,7 +96,9 @@ class DashboardPage extends StatelessWidget {
       final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
       showMessage(
         messenger,
-        'Já tem $maxCompared anúncios na comparação. Retire um primeiro.',
+        context.strings.youAlreadyHaveListingsToCompareRemoveOne(
+          maxCompared: (maxCompared).toString(),
+        ),
       );
     }
   }
@@ -102,7 +112,11 @@ class DashboardPage extends StatelessWidget {
           if (compared.isEmpty) return const SizedBox.shrink();
           return FloatingActionButton.extended(
             icon: const Icon(Icons.compare_arrows),
-            label: Text('Comparar (${compared.length})'),
+            label: Text(
+              context.strings.compareDashboardPage(
+                length: compared.length.toString(),
+              ),
+            ),
             onPressed: () {
               if (compared.length >= 2) {
                 context.push(AppRoutes.compare(compared));
@@ -112,7 +126,7 @@ class DashboardPage extends StatelessWidget {
                 ..hideCurrentSnackBar();
               showMessage(
                 messenger,
-                'Toque em Comparar noutro anúncio para o juntar.',
+                context.strings.tapCompareOnAnotherListingToAddIt,
               );
             },
           );
@@ -127,11 +141,11 @@ class DashboardPage extends StatelessWidget {
                       MediaQuery.textScalerOf(context).scale(16) > 20,
                 ),
               )
-            : const Text('Ofertas'),
+            : Text(context.strings.deals),
         actions: [
           TextButton.icon(
             icon: const Icon(Icons.star_border),
-            label: const Text('Favoritos'),
+            label: Text(context.strings.favourites),
             onPressed: () => context.push(AppRoutes.favourites),
           ),
           const SizedBox(width: 12),
@@ -140,7 +154,11 @@ class DashboardPage extends StatelessWidget {
       body: BlocBuilder<ListingsCubit, ListingsState>(
         builder: (context, state) {
           final cubit = context.read<ListingsCubit>();
-          final chips = filterChips(state.filters, state.motorcycles);
+          final chips = filterChips(
+            state.filters,
+            state.motorcycles,
+            language: context.language,
+          );
           final loading =
               state.status == ListingsStatus.initial ||
               state.status == ListingsStatus.loading;
@@ -166,12 +184,12 @@ class DashboardPage extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const PageIntro(
-                            eyebrow: 'O seu radar de motas',
-                            title: 'A próxima mota começa aqui.',
-                            description:
-                                'Compare o preço, conheça o histórico '
-                                'e escolha com confiança.',
+                          PageIntro(
+                            eyebrow: context.strings.yourMotorcycleRadar,
+                            title: context.strings.yourNextBikeStartsHere,
+                            description: context
+                                .strings
+                                .comparePricesCheckHistoryAndChooseWithConfidence,
                           ),
                           const SizedBox(height: 24),
                           BlocBuilder<SavedSearchesCubit, SavedSearchesState>(
@@ -198,11 +216,11 @@ class DashboardPage extends StatelessWidget {
                                     onDeleted: () =>
                                         cubit.applyFilters(chip.without),
                                     deleteButtonTooltipMessage:
-                                        'Remover filtro',
+                                        context.strings.removeFilter,
                                   ),
                                 if (chips.length > 1)
                                   ActionChip(
-                                    label: const Text('Limpar tudo'),
+                                    label: Text(context.strings.clearAll),
                                     onPressed: () => cubit.applyFilters(
                                       ListingFilters.empty,
                                     ),
@@ -226,6 +244,7 @@ class DashboardPage extends StatelessWidget {
                                       listingsResultsText(
                                         state.listings.length,
                                         hasMore: state.hasMore,
+                                        language: context.language,
                                       ),
                                       style: Theme.of(
                                         context,
@@ -237,7 +256,7 @@ class DashboardPage extends StatelessWidget {
                                     alignment: PlaceholderAlignment.baseline,
                                     baseline: TextBaseline.alphabetic,
                                     child: Text(
-                                      'Compare até 3 anúncios',
+                                      context.strings.compareUpTo3Listings,
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodySmall
@@ -269,9 +288,9 @@ class DashboardPage extends StatelessWidget {
                     SliverFillRemaining(
                       child: StateMessage(
                         icon: Icons.cloud_off,
-                        title: 'Não foi possível carregar as ofertas',
-                        message: 'Verifique a ligação e tente novamente.',
-                        actionLabel: 'Tentar novamente',
+                        title: context.strings.couldNotLoadDeals,
+                        message: context.strings.checkYourConnectionAndTryAgain,
+                        actionLabel: context.strings.retry,
                         onAction: cubit.load,
                       ),
                     )
@@ -280,15 +299,14 @@ class DashboardPage extends StatelessWidget {
                       child: StateMessage(
                         icon: Icons.search_off,
                         title: state.filters.appliedCount > 0
-                            ? 'Nenhuma oferta com estes filtros'
-                            : 'Ainda não há ofertas',
+                            ? context.strings.noListingsMatchTheseFilters
+                            : context.strings.noListingsYet,
                         message: state.filters.appliedCount > 0
-                            ? 'Experimente alargar os critérios de pesquisa.'
-                            : 'Escolha os modelos que quer acompanhar, ou '
-                                  'volte depois da próxima recolha.',
+                            ? context.strings.tryWideningYourSearchCriteria
+                            : context.strings.chooseModelsYouWantToFollowOrCome,
                         actionLabel: state.filters.appliedCount > 0
-                            ? 'Limpar filtros'
-                            : 'Escolher modelos',
+                            ? context.strings.clearFilters
+                            : context.strings.chooseModels,
                         onAction: state.filters.appliedCount > 0
                             ? () => cubit.applyFilters(ListingFilters.empty)
                             : () {
@@ -395,7 +413,7 @@ class _OffersToolbar extends StatelessWidget {
               label: Text('${state.filters.appliedCount}'),
               child: const Icon(Icons.tune, size: 18),
             ),
-            label: const Text('Filtros'),
+            label: Text(context.strings.filters),
           ),
           BlocBuilder<ListingCardPreferencesCubit, ListingCardPreferencesState>(
             bloc: getIt<ListingCardPreferencesCubit>(),
@@ -409,21 +427,23 @@ class _OffersToolbar extends StatelessWidget {
               ),
               label: Text(
                 cards.status == ListingCardPreferencesStatus.failure
-                    ? 'Cartões: tentar novamente'
-                    : 'Cartões',
+                    ? context.strings.cardsTryAgain
+                    : context.strings.cards,
               ),
             ),
           ),
           PopupMenuButton<ListingSort>(
-            tooltip: 'Ordenar',
+            tooltip: context.strings.sort,
             initialValue: state.sort,
             onSelected: context.read<ListingsCubit>().applySort,
-            itemBuilder: (_) => [
+            itemBuilder: (localizationContext) => [
               for (final sort in ListingSort.values)
                 CheckedPopupMenuItem(
                   value: sort,
                   checked: sort == state.sort,
-                  child: Text(sort.label),
+                  child: Text(
+                    sort.label(language: localizationContext.language),
+                  ),
                 ),
             ],
             child: Container(
@@ -444,7 +464,7 @@ class _OffersToolbar extends StatelessWidget {
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text(
-                      state.sort.label,
+                      state.sort.label(language: context.language),
                       style: theme.textTheme.labelLarge,
                     ),
                   ),
@@ -458,13 +478,13 @@ class _OffersToolbar extends StatelessWidget {
             TextButton.icon(
               onPressed: onSave,
               icon: const Icon(Icons.bookmark_add_outlined, size: 18),
-              label: const Text('Guardar pesquisa'),
+              label: Text(context.strings.saveSearch),
             )
           else
             TextButton.icon(
               onPressed: () => context.go(AppRoutes.searches),
               icon: const Icon(Icons.bookmark_added, size: 18),
-              label: const Text('Pesquisa guardada'),
+              label: Text(context.strings.searchSaved),
             ),
         ],
       ),

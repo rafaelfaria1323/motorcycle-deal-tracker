@@ -11,6 +11,7 @@ import '../listing_labels.dart';
 import 'deal_score_badge.dart';
 import 'listing_photo.dart';
 import 'price_change_tag.dart';
+import '../../../../core/localization/localizations.dart';
 
 class ListingCard extends StatelessWidget {
   const ListingCard({
@@ -147,7 +148,9 @@ class _CardPhoto extends StatelessWidget {
               right: preferences.shows(ListingCardField.dealScore) ? 100 : 12,
               child: Align(
                 alignment: Alignment.topLeft,
-                child: _PhotoPill(sourceLabel(listing.source)),
+                child: _PhotoPill(
+                  sourceLabel(listing.source, language: context.language),
+                ),
               ),
             ),
           if (score != null)
@@ -165,10 +168,10 @@ class _CardPhoto extends StatelessWidget {
                 spacing: 6,
                 runSpacing: 6,
                 children: [
-                  if (listing.isRemoved) const _PhotoPill('Removido'),
+                  if (listing.isRemoved) _PhotoPill(context.strings.removed),
                   if (preferredColour)
-                    const _PhotoPill(
-                      'Cor preferida',
+                    _PhotoPill(
+                      context.strings.preferredColour,
                       icon: Icons.palette_outlined,
                     ),
                 ],
@@ -181,11 +184,11 @@ class _CardPhoto extends StatelessWidget {
               child: CircleAvatar(
                 radius: 14,
                 backgroundColor: AppColors.photoPillScrim,
-                child: const Icon(
+                child: Icon(
                   Icons.star,
                   size: 16,
                   color: AppColors.onPhoto,
-                  semanticLabel: 'Nos favoritos',
+                  semanticLabel: context.strings.inFavourites,
                 ),
               ),
             ),
@@ -214,7 +217,11 @@ class _CardDetails extends StatelessWidget {
     final showYear =
         preferences.shows(ListingCardField.year) && listing.year != null;
     final showMileage = preferences.shows(ListingCardField.mileage);
-    final extraFacts = listingCardExtraFacts(listing, preferences);
+    final extraFacts = listingCardExtraFacts(
+      listing,
+      preferences,
+      language: context.language,
+    );
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
@@ -236,7 +243,7 @@ class _CardDetails extends StatelessWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(
-                Formatters.price(listing.price),
+                Formatters.price(listing.price, language: context.language),
                 style: textTheme.headlineSmall?.copyWith(
                   fontSize: 30,
                   height: 1.1,
@@ -278,7 +285,12 @@ class _CardDetails extends StatelessWidget {
                               spacing: 5,
                               children: [
                                 const Icon(Icons.speed),
-                                Text(Formatters.mileage(listing.mileage)),
+                                Text(
+                                  Formatters.mileage(
+                                    listing.mileage,
+                                    language: context.language,
+                                  ),
+                                ),
                               ],
                             ),
                         ],
@@ -356,7 +368,8 @@ class _CardFooter extends StatelessWidget {
             const SizedBox(width: 4),
             Expanded(
               child: Text(
-                placeText(listing) ?? 'Localização não indicada',
+                placeText(listing, language: context.language) ??
+                    context.strings.locationNotStated,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodySmall?.copyWith(color: muted),
@@ -366,7 +379,9 @@ class _CardFooter extends StatelessWidget {
             const Spacer(),
           if (onCompare != null)
             Tooltip(
-              message: selected ? 'Retirar da comparação' : 'Comparar',
+              message: selected
+                  ? context.strings.removeFromComparison
+                  : context.strings.compare,
               child: TextButton.icon(
                 onPressed: onCompare,
                 style: TextButton.styleFrom(
@@ -377,7 +392,9 @@ class _CardFooter extends StatelessWidget {
                   selected ? Icons.check_circle : Icons.compare_arrows,
                   size: 18,
                 ),
-                label: Text(selected ? 'Retirar' : 'Comparar'),
+                label: Text(
+                  selected ? context.strings.remove : context.strings.compare,
+                ),
               ),
             )
           else

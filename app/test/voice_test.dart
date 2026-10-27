@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -61,7 +62,11 @@ void main() {
     final files = Directory('lib')
         .listSync(recursive: true)
         .whereType<File>()
-        .where((f) => f.path.endsWith('.dart'));
+        .where(
+          (f) =>
+              f.path.endsWith('.dart') &&
+              !f.path.startsWith('lib/l10n/generated/'),
+        );
 
     for (final file in files) {
       final lines = file.readAsLinesSync();
@@ -79,6 +84,18 @@ void main() {
       }
     }
 
+    expect(found, isEmpty, reason: found.join('\n'));
+  });
+
+  test('Portuguese message resources use "você", not "tu"', () {
+    final messages =
+        jsonDecode(File('lib/l10n/app_pt.arb').readAsStringSync())
+            as Map<String, dynamic>;
+    final found = [
+      for (final entry in messages.entries)
+        if (!entry.key.startsWith('@') && _speaksAsTu(entry.value as String))
+          'app_pt.arb:${entry.key}: ${entry.value}',
+    ];
     expect(found, isEmpty, reason: found.join('\n'));
   });
 }

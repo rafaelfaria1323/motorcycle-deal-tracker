@@ -189,6 +189,7 @@ Map<String, Object?> declarativePush(
       origin,
     ).resolve(message['url'] as String? ?? '/').toString(),
     if (message['tag'] case final String tag) 'tag': tag,
+    if (message['language'] case final String language) 'lang': language,
   },
 };
 

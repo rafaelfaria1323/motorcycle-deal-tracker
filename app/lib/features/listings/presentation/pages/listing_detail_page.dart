@@ -34,6 +34,7 @@ import '../widgets/price_history_section.dart';
 import '../widgets/score_explanation_card.dart';
 import '../widgets/seller_message_card.dart';
 import '../widgets/viewing_checklist_card.dart';
+import '../../../../core/localization/localizations.dart';
 
 class ListingDetailPage extends StatelessWidget {
   const ListingDetailPage({required this.listingId, super.key});
@@ -47,7 +48,7 @@ class ListingDetailPage extends StatelessWidget {
         leading: BackButton(
           onPressed: () => goBack(context, fallback: AppRoutes.deals),
         ),
-        title: const Text('O anúncio'),
+        title: Text(context.strings.listingListingDetailPage),
         actions: [
           // The star needs the listing (the favourites page shows it).
           BlocBuilder<ListingDetailCubit, ListingDetailState>(
@@ -66,17 +67,17 @@ class ListingDetailPage extends StatelessWidget {
             case ListingDetailStatus.notFound:
               return StateMessage(
                 icon: Icons.search_off,
-                title: 'Anúncio não encontrado',
-                message: 'Pode ter sido removido ou o link está incorreto.',
-                actionLabel: 'Ver ofertas',
+                title: context.strings.listingNotFound,
+                message: context.strings.itMayHaveBeenRemovedOrLinkIs,
+                actionLabel: context.strings.viewDeals,
                 onAction: () => context.go(AppRoutes.deals),
               );
             case ListingDetailStatus.failure:
               return StateMessage(
                 icon: Icons.cloud_off,
-                title: 'Não foi possível carregar o anúncio',
-                message: 'Verifique a ligação e tente novamente.',
-                actionLabel: 'Tentar novamente',
+                title: context.strings.couldNotLoadListing,
+                message: context.strings.checkYourConnectionAndTryAgain,
+                actionLabel: context.strings.retry,
                 onAction: () =>
                     context.read<ListingDetailCubit>().load(listingId),
               );
@@ -92,14 +93,18 @@ class ListingDetailPage extends StatelessWidget {
 /// The four parts of the page, picked at the top so the page stays short:
 /// the verdict, the ad's own details, the market and negotiating.
 enum _Section {
-  verdict('Avaliação'),
-  details('Detalhes'),
-  market('Mercado'),
-  negotiate('Negociar');
+  verdict,
+  details,
+  market,
+  negotiate;
 
-  const _Section(this.label);
-
-  final String label;
+  String label({AppLanguage language = AppLanguage.portuguese}) =>
+      switch (this) {
+        verdict => language.messages.assessment,
+        details => language.messages.details,
+        market => language.messages.market,
+        negotiate => language.messages.negotiate,
+      };
 }
 
 class _Content extends StatefulWidget {
@@ -130,6 +135,8 @@ class _ContentState extends State<_Content> {
   });
 
   Future<void> _openOriginal(BuildContext context) async {
+    final messageStrings = context.strings;
+
     final uri = Uri.tryParse(listing.url);
     // Only open web links, since the URL comes from an external source.
     final canOpen =
@@ -140,7 +147,7 @@ class _ContentState extends State<_Content> {
     if (!opened && context.mounted) {
       showMessage(
         ScaffoldMessenger.of(context),
-        'Não foi possível abrir o anúncio',
+        messageStrings.couldNotOpenListing,
       );
     }
   }
@@ -150,9 +157,9 @@ class _ContentState extends State<_Content> {
     return switch (section) {
       _Section.verdict => [
         if (listing.dealScore == null)
-          const SectionCard(
-            title: 'Porquê esta pontuação',
-            children: [Text('Este anúncio ainda não tem pontuação.')],
+          SectionCard(
+            title: context.strings.whyThisScore,
+            children: [Text(context.strings.thisListingDoesNotHaveScoreYet)],
           )
         else
           ScoreExplanationCard(listing: listing),
@@ -171,10 +178,16 @@ class _ContentState extends State<_Content> {
         OwnershipCostCard(listing: listing),
       ],
       _Section.details => [
-        FactsCard(title: 'A mota', facts: bikeFacts(listing)),
+        FactsCard(
+          title: context.strings.bike,
+          facts: bikeFacts(listing, language: context.language),
+        ),
         if (description != null && description.isNotEmpty)
           _DescriptionCard(description: description),
-        FactsCard(title: 'O anúncio', facts: adFacts(listing)),
+        FactsCard(
+          title: context.strings.listingListingDetailPage,
+          facts: adFacts(listing, language: context.language),
+        ),
       ],
     };
   }
@@ -233,7 +246,7 @@ class _ContentState extends State<_Content> {
                       tabAlignment: TabAlignment.start,
                       tabs: [
                         for (final section in _Section.values)
-                          Tab(text: section.label),
+                          Tab(text: section.label(language: context.language)),
                       ],
                       onTap: (index) => _select(_Section.values[index]),
                     ),
@@ -282,7 +295,12 @@ class _ContentState extends State<_Content> {
                         final button = FilledButton.icon(
                           onPressed: () => _openOriginal(context),
                           icon: const Icon(Icons.open_in_new),
-                          label: Text(originalLinkLabel(listing.source)),
+                          label: Text(
+                            originalLinkLabel(
+                              listing.source,
+                              language: context.language,
+                            ),
+                          ),
                         );
                         if (constraints.maxWidth < 600) {
                           return SizedBox(
@@ -294,7 +312,10 @@ class _ContentState extends State<_Content> {
                           children: [
                             Expanded(
                               child: Text(
-                                Formatters.price(listing.price),
+                                Formatters.price(
+                                  listing.price,
+                                  language: context.language,
+                                ),
                                 style: theme.textTheme.headlineSmall?.copyWith(
                                   fontFeatures: const [
                                     FontFeature.tabularFigures(),
@@ -328,30 +349,32 @@ class _ContentState extends State<_Content> {
         _StatusCard(
           color: scheme.errorContainer,
           icon: Icons.block,
-          title: 'Anúncio removido',
+          title: context.strings.listingRemovedListingDetailPage,
           text: lastSeenAt == null
-              ? 'Este anúncio já não está disponível.'
-              : 'Este anúncio já não está disponível. '
-                    'Visto pela última vez ${Formatters.daysAgo(lastSeenAt)}.',
+              ? context.strings.thisListingIsNoLongerAvailable
+              : context.strings.thisListingIsNoLongerAvailableLastSeen(
+                  daysago: Formatters.daysAgo(
+                    lastSeenAt,
+                    language: context.language,
+                  ),
+                ),
         ),
       if (duplicateOf != null)
         _StatusCard(
           color: scheme.secondaryContainer,
           icon: Icons.content_copy,
-          title: 'Anúncio duplicado',
-          text:
-              'Parece ser a mesma mota de outro anúncio. '
-              'Não conta para o mercado nem tem pontuação.',
-          actionLabel: 'Ver original',
+          title: context.strings.duplicateListing,
+          text: context.strings.itAppearsToBeSameBikeAsAnother,
+          actionLabel: context.strings.viewOriginal,
           onAction: () => context.push(AppRoutes.listingDetail(duplicateOf)),
         ),
-      if (relistText(listing) case final relist?)
+      if (relistText(listing, language: context.language) case final relist?)
         _StatusCard(
           color: scheme.secondaryContainer,
           icon: Icons.history,
-          title: 'Anúncio publicado de novo',
+          title: context.strings.relisted,
           text: relist,
-          actionLabel: 'Ver anterior',
+          actionLabel: context.strings.viewEarlierListing,
           onAction: () =>
               context.push(AppRoutes.listingDetail(listing.relistedFrom!)),
         ),
@@ -374,7 +397,7 @@ class _Header extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          sourceLabel(listing.source).toUpperCase(),
+          sourceLabel(listing.source, language: context.language).toUpperCase(),
           style: textTheme.labelSmall?.copyWith(
             letterSpacing: 1.5,
             fontWeight: FontWeight.w700,
@@ -392,7 +415,7 @@ class _Header extends StatelessWidget {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Text(
-              Formatters.price(listing.price),
+              Formatters.price(listing.price, language: context.language),
               style: textTheme.displaySmall?.copyWith(
                 fontSize: 42,
                 fontFeatures: const [FontFeature.tabularFigures()],
@@ -403,7 +426,7 @@ class _Header extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          keyFactsLine(listing),
+          keyFactsLine(listing, language: context.language),
           style: textTheme.bodyLarge?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -426,12 +449,12 @@ class _Header extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        ScoreExplainer.label(score),
+                        ScoreExplainer.label(score, language: context.language),
                         style: textTheme.titleLarge,
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Deal Score · 0 a 100',
+                        context.strings.dealScore0To100,
                         style: textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -501,7 +524,7 @@ class _DescriptionCardState extends State<_DescriptionCard> {
     final style = Theme.of(context).textTheme.bodyMedium;
 
     return SectionCard(
-      title: 'Descrição',
+      title: context.strings.description,
       children: [
         LayoutBuilder(
           builder: (context, constraints) {
@@ -527,7 +550,11 @@ class _DescriptionCardState extends State<_DescriptionCard> {
                 if (foldable)
                   TextButton(
                     onPressed: () => setState(() => _expanded = !_expanded),
-                    child: Text(_expanded ? 'Mostrar menos' : 'Mostrar tudo'),
+                    child: Text(
+                      _expanded
+                          ? context.strings.showLess
+                          : context.strings.showAll,
+                    ),
                   ),
               ],
             );
@@ -553,7 +580,9 @@ class _CompareButton extends StatelessWidget {
       builder: (context, compared) {
         final added = compared.contains(listingId);
         return IconButton(
-          tooltip: added ? 'Retirar da comparação' : 'Comparar',
+          tooltip: added
+              ? context.strings.removeFromComparison
+              : context.strings.compare,
           isSelected: added,
           icon: const Icon(Icons.compare_arrows),
           onPressed: () {
@@ -562,25 +591,28 @@ class _CompareButton extends StatelessWidget {
             if (!cubit.toggle(listingId)) {
               showMessage(
                 messenger,
-                'Já tem $maxCompared anúncios na comparação. '
-                'Retire um primeiro.',
+                context.strings.youAlreadyHaveListingsToCompareRemoveOne(
+                  maxCompared: (maxCompared).toString(),
+                ),
               );
               return;
             }
             final now = cubit.state;
             if (added) {
-              showMessage(messenger, 'Retirado da comparação');
+              showMessage(messenger, context.strings.removedFromComparison);
             } else if (now.length < 2) {
               showMessage(
                 messenger,
-                'Na comparação. Escolha outro anúncio para comparar.',
+                context.strings.addedToComparisonChooseAnotherListingToCompare,
               );
             } else {
               messenger.showSnackBar(
                 SnackBar(
-                  content: Text('Na comparação (${now.length})'),
+                  content: Text(
+                    context.strings.inComparison(length: now.length.toString()),
+                  ),
                   action: SnackBarAction(
-                    label: 'Comparar',
+                    label: context.strings.compare,
                     onPressed: () => context.push(AppRoutes.compare(now)),
                   ),
                 ),

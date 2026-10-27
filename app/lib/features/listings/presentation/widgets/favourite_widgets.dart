@@ -6,6 +6,7 @@ import '../../../../core/widgets/show_message.dart';
 import '../../domain/entities/listing.dart';
 import '../cubit/favourites_cubit.dart';
 import '../cubit/favourites_state.dart';
+import '../../../../core/localization/localizations.dart';
 
 /// The star in the listing page's app bar: adds the listing to the
 /// favourites or takes it out (asking first when that deletes a note).
@@ -15,20 +16,19 @@ class FavouriteButton extends StatelessWidget {
   final Listing listing;
 
   Future<void> _toggle(BuildContext context, FavouritesCubit cubit) async {
+    final messageStrings = context.strings;
+
     final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
     final favourite = cubit.state.favouriteOf(listing.id);
     if (favourite?.note != null && !await _confirmRemove(context)) return;
 
     final saved = await cubit.toggle(listing);
     if (!saved) {
-      showMessage(messenger, 'Não foi possível guardar. Tente novamente.');
+      showMessage(messenger, messageStrings.couldNotSaveTryAgain);
     } else if (favourite == null) {
-      showMessage(
-        messenger,
-        'Nos favoritos. Avisamos quando baixar de preço ou sair do mercado.',
-      );
+      showMessage(messenger, messageStrings.addedToFavouritesWeWillAlertYouIf);
     } else {
-      showMessage(messenger, 'Retirado dos favoritos');
+      showMessage(messenger, messageStrings.removedFromFavourites);
     }
   }
 
@@ -36,16 +36,16 @@ class FavouriteButton extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Retirar dos favoritos?'),
-        content: const Text('A sua nota sobre este anúncio também é apagada.'),
+        title: Text(context.strings.removeFromFavourites),
+        content: Text(context.strings.yourNoteAboutThisListingWillAlsoBe),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
+            child: Text(context.strings.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Retirar'),
+            child: Text(context.strings.remove),
           ),
         ],
       ),
@@ -64,8 +64,8 @@ class FavouriteButton extends StatelessWidget {
         final favourite = state.isFavourite(listing.id);
         return IconButton(
           tooltip: favourite
-              ? 'Retirar dos favoritos'
-              : 'Adicionar aos favoritos',
+              ? context.strings.removeFromFavouritesFavouriteWidgets
+              : context.strings.addToFavourites,
           isSelected: favourite,
           icon: const Icon(Icons.star_border),
           selectedIcon: const Icon(Icons.star),
@@ -83,20 +83,24 @@ class FavouriteNoteCard extends StatelessWidget {
   final String listingId;
 
   Future<void> _edit(BuildContext context, String? note) async {
+    final messageStrings = context.strings;
+
     final messenger = ScaffoldMessenger.of(context);
     final text = await showDialog<String>(
       context: context,
-      builder: (_) => NoteDialog(
-        title: 'As suas notas',
+      builder: (localizationContext) => NoteDialog(
+        title: localizationContext.strings.yourNotes,
         initial: note ?? '',
-        hintText: 'Ex.: Liguei, ainda disponível. Revisão feita em março.',
+        hintText: localizationContext
+            .strings
+            .forExampleCalledStillAvailableServicedInMarch,
         maxLength: FavouritesCubit.maxNoteLength,
       ),
     );
     if (text == null) return;
     final saved = await getIt<FavouritesCubit>().saveNote(listingId, text);
     if (!saved) {
-      showMessage(messenger, 'Não foi possível guardar a nota');
+      showMessage(messenger, messageStrings.couldNotSaveNote);
     }
   }
 
@@ -122,14 +126,12 @@ class FavouriteNoteCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'As suas notas',
+                          context.strings.yourNotes,
                           style: theme.textTheme.titleMedium,
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          note ??
-                              'Toque para escrever o que falta saber, o que '
-                                  'o vendedor disse ou quanto quer oferecer.',
+                          note ?? context.strings.tapToWriteWhatYouStillNeedTo,
                           style: note == null
                               ? theme.textTheme.bodyMedium?.copyWith(
                                   color: theme.colorScheme.onSurfaceVariant,
@@ -206,11 +208,11 @@ class _NoteDialogState extends State<NoteDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancelar'),
+          child: Text(context.strings.cancel),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(_controller.text),
-          child: const Text('Guardar'),
+          child: Text(context.strings.save),
         ),
       ],
     );

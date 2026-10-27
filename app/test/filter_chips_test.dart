@@ -27,7 +27,7 @@ void main() {
     expect(chips.map((c) => c.label), [
       'Yamaha MT-07',
       'até ${Formatters.price(7500)}',
-      SellerType.private.label,
+      SellerType.private.label(),
       'Inclui removidos',
     ]);
     expect(
@@ -43,7 +43,7 @@ void main() {
   });
 
   test('every sort order has a label', () {
-    expect(ListingSort.values.map((s) => s.label).toSet(), hasLength(5));
-    expect(ListingSort.dealScoreDesc.label, 'Melhor pontuação');
+    expect(ListingSort.values.map((s) => s.label()).toSet(), hasLength(5));
+    expect(ListingSort.dealScoreDesc.label(), 'Melhor pontuação');
   });
 }

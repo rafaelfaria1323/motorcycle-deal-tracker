@@ -11,6 +11,15 @@ class _Store implements ListingStore {
   Map<String, List<PushTarget>> devices = const {};
   List<String> forgotten = const [];
   List<String> used = const [];
+  Map<String, NotificationLanguage> languages = const {};
+
+  @override
+  Future<Map<String, NotificationLanguage>> accountLanguages(
+    List<String> userIds,
+  ) async => {
+    for (final user in userIds)
+      user: languages[user] ?? NotificationLanguage.portuguese,
+  };
 
   @override
   Future<String?> lastWorkflowStarter(String workflow, DateTime since) async {
@@ -81,7 +90,8 @@ void main() {
 
     expect(result, (devices: 1, sent: 1));
     expect(store.asked, ('push-test.yml', DateTime.utc(2026, 10, 21, 14, 30)));
-    expect(push.sent.single, ('https://p/u1', testPushMessage));
+    expect(push.sent.single.$1, 'https://p/u1');
+    expect(push.sent.single.$2, testPushMessage());
     expect(store.used, ['https://p/u1']);
   });
 
@@ -96,6 +106,32 @@ void main() {
     expect(store.forgotten, ['https://p/a2']);
   });
 
+  test(
+    'mixed-language admins receive their own test and health copy',
+    () async {
+      final store = _Store()
+        ..devices = _devices
+        ..languages = {'admin2': NotificationLanguage.english};
+      for (final kind in [
+        'test',
+        'run_failed',
+        'run_blocked',
+        'run_recovered',
+      ]) {
+        final push = _Push();
+        expect(await sendTestPush(store, push, kind: kind), (
+          devices: 2,
+          sent: 2,
+        ));
+        expect(push.sent.first.$2['language'], 'pt');
+        expect(push.sent.last.$2['language'], 'en');
+        expect(push.sent.last.$2['title'], isNot(push.sent.first.$2['title']));
+        expect(push.sent.first.$2['tag'], push.sent.last.$2['tag']);
+        expect(push.sent.first.$2['url'], push.sent.last.$2['url']);
+      }
+    },
+  );
+
   test('no device: nothing is sent', () async {
     final store = _Store(requester: 'u2')
       ..devices = {
@@ -108,8 +144,8 @@ void main() {
   });
 
   test('the test notification opens Mais', () {
-    expect(testPushMessage['url'], '/#/more');
-    expect(testPushMessage['title'], 'Notificação de teste');
+    expect(testPushMessage()['url'], '/#/more');
+    expect(testPushMessage()['title'], 'Notificação de teste');
   });
 
   group('examples of each notification', () {
@@ -151,6 +187,7 @@ void main() {
             'Exemplo de teste: nada mudou.',
         'url': '/#/deals/l1',
         'tag': 'push-test',
+        'language': 'pt',
       });
     });
 
@@ -197,8 +234,8 @@ void main() {
     });
 
     test('the test kind, or an unknown one, is the test notification', () {
-      expect(samplePushMessage('test', listing), testPushMessage);
-      expect(samplePushMessage('nope', listing), testPushMessage);
+      expect(samplePushMessage('test', listing), testPushMessage());
+      expect(samplePushMessage('nope', listing), testPushMessage());
     });
   });
 }

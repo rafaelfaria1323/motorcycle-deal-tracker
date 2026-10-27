@@ -48,8 +48,9 @@ void main() {
   });
 
   test('an implausible mileage reads as a negative', () {
-    final lines = ScoreExplainer.explain(listingWith(['suspicious_mileage']))!
-        .lines;
+    final lines = ScoreExplainer.explain(
+      listingWith(['suspicious_mileage']),
+    )!.lines;
 
     expect(lines, hasLength(1));
     expect(lines.single.tone, ExplanationTone.negative);

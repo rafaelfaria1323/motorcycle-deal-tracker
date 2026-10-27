@@ -8,6 +8,7 @@ import '../../../core/widgets/state_message.dart';
 import '../domain/accounts_repository.dart';
 import 'accounts_text.dart';
 import 'share_link.dart';
+import '../../../core/localization/localizations.dart';
 
 /// "Contas e convites" (admins): invite someone with a link, see the
 /// accounts, make other admins, remove an account.
@@ -49,6 +50,8 @@ class _AccountsPageState extends State<AccountsPage> {
   }
 
   Future<void> _newInvite() async {
+    final messageStrings = context.strings;
+
     final note = await showDialog<String>(
       context: context,
       builder: (_) => const _NoteDialog(),
@@ -60,7 +63,7 @@ class _AccountsPageState extends State<AccountsPage> {
     try {
       code = await _repository.createInvite(note);
     } catch (_) {
-      showMessage(messenger, 'Não foi possível criar o convite.');
+      showMessage(messenger, messageStrings.couldNotCreateInvite);
     }
     if (!mounted) return;
     setState(() => _busy = false);
@@ -74,24 +77,24 @@ class _AccountsPageState extends State<AccountsPage> {
     return showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Convite pronto'),
+        title: Text(dialogContext.strings.inviteReady),
         content: Text(
-          'Envie este link a quem quer convidar. Serve para criar uma conta, '
-          'durante 14 dias.\n\n$link',
+          dialogContext.strings.sendThisLinkToPersonYouWantTo(link: link),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Fechar'),
+            child: Text(dialogContext.strings.close),
           ),
           FilledButton.icon(
             icon: const Icon(Icons.ios_share),
-            label: const Text('Partilhar'),
+            label: Text(dialogContext.strings.share),
             onPressed: () => shareOrCopy(
               ScaffoldMessenger.of(context),
               title: appName,
-              text: inviteShareText,
+              text: inviteShareText(language: dialogContext.language),
               url: link,
+              language: dialogContext.language,
             ),
           ),
         ],
@@ -108,7 +111,7 @@ class _AccountsPageState extends State<AccountsPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancelar'),
+              child: Text(dialogContext.strings.cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
@@ -120,16 +123,17 @@ class _AccountsPageState extends State<AccountsPage> {
       false;
 
   Future<void> _removeAccount(Account account) async {
+    final messageStrings = context.strings;
+
     final ok = await _confirm(
-      'Remover ${account.email}?',
-      'A conta deixa de poder entrar, e as suas pesquisas, alertas, '
-          'favoritos e notificações são apagados. Não pode ser desfeito.',
-      'Remover',
+      messageStrings.removeAccountsPage(email: account.email),
+      messageStrings.accountWillLoseAccessAndItsSearchesAlerts,
+      messageStrings.removeOfferCard,
     );
     if (!ok || !mounted) return;
     await _run(
       () => _repository.removeAccount(account.id),
-      'Não foi possível remover a conta.',
+      messageStrings.couldNotRemoveAccount,
     );
   }
 
@@ -138,12 +142,12 @@ class _AccountsPageState extends State<AccountsPage> {
     return Scaffold(
       appBar: AppBar(
         leading: const PageBackButton(),
-        title: const Text('Contas e convites'),
+        title: Text(context.strings.accountsAndInvites),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _busy ? null : _newInvite,
         icon: const Icon(Icons.person_add_alt),
-        label: const Text('Convidar'),
+        label: Text(context.strings.invite),
       ),
       body: FutureBuilder<_Data>(
         future: _data,
@@ -151,9 +155,9 @@ class _AccountsPageState extends State<AccountsPage> {
           if (snapshot.hasError) {
             return StateMessage(
               icon: Icons.error_outline,
-              title: 'Não foi possível carregar',
-              message: 'Verifique a ligação e tente novamente.',
-              actionLabel: 'Tentar novamente',
+              title: context.strings.couldNotLoad,
+              message: context.strings.checkYourConnectionAndTryAgain,
+              actionLabel: context.strings.retry,
               onAction: _reload,
             );
           }
@@ -166,14 +170,11 @@ class _AccountsPageState extends State<AccountsPage> {
           return ListView(
             padding: const EdgeInsets.only(bottom: 96),
             children: [
-              const _Header('Convites'),
+              _Header(context.strings.invites),
               if (data.invites.isEmpty)
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: Text(
-                    'Ainda não há convites. Toque em Convidar para criar um '
-                    'link e enviá-lo a quem quiser.',
-                  ),
+                  child: Text(context.strings.thereAreNoInvitesYetTapInviteTo),
                 ),
               for (final invite in data.invites)
                 ListTile(
@@ -182,40 +183,48 @@ class _AccountsPageState extends State<AccountsPage> {
                         ? Icons.mail_outline
                         : Icons.drafts_outlined,
                   ),
-                  title: Text(invite.note ?? 'Convite'),
+                  title: Text(
+                    invite.note ?? context.strings.inviteAccountsPage,
+                  ),
                   subtitle: Text(
-                    inviteSubtitle(invite, now: now, emails: emails),
+                    inviteSubtitle(
+                      invite,
+                      now: now,
+                      emails: emails,
+                      language: context.language,
+                    ),
                   ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (invitePending(invite, now))
                         IconButton(
-                          tooltip: 'Partilhar',
+                          tooltip: context.strings.share,
                           icon: const Icon(Icons.ios_share),
                           onPressed: () => shareOrCopy(
                             ScaffoldMessenger.of(context),
                             title: appName,
-                            text: inviteShareText,
+                            text: inviteShareText(language: context.language),
                             url: inviteLink(webOrigin, invite.code),
+                            language: context.language,
                           ),
                         ),
                       IconButton(
                         tooltip: invitePending(invite, now)
-                            ? 'Cancelar convite'
-                            : 'Apagar da lista',
+                            ? context.strings.cancelInvite
+                            : context.strings.deleteFromList,
                         icon: const Icon(Icons.delete_outline),
                         onPressed: _busy
                             ? null
                             : () => _run(
                                 () => _repository.deleteInvite(invite.code),
-                                'Não foi possível apagar o convite.',
+                                context.strings.couldNotDeleteInvite,
                               ),
                       ),
                     ],
                   ),
                 ),
-              const _Header('Contas'),
+              _Header(context.strings.accounts),
               for (final account in data.accounts)
                 ListTile(
                   leading: Icon(
@@ -224,9 +233,13 @@ class _AccountsPageState extends State<AccountsPage> {
                         : Icons.person_outline,
                   ),
                   title: Text(
-                    account.isMe ? '${account.email} (você)' : account.email,
+                    account.isMe
+                        ? context.strings.you(email: account.email)
+                        : account.email,
                   ),
-                  subtitle: Text(accountSubtitle(account)),
+                  subtitle: Text(
+                    accountSubtitle(account, language: context.language),
+                  ),
                   trailing: account.isMe
                       ? null
                       : PopupMenuButton<String>(
@@ -238,30 +251,34 @@ class _AccountsPageState extends State<AccountsPage> {
                                     account.id,
                                     admin: !account.isAdmin,
                                   ),
-                                  'Não foi possível alterar o acesso.',
+                                  context.strings.couldNotChangeAccess,
                                 ),
-                          itemBuilder: (_) => [
+                          itemBuilder: (localizationContext) => [
                             PopupMenuItem(
                               value: 'admin',
                               child: Text(
                                 account.isAdmin
-                                    ? 'Deixar de ser administrador'
-                                    : 'Tornar administrador',
+                                    ? localizationContext
+                                          .strings
+                                          .removeAdministratorAccess
+                                    : localizationContext
+                                          .strings
+                                          .makeAdministrator,
                               ),
                             ),
-                            const PopupMenuItem(
+                            PopupMenuItem(
                               value: 'remove',
-                              child: Text('Remover conta'),
+                              child: Text(
+                                localizationContext.strings.removeAccount,
+                              ),
                             ),
                           ],
                         ),
                 ),
-              const Padding(
+              Padding(
                 padding: EdgeInsets.fromLTRB(20, 16, 20, 0),
                 child: Text(
-                  'Cada conta escolhe os seus modelos, pesquisas e alertas; '
-                  'os anúncios são recolhidos uma vez para todas. Os '
-                  'administradores convidam pessoas e gerem as contas.',
+                  context.strings.eachAccountChoosesItsModelsSearchesAndAlerts,
                 ),
               ),
             ],
@@ -313,15 +330,15 @@ class _NoteDialogState extends State<_NoteDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Novo convite'),
+      title: Text(context.strings.newInvite),
       content: TextField(
         controller: _note,
         autofocus: true,
         maxLength: 80,
         textCapitalization: TextCapitalization.sentences,
-        decoration: const InputDecoration(
-          labelText: 'Para quem (opcional)',
-          helperText: 'Só aparece nesta lista',
+        decoration: InputDecoration(
+          labelText: context.strings.forWhomOptional,
+          helperText: context.strings.onlyShownInThisList,
           border: OutlineInputBorder(),
         ),
         onSubmitted: (text) => Navigator.of(context).pop(text),
@@ -329,11 +346,11 @@ class _NoteDialogState extends State<_NoteDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancelar'),
+          child: Text(context.strings.cancel),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(_note.text),
-          child: const Text('Criar convite'),
+          child: Text(context.strings.createInvite),
         ),
       ],
     );

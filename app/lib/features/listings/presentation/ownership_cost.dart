@@ -3,6 +3,7 @@ import 'dart:math';
 import '../../../core/formatting/formatters.dart';
 import '../domain/entities/market_behaviour.dart';
 import '../domain/entities/ownership_settings.dart';
+import '../../../core/localization/localizations.dart';
 
 /// IUC, category E (motorcycles), registered after 1996, euros per year by
 /// engine size (Código do IUC; the 2024 values, kept in 2025 and 2026).
@@ -172,50 +173,87 @@ OwnershipCost? ownershipCost({
 }
 
 /// Rounded to 10 € for headlines: these are estimates.
-String roughPrice(double value) =>
-    Formatters.price((value / 10).round() * 10.0);
+String roughPrice(
+  double value, {
+  AppLanguage language = AppLanguage.portuguese,
+}) => Formatters.price((value / 10).round() * 10.0, language: language);
 
 /// "Custa cerca de 1 450 € por ano".
-String ownershipHeadline(OwnershipCost c) =>
-    'Custa cerca de ${roughPrice(c.perYear)} por ano';
+String ownershipHeadline(
+  OwnershipCost c, {
+  AppLanguage language = AppLanguage.portuguese,
+}) => language.messages.costsAboutPerYear(
+  value: roughPrice(c.perYear, language: language),
+);
 
 /// "Em 3 anos: cerca de 4 350 €".
-String ownershipTotalLine(OwnershipCost c) =>
-    'Em ${c.years} ${c.years == 1 ? 'ano' : 'anos'}: '
-    'cerca de ${roughPrice(c.total)}';
+String ownershipTotalLine(
+  OwnershipCost c, {
+  AppLanguage language = AppLanguage.portuguese,
+}) => language.messages.overAbout(
+  years: c.years.toString(),
+  value: c.years == 1
+      ? language.messages.yearOwnershipCost
+      : language.messages.years,
+  value3: roughPrice(c.total, language: language),
+);
 
 /// One line per part of the cost, in the order they are added up.
-List<String> ownershipLines(OwnershipCost c, {int? year}) {
+List<String> ownershipLines(
+  OwnershipCost c, {
+  int? year,
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final t = c.table;
-  const km = Formatters.mileage;
+  String km(int value) => Formatters.mileage(value, language: language);
   return [
-    'Desvalorização: ${roughPrice(c.depreciation)} por ano '
-        '(média de ${c.years} ${c.years == 1 ? 'ano' : 'anos'})',
+    language.messages.depreciationPerYearAverageOver(
+      value: roughPrice(c.depreciation, language: language),
+      years: c.years.toString(),
+      value3: c.years == 1
+          ? language.messages.yearOwnershipCost
+          : language.messages.years,
+    ),
     switch (c.iuc) {
       null when year != null && year < iucFirstYear =>
-        'IUC: não calculado para matrículas anteriores a $iucFirstYear',
-      null => 'IUC: cilindrada do modelo desconhecida',
-      0.0 => 'IUC: não paga (menos de 10 € por ano)',
-      final iuc => 'IUC: ${Formatters.price(iuc)}',
+        language.messages.roadTaxIUCNotCalculatedForRegistrationsBefore(
+          iucFirstYear: (iucFirstYear).toString(),
+        ),
+      null => language.messages.roadTaxIUCModelEngineSizeUnknown,
+      0.0 => language.messages.roadTaxIUCExemptLessThanEUR10,
+      final iuc => language.messages.roadTaxIUC(
+        price: Formatters.price(iuc, language: language),
+      ),
     },
     c.insurance == null
-        ? 'Seguro: não incluído; indique o valor do seu seguro'
-        : 'Seguro: ${Formatters.price(c.insurance)} (o seu valor)',
-    'Pneus: ${Formatters.price(c.tyres)} '
-        '(um jogo a cada ${km(t.tyreLifeKm)}, pelo menos a cada '
-        '$tyreMaxYears anos)',
-    'Revisões: ${Formatters.price(c.services)} '
-        '(a cada ${km(t.serviceIntervalKm)}, pelo menos uma por ano)',
-    'Kit de transmissão: ${Formatters.price(c.chain)} '
-        '(a cada ${km(t.chainLifeKm)})',
+        ? language.messages.insuranceNotIncludedEnterYourInsurancePremium
+        : language.messages.insuranceYourFigure(
+            price: Formatters.price(c.insurance, language: language),
+          ),
+    language.messages.tyresSetEveryAtLeastEveryYears(
+      price: Formatters.price(c.tyres, language: language),
+      value: km(t.tyreLifeKm),
+      tyreMaxYears: (tyreMaxYears).toString(),
+    ),
+    language.messages.servicingEveryAtLeastOnceYear(
+      price: Formatters.price(c.services, language: language),
+      value: km(t.serviceIntervalKm),
+    ),
+    language.messages.chainAndSprocketKitEvery(
+      price: Formatters.price(c.chain, language: language),
+      value: km(t.chainLifeKm),
+    ),
   ];
 }
 
 /// What the estimate assumes, under the lines.
-String ownershipFootnote(OwnershipCost c) =>
-    'Com ${Formatters.mileage(c.kmPerYear)} por ano. Preços de oficina '
-    'típicos e IUC de $iucTableYear; a desvalorização vem dos preços '
-    'pedidos deste modelo.';
+String ownershipFootnote(
+  OwnershipCost c, {
+  AppLanguage language = AppLanguage.portuguese,
+}) => language.messages.atPerYearTypicalWorkshopPricesAndRoad(
+  mileage: Formatters.mileage(c.kmPerYear, language: language),
+  iucTableYear: (iucTableYear).toString(),
+);
 
 /// The settings typed in the dialog, within the database's limits; null
 /// when one is not a whole number in range. An empty insurance clears it.

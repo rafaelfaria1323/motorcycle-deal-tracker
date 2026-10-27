@@ -12,6 +12,7 @@ import '../cubit/listing_card_preferences_cubit.dart';
 import '../favourites_text.dart';
 import '../viewing_checklist.dart';
 import '../widgets/listing_card.dart';
+import '../../../../core/localization/localizations.dart';
 
 /// The shortlist: the listings the user starred, newest first, each with
 /// their note. Removed ones stay, marked "Removido".
@@ -24,7 +25,7 @@ class FavouritesPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         leading: const PageBackButton(fallback: AppRoutes.deals),
-        title: const Text('Favoritos'),
+        title: Text(context.strings.favourites),
       ),
       body: BlocBuilder<FavouritesCubit, FavouritesState>(
         bloc: cubit,
@@ -36,9 +37,9 @@ class FavouritesPage extends StatelessWidget {
             case FavouritesStatus.failure:
               return StateMessage(
                 icon: Icons.cloud_off,
-                title: 'Não foi possível carregar os favoritos',
-                message: 'Verifique a ligação e tente novamente.',
-                actionLabel: 'Tentar novamente',
+                title: context.strings.couldNotLoadFavourites,
+                message: context.strings.checkYourConnectionAndTryAgain,
+                actionLabel: context.strings.retry,
                 onAction: cubit.load,
               );
             case FavouritesStatus.success:
@@ -47,13 +48,10 @@ class FavouritesPage extends StatelessWidget {
                   if (f.listing != null) f,
               ];
               if (favourites.isEmpty) {
-                return const StateMessage(
+                return StateMessage(
                   icon: Icons.star_border,
-                  title: 'Ainda não tem favoritos',
-                  message:
-                      'Toque na estrela de um anúncio para o guardar aqui, '
-                      'com as suas notas. Avisamos quando baixar de preço '
-                      'ou sair do mercado.',
+                  title: context.strings.youHaveNoFavouritesYet,
+                  message: context.strings.tapListingSStarToSaveItHere,
                 );
               }
               final theme = Theme.of(context);
@@ -74,16 +72,23 @@ class FavouritesPage extends StatelessWidget {
                       child: ListView(
                         padding: const EdgeInsets.all(16),
                         children: [
-                          Text(favouritesCountText(favourites), style: muted),
+                          Text(
+                            favouritesCountText(
+                              favourites,
+                              language: context.language,
+                            ),
+                            style: muted,
+                          ),
                           if (cards.status ==
                               ListingCardPreferencesStatus.failure)
                             TextButton.icon(
                               onPressed:
                                   getIt<ListingCardPreferencesCubit>().load,
                               icon: const Icon(Icons.refresh),
-                              label: const Text(
-                                'Não foi possível carregar os cartões. '
-                                'Tentar novamente',
+                              label: Text(
+                                context
+                                    .strings
+                                    .couldNotLoadListingCardsTryAgain,
                               ),
                             ),
                           const SizedBox(height: 12),
@@ -110,13 +115,25 @@ class FavouritesPage extends StatelessWidget {
                                   ],
                                   if (f.checklist.isNotEmpty) ...[
                                     Text(
-                                      checklistIssuesText(f.checklist) ??
-                                          checklistSummaryText(f.checklist),
+                                      checklistIssuesText(
+                                            f.checklist,
+                                            language: context.language,
+                                          ) ??
+                                          checklistSummaryText(
+                                            f.checklist,
+                                            language: context.language,
+                                          ),
                                       style: theme.textTheme.bodyMedium,
                                     ),
                                     const SizedBox(height: 4),
                                   ],
-                                  Text(favouriteSinceText(f), style: muted),
+                                  Text(
+                                    favouriteSinceText(
+                                      f,
+                                      language: context.language,
+                                    ),
+                                    style: muted,
+                                  ),
                                 ],
                               ),
                             ),

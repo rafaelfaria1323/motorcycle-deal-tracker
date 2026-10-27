@@ -8,6 +8,7 @@ import '../domain/workflows_repository.dart';
 import 'push_text.dart';
 import 'start_workflow.dart';
 import 'workflows_text.dart';
+import '../../../core/localization/localizations.dart';
 
 /// "Notificações neste aparelho" in Mais: the account's alerts as
 /// notifications on this phone or computer (Web Push). When they are on,
@@ -63,12 +64,14 @@ class _PushTileState extends State<PushTile> {
   }
 
   Future<void> _set(bool on) async {
+    final messageStrings = context.strings;
+
     final messenger = ScaffoldMessenger.of(context);
     final key = _publicKey;
     if (on && key == null) {
       showMessage(
         messenger,
-        'As notificações ficam disponíveis depois da próxima recolha.',
+        messageStrings.notificationsWillBeAvailableAfterNextCollection,
       );
       return;
     }
@@ -84,9 +87,8 @@ class _PushTileState extends State<PushTile> {
       showMessage(
         messenger,
         on
-            ? 'Não foi possível ativar as notificações. Verifique a permissão '
-                  'e tente novamente.'
-            : 'Não foi possível desativar. Tente novamente.',
+            ? messageStrings.couldNotEnableNotificationsCheckPermissionAndTry
+            : messageStrings.couldNotDisableNotificationsTryAgain,
       );
     }
     final state = await DevicePush.state().catchError(
@@ -101,6 +103,8 @@ class _PushTileState extends State<PushTile> {
   }
 
   Future<void> _send(AppWorkflow workflow) async {
+    final messageLanguage = context.language;
+
     final messenger = ScaffoldMessenger.of(context);
     PushTestKind? kind;
     if (workflow == AppWorkflow.pushTest) {
@@ -108,7 +112,11 @@ class _PushTileState extends State<PushTile> {
       if (kind == null || !mounted) return;
     }
     setState(() => _starting = workflow);
-    final message = await startWorkflow(workflow, kind: kind);
+    final message = await startWorkflow(
+      workflow,
+      kind: kind,
+      language: messageLanguage,
+    );
     if (!mounted) return;
     setState(() => _starting = null);
     showMessage(messenger, message);
@@ -126,16 +134,13 @@ class _PushTileState extends State<PushTile> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const ListTile(
-              title: Text('Que notificação enviar?'),
-              subtitle: Text(
-                'Um exemplo de cada tipo, com um dos seus anúncios; os seus '
-                'alertas ficam como estão.',
-              ),
+            ListTile(
+              title: Text(context.strings.whichNotificationShouldWeSend),
+              subtitle: Text(context.strings.exampleOfEachTypeUsingOneOfYour),
             ),
             for (final kind in PushTestKind.values)
               ListTile(
-                title: Text(pushTestKindText(kind)),
+                title: Text(pushTestKindText(kind, language: context.language)),
                 onTap: () => Navigator.of(context).pop(kind),
               ),
           ],
@@ -155,11 +160,15 @@ class _PushTileState extends State<PushTile> {
       children: [
         ListTile(
           leading: const Icon(Icons.notifications_outlined),
-          title: const Text('Notificações neste aparelho'),
+          title: Text(context.strings.notificationsOnThisDevice),
           subtitle: Text(
             state == null
-                ? 'A verificar…'
-                : pushSubtitle(state, signedIn: widget.signedIn),
+                ? context.strings.checking
+                : pushSubtitle(
+                    state,
+                    signedIn: widget.signedIn,
+                    language: context.language,
+                  ),
           ),
           trailing: Switch(
             value: state == PushState.on,
@@ -174,8 +183,12 @@ class _PushTileState extends State<PushTile> {
             const Divider(height: 1),
             ListTile(
               leading: Icon(icon),
-              title: Text(workflowText(workflow).title),
-              subtitle: Text(workflowText(workflow).subtitle),
+              title: Text(
+                workflowText(workflow, language: context.language).title,
+              ),
+              subtitle: Text(
+                workflowText(workflow, language: context.language).subtitle,
+              ),
               trailing: _starting == workflow
                   ? const SizedBox.square(
                       dimension: 20,

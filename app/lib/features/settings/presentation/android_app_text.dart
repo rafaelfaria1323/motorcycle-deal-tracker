@@ -1,3 +1,5 @@
+import '../../../core/localization/localizations.dart';
+
 /// What Mais offers about the Android app: on an Android phone's browser,
 /// to install it; in the app itself, to update it (it compares its own
 /// [build] with the [latest] one published, null while unknown). Null
@@ -10,51 +12,57 @@
   required String build,
   int? latest,
   bool downloading = false,
+  AppLanguage language = AppLanguage.portuguese,
 }) {
   if (!android || apkUrl.isEmpty) return null;
   if (web) {
     return (
-      title: 'Instalar a app Android',
-      subtitle:
-          'Descarregue o ficheiro APK e abra-o; o Android pede para permitir '
-          'instalações a partir do navegador',
+      title: language.messages.installAndroidApp,
+      subtitle: language.messages.downloadAndOpenAPKFileAndroidWillAsk,
       enabled: true,
     );
   }
   if (downloading) {
     return (
-      title: 'A descarregar a versão mais recente',
-      subtitle: 'Depois, o Android pede para confirmar a atualização',
+      title: language.messages.downloadingLatestVersion,
+      subtitle: language.messages.androidWillThenAskYouToConfirmUpdate,
       enabled: false,
     );
   }
   final current = int.tryParse(build);
   if (latest != null && current != null && latest <= current) {
     return (
-      title: 'A app está atualizada',
-      subtitle: 'Versão $build',
+      title: language.messages.appIsUpToDate,
+      subtitle: language.messages.version(build: build),
       enabled: false,
     );
   }
-  const keeps =
-      'Toque para a instalar por cima desta; a sessão e os dados ficam';
+  final keeps = language.messages.tapToInstallItOverThisVersionYour;
   if (latest != null) {
     return (
-      title: 'Há uma versão nova',
+      title: language.messages.newVersionIsAvailable,
       subtitle: current == null
-          ? 'Versão $latest. $keeps'
-          : 'Tem a versão $build e já há a $latest. $keeps',
+          ? language.messages.versionAndroidAppText(
+              latest: (latest).toString(),
+              keeps: keeps,
+            )
+          : language.messages.youHaveVersionVersionIsAvailable(
+              build: build,
+              latest: (latest).toString(),
+              keeps: keeps,
+            ),
       enabled: true,
     );
   }
-  const latestOnTop =
-      'Toque para instalar a mais recente por cima desta; a sessão e os '
-      'dados ficam';
+  final latestOnTop = language.messages.tapToInstallLatestVersionOverThisOne;
   return (
-    title: 'Atualizar a app',
+    title: language.messages.updateApp,
     subtitle: current == null
         ? latestOnTop
-        : 'Esta é a versão $build. $latestOnTop',
+        : language.messages.thisIsVersion(
+            build: build,
+            latestOnTop: latestOnTop,
+          ),
     enabled: true,
   );
 }

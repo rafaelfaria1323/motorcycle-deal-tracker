@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/auth/account_cubit.dart';
@@ -37,17 +38,20 @@ import '../../features/listings/presentation/cubit/listings_cubit.dart';
 import '../../features/listings/presentation/cubit/saved_searches_cubit.dart';
 import '../../features/settings/data/supabase_accounts_repository.dart';
 import '../../features/settings/data/supabase_home_repository.dart';
+import '../../features/settings/data/supabase_language_repository.dart';
 import '../../features/settings/data/supabase_push_repository.dart';
 import '../../features/settings/data/supabase_workflows_repository.dart';
 import '../../features/settings/domain/accounts_repository.dart';
 import '../../features/settings/domain/home_repository.dart';
+import '../../features/settings/domain/language_repository.dart';
 import '../../features/settings/domain/push_repository.dart';
 import '../../features/settings/domain/workflows_repository.dart';
+import '../../features/settings/presentation/language_cubit.dart';
 
 final getIt = GetIt.instance;
 
 /// Call after Supabase.initialize().
-void configureDependencies() {
+void configureDependencies(SharedPreferences preferences) {
   getIt
     ..registerLazySingleton<SupabaseClient>(() => Supabase.instance.client)
     ..registerLazySingleton<ListingsRepository>(
@@ -91,6 +95,13 @@ void configureDependencies() {
     )
     ..registerLazySingleton(
       () => SessionCubit.of(getIt<SupabaseClient>()),
+      dispose: (cubit) => cubit.close(),
+    )
+    ..registerLazySingleton<LanguageRepository>(
+      () => SupabaseLanguageRepository(getIt<SupabaseClient>(), preferences),
+    )
+    ..registerLazySingleton(
+      () => LanguageCubit(getIt<LanguageRepository>(), getIt<SessionCubit>()),
       dispose: (cubit) => cubit.close(),
     )
     ..registerLazySingleton<ListingCardPreferencesRepository>(

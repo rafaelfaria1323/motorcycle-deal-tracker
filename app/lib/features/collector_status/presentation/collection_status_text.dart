@@ -2,6 +2,7 @@ import '../../../core/formatting/formatters.dart';
 import '../domain/collector_run.dart';
 import '../domain/database_usage.dart';
 import '../domain/github_token.dart';
+import '../../../core/localization/localizations.dart';
 
 /// Warn this many days before the GitHub token expires (the database's
 /// daily check tells Telegram from the same day).
@@ -9,41 +10,47 @@ const tokenWarningDays = 14;
 
 /// What "Estado da recolha" says about the GitHub token, and whether it
 /// needs Rafael.
-({String text, bool warning}) tokenText(GithubToken token, DateTime now) {
+({String text, bool warning}) tokenText(
+  GithubToken token,
+  DateTime now, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   switch (token.state) {
     case GithubTokenState.missing:
       return (
         text:
-            'Falta o token do GitHub no Vault do Supabase: as recolhas não '
-            'começam sozinhas (docs/hosting.md).',
+            language.messages.githubTokenIsMissingFromSupabaseVaultCollections,
         warning: true,
       );
     case GithubTokenState.refused:
       return (
-        text:
-            'O GitHub recusou o token (HTTP ${token.httpStatus ?? '?'}). Crie '
-            'um novo e substitua-o no Vault do Supabase.',
+        text: language.messages.githubRejectedTokenHTTPCreateNewOneAnd(
+          value: (token.httpStatus ?? '?').toString(),
+        ),
         warning: true,
       );
     case GithubTokenState.ok:
       final expires = token.expiresAt;
       if (expires == null) {
         return (
-          text: 'Token do GitHub válido, sem data de fim.',
+          text: language.messages.githubTokenValidWithNoExpiryDate,
           warning: false,
         );
       }
       final days = expires.difference(now).inDays;
       final left = days <= 0
-          ? 'termina hoje'
+          ? language.messages.expiresToday
           : days == 1
-          ? 'falta 1 dia'
-          : 'faltam $days dias';
+          ? language.messages.text1DayLeft
+          : language.messages.daysLeft(days: (days).toString());
       return (
-        text:
-            'Token do GitHub válido até ${Formatters.date(expires)} ($left).'
-            '${days < tokenWarningDays ? ' Crie um novo e substitua-o no '
-                      'Vault do Supabase.' : ''}',
+        text: language.messages.githubTokenValidUntil(
+          date: Formatters.date(expires),
+          left: left,
+          value: days < tokenWarningDays
+              ? language.messages.createNewOneAndReplaceItInSupabase
+              : '',
+        ),
         warning: days < tokenWarningDays,
       );
   }
@@ -58,32 +65,41 @@ const databaseWarningShare = 0.8;
 const _megabyte = 1024 * 1024;
 
 /// "42,3 MB".
-String megabytes(int bytes) =>
-    '${(bytes / _megabyte).toStringAsFixed(1).replaceAll('.', ',')} MB';
+String megabytes(int bytes, {AppLanguage language = AppLanguage.portuguese}) =>
+    '${Formatters.decimal(bytes / _megabyte, language: language)} MB';
 
 /// "A base de dados ocupa 42,3 MB de 500 MB (8 %)", red from 80 %.
-({String text, bool warning}) databaseUsageText(DatabaseUsage usage) {
+({String text, bool warning}) databaseUsageText(
+  DatabaseUsage usage, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final share = usage.bytes / databaseLimitBytes;
   final warning = share >= databaseWarningShare;
   return (
-    text:
-        'A base de dados ocupa ${megabytes(usage.bytes)} de '
-        '${databaseLimitBytes ~/ _megabyte} MB '
-        '(${Formatters.percent(share * 100)}).'
-        '${warning ? ' Perto do limite do plano gratuito: acima dele o '
-                  'Supabase só deixa ler.' : ''}',
+    text: language.messages.databaseUsesOfMB(
+      value: megabytes(usage.bytes, language: language),
+      value2: (databaseLimitBytes ~/ _megabyte).toString(),
+      percent: Formatters.percent(share * 100, language: language),
+      value4: warning
+          ? language.messages.nearFreePlanLimitAboveItSupabaseOnly
+          : '',
+    ),
     warning: warning,
   );
 }
 
 /// "Maiores tabelas: listings 30,1 MB, listing_price_history 4,2 MB", or
 /// null when there are none.
-String? biggestTablesText(DatabaseUsage usage) {
+String? biggestTablesText(
+  DatabaseUsage usage, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   if (usage.tables.isEmpty) return null;
   final tables = [
-    for (final t in usage.tables) '${t.name} ${megabytes(t.bytes)}',
+    for (final t in usage.tables)
+      '${t.name} ${megabytes(t.bytes, language: language)}',
   ];
-  return 'Maiores tabelas: ${tables.join(', ')}';
+  return language.messages.largestTables(value: tables.join(', '));
 }
 
 const siteNames = {'standvirtual': 'Standvirtual', 'olx': 'OLX'};
@@ -97,15 +113,17 @@ const siteNames = {'standvirtual': 'Standvirtual', 'olx': 'OLX'};
   SiteBudget budget, {
   required DateTime reportedAt,
   required DateTime now,
+  AppLanguage language = AppLanguage.portuguese,
 }) {
   final name = siteNames[site] ?? site;
   final paused = budget.pausedUntil;
   if (paused != null && paused.isAfter(now)) {
     return (
-      text:
-          '$name: em pausa até ${Formatters.time(paused)} de '
-          '${Formatters.date(paused).substring(0, 5)} (o site recusou '
-          'pedidos; volta a tentar sozinho)',
+      text: language.messages.pausedUntilOnSiteRefusedRequestsItWill(
+        name: name,
+        time: Formatters.time(paused),
+        date: Formatters.date(paused).substring(0, 5),
+      ),
       warning: true,
     );
   }
@@ -114,7 +132,13 @@ const siteNames = {'standvirtual': 'Standvirtual', 'olx': 'OLX'};
       now.toUtc().toIso8601String().substring(0, 10);
   final used = sameDay ? budget.requestsToday : 0;
   return (
-    text: '$name: $used ${used == 1 ? 'pedido' : 'pedidos'} hoje (UTC)',
+    text: language.messages.todayUTC(
+      name: name,
+      used: (used).toString(),
+      value: used == 1
+          ? language.messages.request
+          : language.messages.requestsCollectionStatusText,
+    ),
     warning: false,
   );
 }
@@ -122,22 +146,40 @@ const siteNames = {'standvirtual': 'Standvirtual', 'olx': 'OLX'};
 /// "OLX · yamaha-mt-07: 2 de 3 páginas, 80 anúncios (9 dos modelos
 /// acompanhados) · não lida toda": a search not read in full keeps its gone
 /// ads until a run reads it all.
-String searchReadText(SearchRead s) {
+String searchReadText(
+  SearchRead s, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final name = '${siteNames[s.site] ?? s.site} · ${s.search}';
   final spans = s.spans;
-  if (spans == null) return '$name: não lida nesta recolha';
-  final pages = '${s.pages} de $spans ${spans == 1 ? 'página' : 'páginas'}';
-  final ads = '${s.ads} ${s.ads == 1 ? 'anúncio' : 'anúncios'}';
-  return '$name: $pages, $ads (${s.followed} dos modelos acompanhados)'
-      '${s.inFull ? '' : ' · não lida toda'}';
+  if (spans == null) {
+    return language.messages.notReadInThisCollection(name: name);
+  }
+  final pages = language.messages.ofText(
+    pages: s.pages.toString(),
+    spans: (spans).toString(),
+    value: spans == 1 ? language.messages.page : language.messages.pages,
+  );
+  final ads =
+      '${s.ads} ${s.ads == 1 ? language.messages.listing : language.messages.listings}';
+  return language.messages.forTrackedModels(
+    name: name,
+    pages: pages,
+    ads: ads,
+    followed: s.followed.toString(),
+    value: s.inFull ? '' : language.messages.notFullyRead,
+  );
 }
 
 /// "Correu bem", "Incompleta", "Bloqueada" or "Falhou".
-String runStatusLabel(String status) => switch (status) {
-  'ok' => 'Correu bem',
-  'partial' => 'Incompleta',
-  'blocked' => 'Bloqueada',
-  _ => 'Falhou',
+String runStatusLabel(
+  String status, {
+  AppLanguage language = AppLanguage.portuguese,
+}) => switch (status) {
+  'ok' => language.messages.successful,
+  'partial' => language.messages.partialRun,
+  'blocked' => language.messages.blocked,
+  _ => language.messages.failed,
 };
 
 /// The database stops the collector's statements after this long
@@ -146,38 +188,47 @@ const scoringLimit = Duration(seconds: 60);
 
 /// "Pontuações em 4,2 s"; a warning past half of [scoringLimit], before
 /// a growing catalogue makes the scoring fail.
-({String text, bool warning}) scoringText(Duration time) {
-  final seconds = (time.inMilliseconds / 1000)
-      .toStringAsFixed(1)
-      .replaceAll('.', ',');
+({String text, bool warning}) scoringText(
+  Duration time, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
+  final seconds = Formatters.decimal(
+    time.inMilliseconds / 1000,
+    language: language,
+  );
   final warning = time * 2 > scoringLimit;
   return (
     text: warning
-        ? 'As pontuações demoraram $seconds s, mais de metade do limite de '
-              '${scoringLimit.inSeconds} s da base de dados.'
-        : 'Pontuações em $seconds s',
+        ? language.messages.scoringTookTooLong(
+            seconds: seconds,
+            limit: scoringLimit.inSeconds.toString(),
+          )
+        : language.messages.scoringTime(seconds: seconds),
     warning: warning,
   );
 }
 
 /// What made a run fail, from one of its problem lines (refresh.dart's
 /// wording, after the site).
-String failureCause(String problem) {
+String failureCause(
+  String problem, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final line = _withoutSite(problem).line;
+  final messages = language.messages;
   return switch (line) {
     _ when line.startsWith('Stopped, the site pushed back') =>
-      'O site recusou os pedidos',
+      messages.failureSiteRefused,
     _ when line.startsWith('Not fetched: ') =>
-      'Em pausa ou pedido não permitido',
-    _ when line.startsWith('Failed: ') =>
-      'Sem resposta ou erro do site (tempo esgotado, HTTP 5xx)',
-    _ when line.startsWith('Database error: ') => 'Erro da base de dados',
+      messages.failurePausedOrNotAllowed,
+    _ when line.startsWith('Failed: ') => messages.failureNoResponse,
+    _ when line.startsWith('Database error: ') => messages.failureDatabase,
     _
         when line.startsWith('Read issue: ') ||
             line.startsWith('Cannot read the saved pages: ') ||
             line.startsWith('Not a search results page: ') =>
-      'Páginas que não foi possível ler',
-    _ => 'Outro erro',
+      messages.failureUnreadablePages,
+    _ => messages.failureOther,
   };
 }
 
@@ -195,17 +246,20 @@ String failureCause(String problem) {
 /// first: "OLX · Sem resposta ou erro do site (tempo esgotado, HTTP 5xx):
 /// 3 recolhas, a última a 26/10 às 14:02". A run counts once per site and
 /// cause; one without problem lines is "Outro erro".
-List<String> failureHistoryText(List<CollectorRun> runs) {
+List<String> failureHistoryText(
+  List<CollectorRun> runs, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final groups = <String, ({int runs, DateTime last})>{};
   for (final run in runs.where((r) => r.status != 'ok')) {
     final keys = {
       for (final problem in run.problems)
         [
           if (_withoutSite(problem).site case final site?) siteNames[site],
-          failureCause(problem),
+          failureCause(problem, language: language),
         ].join(' · '),
     };
-    if (keys.isEmpty) keys.add('Outro erro');
+    if (keys.isEmpty) keys.add(language.messages.failureOther);
     for (final key in keys) {
       final seen = groups[key];
       groups[key] = (
@@ -224,22 +278,22 @@ List<String> failureHistoryText(List<CollectorRun> runs) {
     );
   return [
     for (final MapEntry(:key, :value) in sorted)
-      '$key: ${value.runs} ${value.runs == 1 ? 'recolha' : 'recolhas'}, '
-          '${value.runs == 1 ? 'a' : 'a última a'} '
-          '${Formatters.date(value.last).substring(0, 5)} às '
-          '${Formatters.time(value.last)}',
+      language.messages.failureHistoryLine(
+        cause: key,
+        count: value.runs,
+        date: Formatters.date(value.last).substring(0, 5),
+        time: Formatters.time(value.last),
+      ),
   ];
 }
 
 /// "4 de 180 recolhas não correram bem", over [runs] (at least one).
-String failureShareText(List<CollectorRun> runs) {
+String failureShareText(
+  List<CollectorRun> runs, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final failed = runs.where((r) => r.status != 'ok').length;
-  if (failed == 0) {
-    return runs.length == 1
-        ? 'A recolha correu bem'
-        : 'As ${runs.length} recolhas correram todas bem';
-  }
-  return '$failed de ${runs.length} '
-      '${runs.length == 1 ? 'recolha' : 'recolhas'} '
-      '${failed == 1 ? 'não correu' : 'não correram'} bem';
+  return failed == 0
+      ? language.messages.failureShareNone(count: runs.length)
+      : language.messages.failureShare(failed: failed, total: runs.length);
 }

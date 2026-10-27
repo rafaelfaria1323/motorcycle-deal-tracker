@@ -7,6 +7,7 @@ import 'package:motorcycle_deal_tracker/app/router/app_routes.dart';
 import 'package:motorcycle_deal_tracker/app/shell/app_shell.dart';
 import 'package:motorcycle_deal_tracker/app/theme/app_theme.dart';
 import 'package:motorcycle_deal_tracker/core/auth/session_cubit.dart';
+import 'package:motorcycle_deal_tracker/core/localization/localizations.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/data/collector_runs_repository.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/data/source_quality_repository.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/domain/collector_run.dart';
@@ -40,10 +41,14 @@ import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/lis
 import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/saved_searches_page.dart';
 import 'package:motorcycle_deal_tracker/features/settings/domain/accounts_repository.dart';
 import 'package:motorcycle_deal_tracker/features/settings/domain/home_repository.dart';
+import 'package:motorcycle_deal_tracker/features/settings/domain/language_repository.dart';
 import 'package:motorcycle_deal_tracker/features/settings/domain/place.dart';
 import 'package:motorcycle_deal_tracker/features/settings/domain/push_repository.dart';
 import 'package:motorcycle_deal_tracker/features/settings/presentation/more_page.dart';
+import 'package:motorcycle_deal_tracker/features/settings/presentation/language_cubit.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+import 'language_fixture.dart';
 
 Future<void> loadInterfaceFonts() async {
   final body = FontLoader(AppTheme.bodyFont);
@@ -94,6 +99,7 @@ class InterfaceFixture {
     int total = 6,
     bool emptySearches = false,
     this.signedIn = false,
+    this.language = AppLanguage.portuguese,
     this.userChanges = const Stream.empty(),
   }) : repository = InterfaceListings(total),
        searchesRepository = InterfaceSearches(empty: emptySearches);
@@ -101,6 +107,7 @@ class InterfaceFixture {
   final InterfaceListings repository;
   final InterfaceSearches searchesRepository;
   final bool signedIn;
+  final AppLanguage language;
   final Stream<User?> userChanges;
   late final session = SessionCubit(
     signedIn
@@ -124,6 +131,10 @@ class InterfaceFixture {
   final favouritesRepository = InterfaceFavourites();
   late final favourites = FavouritesCubit(favouritesRepository, session);
   final compare = CompareCubit();
+  late final languageRepository = LanguageFixture(device: language)
+    ..accounts['interface-user'] = language
+    ..cache['interface-user'] = language;
+  late final languages = LanguageCubit(languageRepository, session);
 
   Future<void> initialize() async {
     await getIt.reset();
@@ -140,6 +151,11 @@ class InterfaceFixture {
     );
     getIt.registerSingleton<CompareCubit>(compare, dispose: (c) => c.close());
     getIt.registerSingleton<SessionCubit>(session, dispose: (c) => c.close());
+    getIt.registerSingleton<LanguageRepository>(languageRepository);
+    getIt.registerSingleton<LanguageCubit>(
+      languages,
+      dispose: (c) => c.close(),
+    );
     getIt.registerSingleton<ListingCardPreferencesCubit>(
       ListingCardPreferencesCubit(cardPreferencesRepository, session),
       dispose: (c) => c.close(),
@@ -233,19 +249,31 @@ Widget interfaceApp(
   GoRouter router, {
   bool dark = false,
   double textScale = 1,
-}) => MaterialApp.router(
-  debugShowCheckedModeBanner: false,
-  theme: AppTheme.light,
-  darkTheme: AppTheme.dark,
-  themeMode: dark ? ThemeMode.dark : ThemeMode.light,
-  routerConfig: router,
-  builder: (context, child) => MediaQuery(
-    data: MediaQuery.of(
-      context,
-    ).copyWith(textScaler: TextScaler.linear(textScale)),
-    child: child!,
-  ),
-);
+  LanguageCubit? languageCubit,
+}) {
+  Widget app(AppLanguage language) => MaterialApp.router(
+    locale: language.locale,
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: appLocales,
+    debugShowCheckedModeBanner: false,
+    theme: AppTheme.light,
+    darkTheme: AppTheme.dark,
+    themeMode: dark ? ThemeMode.dark : ThemeMode.light,
+    routerConfig: router,
+    builder: (context, child) => MediaQuery(
+      data: MediaQuery.of(
+        context,
+      ).copyWith(textScaler: TextScaler.linear(textScale)),
+      child: child!,
+    ),
+  );
+  return languageCubit == null
+      ? app(AppLanguage.portuguese)
+      : BlocBuilder<LanguageCubit, LanguageState>(
+          bloc: languageCubit,
+          builder: (context, state) => app(state.language),
+        );
+}
 
 class InterfaceListings implements ListingsRepository {
   InterfaceListings(this.total);
@@ -388,7 +416,7 @@ class InterfaceAlerts implements AlertsRepository {
       listing: alert.listing,
       createdAt: alert.createdAt,
       searchId: search?.id,
-      searchName: search?.displayName,
+      searchName: search?.name,
       oldPrice: alert.oldPrice,
       newPrice: alert.newPrice,
       readAt: alert.readAt,

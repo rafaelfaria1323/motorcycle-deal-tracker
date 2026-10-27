@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/widgets/confirm_delete.dart';
 import '../../domain/entities/saved_search.dart';
+import '../saved_search_summary.dart';
+import '../../../../core/localization/localizations.dart';
 
 /// Asks for confirmation; true only if the person chose to delete.
 Future<bool> confirmDeleteSavedSearch(
@@ -10,9 +12,9 @@ Future<bool> confirmDeleteSavedSearch(
 ) {
   return confirmDelete(
     context,
-    title: 'Eliminar pesquisa?',
-    message:
-        'A pesquisa "${search.displayName}" será eliminada. '
-        'Esta ação não pode ser desfeita.',
+    title: context.strings.deleteSearchDeleteSavedSearchDialog,
+    message: context.strings.searchWillBeDeletedThisCannotBeUndone(
+      displayName: savedSearchName(search, language: context.language),
+    ),
   );
 }

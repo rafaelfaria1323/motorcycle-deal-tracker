@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   supabase_flutter: ^2.18.3
   # The Android app's session, encrypted with a Keystore key
@@ -92,6 +94,7 @@ flutter_launcher_icons:
 
 # The following section is specific to Flutter packages.
 flutter:
+  generate: true
   uses-material-design: true
 
   # The app icon, small, for the header (AppBrand).

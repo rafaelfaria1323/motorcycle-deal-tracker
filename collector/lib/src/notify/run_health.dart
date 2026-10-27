@@ -1,3 +1,5 @@
+import 'notification_text.dart';
+
 /// A recorded run as the health check sees it: its status (`ok`,
 /// `blocked`, `partial` or `failed`, see `runStatus`) and its problems
 /// (runProblems, `site: line`).
@@ -10,25 +12,21 @@ typedef RunOutcome = ({String status, List<String> problems});
 /// `partial` run counts as fine unless one of its sites also failed in
 /// the run before (`partial` or `failed`): one lost search is read again
 /// by the next run. A tap opens "Estado da recolha".
-Map<String, Object?>? runHealthMessage(List<RunOutcome> runs) {
+Map<String, Object?>? runHealthMessage(
+  List<RunOutcome> runs, {
+  NotificationLanguage language = NotificationLanguage.portuguese,
+}) {
   final current = _seenAs(runs, 0);
   final previous = runs.length > 1 ? _seenAs(runs, 1) : null;
   if (current == previous) return null;
   if (current == 'ok' && previous == null) return null;
   final again = current == 'failed' && runs.first.status == 'partial';
   final (title, advice) = switch (current) {
-    'ok' => ('✅ A recolha de anúncios voltou a funcionar.', null),
-    'blocked' => (
-      '⛔ Um site recusou os pedidos da recolha de anúncios.',
-      'A recolha desse site fica em pausa durante 24 h e volta a tentar '
-          'automaticamente.',
-    ),
+    'ok' => (language.recovered, null),
+    'blocked' => (language.blocked, language.blockedAdvice),
     _ => (
-      again
-          ? '⚠️ A recolha de anúncios falhou duas vezes seguidas.'
-          : '⚠️ A recolha de anúncios falhou.',
-      'Os preços na app podem ficar desatualizados até a recolha voltar a '
-          'funcionar.',
+      again ? language.failedTwice : language.failed,
+      language.failedAdvice,
     ),
   };
   return {
@@ -36,6 +34,7 @@ Map<String, Object?>? runHealthMessage(List<RunOutcome> runs) {
     'body': [if (current != 'ok') ...runs.first.problems, ?advice].join('\n'),
     'url': '/#/collection-status',
     'tag': 'run-health',
+    'language': language.code,
   };
 }
 

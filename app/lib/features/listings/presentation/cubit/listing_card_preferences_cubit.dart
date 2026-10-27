@@ -9,6 +9,8 @@ import '../../domain/repositories/listing_card_preferences_repository.dart';
 
 enum ListingCardPreferencesStatus { loading, success, failure }
 
+enum ListingCardPreferencesFailure { load, accountRequired, notLoaded, save }
+
 class ListingCardPreferencesState extends Equatable {
   const ListingCardPreferencesState({
     this.userId,
@@ -22,13 +24,13 @@ class ListingCardPreferencesState extends Equatable {
   final ListingCardPreferences preferences;
   final ListingCardPreferencesStatus status;
   final bool saving;
-  final String? error;
+  final ListingCardPreferencesFailure? error;
 
   ListingCardPreferencesState copyWith({
     ListingCardPreferences? preferences,
     ListingCardPreferencesStatus? status,
     bool? saving,
-    String? error,
+    ListingCardPreferencesFailure? error,
   }) => ListingCardPreferencesState(
     userId: userId,
     preferences: preferences ?? this.preferences,
@@ -91,7 +93,7 @@ class ListingCardPreferencesCubit extends Cubit<ListingCardPreferencesState> {
       emit(
         state.copyWith(
           status: ListingCardPreferencesStatus.failure,
-          error: 'Não foi possível carregar as suas escolhas. Tente novamente.',
+          error: ListingCardPreferencesFailure.load,
         ),
       );
     }
@@ -101,15 +103,13 @@ class ListingCardPreferencesCubit extends Cubit<ListingCardPreferencesState> {
     final userId = state.userId;
     if (userId == null || userId != _accountId(_session.state)) {
       emit(
-        state.copyWith(error: 'Inicie sessão para personalizar os cartões.'),
+        state.copyWith(error: ListingCardPreferencesFailure.accountRequired),
       );
       return false;
     }
     if (state.saving) return false;
     if (state.status != ListingCardPreferencesStatus.success) {
-      emit(
-        state.copyWith(error: 'Carregue as suas escolhas antes de guardar.'),
-      );
+      emit(state.copyWith(error: ListingCardPreferencesFailure.notLoaded));
       return false;
     }
 
@@ -125,7 +125,7 @@ class ListingCardPreferencesCubit extends Cubit<ListingCardPreferencesState> {
       emit(
         state.copyWith(
           saving: false,
-          error: 'Não foi possível guardar as suas escolhas. Tente novamente.',
+          error: ListingCardPreferencesFailure.save,
         ),
       );
       return false;

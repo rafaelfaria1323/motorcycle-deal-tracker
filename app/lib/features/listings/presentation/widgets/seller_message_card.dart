@@ -10,6 +10,7 @@ import '../../domain/entities/market_behaviour.dart';
 import '../../domain/repositories/market_behaviour_repository.dart';
 import '../offer_text.dart';
 import '../seller_message_text.dart';
+import '../../../../core/localization/localizations.dart';
 
 /// "Mensagem para o vendedor": a first message with the questions the ad
 /// leaves open, optionally with the suggested opening offer, copied with
@@ -28,9 +29,11 @@ class _SellerMessageCardState extends State<SellerMessageCard> {
   bool _withOffer = false;
 
   Future<OfferSuggestion?> _loadOffer() async {
+    final messageLanguage = context.language;
+
     final listing = widget.listing;
     // The same suggestion as "Quanto oferecer".
-    if (suggestOffer(listing) == null) return null;
+    if (suggestOffer(listing, language: messageLanguage) == null) return null;
     final id = listing.motorcycleId;
     MarketBehaviour? market;
     if (id != null) {
@@ -44,16 +47,19 @@ class _SellerMessageCardState extends State<SellerMessageCard> {
       listing,
       market: market,
       daysListed: daysOnSale(listing),
+      language: messageLanguage,
     );
   }
 
   Future<void> _copy(String text) async {
+    final messageStrings = context.strings;
+
     final messenger = ScaffoldMessenger.of(context);
     try {
       await Clipboard.setData(ClipboardData(text: text));
-      showMessage(messenger, 'Mensagem copiada');
+      showMessage(messenger, messageStrings.messageCopied);
     } catch (_) {
-      showMessage(messenger, 'Não foi possível copiar. Selecione o texto.');
+      showMessage(messenger, messageStrings.couldNotCopySelectTextInstead);
     }
   }
 
@@ -69,18 +75,24 @@ class _SellerMessageCardState extends State<SellerMessageCard> {
         final message = sellerMessage(
           listing,
           offer: _withOffer ? offer?.opening : null,
+          language: context.language,
         );
         final theme = Theme.of(context);
 
         return SectionCard(
-          title: 'Mensagem para o vendedor',
+          title: context.strings.messageToSeller,
           children: [
             if (offer != null)
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 dense: true,
                 title: Text(
-                  'Incluir proposta de ${Formatters.price(offer.opening)}',
+                  context.strings.includeOfferOf(
+                    price: Formatters.price(
+                      offer.opening,
+                      language: context.language,
+                    ),
+                  ),
                 ),
                 value: _withOffer,
                 onChanged: (value) => setState(() => _withOffer = value),
@@ -98,7 +110,7 @@ class _SellerMessageCardState extends State<SellerMessageCard> {
             FilledButton.tonalIcon(
               onPressed: () => _copy(message),
               icon: const Icon(Icons.copy),
-              label: const Text('Copiar mensagem'),
+              label: Text(context.strings.copyMessageSellerMessageCard),
             ),
           ],
         );

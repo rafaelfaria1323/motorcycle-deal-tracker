@@ -8,12 +8,15 @@ import '../../../core/widgets/show_message.dart';
 import '../../listings/domain/entities/listing_card_preferences.dart';
 import '../../listings/presentation/cubit/listing_card_preferences_cubit.dart';
 import '../../listings/presentation/listing_labels.dart';
+import '../../../core/localization/localizations.dart';
 
 Future<void> showListingCardPreferences(BuildContext context) async {
+  final messageStrings = context.strings;
+
   if (!getIt<SessionCubit>().state.signedIn) {
     showMessage(
       ScaffoldMessenger.of(context),
-      'Inicie sessão para personalizar os cartões dos anúncios.',
+      messageStrings.signInToCustomiseListingCards,
     );
     return;
   }
@@ -23,7 +26,7 @@ Future<void> showListingCardPreferences(BuildContext context) async {
         _CardPreferencesDialog(cubit: getIt<ListingCardPreferencesCubit>()),
   );
   if (saved == true && context.mounted) {
-    showMessage(ScaffoldMessenger.of(context), 'Cartões atualizados');
+    showMessage(ScaffoldMessenger.of(context), messageStrings.cardsUpdated);
   }
 }
 
@@ -35,11 +38,11 @@ class ListingCardPreferencesTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ListTile(
     leading: const Icon(Icons.view_agenda_outlined),
-    title: const Text('Cartões dos anúncios'),
+    title: Text(context.strings.listingCards),
     subtitle: Text(
       signedIn
-          ? 'Escolha os detalhes apresentados em Ofertas e Favoritos'
-          : 'Disponível com sessão iniciada',
+          ? context.strings.chooseDetailsShownInDealsAndFavourites
+          : context.strings.availableWhenSignedIn,
     ),
     trailing: const Icon(Icons.chevron_right),
     enabled: signedIn,
@@ -91,23 +94,16 @@ class _CardPreferencesDialogState extends State<_CardPreferencesDialog> {
       final ready = state.status == ListingCardPreferencesStatus.success;
       return AlertDialog(
         scrollable: true,
-        title: const Text('Cartões dos anúncios'),
+        title: Text(context.strings.listingCards),
         content: SizedBox(
           width: 440,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Escolha os detalhes apresentados em Ofertas e Favoritos, '
-                'quando disponíveis. As escolhas ficam guardadas na sua '
-                'conta, em todos os dispositivos.',
-              ),
+              Text(context.strings.chooseDetailsShownInDealsAndFavouritesWhen),
               const SizedBox(height: 12),
-              const Text(
-                'A fotografia, o modelo, o preço, os avisos de remoção e as ações '
-                'ficam sempre visíveis.',
-              ),
+              Text(context.strings.photoModelPriceRemovalNoticesAndActionsAre),
               const SizedBox(height: 12),
               if (state.status == ListingCardPreferencesStatus.loading)
                 const Center(child: CircularProgressIndicator())
@@ -116,7 +112,7 @@ class _CardPreferencesDialogState extends State<_CardPreferencesDialog> {
                   CheckboxListTile(
                     contentPadding: EdgeInsets.zero,
                     controlAffinity: ListTileControlAffinity.leading,
-                    title: Text(field.label),
+                    title: Text(field.label(language: context.language)),
                     value: preferences.shows(field),
                     onChanged: state.saving
                         ? null
@@ -132,16 +128,19 @@ class _CardPreferencesDialogState extends State<_CardPreferencesDialog> {
                           () =>
                               _draft = const ListingCardPreferences.defaults(),
                         ),
-                  child: const Text('Repor predefinições'),
+                  child: Text(context.strings.restoreDefaults),
                 ),
               ],
               if (state.error case final error?) ...[
                 const SizedBox(height: 8),
-                Text(error, style: AppTheme.errorText(context)),
+                Text(
+                  cardPreferencesErrorText(error, language: context.language),
+                  style: AppTheme.errorText(context),
+                ),
                 if (state.status == ListingCardPreferencesStatus.failure)
                   TextButton(
                     onPressed: widget.cubit.load,
-                    child: const Text('Tentar novamente'),
+                    child: Text(context.strings.retry),
                   ),
               ],
             ],
@@ -150,11 +149,13 @@ class _CardPreferencesDialogState extends State<_CardPreferencesDialog> {
         actions: [
           TextButton(
             onPressed: state.saving ? null : () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
+            child: Text(context.strings.cancel),
           ),
           FilledButton(
             onPressed: ready && !state.saving ? _save : null,
-            child: Text(state.saving ? 'A guardar…' : 'Guardar'),
+            child: Text(
+              state.saving ? context.strings.saving : context.strings.save,
+            ),
           ),
         ],
       );

@@ -15,6 +15,7 @@ import '../cubit/favourites_cubit.dart';
 import '../cubit/favourites_state.dart';
 import '../negotiation_text.dart';
 import '../offer_text.dart';
+import '../../../../core/localization/localizations.dart';
 
 /// "Quanto oferecer": the offers to make in turn (each with its message),
 /// what to say to justify them, what to answer to the seller's
@@ -57,16 +58,20 @@ class _OfferCardState extends State<OfferCard> {
   }
 
   Future<void> _copy(String text) async {
+    final messageStrings = context.strings;
+
     final messenger = ScaffoldMessenger.of(context);
     try {
       await Clipboard.setData(ClipboardData(text: text));
-      showMessage(messenger, 'Mensagem copiada');
+      showMessage(messenger, messageStrings.messageCopied);
     } catch (_) {
-      showMessage(messenger, 'Não foi possível copiar. Selecione o texto.');
+      showMessage(messenger, messageStrings.couldNotCopySelectTextInstead);
     }
   }
 
   Future<void> _editTarget(Favourite favourite, double suggested) async {
+    final messageStrings = context.strings;
+
     final messenger = ScaffoldMessenger.of(context);
     final result = await showDialog<_TargetResult>(
       context: context,
@@ -80,14 +85,16 @@ class _OfferCardState extends State<OfferCard> {
       favourite.listingId,
       result.price,
     );
-    if (!saved) showMessage(messenger, 'Não foi possível guardar o preço');
+    if (!saved) showMessage(messenger, messageStrings.couldNotSavePrice);
   }
 
   @override
   Widget build(BuildContext context) {
     final listing = widget.listing;
     // Nothing to load for a listing that gets no suggestion anyway.
-    if (suggestOffer(listing) == null) return const SizedBox.shrink();
+    if (suggestOffer(listing, language: context.language) == null) {
+      return const SizedBox.shrink();
+    }
 
     return FutureBuilder<(MarketBehaviour?, List<Listing>)>(
       future: _data,
@@ -105,11 +112,13 @@ class _OfferCardState extends State<OfferCard> {
               listing,
               market: market,
               daysListed: days,
+              language: context.language,
             );
             if (planned == null) return const SizedBox.shrink();
             final visit = visitFindings(
               favourite?.checklist ?? const {},
               engineCc: listing.engineCc,
+              language: context.language,
             );
             final arguments = negotiationArguments(
               listing,
@@ -117,14 +126,20 @@ class _OfferCardState extends State<OfferCard> {
               daysListed: days,
               cheaper: cheaper,
               visit: visit,
+              language: context.language,
             );
             return _content(
               context,
-              afterVisit(planned, visit),
+              afterVisit(planned, visit, language: context.language),
               visit,
               arguments,
               favourite,
-              sellerUrgency(listing, market: market, daysListed: days),
+              sellerUrgency(
+                listing,
+                market: market,
+                daysListed: days,
+                language: context.language,
+              ),
             );
           },
         );
@@ -146,32 +161,36 @@ class _OfferCardState extends State<OfferCard> {
     final muted = theme.textTheme.bodySmall?.copyWith(
       color: scheme.onSurfaceVariant,
     );
-    final counter = parseCounterOffer(_counter.text);
-    final reply = counter == null ? null : offer.reply(counter);
+    final counter = parseCounterOffer(
+      _counter.text,
+      language: context.language,
+    );
+    final reply = counter == null
+        ? null
+        : offer.reply(counter, language: context.language);
     final target = favourite?.targetPrice;
 
     return SectionCard(
-      title: 'Quanto oferecer',
-      footnote:
-          'Estimativa a partir dos preços pedidos, não de vendas. '
-          'Veja a mota antes de fechar negócio.',
+      title: context.strings.howMuchToOffer,
+      footnote: context.strings.estimateBasedOnAskingPricesNotSalesSee,
       children: [
         Text(
-          offer.headline,
+          offer.headline(language: context.language),
           style: theme.textTheme.titleMedium?.copyWith(color: scheme.primary),
         ),
         const SizedBox(height: 4),
-        BulletLine(urgency.text, icon: Icons.speed),
+        BulletLine(urgency.text(language: context.language), icon: Icons.speed),
         if (visit.blockers.isNotEmpty) ...[
           const SizedBox(height: 8),
           Text(
-            'Antes de propor: resolva ${visit.blockers.join(', ')}. '
-            'Não é uma questão de preço.',
+            context.strings.beforeOfferingResolveThisIsNotMatterOf(
+              value: visit.blockers.join(', '),
+            ),
             style: theme.textTheme.bodyMedium?.copyWith(color: scheme.error),
           ),
         ],
         const SizedBox(height: 12),
-        for (final (i, step) in offer.steps.indexed)
+        for (final (i, step) in offer.steps(language: context.language).indexed)
           _StepRow(
             number: i + 1,
             step: step,
@@ -179,23 +198,32 @@ class _OfferCardState extends State<OfferCard> {
           ),
         if (arguments.isNotEmpty) ...[
           const SizedBox(height: 16),
-          Text('Argumentos', style: theme.textTheme.titleSmall),
+          Text(context.strings.arguments, style: theme.textTheme.titleSmall),
           const SizedBox(height: 4),
           for (final argument in arguments)
             BulletLine(argument, icon: Icons.chat_bubble_outline),
         ],
         if (listing.sellerType == SellerType.dealer) ...[
           const SizedBox(height: 16),
-          Text('Num stand, peça também', style: theme.textTheme.titleSmall),
+          Text(
+            context.strings.atDealerAlsoAskFor,
+            style: theme.textTheme.titleSmall,
+          ),
           const SizedBox(height: 4),
-          for (final ask in dealerAsks(listing))
+          for (final ask in dealerAsks(listing, language: context.language))
             BulletLine(ask, icon: Icons.add_task),
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
-              onPressed: () => _copy(dealerMessage(listing, offer.opening)),
+              onPressed: () => _copy(
+                dealerMessage(
+                  listing,
+                  offer.opening,
+                  language: context.language,
+                ),
+              ),
               icon: const Icon(Icons.copy, size: 18),
-              label: const Text('Copiar mensagem para o stand'),
+              label: Text(context.strings.copyMessageForDealer),
             ),
           ),
         ],
@@ -203,8 +231,8 @@ class _OfferCardState extends State<OfferCard> {
         TextField(
           controller: _counter,
           keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'O vendedor pediu',
+          decoration: InputDecoration(
+            labelText: context.strings.sellerAskedFor,
             suffixText: '€',
             border: OutlineInputBorder(),
             isDense: true,
@@ -222,18 +250,15 @@ class _OfferCardState extends State<OfferCard> {
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton(
-              onPressed: () => _copy(walkAwayMessage),
-              child: const Text('Copiar mensagem para desistir'),
+              onPressed: () =>
+                  _copy(walkAwayMessage(language: context.language)),
+              child: Text(context.strings.copyMessageToWalkAway),
             ),
           ),
         ],
         const SizedBox(height: 8),
         if (favourite == null)
-          Text(
-            'Junte aos favoritos (estrela) para definir o seu preço e ser '
-            'avisado quando o anúncio chegar lá.',
-            style: muted,
-          )
+          Text(context.strings.addItToFavouritesStarToSetYour, style: muted)
         else
           ListTile(
             contentPadding: EdgeInsets.zero,
@@ -241,18 +266,26 @@ class _OfferCardState extends State<OfferCard> {
             leading: const Icon(Icons.flag_outlined),
             title: Text(
               target == null
-                  ? 'O seu preço'
-                  : 'O seu preço: ${Formatters.price(target)}',
+                  ? context.strings.yourTargetPrice
+                  : context.strings.yourTargetPriceOfferCard(
+                      price: Formatters.price(
+                        target,
+                        language: context.language,
+                      ),
+                    ),
             ),
             subtitle: Text(
               target == null
-                  ? 'Avisamos quando o preço baixar até ao valor que '
-                        'escolher.'
-                  : 'Avisamos quando o anúncio custar isto ou menos.',
+                  ? context.strings.weWillAlertYouWhenPriceDropsTo
+                  : context.strings.weWillAlertYouWhenListingCostsThis,
             ),
             trailing: TextButton(
               onPressed: () => _editTarget(favourite, offer.opening),
-              child: Text(target == null ? 'Definir' : 'Alterar'),
+              child: Text(
+                target == null
+                    ? context.strings.setText
+                    : context.strings.change,
+              ),
             ),
           ),
         Align(
@@ -260,7 +293,9 @@ class _OfferCardState extends State<OfferCard> {
           child: TextButton(
             onPressed: () => setState(() => _showReasons = !_showReasons),
             child: Text(
-              _showReasons ? 'Esconder o cálculo' : 'Como foi calculado',
+              _showReasons
+                  ? context.strings.hideCalculation
+                  : context.strings.howItWasCalculated,
             ),
           ),
         ),
@@ -295,9 +330,12 @@ class _StepRow extends StatelessWidget {
         ),
         const SizedBox(width: 10),
         Expanded(child: Text(step.label)),
-        Text(Formatters.price(step.price), style: theme.textTheme.titleSmall),
+        Text(
+          Formatters.price(step.price, language: context.language),
+          style: theme.textTheme.titleSmall,
+        ),
         IconButton(
-          tooltip: 'Copiar a mensagem',
+          tooltip: context.strings.copyMessage,
           visualDensity: VisualDensity.compact,
           icon: const Icon(Icons.copy, size: 18),
           onPressed: onCopy,
@@ -328,7 +366,7 @@ class _MessageBox extends StatelessWidget {
         children: [
           Expanded(child: SelectableText(text)),
           IconButton(
-            tooltip: 'Copiar a mensagem',
+            tooltip: context.strings.copyMessage,
             icon: const Icon(Icons.copy, size: 18),
             onPressed: onCopy,
           ),
@@ -368,15 +406,18 @@ class _TargetDialogState extends State<_TargetDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final price = parseCounterOffer(_controller.text);
+    final price = parseCounterOffer(
+      _controller.text,
+      language: context.language,
+    );
     return AlertDialog(
-      title: const Text('O seu preço'),
+      title: Text(context.strings.yourTargetPrice),
       content: TextField(
         controller: _controller,
         autofocus: true,
         keyboardType: TextInputType.number,
-        decoration: const InputDecoration(
-          labelText: 'Avise-me quando custar até',
+        decoration: InputDecoration(
+          labelText: context.strings.notifyMeWhenItCostsUpTo,
           suffixText: '€',
         ),
         onChanged: (_) => setState(() {}),
@@ -386,17 +427,17 @@ class _TargetDialogState extends State<_TargetDialog> {
           TextButton(
             onPressed: () =>
                 Navigator.of(context).pop(const _TargetResult(null)),
-            child: const Text('Remover'),
+            child: Text(context.strings.removeOfferCard),
           ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancelar'),
+          child: Text(context.strings.cancel),
         ),
         FilledButton(
           onPressed: price == null
               ? null
               : () => Navigator.of(context).pop(_TargetResult(price)),
-          child: const Text('Guardar'),
+          child: Text(context.strings.save),
         ),
       ],
     );

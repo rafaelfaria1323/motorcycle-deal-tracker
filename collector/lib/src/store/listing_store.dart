@@ -362,6 +362,31 @@ class ListingStore {
     ];
   }
 
+  /// Complete preferences for these recipients. Only an absent row means
+  /// Portuguese; a failed lookup must leave notifications pending.
+  Future<Map<String, NotificationLanguage>> accountLanguages(
+    List<String> userIds,
+  ) async {
+    final users = userIds.toSet().toList();
+    final languages = {
+      for (final user in users) user: NotificationLanguage.portuguese,
+    };
+    // Keep the filter below URL limits, even for a large summary batch.
+    const batchSize = 100;
+    for (var start = 0; start < users.length; start += batchSize) {
+      final rows = await _client
+          .from('account_languages')
+          .select('user_id, language')
+          .inFilter('user_id', users.skip(start).take(batchSize).toList());
+      for (final row in rows) {
+        languages[row['user_id'] as String] = NotificationLanguage.fromCode(
+          row['language'] as String,
+        );
+      }
+    }
+    return languages;
+  }
+
   /// For the weekly summary: listings of the models in [bikeNames] (id to
   /// name), not duplicates, that are live or were first seen or found
   /// missing since [since].

@@ -1,7 +1,7 @@
 # App (Flutter Web/PWA)
 
-The Motorcycle Deal Tracker app, in Portuguese (pt-PT). Published to
-Cloudflare Pages on every merge that touches `app/`
+The Motorcycle Deal Tracker app, in Portuguese (pt-PT) and English (en-GB).
+Published to Cloudflare Pages on every merge that touches `app/`
 (`.github/workflows/deploy-web.yml`: `flutter test`, then
 `flutter build web`). The same deploy builds the Android app (`app/android`
 is made there, not committed) and publishes it on the GitHub release
@@ -13,7 +13,39 @@ its notifications through Firebase Cloud Messaging (the in-repo plugin
 sign-in encrypted with a key in the Android Keystore
 (`flutter_secure_storage`) and leaves its data out of Android's backups.
 
+## Languages
+
+Portuguese remains the default. Mais › "Idioma" / More › "Language" changes
+the interface immediately without resetting navigation, filters or notes.
+Signed-in accounts save their choice in `account_languages` for their other
+devices, notifications and weekly summaries; visitors save it on this device
+only. Startup restores the cached choice. Changing accounts restores that
+account's own preference (Portuguese when unset), never another account's;
+signing out keeps the device choice. Loading and saving failures are shown
+with a retry rather than silently treating a failed request as an unset choice.
+
+Currency stays in euros and distances in kilometres. Display and numeric
+input use the selected language's separators. Seller descriptions, account
+names, saved-search names, notes, model/place names and technical diagnostics
+remain in their original language.
+
+Bundled messages live in `lib/l10n/app_pt.arb` and `app_en.arb`, with typed
+placeholders and ICU plurals. `flutter gen-l10n` generates the ignored
+`lib/l10n/generated/` files; Flutter also generates them during dependency
+resolution/builds. Edit both catalogs, not generated Dart. Widgets use
+`context.strings` / `context.language`; pure text helpers and formatters take
+an explicit `AppLanguage`. Do not cache translated errors in state or change
+the global Intl locale. The collector has its own pure-Dart notification
+catalog; no translation API or runtime AI is used.
+
+The account-language migration is applied on merge before deployment.
+PR previews use the existing database without applying new migrations:
+local visitor switching works there, but account persistence needs the
+migration; an unavailable table is reported as a preference load/save error.
+
 ## Screens
+
+Screen names below use the Portuguese labels; English provides the same screens.
 
 - **Ofertas:** listings of your models (from your years), sorted by Deal Score (or
   newest, cheapest, most expensive, nearest), with filters shown as chips
@@ -96,7 +128,7 @@ sign-in encrypted with a key in the Android Keystore
   available. Deleted alerts leave the list and unread count but retain
   their database history, so the same event cannot be generated again;
   pending notifications are marked handled without a push.
-- **Mais:** account, "Cartões dos anúncios" (the same card display choices as Ofertas), sharing (the app's link; admins: "Contas e convites"), "Notificações neste aparelho" (with "Enviar notificação de teste", an example of any alert or collection message, and "Enviar o resumo da semana"), "Resumo da semana" (your models' last 7 days, made every Monday and sent as a notification that opens it: counts, new listings per model, the best deals and the biggest drops, each opening its listing), "A sua localidade" (your home town: every listing
+- **Mais:** account, "Idioma", "Cartões dos anúncios" (the same card display choices as Ofertas), sharing (the app's link; admins: "Contas e convites"), "Notificações neste aparelho" (with "Enviar notificação de teste", an example of any alert or collection message, and "Enviar o resumo da semana"), "Resumo da semana" (your models' last 7 days, made every Monday and sent as a notification that opens it: counts, new listings per model, the best deals and the biggest drops, each opening its listing), "A sua localidade" (your home town: every listing
   shows its distance from it), "Modelos acompanhados" (your own models: switch on/off, first
   year, favourite colours of each (listings in them are marked "Cor
   preferida", never scored), new-bike price, add models: brand and model picked from the sites'
@@ -127,7 +159,9 @@ updating dependencies; `go_router` also brings in the SDK localizations.
 `make app-smoke` uses Flutter's SDK `integration_test` with the real app and
 router and the widget tests' in-memory repositories. It applies a saved
 search, changes and saves its filters, opens a listing, then opens an alert
-and returns to Alertas through browser history. No Supabase credentials,
+and returns to Alertas through browser history. It switches between English
+and Portuguese and checks the browser's document language without losing
+the current route. No Supabase credentials,
 live data, sign-in or native notification delivery are involved. It needs
 Chrome and a matching ChromeDriver on PATH; the runner starts and cleans up
 its own driver on an automatically allocated port. `check.yml` runs it
@@ -146,6 +180,7 @@ accounts. "Partilhar a app" sends the app's link to anyone.
 lib/app/        App widget, theme, router (go_router, one shell with 4 tabs; ads and their
                 photos above it, pushed), DI (get_it)
 lib/core/       Formatting, shared widgets
+lib/l10n/       Portuguese/English ARB catalogs; ignored generated localizations
 lib/features/   listings, collector_status, settings
   <feature>/domain/        entities, repository interfaces
   <feature>/data/          models (fromJson), Supabase repositories

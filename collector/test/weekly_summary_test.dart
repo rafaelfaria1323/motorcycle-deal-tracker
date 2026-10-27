@@ -190,6 +190,16 @@ void main() {
           'Melhor: Yamaha MT-07 2021 · 6 900 € · Pontuação 88',
       'url': '/#/summary',
       'tag': 'weekly-summary',
+      'language': 'pt',
+    });
+    expect(weeklySummaryPush(s, language: NotificationLanguage.english), {
+      'title': '📊 Weekly summary · 12/10 to 18/10',
+      'body':
+          '3 new listings · 1 price drop · 1 left the market\n'
+          'Best: Yamaha MT-07 2021 · €6,900 · Score 88',
+      'url': '/#/summary',
+      'tag': 'weekly-summary',
+      'language': 'en',
     });
   });
 

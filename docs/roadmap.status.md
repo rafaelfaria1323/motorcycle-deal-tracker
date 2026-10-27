@@ -499,6 +499,29 @@ ChromeDriver; the test's data never comes from Supabase.*
 ## N.23 Run health: passing failures, scoring time, failure history ✅
 *Rafael, 2026-10-27 ("Ok agree"), after N.22. Reporting only; the fetching rules don't change. (1) Scoring time: `finishRun` times `recalculate_deal_scores()` ("Scored N listing(s) in X ms."), `report_run.dart` stores it (`collector_runs.scoring_ms`) and "Estado da recolha" shows it per run, in red with a warning above 30 s (half the service role's 60 s statement limit), so a slowdown shows before it fails a run again. (2) A new status `partial`: a run whose only problems were passing fetch failures (`Failed:` lines: a timeout, a dropped connection or a server error after the retry) and which still finished its scores and alerts. What the other searches read was imported, the search with the missing page removed nothing, and the next run reads it again. Admins get a notification only when the same site fails like this in two runs in a row ("A recolha de anúncios falhou duas vezes seguidas"), or when the run after a block or a failure is partial; blocks, database errors and unreadable pages still alert at once (`run_health.dart` now reads the last three runs' statuses and problems). The GitHub job stays green with a warning ("Recolha incompleta") instead of failing; the app's banner treats it as a working collection (still stale after 12 h) and labels it "Incompleta". (3) "Estado da recolha" › "Falhas nos últimos 30 dias": how many runs weren't ok, and per site and cause (site refused, paused, no answer or server error, database error, unreadable pages) how many runs and the latest one (`failureHistoryText`). Migration `20261027180000_run_health.sql` (column and status), test `run_health_test.sql`; `run_status_test.dart`, `run_health_test.dart`, `collection_status_text_test.dart`, `collector_health_test.dart`.*
 
+## N.24 Portuguese and English throughout the app ✅
+*2026-10-27 (Rafael): real bundled pt-PT/en-GB translations, not runtime
+replacement or a translation service. Mais › "Idioma" / More › "Language"
+switches navigation, screens, dialogs, explanations, seller-message
+templates and existing error states without resetting the route. Portuguese
+remains the default. Typed ARB resources handle placeholders/plurals; prices
+and numeric input follow the chosen separators while keeping euros/km.
+`LanguageCubit` uses account generations and request ordering, device/account
+caches and explicit load/save failures; `account_languages` adds owner-only
+real-account persistence, checked for cross-account/anonymous access.
+The pure-Dart collector loads recipients' preferences in bounded batches
+for alerts, test pushes, mixed-language admin notices and weekly summaries;
+lookup failures leave pending alerts unsent, and summaries are persisted as
+neutral JSON before delivery. Web Push/FCM carry the language; the Android
+channel keeps its ID. Original seller/user content and technical diagnostics
+are untouched. Regression coverage includes resource parity, both languages'
+counts and formats, account races/failures, live UI switching and narrow /
+enlarged layouts, immutable label collections, mixed-recipient delivery,
+preference outages and database grants/RLS. The offline browser flow also
+switches language and checks the document language. Preview account saves
+need the migration (`20261027190000_account_languages.sql`, renamed after
+N.23's to sort after main's latest), applied on merge before deployment.*
+
 # Security and privacy ✅
 
 *Started 2026-10-22, before anyone else uses the app. Not done: Cloudflare Access in front of the site (Rafael, 2026-10-22: not wanted for now; `docs/hosting.md`, Privacy). Decided against: making the repository private (Rafael, 2026-10-21: the free Actions minutes are worth more; old saved pages with phone numbers stay in its git history unless it is rewritten) and encrypting notes, checklists and the home place in the app (Supabase already encrypts its disks; app-side keys would break `distance_km` and need key handling on every device).*

@@ -9,6 +9,7 @@ import '../cubit/favourites_cubit.dart';
 import '../cubit/favourites_state.dart';
 import '../viewing_checklist.dart';
 import 'favourite_widgets.dart';
+import '../../../../core/localization/localizations.dart';
 
 /// "Para a visita" on the listing page, shown while it is a favourite: how
 /// much of the viewing checklist is done; opens the list.
@@ -27,8 +28,13 @@ class ViewingChecklistCard extends StatelessWidget {
         return Card(
           child: ListTile(
             leading: const Icon(Icons.checklist),
-            title: const Text('Para a visita'),
-            subtitle: Text(checklistSummaryText(favourite.checklist)),
+            title: Text(context.strings.forViewing),
+            subtitle: Text(
+              checklistSummaryText(
+                favourite.checklist,
+                language: context.language,
+              ),
+            ),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => showModalBottomSheet<void>(
               context: context,
@@ -67,16 +73,25 @@ class _ChecklistSheet extends StatelessWidget {
                 controller: scrollController,
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                 children: [
-                  Text('Para a visita', style: theme.textTheme.titleLarge),
+                  Text(
+                    context.strings.forViewing,
+                    style: theme.textTheme.titleLarge,
+                  ),
                   const SizedBox(height: 4),
                   Text(
-                    '${checklistSummaryText(favourite.checklist)}. Marque o '
-                    'que viu e toque num ponto para escrever o que encontrou.',
+                    context.strings.markWhatYouCheckedAndTapItemTo(
+                      value: checklistSummaryText(
+                        favourite.checklist,
+                        language: context.language,
+                      ),
+                    ),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  for (final section in viewingChecklist) ...[
+                  for (final section in viewingChecklist(
+                    language: context.language,
+                  )) ...[
                     const SizedBox(height: 16),
                     Text(section.title, style: theme.textTheme.titleMedium),
                     for (final item in section.items)
@@ -110,6 +125,8 @@ class _ChecklistTile extends StatelessWidget {
     required ChecklistMark? mark,
     required String? note,
   }) async {
+    final messageStrings = context.strings;
+
     final messenger = ScaffoldMessenger.of(context);
     final saved = await getIt<FavouritesCubit>().saveChecklistItem(
       listingId,
@@ -118,7 +135,7 @@ class _ChecklistTile extends StatelessWidget {
       note: note,
     );
     if (!saved) {
-      showMessage(messenger, 'Não foi possível guardar. Tente novamente.');
+      showMessage(messenger, messageStrings.couldNotSaveTryAgain);
     }
   }
 
@@ -132,10 +149,10 @@ class _ChecklistTile extends StatelessWidget {
   Future<void> _editNote(BuildContext context) async {
     final text = await showDialog<String>(
       context: context,
-      builder: (_) => NoteDialog(
+      builder: (localizationContext) => NoteDialog(
         title: item.title,
         initial: entry?.note ?? '',
-        hintText: 'Ex.: pneu traseiro DOT 2017',
+        hintText: localizationContext.strings.forExampleRearTyreDOT2017,
         maxLength: FavouritesCubit.maxChecklistNoteLength,
         minLines: 2,
       ),
@@ -166,14 +183,14 @@ class _ChecklistTile extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            tooltip: 'Está bem',
+            tooltip: context.strings.ok,
             isSelected: mark == ChecklistMark.ok,
             icon: const Icon(Icons.check_circle_outline),
             selectedIcon: Icon(Icons.check_circle, color: colors.positive),
             onPressed: () => _toggle(context, ChecklistMark.ok),
           ),
           IconButton(
-            tooltip: 'Problema',
+            tooltip: context.strings.problem,
             isSelected: mark == ChecklistMark.issue,
             icon: const Icon(Icons.report_outlined),
             selectedIcon: Icon(Icons.report, color: colors.negative),

@@ -84,7 +84,7 @@ void main() {
       expect(offer.ceiling, 7000);
       expect(offer.opening, 6550); // 6580 rounded down to 50 €
       expect(
-        offer.headline,
+        offer.headline(),
         'Comece por ${Formatters.price(6550)} e não passe de '
         '${Formatters.price(7000)}.',
       );
@@ -297,7 +297,7 @@ void main() {
     const offer = OfferSuggestion(opening: 7950, ceiling: 8500, reasons: []);
 
     test('three offers: the opening, halfway, the most to pay', () {
-      expect(offer.steps.map((s) => (s.label, s.price)), [
+      expect(offer.steps().map((s) => (s.label, s.price)), [
         ('Primeira proposta', 7950),
         ('Se recusar', 8200), // 8225
         ('Última proposta', 8500),
@@ -306,7 +306,7 @@ void main() {
 
     test('no middle step without room for one', () {
       const close = OfferSuggestion(opening: 8450, ceiling: 8500, reasons: []);
-      expect(close.steps.map((s) => s.label), [
+      expect(close.steps().map((s) => s.label), [
         'Primeira proposta',
         'Última proposta',
       ]);

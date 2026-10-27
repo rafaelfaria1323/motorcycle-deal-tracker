@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:motorcycle_deal_tracker/core/localization/app_language.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/domain/collector_run.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/domain/database_usage.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/domain/github_token.dart';
@@ -286,6 +287,36 @@ void main() {
       expect(
         failureShareText(runs.sublist(0, 1)),
         '1 de 1 recolha não correu bem',
+      );
+    });
+
+    test('in English', () {
+      const en = AppLanguage.english;
+      final runs = [
+        run('partial', DateTime.utc(2026, 10, 26, 13, 2), [
+          'olx: Failed: https://www.olx.pt/a: timed out',
+        ]),
+        run('ok', DateTime.utc(2026, 10, 26, 11), const []),
+        run('partial', DateTime.utc(2026, 10, 24, 7), [
+          'olx: Failed: https://www.olx.pt/a: HTTP 504',
+        ]),
+      ];
+      expect(runStatusLabel('partial', language: en), 'Incomplete');
+      expect(failureHistoryText(runs, language: en), [
+        'OLX · No response or site error (timeout, HTTP 5xx): 2 collections, '
+            'the last on 26/10 at 13:02',
+      ]);
+      expect(
+        failureShareText(runs, language: en),
+        '2 of 3 collections went wrong',
+      );
+      expect(
+        failureShareText(runs.sublist(1, 2), language: en),
+        'The collection went well',
+      );
+      expect(
+        scoringText(const Duration(milliseconds: 4210), language: en).text,
+        'Scores in 4.2 s',
       );
     });
   });

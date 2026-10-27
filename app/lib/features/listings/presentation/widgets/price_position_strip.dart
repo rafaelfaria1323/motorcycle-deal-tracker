@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/formatting/formatters.dart';
 import '../price_position_text.dart';
+import '../../../../core/localization/localizations.dart';
 
 /// The model's live asking prices on a line, lowest to highest: one dot per
 /// listing, this one larger and in the primary colour.
@@ -36,12 +37,21 @@ class PricePositionStrip extends StatelessWidget {
         ),
         Row(
           children: [
-            Text(Formatters.price(position.lowest), style: labelStyle),
+            Text(
+              Formatters.price(position.lowest, language: context.language),
+              style: labelStyle,
+            ),
             const Spacer(),
-            Text(Formatters.price(position.highest), style: labelStyle),
+            Text(
+              Formatters.price(position.highest, language: context.language),
+              style: labelStyle,
+            ),
           ],
         ),
-        Text('Preços pedidos, sem ajustar ano e km', style: labelStyle),
+        Text(
+          context.strings.askingPricesWithoutAdjustingForYearAndMileage,
+          style: labelStyle,
+        ),
       ],
     );
   }

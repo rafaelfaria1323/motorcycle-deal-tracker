@@ -7,6 +7,7 @@ import '../../../core/platform/app_build.dart';
 import '../domain/accounts_repository.dart';
 import 'accounts_text.dart';
 import 'share_link.dart';
+import '../../../core/localization/localizations.dart';
 
 /// "Partilhar" in Mais: the app's link for anyone; for admins, the page to
 /// invite people and manage the accounts.
@@ -32,28 +33,26 @@ class _ShareTilesState extends State<ShareTiles> {
         children: [
           ListTile(
             leading: const Icon(Icons.ios_share),
-            title: const Text('Partilhar a app'),
+            title: Text(context.strings.shareApp),
             subtitle: Text(
               snapshot.data == true
-                  ? 'O link para ver os anúncios, sem conta'
-                  : 'O link para ver os anúncios. Para ter conta, peça um '
-                        'convite a um administrador',
+                  ? context.strings.linkToViewListingsWithoutAccount
+                  : context.strings.linkToViewListingsAskAdministratorForInvite,
             ),
             onTap: () => shareOrCopy(
               ScaffoldMessenger.of(context),
               title: appName,
-              text: appShareText,
+              text: appShareText(language: context.language),
               url: appLink(webOrigin),
+              language: context.language,
             ),
           ),
           if (snapshot.data == true) ...[
             const Divider(height: 1),
             ListTile(
               leading: const Icon(Icons.group_outlined),
-              title: const Text('Contas e convites'),
-              subtitle: const Text(
-                'Convide pessoas com um link e veja quem tem conta',
-              ),
+              title: Text(context.strings.accountsAndInvites),
+              subtitle: Text(context.strings.invitePeopleWithLinkAndSeeWhoHas),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.push(AppRoutes.accounts),
             ),

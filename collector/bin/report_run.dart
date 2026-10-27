@@ -64,7 +64,7 @@ Future<void> main(List<String> args) async {
       ).writeAsString('status=$status\n', mode: FileMode.append);
     }
 
-    final message = runHealthMessage([
+    final runs = [
       (status: status, problems: problems),
       for (final run in previous)
         (
@@ -73,8 +73,8 @@ Future<void> main(List<String> args) async {
             for (final p in run['problems'] as List<dynamic>? ?? const []) '$p',
           ],
         ),
-    ]);
-    if (message == null) return;
+    ];
+    if (runHealthMessage(runs) == null) return;
     // The run is recorded; a missed message must not fail the job.
     try {
       final store = ListingStore(client);
@@ -86,7 +86,7 @@ Future<void> main(List<String> args) async {
         store,
         push,
         await store.adminIds(),
-        message,
+        (language) => runHealthMessage(runs, language: language)!,
       );
       stdout.writeln(
         'Run health sent to ${result.sent} of ${result.devices} device(s).',

@@ -1,5 +1,10 @@
-String listingsResultsText(int count, {required bool hasMore}) {
-  final noun = count == 1 ? 'anúncio' : 'anúncios';
-  final loaded = count == 1 ? 'carregado' : 'carregados';
-  return '$count $noun${hasMore ? ' $loaded' : ''}';
-}
+import '../../../core/localization/localizations.dart';
+
+String listingsResultsText(
+  int count, {
+  required bool hasMore,
+  AppLanguage language = AppLanguage.portuguese,
+}) => language.messages.listingsResultCount(
+  count: count,
+  hasMore: hasMore.toString(),
+);

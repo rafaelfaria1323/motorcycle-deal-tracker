@@ -1,4 +1,5 @@
 import 'score_explanation.dart';
+import '../../../core/localization/localizations.dart';
 
 /// Minimum Deal Score choices, on the same thresholds as the score labels.
 const minDealScoreOptions = [60, 70, 80, 90];
@@ -7,9 +8,17 @@ const minDealScoreOptions = [60, 70, 80, 90];
 const maxRiskScoreOptions = [19, 49];
 
 /// "Muito bom (80+)".
-String dealScoreOptionLabel(int min) => '${ScoreExplainer.label(min)} ($min+)';
+String dealScoreOptionLabel(
+  int min, {
+  AppLanguage language = AppLanguage.portuguese,
+}) => '${ScoreExplainer.label(min, language: language)} ($min+)';
 
 /// "Risco baixo" or "Risco até médio".
-String riskCriterionLabel(int max) => max < 20
-    ? 'Risco baixo'
-    : 'Risco até ${ScoreExplainer.riskLabel(max).toLowerCase()}';
+String riskCriterionLabel(
+  int max, {
+  AppLanguage language = AppLanguage.portuguese,
+}) => max < 20
+    ? language.messages.lowRiskCriterion
+    : language.messages.riskUpTo(
+        value: ScoreExplainer.riskLabel(max, language: language).toLowerCase(),
+      );

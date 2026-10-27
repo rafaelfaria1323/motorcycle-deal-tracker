@@ -4,6 +4,7 @@ import '../../../app/di/injection.dart';
 import '../data/collector_runs_repository.dart';
 import '../domain/collector_run.dart';
 import 'collection_text.dart';
+import '../../../core/localization/localizations.dart';
 
 /// The last run's duration and requests, this month's runs and when the
 /// next one is due. Runs are readable only when signed in; the next run
@@ -47,7 +48,10 @@ class _CollectionDetailsState extends State<CollectionDetails> {
       future: _monthRuns,
       builder: (context, snapshot) {
         final lines = <(IconData, String)>[
-          (Icons.event_outlined, nextCollectionText(DateTime.now())),
+          (
+            Icons.event_outlined,
+            nextCollectionText(DateTime.now(), language: context.language),
+          ),
         ];
         final runs = snapshot.data ?? const <CollectorRun>[];
         if (runs.isNotEmpty) {
@@ -55,16 +59,24 @@ class _CollectionDetailsState extends State<CollectionDetails> {
           lines.insertAll(0, [
             (
               Icons.update,
-              'Última recolha ${agoText(last.finishedAt)}, demorou '
-                  '${durationText(last.duration)}',
+              context.strings.lastCollectionTook(
+                value: agoText(last.finishedAt, language: context.language),
+                value2: durationText(last.duration),
+              ),
             ),
-            if (runCountsText(last.counts) case final counts?)
+            if (runCountsText(last.counts, language: context.language)
+                case final counts?)
               (Icons.fiber_new_outlined, counts),
-            if (requestsText(last.requests) case final requests?)
+            if (requestsText(last.requests, language: context.language)
+                case final requests?)
               (Icons.swap_vert, requests),
           ]);
-          lines.add((Icons.cloud_outlined, monthUsageText(runs)));
-          if (monthRequestsText(runs) case final requests?) {
+          lines.add((
+            Icons.cloud_outlined,
+            monthUsageText(runs, language: context.language),
+          ));
+          if (monthRequestsText(runs, language: context.language)
+              case final requests?) {
             lines.add((Icons.swap_vert, requests));
           }
         }
@@ -82,11 +94,10 @@ class _CollectionDetailsState extends State<CollectionDetails> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                 child: Text(
-                  'Os minutos do GitHub Actions são gratuitos e ilimitados '
-                  'enquanto o repositório for público; num repositório '
-                  'privado contam para os 2000 min/mês gratuitos.',
-                  style: Theme.of(context).textTheme.bodySmall
-                      ?.copyWith(color: muted),
+                  context.strings.githubActionsMinutesAreFreeAndUnlimitedWhile,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: muted),
                 ),
               ),
           ],

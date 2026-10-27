@@ -1,5 +1,6 @@
 import '../../../core/formatting/formatters.dart';
 import '../domain/entities/listing.dart';
+import '../../../core/localization/localizations.dart';
 
 /// A list price checked longer ago than this may have changed.
 const newPriceStaleAfterDays = 180;
@@ -10,45 +11,61 @@ const smallDiscountPct = 10;
 
 /// Lines comparing the listing's price with a new bike of the same model;
 /// empty when either price is unknown.
-List<String> newPriceLines(Listing listing, {DateTime? now}) {
+List<String> newPriceLines(
+  Listing listing, {
+  DateTime? now,
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final used = listing.price;
   final fresh = listing.newPrice;
   if (used == null || fresh == null || fresh <= 0) return const [];
 
   final difference = fresh - used;
   final pct = (difference.abs() / fresh * 100).round();
-  final lines = ['Preço de uma nova: ${Formatters.price(fresh)}'];
+  final lines = [
+    language.messages.newBikePrice(
+      price: Formatters.price(fresh, language: language),
+    ),
+  ];
 
   if (difference.abs() < 1) {
-    lines.add('Custa o mesmo que uma nova');
+    lines.add(language.messages.costsSameAsNewOne);
   } else if (difference > 0) {
     lines.add(
-      '${Formatters.price(difference)} abaixo de uma nova (${Formatters.percent(pct)})',
+      language.messages.belowNewOne(
+        price: Formatters.price(difference, language: language),
+        percent: Formatters.percent(pct, language: language),
+      ),
     );
     if (pct < smallDiscountPct) {
       lines.add(
-        'Menos de ${Formatters.percent(smallDiscountPct)} abaixo de uma nova: compare com uma '
-        'nova, que tem garantia de fábrica',
+        language.messages.lessThanBelowNewOneCompareItWith(
+          percent: Formatters.percent(smallDiscountPct, language: language),
+        ),
       );
     }
   } else {
     lines.add(
-      '${Formatters.price(-difference)} acima de uma nova (${Formatters.percent(pct)})',
+      language.messages.aboveNewOne(
+        price: Formatters.price(-difference, language: language),
+        percent: Formatters.percent(pct, language: language),
+      ),
     );
   }
   if (difference < 1) {
-    lines.add(
-      'Não é mais barata do que uma nova: confirme os extras incluídos '
-      'ou se o preço está certo',
-    );
+    lines.add(language.messages.itIsNotCheaperThanNewOneCheck);
   }
 
   final checked = listing.newPriceCheckedAt;
   if (checked != null) {
     final age = (now ?? DateTime.now()).difference(checked).inDays;
     lines.add(
-      'Preço de uma nova verificado em ${Formatters.date(checked)}'
-      '${age > newPriceStaleAfterDays ? ': pode estar desatualizado' : ''}',
+      language.messages.newBikePriceCheckedOn(
+        date: Formatters.date(checked),
+        value: age > newPriceStaleAfterDays
+            ? language.messages.itMayBeOutOfDate
+            : '',
+      ),
     );
   }
   return lines;

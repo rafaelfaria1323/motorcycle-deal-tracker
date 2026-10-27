@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_theme.dart';
+import '../../../../core/localization/localizations.dart';
 
 /// The Deal Score in its band colour (90+ excellent, 80+ very good,
 /// 70+ interesting, 60+ normal, below 60 poor). [large] is the square
@@ -51,7 +52,7 @@ class DealScoreBadge extends StatelessWidget {
     );
 
     return Semantics(
-      label: 'Deal Score $score de 100',
+      label: context.strings.dealScoreOutOf100(score: (score).toString()),
       excludeSemantics: true,
       child: showLabel
           ? DecoratedBox(
@@ -66,8 +67,8 @@ class DealScoreBadge extends StatelessWidget {
                   children: [
                     badge,
                     const SizedBox(height: 3),
-                    const Text(
-                      'Deal Score',
+                    Text(
+                      context.strings.dealScore,
                       style: TextStyle(
                         fontFamily: AppTheme.bodyFont,
                         fontSize: 10,

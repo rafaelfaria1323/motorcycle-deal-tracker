@@ -2,6 +2,7 @@ import '../../../core/formatting/formatters.dart';
 import '../domain/entities/listing.dart';
 import 'listing_labels.dart';
 import 'score_explanation.dart';
+import '../../../core/localization/localizations.dart';
 
 /// At most this many listings side by side (columns on a phone).
 const maxCompared = 3;
@@ -37,20 +38,24 @@ Set<int> bestOf(List<num?> values, {required bool higherIsBetter}) {
 double? belowMarketPct(Listing l) =>
     (l.scoreBreakdown?['pct_below_market'] as num?)?.toDouble();
 
-String _marketText(Listing l) {
+String _marketText(Listing l, {AppLanguage language = AppLanguage.portuguese}) {
   final pct = belowMarketPct(l);
   if (pct == null) return '—';
   final rounded = pct.round();
-  if (rounded == 0) return 'No valor de mercado';
+  if (rounded == 0) return language.messages.atMarketValue;
   return rounded > 0
-      ? '$rounded % abaixo do mercado'
-      : '${-rounded} % acima do mercado';
+      ? language.messages.belowMarketValue(rounded: (rounded).toString())
+      : language.messages.aboveMarketValue(value: (-rounded).toString());
 }
 
 String _or(Object? value) => value == null ? '—' : '$value';
 
 /// The rows of the comparison, in reading order: what decides first.
-List<CompareRow> compareRows(List<Listing> listings, {DateTime? now}) {
+List<CompareRow> compareRows(
+  List<Listing> listings, {
+  DateTime? now,
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   CompareRow row(
     String label,
     String Function(Listing) text, {
@@ -67,42 +72,55 @@ List<CompareRow> compareRows(List<Listing> listings, {DateTime? now}) {
   );
 
   return [
-    row('Preço', (l) => Formatters.price(l.price), score: (l) => l.price),
     row(
-      'Pontuação',
+      language.messages.price,
+      (l) => Formatters.price(l.price, language: language),
+      score: (l) => l.price,
+    ),
+    row(
+      language.messages.score,
       (l) => _or(l.dealScore),
       score: (l) => l.dealScore,
       higherIsBetter: true,
     ),
-    row('Risco', (l) => _or(l.riskScore), score: (l) => l.riskScore),
     row(
-      'Face ao mercado',
-      _marketText,
+      language.messages.risk,
+      (l) => _or(l.riskScore),
+      score: (l) => l.riskScore,
+    ),
+    row(
+      language.messages.againstMarket,
+      (value0) => _marketText(value0, language: language),
       score: belowMarketPct,
       higherIsBetter: true,
     ),
-    row('Ano', (l) => _or(l.year), score: (l) => l.year, higherIsBetter: true),
     row(
-      'Quilometragem',
-      (l) => Formatters.mileage(l.mileage),
+      language.messages.yearCompareText,
+      (l) => _or(l.year),
+      score: (l) => l.year,
+      higherIsBetter: true,
+    ),
+    row(
+      language.messages.mileage,
+      (l) => Formatters.mileage(l.mileage, language: language),
       score: (l) => l.mileage,
     ),
     row(
-      'Baixa de preço',
+      language.messages.priceDrop,
       (l) => l.hasPriceChanged && l.priceChange! < 0
-          ? '−${Formatters.price(-l.priceChange!)}'
+          ? '−${Formatters.price(-l.priceChange!, language: language)}'
           : '—',
     ),
     row(
-      'Registos (donos)',
+      language.messages.registeredOwners,
       (l) => _or(l.registrations),
       score: (l) => l.registrations,
     ),
     row(
-      'Livro de revisões',
+      language.messages.serviceBook,
       (l) => switch (l.serviceBook) {
-        true => 'Completo',
-        false => 'Não',
+        true => language.messages.complete,
+        false => language.messages.no,
         null => '—',
       },
       score: (l) => switch (l.serviceBook) {
@@ -113,19 +131,25 @@ List<CompareRow> compareRows(List<Listing> listings, {DateTime? now}) {
       higherIsBetter: true,
     ),
     row(
-      'Extras',
-      (l) => extrasText(l.scoreBreakdown) ?? '—',
+      language.messages.extras,
+      (l) => extrasText(l.scoreBreakdown, language: language) ?? '—',
       score: (l) => (l.scoreBreakdown?['extras'] as List?)?.length,
       higherIsBetter: true,
     ),
-    row('Localização', (l) => l.location ?? '—'),
-    row('Vendedor', (l) => l.sellerType.label),
-    row('Fonte', (l) => sourceLabel(l.source)),
+    row(language.messages.locationCompareText, (l) => l.location ?? '—'),
     row(
-      'Visto pela primeira vez',
+      language.messages.seller,
+      (l) => l.sellerType.label(language: language),
+    ),
+    row(
+      language.messages.source,
+      (l) => sourceLabel(l.source, language: language),
+    ),
+    row(
+      language.messages.firstSeen,
       (l) => l.firstSeenAt == null
           ? '—'
-          : Formatters.daysAgo(l.firstSeenAt!, now: now),
+          : Formatters.daysAgo(l.firstSeenAt!, now: now, language: language),
     ),
   ];
 }

@@ -127,7 +127,7 @@ void main() {
     });
 
     test('nearest first is a sort order', () {
-      expect(ListingSort.nearest.label, 'Mais perto');
+      expect(ListingSort.nearest.label(), 'Mais perto');
     });
   });
 }

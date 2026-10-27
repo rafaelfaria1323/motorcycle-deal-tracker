@@ -1,44 +1,57 @@
 import '../../../core/formatting/formatters.dart';
 import '../domain/entities/catalog_model.dart';
 import 'colour_text.dart';
+import '../../../core/localization/localizations.dart';
 
 const olxSearchPrefix =
     'https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/';
 const standvirtualSearchPrefix = 'https://www.standvirtual.com/motos/';
 
 /// "Desde 2023 · OLX e Standvirtual · Azul, Preto".
-String modelSubtitle(CatalogModel m) {
+String modelSubtitle(
+  CatalogModel m, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final sites = [
     if (m.olxSearch != null) 'OLX',
     if (m.standvirtualSearch != null) 'Standvirtual',
   ];
   return [
-    'Desde ${m.minYear}',
-    sites.isEmpty ? 'sem pesquisa' : sites.join(' e '),
-    ?favouriteColoursText(m.colours),
+    language.messages.fromTrackedModelsText(minYear: m.minYear.toString()),
+    sites.isEmpty
+        ? language.messages.noSearch
+        : sites.join(language.messages.andTrackedModelsText),
+    ?favouriteColoursText(m.colours, language: language),
   ].join(' · ');
 }
 
 /// "Preço de uma nova: 8 250 € (verificado em 13/10/2026)".
-String newPriceSubtitle(CatalogModel m) {
+String newPriceSubtitle(
+  CatalogModel m, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final price = m.newPrice;
-  if (price == null) return 'Sem preço de uma nova';
+  if (price == null) return language.messages.noNewBikePrice;
   final checked = m.newPriceCheckedAt;
-  return 'Preço de uma nova: ${Formatters.price(price)}'
-      '${checked == null ? '' : ' (verificado em ${Formatters.date(checked)})'}';
+  return language.messages.newBikePriceTrackedModelsText(
+    price: Formatters.price(price, language: language),
+    value: checked == null
+        ? ''
+        : language.messages.checkedOn(date: Formatters.date(checked)),
+  );
 }
 
 /// Reads a price typed as "8250", "8 250", "8.250 €" or "8250,50". Empty
 /// clears the price.
-({double? price, String? error}) parseNewPrice(String text) {
-  final cleaned = text
-      .replaceAll(RegExp(r'[\s\u00a0\u202f€]'), '')
-      .replaceAll('.', '')
-      .replaceAll(',', '.');
+({double? price, String? error}) parseNewPrice(
+  String text, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
+  final cleaned = text.replaceAll(RegExp(r'[\s\u00a0\u202f€]'), '');
   if (cleaned.isEmpty) return (price: null, error: null);
-  final value = double.tryParse(cleaned);
+  final value = Formatters.parsePrice(cleaned, language: language);
   if (value == null || value <= 0 || value > 200000) {
-    return (price: null, error: 'Preço inválido');
+    return (price: null, error: language.messages.invalidPrice);
   }
   return (price: value, error: null);
 }
@@ -68,12 +81,15 @@ String newPriceSubtitle(CatalogModel m) {
 
 /// The searches each collection runs for the collected models (of every
 /// account). There is no request cap: every page of each search is read.
-String searchesLine(List<CatalogModel> models) {
+String searchesLine(
+  List<CatalogModel> models, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final counts = searchCounts(models);
-  return 'Pesquisas em cada recolha (modelos de todas as contas): '
-      '${counts.olx} no OLX e ${counts.standvirtual} no Standvirtual, cada '
-      'uma com todas as páginas. Os pedidos de cada recolha aparecem em '
-      'Mais › Recolha de dados.';
+  return language.messages.searchesInEachCollectionModelsFromAllAccounts(
+    olx: counts.olx.toString(),
+    standvirtual: counts.standvirtual.toString(),
+  );
 }
 
 /// Problems with the "add a model" form, by field; empty when it is fine.
@@ -82,25 +98,31 @@ Map<String, String> newModelProblems({
   required String model,
   required String year,
   int? currentYear,
+  AppLanguage language = AppLanguage.portuguese,
 }) {
   final maxYear = (currentYear ?? DateTime.now().year) + 1;
   final parsedYear = int.tryParse(year.trim());
   final nameCharacters = RegExp(r'[\p{L}\p{N}]', unicode: true);
 
   return {
-    if (!nameCharacters.hasMatch(brand)) 'brand': 'Indique a marca',
-    if (!nameCharacters.hasMatch(model)) 'model': 'Indique o modelo',
+    if (!nameCharacters.hasMatch(brand)) 'brand': language.messages.enterMake,
+    if (!nameCharacters.hasMatch(model)) 'model': language.messages.enterModel,
     if (parsedYear == null || parsedYear < 1990 || parsedYear > maxYear)
-      'year': 'Ano entre 1990 e $maxYear',
+      'year': language.messages.yearBetween1990And(
+        maxYear: (maxYear).toString(),
+      ),
   };
 }
 
 /// The snackbar text for a failed catalog change, from the Postgres error
 /// code (null when the error was not a database one).
-String catalogSaveErrorText(String? postgresCode) => switch (postgresCode) {
-  '23505' => 'Esse modelo já está na lista.',
-  '42501' => 'Não foi possível guardar: é preciso ter sessão iniciada.',
-  _ => 'Não foi possível guardar. Tente novamente.',
+String catalogSaveErrorText(
+  String? postgresCode, {
+  AppLanguage language = AppLanguage.portuguese,
+}) => switch (postgresCode) {
+  '23505' => language.messages.thatModelIsAlreadyInList,
+  '42501' => language.messages.couldNotSaveYouNeedToBeSigned,
+  _ => language.messages.couldNotSaveTryAgain,
 };
 
 /// "Z 650, Z-650" -> ["Z 650", "Z-650"].

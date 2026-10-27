@@ -1,5 +1,6 @@
 import '../domain/entities/site_model.dart';
 import 'tracked_models_text.dart';
+import '../../../core/localization/localizations.dart';
 
 /// Brands with the most ads first, then by name.
 List<SiteMake> sortedMakes(List<SiteMake> makes) => [...makes]
@@ -20,12 +21,15 @@ List<SiteModel> pickerModels(List<SiteModel> models) =>
 
 /// Reads the optional engine size ("350", "350 cc"); empty means every
 /// size.
-({int? cc, String? error}) parseEngineCc(String text) {
+({int? cc, String? error}) parseEngineCc(
+  String text, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final cleaned = text.toLowerCase().replaceAll(RegExp(r'\s|cc'), '');
   if (cleaned.isEmpty) return (cc: null, error: null);
   final cc = int.tryParse(cleaned);
   if (cc == null || cc < 50 || cc > 2500) {
-    return (cc: null, error: 'Cilindrada entre 50 e 2500 cc');
+    return (cc: null, error: language.messages.engineSizeBetween50And2500Cc);
   }
   return (cc: cc, error: null);
 }

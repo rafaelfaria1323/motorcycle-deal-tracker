@@ -7,7 +7,7 @@ import 'package:motorcycle_deal_tracker/features/listings/presentation/score_exp
 
 void main() {
   test('the filter offers the equipment the database detects', () {
-    expect(extraLabels.keys, [
+    expect(extraLabels().keys, [
       'quickshifter',
       'exhaust',
       'luggage',

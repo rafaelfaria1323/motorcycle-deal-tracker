@@ -7,6 +7,7 @@ import '../../../../core/widgets/section_card.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/repositories/listings_repository.dart';
 import '../listing_labels.dart';
+import '../../../../core/localization/localizations.dart';
 
 class AlsoListedSection extends StatefulWidget {
   const AlsoListedSection({super.key, required this.listing});
@@ -30,15 +31,22 @@ class _AlsoListedSectionState extends State<AlsoListedSection> {
         if (others == null || others.isEmpty) return const SizedBox.shrink();
 
         return SectionCard(
-          title: 'Também anunciada em',
+          title: context.strings.alsoListedOn,
           children: [
             for (final other in others)
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 dense: true,
-                title: Text(sourceLabel(other.source)),
-                subtitle: Text(other.location ?? 'Local não indicado'),
-                trailing: Text(Formatters.price(other.price)),
+                title: Text(
+                  sourceLabel(other.source, language: context.language),
+                ),
+                subtitle: Text(
+                  other.location ??
+                      context.strings.locationNotStatedAlsoListedSection,
+                ),
+                trailing: Text(
+                  Formatters.price(other.price, language: context.language),
+                ),
                 onTap: () => launchUrl(Uri.parse(other.url)),
               ),
           ],

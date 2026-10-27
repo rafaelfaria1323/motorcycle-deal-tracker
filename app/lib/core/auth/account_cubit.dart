@@ -4,15 +4,28 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../features/settings/domain/push_repository.dart';
 import '../platform/push.dart';
-import 'account_text.dart';
 import 'session_bootstrap.dart';
+
+class AccountFailure extends Equatable {
+  const AccountFailure.auth(this.code, this.message);
+
+  const AccountFailure.credentialsRequired()
+    : code = 'missing_credentials',
+      message = '';
+
+  final String? code;
+  final String message;
+
+  @override
+  List<Object?> get props => [code, message];
+}
 
 class AccountState extends Equatable {
   const AccountState({this.busy = false, this.done = false, this.error});
 
   final bool busy;
   final bool done;
-  final String? error;
+  final AccountFailure? error;
 
   @override
   List<Object?> get props => [busy, done, error];
@@ -36,7 +49,7 @@ class AccountCubit extends Cubit<AccountState> {
 
   Future<void> signIn(String email, String password) async {
     if (email.trim().isEmpty || password.isEmpty) {
-      emit(const AccountState(error: 'Indique o email e a palavra-passe.'));
+      emit(const AccountState(error: AccountFailure.credentialsRequired()));
       return;
     }
     emit(const AccountState(busy: true));
@@ -47,7 +60,7 @@ class AccountCubit extends Cubit<AccountState> {
       );
       emit(const AccountState(done: true));
     } on AuthException catch (e) {
-      emit(AccountState(error: authErrorText(e.code, e.message)));
+      emit(AccountState(error: AccountFailure.auth(e.code, e.message)));
     }
   }
 
@@ -67,7 +80,7 @@ class AccountCubit extends Cubit<AccountState> {
       await ensureSession(_client);
       emit(const AccountState(done: true));
     } on AuthException catch (e) {
-      emit(AccountState(error: authErrorText(e.code, e.message)));
+      emit(AccountState(error: AccountFailure.auth(e.code, e.message)));
     }
   }
 }

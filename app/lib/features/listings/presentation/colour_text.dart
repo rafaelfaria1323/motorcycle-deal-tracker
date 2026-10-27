@@ -1,34 +1,48 @@
 import '../domain/entities/listing.dart';
 import 'score_explanation.dart';
+import '../../../core/localization/localizations.dart';
 
-/// The colour codes of `listings.colour` and `user_models.colours`, in the
-/// order they are offered, with their labels.
-const colourLabels = {
-  'black': 'Preto',
-  'white': 'Branco',
-  'grey': 'Cinzento',
-  'silver': 'Prateado',
-  'blue': 'Azul',
-  'red': 'Vermelho',
-  'green': 'Verde',
-  'yellow': 'Amarelo',
-  'orange': 'Laranja',
-  'brown': 'Castanho',
-  'beige': 'Bege',
-  'gold': 'Dourado',
-  'purple': 'Roxo',
-  'pink': 'Rosa',
-};
+final _colourLabels = <AppLanguage, Map<String, String>>{};
+
+Map<String, String> colourLabels({
+  AppLanguage language = AppLanguage.portuguese,
+}) => _colourLabels.putIfAbsent(
+  language,
+  () => Map<String, String>.unmodifiable({
+    'black': language.messages.black,
+    'white': language.messages.white,
+    'grey': language.messages.grey,
+    'silver': language.messages.silver,
+    'blue': language.messages.blue,
+    'red': language.messages.red,
+    'green': language.messages.green,
+    'yellow': language.messages.yellow,
+    'orange': language.messages.orange,
+    'brown': language.messages.brown,
+    'beige': language.messages.beige,
+    'gold': language.messages.gold,
+    'purple': language.messages.purple,
+    'pink': language.messages.pink,
+  }),
+);
 
 /// "Azul" for a known code; null otherwise.
-String? colourLabel(String? code) => colourLabels[code];
+String? colourLabel(
+  String? code, {
+  AppLanguage language = AppLanguage.portuguese,
+}) => colourLabels(language: language)[code];
 
 /// The person's colours for a model ("Preto, Azul", in the offered order),
 /// or null when none is chosen.
-String? favouriteColoursText(Iterable<String> codes) {
+String? favouriteColoursText(
+  Iterable<String> codes, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final chosen = codes.toSet();
   final labels = [
-    for (final MapEntry(:key, :value) in colourLabels.entries)
+    for (final MapEntry(:key, :value) in colourLabels(
+      language: language,
+    ).entries)
       if (chosen.contains(key)) value,
   ];
   return labels.isEmpty ? null : labels.join(', ');
@@ -37,13 +51,18 @@ String? favouriteColoursText(Iterable<String> codes) {
 /// The plus on the score card when the bike is in one of the person's
 /// colours; it says it adds no points (an older bike or one with more km
 /// must not win on colour).
-ExplanationLine? favouriteColourLine(Listing listing) {
+ExplanationLine? favouriteColourLine(
+  Listing listing, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   if (!listing.myColour) return null;
-  final label = colourLabel(listing.colour)?.toLowerCase();
+  final label = colourLabel(listing.colour, language: language)?.toLowerCase();
   return ExplanationLine(
     ExplanationTone.positive,
     label == null
-        ? 'Numa das suas cores preferidas (não conta na pontuação)'
-        : 'Numa das suas cores preferidas: $label (não conta na pontuação)',
+        ? language.messages.inOneOfYourPreferredColoursDoesNot
+        : language.messages.inOneOfYourPreferredColoursDoesNotColourText(
+            label: label,
+          ),
   );
 }

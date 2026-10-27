@@ -8,6 +8,7 @@ import '../../domain/repositories/market_behaviour_repository.dart';
 import '../market_behaviour_text.dart';
 import '../price_position_text.dart';
 import 'price_position_strip.dart';
+import '../../../../core/localization/localizations.dart';
 
 class MarketBehaviourSection extends StatefulWidget {
   const MarketBehaviourSection({required this.listing, super.key});
@@ -60,7 +61,11 @@ class _MarketBehaviourSectionState extends State<MarketBehaviourSection> {
 
         final price = widget.listing.price;
         final position = pricePosition(price, others);
-        final priceLine = pricePositionLine(price, others);
+        final priceLine = pricePositionLine(
+          price,
+          others,
+          language: context.language,
+        );
 
         final since = widget.listing.publishedAt ?? widget.listing.firstSeenAt;
         final days = since == null
@@ -68,7 +73,7 @@ class _MarketBehaviourSectionState extends State<MarketBehaviourSection> {
             : DateTime.now().difference(since).inDays;
 
         return SectionCard(
-          title: 'Mercado deste modelo',
+          title: context.strings.thisModelSMarket,
           children: [
             if (priceLine != null) _Line(priceLine),
             if (position != null) ...[
@@ -80,6 +85,7 @@ class _MarketBehaviourSectionState extends State<MarketBehaviourSection> {
               market,
               daysListed: days,
               firstSeenOnly: widget.listing.publishedAt == null,
+              language: context.language,
             ))
               _Line(line),
           ],

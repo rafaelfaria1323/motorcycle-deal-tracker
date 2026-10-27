@@ -1,5 +1,6 @@
 import '../../../core/formatting/formatters.dart';
 import '../domain/accounts_repository.dart';
+import '../../../core/localization/localizations.dart';
 
 /// The app's name where it is shared.
 const appName = 'Motorcycle Deal Tracker';
@@ -11,49 +12,52 @@ String appLink(String origin) => '$origin/';
 String inviteLink(String origin, String code) =>
     '$origin/#/join?code=${Uri.encodeQueryComponent(code)}';
 
-const appShareText =
-    'Veja as motas usadas à venda em Portugal, com o preço justo e a '
-    'pontuação de cada anúncio:';
+String appShareText({AppLanguage language = AppLanguage.portuguese}) =>
+    language.messages.seeUsedMotorcyclesForSaleInPortugalWith;
 
-const inviteShareText =
-    'Tem aqui um convite para o Motorcycle Deal Tracker. Abra o link para '
-    'criar a sua conta (válido 14 dias, só para uma conta):';
+String inviteShareText({AppLanguage language = AppLanguage.portuguese}) =>
+    language.messages.hereIsInviteToMotorcycleDealTrackerOpen;
 
 /// What an invite page says when its code can't be used; null when it can.
-String? inviteStatusText(InviteStatus status) => switch (status) {
+String? inviteStatusText(
+  InviteStatus status, {
+  AppLanguage language = AppLanguage.portuguese,
+}) => switch (status) {
   InviteStatus.ok => null,
-  InviteStatus.used =>
-    'Este convite já foi usado. Peça um novo a quem o enviou.',
-  InviteStatus.expired => 'Este convite expirou. Peça um novo a quem o enviou.',
+  InviteStatus.used => language.messages.thisInviteHasAlreadyBeenUsedAskSender,
+  InviteStatus.expired => language.messages.thisInviteHasExpiredAskSenderForNew,
   InviteStatus.unknown =>
-    'Este convite não existe ou foi cancelado. Verifique o link ou peça um '
-        'novo.',
+    language.messages.thisInviteDoesNotExistOrWasCancelled,
 };
 
 /// What is wrong with the form, or null.
-String? joinFormProblem(String email, String password, String confirmation) {
+String? joinFormProblem(
+  String email,
+  String password,
+  String confirmation, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final e = email.trim();
   if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(e)) {
-    return 'Indique um email válido.';
+    return language.messages.enterValidEmailAddress;
   }
   if (password.length < 8) {
-    return 'A palavra-passe precisa de pelo menos 8 caracteres.';
+    return language.messages.yourPasswordNeedsAtLeast8Characters;
   }
-  if (password != confirmation) return 'As palavras-passe não coincidem.';
+  if (password != confirmation) return language.messages.passwordsDoNotMatch;
   return null;
 }
 
 /// The message for a failed redeem, from the database's error code.
-String redeemErrorText(String? code) => switch (code) {
-  'P0002' => inviteStatusText(InviteStatus.unknown)!,
-  '23505' =>
-    'Este email já tem conta. Inicie sessão em Mais › Conta, ou use outro '
-        'email.',
-  '22023' => 'Verifique o email e a palavra-passe (pelo menos 8 caracteres).',
-  '55000' =>
-    'A criação de contas ainda não está disponível. Tente daqui a algumas '
-        'horas.',
-  _ => 'Não foi possível criar a conta. Tente novamente.',
+String redeemErrorText(
+  String? code, {
+  AppLanguage language = AppLanguage.portuguese,
+}) => switch (code) {
+  'P0002' => inviteStatusText(InviteStatus.unknown, language: language)!,
+  '23505' => language.messages.thisEmailAlreadyHasAccountSignInThrough,
+  '22023' => language.messages.checkYourEmailAndPasswordAtLeast8,
+  '55000' => language.messages.accountCreationIsNotAvailableYetTryAgain,
+  _ => language.messages.couldNotCreateAccountTryAgain,
 };
 
 /// The second line of an invite in the admin list.
@@ -61,18 +65,27 @@ String inviteSubtitle(
   Invite invite, {
   required DateTime now,
   Map<String, String> emails = const {},
+  AppLanguage language = AppLanguage.portuguese,
 }) {
   if (invite.usedAt != null) {
     final who = emails[invite.usedBy];
-    return 'Usado${who == null ? '' : ' por $who'} a '
-        '${Formatters.date(invite.usedAt!)}';
+    return language.messages.usedOn(
+      value: who == null ? '' : language.messages.by(who: who),
+      date: Formatters.date(invite.usedAt!),
+    );
   }
   if (!invite.expiresAt.isAfter(now)) {
-    return 'Expirou a ${Formatters.date(invite.expiresAt)}';
+    return language.messages.expiredOn(date: Formatters.date(invite.expiresAt));
   }
   final days = invite.expiresAt.difference(now).inHours ~/ 24;
-  return 'Por usar · expira '
-      '${days < 1 ? 'hoje' : 'dentro de $days ${days == 1 ? 'dia' : 'dias'}'}';
+  return language.messages.unusedExpires(
+    value: days < 1
+        ? language.messages.today
+        : language.messages.inText(
+            days: (days).toString(),
+            value: days == 1 ? language.messages.day : language.messages.days,
+          ),
+  );
 }
 
 /// Whether the invite can still make an account.
@@ -80,13 +93,18 @@ bool invitePending(Invite invite, DateTime now) =>
     invite.usedAt == null && invite.expiresAt.isAfter(now);
 
 /// The second line of an account in the admin list.
-String accountSubtitle(Account account) {
+String accountSubtitle(
+  Account account, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final parts = [
-    if (account.isAdmin) 'Administrador',
-    'Criada a ${Formatters.date(account.createdAt)}',
+    if (account.isAdmin) language.messages.administrator,
+    language.messages.createdOn(date: Formatters.date(account.createdAt)),
     account.lastSignInAt == null
-        ? 'nunca entrou'
-        : 'última entrada a ${Formatters.date(account.lastSignInAt!)}',
+        ? language.messages.neverSignedIn
+        : language.messages.lastSignedInOn(
+            date: Formatters.date(account.lastSignInAt!),
+          ),
   ];
   return parts.join(' · ');
 }

@@ -23,6 +23,7 @@ self.addEventListener('push', (event) => {
     self.registration.showNotification(n.title || 'Deal Tracker', {
       body: n.body || '',
       tag: n.tag,
+      lang: n.lang || n.language || 'pt',
       icon: 'icons/Icon-192.png',
       badge: 'icons/Icon-192.png',
       data: { url: n.navigate || n.url || '/' },

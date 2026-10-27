@@ -17,6 +17,7 @@ import '../cubit/alerts_state.dart';
 import '../cubit/saved_searches_cubit.dart';
 import '../cubit/saved_searches_state.dart';
 import '../widgets/edit_saved_search_sheet.dart';
+import '../../../../core/localization/localizations.dart';
 
 class AlertsPage extends StatelessWidget {
   const AlertsPage({super.key});
@@ -37,23 +38,22 @@ class AlertsPage extends StatelessWidget {
   }
 
   Future<void> _edit(BuildContext context, ListingAlert alert) async {
+    final messageStrings = context.strings;
+
     final searches = getIt<SavedSearchesCubit>();
     final alerts = context.read<AlertsCubit>();
     final messenger = ScaffoldMessenger.of(context);
     await searches.load();
     if (!context.mounted) return;
     if (searches.state.status != SavedSearchesStatus.success) {
-      showMessage(
-        messenger,
-        'Não foi possível carregar a pesquisa deste alerta',
-      );
+      showMessage(messenger, messageStrings.couldNotLoadThisAlertSSearch);
       return;
     }
     final search = searches.state.searches
         .where((search) => search.id == alert.searchId)
         .firstOrNull;
     if (search == null) {
-      showMessage(messenger, 'A pesquisa deste alerta já não existe');
+      showMessage(messenger, messageStrings.thisAlertSSearchNoLongerExists);
       return;
     }
     if (await editSavedSearch(context, search: search, cubit: searches)) {
@@ -62,14 +62,14 @@ class AlertsPage extends StatelessWidget {
   }
 
   Future<void> _delete(BuildContext context, ListingAlert alert) async {
+    final messageStrings = context.strings;
+
     final cubit = context.read<AlertsCubit>();
     final messenger = ScaffoldMessenger.of(context);
     if (!await confirmDelete(
       context,
-      title: 'Eliminar alerta?',
-      message:
-          'Este alerta será eliminado da sua lista. '
-          'A pesquisa e os restantes alertas não serão alterados.',
+      title: messageStrings.deleteAlert,
+      message: messageStrings.thisAlertWillBeRemovedFromYourList,
     )) {
       return;
     }
@@ -77,7 +77,9 @@ class AlertsPage extends StatelessWidget {
     if (messenger.mounted) {
       showMessage(
         messenger,
-        deleted ? 'Alerta eliminado' : 'Não foi possível eliminar o alerta',
+        deleted
+            ? messageStrings.alertDeleted
+            : messageStrings.couldNotDeleteAlert,
       );
     }
   }
@@ -88,13 +90,13 @@ class AlertsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Alertas'),
+        title: Text(context.strings.alerts),
         actions: [
           BlocBuilder<AlertsCubit, AlertsState>(
             buildWhen: (previous, current) =>
                 previous.unreadCount != current.unreadCount,
             builder: (context, state) => IconButton(
-              tooltip: 'Marcar todos como lidos',
+              tooltip: context.strings.markAllAsRead,
               icon: const Icon(Icons.done_all),
               onPressed: state.unreadCount == 0
                   ? null
@@ -102,7 +104,7 @@ class AlertsPage extends StatelessWidget {
             ),
           ),
           IconButton(
-            tooltip: 'Atualizar',
+            tooltip: context.strings.refresh,
             icon: const Icon(Icons.refresh),
             onPressed: () => context.read<AlertsCubit>().load(),
           ),
@@ -117,19 +119,18 @@ class AlertsPage extends StatelessWidget {
             case AlertsStatus.failure:
               return StateMessage(
                 icon: Icons.cloud_off,
-                title: 'Não foi possível carregar os alertas',
-                message: 'Verifique a ligação e tente novamente.',
-                actionLabel: 'Tentar novamente',
+                title: context.strings.couldNotLoadAlerts,
+                message: context.strings.checkYourConnectionAndTryAgain,
+                actionLabel: context.strings.retry,
                 onAction: () => context.read<AlertsCubit>().load(),
               );
             case AlertsStatus.success:
               if (state.alerts.isEmpty) {
                 return StateMessage(
                   icon: Icons.notifications_none,
-                  title: 'Ainda não tem alertas',
-                  message:
-                      'Guarde uma pesquisa e avisamos quando surgir um anúncio novo.',
-                  actionLabel: 'Ver pesquisas',
+                  title: context.strings.youHaveNoAlertsYet,
+                  message: context.strings.saveSearchAndWeWillLetYouKnow,
+                  actionLabel: context.strings.viewSearches,
                   onAction: () => context.go(AppRoutes.searches),
                 );
               }
@@ -143,18 +144,19 @@ class AlertsPage extends StatelessWidget {
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
                       children: [
-                        const PageIntro(
-                          eyebrow: 'Alertas',
-                          title: 'O que mudou',
-                          description:
-                              'Novos anúncios, baixas de preço e novidades '
-                              'das motas que acompanha. Deslize para a esquerda '
-                              'para eliminar ou para a direita para editar '
-                              'a pesquisa de origem.',
+                        PageIntro(
+                          eyebrow: context.strings.alerts,
+                          title: context.strings.whatChanged,
+                          description: context
+                              .strings
+                              .newListingsPriceDropsAndUpdatesAboutBikes,
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          unreadAlertsText(state.unreadCount),
+                          unreadAlertsText(
+                            state.unreadCount,
+                            language: context.language,
+                          ),
                           style: theme.textTheme.labelLarge?.copyWith(
                             color: state.unreadCount > 0
                                 ? theme.colorScheme.primary
@@ -162,7 +164,10 @@ class AlertsPage extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        for (final day in groupAlertsByDay(state.alerts)) ...[
+                        for (final day in groupAlertsByDay(
+                          state.alerts,
+                          language: context.language,
+                        )) ...[
                           Padding(
                             padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
                             child: Row(
@@ -183,7 +188,10 @@ class AlertsPage extends StatelessWidget {
                             _AlertTile(
                               key: ValueKey(alert.id),
                               alert: alert,
-                              title: alertTitle(alert),
+                              title: alertTitle(
+                                alert,
+                                language: context.language,
+                              ),
                               icon: _icon(alert.type),
                               onTap: () => _open(context, alert),
                               onEdit: alert.searchId == null
@@ -294,7 +302,7 @@ class _AlertTile extends StatelessWidget {
                             Padding(
                               padding: const EdgeInsets.only(top: 6),
                               child: Semantics(
-                                label: 'Não lido',
+                                label: context.strings.unread,
                                 child: Container(
                                   width: 8,
                                   height: 8,
@@ -307,20 +315,26 @@ class _AlertTile extends StatelessWidget {
                             ),
                           ],
                           PopupMenuButton<_AlertAction>(
-                            tooltip: 'Opções do alerta',
+                            tooltip: context.strings.alertOptions,
                             onSelected: (action) => switch (action) {
                               _AlertAction.edit => onEdit?.call(),
                               _AlertAction.delete => onDelete(),
                             },
-                            itemBuilder: (_) => [
+                            itemBuilder: (localizationContext) => [
                               if (onEdit != null)
-                                const PopupMenuItem(
+                                PopupMenuItem(
                                   value: _AlertAction.edit,
-                                  child: Text('Editar pesquisa'),
+                                  child: Text(
+                                    localizationContext.strings.editSearch,
+                                  ),
                                 ),
-                              const PopupMenuItem(
+                              PopupMenuItem(
                                 value: _AlertAction.delete,
-                                child: Text('Eliminar alerta'),
+                                child: Text(
+                                  localizationContext
+                                      .strings
+                                      .deleteAlertAlertsPage,
+                                ),
                               ),
                             ],
                           ),
@@ -328,7 +342,7 @@ class _AlertTile extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        alertDetailsLine(alert),
+                        alertDetailsLine(alert, language: context.language),
                         style: theme.textTheme.bodyMedium,
                       ),
                       const SizedBox(height: 6),
