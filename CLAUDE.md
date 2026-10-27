@@ -144,16 +144,19 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   migrations: apply the migrations the
                                   database is missing (tested again
                                   first; skipped if none) while the app's
-                                  tests run on the merged code; then, side
-                                  by side, build and publish the app to
-                                  Cloudflare Pages and the Android APK
+                                  tests run on the merged code and the web
+                                  app and the Android APK are built (jobs
+                                  web, android); only when the migrations
+                                  and tests passed, publish them (deploy:
+                                  Cloudflare Pages; android-release)
                                   (job android, tool/android_build.sh:
                                   app/android made by `flutter create`,
                                   never committed, fitted by
                                   tool/android_manifest.py; ~/.gradle and
                                   the NDK cached, tool/android_cache_keys.sh,
                                   android-check.yml only reads them; signed with
-                                  the secrets' key, on the GitHub release
+                                  the secrets' key; android-release puts it
+                                  on the GitHub release
                                   `android` with android.json, the build
                                   number the app compares with its own)
 .github/workflows/android-check.yml  PRs touching app/packages, the

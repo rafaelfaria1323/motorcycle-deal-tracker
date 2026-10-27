@@ -2,8 +2,8 @@
 
 The Motorcycle Deal Tracker app, in Portuguese (pt-PT) and English (en-GB).
 Published to Cloudflare Pages on every merge that touches `app/`
-(`.github/workflows/deploy-web.yml`: `flutter test`, then
-`flutter build web`). The same deploy builds the Android app (`app/android`
+(`.github/workflows/deploy-web.yml`: `flutter build web` beside
+`flutter test`, published only when the tests pass). The same deploy builds the Android app (`app/android`
 is made there, not committed) and publishes it on the GitHub release
 `android`; Mais › "App Android" offers it on Android phones, and in the
 Android app says when a newer version is out and installs it (the in-repo

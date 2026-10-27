@@ -1,10 +1,10 @@
 name: Deploy web app
 
-# On a merge to main: first the database (the migrations it is missing, if
-# any) and, at the same time, the app's tests on the merged code; then the
-# web app and the Android app side by side, so the app never reaches a
-# database without the columns it reads. A failed migration or test stops
-# both.
+# On a merge to main, all at once: the database (the migrations it is
+# missing, if any), the app's tests on the merged code, and the web app's
+# and the Android app's builds. Only publishing waits for the migrations
+# and the tests, so the app never reaches a database without the columns
+# it reads; a failed migration or test publishes neither.
 on:
   workflow_dispatch: # manual "Run workflow" button
   push:
@@ -123,14 +123,10 @@ jobs:
       - name: Test
         run: cd app && flutter test
 
-  deploy:
-    needs: [migrate, test]
+  # The web app, built beside the tests; published by `deploy`.
+  web:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
     steps:
       - uses: actions/checkout@v7
 
@@ -164,6 +160,25 @@ jobs:
             --dart-define=APK_URL="$apk_url"
           ../tool/web_preconnect.sh build/web/index.html "$SUPABASE_URL" "$SUPABASE_PUBLISHABLE_KEY"
 
+      - uses: actions/upload-artifact@v7
+        with:
+          name: web
+          path: app/build/web
+          retention-days: 1
+
+  deploy:
+    needs: [migrate, test, web]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: web
+          path: app/build/web
+
       # The first deploy creates the Pages project.
       - name: Deploy to Cloudflare Pages
         run: |
@@ -173,17 +188,16 @@ jobs:
           npx --yes wrangler@4 pages deploy app/build/web \
             --project-name="$PAGES_PROJECT" --branch=main --commit-dirty=true
 
-  # The Android app, next to the web app (same tested code): built, signed
-  # with the key in the secrets (the same key every time, or Android
-  # refuses to install an update over the app) and put on the `android`
+  # The Android app, built beside the tests and signed with the key in the
+  # secrets (the same key every time, or Android refuses to install an
+  # update over the app); `android-release` puts it on the `android`
   # release. Skipped until ANDROID_KEYSTORE_BASE64 and
   # ANDROID_KEYSTORE_PASSWORD are set (docs/hosting.md, "Android app").
   android:
-    needs: [migrate, test]
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    permissions:
-      contents: write # the release
+    outputs:
+      ready: ${{ steps.key.outputs.ready }}
     env:
       KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
       KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -272,12 +286,31 @@ jobs:
           rm "$keystore"
           "$apksigner" verify --print-certs motorcycle-deal-tracker.apk
 
-      # The first deploy creates the release; later ones replace its APK
-      # and android.json.
-      - name: Publish APK
+      - uses: actions/upload-artifact@v7
         if: steps.key.outputs.ready == 'true'
+        with:
+          name: apk
+          path: motorcycle-deal-tracker.apk
+          retention-days: 1
+
+  # The first deploy creates the release; later ones replace its APK and
+  # android.json.
+  android-release:
+    needs: [migrate, test, android]
+    if: needs.android.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # the release
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: apk
+
+      - name: Publish APK
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
           BUILD: ${{ github.run_number }}
         run: |
           notes="Versão $BUILD (commit $GITHUB_SHA). Instale a app no Android a partir deste ficheiro; depois, a própria app atualiza-se em Mais › App Android."
