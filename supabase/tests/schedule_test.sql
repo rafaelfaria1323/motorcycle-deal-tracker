@@ -20,10 +20,20 @@ begin
   assert public.dispatch_collection(timestamptz '2026-12-01 09:00+00') is null, 'not due: nothing';
   assert public.dispatch_collection(timestamptz '2026-12-01 03:00+00') is null, 'not due at night: nothing';
   assert (select count(*) from net.calls) = 0, 'and nothing is sent';
-  assert (select schedule from cron.job where jobname = 'weekly-summary') = '52 7 * * 1',
-    'weekly summary on Mondays at 07:52';
-  assert (select command from cron.job where jobname = 'weekly-summary') like '%dispatch_workflow(''weekly-summary.yml'')%',
-    'the summary job starts weekly-summary.yml';
+  assert (select schedule from cron.job where jobname = 'weekly-summary') = '52 * * * 1',
+    'the summary job checks every Monday hour at minute 52';
+  assert (select command from cron.job where jobname = 'weekly-summary') like '%dispatch_weekly_summary()%',
+    'the summary job starts weekly-summary.yml when due';
+  -- Mondays at 08:52 Lisbon time: 08:52 UTC in winter, 07:52 UTC in summer.
+  assert (select array_agg(h order by h) from generate_series(0, 23) h
+          where public.weekly_summary_due(timestamptz '2026-11-02 00:52+00' + h * interval '1 hour'))
+       = array[8], 'winter: 08:52 UTC';
+  assert (select array_agg(h order by h) from generate_series(0, 23) h
+          where public.weekly_summary_due(timestamptz '2026-07-06 00:52+00' + h * interval '1 hour'))
+       = array[7], 'summer: 07:52 UTC';
+  assert not public.weekly_summary_due(timestamptz '2026-11-03 08:52+00'), 'not on a Tuesday';
+  assert public.dispatch_weekly_summary(timestamptz '2026-11-02 07:52+00') is null,
+    'not due: nothing';
   assert (select schedule from cron.job where jobname = 'collection-watchdog') = '20 * * * *',
     'the watchdog every hour at minute 20';
 
@@ -40,6 +50,9 @@ begin
   insert into vault.secrets values ('github_dispatch_token', 'ghp_test');
   assert public.dispatch_collection(timestamptz '2026-12-01 14:00+00') = 42, 'due: started';
   assert (select url from net.calls) like '%/collect.yml/dispatches', 'collect.yml';
+  delete from net.calls where true;
+  assert public.dispatch_weekly_summary(timestamptz '2026-11-02 08:52+00') = 42, 'due: started';
+  assert (select url from net.calls) like '%/weekly-summary.yml/dispatches', 'weekly-summary.yml';
   delete from net.calls where true;
   assert public.dispatch_workflow('weekly-summary.yml') = 42, 'the request id is returned';
   assert (select count(*) from net.calls) = 1, 'one request';
