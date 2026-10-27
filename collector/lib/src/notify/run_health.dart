@@ -1,16 +1,21 @@
+/// A recorded run as the health check sees it: its status (`ok`,
+/// `blocked`, `partial` or `failed`, see `runStatus`) and its problems
+/// (runProblems, `site: line`).
+typedef RunOutcome = ({String status, List<String> problems});
+
 /// The notification (Web Push, to the admins' devices) for a change in the
-/// collection's health between the [previous] run's status and this run's
-/// [current] one (`ok`, `blocked`, `failed`, see `runStatus`), or null when
-/// nothing changed: a problem is reported once, not on every run, and so
-/// is the recovery. A tap opens "Estado da recolha".
-Map<String, Object?>? runHealthMessage({
-  required String? previous,
-  required String current,
-  required String log,
-}) {
+/// collection's health, from the last [runs], newest first (this run, then
+/// the two before it, when there are), or null when nothing changed: a
+/// problem is reported once, not on every run, and so is the recovery. A
+/// `partial` run counts as fine unless one of its sites also failed in
+/// the run before (`partial` or `failed`): one lost search is read again
+/// by the next run. A tap opens "Estado da recolha".
+Map<String, Object?>? runHealthMessage(List<RunOutcome> runs) {
+  final current = _seenAs(runs, 0);
+  final previous = runs.length > 1 ? _seenAs(runs, 1) : null;
   if (current == previous) return null;
   if (current == 'ok' && previous == null) return null;
-  final problems = current == 'ok' ? const <String>[] : runProblems(log);
+  final again = current == 'failed' && runs.first.status == 'partial';
   final (title, advice) = switch (current) {
     'ok' => ('✅ A recolha de anúncios voltou a funcionar.', null),
     'blocked' => (
@@ -19,33 +24,58 @@ Map<String, Object?>? runHealthMessage({
           'automaticamente.',
     ),
     _ => (
-      '⚠️ A recolha de anúncios falhou.',
+      again
+          ? '⚠️ A recolha de anúncios falhou duas vezes seguidas.'
+          : '⚠️ A recolha de anúncios falhou.',
       'Os preços na app podem ficar desatualizados até a recolha voltar a '
           'funcionar.',
     ),
   };
   return {
     'title': title,
-    'body': [...problems, ?advice].join('\n'),
+    'body': [if (current != 'ok') ...runs.first.problems, ?advice].join('\n'),
     'url': '/#/collection-status',
     'tag': 'run-health',
   };
 }
+
+/// The status of `runs[i]` as the admins are told it: a `partial` run is
+/// `failed` when a site of it also failed in the run before, else `ok`.
+String _seenAs(List<RunOutcome> runs, int i) {
+  final run = runs[i];
+  if (run.status != 'partial') return run.status;
+  final before = i + 1 < runs.length ? runs[i + 1] : null;
+  if (before == null || !const {'partial', 'failed'}.contains(before.status)) {
+    return 'ok';
+  }
+  final sites = problemSites(before.problems);
+  return problemSites(run.problems).any(sites.contains) ? 'failed' : 'ok';
+}
+
+/// The sites named in a run's [problems] (`olx: Failed: …` -> olx).
+Set<String> problemSites(List<String> problems) => {
+  for (final p in problems)
+    if (RegExp(r'^(\w+): (.*)$').firstMatch(p) case final m?
+        when _problemMarks.any(m.group(2)!.startsWith))
+      m.group(1)!,
+};
+
+/// refresh.dart's error lines.
+const _problemMarks = [
+  'Not fetched: ',
+  'Stopped, the site pushed back: ',
+  'Failed: ',
+  'Cannot read the saved pages: ',
+  'Not a search results page: ',
+  'Read issue: ',
+  'Database error: ',
+];
 
 /// What went wrong in a run, from refresh.dart's error lines, each with the
 /// site it happened on (`standvirtual: Failed: …`). Without any, the last
 /// line that is not make's own (an error before the sites started). At most
 /// [max] lines, each cut to [maxChars].
 List<String> runProblems(String log, {int max = 5, int maxChars = 200}) {
-  const marks = [
-    'Not fetched: ',
-    'Stopped, the site pushed back: ',
-    'Failed: ',
-    'Cannot read the saved pages: ',
-    'Not a search results page: ',
-    'Read issue: ',
-    'Database error: ',
-  ];
   final lines = log.split('\n').map((l) => l.trim()).where((l) => l != '');
   final problems = <String>[];
   String? site;
@@ -54,7 +84,7 @@ List<String> runProblems(String log, {int max = 5, int maxChars = 200}) {
     if (section != null) {
       final name = section.group(1)!;
       site = name == 'all sites' ? null : name;
-    } else if (marks.any(line.startsWith)) {
+    } else if (_problemMarks.any(line.startsWith)) {
       problems.add(site == null ? line : '$site: $line');
     }
   }

@@ -123,7 +123,7 @@ void main() {
       expect(result.log, contains('1 read issue(s)'));
       expect(result.code, 65);
       expect(runProblems(result.log).single, startsWith('Read issue: '));
-      expect(result.log, contains('Scored 0 listing(s).'));
+      expect(result.log, contains('Scored 0 listing(s) in '));
       expect(result.log, contains('Alerts created: 0'));
     },
   );

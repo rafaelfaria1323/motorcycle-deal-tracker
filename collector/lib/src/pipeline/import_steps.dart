@@ -175,8 +175,13 @@ Future<void> finishRun(ListingStore store, {StringSink? out}) async {
   //    back or disappear without anything being inserted.
   final duplicates = await store.markDuplicates();
   log.writeln('Duplicates flagged: $duplicates');
+  // Timed: the scoring is the run's longest statement, under the
+  // collector role's 60 s statement timeout (read back by scoringMs).
+  final scoring = Stopwatch()..start();
   final scored = await store.recalculateScores();
-  log.writeln('Scored $scored listing(s).');
+  log.writeln(
+    'Scored $scored listing(s) in ${scoring.elapsedMilliseconds} ms.',
+  );
 
   // 6. Last, once statuses, duplicates and prices are final: who needs to
   //    be told about what.

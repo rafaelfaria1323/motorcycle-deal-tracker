@@ -1,11 +1,35 @@
-/// The outcome of one scheduled run, from its exit code and its log.
-/// make turns every failure into exit code 2, so a block is recognised by the
-/// fetcher's own wording.
+import '../notify/run_health.dart';
+
+/// The outcome of one scheduled run, from its exit code and its log: `ok`,
+/// `blocked`, `partial` or `failed`. make turns every failure into exit
+/// code 2, so a block is recognised by the fetcher's own wording.
+///
+/// `partial`: the run got to its end (scores, alerts and notifications)
+/// and its only problems were a site's passing fetch failures (`Failed: `,
+/// a timeout, a dropped connection or an HTTP error still there after the
+/// retry): the other searches and sites were read, and the lost ones are
+/// read again by the next run. The admins hear of it only when the same
+/// site fails again in the next run (runHealthMessage).
 String runStatus(int exitCode, String log) {
   if (exitCode == 0) return 'ok';
   const blockedMarks = ['the site pushed back', 'paused until'];
   if (blockedMarks.any(log.contains)) return 'blocked';
-  return 'failed';
+  final problems = runProblems(log, max: 1 << 20, maxChars: 1 << 20);
+  final passing =
+      log.contains(RegExp(r'^\s*Notifications sent: ', multiLine: true)) &&
+      problems.isNotEmpty &&
+      problems.every(RegExp(r'^\w+: Failed: ').hasMatch);
+  return passing ? 'partial' : 'failed';
+}
+
+/// How long the run's scoring took (finishRun's `Scored N listing(s) in
+/// M ms.`), or null when the run didn't get there.
+int? scoringMs(String log) {
+  final matches = RegExp(
+    r'^\s*Scored \d+ listing\(s\) in (\d+) ms\.',
+    multiLine: true,
+  ).allMatches(log);
+  return matches.isEmpty ? null : int.parse(matches.last.group(1)!);
 }
 
 /// The end of the log, which is where the counts and errors are.

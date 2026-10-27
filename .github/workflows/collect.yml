@@ -64,7 +64,9 @@ jobs:
           echo "code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
           exit 0
 
+      # Its outputs.status: ok, partial, blocked or failed (runStatus).
       - name: Record the run
+        id: record
         if: always()
         run: >
           cd collector &&
@@ -90,6 +92,16 @@ jobs:
           path: run.log
           retention-days: 7
 
+      # A partial run (a site's passing fetch failure; the rest was read
+      # and scored) stays green with a warning: the app shows it, and the
+      # admins are told when the same site fails again in the next run.
+      - name: Warn about a partial run
+        if: steps.refresh.outputs.code != '0' && steps.record.outputs.status == 'partial'
+        run: >
+          echo "::warning title=Recolha incompleta::Uma pesquisa ou um site
+          ficou por ler por uma falha passageira (ver run.log); a próxima
+          recolha volta a ler."
+
       - name: Fail the job if the refresh failed
-        if: steps.refresh.outputs.code != '0'
+        if: steps.refresh.outputs.code != '0' && steps.record.outputs.status != 'partial'
         run: exit 1

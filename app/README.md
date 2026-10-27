@@ -105,7 +105,7 @@ sign-in encrypted with a key in the Android Keystore
   model names are tucked under "Outros nomes do modelo"), "Comparar modelos"
   (your models side by side: typical asking
   price and its spread, the typical bike, time until leaving the market,
-  price drops, depreciation; cheapest first), the collection status (last run, what it found, requests, next run; admins: "Estado da recolha" with the last runs and their errors, each site's requests today and pause, each search's pages read and ads found in the last run, the GitHub token's expiry and the database's size against the free plan's 500 MB, "Recolher agora") and data quality
+  price drops, depreciation; cheapest first), the collection status (last run, what it found, requests, next run; admins: "Estado da recolha" with the last runs, their errors and how long the scores took, the last 30 days' failures by site and cause, each site's requests today and pause, each search's pages read and ads found in the last run, the GitHub token's expiry and the database's size against the free plan's 500 MB, "Recolher agora") and data quality
   per site (live listings, unmatched, duplicates, missing year/km/location,
   when listings were last seen, sudden price changes).
 

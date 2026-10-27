@@ -132,9 +132,114 @@ String searchReadText(SearchRead s) {
       '${s.inFull ? '' : ' · não lida toda'}';
 }
 
-/// "Correu bem", "Bloqueada" or "Falhou".
+/// "Correu bem", "Incompleta", "Bloqueada" or "Falhou".
 String runStatusLabel(String status) => switch (status) {
   'ok' => 'Correu bem',
+  'partial' => 'Incompleta',
   'blocked' => 'Bloqueada',
   _ => 'Falhou',
 };
+
+/// The database stops the collector's statements after this long
+/// (service_role's statement_timeout); the scoring is the longest one.
+const scoringLimit = Duration(seconds: 60);
+
+/// "Pontuações em 4,2 s"; a warning past half of [scoringLimit], before
+/// a growing catalogue makes the scoring fail.
+({String text, bool warning}) scoringText(Duration time) {
+  final seconds = (time.inMilliseconds / 1000)
+      .toStringAsFixed(1)
+      .replaceAll('.', ',');
+  final warning = time * 2 > scoringLimit;
+  return (
+    text: warning
+        ? 'As pontuações demoraram $seconds s, mais de metade do limite de '
+              '${scoringLimit.inSeconds} s da base de dados.'
+        : 'Pontuações em $seconds s',
+    warning: warning,
+  );
+}
+
+/// What made a run fail, from one of its problem lines (refresh.dart's
+/// wording, after the site).
+String failureCause(String problem) {
+  final line = _withoutSite(problem).line;
+  return switch (line) {
+    _ when line.startsWith('Stopped, the site pushed back') =>
+      'O site recusou os pedidos',
+    _ when line.startsWith('Not fetched: ') =>
+      'Em pausa ou pedido não permitido',
+    _ when line.startsWith('Failed: ') =>
+      'Sem resposta ou erro do site (tempo esgotado, HTTP 5xx)',
+    _ when line.startsWith('Database error: ') => 'Erro da base de dados',
+    _
+        when line.startsWith('Read issue: ') ||
+            line.startsWith('Cannot read the saved pages: ') ||
+            line.startsWith('Not a search results page: ') =>
+      'Páginas que não foi possível ler',
+    _ => 'Outro erro',
+  };
+}
+
+/// `olx: Failed: …` -> (site: olx, line: Failed: …); no site when the
+/// line names none (an error after the sites, or before them).
+({String? site, String line}) _withoutSite(String problem) {
+  final match = RegExp(r'^(\w+): (.*)$').firstMatch(problem);
+  if (match == null || !siteNames.containsKey(match.group(1))) {
+    return (site: null, line: problem);
+  }
+  return (site: match.group(1), line: match.group(2)!);
+}
+
+/// The runs in [runs] that were not ok, by site and cause, most frequent
+/// first: "OLX · Sem resposta ou erro do site (tempo esgotado, HTTP 5xx):
+/// 3 recolhas, a última a 26/10 às 14:02". A run counts once per site and
+/// cause; one without problem lines is "Outro erro".
+List<String> failureHistoryText(List<CollectorRun> runs) {
+  final groups = <String, ({int runs, DateTime last})>{};
+  for (final run in runs.where((r) => r.status != 'ok')) {
+    final keys = {
+      for (final problem in run.problems)
+        [
+          if (_withoutSite(problem).site case final site?) siteNames[site],
+          failureCause(problem),
+        ].join(' · '),
+    };
+    if (keys.isEmpty) keys.add('Outro erro');
+    for (final key in keys) {
+      final seen = groups[key];
+      groups[key] = (
+        runs: (seen?.runs ?? 0) + 1,
+        last: seen == null || run.startedAt.isAfter(seen.last)
+            ? run.startedAt
+            : seen.last,
+      );
+    }
+  }
+  final sorted = groups.entries.toList()
+    ..sort(
+      (a, b) => b.value.runs != a.value.runs
+          ? b.value.runs.compareTo(a.value.runs)
+          : b.value.last.compareTo(a.value.last),
+    );
+  return [
+    for (final MapEntry(:key, :value) in sorted)
+      '$key: ${value.runs} ${value.runs == 1 ? 'recolha' : 'recolhas'}, '
+          '${value.runs == 1 ? 'a' : 'a última a'} '
+          '${Formatters.date(value.last).substring(0, 5)} às '
+          '${Formatters.time(value.last)}',
+  ];
+}
+
+/// "4 de 180 recolhas não correram bem", over [runs] (at least one).
+String failureShareText(List<CollectorRun> runs) {
+  final failed = runs.where((r) => r.status != 'ok').length;
+  if (failed == 0) {
+    return runs.length == 1
+        ? 'A recolha correu bem'
+        : 'As ${runs.length} recolhas correram todas bem';
+  }
+  return '$failed de ${runs.length} '
+      '${runs.length == 1 ? 'recolha' : 'recolhas'} '
+      '${failed == 1 ? 'não correu' : 'não correram'} bem';
+}
