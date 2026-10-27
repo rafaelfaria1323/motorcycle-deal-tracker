@@ -493,6 +493,28 @@ ChromeDriver; the test's data never comes from Supabase.*
 ## N.21 Flutter dependency compatibility ✅
 *2026-10-27: the app's `intl` lower bound is 0.20.2 rather than 0.20.3, so Flutter 3.44 / Dart 3.12 can resolve `go_router`'s transitive SDK localizations. Compatible newer patch releases remain allowed; no SDK pin or dependency override hides the conflict. Regenerated the app lockfile with the supported SDK and kept the Android JNI workarounds. The failing `flutter pub get` now succeeds, and the standard `make check` runs without `--no-pub`. No app behavior changes.*
 
+## N.22 Portuguese and English throughout the app ✅
+*2026-10-27 (Rafael): real bundled pt-PT/en-GB translations, not runtime
+replacement or a translation service. Mais › "Idioma" / More › "Language"
+switches navigation, screens, dialogs, explanations, seller-message
+templates and existing error states without resetting the route. Portuguese
+remains the default. Typed ARB resources handle placeholders/plurals; prices
+and numeric input follow the chosen separators while keeping euros/km.
+`LanguageCubit` uses account generations and request ordering, device/account
+caches and explicit load/save failures; `account_languages` adds owner-only
+real-account persistence, checked for cross-account/anonymous access.
+The pure-Dart collector loads recipients' preferences in bounded batches
+for alerts, test pushes, mixed-language admin notices and weekly summaries;
+lookup failures leave pending alerts unsent, and summaries are persisted as
+neutral JSON before delivery. Web Push/FCM carry the language; the Android
+channel keeps its ID. Original seller/user content and technical diagnostics
+are untouched. Regression coverage includes resource parity, both languages'
+counts and formats, account races/failures, live UI switching and narrow /
+enlarged layouts, immutable label collections, mixed-recipient delivery,
+preference outages and database grants/RLS. The offline browser flow also
+switches language and checks the document language. Preview account saves
+need the migration, applied on merge before deployment.*
+
 # Security and privacy ✅
 
 *Started 2026-10-22, before anyone else uses the app. Not done: Cloudflare Access in front of the site (Rafael, 2026-10-22: not wanted for now; `docs/hosting.md`, Privacy). Decided against: making the repository private (Rafael, 2026-10-21: the free Actions minutes are worth more; old saved pages with phone numbers stay in its git history unless it is rewritten) and encrypting notes, checklists and the home place in the app (Supabase already encrypts its disks; app-side keys would break `distance_km` and need key handling on every device).*

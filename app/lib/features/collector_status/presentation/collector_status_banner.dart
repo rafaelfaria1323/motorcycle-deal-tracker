@@ -6,6 +6,7 @@ import '../../../core/auth/session_cubit.dart';
 import '../domain/collector_run.dart';
 import 'collection_text.dart';
 import 'collector_status_cubit.dart';
+import '../../../core/localization/localizations.dart';
 
 class CollectorStatusBanner extends StatefulWidget {
   const CollectorStatusBanner({super.key});
@@ -49,29 +50,31 @@ class _CollectorStatusBannerState extends State<CollectorStatusBanner> {
             return _card(
               color: scheme.tertiaryContainer,
               icon: Icons.schedule,
-              title: 'Sem atualizações recentes',
-              text:
-                  'A última recolha foi ${agoText(run!.finishedAt)}. '
-                  'Os preços podem estar desatualizados.',
+              title: context.strings.noRecentUpdates,
+              text: context.strings.lastCollectionWasPricesMayBeOutOf(
+                value: agoText(run!.finishedAt, language: context.language),
+              ),
             );
           case CollectorHealth.blocked:
             return _card(
               color: scheme.errorContainer,
               icon: Icons.block,
-              title: 'Recolha bloqueada pelo site',
-              text:
-                  'Na última recolha (${agoText(run!.finishedAt)}) um '
-                  'dos sites recusou os pedidos. A recolha fica em pausa '
-                  'durante 24 h e volta a tentar automaticamente.',
+              title: context.strings.collectionBlockedBySite,
+              text: context.strings
+                  .duringLastCollectionSiteRefusedRequestsCollectionIs(
+                    value: agoText(run!.finishedAt, language: context.language),
+                  ),
             );
           case CollectorHealth.failed:
             return _card(
               color: scheme.errorContainer,
               icon: Icons.error_outline,
-              title: 'A última recolha falhou',
-              text:
-                  '${capitalize(agoText(run!.finishedAt))}. '
-                  'Veja o registo no GitHub Actions.',
+              title: context.strings.lastCollectionFailed,
+              text: context.strings.seeLogInGitHubActions(
+                value: capitalize(
+                  agoText(run!.finishedAt, language: context.language),
+                ),
+              ),
             );
         }
       },

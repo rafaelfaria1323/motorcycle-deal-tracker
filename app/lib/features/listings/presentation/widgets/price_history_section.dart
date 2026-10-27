@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/di/injection.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/formatting/formatters.dart';
+import '../../../../core/localization/localizations.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/entities/price_point.dart';
@@ -28,11 +29,11 @@ class _PriceHistorySectionState extends State<PriceHistorySection> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final seen = seenLine(widget.listing);
-    final siteLine = siteDropLine(widget.listing);
+    final seen = seenLine(widget.listing, language: context.language);
+    final siteLine = siteDropLine(widget.listing, language: context.language);
 
     return SectionCard(
-      title: 'Histórico de preço',
+      title: context.strings.priceHistory,
       children: [
         if (seen != null)
           Text(
@@ -55,7 +56,7 @@ class _PriceHistorySectionState extends State<PriceHistorySection> {
             }
             if (points.length < 2) {
               return Text(
-                'O preço ainda não mudou desde que foi visto pela primeira vez.',
+                context.strings.priceHasNotChangedSinceItWasFirst,
                 style: theme.textTheme.bodyMedium,
               );
             }
@@ -80,6 +81,7 @@ class _PriceHistorySectionState extends State<PriceHistorySection> {
                     width: double.infinity,
                     child: CustomPaint(
                       painter: _PriceChartPainter(
+                        language: context.language,
                         chart: chart,
                         lineColor: theme.colorScheme.primary,
                         gridColor: theme.colorScheme.outlineVariant,
@@ -92,7 +94,10 @@ class _PriceHistorySectionState extends State<PriceHistorySection> {
                     children: [
                       Text(Formatters.date(chart.start), style: labelStyle),
                       const Spacer(),
-                      Text('Hoje', style: labelStyle),
+                      Text(
+                        context.strings.todayCollectionText,
+                        style: labelStyle,
+                      ),
                     ],
                   ),
                 ],
@@ -134,11 +139,11 @@ class _ChangeRow extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(right: 12),
               child: Text(
-                '${delta < 0 ? '↓' : '↑'} ${Formatters.price(delta.abs())}',
+                '${delta < 0 ? '↓' : '↑'} ${Formatters.price(delta.abs(), language: context.language)}',
                 style: TextStyle(color: color),
               ),
             ),
-          Text(Formatters.price(point.price)),
+          Text(Formatters.price(point.price, language: context.language)),
         ],
       ),
     );
@@ -150,12 +155,14 @@ class _ChangeRow extends StatelessWidget {
 /// earlier price as a dashed line.
 class _PriceChartPainter extends CustomPainter {
   _PriceChartPainter({
+    required this.language,
     required this.chart,
     required this.lineColor,
     required this.gridColor,
     required this.labelStyle,
   });
 
+  final AppLanguage language;
   final PriceChart chart;
   final Color lineColor;
   final Color gridColor;
@@ -209,14 +216,23 @@ class _PriceChartPainter extends CustomPainter {
         ..dispose();
     }
 
-    hairline(chart.highestY, Formatters.price(chart.highest));
+    hairline(
+      chart.highestY,
+      Formatters.price(chart.highest, language: language),
+    );
     if (chart.lowest != chart.highest) {
-      hairline(chart.lowestY, Formatters.price(chart.lowest), below: true);
+      hairline(
+        chart.lowestY,
+        Formatters.price(chart.lowest, language: language),
+        below: true,
+      );
     }
     if (chart.reference case final reference?) {
       hairline(
         chart.referenceY!,
-        'Antes: ${Formatters.price(reference)}',
+        language.messages.previouslyPriceHistorySection(
+          price: Formatters.price(reference, language: language),
+        ),
         left: true,
         dashed: true,
       );
@@ -248,6 +264,7 @@ class _PriceChartPainter extends CustomPainter {
   @override
   bool shouldRepaint(_PriceChartPainter old) =>
       old.chart != chart ||
+      old.language != language ||
       old.lineColor != lineColor ||
       old.gridColor != gridColor ||
       old.labelStyle != labelStyle;

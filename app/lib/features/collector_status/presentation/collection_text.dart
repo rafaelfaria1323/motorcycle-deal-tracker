@@ -1,6 +1,7 @@
 import '../../../core/formatting/formatters.dart';
 import '../domain/collector_run.dart';
 import 'collection_status_text.dart';
+import '../../../core/localization/localizations.dart';
 
 /// The collection starts on the hour at these hours, Lisbon time (the
 /// pg_cron job 'collect-listings' and collection_due() in
@@ -36,29 +37,42 @@ Duration lisbonOffset(DateTime utc) {
 
 /// "Próxima recolha: hoje às 20:00" (local time). The run itself waits for
 /// a free GitHub runner, hence the note.
-String nextCollectionText(DateTime now) {
+String nextCollectionText(
+  DateTime now, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final next = nextCollection(now).toLocal();
   final when = switch (Formatters.calendarDays(now, next)) {
-    0 => 'hoje',
-    1 => 'amanhã',
+    0 => language.messages.today,
+    1 => language.messages.tomorrow,
     _ => Formatters.date(next),
   };
   final time =
       '${next.hour.toString().padLeft(2, '0')}:'
       '${next.minute.toString().padLeft(2, '0')}';
-  return 'Próxima recolha: $when às $time (o GitHub pode atrasá-la alguns '
-      'minutos)';
+  return language.messages.nextCollectionAtGitHubMayDelayItBy(
+    value: when,
+    time: time,
+  );
 }
 
 /// "há 3 h" (or minutes, or days).
-String agoText(DateTime time, {DateTime? now}) {
+String agoText(
+  DateTime time, {
+  DateTime? now,
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final diff = (now ?? DateTime.now()).difference(time);
   // A time slightly ahead (clock skew between phone and server) reads as now.
   if (diff.inMinutes < 60) {
-    return 'há ${diff.inMinutes < 0 ? 0 : diff.inMinutes} min';
+    return language.messages.minAgo(
+      value: (diff.inMinutes < 0 ? 0 : diff.inMinutes).toString(),
+    );
   }
-  if (diff.inHours < 48) return 'há ${diff.inHours} h';
-  return 'há ${diff.inDays} dias';
+  if (diff.inHours < 48) {
+    return language.messages.hAgo(inHours: diff.inHours.toString());
+  }
+  return language.messages.daysAgo(days: diff.inDays.toString());
 }
 
 /// Starts a sentence: "há 3 h" -> "Há 3 h".
@@ -74,8 +88,12 @@ String durationText(Duration d) {
 
 /// "Pedidos: Standvirtual 15 · OLX 9" (the sites have no request cap, so
 /// these are the figures to watch); null when the run didn't say.
-String? requestsText(Map<String, int> requests) =>
-    requests.isEmpty ? null : 'Pedidos: ${_perSite(requests)}';
+String? requestsText(
+  Map<String, int> requests, {
+  AppLanguage language = AppLanguage.portuguese,
+}) => requests.isEmpty
+    ? null
+    : language.messages.requests(value: _perSite(requests));
 
 String _perSite(Map<String, int> requests) => [
   for (final MapEntry(:key, :value) in requests.entries)
@@ -85,7 +103,10 @@ String _perSite(Map<String, int> requests) => [
 /// "Pedidos este mês: Standvirtual 420 (15 por recolha) · OLX 280 (10 por
 /// recolha)": each site's total over [runs] and its average over the runs
 /// that counted it; null when none did (older runs).
-String? monthRequestsText(List<CollectorRun> runs) {
+String? monthRequestsText(
+  List<CollectorRun> runs, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final totals = <String, int>{};
   final counted = <String, int>{};
   for (final run in runs) {
@@ -95,14 +116,26 @@ String? monthRequestsText(List<CollectorRun> runs) {
     }
   }
   if (totals.isEmpty) return null;
-  return 'Pedidos este mês: ${[for (final MapEntry(:key, :value) in totals.entries) '${siteNames[key] ?? key} $value '
-        '(${(value / counted[key]!).round()} por recolha)'].join(' · ')}';
+  return language.messages.requestsThisMonth(
+    value: [
+      for (final MapEntry(:key, :value) in totals.entries)
+        language.messages.perCollection(
+          value: siteNames[key] ?? key,
+          value2: (value).toString(),
+          value3: (value / counted[key]!).round().toString(),
+        ),
+    ].join(' · '),
+  );
 }
 
 /// "Hoje: Standvirtual 105 · OLX 70", "Ontem: …", "20/10: …": each local
 /// day's requests per site over [runs] (by when the run started), newest
 /// day first. Days without counted runs are left out.
-List<String> dailyRequestsText(List<CollectorRun> runs, DateTime now) {
+List<String> dailyRequestsText(
+  List<CollectorRun> runs,
+  DateTime now, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final days = <DateTime, Map<String, int>>{};
   for (final run in runs) {
     final start = run.startedAt.toLocal();
@@ -119,8 +152,8 @@ List<String> dailyRequestsText(List<CollectorRun> runs, DateTime now) {
   return [
     for (final day in sorted)
       '${switch (Formatters.calendarDays(day, now)) {
-        0 => 'Hoje',
-        1 => 'Ontem',
+        0 => language.messages.todayCollectionText,
+        1 => language.messages.yesterdayCollectionText,
         _ => Formatters.date(day).substring(0, 5),
       }}: ${_perSite(days[day]!)}',
   ];
@@ -129,7 +162,10 @@ List<String> dailyRequestsText(List<CollectorRun> runs, DateTime now) {
 /// "3 anúncios novos, 2 preços alterados, 1 anúncio removido, 4 alertas";
 /// "Sem anúncios novos nem alterações" when all are zero; null when the run
 /// didn't say (older runs, or one that stopped before importing).
-String? runCountsText(Map<String, int> counts) {
+String? runCountsText(
+  Map<String, int> counts, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   if (counts.isEmpty) return null;
   String part(String key, String one, String many) {
     final n = counts[key] ?? 0;
@@ -137,14 +173,28 @@ String? runCountsText(Map<String, int> counts) {
   }
 
   final parts = [
-    if ((counts['new'] ?? 0) > 0) part('new', 'anúncio novo', 'anúncios novos'),
+    if ((counts['new'] ?? 0) > 0)
+      part('new', language.messages.newListing, language.messages.newListings),
     if ((counts['price_changes'] ?? 0) > 0)
-      part('price_changes', 'preço alterado', 'preços alterados'),
+      part(
+        'price_changes',
+        language.messages.priceChanged,
+        language.messages.pricesChanged,
+      ),
     if ((counts['removed'] ?? 0) > 0)
-      part('removed', 'anúncio removido', 'anúncios removidos'),
-    if ((counts['alerts'] ?? 0) > 0) part('alerts', 'alerta', 'alertas'),
+      part(
+        'removed',
+        language.messages.listingRemoved,
+        language.messages.listingsRemoved,
+      ),
+    if ((counts['alerts'] ?? 0) > 0)
+      part(
+        'alerts',
+        language.messages.alert,
+        language.messages.alertsCollectionText,
+      ),
   ];
-  if (parts.isEmpty) return 'Sem anúncios novos nem alterações';
+  if (parts.isEmpty) return language.messages.noNewListingsOrChanges;
   return parts.join(', ');
 }
 
@@ -154,8 +204,16 @@ int estimatedMinutes(CollectorRun run) =>
     ((run.duration.inSeconds + 30) / 60).ceil();
 
 /// "18 recolhas este mês, cerca de 54 min de GitHub Actions".
-String monthUsageText(List<CollectorRun> runs) {
+String monthUsageText(
+  List<CollectorRun> runs, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final minutes = runs.fold<int>(0, (sum, r) => sum + estimatedMinutes(r));
-  return '${runs.length} ${runs.length == 1 ? 'recolha' : 'recolhas'} este '
-      'mês, cerca de $minutes min de GitHub Actions';
+  return language.messages.thisMonthAboutMinutesOfGitHubActions(
+    length: runs.length.toString(),
+    value: runs.length == 1
+        ? language.messages.collection
+        : language.messages.collections,
+    minutes: (minutes).toString(),
+  );
 }

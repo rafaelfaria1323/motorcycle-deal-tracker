@@ -4,6 +4,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../../domain/entities/listing.dart';
 import '../score_explanation.dart';
+import '../../../../core/localization/localizations.dart';
 
 class ScoreExplanationCard extends StatelessWidget {
   const ScoreExplanationCard({required this.listing, super.key});
@@ -12,7 +13,10 @@ class ScoreExplanationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final explanation = ScoreExplainer.explain(listing);
+    final explanation = ScoreExplainer.explain(
+      listing,
+      language: context.language,
+    );
     if (explanation == null) return const SizedBox.shrink();
 
     final risk = listing.riskScore;
@@ -20,9 +24,12 @@ class ScoreExplanationCard extends StatelessWidget {
     final total = explanation.slicesTotal;
 
     return SectionCard(
-      title: 'Porquê esta pontuação',
+      title: context.strings.whyThisScore,
       footnote: used != null && total != null
-          ? 'Baseado em $used de $total fatores'
+          ? context.strings.basedOnOfFactors(
+              used: (used).toString(),
+              total: (total).toString(),
+            )
           : null,
       children: [
         for (final line in explanation.lines) _LineRow(line: line),
@@ -63,9 +70,12 @@ class _RiskMeter extends StatelessWidget {
             Text.rich(
               TextSpan(
                 children: [
-                  const TextSpan(text: 'Risco  '),
+                  TextSpan(text: context.strings.riskScoreExplanationCard),
                   TextSpan(
-                    text: ScoreExplainer.riskLabel(risk),
+                    text: ScoreExplainer.riskLabel(
+                      risk,
+                      language: context.language,
+                    ),
                     style: TextStyle(color: color),
                   ),
                 ],
@@ -107,17 +117,17 @@ class _LineRow extends StatelessWidget {
       ExplanationTone.positive => (
         Icons.add_circle_outline,
         AppColors.of(context).positive,
-        'Positivo',
+        context.strings.positive,
       ),
       ExplanationTone.negative => (
         Icons.remove_circle_outline,
         AppColors.of(context).negative,
-        'Negativo',
+        context.strings.negative,
       ),
       ExplanationTone.neutral => (
         Icons.info_outline,
         scheme.onSurfaceVariant,
-        'Informação',
+        context.strings.information,
       ),
     };
 

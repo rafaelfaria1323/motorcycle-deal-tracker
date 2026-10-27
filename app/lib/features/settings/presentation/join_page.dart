@@ -10,6 +10,7 @@ import '../../../core/auth/session_cubit.dart';
 import '../../../core/widgets/state_message.dart';
 import '../domain/accounts_repository.dart';
 import 'accounts_text.dart';
+import '../../../core/localization/localizations.dart';
 
 /// The page an invite link opens (`/join?code=…`): the visitor chooses an
 /// email and a password, the account is made and signed in.
@@ -42,10 +43,13 @@ class _JoinPageState extends State<JoinPage> {
   }
 
   Future<void> _create() async {
+    final messageLanguage = context.language;
+
     final problem = joinFormProblem(
       _email.text,
       _password.text,
       _confirmation.text,
+      language: messageLanguage,
     );
     if (problem != null) {
       setState(() => _error = problem);
@@ -61,14 +65,14 @@ class _JoinPageState extends State<JoinPage> {
       if (!mounted) return;
       setState(() {
         _busy = false;
-        _error = redeemErrorText(e.code);
+        _error = redeemErrorText(e.code, language: context.language);
       });
       return;
     } catch (_) {
       if (!mounted) return;
       setState(() {
         _busy = false;
-        _error = redeemErrorText(null);
+        _error = redeemErrorText(null, language: context.language);
       });
       return;
     }
@@ -78,7 +82,7 @@ class _JoinPageState extends State<JoinPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Criar a sua conta')),
+      appBar: AppBar(title: Text(context.strings.createYourAccount)),
       body: BlocBuilder<SessionCubit, SessionState>(
         bloc: getIt<SessionCubit>(),
         builder: (context, session) => FutureBuilder<InviteStatus>(
@@ -88,24 +92,27 @@ class _JoinPageState extends State<JoinPage> {
             if (status == null) {
               return const Center(child: CircularProgressIndicator());
             }
-            final problem = inviteStatusText(status);
+            final problem = inviteStatusText(
+              status,
+              language: context.language,
+            );
             if (problem != null) {
               return StateMessage(
                 icon: Icons.link_off,
-                title: 'Convite indisponível',
+                title: context.strings.inviteUnavailable,
                 message: problem,
-                actionLabel: 'Abrir a app',
+                actionLabel: context.strings.openApp,
                 onAction: () => context.go(AppRoutes.deals),
               );
             }
             if (session.signedIn && !_busy) {
               return StateMessage(
                 icon: Icons.account_circle_outlined,
-                title: 'Já tem sessão iniciada',
-                message:
-                    'Está com a conta ${session.email ?? ''}. Termine a '
-                    'sessão para criar uma conta nova com este convite.',
-                actionLabel: 'Terminar sessão',
+                title: context.strings.youAreAlreadySignedIn,
+                message: context.strings.youAreSignedInAsSignOutTo(
+                  value: session.email ?? '',
+                ),
+                actionLabel: context.strings.signOut,
                 onAction: () => getIt<AccountCubit>().signOut(),
               );
             }
@@ -125,13 +132,9 @@ class _JoinPageState extends State<JoinPage> {
           padding: const EdgeInsets.all(24),
           shrinkWrap: true,
           children: [
-            Text('Boas-vindas', style: theme.textTheme.headlineSmall),
+            Text(context.strings.welcome, style: theme.textTheme.headlineSmall),
             const SizedBox(height: 8),
-            const Text(
-              'Recebeu um convite para o Motorcycle Deal Tracker: as motas usadas '
-              'à venda em Portugal, com o preço justo e a pontuação de cada '
-              'anúncio. Escolha o email e a palavra-passe com que vai entrar.',
-            ),
+            Text(context.strings.youHaveBeenInvitedToMotorcycleDealTracker),
             const SizedBox(height: 20),
             AutofillGroup(
               child: Column(
@@ -140,8 +143,8 @@ class _JoinPageState extends State<JoinPage> {
                     controller: _email,
                     keyboardType: TextInputType.emailAddress,
                     autofillHints: const [AutofillHints.email],
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
+                    decoration: InputDecoration(
+                      labelText: context.strings.email,
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -150,9 +153,9 @@ class _JoinPageState extends State<JoinPage> {
                     controller: _password,
                     obscureText: true,
                     autofillHints: const [AutofillHints.newPassword],
-                    decoration: const InputDecoration(
-                      labelText: 'Palavra-passe',
-                      helperText: 'Pelo menos 8 caracteres',
+                    decoration: InputDecoration(
+                      labelText: context.strings.password,
+                      helperText: context.strings.atLeast8Characters,
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -161,8 +164,8 @@ class _JoinPageState extends State<JoinPage> {
                     controller: _confirmation,
                     obscureText: true,
                     autofillHints: const [AutofillHints.newPassword],
-                    decoration: const InputDecoration(
-                      labelText: 'Repita a palavra-passe',
+                    decoration: InputDecoration(
+                      labelText: context.strings.repeatYourPassword,
                       border: OutlineInputBorder(),
                     ),
                     onSubmitted: (_) => _busy ? null : _create(),
@@ -181,12 +184,15 @@ class _JoinPageState extends State<JoinPage> {
               ),
             FilledButton(
               onPressed: _busy ? null : _create,
-              child: Text(_busy ? 'A criar a conta…' : 'Criar conta'),
+              child: Text(
+                _busy
+                    ? context.strings.creatingAccount
+                    : context.strings.createAccount,
+              ),
             ),
             const SizedBox(height: 16),
             Text(
-              'Depois, em Mais › Modelos acompanhados, escolha as motas que '
-              'quer seguir.',
+              context.strings.thenChooseBikesYouWantToFollowIn,
               style: theme.textTheme.bodySmall,
             ),
           ],

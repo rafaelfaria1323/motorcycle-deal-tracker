@@ -6,6 +6,7 @@ import '../../domain/entities/dealer_reliability.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/repositories/dealer_repository.dart';
 import '../dealer_text.dart';
+import '../../../../core/localization/localizations.dart';
 
 /// "O stand": what we have seen of the dealer's ads on both sites. Only for
 /// dealers (private sellers' names are never stored); hidden while loading
@@ -47,14 +48,13 @@ class _DealerCardState extends State<DealerCard> {
         if (dealer == null) return const SizedBox.shrink();
 
         return SectionCard(
-          title: 'O stand',
-          footnote:
-              'Dos anúncios deste stand que acompanhamos (só dos modelos '
-              'seguidos), nos dois sites.',
+          title: context.strings.dealerDealerCard,
+          footnote: context.strings.fromThisDealerSListingsThatWeTrack,
           children: [
-            Text(dealerHeadline(dealer)),
+            Text(dealerHeadline(dealer, language: context.language)),
             const SizedBox(height: 8),
-            for (final line in dealerLines(dealer)) BulletLine(line),
+            for (final line in dealerLines(dealer, language: context.language))
+              BulletLine(line),
           ],
         );
       },

@@ -7,6 +7,7 @@ import '../../domain/entities/model_market.dart';
 import '../../domain/repositories/market_behaviour_repository.dart';
 import '../market_behaviour_text.dart';
 import '../model_market_text.dart';
+import '../../../../core/localization/localizations.dart';
 
 /// The tracked models side by side: asking prices, how fast listings leave
 /// the market, price drops and depreciation. Cheapest typical price first.
@@ -29,7 +30,7 @@ class _ModelMarketPageState extends State<ModelMarketPage> {
     return Scaffold(
       appBar: AppBar(
         leading: const PageBackButton(),
-        title: const Text('Comparar modelos'),
+        title: Text(context.strings.compareModels),
       ),
       body: FutureBuilder<List<ModelMarket>>(
         future: _future,
@@ -37,8 +38,8 @@ class _ModelMarketPageState extends State<ModelMarketPage> {
           if (snapshot.hasError) {
             return StateMessage(
               icon: Icons.cloud_off_outlined,
-              title: 'Não foi possível carregar os modelos',
-              actionLabel: 'Tentar novamente',
+              title: context.strings.couldNotLoadModels,
+              actionLabel: context.strings.retry,
               onAction: () => setState(() => _future = _load()),
             );
           }
@@ -47,10 +48,10 @@ class _ModelMarketPageState extends State<ModelMarketPage> {
             return const Center(child: CircularProgressIndicator());
           }
           if (models.isEmpty) {
-            return const StateMessage(
+            return StateMessage(
               icon: Icons.two_wheeler,
-              title: 'Nenhum modelo acompanhado',
-              message: 'Escolha os modelos em Mais > Modelos acompanhados.',
+              title: context.strings.noFollowedModels,
+              message: context.strings.chooseModelsInMoreFollowedModels,
             );
           }
           return ListView(
@@ -60,8 +61,9 @@ class _ModelMarketPageState extends State<ModelMarketPage> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
                 child: Text(
-                  'Preços pedidos nos anúncios ativos, sem duplicados e sem '
-                  'ajustar ano e quilómetros.',
+                  context
+                      .strings
+                      .askingPricesInActiveListingsExcludingDuplicatesAnd,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -93,10 +95,16 @@ class _ModelCard extends StatelessWidget {
           children: [
             Text(model.name, style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
-            for (final line in priceSpreadLines(model.prices))
+            for (final line in priceSpreadLines(
+              model.prices,
+              language: context.language,
+            ))
               _Line(icon: Icons.euro, text: line),
             if (behaviour != null)
-              for (final line in marketLines(behaviour))
+              for (final line in marketLines(
+                behaviour,
+                language: context.language,
+              ))
                 _Line(icon: Icons.insights_outlined, text: line),
           ],
         ),

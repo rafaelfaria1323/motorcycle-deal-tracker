@@ -158,8 +158,10 @@ void main() {
     );
     expect(
       searchReadText(read(pages: 2, inFull: false)),
-      endsWith('2 de 3 páginas, 80 anúncios (9 dos modelos acompanhados) · '
-          'não lida toda'),
+      endsWith(
+        '2 de 3 páginas, 80 anúncios (9 dos modelos acompanhados) · '
+        'não lida toda',
+      ),
     );
     expect(
       searchReadText(read(spans: 1, pages: 1)),

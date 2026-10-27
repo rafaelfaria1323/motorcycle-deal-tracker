@@ -1,24 +1,25 @@
 import '../../../core/platform/push.dart';
+import '../../../core/localization/localizations.dart';
 
 /// The subtitle of "Notificações neste aparelho" in Mais.
-String pushSubtitle(PushState state, {required bool signedIn}) {
-  if (!signedIn) return 'Inicie sessão para receber os alertas neste aparelho';
+String pushSubtitle(
+  PushState state, {
+  required bool signedIn,
+  AppLanguage language = AppLanguage.portuguese,
+}) {
+  if (!signedIn) return language.messages.signInToReceiveAlertsOnThisDevice;
   return switch (state) {
     PushState.on =>
-      'Ativas: os alertas chegam depois de cada recolha e, ao tocar, abrem '
-          'o anúncio',
-    PushState.off =>
-      'Receba os alertas neste aparelho; ao tocar, abre o anúncio na app',
+      language.messages.enabledAlertsArriveAfterEachCollectionTapTo,
+    PushState.off => language.messages.receiveAlertsOnThisDeviceTapToOpen,
     PushState.needsHomeScreen =>
-      'No iPhone, abra a app a partir do ecrã principal (Partilhar › '
-          'Adicionar ao ecrã principal) para as ativar',
+      language.messages.onIPhoneOpenAppFromHomeScreenShare,
     PushState.denied =>
-      'Bloqueadas neste aparelho: permita-as nas definições (no iPhone, '
-          'Definições › Notificações)',
-    PushState.unsupported => 'Este navegador não recebe notificações',
+      language.messages.blockedOnThisDeviceAllowNotificationsInSettings,
+    PushState.unsupported =>
+      language.messages.thisBrowserDoesNotSupportNotifications,
     PushState.nativeApp =>
-      'A app Android ainda não recebe notificações: para as receber, abra a '
-          'app no Chrome e ative-as lá',
+      language.messages.thisAndroidAppIsNotConfiguredForNotifications,
   };
 }
 

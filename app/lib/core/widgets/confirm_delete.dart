@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../localization/localizations.dart';
 
 Future<bool> confirmDelete(
   BuildContext context, {
@@ -13,7 +14,7 @@ Future<bool> confirmDelete(
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cancelar'),
+          child: Text(context.strings.cancel),
         ),
         FilledButton(
           style: FilledButton.styleFrom(
@@ -21,7 +22,7 @@ Future<bool> confirmDelete(
             foregroundColor: Theme.of(context).colorScheme.onError,
           ),
           onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('Eliminar'),
+          child: Text(context.strings.delete),
         ),
       ],
     ),

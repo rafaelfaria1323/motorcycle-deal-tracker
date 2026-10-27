@@ -8,12 +8,16 @@ import '../../domain/entities/saved_search.dart';
 import '../cubit/saved_searches_cubit.dart';
 import '../saved_search_summary.dart';
 import 'filters_sheet.dart';
+import '../../../../core/localization/localizations.dart';
 
 Future<bool> editSavedSearch(
   BuildContext context, {
   required SavedSearch search,
   required SavedSearchesCubit cubit,
 }) async {
+  final messageStrings = context.strings;
+  final messageLanguage = context.language;
+
   final messenger = ScaffoldMessenger.of(context);
   final edited = await showEditSavedSearchSheet(
     context,
@@ -27,7 +31,7 @@ Future<bool> editSavedSearch(
     except: edited.id,
   );
   if (same != null) {
-    showMessage(messenger, alreadySavedText(same));
+    showMessage(messenger, alreadySavedText(same, language: messageLanguage));
     return false;
   }
 
@@ -35,7 +39,9 @@ Future<bool> editSavedSearch(
   if (messenger.mounted) {
     showMessage(
       messenger,
-      saved ? 'Pesquisa atualizada' : 'Não foi possível atualizar a pesquisa',
+      saved
+          ? messageStrings.searchUpdated
+          : messageStrings.couldNotUpdateSearch,
     );
   }
   return saved;
@@ -130,7 +136,11 @@ class _EditSavedSearchSheetState extends State<EditSavedSearchSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final summary = summarizeFilters(_filters, widget.motorcycles);
+    final summary = summarizeFilters(
+      _filters,
+      widget.motorcycles,
+      language: context.language,
+    );
 
     return Padding(
       padding: EdgeInsets.only(
@@ -145,56 +155,65 @@ class _EditSavedSearchSheetState extends State<EditSavedSearchSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                widget.search.isDraft ? 'Nova pesquisa' : 'Editar pesquisa',
+                widget.search.isDraft
+                    ? context.strings.newSearch
+                    : context.strings.editSearch,
                 style: theme.textTheme.titleLarge,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _nameController,
                 maxLength: 60,
-                decoration: const InputDecoration(labelText: 'Nome'),
+                decoration: InputDecoration(labelText: context.strings.name),
                 validator: (value) => (value == null || value.trim().isEmpty)
-                    ? 'Indique um nome'
+                    ? context.strings.enterName
                     : null,
               ),
               const SizedBox(height: 8),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Critérios'),
+                title: Text(context.strings.criteria),
                 subtitle: Text(
                   _criteriaMissing || summary.isEmpty
-                      ? 'Escolha pelo menos um critério'
+                      ? context.strings.chooseAtLeastOneCriterion
                       : summary,
                   style: _criteriaMissing ? AppTheme.errorText(context) : null,
                 ),
                 trailing: TextButton(
                   onPressed: _editCriteria,
-                  child: Text(_filters.hasCriteria ? 'Alterar' : 'Escolher'),
+                  child: Text(
+                    _filters.hasCriteria
+                        ? context.strings.change
+                        : context.strings.choose,
+                  ),
                 ),
               ),
               const Divider(),
-              Text('Avisar-me quando', style: theme.textTheme.titleSmall),
+              Text(
+                context.strings.notifyMeWhen,
+                style: theme.textTheme.titleSmall,
+              ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Surgir um anúncio novo'),
+                title: Text(context.strings.newListingAppears),
                 value: _notifyNewListing,
                 onChanged: (v) => setState(() => _notifyNewListing = v),
               ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('O preço baixar'),
+                title: Text(context.strings.priceDropsEditSavedSearchSheet),
                 value: _notifyPriceReduction,
                 onChanged: (v) => setState(() => _notifyPriceReduction = v),
               ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Houver uma excelente oportunidade'),
+                title: Text(context.strings.thereIsExcellentOpportunity),
                 value: _notifyExcellentDeal,
                 onChanged: (v) => setState(() => _notifyExcellentDeal = v),
               ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Um anúncio for removido'),
+                title: Text(context.strings.listingIsRemoved),
                 value: _notifyListingRemoved,
                 onChanged: (v) => setState(() => _notifyListingRemoved = v),
               ),
@@ -204,12 +223,12 @@ class _EditSavedSearchSheetState extends State<EditSavedSearchSheet> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Cancelar'),
+                    child: Text(context.strings.cancel),
                   ),
                   const SizedBox(width: 8),
                   FilledButton(
                     onPressed: _submit,
-                    child: const Text('Guardar'),
+                    child: Text(context.strings.save),
                   ),
                 ],
               ),

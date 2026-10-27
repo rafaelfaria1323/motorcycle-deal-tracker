@@ -25,7 +25,7 @@ Listing _listing({String? colour, bool myColour = false}) => Listing(
 void main() {
   test('the codes match the database check', () {
     // As user_models.colours' check and colour_code() in the database.
-    expect(colourLabels.keys, [
+    expect(colourLabels().keys, [
       'black',
       'white',
       'grey',
@@ -118,9 +118,9 @@ void main() {
       };
       expect(SavedSearchModel.fromJson(row).filters.onlyMyColours, isTrue);
       expect(
-        SavedSearchModel.fromJson({...row}..remove('only_my_colours'))
-            .filters
-            .onlyMyColours,
+        SavedSearchModel.fromJson(
+          {...row}..remove('only_my_colours'),
+        ).filters.onlyMyColours,
         isFalse,
       );
     });

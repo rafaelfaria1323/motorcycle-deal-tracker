@@ -19,6 +19,7 @@ import '../cubit/saved_searches_state.dart';
 import '../saved_search_summary.dart';
 import '../widgets/delete_saved_search_dialog.dart';
 import '../widgets/edit_saved_search_sheet.dart';
+import '../../../../core/localization/localizations.dart';
 
 class SavedSearchesPage extends StatelessWidget {
   const SavedSearchesPage({super.key});
@@ -37,6 +38,9 @@ class SavedSearchesPage extends StatelessWidget {
     BuildContext context,
     List<MotorcycleOption> motorcycles,
   ) async {
+    final messageStrings = context.strings;
+    final messageLanguage = context.language;
+
     final cubit = context.read<SavedSearchesCubit>();
     final messenger = ScaffoldMessenger.of(context);
 
@@ -47,18 +51,20 @@ class SavedSearchesPage extends StatelessWidget {
     );
     if (draft == null) return;
     if (savedSearchLike(cubit.state.searches, draft.filters) case final same?) {
-      showMessage(messenger, alreadySavedText(same));
+      showMessage(messenger, alreadySavedText(same, language: messageLanguage));
       return;
     }
 
     final saved = await cubit.createFrom(draft);
     showMessage(
       messenger,
-      saved ? 'Pesquisa guardada' : 'Não foi possível guardar a pesquisa',
+      saved ? messageStrings.searchSaved : messageStrings.couldNotSaveSearch,
     );
   }
 
   Future<void> _delete(BuildContext context, SavedSearch search) async {
+    final messageStrings = context.strings;
+
     final cubit = context.read<SavedSearchesCubit>();
     final messenger = ScaffoldMessenger.of(context);
 
@@ -68,7 +74,9 @@ class SavedSearchesPage extends StatelessWidget {
     if (messenger.mounted) {
       showMessage(
         messenger,
-        deleted ? 'Pesquisa eliminada' : 'Não foi possível eliminar a pesquisa',
+        deleted
+            ? messageStrings.searchDeleted
+            : messageStrings.couldNotDeleteSearch,
       );
     }
   }
@@ -76,7 +84,7 @@ class SavedSearchesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Pesquisas')),
+      appBar: AppBar(title: Text(context.strings.searches)),
       floatingActionButton: BlocBuilder<SavedSearchesCubit, SavedSearchesState>(
         buildWhen: (previous, current) =>
             previous.status != current.status ||
@@ -89,7 +97,7 @@ class SavedSearchesPage extends StatelessWidget {
             ? FloatingActionButton.extended(
                 onPressed: () => _create(context, state.motorcycles),
                 icon: const Icon(Icons.add),
-                label: const Text('Nova pesquisa'),
+                label: Text(context.strings.newSearch),
               )
             : const SizedBox.shrink(),
       ),
@@ -102,20 +110,18 @@ class SavedSearchesPage extends StatelessWidget {
             case SavedSearchesStatus.failure:
               return StateMessage(
                 icon: Icons.cloud_off,
-                title: 'Não foi possível carregar as pesquisas',
-                message: 'Verifique a ligação e tente novamente.',
-                actionLabel: 'Tentar novamente',
+                title: context.strings.couldNotLoadSearches,
+                message: context.strings.checkYourConnectionAndTryAgain,
+                actionLabel: context.strings.retry,
                 onAction: () => context.read<SavedSearchesCubit>().load(),
               );
             case SavedSearchesStatus.success:
               if (state.searches.isEmpty) {
                 return StateMessage(
                   icon: Icons.bookmark_border,
-                  title: 'Ainda não tem pesquisas guardadas',
-                  message:
-                      'Crie uma pesquisa e avisamos quando surgir uma oferta '
-                      'que lhe interesse.',
-                  actionLabel: 'Nova pesquisa',
+                  title: context.strings.youHaveNoSavedSearchesYet,
+                  message: context.strings.createSearchAndWeWillLetYouKnow,
+                  actionLabel: context.strings.newSearch,
                   onAction: () => _create(context, state.motorcycles),
                 );
               }
@@ -127,14 +133,12 @@ class SavedSearchesPage extends StatelessWidget {
                     // Room at the end so the button never covers a search.
                     padding: const EdgeInsets.fromLTRB(20, 16, 20, 104),
                     children: [
-                      const PageIntro(
-                        eyebrow: 'Pesquisas guardadas',
-                        title: 'As suas pesquisas',
-                        description:
-                            'Os seus critérios, sempre à mão. Acompanhe os '
-                            'novos anúncios e as alterações de preço. '
-                            'Deslize para a direita para editar ou para a '
-                            'esquerda para eliminar.',
+                      PageIntro(
+                        eyebrow: context.strings.savedSearches,
+                        title: context.strings.yourSearches,
+                        description: context
+                            .strings
+                            .yourCriteriaAlwaysToHandFollowNewListings,
                       ),
                       const SizedBox(height: 28),
                       for (final search in state.searches)
@@ -144,6 +148,7 @@ class SavedSearchesPage extends StatelessWidget {
                           summary: summarizeFilters(
                             search.filters,
                             state.motorcycles,
+                            language: context.language,
                           ),
                           matches: state.matchCounts[search.id] ?? 0,
                           onTap: () => _apply(context, search),
@@ -213,24 +218,24 @@ class _SearchCard extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        search.displayName,
+                        savedSearchName(search, language: context.language),
                         style: theme.textTheme.titleLarge,
                       ),
                     ),
                     PopupMenuButton<_SearchAction>(
-                      tooltip: 'Opções da pesquisa',
+                      tooltip: context.strings.searchOptions,
                       onSelected: (action) => switch (action) {
                         _SearchAction.edit => onEdit(),
                         _SearchAction.delete => onDelete(),
                       },
-                      itemBuilder: (_) => const [
+                      itemBuilder: (localizationContext) => [
                         PopupMenuItem(
                           value: _SearchAction.edit,
-                          child: Text('Editar pesquisa'),
+                          child: Text(localizationContext.strings.editSearch),
                         ),
                         PopupMenuItem(
                           value: _SearchAction.delete,
-                          child: Text('Eliminar pesquisa'),
+                          child: Text(localizationContext.strings.deleteSearch),
                         ),
                       ],
                     ),
@@ -261,7 +266,10 @@ class _SearchCard extends StatelessWidget {
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            searchNotificationText(search),
+                            searchNotificationText(
+                              search,
+                              language: context.language,
+                            ),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: scheme.onSurfaceVariant,
                             ),
@@ -276,7 +284,10 @@ class _SearchCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            searchMatchesText(matches),
+                            searchMatchesText(
+                              matches,
+                              language: context.language,
+                            ),
                             style: theme.textTheme.labelLarge?.copyWith(
                               color: scheme.primary,
                             ),

@@ -73,7 +73,12 @@ Future<void> main(List<String> args) async {
         store,
         push,
         await store.adminIds(),
-        message,
+        (language) => runHealthMessage(
+          previous: previous?['status'] as String?,
+          current: status,
+          log: log,
+          language: language,
+        )!,
       );
       stdout.writeln(
         'Run health sent to ${result.sent} of ${result.devices} device(s).',

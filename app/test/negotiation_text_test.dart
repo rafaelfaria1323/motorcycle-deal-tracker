@@ -66,7 +66,7 @@ void main() {
       expect(findings.total, 500);
       expect(findings.blockers, ['Documento Único (DUA)']);
       expect(
-        findings.repairsText,
+        findings.repairsText(),
         'pneus (~${Formatters.price(300)}), corrente e cremalheira '
         '(~${Formatters.price(200)})',
       );
@@ -251,7 +251,7 @@ void main() {
   group('messages', () {
     test('each offer of the plan has its message', () {
       final offer = suggestOffer(_listing())!;
-      final steps = offer.steps;
+      final steps = offer.steps();
       expect(steps.first.message, offerMessage(offer.opening));
       expect(steps.last.message, lastOfferMessage(offer.ceiling));
       expect(steps.last.message, contains('última proposta'));
@@ -263,7 +263,7 @@ void main() {
       expect(offer.reply(6900).message, offerMessage(6800));
       expect(offer.reply(7500).message, lastOfferMessage(7000));
       expect(offer.replyTo(7500), offer.reply(7500).advice);
-      expect(walkAwayMessage, contains('se baixar o preço'));
+      expect(walkAwayMessage(), contains('se baixar o preço'));
     });
   });
 
@@ -271,7 +271,7 @@ void main() {
     test('low without any sign', () {
       final u = sellerUrgency(_listing(), market: _market(), daysListed: 10);
       expect(u.level, Urgency.low);
-      expect(u.text, 'Pressa do vendedor: baixa');
+      expect(u.text(), 'Pressa do vendedor: baixa');
     });
 
     test('long on sale and a drop: medium, then high', () {
@@ -286,7 +286,7 @@ void main() {
       );
       expect(u.level, Urgency.high);
       expect(
-        u.text,
+        u.text(),
         'Pressa do vendedor: alta (à venda há 70 dias, já baixou o preço)',
       );
     });
@@ -295,7 +295,7 @@ void main() {
       // A year on sale for a model that usually sells in a month.
       final u = sellerUrgency(_listing(), market: _market(), daysListed: 365);
       expect(u.level, Urgency.high);
-      expect(u.text, 'Pressa do vendedor: alta (à venda há 365 dias)');
+      expect(u.text(), 'Pressa do vendedor: alta (à venda há 365 dias)');
       expect(
         sellerUrgency(_listing(), market: _market(), daysListed: 90).level,
         Urgency.medium,

@@ -14,8 +14,12 @@ listings (with private notes and a viewing checklist) raise alerts in the
 app and as notifications on each account's phone (Web Push; Firebase Cloud
 Messaging in the Android app).
 
-The app is in Portuguese and installs on the iPhone from Safari
-("Adicionar ao ecrã principal").
+The app supports **Portuguese (Portugal) and English**, with Portuguese as
+the default. Choose Mais › "Idioma" / More › "Language"; accounts keep their
+choice across devices, including notifications and weekly summaries.
+Translations are bundled, with no translation service. Original seller
+content, model/place names and private notes are not translated. The app
+installs on the iPhone from Safari ("Adicionar ao ecrã principal").
 
 The interface pairs Barlow typography with an orange-and-ink palette, clear
 price and score hierarchy, and photo-led listing cards. It adapts from a

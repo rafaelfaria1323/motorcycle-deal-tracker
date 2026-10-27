@@ -102,7 +102,7 @@ void main() {
     for (final field in ListingCardPreferences.additionalFields) {
       expect(_defaults.shows(field), isFalse);
     }
-    expect(ListingCardField.values.map((field) => field.label), [
+    expect(ListingCardField.values.map((field) => field.label()), [
       'Site de origem',
       'Deal Score',
       'Variação do preço',
@@ -540,7 +540,10 @@ void main() {
         expect(cubit.state.status, ListingCardPreferencesStatus.success);
         expect(repository.reads, ['a']);
         expect(await cubit.save(_minimal), isFalse);
-        expect(cubit.state.error, contains('Inicie sessão'));
+        expect(
+          cubit.state.error,
+          ListingCardPreferencesFailure.accountRequired,
+        );
         expect(repository.writes, hasLength(1));
       },
     );

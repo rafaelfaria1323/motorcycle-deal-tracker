@@ -1,64 +1,90 @@
 import '../domain/entities/listing.dart';
 import '../domain/entities/listing_card_preferences.dart';
 import '../domain/entities/listing_sort.dart';
+import 'cubit/listing_card_preferences_cubit.dart';
+import '../../../core/localization/localizations.dart';
 
 extension ListingSortLabel on ListingSort {
-  String get label => switch (this) {
-    ListingSort.dealScoreDesc => 'Melhor pontuação',
-    ListingSort.newest => 'Mais recentes',
-    ListingSort.priceAsc => 'Preço mais baixo',
-    ListingSort.priceDesc => 'Preço mais alto',
-    ListingSort.nearest => 'Mais perto',
-  };
+  String label({AppLanguage language = AppLanguage.portuguese}) =>
+      switch (this) {
+        ListingSort.dealScoreDesc => language.messages.bestScore,
+        ListingSort.newest => language.messages.newest,
+        ListingSort.priceAsc => language.messages.lowestPrice,
+        ListingSort.priceDesc => language.messages.highestPrice,
+        ListingSort.nearest => language.messages.nearest,
+      };
 }
 
 extension ListingStatusLabel on ListingStatus {
-  String get label => switch (this) {
-    ListingStatus.active => 'Ativo',
-    ListingStatus.priceChanged => 'Preço alterado',
-    ListingStatus.removed => 'Removido',
-    ListingStatus.sold => 'Vendido',
-    ListingStatus.unknown => 'Desconhecido',
-  };
+  String label({AppLanguage language = AppLanguage.portuguese}) =>
+      switch (this) {
+        ListingStatus.active => language.messages.active,
+        ListingStatus.priceChanged =>
+          language.messages.priceChangedListingLabels,
+        ListingStatus.removed => language.messages.removed,
+        ListingStatus.sold => language.messages.sold,
+        ListingStatus.unknown => language.messages.unknown,
+      };
 }
 
 extension SellerTypeLabel on SellerType {
-  String get label => switch (this) {
-    SellerType.private => 'Particular',
-    SellerType.dealer => 'Profissional',
-    SellerType.unknown => 'Desconhecido',
-  };
+  String label({AppLanguage language = AppLanguage.portuguese}) =>
+      switch (this) {
+        SellerType.private => language.messages.private,
+        SellerType.dealer => language.messages.dealerListingLabels,
+        SellerType.unknown => language.messages.unknown,
+      };
 }
 
 extension ListingCardFieldLabel on ListingCardField {
-  String get label => switch (this) {
-    ListingCardField.source => 'Site de origem',
-    ListingCardField.dealScore => 'Deal Score',
-    ListingCardField.priceChange => 'Variação do preço',
-    ListingCardField.year => 'Ano',
-    ListingCardField.mileage => 'Quilometragem',
-    ListingCardField.location => 'Localização e distância',
-    ListingCardField.preferredColour => 'Indicação de cor preferida',
-    ListingCardField.riskScore => 'Risk Score',
-    ListingCardField.sellerType => 'Tipo de vendedor',
-    ListingCardField.firstSeenAt => 'Quando foi encontrado',
-    ListingCardField.colour => 'Cor',
-    ListingCardField.registrations => 'Donos / primeiro dono',
-    ListingCardField.serviceBook => 'Livro de revisões',
-    ListingCardField.origin => 'Origem',
-    ListingCardField.warrantyUntil => 'Garantia de fábrica',
-    ListingCardField.dealerWarrantyMonths => 'Garantia do vendedor',
-    ListingCardField.sellerName => 'Nome do stand',
-    ListingCardField.publishedAt => 'Data de publicação',
-    ListingCardField.siteRefreshedAt => 'Renovação no site',
-    ListingCardField.status => 'Estado do anúncio',
-  };
+  String label({AppLanguage language = AppLanguage.portuguese}) =>
+      switch (this) {
+        ListingCardField.source => language.messages.sourceSite,
+        ListingCardField.dealScore => language.messages.dealScore,
+        ListingCardField.priceChange => language.messages.priceChange,
+        ListingCardField.year => language.messages.yearCompareText,
+        ListingCardField.mileage => language.messages.mileage,
+        ListingCardField.location => language.messages.locationAndDistance,
+        ListingCardField.preferredColour =>
+          language.messages.preferredColourIndicator,
+        ListingCardField.riskScore => language.messages.riskScore,
+        ListingCardField.sellerType => language.messages.sellerType,
+        ListingCardField.firstSeenAt => language.messages.whenItWasFound,
+        ListingCardField.colour => language.messages.colourListingDetailText,
+        ListingCardField.registrations => language.messages.ownersFirstOwner,
+        ListingCardField.serviceBook => language.messages.serviceBook,
+        ListingCardField.origin => language.messages.origin,
+        ListingCardField.warrantyUntil => language.messages.factoryWarranty,
+        ListingCardField.dealerWarrantyMonths =>
+          language.messages.sellerWarranty,
+        ListingCardField.sellerName => language.messages.dealerName,
+        ListingCardField.publishedAt => language.messages.publicationDate,
+        ListingCardField.siteRefreshedAt => language.messages.renewalOnSite,
+        ListingCardField.status => language.messages.listingStatus,
+      };
 }
 
+String cardPreferencesErrorText(
+  ListingCardPreferencesFailure failure, {
+  AppLanguage language = AppLanguage.portuguese,
+}) => switch (failure) {
+  ListingCardPreferencesFailure.load =>
+    language.messages.cardPreferencesLoadError,
+  ListingCardPreferencesFailure.accountRequired =>
+    language.messages.cardPreferencesAccountRequired,
+  ListingCardPreferencesFailure.notLoaded =>
+    language.messages.cardPreferencesMustLoad,
+  ListingCardPreferencesFailure.save =>
+    language.messages.cardPreferencesSaveError,
+};
+
 /// The site a listing comes from, as people know it.
-String sourceLabel(String source) => switch (source) {
+String sourceLabel(
+  String source, {
+  AppLanguage language = AppLanguage.portuguese,
+}) => switch (source) {
   'standvirtual' => 'Standvirtual',
   'olx' => 'OLX',
-  'manual' => 'Importação manual',
+  'manual' => language.messages.manualImport,
   _ => source,
 };

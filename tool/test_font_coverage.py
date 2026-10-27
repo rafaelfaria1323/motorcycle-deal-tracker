@@ -43,6 +43,27 @@ class FontCoverageTest(unittest.TestCase):
                 "Barlow-Regular.ttf is not in app/pubspec.yaml",
             ])
 
+    def test_reads_decoded_arb_messages_but_not_metadata(self):
+        with tempfile.TemporaryDirectory() as folder:
+            source = pathlib.Path(folder, "app_en.arb")
+            source.write_text(
+                r'{"@@locale":"en", "price":"Price \u20ac", '
+                r'"missing":"\u2605", "@price":{"description":"\u2603"}, '
+                r'"@missing":{"description":"Not displayed"}}',
+                encoding="utf-8",
+            )
+            self.assertEqual(set(written_characters([source])), {"€", "★"})
+            self.assertEqual(missing([FONT], [source]), [
+                f"Barlow-Regular.ttf lacks U+2605 '★' ({source})",
+            ])
+
+    def test_refuses_a_malformed_message(self):
+        with tempfile.TemporaryDirectory() as folder:
+            source = pathlib.Path(folder, "app_pt.arb")
+            source.write_text('{"message": 42}', encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "message is not a message string"):
+                written_characters([source])
+
     def test_the_app_writes_nothing_the_fonts_lack(self):
         self.assertEqual(main(), 0)
 

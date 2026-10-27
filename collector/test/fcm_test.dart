@@ -128,11 +128,17 @@ void main() {
         'body': 'B',
         'url': '/#/deals/1',
         'tag': null,
+        'language': 'en',
       }),
       {
         'message': {
           'token': 'tok',
-          'data': {'title': 'T', 'body': 'B', 'url': '/#/deals/1'},
+          'data': {
+            'title': 'T',
+            'body': 'B',
+            'url': '/#/deals/1',
+            'language': 'en',
+          },
           'android': {'priority': 'HIGH', 'ttl': '86400s'},
         },
       },

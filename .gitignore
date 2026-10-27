@@ -10,3 +10,6 @@ mutation-test-report/
 
 # Python bytecode (make tool-check)
 __pycache__/
+
+# Flutter generates these from the checked-in ARB catalogs.
+/app/lib/l10n/generated/

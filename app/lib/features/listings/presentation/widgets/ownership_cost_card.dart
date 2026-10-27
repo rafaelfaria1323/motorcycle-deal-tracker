@@ -10,6 +10,7 @@ import '../../domain/entities/ownership_settings.dart';
 import '../../domain/repositories/market_behaviour_repository.dart';
 import '../../domain/repositories/ownership_settings_repository.dart';
 import '../ownership_cost.dart';
+import '../../../../core/localization/localizations.dart';
 
 /// "Custo de ter esta mota": the yearly cost (depreciation, IUC, the
 /// owner's insurance, tyres, services, chain) and the total for the years
@@ -45,6 +46,8 @@ class _OwnershipCostCardState extends State<OwnershipCostCard> {
   }
 
   Future<void> _edit(OwnershipSettings current) async {
+    final messageStrings = context.strings;
+
     final result = await showDialog<OwnershipSettings>(
       context: context,
       builder: (_) => _SettingsDialog(initial: current),
@@ -56,7 +59,7 @@ class _OwnershipCostCardState extends State<OwnershipCostCard> {
     try {
       await getIt<OwnershipSettingsRepository>().save(result);
     } catch (_) {
-      showMessage(messenger, 'Não foi possível guardar. Tente novamente.');
+      showMessage(messenger, messageStrings.couldNotSaveTryAgain);
     }
   }
 
@@ -84,23 +87,27 @@ class _OwnershipCostCardState extends State<OwnershipCostCard> {
 
         final theme = Theme.of(context);
         return SectionCard(
-          title: 'Custo de ter esta mota',
+          title: context.strings.costOfOwningThisBike,
           action: TextButton(
             onPressed: () => _edit(settings),
-            child: const Text('Alterar'),
+            child: Text(context.strings.change),
           ),
-          footnote: ownershipFootnote(cost),
+          footnote: ownershipFootnote(cost, language: context.language),
           children: [
             Text(
-              ownershipHeadline(cost),
+              ownershipHeadline(cost, language: context.language),
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.primary,
               ),
             ),
             const SizedBox(height: 2),
-            Text(ownershipTotalLine(cost)),
+            Text(ownershipTotalLine(cost, language: context.language)),
             const SizedBox(height: 8),
-            for (final line in ownershipLines(cost, year: listing.year))
+            for (final line in ownershipLines(
+              cost,
+              year: listing.year,
+              language: context.language,
+            ))
               BulletLine(line),
           ],
         );
@@ -173,7 +180,7 @@ class _SettingsDialogState extends State<_SettingsDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Os seus valores'),
+      title: Text(context.strings.yourFigures),
       content: SizedBox(
         width: 400,
         child: SingleChildScrollView(
@@ -182,16 +189,15 @@ class _SettingsDialogState extends State<_SettingsDialog> {
             children: [
               _field(
                 _insurance,
-                'Seguro por ano',
+                context.strings.insurancePerYear,
                 suffix: '€',
-                helper: 'A sua simulação; vazio se ainda não tem',
+                helper: context.strings.yourEstimateLeaveBlankIfNotYetKnown,
               ),
-              _field(_km, 'Quilómetros por ano', suffix: 'km'),
-              _field(_years, 'Anos que pensa ficar com ela'),
+              _field(_km, context.strings.kilometresPerYear, suffix: 'km'),
+              _field(_years, context.strings.yearsYouPlanToKeepIt),
               if (_invalid)
                 Text(
-                  'Use números inteiros: seguro até 20 000 €, até '
-                  '100 000 km por ano, de 1 a 15 anos.',
+                  context.strings.useWholeNumbersInsuranceUpToEUR20,
                   style: AppTheme.errorText(context),
                 ),
             ],
@@ -201,9 +207,9 @@ class _SettingsDialogState extends State<_SettingsDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancelar'),
+          child: Text(context.strings.cancel),
         ),
-        FilledButton(onPressed: _save, child: const Text('Guardar')),
+        FilledButton(onPressed: _save, child: Text(context.strings.save)),
       ],
     );
   }

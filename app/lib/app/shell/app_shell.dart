@@ -8,6 +8,7 @@ import '../../features/listings/presentation/cubit/alerts_state.dart';
 import '../../features/listings/presentation/cubit/favourites_cubit.dart';
 import '../../features/listings/presentation/cubit/favourites_state.dart';
 import '../di/injection.dart';
+import '../../core/localization/localizations.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({required this.navigationShell, super.key});
@@ -51,11 +52,23 @@ class _AppShellState extends State<AppShell> {
 
   static const _alertsIndex = 2;
 
-  static const _destinations = [
-    _Destination('Ofertas', Icons.local_offer_outlined, Icons.local_offer),
-    _Destination('Pesquisas', Icons.bookmark_border, Icons.bookmark),
-    _Destination('Alertas', Icons.notifications_outlined, Icons.notifications),
-    _Destination('Mais', Icons.more_horiz, Icons.more_horiz),
+  List<_Destination> get _destinations => [
+    _Destination(
+      context.strings.deals,
+      Icons.local_offer_outlined,
+      Icons.local_offer,
+    ),
+    _Destination(
+      context.strings.searches,
+      Icons.bookmark_border,
+      Icons.bookmark,
+    ),
+    _Destination(
+      context.strings.alerts,
+      Icons.notifications_outlined,
+      Icons.notifications,
+    ),
+    _Destination(context.strings.more, Icons.more_horiz, Icons.more_horiz),
   ];
 
   /// The tab icon, with the unread count on Alertas.

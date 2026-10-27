@@ -36,9 +36,16 @@ Future<({int accounts, int devices, int sent})> sendWeeklySummaries(
   var sent = 0;
   for (final MapEntry(key: user, value: summary) in summaries.entries) {
     await store.saveWeeklySummary(user, summary, weeklySummaryJson(summary));
-    final result = await pushToUsers(store, push, [
-      user,
-    ], weeklySummaryPush(summary));
+  }
+  final languages = await store.accountLanguages(summaries.keys.toList());
+  for (final MapEntry(key: user, value: summary) in summaries.entries) {
+    final result = await pushToUsers(
+      store,
+      push,
+      [user],
+      (language) => weeklySummaryPush(summary, language: language),
+      languages: languages,
+    );
     devices += result.devices;
     sent += result.sent;
   }

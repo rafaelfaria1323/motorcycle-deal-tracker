@@ -17,6 +17,7 @@ import '../domain/database_usage.dart';
 import '../domain/github_token.dart';
 import 'collection_status_text.dart';
 import 'collection_text.dart';
+import '../../../core/localization/localizations.dart';
 
 /// "Estado da recolha" (admins, from Mais): whether the GitHub token still
 /// starts the runs, how much database space is used, each site's requests
@@ -70,7 +71,7 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
     return Scaffold(
       appBar: AppBar(
         leading: const PageBackButton(),
-        title: const Text('Estado da recolha'),
+        title: Text(context.strings.collectionStatus),
       ),
       body: FutureBuilder<List<CollectorRun>>(
         future: _recent,
@@ -78,8 +79,8 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
           if (snapshot.hasError) {
             return StateMessage(
               icon: Icons.cloud_off,
-              title: 'Não foi possível carregar as recolhas',
-              actionLabel: 'Tentar novamente',
+              title: context.strings.couldNotLoadCollectionRuns,
+              actionLabel: context.strings.retry,
               onAction: () => unawaited(_reload()),
             );
           }
@@ -101,34 +102,28 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
               padding: const EdgeInsets.all(16),
               children: [
                 SectionCard(
-                  title: 'Início automático',
-                  footnote:
-                      'O Supabase usa este token para iniciar as recolhas e o '
-                      'resumo semanal. Avisa também no Telegram 14 dias antes '
-                      'de terminar.',
+                  title: context.strings.automaticStart,
+                  footnote: context
+                      .strings
+                      .supabaseUsesThisTokenToStartCollectionsAnd,
                   children: [_TokenLine(token: _token, now: now)],
                 ),
                 const SizedBox(height: 12),
                 SectionCard(
-                  title: 'Base de dados',
+                  title: context.strings.database,
                   footnote:
-                      'O plano gratuito do Supabase permite 500 MB; acima '
-                      'disso o projeto passa a só leitura.',
+                      context.strings.freeSupabasePlanAllows500MBAboveThat,
                   children: [_UsageLines(usage: _usage)],
                 ),
                 const SizedBox(height: 12),
                 SectionCard(
-                  title: 'Sites',
-                  footnote:
-                      'Sem limite de pedidos: cada recolha lê todas as '
-                      'páginas das pesquisas e os anúncios por ler, um pedido '
-                      'de cada vez, 6 a 10 s entre eles, até 30 min por site. '
-                      'Se um site recusar pedidos, fica em pausa 24 h.',
+                  title: context.strings.sites,
+                  footnote: context
+                      .strings
+                      .noRequestLimitsEachCollectionReadsEverySearch,
                   children: [
                     if (latestWithSites == null)
-                      const BulletLine(
-                        'Ainda sem dados: aparecem depois da próxima recolha.',
-                      )
+                      BulletLine(context.strings.noDataYetItWillAppearAfterNext)
                     else
                       for (final MapEntry(:key, :value)
                           in latestWithSites.sites.entries)
@@ -138,42 +133,39 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
                             value,
                             reportedAt: latestWithSites.finishedAt,
                             now: now,
+                            language: context.language,
                           ),
                         ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 SectionCard(
-                  title: 'Pesquisas',
+                  title: context.strings.searches,
                   footnote:
-                      'Da última recolha: páginas lidas de cada pesquisa e '
-                      'anúncios encontrados. Só uma pesquisa lida toda marca '
-                      'como retirados os anúncios que já não aparecem.',
+                      context.strings.fromLastCollectionPagesReadForEachSearch,
                   children: [
                     if (latestWithSearches == null)
-                      const BulletLine(
-                        'Ainda sem dados: aparecem depois da próxima recolha.',
-                      )
+                      BulletLine(context.strings.noDataYetItWillAppearAfterNext)
                     else
                       for (final search in latestWithSearches.searches)
-                        BulletLine(searchReadText(search)),
+                        BulletLine(
+                          searchReadText(search, language: context.language),
+                        ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 SectionCard(
-                  title: 'Pedidos por dia',
-                  footnote:
-                      'Os últimos 7 dias, somando as recolhas de cada '
-                      'dia.',
+                  title: context.strings.requestsPerDay,
+                  footnote: context.strings.last7DaysAddingTogetherEachDayS,
                   children: [_DailyRequests(runs: _week, now: now)],
                 ),
                 const SizedBox(height: 12),
                 SectionCard(
-                  title: 'Últimas recolhas',
-                  footnote: 'Toque numa recolha para ver o registo no GitHub.',
+                  title: context.strings.recentCollections,
+                  footnote: context.strings.tapCollectionToSeeItsLogOnGitHub,
                   children: [
                     if (runs.isEmpty)
-                      const BulletLine('Ainda nenhuma recolha registada.'),
+                      BulletLine(context.strings.noCollectionRunsRecordedYet),
                     for (final run in runs) _RunTile(run: run),
                   ],
                 ),
@@ -198,15 +190,13 @@ class _TokenLine extends StatelessWidget {
       future: token,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const BulletLine('A verificar o token do GitHub…');
+          return BulletLine(context.strings.checkingGitHubToken);
         }
         final token = snapshot.data;
         if (token == null) {
-          return const BulletLine(
-            'Não foi possível verificar o token do GitHub.',
-          );
+          return BulletLine(context.strings.couldNotCheckGitHubToken);
         }
-        return _WarningLine(tokenText(token, now));
+        return _WarningLine(tokenText(token, now, language: context.language));
       },
     );
   }
@@ -224,11 +214,15 @@ class _DailyRequests extends StatelessWidget {
       future: runs,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const BulletLine('A contar os pedidos…');
+          return BulletLine(context.strings.countingRequests);
         }
-        final days = dailyRequestsText(snapshot.data ?? const [], now);
+        final days = dailyRequestsText(
+          snapshot.data ?? const [],
+          now,
+          language: context.language,
+        );
         if (days.isEmpty) {
-          return const BulletLine('Ainda sem pedidos registados.');
+          return BulletLine(context.strings.noRequestsRecordedYet);
         }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,17 +244,17 @@ class _UsageLines extends StatelessWidget {
       future: usage,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const BulletLine('A medir a base de dados…');
+          return BulletLine(context.strings.measuringDatabase);
         }
         final usage = snapshot.data;
         if (usage == null) {
-          return const BulletLine('Não foi possível medir a base de dados.');
+          return BulletLine(context.strings.couldNotMeasureDatabase);
         }
-        final tables = biggestTablesText(usage);
+        final tables = biggestTablesText(usage, language: context.language);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _WarningLine(databaseUsageText(usage)),
+            _WarningLine(databaseUsageText(usage, language: context.language)),
             if (tables != null) BulletLine(tables),
           ],
         );
@@ -308,9 +302,9 @@ class _RunTile extends StatelessWidget {
     final ok = run.status == 'ok';
     final url = run.runUrl;
     final details = [
-      'Demorou ${durationText(run.duration)}',
-      ?requestsText(run.requests),
-      ?runCountsText(run.counts),
+      context.strings.took(value: durationText(run.duration)),
+      ?requestsText(run.requests, language: context.language),
+      ?runCountsText(run.counts, language: context.language),
     ];
 
     return ListTile(
@@ -322,8 +316,11 @@ class _RunTile extends StatelessWidget {
             : AppColors.of(context).negative,
       ),
       title: Text(
-        '${runStatusLabel(run.status)} · ${Formatters.date(run.startedAt)} às '
-        '${Formatters.time(run.startedAt)}',
+        context.strings.at(
+          value: runStatusLabel(run.status, language: context.language),
+          date: Formatters.date(run.startedAt),
+          time: Formatters.time(run.startedAt),
+        ),
       ),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

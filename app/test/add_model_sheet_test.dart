@@ -8,6 +8,7 @@ import 'package:motorcycle_deal_tracker/features/listings/domain/repositories/ca
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/add_model_sheet.dart';
 
 import '../integration_test/support/interface_fixture.dart';
+import 'package:motorcycle_deal_tracker/core/localization/localizations.dart';
 
 class _Catalog extends Fake implements CatalogRepository {
   List<SiteMake> makes = const [SiteMake(id: 'honda', name: 'Honda', ads: 32)];
@@ -51,6 +52,9 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(
       MaterialApp(
+        locale: AppLanguage.portuguese.locale,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: appLocales,
         theme: AppTheme.light,
         builder: (context, child) => MediaQuery(
           data: MediaQuery.of(

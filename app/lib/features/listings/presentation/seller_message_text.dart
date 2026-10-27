@@ -1,44 +1,54 @@
 import '../../../core/formatting/formatters.dart';
 import '../domain/entities/listing.dart';
 import 'listing_labels.dart';
+import '../../../core/localization/localizations.dart';
 
 /// A first message to the seller, ready to copy into the site's chat or a
 /// text: interest, the questions the ad leaves open, and optionally an
 /// offer ([offer], the suggested opening price).
-String sellerMessage(Listing listing, {double? offer}) {
+String sellerMessage(
+  Listing listing, {
+  double? offer,
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final bike = [
     '${listing.brand} ${listing.model}',
-    if (listing.year != null) 'de ${listing.year}',
+    if (listing.year != null)
+      language.messages.fromSellerMessageText(year: listing.year.toString()),
   ].join(' ');
   final site = switch (listing.source) {
-    'olx' || 'standvirtual' => ' no ${sourceLabel(listing.source)}',
+    'olx' || 'standvirtual' => language.messages.onText(
+      value: sourceLabel(listing.source, language: language),
+    ),
     _ => '',
   };
 
   final questions = [
-    'Ainda está disponível?',
-    if (listing.mileage == null) 'Quantos quilómetros tem?',
-    if (listing.registrations == null) 'Quantos donos teve?',
+    language.messages.isItStillAvailable,
+    if (listing.mileage == null) language.messages.whatIsItsMileage,
+    if (listing.registrations == null) language.messages.howManyOwnersHasItHad,
     if (listing.serviceBook == null)
-      'Tem livro de revisões, com as revisões feitas?',
-    if (listing.origin == null) 'É de origem nacional?',
-    'Já teve alguma queda ou acidente?',
-    if (listing.sellerType == SellerType.private) 'O registo está em seu nome?',
-    'Quando e onde a posso ver?',
+      language.messages.doesItHaveServiceBookWithItsServices,
+    if (listing.origin == null)
+      language.messages.wasItOriginallyRegisteredInPortugal,
+    language.messages.hasItEverBeenDroppedOrInvolvedIn,
+    if (listing.sellerType == SellerType.private)
+      language.messages.isItRegisteredInYourName,
+    language.messages.whenAndWhereCanISeeIt,
   ];
 
   return [
-    'Olá, boa tarde.',
+    language.messages.helloGoodAfternoon,
     '',
-    'Vi o seu anúncio da $bike$site e tenho interesse. '
-        'Tenho algumas perguntas:',
+    language.messages.iSawYourListingForAndIAm(bike: bike, site: site),
     for (final q in questions) '- $q',
     if (offer != null) ...[
       '',
-      'Se estiver tudo como descrito, aceitaria '
-          '${Formatters.price(offer)}?',
+      language.messages.ifEverythingIsAsDescribedWouldYouAccept(
+        price: Formatters.price(offer, language: language),
+      ),
     ],
     '',
-    'Obrigado.',
+    language.messages.thankYou,
   ].join('\n');
 }

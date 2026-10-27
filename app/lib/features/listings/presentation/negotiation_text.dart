@@ -7,6 +7,7 @@ import 'offer_text.dart';
 import 'ownership_cost.dart';
 import 'score_explanation.dart';
 import 'viewing_checklist.dart';
+import '../../../core/localization/localizations.dart';
 
 /// A problem marked at the visit and what fixing it typically costs.
 class VisitRepair {
@@ -29,8 +30,11 @@ class VisitFindings {
   bool get isEmpty => repairs.isEmpty && blockers.isEmpty;
 
   /// "pneus (~300 €), corrente e cremalheira (~200 €)".
-  String get repairsText => repairs
-      .map((r) => '${r.title.toLowerCase()} (~${Formatters.price(r.cost)})')
+  String repairsText({AppLanguage language = AppLanguage.portuguese}) => repairs
+      .map(
+        (r) =>
+            '${r.title.toLowerCase()} (~${Formatters.price(r.cost, language: language)})',
+      )
       .join(', ');
 }
 
@@ -57,11 +61,12 @@ double? repairCost(String key, RunningCostTable costs) => switch (key) {
 VisitFindings visitFindings(
   Map<String, ChecklistEntry> checklist, {
   int? engineCc,
+  AppLanguage language = AppLanguage.portuguese,
 }) {
   final costs = runningCostsFor(engineCc);
   final repairs = <VisitRepair>[];
   final blockers = <String>[];
-  for (final item in viewingChecklistItems) {
+  for (final item in viewingChecklistItems(language: language)) {
     if (checklist[item.key]?.mark != ChecklistMark.issue) continue;
     if (visitBlockers.contains(item.key)) {
       blockers.add(item.title);
@@ -74,11 +79,17 @@ VisitFindings visitFindings(
 
 /// The offer after the visit: the repairs come off both the opening and
 /// the most to pay. Unchanged without repairs.
-OfferSuggestion afterVisit(OfferSuggestion offer, VisitFindings findings) {
+OfferSuggestion afterVisit(
+  OfferSuggestion offer,
+  VisitFindings findings, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   if (findings.repairs.isEmpty) return offer;
   return offer.lowerBy(
     findings.total,
-    'Na visita: ${findings.repairsText}. Isso sai da proposta e do máximo.',
+    language.messages.atViewingThisIsDeductedFromOfferAnd(
+      repairsText: findings.repairsText(language: language),
+    ),
   );
 }
 
@@ -96,6 +107,7 @@ List<String> negotiationArguments(
   List<Listing> cheaper = const [],
   VisitFindings? visit,
   DateTime? today,
+  AppLanguage language = AppLanguage.portuguese,
 }) {
   final now = today ?? DateTime.now();
   final price = listing.price;
@@ -104,8 +116,10 @@ List<String> negotiationArguments(
 
   if (visit != null && visit.repairs.isNotEmpty) {
     arguments.add(
-      'Viu na visita: ${visit.repairsText}. São '
-      '${Formatters.price(visit.total)} que vai ter de gastar.',
+      language.messages.foundAtViewingYouWillNeedToSpend(
+        repairsText: visit.repairsText(language: language),
+        price: Formatters.price(visit.total, language: language),
+      ),
     );
   }
 
@@ -117,9 +131,14 @@ List<String> negotiationArguments(
       (comparables ?? minComparables) >= minComparables &&
       price > estimate * 1.03) {
     arguments.add(
-      'Está ${Formatters.percent((price / estimate - 1) * 100)} '
-      '(${Formatters.price(price - estimate)}) acima do valor de mercado '
-      'para o ano e os quilómetros (${Formatters.price(estimate)}).',
+      language.messages.itIsAboveMarketValueForItsYear(
+        percent: Formatters.percent(
+          (price / estimate - 1) * 100,
+          language: language,
+        ),
+        price: Formatters.price(price - estimate, language: language),
+        price3: Formatters.price(estimate, language: language),
+      ),
     );
   }
 
@@ -131,10 +150,15 @@ List<String> negotiationArguments(
     if (cheapest != null) {
       arguments.add(
         cheaper.length == 1
-            ? 'Há outra ${listing.model} de ano parecido, sem mais km, por '
-                  '${Formatters.price(cheapest)}.'
-            : 'Há ${cheaper.length} ${listing.model} de ano parecido, sem '
-                  'mais km, mais baratas: desde ${Formatters.price(cheapest)}.',
+            ? language.messages.thereIsAnotherOfSimilarYearWithNo(
+                model: listing.model,
+                price: Formatters.price(cheapest, language: language),
+              )
+            : language.messages.thereAreCheaperOfSimilarYearWithNo(
+                length: cheaper.length.toString(),
+                model: listing.model,
+                price: Formatters.price(cheapest, language: language),
+              ),
       );
     }
   }
@@ -145,18 +169,21 @@ List<String> negotiationArguments(
     final normal = expectedMileage(year, decimalYear(now));
     if (km > normal * 1.1) {
       arguments.add(
-        'Tem ${Formatters.mileage(km)}, acima do normal para uma mota de '
-        '$year (cerca de ${Formatters.mileage(normal)}).',
+        language.messages.itHasAboveNormalForBikeFromAbout(
+          mileage: Formatters.mileage(km, language: language),
+          year: (year).toString(),
+          mileage3: Formatters.mileage(normal, language: language),
+        ),
       );
     }
   }
 
   final reasons = (data['risk_reasons'] as List? ?? const []).toSet();
-  for (final (code, text) in _riskArguments) {
+  for (final (code, text) in _riskArguments(language: language)) {
     if (reasons.contains(code)) arguments.add(text);
   }
   if (reasons.contains('relisted') || reasons.contains('relisted_often')) {
-    arguments.add('Já esteve à venda noutro anúncio e não se vendeu.');
+    arguments.add(language.messages.itWasForSaleInAnotherListingAnd);
   }
 
   if (daysListed != null) {
@@ -169,9 +196,13 @@ List<String> negotiationArguments(
     if (daysListed > (typical ?? defaultLongListingDays)) {
       arguments.add(
         typical == null
-            ? 'Está à venda há $daysListed dias.'
-            : 'Está à venda há $daysListed dias; uma mota destas costuma '
-                  'sair em $typical.',
+            ? language.messages.itHasBeenForSaleForDays(
+                daysListed: (daysListed).toString(),
+              )
+            : language.messages.itHasBeenForSaleForDaysBike(
+                daysListed: (daysListed).toString(),
+                typical: (typical).toString(),
+              ),
       );
     }
   }
@@ -179,8 +210,10 @@ List<String> negotiationArguments(
   final initial = listing.initialPrice;
   if (price != null && initial != null && initial > price) {
     arguments.add(
-      'Já baixou de ${Formatters.price(initial)} para '
-      '${Formatters.price(price)}: quer vender.',
+      language.messages.priceAlreadyDroppedFromToSellerWantsTo(
+        price: Formatters.price(initial, language: language),
+        price2: Formatters.price(price, language: language),
+      ),
     );
   }
 
@@ -188,68 +221,75 @@ List<String> negotiationArguments(
   if (year != null &&
       now.year - year >= oldTyresYears &&
       !extras.contains('new_tyres') &&
-      visit?.repairs.any((r) => r.title == 'Pneus') != true) {
+      visit?.repairs.any((r) => r.title == language.messages.tyres) != true) {
     arguments.add(
-      'Com ${now.year - year} anos, se os pneus forem os de origem precisam '
-      'de troca (~${Formatters.price(runningCostsFor(listing.engineCc).tyreSet)}).',
+      language.messages.atYearsOldTyresNeedReplacingIfThey(
+        value: (now.year - year).toString(),
+        price: Formatters.price(
+          runningCostsFor(listing.engineCc).tyreSet,
+          language: language,
+        ),
+      ),
     );
   }
 
   return arguments;
 }
 
-const _riskArguments = [
+List<(String, String)> _riskArguments({
+  AppLanguage language = AppLanguage.portuguese,
+}) => [
   (
     'possible_accident',
-    'A descrição fala em acidente ou toque: vale menos quando a vender.',
+    language.messages.descriptionMentionsAccidentOrImpactItWillBe,
   ),
-  (
-    'needs_repair',
-    'Precisa de reparações ou peças: o custo fica por sua conta.',
-  ),
-  ('cosmetic_damage', 'Tem riscos ou mossas, que pesam no preço.'),
+  ('needs_repair', language.messages.itNeedsRepairsOrPartsYouWillHave),
+  ('cosmetic_damage', language.messages.itHasScratchesOrDentsThatAffectPrice),
   (
     'no_service_book',
-    'Não tem o livro de revisões completo: o que faltar fica por sua conta.',
+    language.messages.itDoesNotHaveCompleteServiceBookMissing,
   ),
-  ('many_owners', 'Já teve 3 ou mais donos.'),
-  ('imported', 'É importada: vale menos quando a vender.'),
-  (
-    'a2_limited',
-    'É a versão A2 (35 kW): tirar a limitação e atualizar os documentos fica '
-        'por sua conta.',
-  ),
-  (
-    'a2_unlocked',
-    'Foi uma versão A2 deslimitada, não tem a potência toda de fábrica.',
-  ),
+  ('many_owners', language.messages.itHasHad3OrMoreOwners),
+  ('imported', language.messages.itIsImportedItWillBeWorthLess),
+  ('a2_limited', language.messages.itIsA2Version35KWRemovingRestriction),
+  ('a2_unlocked', language.messages.itWasUnrestrictedA2VersionAndDoesNot),
   (
     'text_mileage_mismatch',
-    'A descrição fala em mais quilómetros do que o anúncio indica.',
+    language.messages.descriptionMentionsMoreMileageThanListingStates,
   ),
-  ('text_year_mismatch', 'O ano na descrição não bate certo com o do anúncio.'),
+  (
+    'text_year_mismatch',
+    language.messages.yearInDescriptionDoesNotMatchListing,
+  ),
 ];
 
 /// Ready to send when making the offer [amount] (the first or a second
 /// one).
-String offerMessage(double amount) =>
-    'Obrigado pela resposta. Se estiver tudo como descrito, consigo chegar '
-    'aos ${Formatters.price(amount)}, com pagamento na hora. Pode ser?';
+String offerMessage(
+  double amount, {
+  AppLanguage language = AppLanguage.portuguese,
+}) => language.messages.thankYouForYourReplyIfEverythingIs(
+  price: Formatters.price(amount, language: language),
+);
 
 /// Ready to send with the most you will pay.
-String lastOfferMessage(double amount) =>
-    'Compreendo. A minha última proposta é ${Formatters.price(amount)}: '
-    'é o máximo que consigo pagar por ela. Se mudar de ideias, diga-me.';
+String lastOfferMessage(
+  double amount, {
+  AppLanguage language = AppLanguage.portuguese,
+}) => language.messages.iUnderstandMyFinalOfferIsThatIs(
+  price: Formatters.price(amount, language: language),
+);
 
 /// Ready to send when taking the seller's price.
-String acceptMessage(double amount) =>
-    'Combinado, ${Formatters.price(amount)}. Quando e onde podemos tratar '
-    'do negócio?';
+String acceptMessage(
+  double amount, {
+  AppLanguage language = AppLanguage.portuguese,
+}) => language.messages.agreedWhenAndWhereCanWeCompletePurchase(
+  price: Formatters.price(amount, language: language),
+);
 
-/// Ready to send when it doesn't work out: polite, and leaves the door open.
-const walkAwayMessage =
-    'Obrigado pelo seu tempo. Por esse valor não consigo; se baixar o '
-    'preço, diga-me.';
+String walkAwayMessage({AppLanguage language = AppLanguage.portuguese}) =>
+    language.messages.thankYouForYourTimeICannotManage;
 
 enum Urgency { low, medium, high }
 
@@ -262,15 +302,18 @@ class SellerUrgency {
   final List<String> reasons;
 
   /// "Pressa do vendedor: alta (à venda há 90 dias, já baixou o preço)".
-  String get text {
+  String text({AppLanguage language = AppLanguage.portuguese}) {
     final label = switch (level) {
-      Urgency.high => 'alta',
-      Urgency.medium => 'média',
-      Urgency.low => 'baixa',
+      Urgency.high => language.messages.high,
+      Urgency.medium => language.messages.medium,
+      Urgency.low => language.messages.low,
     };
     return reasons.isEmpty
-        ? 'Pressa do vendedor: $label'
-        : 'Pressa do vendedor: $label (${reasons.join(', ')})';
+        ? language.messages.sellerUrgency(label: label)
+        : language.messages.sellerUrgencyNegotiationText(
+            label: label,
+            value: reasons.join(', '),
+          );
   }
 }
 
@@ -288,6 +331,7 @@ SellerUrgency sellerUrgency(
   MarketBehaviour? market,
   int? daysListed,
   DateTime? today,
+  AppLanguage language = AppLanguage.portuguese,
 }) {
   var points = 0;
   final reasons = <String>[];
@@ -304,7 +348,9 @@ SellerUrgency sellerUrgency(
         : daysListed > 2 * typical
         ? 2
         : 1;
-    reasons.add('à venda há $daysListed dias');
+    reasons.add(
+      language.messages.forSaleForDays(daysListed: (daysListed).toString()),
+    );
   }
 
   final price = listing.price;
@@ -313,7 +359,7 @@ SellerUrgency sellerUrgency(
       .fold<double?>(null, (a, b) => a == null || b > a ? b : a);
   if (price != null && before != null && before > price) {
     points += 1;
-    reasons.add('já baixou o preço');
+    reasons.add(language.messages.alreadyReducedPrice);
   }
 
   final renewed = listing.siteRefreshedAt;
@@ -324,7 +370,9 @@ SellerUrgency sellerUrgency(
         renewed.difference(published).inDays >= recentRenewalDays) {
       points += 1;
       reasons.add(
-        ago == 0 ? 'renovou o anúncio hoje' : 'renovou o anúncio há $ago dias',
+        ago == 0
+            ? language.messages.renewedListingToday
+            : language.messages.renewedListingDaysAgo(ago: (ago).toString()),
       );
     }
   }
@@ -333,10 +381,10 @@ SellerUrgency sellerUrgency(
       .toSet();
   if (risk.contains('relisted_often')) {
     points += 2;
-    reasons.add('posta à venda várias vezes');
+    reasons.add(language.messages.relistedSeveralTimes);
   } else if (risk.contains('relisted') || listing.relistedFrom != null) {
     points += 1;
-    reasons.add('já esteve noutro anúncio');
+    reasons.add(language.messages.wasInEarlierListing);
   }
 
   final level = points >= 3
@@ -350,7 +398,11 @@ SellerUrgency sellerUrgency(
 /// A dealer rarely gives much off the price but often adds something: what
 /// to ask for instead of (or as well as) a discount. Tyres only on a bike
 /// old enough for them to be due, unless the ad says they are new.
-List<String> dealerAsks(Listing listing, {DateTime? today}) {
+List<String> dealerAsks(
+  Listing listing, {
+  DateTime? today,
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final year = listing.year;
   final extras = listing.scoreBreakdown?['extras'] as List? ?? const [];
   final tyresDue =
@@ -358,25 +410,36 @@ List<String> dealerAsks(Listing listing, {DateTime? today}) {
       ((year != null && (today ?? DateTime.now()).year - year >= 3) ||
           (listing.mileage ?? 0) >= 10000);
   return [
-    'a revisão feita antes da entrega',
-    if (tyresDue) 'pneus novos',
-    'a garantia por escrito (numa usada vendida por um stand, a lei dá '
-        'pelo menos 18 meses)',
-    'o registo de propriedade pago por eles',
+    language.messages.serviceBeforeDelivery,
+    if (tyresDue) language.messages.newTyres,
+    language.messages.warrantyInWritingPortugueseLawRequiresAtLeast,
+    language.messages.ownershipRegistrationPaidByDealer,
   ];
 }
 
 /// Ready to send to a dealer: the price, and the extras to include.
-String dealerMessage(Listing listing, double amount, {DateTime? today}) {
-  final asks = dealerAsks(listing, today: today);
+String dealerMessage(
+  Listing listing,
+  double amount, {
+  DateTime? today,
+  AppLanguage language = AppLanguage.portuguese,
+}) {
+  final asks = dealerAsks(listing, today: today, language: language);
   return [
-    'Olá, boa tarde.',
+    language.messages.helloGoodAfternoon,
     '',
-    'Tenho interesse na ${listing.brand} ${listing.model}'
-        '${listing.year == null ? '' : ' de ${listing.year}'}. Se fecharmos '
-        'por ${Formatters.price(amount)}, consegue incluir:',
+    language.messages.iAmInterestedInIfWeAgreeOn(
+      brand: listing.brand,
+      model: listing.model,
+      value: listing.year == null
+          ? ''
+          : language.messages.fromNegotiationText(
+              year: listing.year.toString(),
+            ),
+      price: Formatters.price(amount, language: language),
+    ),
     for (final ask in asks) '- $ask;',
     '',
-    'Obrigado.',
+    language.messages.thankYou,
   ].join('\n');
 }

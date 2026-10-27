@@ -34,9 +34,6 @@ class SavedSearch extends Equatable {
 
   bool get isDraft => id.isEmpty;
 
-  String get displayName =>
-      (name == null || name!.trim().isEmpty) ? 'Pesquisa sem nome' : name!;
-
   SavedSearch copyWith({
     String? name,
     ListingFilters? filters,

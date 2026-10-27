@@ -2,6 +2,7 @@ import '../../../core/formatting/formatters.dart';
 import '../domain/collector_run.dart';
 import '../domain/database_usage.dart';
 import '../domain/github_token.dart';
+import '../../../core/localization/localizations.dart';
 
 /// Warn this many days before the GitHub token expires (the database's
 /// daily check tells Telegram from the same day).
@@ -9,41 +10,47 @@ const tokenWarningDays = 14;
 
 /// What "Estado da recolha" says about the GitHub token, and whether it
 /// needs Rafael.
-({String text, bool warning}) tokenText(GithubToken token, DateTime now) {
+({String text, bool warning}) tokenText(
+  GithubToken token,
+  DateTime now, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   switch (token.state) {
     case GithubTokenState.missing:
       return (
         text:
-            'Falta o token do GitHub no Vault do Supabase: as recolhas não '
-            'começam sozinhas (docs/hosting.md).',
+            language.messages.githubTokenIsMissingFromSupabaseVaultCollections,
         warning: true,
       );
     case GithubTokenState.refused:
       return (
-        text:
-            'O GitHub recusou o token (HTTP ${token.httpStatus ?? '?'}). Crie '
-            'um novo e substitua-o no Vault do Supabase.',
+        text: language.messages.githubRejectedTokenHTTPCreateNewOneAnd(
+          value: (token.httpStatus ?? '?').toString(),
+        ),
         warning: true,
       );
     case GithubTokenState.ok:
       final expires = token.expiresAt;
       if (expires == null) {
         return (
-          text: 'Token do GitHub válido, sem data de fim.',
+          text: language.messages.githubTokenValidWithNoExpiryDate,
           warning: false,
         );
       }
       final days = expires.difference(now).inDays;
       final left = days <= 0
-          ? 'termina hoje'
+          ? language.messages.expiresToday
           : days == 1
-          ? 'falta 1 dia'
-          : 'faltam $days dias';
+          ? language.messages.text1DayLeft
+          : language.messages.daysLeft(days: (days).toString());
       return (
-        text:
-            'Token do GitHub válido até ${Formatters.date(expires)} ($left).'
-            '${days < tokenWarningDays ? ' Crie um novo e substitua-o no '
-                      'Vault do Supabase.' : ''}',
+        text: language.messages.githubTokenValidUntil(
+          date: Formatters.date(expires),
+          left: left,
+          value: days < tokenWarningDays
+              ? language.messages.createNewOneAndReplaceItInSupabase
+              : '',
+        ),
         warning: days < tokenWarningDays,
       );
   }
@@ -58,32 +65,41 @@ const databaseWarningShare = 0.8;
 const _megabyte = 1024 * 1024;
 
 /// "42,3 MB".
-String megabytes(int bytes) =>
-    '${(bytes / _megabyte).toStringAsFixed(1).replaceAll('.', ',')} MB';
+String megabytes(int bytes, {AppLanguage language = AppLanguage.portuguese}) =>
+    '${Formatters.decimal(bytes / _megabyte, language: language)} MB';
 
 /// "A base de dados ocupa 42,3 MB de 500 MB (8 %)", red from 80 %.
-({String text, bool warning}) databaseUsageText(DatabaseUsage usage) {
+({String text, bool warning}) databaseUsageText(
+  DatabaseUsage usage, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final share = usage.bytes / databaseLimitBytes;
   final warning = share >= databaseWarningShare;
   return (
-    text:
-        'A base de dados ocupa ${megabytes(usage.bytes)} de '
-        '${databaseLimitBytes ~/ _megabyte} MB '
-        '(${Formatters.percent(share * 100)}).'
-        '${warning ? ' Perto do limite do plano gratuito: acima dele o '
-                  'Supabase só deixa ler.' : ''}',
+    text: language.messages.databaseUsesOfMB(
+      value: megabytes(usage.bytes, language: language),
+      value2: (databaseLimitBytes ~/ _megabyte).toString(),
+      percent: Formatters.percent(share * 100, language: language),
+      value4: warning
+          ? language.messages.nearFreePlanLimitAboveItSupabaseOnly
+          : '',
+    ),
     warning: warning,
   );
 }
 
 /// "Maiores tabelas: listings 30,1 MB, listing_price_history 4,2 MB", or
 /// null when there are none.
-String? biggestTablesText(DatabaseUsage usage) {
+String? biggestTablesText(
+  DatabaseUsage usage, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   if (usage.tables.isEmpty) return null;
   final tables = [
-    for (final t in usage.tables) '${t.name} ${megabytes(t.bytes)}',
+    for (final t in usage.tables)
+      '${t.name} ${megabytes(t.bytes, language: language)}',
   ];
-  return 'Maiores tabelas: ${tables.join(', ')}';
+  return language.messages.largestTables(value: tables.join(', '));
 }
 
 const siteNames = {'standvirtual': 'Standvirtual', 'olx': 'OLX'};
@@ -97,15 +113,17 @@ const siteNames = {'standvirtual': 'Standvirtual', 'olx': 'OLX'};
   SiteBudget budget, {
   required DateTime reportedAt,
   required DateTime now,
+  AppLanguage language = AppLanguage.portuguese,
 }) {
   final name = siteNames[site] ?? site;
   final paused = budget.pausedUntil;
   if (paused != null && paused.isAfter(now)) {
     return (
-      text:
-          '$name: em pausa até ${Formatters.time(paused)} de '
-          '${Formatters.date(paused).substring(0, 5)} (o site recusou '
-          'pedidos; volta a tentar sozinho)',
+      text: language.messages.pausedUntilOnSiteRefusedRequestsItWill(
+        name: name,
+        time: Formatters.time(paused),
+        date: Formatters.date(paused).substring(0, 5),
+      ),
       warning: true,
     );
   }
@@ -114,7 +132,13 @@ const siteNames = {'standvirtual': 'Standvirtual', 'olx': 'OLX'};
       now.toUtc().toIso8601String().substring(0, 10);
   final used = sameDay ? budget.requestsToday : 0;
   return (
-    text: '$name: $used ${used == 1 ? 'pedido' : 'pedidos'} hoje (UTC)',
+    text: language.messages.todayUTC(
+      name: name,
+      used: (used).toString(),
+      value: used == 1
+          ? language.messages.request
+          : language.messages.requestsCollectionStatusText,
+    ),
     warning: false,
   );
 }
@@ -122,19 +146,37 @@ const siteNames = {'standvirtual': 'Standvirtual', 'olx': 'OLX'};
 /// "OLX · yamaha-mt-07: 2 de 3 páginas, 80 anúncios (9 dos modelos
 /// acompanhados) · não lida toda": a search not read in full keeps its gone
 /// ads until a run reads it all.
-String searchReadText(SearchRead s) {
+String searchReadText(
+  SearchRead s, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final name = '${siteNames[s.site] ?? s.site} · ${s.search}';
   final spans = s.spans;
-  if (spans == null) return '$name: não lida nesta recolha';
-  final pages = '${s.pages} de $spans ${spans == 1 ? 'página' : 'páginas'}';
-  final ads = '${s.ads} ${s.ads == 1 ? 'anúncio' : 'anúncios'}';
-  return '$name: $pages, $ads (${s.followed} dos modelos acompanhados)'
-      '${s.inFull ? '' : ' · não lida toda'}';
+  if (spans == null) {
+    return language.messages.notReadInThisCollection(name: name);
+  }
+  final pages = language.messages.ofText(
+    pages: s.pages.toString(),
+    spans: (spans).toString(),
+    value: spans == 1 ? language.messages.page : language.messages.pages,
+  );
+  final ads =
+      '${s.ads} ${s.ads == 1 ? language.messages.listing : language.messages.listings}';
+  return language.messages.forTrackedModels(
+    name: name,
+    pages: pages,
+    ads: ads,
+    followed: s.followed.toString(),
+    value: s.inFull ? '' : language.messages.notFullyRead,
+  );
 }
 
 /// "Correu bem", "Bloqueada" or "Falhou".
-String runStatusLabel(String status) => switch (status) {
-  'ok' => 'Correu bem',
-  'blocked' => 'Bloqueada',
-  _ => 'Falhou',
+String runStatusLabel(
+  String status, {
+  AppLanguage language = AppLanguage.portuguese,
+}) => switch (status) {
+  'ok' => language.messages.successful,
+  'blocked' => language.messages.blocked,
+  _ => language.messages.failed,
 };

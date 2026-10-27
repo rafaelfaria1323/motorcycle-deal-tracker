@@ -90,6 +90,7 @@ void main() {
           'body': 'Texto',
           'url': '/#/summary',
           'tag': 'weekly-summary',
+          'language': 'en',
         }),
         {
           'web_push': 8030,
@@ -98,6 +99,7 @@ void main() {
             'body': 'Texto',
             'navigate': '$appOrigin/#/summary',
             'tag': 'weekly-summary',
+            'lang': 'en',
           },
         },
       );

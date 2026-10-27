@@ -131,7 +131,7 @@ check: app-check collector-check tool-check ## Run all checks (run before commit
 # its logic (texts, entities, models, cubits), not the widgets.
 APP_COVERAGE_MIN ?= 90
 COLLECTOR_COVERAGE_MIN ?= 70
-APP_LOGIC_FILES = _text\.dart$$|/domain/|/data/models/|/cubit/|ownership_cost\.dart$$|viewing_checklist\.dart$$
+APP_LOGIC_FILES = _text\.dart$$|/domain/|/data/models/|/cubit/|/core/formatting/|/core/localization/|/language_cubit\.dart$$|/supabase_language_repository\.dart$$|ownership_cost\.dart$$|viewing_checklist\.dart$$
 
 coverage: ## Test coverage of app logic and collector, with floors (needs `dart pub global activate coverage`)
 	cd app && flutter test --coverage
@@ -144,16 +144,17 @@ coverage: ## Test coverage of app logic and collector, with floors (needs `dart 
 
 duplication: ## Copy-pasted code above 1 % of the lines fails (jscpd, via npx)
 	npx --yes jscpd@4 --min-tokens 70 --format dart --threshold 1 \
-	  --reporters console --ignore '**/*.g.dart' app/lib collector/lib collector/bin
+	  --reporters console --ignore '**/*.g.dart,**/l10n/generated/**' app/lib collector/lib collector/bin
 
 # Unused code (declarations nothing in lib uses) and unused files in the
 # app: dart_code_linter, pinned. Not the collector: lib/collector.dart
 # exports every file, and exported code counts as used (public API).
 DCL = dart pub global run dart_code_linter:metrics
+DCL_EXCLUDE = --exclude '{/**.g.dart,/**.freezed.dart,lib/l10n/generated/**}'
 
 dead-code: ## Unused code and files in the app (needs Flutter and `dart pub global activate dart_code_linter 4.4.2`)
-	cd app && $(DCL) check-unused-code lib --fatal-unused --no-congratulate
-	cd app && $(DCL) check-unused-files lib test --fatal-unused --no-congratulate
+	cd app && $(DCL) check-unused-code lib $(DCL_EXCLUDE) --fatal-unused --no-congratulate
+	cd app && $(DCL) check-unused-files lib test $(DCL_EXCLUDE) --fatal-unused --no-congratulate
 
 format: ## Format app and collector code
 	dart format app/lib app/test collector

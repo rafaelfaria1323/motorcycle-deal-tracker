@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../../core/platform/share.dart';
 import '../../../core/widgets/show_message.dart';
+import '../../../core/localization/localizations.dart';
 
 /// Opens the share sheet with [url]; where there is none, copies it.
 Future<void> shareOrCopy(
@@ -10,9 +11,10 @@ Future<void> shareOrCopy(
   required String title,
   required String text,
   required String url,
+  AppLanguage language = AppLanguage.portuguese,
 }) async {
   final outcome = await shareLink(title: title, text: text, url: url);
   if (outcome == ShareOutcome.shared) return;
   await Clipboard.setData(ClipboardData(text: '$text $url'));
-  showMessage(messenger, 'Link copiado. Cole-o numa mensagem.');
+  showMessage(messenger, language.messages.linkCopiedPasteItIntoMessage);
 }

@@ -94,7 +94,7 @@ Map<String, Object?> fcmMessage(String token, Map<String, Object?> message) => {
   'message': {
     'token': token,
     'data': {
-      for (final key in const ['title', 'body', 'url', 'tag'])
+      for (final key in const ['title', 'body', 'url', 'tag', 'language'])
         if (message[key] case final String value) key: value,
     },
     'android': {'priority': 'HIGH', 'ttl': '86400s'},

@@ -3,7 +3,8 @@
 A character missing from the fonts (Barlow, Latin subset) still shows, but
 on the web Flutter's engine first downloads a Google font that has it,
 on the phone's slow first load (the arrows cost 63 KB that way). This
-reads the non-ASCII characters of the app's code (comments left out) and
+reads the non-ASCII characters of the app's code and ARB messages (comments
+and translation metadata left out, generated Dart excluded) and
 the characters each font maps (its cmap, format 4), and lists what a font
 lacks. Missing arrows can be drawn with tool/font_arrows.py; anything else
 needs a font with it, or other wording.
@@ -19,6 +20,7 @@ no font file that app/pubspec.yaml doesn't declare.
 Tested by tool/test_font_coverage.py, which also runs it on the app.
 """
 
+import json
 import pathlib
 import re
 import struct
@@ -81,12 +83,21 @@ def _format4(data, start):
 
 def written_characters(sources):
     """{character: first file that writes it} for the non-ASCII characters
-    outside comments."""
+    outside comments and translation metadata."""
     seen = {}
     for path in sources:
-        for line in path.read_text(encoding="utf-8").splitlines():
-            if COMMENT.match(line):
-                continue
+        text = path.read_text(encoding="utf-8")
+        if path.suffix == ".arb":
+            texts = []
+            for key, value in json.loads(text).items():
+                if key.startswith("@"):
+                    continue
+                if not isinstance(value, str):
+                    raise ValueError(f"{path}: {key} is not a message string")
+                texts.append(value)
+        else:
+            texts = [line for line in text.splitlines() if not COMMENT.match(line)]
+        for line in texts:
             for char in line:
                 if ord(char) > 0x7E:
                     seen.setdefault(char, path)
@@ -120,7 +131,11 @@ def too_big(fonts, pubspec):
 
 def main():
     fonts = sorted((ROOT / "app/assets/fonts").glob("*.ttf"))
-    sources = sorted((ROOT / "app/lib").rglob("*.dart"))
+    lib = ROOT / "app/lib"
+    generated = lib / "l10n/generated"
+    sources = sorted([
+        path for path in lib.rglob("*.dart") if generated not in path.parents
+    ] + list((lib / "l10n").glob("*.arb")))
     pubspec = (ROOT / "app/pubspec.yaml").read_text(encoding="utf-8")
     problems = missing(fonts, sources) + too_big(fonts, pubspec)
     print("\n".join(problems) or f"{len(fonts)} fonts draw every character the app writes.")

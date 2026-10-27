@@ -3,35 +3,52 @@ import '../domain/entities/listing.dart';
 import 'colour_text.dart';
 import 'listing_dates_text.dart';
 import 'listing_labels.dart';
+import '../../../core/localization/localizations.dart';
 
 /// The line under the price: "2022 · 12 300 km · Lisboa · Profissional".
 /// Missing facts are left out rather than shown as dashes.
-String keyFactsLine(Listing listing) => [
+String keyFactsLine(
+  Listing listing, {
+  AppLanguage language = AppLanguage.portuguese,
+}) => [
   if (listing.year != null) '${listing.year}',
-  if (listing.mileage != null) Formatters.mileage(listing.mileage),
-  ?placeText(listing),
-  if (listing.sellerType != SellerType.unknown) listing.sellerType.label,
+  if (listing.mileage != null)
+    Formatters.mileage(listing.mileage, language: language),
+  ?placeText(listing, language: language),
+  if (listing.sellerType != SellerType.unknown)
+    listing.sellerType.label(language: language),
 ].join(' · ');
 
 /// "a 45 km" from the person's home.
-String distanceText(int km) => 'a ${Formatters.mileage(km)}';
+String distanceText(int km, {AppLanguage language = AppLanguage.portuguese}) =>
+    language.messages.away(mileage: Formatters.mileage(km, language: language));
 
 /// "Matosinhos, a 8 km"; the place alone without a distance; null without
 /// a place.
-String? placeText(Listing listing) {
+String? placeText(
+  Listing listing, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final location = listing.location?.trim();
   if (location == null || location.isEmpty) return null;
   final km = listing.distanceKm;
-  return km == null ? location : '$location, ${distanceText(km)}';
+  return km == null
+      ? location
+      : '$location, ${distanceText(km, language: language)}';
 }
 
 /// "3 / 12" on the photo gallery.
 String photoCounterText(int index, int count) => '${index + 1} / $count';
 
 /// The button to the seller's ad: "Ver no OLX".
-String originalLinkLabel(String source) => switch (source) {
-  'standvirtual' || 'olx' => 'Ver no ${sourceLabel(source)}',
-  _ => 'Ver anúncio original',
+String originalLinkLabel(
+  String source, {
+  AppLanguage language = AppLanguage.portuguese,
+}) => switch (source) {
+  'standvirtual' || 'olx' => language.messages.viewOn(
+    value: sourceLabel(source, language: language),
+  ),
+  _ => language.messages.viewOriginalListing,
 };
 
 /// One row of a facts card: a label and its value.
@@ -40,36 +57,77 @@ typedef Fact = (String label, String value);
 /// "A mota": year and mileage always (a dash when unknown), the rest only
 /// when the ad says. A mileage read from the description says so, and a
 /// colour among the person's favourites.
-List<Fact> bikeFacts(Listing listing) => [
-  ('Ano', listing.year?.toString() ?? '—'),
+List<Fact> bikeFacts(
+  Listing listing, {
+  AppLanguage language = AppLanguage.portuguese,
+}) => [
+  (language.messages.yearCompareText, listing.year?.toString() ?? '—'),
   (
-    'Quilometragem',
+    language.messages.mileage,
     listing.mileageFromText
-        ? '${Formatters.mileage(listing.mileage)} (lido na descrição)'
-        : Formatters.mileage(listing.mileage),
+        ? language.messages.readFromDescription(
+            mileage: Formatters.mileage(listing.mileage, language: language),
+          )
+        : Formatters.mileage(listing.mileage, language: language),
   ),
-  if (colourLabel(listing.colour) case final colour?)
-    ('Cor', listing.myColour ? '$colour (uma das suas preferidas)' : colour),
-  if (listing.registrations case final owners?) ('Registos (donos)', '$owners'),
+  if (colourLabel(listing.colour, language: language) case final colour?)
+    (
+      language.messages.colourListingDetailText,
+      listing.myColour
+          ? language.messages.oneOfYourPreferredColours(colour: colour)
+          : colour,
+    ),
+  if (listing.registrations case final owners?)
+    (language.messages.registeredOwners, '$owners'),
   if (listing.serviceBook case final book?)
-    ('Livro de revisões', book ? 'Completo' : 'Não'),
+    (
+      language.messages.serviceBook,
+      book ? language.messages.complete : language.messages.no,
+    ),
   if (listing.origin case final origin?)
-    ('Origem', origin == 'national' ? 'Nacional' : 'Importada'),
+    (
+      language.messages.origin,
+      origin == 'national'
+          ? language.messages.portugueseMarket
+          : language.messages.imported,
+    ),
   if (listing.warrantyUntil case final until?)
-    ('Garantia de fábrica até', Formatters.date(until)),
+    (
+      language.messages.factoryWarrantyUntilListingDetailText,
+      Formatters.date(until),
+    ),
   if (listing.dealerWarrantyMonths case final months?)
-    ('Garantia do vendedor', '$months meses'),
+    (
+      language.messages.sellerWarranty,
+      language.messages.months(months: (months).toString()),
+    ),
 ];
 
 /// "O anúncio": where and who, the site, its dates and the status.
-List<Fact> adFacts(Listing listing, {DateTime? now}) => [
-  ('Localização', placeText(listing) ?? '—'),
-  ('Vendedor', listing.sellerName ?? '—'),
-  ('Tipo de vendedor', listing.sellerType.label),
-  ('Fonte', sourceLabel(listing.source)),
+List<Fact> adFacts(
+  Listing listing, {
+  DateTime? now,
+  AppLanguage language = AppLanguage.portuguese,
+}) => [
+  (
+    language.messages.locationCompareText,
+    placeText(listing, language: language) ?? '—',
+  ),
+  (language.messages.seller, listing.sellerName ?? '—'),
+  (language.messages.sellerType, listing.sellerType.label(language: language)),
+  (language.messages.source, sourceLabel(listing.source, language: language)),
   if (listing.publishedAt case final published?)
-    ('Publicado', dateWithAge(published, now: now)),
+    (
+      language.messages.publishedListingDetailText,
+      dateWithAge(published, now: now, language: language),
+    ),
   if (renewalToShow(listing) case final renewed?)
-    ('Renovado no site', dateWithAge(renewed, now: now)),
-  ('Estado', listing.status.label),
+    (
+      language.messages.renewedOnSiteListingDetailText,
+      dateWithAge(renewed, now: now, language: language),
+    ),
+  (
+    language.messages.statusListingDetailText,
+    listing.status.label(language: language),
+  ),
 ];

@@ -1,3 +1,5 @@
+import 'notification_text.dart';
+
 /// An alert waiting to be pushed, with what the message shows.
 class PendingAlert {
   const PendingAlert({
@@ -67,53 +69,42 @@ class PendingAlert {
 }
 
 /// `7650` -> `7 650 €`
-String euros(num value) {
-  final rounded = value.round();
-  final digits = rounded.abs().toString();
-  final out = StringBuffer(rounded < 0 ? '-' : '');
-  for (var i = 0; i < digits.length; i++) {
-    if (i > 0 && (digits.length - i) % 3 == 0) out.write(' ');
-    out.write(digits[i]);
-  }
-  return '$out €';
-}
+String euros(
+  num value, {
+  NotificationLanguage language = NotificationLanguage.portuguese,
+}) => language.currency(value);
 
 /// The three lines of an alert message: what happened to which bike, the
 /// price, and the facts.
-({String title, String? price, String facts}) _alertLines(PendingAlert a) {
-  final heading = switch (a.type) {
-    'new_listing' when a.myColour => '🆕 Novo anúncio na sua cor',
-    'new_listing' => '🆕 Novo anúncio',
-    'price_reduction' => '📉 Baixa de preço',
-    'excellent_opportunity' => '🔥 Excelente oportunidade',
-    'listing_removed' => '🚫 Anúncio removido',
-    'back_on_market' => '🔁 Voltou ao mercado',
-    'target_price_reached' => '🎯 Chegou ao seu preço',
-    _ => '🔔 Alerta',
-  };
+({String title, String? price, String facts}) _alertLines(
+  PendingAlert a,
+  NotificationLanguage language,
+) {
+  final heading = language.alertHeading(a.type, myColour: a.myColour);
+  String money(num value) => euros(value, language: language);
   final bike = [a.brand, a.model, if (a.year != null) '${a.year}'].join(' ');
 
   final old = a.oldPrice;
   final current = a.newPrice ?? a.price;
   final priceLine =
       a.type == 'price_reduction' && old != null && current != null
-      ? '${euros(old)} → ${euros(current)}'
+      ? '${money(old)} → ${money(current)}'
       // Back on the market: the new price, and what the earlier ad asked.
       : a.type == 'back_on_market' && old != null && current != null
-      ? '${euros(current)} (antes ${euros(old)})'
+      ? '${money(current)} (${language.previously(money(old))})'
       // The target price is stored as old_price.
       : a.type == 'target_price_reached' && old != null && current != null
-      ? '${euros(current)} (o seu preço: ${euros(old)})'
+      ? '${money(current)} (${language.targetPrice(money(old))})'
       : current == null
       ? null
-      : euros(current);
+      : money(current);
 
   final facts = [
-    if (a.myColour && a.type != 'new_listing') 'Na sua cor',
-    if (a.mileage != null) '${euros(a.mileage!).replaceAll(' €', '')} km',
+    if (a.myColour && a.type != 'new_listing') language.inYourColour,
+    if (a.mileage != null) '${language.number(a.mileage!)} km',
     if (a.location != null) a.location!,
     if (a.dealScore != null && a.type != 'listing_removed')
-      'Pontuação ${a.dealScore}',
+      language.score(a.dealScore),
   ].join(' · ');
 
   return (title: '$heading: $bike', price: priceLine, facts: facts);
@@ -121,13 +112,17 @@ String euros(num value) {
 
 /// The Web Push message for one alert, read by the app's service worker
 /// (`web/push_sw.js`): a tap opens the listing in the app.
-Map<String, Object?> pushMessage(PendingAlert a) {
-  final lines = _alertLines(a);
+Map<String, Object?> pushMessage(
+  PendingAlert a, {
+  NotificationLanguage language = NotificationLanguage.portuguese,
+}) {
+  final lines = _alertLines(a, language);
   return {
     'title': lines.title,
     'body': [?lines.price, if (lines.facts.isNotEmpty) lines.facts].join('\n'),
     'url': a.listingId == null ? a.url : '/#/deals/${a.listingId}',
     // One notification per alert, even if a run sends it twice.
     'tag': a.alertId,
+    'language': language.code,
   };
 }

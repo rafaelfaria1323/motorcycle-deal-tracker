@@ -78,6 +78,23 @@ account's devices (Web Push; a tap opens that page). Asked for in the app,
 the workflow gets the account as its input (`SUMMARY_ACCOUNT`) and makes
 only that one. It only reads the listings.
 
+## Notification languages
+
+`notify/notification_text.dart` contains bundled Portuguese/English copy and
+the stable `NotificationLanguage` codes (`pt`, `en`). Alerts, test pushes,
+weekly-summary pushes and collection-health notices use each recipient's
+`account_languages` preference; missing rows preserve Portuguese. Preference
+reads are batched by 100 accounts. Failed reads do not send fallback-language
+messages or mark pending alerts handled.
+
+Weekly summaries are stored as language-independent data before preferences
+are loaded, so the app can render existing summaries in either language.
+Push URLs, tags, ownership and delivery/retry rules are unchanged. Language
+metadata reaches Web Push/FCM and the Android channel's display name, while
+its channel ID remains `alerts`. Seller/model names and raw collection
+diagnostics stay unchanged; the database's Telegram watchdog/token warnings
+remain operational messages. There is no translation service or AI.
+
 ## Commands
 
 | Command | What it does |

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/localization/localizations.dart';
 
 /// Asks for a name; returns null if cancelled.
 Future<String?> showSaveSearchDialog(
@@ -39,27 +40,27 @@ class _SaveSearchDialogState extends State<_SaveSearchDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Guardar pesquisa'),
+      title: Text(context.strings.saveSearch),
       content: Form(
         key: _formKey,
         child: TextFormField(
           controller: _controller,
           autofocus: true,
           maxLength: 60,
-          decoration: const InputDecoration(labelText: 'Nome'),
+          decoration: InputDecoration(labelText: context.strings.name),
           textInputAction: TextInputAction.done,
           onFieldSubmitted: (_) => _submit(),
           validator: (value) => (value == null || value.trim().isEmpty)
-              ? 'Indique um nome'
+              ? context.strings.enterName
               : null,
         ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancelar'),
+          child: Text(context.strings.cancel),
         ),
-        FilledButton(onPressed: _submit, child: const Text('Guardar')),
+        FilledButton(onPressed: _submit, child: Text(context.strings.save)),
       ],
     );
   }

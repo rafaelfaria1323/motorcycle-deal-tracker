@@ -83,6 +83,20 @@ and anonymous startup keeps its public prefetch.*
 alongside compatible newer patch releases, keeping dependency resolution
 working on Flutter 3.44 / Dart 3.12 (roadmap N.21).*
 
+*Portuguese (Portugal) and English are bundled throughout the interface,
+including dynamic explanations, forms, errors and summary rendering
+(roadmap N.22). Mais › "Idioma" / More › "Language" changes the current
+screen without resetting navigation. Portuguese is the default; accounts
+persist their own choice in owner-only `account_languages`, visitors keep
+a device choice, and stale account operations cannot replace the current
+language. Notifications and weekly-summary pushes follow each recipient,
+including mixed-language admin notices. Stored summary data stays neutral;
+failed preference reads never masquerade as an unset preference or mark
+pending alerts handled. Original seller content, names/notes, model/place
+names and technical diagnostics remain unchanged. Typed ARB resources,
+regional formatting and a pure-Dart notification catalog need no translation
+service or runtime AI.*
+
 *The collector remains pure Dart: `html` selects Standvirtual's JSON script
 and decodes HTML description fragments without hand-maintained entity
 tables. Formatting and dealer-boilerplate removal are preserved; invisible

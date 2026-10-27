@@ -16,6 +16,7 @@ import '../../../settings/presentation/workflows_text.dart';
 import '../../domain/entities/weekly_summary.dart';
 import '../../domain/repositories/weekly_summary_repository.dart';
 import '../weekly_summary_text.dart';
+import '../../../../core/localization/localizations.dart';
 
 /// "Resumo da semana" (from Mais, or a tap on the Monday notification):
 /// the account's latest weekly summary, each listing opening its page, and
@@ -48,9 +49,14 @@ class _WeeklySummaryPageState extends State<WeeklySummaryPage> {
   }
 
   Future<void> _ask() async {
+    final messageLanguage = context.language;
+
     final messenger = ScaffoldMessenger.of(context);
     setState(() => _asking = true);
-    final message = await startWorkflow(AppWorkflow.weeklySummary);
+    final message = await startWorkflow(
+      AppWorkflow.weeklySummary,
+      language: messageLanguage,
+    );
     if (!mounted) return;
     setState(() => _asking = false);
     showMessage(messenger, message);
@@ -58,11 +64,14 @@ class _WeeklySummaryPageState extends State<WeeklySummaryPage> {
 
   @override
   Widget build(BuildContext context) {
-    final ask = workflowText(AppWorkflow.weeklySummary);
+    final ask = workflowText(
+      AppWorkflow.weeklySummary,
+      language: context.language,
+    );
     return Scaffold(
       appBar: AppBar(
         leading: const PageBackButton(),
-        title: const Text('Resumo da semana'),
+        title: Text(context.strings.weeklySummary),
         actions: [
           if (_signedIn)
             IconButton(
@@ -81,19 +90,17 @@ class _WeeklySummaryPageState extends State<WeeklySummaryPage> {
         future: _summary,
         builder: (context, snapshot) {
           if (!_signedIn) {
-            return const StateMessage(
+            return StateMessage(
               icon: Icons.lock_outline,
-              title: 'Disponível com sessão iniciada',
-              message:
-                  'O resumo é feito com os modelos que a sua conta '
-                  'acompanha.',
+              title: context.strings.availableWhenSignedIn,
+              message: context.strings.summaryCoversModelsFollowedByYourAccount,
             );
           }
           if (snapshot.hasError) {
             return StateMessage(
               icon: Icons.cloud_off,
-              title: 'Não foi possível carregar o resumo',
-              actionLabel: 'Tentar novamente',
+              title: context.strings.couldNotLoadSummary,
+              actionLabel: context.strings.retry,
               onAction: () => unawaited(_reload()),
             );
           }
@@ -104,10 +111,8 @@ class _WeeklySummaryPageState extends State<WeeklySummaryPage> {
           if (summary == null) {
             return StateMessage(
               icon: Icons.summarize_outlined,
-              title: 'Ainda sem resumo',
-              message:
-                  'O primeiro chega na segunda-feira de manhã. Pode '
-                  'pedir um já.',
+              title: context.strings.noSummaryYet,
+              message: context.strings.firstArrivesOnMondayMorningYouCanRequest,
               actionLabel: _asking ? null : ask.title,
               onAction: () => unawaited(_ask()),
             );
@@ -134,33 +139,42 @@ class _SummaryView extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       children: [
         SectionCard(
-          title: summaryPeriodText(summary),
-          footnote: summaryMadeText(summary),
+          title: summaryPeriodText(summary, language: context.language),
+          footnote: summaryMadeText(summary, language: context.language),
           children: [
-            for (final line in summaryCountLines(summary)) BulletLine(line),
-            if (byModel != null) BulletLine('Novos: $byModel'),
+            for (final line in summaryCountLines(
+              summary,
+              language: context.language,
+            ))
+              BulletLine(line),
+            if (byModel != null)
+              BulletLine(context.strings.newText(byModel: byModel)),
           ],
         ),
         if (summary.bestDeals.isNotEmpty) ...[
           const SizedBox(height: 12),
           SectionCard(
-            title: 'Melhores negócios',
-            footnote:
-                'Anúncios ativos com risco abaixo de 50, pela '
-                'Pontuação.',
+            title: context.strings.bestDeals,
+            footnote: context.strings.activeListingsWithRiskBelow50OrderedBy,
             children: [
               for (final d in summary.bestDeals)
-                _DealTile(deal: d, subtitle: bestDealText(d)),
+                _DealTile(
+                  deal: d,
+                  subtitle: bestDealText(d, language: context.language),
+                ),
             ],
           ),
         ],
         if (summary.biggestDrops.isNotEmpty) ...[
           const SizedBox(height: 12),
           SectionCard(
-            title: 'Maiores baixas',
+            title: context.strings.largestDrops,
             children: [
               for (final d in summary.biggestDrops)
-                _DealTile(deal: d, subtitle: priceDropText(d)),
+                _DealTile(
+                  deal: d,
+                  subtitle: priceDropText(d, language: context.language),
+                ),
             ],
           ),
         ],

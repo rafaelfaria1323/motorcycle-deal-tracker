@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/formatting/formatters.dart';
 import '../../domain/entities/listing.dart';
+import '../../../../core/localization/localizations.dart';
 
 /// "↓ 300 €" in green when the price dropped, "↑ 150 €" in red when it rose.
 class PriceChangeTag extends StatelessWidget {
@@ -27,9 +28,11 @@ class PriceChangeTag extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        '${dropped ? '↓' : '↑'} ${Formatters.price(change.abs())}',
-        style: Theme.of(context).textTheme.labelMedium
-            ?.copyWith(color: color, fontWeight: FontWeight.w600),
+        '${dropped ? '↓' : '↑'} ${Formatters.price(change.abs(), language: context.language)}',
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }

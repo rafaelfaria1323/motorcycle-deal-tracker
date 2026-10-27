@@ -19,10 +19,7 @@ void main() {
 
   test('the summary names each brand once', () {
     expect(modelsText(['cbr', 'cb'], catalog), 'Honda CB650R ou CBR650R');
-    expect(
-      modelsText(['mt', 'cb'], catalog),
-      'Honda CB650R ou Yamaha MT-07',
-    );
+    expect(modelsText(['mt', 'cb'], catalog), 'Honda CB650R ou Yamaha MT-07');
     expect(modelsText(['gone'], catalog), isEmpty);
     expect(
       summarizeFilters(

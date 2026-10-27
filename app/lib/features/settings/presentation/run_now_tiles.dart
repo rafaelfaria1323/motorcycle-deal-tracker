@@ -8,6 +8,7 @@ import '../domain/accounts_repository.dart';
 import '../domain/workflows_repository.dart';
 import 'start_workflow.dart';
 import 'workflows_text.dart';
+import '../../../core/localization/localizations.dart';
 
 /// For admins, in "Recolha de dados": the "Estado da recolha" page, and
 /// starting the collection now. Nothing for anyone else.
@@ -28,8 +29,10 @@ class _RunNowTilesState extends State<RunNowTiles> {
   bool _starting = false;
 
   Future<void> _start() async {
+    final messageLanguage = context.language;
+
     const workflow = AppWorkflow.collect;
-    final text = workflowText(workflow);
+    final text = workflowText(workflow, language: messageLanguage);
     final ok =
         await showDialog<bool>(
           context: context,
@@ -39,11 +42,11 @@ class _RunNowTilesState extends State<RunNowTiles> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dialogContext).pop(false),
-                child: const Text('Cancelar'),
+                child: Text(dialogContext.strings.cancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(dialogContext).pop(true),
-                child: const Text('Iniciar'),
+                child: Text(dialogContext.strings.start),
               ),
             ],
           ),
@@ -53,7 +56,7 @@ class _RunNowTilesState extends State<RunNowTiles> {
 
     final messenger = ScaffoldMessenger.of(context);
     setState(() => _starting = true);
-    final message = await startWorkflow(workflow);
+    final message = await startWorkflow(workflow, language: messageLanguage);
     if (!mounted) return;
     setState(() => _starting = false);
     showMessage(messenger, message);
@@ -70,9 +73,9 @@ class _RunNowTilesState extends State<RunNowTiles> {
             const Divider(height: 1),
             ListTile(
               leading: const Icon(Icons.monitor_heart_outlined),
-              title: const Text('Estado da recolha'),
-              subtitle: const Text(
-                'Últimas recolhas e erros, pedidos de hoje e o token do GitHub',
+              title: Text(context.strings.collectionStatus),
+              subtitle: Text(
+                context.strings.recentCollectionsAndErrorsTodaySRequestsAnd,
               ),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.push(AppRoutes.collectionStatus),
@@ -80,8 +83,18 @@ class _RunNowTilesState extends State<RunNowTiles> {
             const Divider(height: 1),
             ListTile(
               leading: const Icon(Icons.play_circle_outline),
-              title: Text(workflowText(AppWorkflow.collect).title),
-              subtitle: Text(workflowText(AppWorkflow.collect).subtitle),
+              title: Text(
+                workflowText(
+                  AppWorkflow.collect,
+                  language: context.language,
+                ).title,
+              ),
+              subtitle: Text(
+                workflowText(
+                  AppWorkflow.collect,
+                  language: context.language,
+                ).subtitle,
+              ),
               trailing: _starting
                   ? const SizedBox.square(
                       dimension: 20,

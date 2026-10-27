@@ -4,6 +4,7 @@ import '../../domain/entities/site_model.dart';
 import '../../domain/repositories/catalog_repository.dart';
 import '../model_picker_text.dart';
 import '../tracked_models_text.dart';
+import '../../../../core/localization/localizations.dart';
 
 /// What the "add a model" form returns.
 typedef NewModel = ({
@@ -81,9 +82,7 @@ class _AddModelSheetState extends State<_AddModelSheet> {
       if (mounted) {
         setState(() {
           _makes = const [];
-          _makesProblem =
-              'Não foi possível carregar as marcas. '
-              'Pode escrever a marca e o modelo.';
+          _makesProblem = context.strings.couldNotLoadMakesYouCanEnterMake;
         });
       }
     }
@@ -109,9 +108,7 @@ class _AddModelSheetState extends State<_AddModelSheet> {
     } catch (_) {
       if (mounted && _make == make) {
         setState(() {
-          _modelsProblem =
-              'Não foi possível carregar os modelos. '
-              'Pode escrever o modelo à mão.';
+          _modelsProblem = context.strings.couldNotLoadModelsYouCanEnterModel;
           _loadingModels = false;
         });
       }
@@ -119,7 +116,7 @@ class _AddModelSheetState extends State<_AddModelSheet> {
   }
 
   /// The engine size typed, null when empty or invalid.
-  int? get _engineCc => parseEngineCc(_cc.text).cc;
+  int? get _engineCc => parseEngineCc(_cc.text, language: context.language).cc;
 
   /// What the picker gives: the name and the searches.
   ({String brand, String model, String standvirtual, String? olx})?
@@ -152,18 +149,19 @@ class _AddModelSheetState extends State<_AddModelSheet> {
 
   void _submit() {
     final picked = _usePicker ? _fromPicker : null;
-    final engine = parseEngineCc(_cc.text);
+    final engine = parseEngineCc(_cc.text, language: context.language);
     final problems = {
       ...newModelProblems(
         brand: _usePicker ? (_make?.name ?? '') : _brand.text,
         model: _usePicker ? (picked?.model ?? '') : _model.text,
         year: _year.text,
+        language: context.language,
       ),
       'cc': ?engine.error,
     };
     if (_usePicker) {
-      if (_make == null) problems['brand'] = 'Escolha a marca';
-      if (picked == null) problems['model'] = 'Escolha o modelo';
+      if (_make == null) problems['brand'] = context.strings.chooseMake;
+      if (picked == null) problems['model'] = context.strings.chooseModel;
     }
     if (problems.isNotEmpty) {
       setState(() => _problems = problems);
@@ -214,7 +212,7 @@ class _AddModelSheetState extends State<_AddModelSheet> {
         padding: const EdgeInsets.only(bottom: 12),
         child: DropdownMenu<SiteMake>(
           expandedInsets: EdgeInsets.zero,
-          label: const Text('Marca'),
+          label: Text(context.strings.make),
           menuHeight: 320,
           enableFilter: true,
           requestFocusOnTap: true,
@@ -232,7 +230,11 @@ class _AddModelSheetState extends State<_AddModelSheet> {
           // A new brand starts with an empty model.
           key: ValueKey(_make?.id),
           expandedInsets: EdgeInsets.zero,
-          label: Text(_loadingModels ? 'A carregar os modelos…' : 'Modelo'),
+          label: Text(
+            _loadingModels
+                ? context.strings.loadingModels
+                : context.strings.model,
+          ),
           enabled: _make != null && models.isNotEmpty,
           menuHeight: 320,
           enableFilter: true,
@@ -248,8 +250,8 @@ class _AddModelSheetState extends State<_AddModelSheet> {
   }
 
   List<Widget> _typedFields() => [
-    _field(_brand, 'Marca', problemKey: 'brand'),
-    _field(_model, 'Modelo', problemKey: 'model'),
+    _field(_brand, context.strings.make, problemKey: 'brand'),
+    _field(_model, context.strings.model, problemKey: 'model'),
   ];
 
   @override
@@ -270,14 +272,11 @@ class _AddModelSheetState extends State<_AddModelSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Adicionar modelo',
+              context.strings.addModel,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Escolha a marca e o modelo. Pesquisamos automaticamente '
-              'no OLX e no Standvirtual.',
-            ),
+            Text(context.strings.chooseMakeAndModelWeSearchOLXAnd),
             const SizedBox(height: 16),
             if (loading)
               const Padding(
@@ -298,18 +297,19 @@ class _AddModelSheetState extends State<_AddModelSheet> {
               ...(_usePicker ? _pickerFields() : _typedFields()),
               _field(
                 _cc,
-                'Cilindrada (opcional)',
+                context.strings.engineSizeOptional,
                 problemKey: 'cc',
                 keyboard: TextInputType.number,
-                helper:
-                    'Deixe em branco para todas as cilindradas. '
-                    'Ex.: 350 para a Forza 350.',
+                helper: context.strings.leaveBlankForAllEngineSizesForExample,
               ),
               if (picked != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Text(
-                    'A acompanhar: ${picked.brand} ${picked.model}',
+                    context.strings.following(
+                      brand: picked.brand,
+                      model: picked.model,
+                    ),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -317,7 +317,7 @@ class _AddModelSheetState extends State<_AddModelSheet> {
                 ),
               _field(
                 _year,
-                'Desde o ano',
+                context.strings.fromYear,
                 problemKey: 'year',
                 keyboard: TextInputType.number,
               ),
@@ -326,24 +326,27 @@ class _AddModelSheetState extends State<_AddModelSheet> {
                 childrenPadding: const EdgeInsets.only(top: 8),
                 shape: const Border(),
                 collapsedShape: const Border(),
-                title: const Text('Outros nomes do modelo'),
+                title: Text(context.strings.otherModelNames),
                 children: [
                   _field(
                     _aliases,
-                    'Outros nomes (opcional)',
-                    helper:
-                        'Como os vendedores também escrevem o modelo, '
-                        'separados por vírgulas. Ex.: Z 650, Z-650',
+                    context.strings.otherNamesOptional,
+                    helper: context
+                        .strings
+                        .otherWaysSellersWriteModelSeparatedByCommas,
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              FilledButton(onPressed: _submit, child: const Text('Adicionar')),
+              FilledButton(
+                onPressed: _submit,
+                child: Text(context.strings.add),
+              ),
             ],
             if (_usePicker || loading)
               TextButton(
                 onPressed: _typeByHand,
-                child: const Text('Escrever à mão'),
+                child: Text(context.strings.enterManually),
               ),
           ],
         ),

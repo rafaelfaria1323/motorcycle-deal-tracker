@@ -1,4 +1,5 @@
 import 'pending_alert.dart';
+import 'notification_text.dart';
 
 /// A listing of a tracked model as the weekly summary sees it.
 class SummaryListing {
@@ -181,8 +182,6 @@ WeeklySummary buildWeeklySummary({
 String _day(DateTime t) =>
     '${t.day.toString().padLeft(2, '0')}/${t.month.toString().padLeft(2, '0')}';
 
-String _count(int n, String one, String many) => '$n ${n == 1 ? one : many}';
-
 String _bikeAndYear(SummaryListing l) =>
     [l.bike, if (l.year != null) '${l.year}'].join(' ');
 
@@ -242,24 +241,30 @@ Map<String, Object?> weeklySummaryJson(WeeklySummary s, {int dropCount = 5}) {
 
 /// The Monday notification: the week in one line, and the best deal; a tap
 /// opens the summary in the app.
-Map<String, Object?> weeklySummaryPush(WeeklySummary s) {
+Map<String, Object?> weeklySummaryPush(
+  WeeklySummary s, {
+  NotificationLanguage language = NotificationLanguage.portuguese,
+}) {
   final lastDay = s.until.subtract(const Duration(days: 1));
   final best = s.bestDeals.firstOrNull;
   final counts = [
-    _count(s.newListings.length, 'anúncio novo', 'anúncios novos'),
-    _count(s.drops.length, 'baixa de preço', 'baixas de preço'),
-    _count(s.goneCount, 'saiu do mercado', 'saíram do mercado'),
+    language.newListings(s.newListings.length),
+    language.priceDrops(s.drops.length),
+    language.goneListings(s.goneCount),
   ].join(' · ');
   return {
-    'title': '📊 Resumo da semana · ${_day(s.since)} a ${_day(lastDay)}',
+    'title': language.weekTitle(_day(s.since), _day(lastDay)),
     'body': [
       counts,
       if (best != null)
-        'Melhor: ${_bikeAndYear(best)} · '
-            '${best.price == null ? '' : '${euros(best.price!)} · '}'
-            'Pontuação ${best.dealScore}',
+        language.bestDeal(
+          '${_bikeAndYear(best)} · '
+          '${best.price == null ? '' : '${euros(best.price!, language: language)} · '}'
+          '${language.score(best.dealScore)}',
+        ),
     ].join('\n'),
     'url': '/#/summary',
     'tag': 'weekly-summary',
+    'language': language.code,
   };
 }

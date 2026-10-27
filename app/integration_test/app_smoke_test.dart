@@ -1,3 +1,5 @@
+import 'dart:js_interop';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -6,13 +8,18 @@ import 'package:motorcycle_deal_tracker/app/app.dart';
 import 'package:motorcycle_deal_tracker/app/di/injection.dart';
 import 'package:motorcycle_deal_tracker/app/router/app_router.dart';
 import 'package:motorcycle_deal_tracker/app/router/app_routes.dart';
+import 'package:motorcycle_deal_tracker/core/localization/app_language.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/alerts_text.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/listing_detail_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/alerts_page.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/dashboard_page.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/listing_detail_page.dart';
+import 'package:motorcycle_deal_tracker/features/listings/presentation/saved_search_summary.dart';
 
 import 'support/interface_fixture.dart';
+
+@JS('document.documentElement.lang')
+external JSString get _documentLanguage;
 
 Future<void> _tab(WidgetTester tester, String label) async {
   final navigation = find.byWidgetPredicate(
@@ -60,7 +67,7 @@ void main() {
 
     await _tab(tester, 'Pesquisas');
     await tester.tap(
-      find.text(fixture.searchesRepository.values.single.displayName),
+      find.text(savedSearchName(fixture.searchesRepository.values.single)),
     );
     await tester.pumpAndSettle();
     expect(find.byType(DashboardPage), findsOneWidget);
@@ -115,6 +122,21 @@ void main() {
     expect(fixture.alertsRepository.markedRead, [alert.id]);
     await _backTo(tester, AppRoutes.alerts);
     expect(find.byType(AlertsPage), findsOneWidget);
+
+    expect(await fixture.languages.select(AppLanguage.english), isTrue);
+    await tester.pumpAndSettle();
+    expect(find.text('Alerts'), findsWidgets);
+    expect(
+      find.text(alertTitle(alert, language: AppLanguage.english)),
+      findsOneWidget,
+    );
+    expect(appRouter.routeInformationProvider.value.uri.path, AppRoutes.alerts);
+    expect(_documentLanguage.toDart, 'en-GB');
+
+    expect(await fixture.languages.select(AppLanguage.portuguese), isTrue);
+    await tester.pumpAndSettle();
+    expect(find.text('Alertas'), findsWidgets);
+    expect(_documentLanguage.toDart, 'pt-PT');
     expect(tester.takeException(), isNull);
   });
 }

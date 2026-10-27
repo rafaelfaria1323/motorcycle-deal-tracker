@@ -2,6 +2,7 @@ import 'dart:math';
 
 import '../../../core/formatting/formatters.dart';
 import '../domain/entities/market_behaviour.dart';
+import '../../../core/localization/localizations.dart';
 
 /// Below this many listings a figure is not shown as a fact.
 const minMarketData = 5;
@@ -17,76 +18,108 @@ List<String> marketLines(
   MarketBehaviour m, {
   int? daysListed,
   bool firstSeenOnly = false,
+  AppLanguage language = AppLanguage.portuguese,
 }) {
   final lines = <String>[
-    '${m.liveCount} ${m.liveCount == 1 ? 'anúncio ativo' : 'anúncios ativos'} '
-        'deste modelo',
+    language.messages.ofThisModel(
+      liveCount: m.liveCount.toString(),
+      value: m.liveCount == 1
+          ? language.messages.activeListing
+          : language.messages.activeListings,
+    ),
   ];
 
   final toGone = m.medianDaysToGone;
   final enoughGone = m.goneCount >= minMarketData && toGone != null;
   if (enoughGone) {
     lines.add(
-      'Tempo típico até sair do mercado: $toGone dias '
-      '(${m.goneCount} anúncios)',
+      language.messages.typicalTimeUntilLeavingMarketDaysListings(
+        toGone: (toGone).toString(),
+        goneCount: m.goneCount.toString(),
+      ),
     );
   } else {
     lines.add(
-      'Tempo até sair do mercado: ainda poucos dados '
-      '(${m.goneCount} ${m.goneCount == 1 ? 'anúncio saiu' : 'anúncios saíram'})',
+      language.messages.timeUntilLeavingMarketNotEnoughDataYet(
+        goneCount: m.goneCount.toString(),
+        value: m.goneCount == 1
+            ? language.messages.listingLeftMarket
+            : language.messages.listingsLeftMarket,
+      ),
     );
   }
 
   if (m.pricedCount >= minMarketData) {
     if (m.droppedCount == 0) {
-      lines.add(
-        'Nenhum vendedor baixou o preço desde que acompanhamos este modelo',
-      );
+      lines.add(language.messages.noSellerHasReducedPriceSinceWeStarted);
     } else {
       final share = (m.droppedCount * 100 / m.pricedCount).round();
       final drop = m.medianDropPct;
       lines.add(
         drop == null
-            ? '${Formatters.percent(share)} dos vendedores baixaram o preço'
-            : '${Formatters.percent(share)} dos vendedores baixaram o preço '
-                  '(descida típica ${Formatters.percent(drop, decimals: 1)})',
+            ? language.messages.ofSellersReducedTheirPrice(
+                percent: Formatters.percent(share, language: language),
+              )
+            : language.messages.ofSellersReducedTheirPriceTypicalDrop(
+                percent: Formatters.percent(share, language: language),
+                percent2: Formatters.percent(
+                  drop,
+                  decimals: 1,
+                  language: language,
+                ),
+              ),
       );
     }
   }
 
   final depreciation = m.depreciation;
-  if (depreciation != null) lines.add(depreciationLine(depreciation));
+  if (depreciation != null) {
+    lines.add(depreciationLine(depreciation, language: language));
+  }
 
   if (daysListed != null) {
     lines.add(switch ((daysListed <= 0, firstSeenOnly)) {
-      (true, false) => 'Este anúncio foi publicado hoje',
-      (true, true) => 'Visto pela primeira vez hoje',
-      (false, false) =>
-        'Este anúncio está publicado há $daysListed '
-            '${daysListed == 1 ? 'dia' : 'dias'}',
-      (false, true) =>
-        'Visto pela primeira vez há $daysListed '
-            '${daysListed == 1 ? 'dia' : 'dias'}',
+      (true, false) => language.messages.thisListingWasPublishedToday,
+      (true, true) => language.messages.firstSeenToday,
+      (false, false) => language.messages.thisListingHasBeenPublishedFor(
+        daysListed: (daysListed).toString(),
+        value: daysListed == 1 ? language.messages.day : language.messages.days,
+      ),
+      (false, true) => language.messages.firstSeenAgo(
+        daysListed: (daysListed).toString(),
+        value: daysListed == 1 ? language.messages.day : language.messages.days,
+      ),
     });
     if (enoughGone && daysListed > 2 * toGone) {
-      lines.add(
-        'Está à venda há mais do dobro do tempo habitual: '
-        'pode haver margem para negociar',
-      );
+      lines.add(language.messages.forSaleForMoreThanTwiceUsualTime);
     }
   }
   return lines;
 }
 
 /// The yearly and per-10 000 km loss in value, as percentages of the price.
-String depreciationLine(Depreciation d) {
-  String pct(double rate) =>
-      Formatters.percent((1 - exp(-rate)) * 100, decimals: 1);
-  final rates =
-      '${pct(d.perYear)} por ano e ${pct(d.per1000Km * 10)} por 10 000 km';
+String depreciationLine(
+  Depreciation d, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
+  String pct(double rate) => Formatters.percent(
+    (1 - exp(-rate)) * 100,
+    decimals: 1,
+    language: language,
+  );
+  final rates = language.messages.perYearAndPer10000Km(
+    value: pct(d.perYear),
+    value2: pct(d.per1000Km * 10),
+  );
 
   return d.isFitted
-      ? 'Desvalorização deste modelo: $rates (${d.sampleCount} anúncios)'
-      : 'Desvalorização: ainda poucos dados (${d.sampleCount} de '
-            '$minDepreciationData anúncios); usa-se a regra geral de $rates';
+      ? language.messages.depreciationForThisModelListings(
+          rates: rates,
+          sampleCount: d.sampleCount.toString(),
+        )
+      : language.messages.depreciationNotEnoughDataYetOfListingsUsing(
+          sampleCount: d.sampleCount.toString(),
+          minDepreciationData: (minDepreciationData).toString(),
+          rates: rates,
+        );
 }

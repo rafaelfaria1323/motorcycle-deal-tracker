@@ -26,6 +26,21 @@ class _Store implements ListingStore {
   List<String> forgotten = const [];
   List<String> used = const [];
   final summaries = <String, Map<String, Object?>>{};
+  Map<String, NotificationLanguage> languages = const {};
+  final languageLookups = <List<String>>[];
+  bool failLanguages = false;
+
+  @override
+  Future<Map<String, NotificationLanguage>> accountLanguages(
+    List<String> userIds,
+  ) async {
+    languageLookups.add(userIds);
+    if (failLanguages) throw StateError('Language lookup failed');
+    return {
+      for (final user in userIds)
+        user: languages[user] ?? NotificationLanguage.portuguese,
+    };
+  }
 
   @override
   Future<void> saveWeeklySummary(
@@ -180,6 +195,52 @@ void main() {
     expect(store.notified, ['a', 'b']);
   });
 
+  test('each recipient receives the alert in their account language', () async {
+    final store =
+        _Store([
+            _withId('a'),
+            _withId('b', user: 'u2'),
+            _withId('c', user: 'u2'),
+          ])
+          ..devices = {
+            'u1': [_device('https://p/1')],
+            'u2': [_device('fcm:english')],
+          }
+          ..languages = {'u2': NotificationLanguage.english};
+    final push = _Push();
+
+    expect(await notifyPending(store, push: push, now: _now), (
+      alerts: 3,
+      pushes: 3,
+    ));
+    expect(push.sent.first.$2['title'], '🆕 Novo anúncio: Yamaha R7');
+    expect(push.sent.first.$2['language'], 'pt');
+    expect(push.sent[1].$2['title'], '🆕 New listing: Yamaha R7');
+    expect(push.sent[1].$2['language'], 'en');
+    expect(push.sent[1].$2['url'], '/#/deals/l-b');
+    expect(push.sent[1].$2['tag'], 'b');
+    expect(store.languageLookups, [
+      ['u1', 'u2'],
+    ]);
+  });
+
+  test('a language lookup failure leaves every alert pending', () async {
+    final store = _Store([_withId('a')])
+      ..devices = {
+        'u1': [_device('https://p/1')],
+      }
+      ..failLanguages = true;
+    final push = _Push();
+    await expectLater(
+      notifyPending(store, push: push, now: _now),
+      throwsStateError,
+    );
+    expect(push.sent, isEmpty);
+    expect(store.notified, isNull);
+    expect(store.used, isEmpty);
+    expect(store.forgotten, isEmpty);
+  });
+
   test('a device that no longer exists is forgotten and skipped', () async {
     final store = _Store([_withId('a'), _withId('b')])
       ..devices = {
@@ -218,6 +279,7 @@ void main() {
       'body': '6 800 €\n5 000 km · Viseu · Pontuação 87',
       'url': 'https://www.standvirtual.com/motos/anuncio/x.html',
       'tag': 'a1',
+      'language': 'pt',
     });
   });
 
@@ -282,6 +344,7 @@ void main() {
       'body': '7 200 € → 6 800 €\n5 000 km · Viseu · Pontuação 87',
       'url': '/#/deals/l9',
       'tag': 'a9',
+      'language': 'pt',
     });
   });
 
@@ -314,5 +377,60 @@ void main() {
     expect(store.summaries['u1']!['new'], 0);
     expect(push.sent.single.$1, 'https://p/1');
     expect(push.sent.single.$2['url'], '/#/summary');
+    expect(store.languageLookups, [
+      ['u1', 'u3'],
+    ]);
   });
+
+  test(
+    'weekly summaries keep language-neutral data and localize each push',
+    () async {
+      final store = _Store([])
+        ..devices = {
+          'u1': [_device('https://p/1')],
+          'u2': [_device('https://p/2')],
+        }
+        ..languages = {'u2': NotificationLanguage.english};
+      final push = _Push();
+      final week = buildWeeklySummary(
+        listings: const [],
+        history: const [],
+        until: DateTime.utc(2026, 10, 19, 8),
+      );
+      expect(await sendWeeklySummaries(store, push, {'u1': week, 'u2': week}), (
+        accounts: 2,
+        devices: 2,
+        sent: 2,
+      ));
+      expect(store.summaries['u1'], store.summaries['u2']);
+      expect(push.sent.first.$2['title'], startsWith('📊 Resumo da semana'));
+      expect(push.sent.last.$2['title'], startsWith('📊 Weekly summary'));
+      expect(
+        push.sent.last.$2['body'],
+        '0 new listings · 0 price drops · 0 left the market',
+      );
+      expect(store.languageLookups, [
+        ['u1', 'u2'],
+      ]);
+    },
+  );
+
+  test(
+    'a language outage prevents pushes without losing weekly data',
+    () async {
+      final store = _Store([])..failLanguages = true;
+      final push = _Push();
+      final week = buildWeeklySummary(
+        listings: const [],
+        history: const [],
+        until: DateTime.utc(2026, 10, 19, 8),
+      );
+      await expectLater(
+        sendWeeklySummaries(store, push, {'u1': week, 'u2': week}),
+        throwsStateError,
+      );
+      expect(store.summaries.keys, ['u1', 'u2']);
+      expect(push.sent, isEmpty);
+    },
+  );
 }

@@ -1,4 +1,5 @@
 import '../store/listing_store.dart';
+import 'notification_text.dart';
 import 'pending_alert.dart';
 import 'run_health.dart';
 import 'web_push.dart';
@@ -8,13 +9,14 @@ import 'web_push.dart';
 const pushTestWorkflow = 'push-test.yml';
 
 /// The test notification: says the device receives them; a tap opens Mais.
-const Map<String, Object?> testPushMessage = {
-  'title': 'Notificação de teste',
-  'body':
-      'As notificações chegam a este aparelho. Os alertas aparecem assim '
-      'depois de cada recolha.',
+Map<String, Object?> testPushMessage({
+  NotificationLanguage language = NotificationLanguage.portuguese,
+}) => {
+  'title': language.testTitle,
+  'body': language.testBody,
   'url': '/#/more',
   'tag': 'push-test',
+  'language': language.code,
 };
 
 /// The kinds of notification the app can ask for an example of
@@ -40,9 +42,10 @@ const pushTestKinds = {
 /// bike that opens Ofertas.
 Map<String, Object?> samplePushMessage(
   String kind,
-  Map<String, dynamic>? listing,
-) {
-  const note = 'Exemplo de teste: nada mudou.';
+  Map<String, dynamic>? listing, {
+  NotificationLanguage language = NotificationLanguage.portuguese,
+}) {
+  final note = language.testNote;
   Map<String, Object?> withNote(Map<String, Object?> m) => {
     ...m,
     'body': [?m['body'] as String?, note].where((l) => l != '').join('\n'),
@@ -52,22 +55,28 @@ Map<String, Object?> samplePushMessage(
     'run_failed' => runHealthMessage(
       previous: 'ok',
       current: 'failed',
-      log: '== olx ==\nFailed: TimeoutException (exemplo)',
+      log: '== olx ==\nFailed: TimeoutException (${language.example})',
+      language: language,
     ),
     'run_blocked' => runHealthMessage(
       previous: 'ok',
       current: 'blocked',
-      log: '== standvirtual ==\nStopped, the site pushed back: 429 (exemplo)',
+      log:
+          '== standvirtual ==\nStopped, the site pushed back: 429 (${language.example})',
+      language: language,
     ),
     'run_recovered' => runHealthMessage(
       previous: 'failed',
       current: 'ok',
       log: '',
+      language: language,
     ),
     _ => null,
   };
   if (health != null) return withNote(health);
-  if (kind == 'test' || !pushTestKinds.contains(kind)) return testPushMessage;
+  if (kind == 'test' || !pushTestKinds.contains(kind)) {
+    return testPushMessage(language: language);
+  }
 
   final bike = listing == null
       ? const PendingAlert(
@@ -109,6 +118,7 @@ Map<String, Object?> samplePushMessage(
         dealScore: bike.dealScore,
         location: bike.location,
       ),
+      language: language,
     ),
   );
 }
@@ -133,33 +143,45 @@ Future<({int devices, int sent})> sendTestPush(
   final users = requester == null ? await store.adminIds() : [requester];
   final isAlert = !kind.startsWith('run_') && kind != 'test';
   final listing = isAlert ? await store.sampleListing(requester) : null;
-  return pushToUsers(store, push, users, samplePushMessage(kind, listing));
+  return pushToUsers(
+    store,
+    push,
+    users,
+    (language) => samplePushMessage(kind, listing, language: language),
+  );
 }
 
-/// Sends [message] to every device of [users]; forgets devices that no
-/// longer exist and stamps the ones reached.
+/// Builds the message in each recipient's language. A supplied [languages]
+/// map is the complete preference lookup for an existing batch.
 Future<({int devices, int sent})> pushToUsers(
   ListingStore store,
   WebPushSender push,
   List<String> users,
-  Map<String, Object?> message,
-) async {
+  Map<String, Object?> Function(NotificationLanguage) messageFor, {
+  Map<String, NotificationLanguage>? languages,
+}) async {
+  final recipients = users.toSet().toList();
+  final preferences = languages ?? await store.accountLanguages(recipients);
   final byUser = await store.pushTargets();
-  final devices = [for (final u in users) ...?byUser[u]];
 
   final reached = <String>[];
   final gone = <String>[];
-  for (final device in devices) {
-    switch (await push.send(device, message)) {
-      case PushResult.sent:
-        reached.add(device.endpoint);
-      case PushResult.gone:
-        gone.add(device.endpoint);
-      case PushResult.failed:
-        break;
+  var devices = 0;
+  for (final user in recipients) {
+    final message = messageFor(preferences[user]!);
+    for (final device in byUser[user] ?? const <PushTarget>[]) {
+      devices++;
+      switch (await push.send(device, message)) {
+        case PushResult.sent:
+          reached.add(device.endpoint);
+        case PushResult.gone:
+          gone.add(device.endpoint);
+        case PushResult.failed:
+          break;
+      }
     }
   }
   await store.forgetPushTargets(gone);
   await store.markPushTargetsUsed(reached);
-  return (devices: devices.length, sent: reached.length);
+  return (devices: devices, sent: reached.length);
 }

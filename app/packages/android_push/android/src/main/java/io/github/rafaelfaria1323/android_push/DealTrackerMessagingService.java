@@ -17,8 +17,8 @@ import java.util.Map;
 
 /**
  * Shows what the collector sends (FCM data messages: title, body, url,
- * tag) as a notification on the channel "Alertas", also with the app
- * closed. A tap opens the app on the message's page. Nothing is shown
+ * tag, language) as a notification on the account's "Alertas"/"Alerts"
+ * channel, also with the app closed. A tap opens the app on the message's page. Nothing is shown
  * while the person has them off in the app (or after signing out).
  */
 public class DealTrackerMessagingService extends FirebaseMessagingService {
@@ -37,7 +37,8 @@ public class DealTrackerMessagingService extends FirebaseMessagingService {
         NotificationManagerCompat manager = NotificationManagerCompat.from(this);
         if (Build.VERSION.SDK_INT >= 26) {
             manager.createNotificationChannel(new NotificationChannel(
-                    CHANNEL, "Alertas", NotificationManager.IMPORTANCE_HIGH));
+                    CHANNEL, "en".equals(data.get("language")) ? "Alerts" : "Alertas",
+                    NotificationManager.IMPORTANCE_HIGH));
         }
         NotificationCompat.Builder notification = new NotificationCompat.Builder(this, CHANNEL)
                 .setSmallIcon(R.drawable.android_push_notification)

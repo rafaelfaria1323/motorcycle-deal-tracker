@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:intl/date_symbol_data_local.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/auth/session_bootstrap.dart';
+import '../core/localization/localizations.dart';
+import '../core/platform/document_language.dart';
 import '../core/platform/first_page.dart';
 import '../core/platform/push.dart';
 import '../core/platform/session_storage.dart';
@@ -12,6 +14,8 @@ import '../core/widgets/state_message.dart';
 import '../features/listings/data/models/first_page_model.dart';
 import '../features/listings/presentation/cubit/listings_cubit.dart';
 import '../features/listings/presentation/cubit/listings_state.dart';
+import '../features/settings/data/supabase_language_repository.dart';
+import '../features/settings/presentation/language_cubit.dart';
 import 'app.dart';
 import 'di/injection.dart';
 import 'router/notification_taps.dart';
@@ -26,7 +30,7 @@ const _supabasePublishableKey = String.fromEnvironment(
 const _startTimeout = Duration(seconds: 20);
 
 /// Draws a frame at once and then gets the app ready (Supabase, the
-/// session, dates). Android keeps its splash screen until the first frame,
+/// session, language). Android keeps its splash screen until the first frame,
 /// so a start that waited for the network, or failed before `runApp`,
 /// stayed on the splash forever; now it shows a spinner, and a failure
 /// says what went wrong with a button to try again.
@@ -43,9 +47,19 @@ class _StartupState extends State<Startup> {
   static Future<void>? _supabase;
   static var _dependenciesReady = false;
 
+  AppLanguage _startupLanguage = AppLanguage.portuguese;
   late Future<void> _ready = _start();
 
   Future<void> _start() async {
+    final preferences = await SharedPreferences.getInstance();
+    _startupLanguage = AppLanguage.fromCode(
+      preferences.getString(SupabaseLanguageRepository.deviceKey) ??
+          AppLanguage.portuguese.code,
+    );
+    setDocumentLanguage(
+      _startupLanguage.locale.toLanguageTag(),
+      _startupLanguage.messages.appOpening,
+    );
     if (_supabaseUrl.isEmpty || _supabasePublishableKey.isEmpty) {
       throw StateError(
         'Missing Supabase config: build with '
@@ -54,9 +68,12 @@ class _StartupState extends State<Startup> {
     }
     await (_supabase ??= _initializeSupabase()).timeout(_startTimeout);
     if (!_dependenciesReady) {
-      configureDependencies();
+      configureDependencies(preferences);
       _dependenciesReady = true;
     }
+    // A cached choice is immediate; account preferences load independently
+    // and never hold up browsing or the notification's deep link.
+    getIt<LanguageCubit>();
     // The first listings while the session starts, not after it: without
     // a session the database answers as for an anonymous one (every
     // collected model), so a first visit doesn't wait for its sign-in;
@@ -66,11 +83,11 @@ class _StartupState extends State<Startup> {
     if (listings.state.status == ListingsStatus.initial) {
       unawaited(listings.load(early: takeFirstPage().then(firstPageFromJson)));
     }
-    await initializeDateFormatting('pt_PT');
     // Browsing works without a session, so a slow sign-in doesn't hold
     // the app (it is tried again on the next start).
-    await ensureSession(Supabase.instance.client)
-        .timeout(_startTimeout, onTimeout: () {});
+    await ensureSession(
+      Supabase.instance.client,
+    ).timeout(_startTimeout, onTimeout: () {});
     // The Android app: a tapped notification opens its page, once the
     // app's router is on screen.
     WidgetsBinding.instance.addPostFrameCallback(
@@ -107,11 +124,12 @@ class _StartupState extends State<Startup> {
           snapshot.hasError
               ? StateMessage(
                   icon: Icons.cloud_off,
-                  title: 'Não foi possível abrir a app',
-                  message:
-                      'Verifique a ligação à internet e tente de novo.\n'
-                      '(${_describe(snapshot.error)})',
-                  actionLabel: 'Tentar novamente',
+                  title: _startupLanguage.messages.couldNotOpenApp,
+                  message: _startupLanguage.messages
+                      .checkYourInternetConnectionAndTryAgain(
+                        value: _describe(snapshot.error),
+                      ),
+                  actionLabel: _startupLanguage.messages.retry,
                   onAction: () => setState(() => _ready = _start()),
                 )
               : const Center(child: CircularProgressIndicator()),
@@ -137,8 +155,8 @@ class _StartupState extends State<Startup> {
     );
   }
 
-  static String _describe(Object? error) => switch (error) {
-    TimeoutException() => 'sem resposta do servidor',
+  String _describe(Object? error) => switch (error) {
+    TimeoutException() => _startupLanguage.messages.noResponseFromServer,
     final Object e => '$e',
     null => '',
   };

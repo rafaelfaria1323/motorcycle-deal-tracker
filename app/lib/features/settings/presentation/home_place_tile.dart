@@ -8,6 +8,7 @@ import '../../listings/presentation/cubit/favourites_cubit.dart';
 import '../../listings/presentation/cubit/listings_cubit.dart';
 import '../domain/home_repository.dart';
 import '../domain/place.dart';
+import '../../../core/localization/localizations.dart';
 
 /// "A sua localidade" in Mais: the home the distance of each listing is
 /// measured from. Tapping it opens a search of Portugal's towns.
@@ -25,6 +26,8 @@ class _HomePlaceTileState extends State<HomePlaceTile> {
       getIt<HomeRepository>().getHome().catchError((Object _) => null);
 
   Future<void> _pick() async {
+    final messageStrings = context.strings;
+
     final messenger = ScaffoldMessenger.of(context);
     final place = await showDialog<Place>(
       context: context,
@@ -34,7 +37,7 @@ class _HomePlaceTileState extends State<HomePlaceTile> {
     try {
       await getIt<HomeRepository>().saveHome(place);
     } catch (_) {
-      showMessage(messenger, 'Não foi possível guardar. Tente novamente.');
+      showMessage(messenger, messageStrings.couldNotSaveTryAgain);
       return;
     }
     if (!mounted) return;
@@ -52,12 +55,15 @@ class _HomePlaceTileState extends State<HomePlaceTile> {
         final home = snapshot.data;
         return ListTile(
           leading: const Icon(Icons.home_outlined),
-          title: Text(home == null ? 'A sua localidade' : home.name),
+          title: Text(
+            home == null ? context.strings.yourHomeLocation : home.name,
+          ),
           subtitle: Text(
             home == null
-                ? 'Indique-a para ver a que distância está cada mota'
-                : 'A sua localidade: a distância de cada anúncio conta '
-                      'a partir daqui',
+                ? context.strings.setItToSeeHowFarAwayEach
+                : context
+                      .strings
+                      .yourHomeLocationDistancesToListingsAreMeasured,
           ),
           trailing: const Icon(Icons.chevron_right),
           onTap: snapshot.connectionState == ConnectionState.done
@@ -121,7 +127,7 @@ class _PlaceSearchDialogState extends State<_PlaceSearchDialog> {
         _resultsFor == _controller.text &&
         _results.isEmpty;
     return AlertDialog(
-      title: const Text('A sua localidade'),
+      title: Text(context.strings.yourHomeLocation),
       content: SizedBox(
         width: 400,
         height: 360,
@@ -131,8 +137,8 @@ class _PlaceSearchDialogState extends State<_PlaceSearchDialog> {
               controller: _controller,
               autofocus: true,
               textCapitalization: TextCapitalization.words,
-              decoration: const InputDecoration(
-                hintText: 'Escreva a cidade ou vila',
+              decoration: InputDecoration(
+                hintText: context.strings.enterCityOrTown,
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(),
               ),
@@ -141,13 +147,9 @@ class _PlaceSearchDialogState extends State<_PlaceSearchDialog> {
             const SizedBox(height: 8),
             Expanded(
               child: _failed
-                  ? const Center(
-                      child: Text(
-                        'Não foi possível pesquisar. Tente novamente.',
-                      ),
-                    )
+                  ? Center(child: Text(context.strings.couldNotSearchTryAgain))
                   : noneFound
-                  ? const Center(child: Text('Nenhuma localidade encontrada'))
+                  ? Center(child: Text(context.strings.noPlacesFound))
                   : ListView(
                       children: [
                         for (final place in _results)
@@ -160,7 +162,7 @@ class _PlaceSearchDialogState extends State<_PlaceSearchDialog> {
             ),
             // GeoNames' licence (CC BY 4.0) asks for credit.
             Text(
-              'Localidades: GeoNames (geonames.org), CC BY 4.0',
+              context.strings.placesGeoNamesGeonamesOrgCCBY40,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -171,7 +173,7 @@ class _PlaceSearchDialogState extends State<_PlaceSearchDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancelar'),
+          child: Text(context.strings.cancel),
         ),
       ],
     );

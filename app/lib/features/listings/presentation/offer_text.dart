@@ -5,6 +5,7 @@ import '../domain/entities/listing.dart';
 import '../domain/entities/market_behaviour.dart';
 import 'market_behaviour_text.dart';
 import 'negotiation_text.dart';
+import '../../../core/localization/localizations.dart';
 
 /// What to offer for a listing: where to start and the most to pay, with
 /// the reasons in words. Built from asking prices, never from sales.
@@ -20,20 +21,34 @@ class OfferSuggestion {
   final List<String> reasons;
 
   /// "Comece por 6300 € e não passe de 6700 €."
-  String get headline =>
-      'Comece por ${Formatters.price(opening)} e não passe de '
-      '${Formatters.price(ceiling)}.';
+  String headline({AppLanguage language = AppLanguage.portuguese}) =>
+      language.messages.startAtAndDoNotGoAbove(
+        price: Formatters.price(opening, language: language),
+        price2: Formatters.price(ceiling, language: language),
+      );
 
   /// The offers to make in turn: the opening, one halfway to the most to
   /// pay when there is room for it, and the most to pay as the last; each
   /// with the message to send.
-  List<OfferStep> get steps {
+  List<OfferStep> steps({AppLanguage language = AppLanguage.portuguese}) {
     final middle = _roundDown((opening + ceiling) / 2);
     return [
-      OfferStep('Primeira proposta', opening, offerMessage(opening)),
+      OfferStep(
+        language.messages.openingOffer,
+        opening,
+        offerMessage(opening, language: language),
+      ),
       if (middle > opening && middle < ceiling)
-        OfferStep('Se recusar', middle, offerMessage(middle)),
-      OfferStep('Última proposta', ceiling, lastOfferMessage(ceiling)),
+        OfferStep(
+          language.messages.ifDeclined,
+          middle,
+          offerMessage(middle, language: language),
+        ),
+      OfferStep(
+        language.messages.finalOffer,
+        ceiling,
+        lastOfferMessage(ceiling, language: language),
+      ),
     ];
   }
 
@@ -53,25 +68,31 @@ class OfferSuggestion {
   }
 
   /// What to answer when the seller asks [counter] instead.
-  String replyTo(double counter) => reply(counter).advice;
+  String replyTo(
+    double counter, {
+    AppLanguage language = AppLanguage.portuguese,
+  }) => reply(counter, language: language).advice;
 
   /// What to do when the seller asks [counter] instead, and the message to
   /// send for it.
-  OfferReply reply(double counter) {
-    final steps = this.steps;
+  OfferReply reply(
+    double counter, {
+    AppLanguage language = AppLanguage.portuguese,
+  }) {
+    final steps = this.steps(language: language);
     // The offer before the last: below it, the seller is already close.
     final second = steps[steps.length - 2].price;
-    final value = Formatters.price(counter);
+    final value = Formatters.price(counter, language: language);
     if (counter <= opening) {
       return OfferReply(
-        'Aceite: $value é menos do que a sua primeira proposta.',
-        acceptMessage(counter),
+        language.messages.acceptIsBelowYourOpeningOffer(value: value),
+        acceptMessage(counter, language: language),
       );
     }
     if (counter <= second) {
       return OfferReply(
-        'Aceite: $value está dentro do que vale a pena pagar.',
-        acceptMessage(counter),
+        language.messages.acceptIsWithinWhatIsWorthPaying(value: value),
+        acceptMessage(counter, language: language),
       );
     }
     if (counter <= ceiling) {
@@ -80,21 +101,27 @@ class OfferSuggestion {
       // one step from the seller's price.
       if (halfway <= second || counter - halfway <= offerStep) {
         return OfferReply(
-          'Aceite: $value está dentro do máximo '
-          '(${Formatters.price(ceiling)}).',
-          acceptMessage(counter),
+          language.messages.acceptIsWithinMaximum(
+            value: value,
+            price: Formatters.price(ceiling, language: language),
+          ),
+          acceptMessage(counter, language: language),
         );
       }
       return OfferReply(
-        'Proponha ${Formatters.price(halfway)} (a meio caminho). Se não '
-        'baixar mais, $value ainda está dentro do máximo.',
-        offerMessage(halfway),
+        language.messages.offerHalfwayIfSellerWillNotGoLower(
+          price: Formatters.price(halfway, language: language),
+          value: value,
+        ),
+        offerMessage(halfway, language: language),
       );
     }
     return OfferReply(
-      '$value passa do máximo: ofereça ${Formatters.price(ceiling)} '
-      'como última proposta e, se não aceitar, procure outra mota.',
-      lastOfferMessage(ceiling),
+      language.messages.exceedsMaximumOfferAsYourFinalOfferAnd(
+        value: value,
+        price: Formatters.price(ceiling, language: language),
+      ),
+      lastOfferMessage(ceiling, language: language),
     );
   }
 }
@@ -109,10 +136,11 @@ class OfferReply {
 
 /// The seller's counter-offer as typed: "8500", "8.500", "8 500 €". Null
 /// for anything that is not a price.
-double? parseCounterOffer(String text) {
-  final value = double.tryParse(
-    text.replaceAll(RegExp(r'[\s.€]'), '').replaceAll(',', '.'),
-  );
+double? parseCounterOffer(
+  String text, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
+  final value = Formatters.parsePrice(text, language: language);
   return value != null && value >= offerStep ? value : null;
 }
 
@@ -185,6 +213,7 @@ OfferSuggestion? suggestOffer(
   Listing listing, {
   MarketBehaviour? market,
   int? daysListed,
+  AppLanguage language = AppLanguage.portuguese,
 }) {
   final price = listing.price;
   final estimate = (listing.scoreBreakdown?['market_price'] as num?)
@@ -217,28 +246,35 @@ OfferSuggestion? suggestOffer(
   if (price > estimate * 1.02) {
     ceiling = _roundDown(estimate);
     reasons.add(
-      'O preço pedido está ${Formatters.percent((price / estimate - 1) * 100)} '
-      'acima do valor estimado: não pague mais do que '
-      '${Formatters.price(ceiling)}.',
+      language.messages.askingPriceIsAboveEstimatedValueDoNot(
+        percent: Formatters.percent(
+          (price / estimate - 1) * 100,
+          language: language,
+        ),
+        price: Formatters.price(ceiling, language: language),
+      ),
     );
   } else {
     ceiling = _roundDown(price);
     if (damaged && price < estimate * 0.98) {
       reasons.add(
-        'O preço pedido está '
-        '${Formatters.percent((1 - price / estimate) * 100)} abaixo do valor '
-        'estimado (${Formatters.price(estimate)}), mas esse valor é o de '
-        'motas sem danos: a diferença é o dano, não um desconto.',
+        language.messages.askingPriceIsBelowEstimatedValueButThat(
+          percent: Formatters.percent(
+            (1 - price / estimate) * 100,
+            language: language,
+          ),
+          price: Formatters.price(estimate, language: language),
+        ),
       );
     } else if (price < estimate * 0.98) {
       reasons.add(
-        'O preço pedido já está '
-        '${Formatters.percent(alreadyBelow * 100)} abaixo do valor '
-        'estimado (${Formatters.price(estimate)}): há menos margem para '
-        'negociar.',
+        language.messages.askingPriceIsAlreadyBelowEstimatedValueThere(
+          percent: Formatters.percent(alreadyBelow * 100, language: language),
+          price: Formatters.price(estimate, language: language),
+        ),
       );
     } else {
-      reasons.add('O preço pedido está em linha com o valor estimado.');
+      reasons.add(language.messages.askingPriceIsInLineWithEstimatedValue);
     }
   }
 
@@ -246,11 +282,15 @@ OfferSuggestion? suggestOffer(
   var margin = dealer ? dealerMargin : privateMargin;
   reasons.add(
     dealer
-        ? 'Vendedor profissional: ponto de partida '
-              '${Formatters.percent(dealerMargin * 100)} abaixo (os stands '
-              'negociam pouco o preço).'
-        : 'Vendedor particular: ponto de partida '
-              '${Formatters.percent(privateMargin * 100)} abaixo.',
+        ? language.messages.dealerStartBelowPriceDealersRarelyNegotiateMuch(
+            percent: Formatters.percent(dealerMargin * 100, language: language),
+          )
+        : language.messages.privateSellerStartBelowPrice(
+            percent: Formatters.percent(
+              privateMargin * 100,
+              language: language,
+            ),
+          ),
   );
 
   // Long on sale: the seller has been waiting and may take a lower offer.
@@ -270,28 +310,36 @@ OfferSuggestion? suggestOffer(
         : 0;
     margin += longListingMargins[level];
     final howLong = enoughGone
-        ? '${const ['mais do que o', 'mais do dobro do', 'mais do triplo do'][level]} '
-              'típico deste modelo ($typicalDays dias)'
-        : 'muito tempo';
+        ? language.messages.typicalForThisModelDays(
+            value: [
+              language.messages.moreThan,
+              language.messages.moreThanTwice,
+              language.messages.moreThanThreeTimes,
+            ][level],
+            typicalDays: (typicalDays).toString(),
+          )
+        : language.messages.longTime;
     reasons.add(
-      'À venda há $daysListed dias, $howLong: '
-      '${level == 0 ? 'há mais margem para negociar' : 'o vendedor pode aceitar uma proposta mais baixa'}.',
+      language.messages.forSaleForDaysOfferText(
+        daysListed: (daysListed).toString(),
+        howLong: howLong,
+        value: level == 0
+            ? language.messages.thereIsMoreRoomToNegotiate
+            : language.messages.sellerMayAcceptLowerOffer,
+      ),
     );
   }
 
   // Put up again after an earlier ad went: it did not sell at that price.
   if (listing.relistedFrom != null) {
     margin += relistedMargin;
-    reasons.add(
-      'Já foi anunciada antes e não se vendeu: o vendedor está à espera há '
-      'mais tempo do que este anúncio mostra.',
-    );
+    reasons.add(language.messages.itWasListedBeforeAndDidNotSell);
   }
 
   final dropped = (listing.priceChange ?? 0) <= -1;
   if (dropped) {
     margin -= 0.02;
-    reasons.add('O vendedor já baixou o preço: há menos margem.');
+    reasons.add(language.messages.sellerHasAlreadyReducedPriceThereIsLess);
   } else if (market != null &&
       market.pricedCount >= minMarketData &&
       market.droppedCount * 3 >= market.pricedCount &&
@@ -300,28 +348,30 @@ OfferSuggestion? suggestOffer(
     final usual = min(market.medianDropPct! / 2, 4.0);
     margin += usual / 100;
     reasons.add(
-      'Muitos vendedores deste modelo acabam por baixar o preço '
-      '(descida típica ${Formatters.percent(market.medianDropPct!, decimals: 1)}).',
+      language.messages.manySellersOfThisModelEventuallyReduceTheir(
+        percent: Formatters.percent(
+          market.medianDropPct!,
+          decimals: 1,
+          language: language,
+        ),
+      ),
     );
   }
 
   final risk = listing.riskScore;
   if (risk != null && risk >= 50) {
     margin += 0.03;
-    reasons.add(
-      'O risco é elevado: peça para ver o que falta e use-o para negociar.',
-    );
+    reasons.add(language.messages.riskIsHighCheckWhatIsMissingAnd);
   }
 
   if (damaged) {
     margin += damageMargin;
     reasons.add(
-      'O anúncio fala de um acidente ou de reparações por fazer: comece mais '
-      'abaixo, peça fotos ou um orçamento da reparação e desconte-o.',
+      language.messages.listingMentionsAccidentOrOutstandingRepairsStartLower,
     );
   } else if (riskReasons.contains('cosmetic_damage')) {
     margin += cosmeticMargin;
-    reasons.add('O anúncio fala de riscos ou mossas: use-os para negociar.');
+    reasons.add(language.messages.listingMentionsScratchesOrDentsUseThemTo);
   }
 
   if (ceiling < offerStep) return null;

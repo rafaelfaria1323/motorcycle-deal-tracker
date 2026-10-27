@@ -7,10 +7,10 @@ const _issue = ChecklistEntry(mark: ChecklistMark.issue);
 
 void main() {
   test('every item has its own key, a title and a hint', () {
-    final keys = viewingChecklistItems.map((i) => i.key).toList();
+    final keys = viewingChecklistItems().map((i) => i.key).toList();
     expect(keys.toSet(), hasLength(keys.length));
     expect(keys, hasLength(12));
-    for (final item in viewingChecklistItems) {
+    for (final item in viewingChecklistItems()) {
       expect(item.key, matches(RegExp(r'^[a-z_]+$')));
       expect(item.title, isNotEmpty);
       expect(item.hint, endsWith('.'));
@@ -43,7 +43,7 @@ void main() {
     });
 
     test('everything seen, with or without problems', () {
-      final all = {for (final i in viewingChecklistItems) i.key: _ok};
+      final all = {for (final i in viewingChecklistItems()) i.key: _ok};
       expect(checklistSummaryText(all), 'Tudo visto, sem problemas');
       expect(
         checklistSummaryText({...all, 'brakes': _issue}),

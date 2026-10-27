@@ -1,3 +1,5 @@
+import 'notification_text.dart';
+
 /// The notification (Web Push, to the admins' devices) for a change in the
 /// collection's health between the [previous] run's status and this run's
 /// [current] one (`ok`, `blocked`, `failed`, see `runStatus`), or null when
@@ -7,28 +9,22 @@ Map<String, Object?>? runHealthMessage({
   required String? previous,
   required String current,
   required String log,
+  NotificationLanguage language = NotificationLanguage.portuguese,
 }) {
   if (current == previous) return null;
   if (current == 'ok' && previous == null) return null;
   final problems = current == 'ok' ? const <String>[] : runProblems(log);
   final (title, advice) = switch (current) {
-    'ok' => ('✅ A recolha de anúncios voltou a funcionar.', null),
-    'blocked' => (
-      '⛔ Um site recusou os pedidos da recolha de anúncios.',
-      'A recolha desse site fica em pausa durante 24 h e volta a tentar '
-          'automaticamente.',
-    ),
-    _ => (
-      '⚠️ A recolha de anúncios falhou.',
-      'Os preços na app podem ficar desatualizados até a recolha voltar a '
-          'funcionar.',
-    ),
+    'ok' => (language.recovered, null),
+    'blocked' => (language.blocked, language.blockedAdvice),
+    _ => (language.failed, language.failedAdvice),
   };
   return {
     'title': title,
     'body': [...problems, ?advice].join('\n'),
     'url': '/#/collection-status',
     'tag': 'run-health',
+    'language': language.code,
   };
 }
 

@@ -1,4 +1,5 @@
 import '../store/listing_store.dart';
+import 'notification_text.dart';
 import 'pending_alert.dart';
 import 'web_push.dart';
 
@@ -24,6 +25,9 @@ Future<({int alerts, int pushes})> notifyPending(
   final pending = await store.pendingNotifications(limit: pendingPerRun);
   if (pending.isEmpty) return (alerts: 0, pushes: 0);
   final devices = await store.pushTargets();
+  final languages = await store.accountLanguages(
+    pending.map((alert) => alert.userId).whereType<String>().toSet().toList(),
+  );
   final at = now ?? DateTime.now();
 
   final sent = <String>[];
@@ -35,10 +39,16 @@ Future<({int alerts, int pushes})> notifyPending(
     final old = created != null && at.difference(created) > pushRetryWindow;
     var failed = false;
     var delivered = false;
+    final message = pushMessage(
+      alert,
+      language: alert.userId == null
+          ? NotificationLanguage.portuguese
+          : languages[alert.userId]!,
+    );
     for (final device in devices[alert.userId] ?? const <PushTarget>[]) {
       if (old) break;
       if (gone.contains(device.endpoint)) continue;
-      switch (await push.send(device, pushMessage(alert))) {
+      switch (await push.send(device, message)) {
         case PushResult.sent:
           pushes++;
           delivered = true;

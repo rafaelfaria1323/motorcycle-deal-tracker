@@ -11,6 +11,7 @@ import '../../domain/repositories/listings_repository.dart';
 import '../compare_text.dart';
 import '../cubit/compare_cubit.dart';
 import '../widgets/listing_photo.dart';
+import '../../../../core/localization/localizations.dart';
 
 /// Up to three listings side by side, one column each, the best value of
 /// each row highlighted. The ids live in the address, so the page survives
@@ -61,7 +62,7 @@ class _ComparePageState extends State<ComparePage> {
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(onPressed: _close),
-        title: const Text('Comparar'),
+        title: Text(context.strings.compare),
       ),
       body: FutureBuilder<List<Listing>>(
         future: _future,
@@ -69,9 +70,9 @@ class _ComparePageState extends State<ComparePage> {
           if (snapshot.hasError) {
             return StateMessage(
               icon: Icons.cloud_off,
-              title: 'Não foi possível carregar os anúncios',
-              message: 'Verifique a ligação e tente novamente.',
-              actionLabel: 'Tentar novamente',
+              title: context.strings.couldNotLoadListings,
+              message: context.strings.checkYourConnectionAndTryAgain,
+              actionLabel: context.strings.retry,
               onAction: () => setState(() => _future = _load()),
             );
           }
@@ -82,11 +83,11 @@ class _ComparePageState extends State<ComparePage> {
           if (listings.length < 2) {
             return StateMessage(
               icon: Icons.compare_arrows,
-              title: 'Escolha pelo menos dois anúncios',
-              message:
-                  'Nas Ofertas, mantenha um anúncio premido ou use '
-                  '"Comparar" na página do anúncio (até $maxCompared).',
-              actionLabel: 'Ver ofertas',
+              title: context.strings.chooseAtLeastTwoListings,
+              message: context.strings.inDealsPressAndHoldListingOrUse(
+                maxCompared: (maxCompared).toString(),
+              ),
+              actionLabel: context.strings.viewDeals,
               onAction: () => context.go(AppRoutes.deals),
             );
           }
@@ -108,7 +109,7 @@ class _Table extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = AppColors.of(context);
     final muted = theme.colorScheme.onSurfaceVariant;
-    final rows = compareRows(listings);
+    final rows = compareRows(listings, language: context.language);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -210,7 +211,7 @@ class _Header extends StatelessWidget {
               child: IconButton.filledTonal(
                 visualDensity: VisualDensity.compact,
                 iconSize: 16,
-                tooltip: 'Retirar da comparação',
+                tooltip: context.strings.removeFromComparison,
                 icon: const Icon(Icons.close),
                 onPressed: onRemove,
               ),

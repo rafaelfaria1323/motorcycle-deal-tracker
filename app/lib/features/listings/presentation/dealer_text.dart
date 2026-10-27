@@ -1,39 +1,67 @@
 import '../../../core/formatting/formatters.dart';
 import '../domain/entities/dealer_reliability.dart';
+import '../../../core/localization/localizations.dart';
 
 /// Below this many bikes the figures say little about a dealer.
 const minDealerBikes = 5;
 
 /// "Motos Lda: 12 motas vistas desde 21/08/2026 (5 à venda)".
-String dealerHeadline(DealerReliability d) {
+String dealerHeadline(
+  DealerReliability d, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   final since = d.firstSeenAt;
-  return '${d.name}: ${d.bikes} ${d.bikes == 1 ? 'mota vista' : 'motas vistas'}'
-      '${since == null ? '' : ' desde ${Formatters.date(since)}'} '
-      '(${d.live} à venda)';
+  return language.messages.forSale(
+    name: d.name,
+    bikes: d.bikes.toString(),
+    value: d.bikes == 1
+        ? language.messages.bikeSeen
+        : language.messages.bikesSeen,
+    value4: since == null
+        ? ''
+        : language.messages.since(date: Formatters.date(since)),
+    live: d.live.toString(),
+  );
 }
 
 /// One line per warning sign found in the dealer's ads, then how often it
 /// lowered its prices; a reassuring line when there are no warning signs.
-List<String> dealerLines(DealerReliability d) {
-  String share(int n) => '$n de ${d.bikes}';
+List<String> dealerLines(
+  DealerReliability d, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
+  String share(int n) => language.messages.ofTextDealerText(
+    n: (n).toString(),
+    bikes: d.bikes.toString(),
+  );
   final warnings = [
     if (d.relisted > 0)
-      '${share(d.relisted)} publicadas de novo depois de o anúncio sair',
+      language.messages.relistedAfterEarlierListingDisappeared(
+        value: share(d.relisted),
+      ),
     if (d.sharpChanges > 0)
-      '${share(d.sharpChanges)} com mudanças de preço bruscas '
-          '(50 % ou mais de uma vez)',
-    if (d.missingMileage > 0) '${share(d.missingMileage)} sem quilómetros',
+      language.messages.withSharpPriceChanges50OrMoreIn(
+        value: share(d.sharpChanges),
+      ),
+    if (d.missingMileage > 0)
+      language.messages.withNoMileage(value: share(d.missingMileage)),
     if (d.repeated > 0)
-      '${d.repeated} ${d.repeated == 1 ? 'anúncio repetido' : 'anúncios repetidos'} '
-          'da mesma mota usada no mesmo site',
+      language.messages.forSameUsedBikeOnSameSite(
+        repeated: d.repeated.toString(),
+        value: d.repeated == 1
+            ? language.messages.repeatedListing
+            : language.messages.repeatedListings,
+      ),
   ];
   return [
-    if (warnings.isEmpty) 'Sem sinais de alerta nos anúncios deste stand',
+    if (warnings.isEmpty) language.messages.noWarningSignsInThisDealerSListings,
     ...warnings,
     d.dropped == 0
-        ? 'Ainda não baixou o preço de nenhuma mota'
-        : 'Baixou o preço de ${share(d.dropped)}',
+        ? language.messages.hasNotReducedAnyBikeSPriceYet
+        : language.messages.reducedPriceOf(value: share(d.dropped)),
     if (d.bikes < minDealerBikes)
-      'Ainda poucos dados sobre este stand (menos de $minDealerBikes motas)',
+      language.messages.notEnoughDataAboutThisDealerYetFewer(
+        minDealerBikes: (minDealerBikes).toString(),
+      ),
   ];
 }

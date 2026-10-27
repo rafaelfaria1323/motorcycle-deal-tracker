@@ -1,5 +1,6 @@
 import '../../../core/formatting/formatters.dart';
 import 'market_behaviour_text.dart';
+import '../../../core/localization/localizations.dart';
 
 /// Where a listing's asking price sits among the other live listings of
 /// its model, worked out without Flutter so it can be tested.
@@ -62,40 +63,61 @@ PricePosition? pricePosition(double? price, List<double> others) {
 }
 
 /// The line for "Mercado deste modelo"; null when the listing has no price.
-String? pricePositionLine(double? price, List<double> others) {
+String? pricePositionLine(
+  double? price,
+  List<double> others, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
   if (price == null) return null;
   final position = pricePosition(price, others);
   if (position == null) {
-    return 'Preço face aos outros anúncios: ainda poucos dados '
-        '(${others.length} ${others.length == 1 ? 'anúncio ativo' : 'anúncios ativos'})';
+    return language.messages.priceAgainstOtherListingsNotEnoughDataYet(
+      length: others.length.toString(),
+      value: others.length == 1
+          ? language.messages.activeListing
+          : language.messages.activeListings,
+    );
   }
 
   final p = position;
   final all = p.others + 1;
-  final median = 'mediana ${Formatters.price(p.median)}';
+  final median = language.messages.median(
+    price: Formatters.price(p.median, language: language),
+  );
   if (p.same == 0 && p.cheaper == 0) {
-    return 'O preço mais baixo dos $all anúncios ativos deste modelo '
-        '($median)';
+    return language.messages.lowestPriceAmongThisModelSActiveListings(
+      all: (all).toString(),
+      median: median,
+    );
   }
   if (p.same == 0 && p.dearer == 0) {
-    return 'O preço mais alto dos $all anúncios ativos deste modelo '
-        '($median)';
+    return language.messages.highestPriceAmongThisModelSActiveListings(
+      all: (all).toString(),
+      median: median,
+    );
   }
 
   final cheaper = switch (p.cheaper) {
-    0 => 'Nenhum anúncio ativo é mais barato',
-    1 => '1 anúncio ativo é mais barato',
-    _ => '${p.cheaper} anúncios ativos são mais baratos',
+    0 => language.messages.noActiveListingIsCheaper,
+    1 => language.messages.text1ActiveListingIsCheaper,
+    _ => language.messages.activeListingsAreCheaper(
+      cheaper: p.cheaper.toString(),
+    ),
   };
   final dearer = switch (p.dearer) {
-    0 => 'nenhum é mais caro',
-    1 => '1 é mais caro',
-    _ => '${p.dearer} são mais caros',
+    0 => language.messages.noneIsMoreExpensive,
+    1 => language.messages.text1IsMoreExpensive,
+    _ => language.messages.areMoreExpensive(dearer: p.dearer.toString()),
   };
   final same = switch (p.same) {
     0 => '',
-    1 => ', 1 tem o mesmo preço',
-    _ => ', ${p.same} têm o mesmo preço',
+    1 => language.messages.text1HasSamePrice,
+    _ => language.messages.haveSamePrice(same: p.same.toString()),
   };
-  return '$cheaper e $dearer$same ($median)';
+  return language.messages.and(
+    cheaper: cheaper,
+    dearer: dearer,
+    same: same,
+    median: median,
+  );
 }

@@ -9,6 +9,7 @@ import '../listing_detail_text.dart';
 import '../photo_viewer_args.dart';
 import 'listing_photo.dart';
 import 'zoomable_photo.dart';
+import '../../../../core/localization/localizations.dart';
 
 /// All the listing's photos: swipe or use the arrows, tap to see them
 /// full screen.
@@ -72,7 +73,7 @@ class _PhotoGalleryState extends State<PhotoGallery> {
                     bottom: 8,
                     child: _RoundButton(
                       icon: Icons.fullscreen,
-                      tooltip: 'Ampliar fotografias',
+                      tooltip: context.strings.enlargePhotos,
                       onPressed: _openFullScreen,
                     ),
                   ),
@@ -117,7 +118,7 @@ class _GalleryControls extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: _RoundButton(
               icon: Icons.chevron_left,
-              tooltip: 'Foto anterior',
+              tooltip: context.strings.previousPhoto,
               onPressed: () => _go(index - 1),
             ),
           ),
@@ -126,7 +127,7 @@ class _GalleryControls extends StatelessWidget {
             alignment: Alignment.centerRight,
             child: _RoundButton(
               icon: Icons.chevron_right,
-              tooltip: 'Foto seguinte',
+              tooltip: context.strings.nextPhoto,
               onPressed: () => _go(index + 1),
             ),
           ),

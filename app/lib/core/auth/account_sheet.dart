@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../app/di/injection.dart';
 import '../../app/theme/app_theme.dart';
 import 'account_cubit.dart';
+import 'account_text.dart';
+import '../localization/localizations.dart';
 
 Future<void> showAccountSheet(BuildContext context) {
   return showModalBottomSheet<void>(
@@ -72,14 +74,19 @@ class _AccountSheetState extends State<_AccountSheet> {
     AccountState s,
   ) {
     return [
-      Text('A sua conta', style: Theme.of(context).textTheme.titleLarge),
+      Text(
+        context.strings.yourAccount,
+        style: Theme.of(context).textTheme.titleLarge,
+      ),
       const SizedBox(height: 8),
-      Text('Sessão iniciada como ${cubit.currentEmail}.'),
+      Text(
+        context.strings.signedInAs(currentEmail: cubit.currentEmail.toString()),
+      ),
       const SizedBox(height: 16),
       if (s.error != null) _error(context, s.error!),
       OutlinedButton(
         onPressed: s.busy ? null : cubit.signOut,
-        child: const Text('Terminar sessão'),
+        child: Text(context.strings.signOut),
       ),
     ];
   }
@@ -90,19 +97,19 @@ class _AccountSheetState extends State<_AccountSheet> {
     AccountState s,
   ) {
     return [
-      Text('Iniciar sessão', style: Theme.of(context).textTheme.titleLarge),
-      const SizedBox(height: 8),
-      const Text(
-        'Com a sua conta, as suas pesquisas e alertas ficam sincronizados '
-        'em qualquer dispositivo ou browser.',
+      Text(
+        context.strings.signIn,
+        style: Theme.of(context).textTheme.titleLarge,
       ),
+      const SizedBox(height: 8),
+      Text(context.strings.yourAccountKeepsYourSearchesAndAlertsIn),
       const SizedBox(height: 16),
       TextField(
         controller: _email,
         keyboardType: TextInputType.emailAddress,
         autofillHints: const [AutofillHints.username],
-        decoration: const InputDecoration(
-          labelText: 'Email',
+        decoration: InputDecoration(
+          labelText: context.strings.email,
           border: OutlineInputBorder(),
         ),
       ),
@@ -111,8 +118,8 @@ class _AccountSheetState extends State<_AccountSheet> {
         controller: _password,
         obscureText: true,
         autofillHints: const [AutofillHints.password],
-        decoration: const InputDecoration(
-          labelText: 'Palavra-passe',
+        decoration: InputDecoration(
+          labelText: context.strings.password,
           border: OutlineInputBorder(),
         ),
         onSubmitted: (_) => cubit.signIn(_email.text, _password.text),
@@ -123,13 +130,18 @@ class _AccountSheetState extends State<_AccountSheet> {
         onPressed: s.busy
             ? null
             : () => cubit.signIn(_email.text, _password.text),
-        child: Text(s.busy ? 'A entrar…' : 'Entrar'),
+        child: Text(
+          s.busy ? context.strings.signingIn : context.strings.signInAction,
+        ),
       ),
     ];
   }
 
-  Widget _error(BuildContext context, String message) => Padding(
+  Widget _error(BuildContext context, AccountFailure failure) => Padding(
     padding: const EdgeInsets.only(bottom: 8),
-    child: Text(message, style: AppTheme.errorText(context)),
+    child: Text(
+      authErrorText(failure.code, failure.message, language: context.language),
+      style: AppTheme.errorText(context),
+    ),
   );
 }

@@ -33,6 +33,7 @@ void main() {
             'a funcionar.',
         'url': '/#/collection-status',
         'tag': 'run-health',
+        'language': 'pt',
       });
     });
 

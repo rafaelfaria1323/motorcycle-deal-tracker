@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:motorcycle_deal_tracker/core/localization/app_language.dart';
 import 'package:motorcycle_deal_tracker/features/listings/data/models/saved_search_model.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_filters.dart';
@@ -51,7 +52,30 @@ void main() {
         location: 'Porto',
       ),
     );
-    expect(search.displayName, 'Teste');
+    expect(savedSearchName(search), 'Teste');
+  });
+
+  test('only an unnamed search needs a translated display name', () {
+    final search = SavedSearch.draft();
+    expect(savedSearchName(search), 'Pesquisa sem nome');
+    expect(
+      savedSearchName(search, language: AppLanguage.english),
+      'Unnamed search',
+    );
+    expect(
+      savedSearchName(
+        search.copyWith(name: '  '),
+        language: AppLanguage.english,
+      ),
+      'Unnamed search',
+    );
+    expect(
+      savedSearchName(
+        search.copyWith(name: 'A minha pesquisa'),
+        language: AppLanguage.english,
+      ),
+      'A minha pesquisa',
+    );
   });
 
   test('the summary names the model and the criteria', () {
