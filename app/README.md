@@ -119,6 +119,11 @@ make app-smoke                         # offline Chrome flow; matching ChromeDri
 make app-serve                         # release build on http://localhost:8080
 ```
 
+The `intl` constraint accepts 0.20.2, pinned by Flutter 3.44's
+`flutter_localizations`, as well as compatible newer patch releases.
+Keep that lower bound compatible with the supported Flutter SDK when
+updating dependencies; `go_router` also brings in the SDK localizations.
+
 `make app-smoke` uses Flutter's SDK `integration_test` with the real app and
 router and the widget tests' in-memory repositories. It applies a saved
 search, changes and saves its filters, opens a listing, then opens an alert

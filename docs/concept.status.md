@@ -79,6 +79,10 @@ even offline; late loads, writes and failed optimistic rollbacks cannot
 restore the previous account's private state. Filters and sort survive,
 and anonymous startup keeps its public prefetch.*
 
+*The app's `intl` constraint accepts the Flutter SDK's pinned 0.20.2
+alongside compatible newer patch releases, keeping dependency resolution
+working on Flutter 3.44 / Dart 3.12 (roadmap N.21).*
+
 *The collector remains pure Dart: `html` selects Standvirtual's JSON script
 and decodes HTML description fragments without hand-maintained entity
 tables. Formatting and dealer-boilerplate removal are preserved; invisible
