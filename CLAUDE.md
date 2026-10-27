@@ -143,9 +143,10 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
 .github/workflows/deploy-web.yml  On merges touching app/ or adding
                                   migrations: apply the migrations the
                                   database is missing (tested again
-                                  first; skipped if none),
-                                  then test, build and publish the app to
-                                  Cloudflare Pages; then the Android APK
+                                  first; skipped if none) while the app's
+                                  tests run on the merged code; then, side
+                                  by side, build and publish the app to
+                                  Cloudflare Pages and the Android APK
                                   (job android, tool/android_build.sh:
                                   app/android made by `flutter create`,
                                   never committed, fitted by
