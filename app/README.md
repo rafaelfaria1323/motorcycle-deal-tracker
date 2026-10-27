@@ -183,6 +183,15 @@ starts the first cards' photos; the start takes that answer
 (`core/platform/first_page.dart`) instead of asking again. Its queries
 are the app's own, checked by `test/first_page_test.dart`.
 
-State uses Cubits (flutter_bloc) with Equatable states. Photos use
+State uses Cubits (flutter_bloc) with Equatable states. Shared listings,
+saved searches, alerts and favourites follow the account through
+`SessionCubit` and `core/auth/account_scoped_cubit.dart`, not through
+callbacks in the sign-in or invite screens. Account changes and sign-out
+clear their cached data before reloading; late reads, writes and failed
+optimistic rollbacks cannot restore the earlier account's data. The same
+account's token refresh and anonymous startup keep the current data;
+listing filters and sort are preserved.
+
+Photos use
 `Image.network` with `WebHtmlElementStrategy.prefer`, because the photo
 sites send no CORS headers.

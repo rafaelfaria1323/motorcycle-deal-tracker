@@ -265,8 +265,15 @@ invites; written by the collector on each run).
   read Supabase's auth directly) are lazy singletons, provided in routes with
   `BlocProvider.value`. The shell (`AppShell`) loads `AlertsCubit` at start
   and on app resume for the unread badge on Alertas, and `FavouritesCubit`
-  at start for the stars on the cards; the account sheet reloads the shared
-  cubits after sign-in/out.
+  at start for the stars on the cards. `ListingsCubit`, `SavedSearchesCubit`,
+  `AlertsCubit` and `FavouritesCubit` inherit `AccountScopedCubit`
+  (`core/auth/account_scoped_cubit.dart`): they follow `SessionCubit`'s
+  account id themselves, clear and reload on account changes or sign-out,
+  and ignore earlier in-flight loads and writes, including optimistic
+  rollbacks and match counts. Auth widgets never reload them. The same
+  account's token refresh and anonymous startup do not reset them;
+  listing filters and sort survive account changes. DI closes these
+  singletons and their session subscriptions.
   `ListingCardPreferencesCubit` loads on first use and follows
   `SessionCubit`'s user id itself: a different account or sign-out resets
   the cards at once, ignoring earlier in-flight loads and saves.

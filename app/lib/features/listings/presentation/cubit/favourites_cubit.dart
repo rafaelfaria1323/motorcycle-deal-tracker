@@ -1,7 +1,7 @@
 import 'dart:math';
 
-import 'package:flutter_bloc/flutter_bloc.dart';
-
+import '../../../../core/auth/account_scoped_cubit.dart';
+import '../../../../core/auth/session_cubit.dart';
 import '../../domain/entities/favourite.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/repositories/favourites_repository.dart';
@@ -10,13 +10,17 @@ import 'favourites_state.dart';
 /// The user's favourites, shared by Ofertas (the star on cards), the
 /// listing page (star and note) and the Favoritos page. Changes show at
 /// once and are undone if saving fails.
-class FavouritesCubit extends Cubit<FavouritesState> {
-  FavouritesCubit(this._repository, {DateTime Function()? clock})
-    : _clock = clock ?? DateTime.now,
-      super(const FavouritesState());
+class FavouritesCubit extends AccountScopedCubit<FavouritesState> {
+  FavouritesCubit(
+    this._repository,
+    SessionCubit session, {
+    DateTime Function()? clock,
+  }) : _clock = clock ?? DateTime.now,
+       super(session, const FavouritesState());
 
   final FavouritesRepository _repository;
   final DateTime Function() _clock;
+  int _loadGeneration = 0;
 
   /// Notes are kept to this length (the database refuses longer ones).
   static const maxNoteLength = 2000;
@@ -25,15 +29,18 @@ class FavouritesCubit extends Cubit<FavouritesState> {
   static const maxChecklistNoteLength = 300;
 
   /// Loads (or refreshes) the favourites. A failed refresh keeps the list
-  /// that is already on screen, unless [otherAccount]: then another
-  /// account's favourites (and private notes) must not stay.
-  Future<void> load({bool otherAccount = false}) async {
-    if (otherAccount) emit(const FavouritesState());
+  /// that is already on screen; an account change clears it first.
+  @override
+  Future<void> load() async {
+    final account = accountGeneration;
+    if (!isCurrentAccount(account)) return;
+    final generation = ++_loadGeneration;
     if (state.status != FavouritesStatus.success) {
       emit(state.copyWith(status: FavouritesStatus.loading));
     }
     try {
       final favourites = await _repository.getAll();
+      if (!isCurrentAccount(account) || generation != _loadGeneration) return;
       emit(
         state.copyWith(
           status: FavouritesStatus.success,
@@ -41,6 +48,7 @@ class FavouritesCubit extends Cubit<FavouritesState> {
         ),
       );
     } catch (_) {
+      if (!isCurrentAccount(account) || generation != _loadGeneration) return;
       if (state.status != FavouritesStatus.success) {
         emit(state.copyWith(status: FavouritesStatus.failure));
       }
@@ -50,6 +58,8 @@ class FavouritesCubit extends Cubit<FavouritesState> {
   /// Adds [listing] to the favourites, or takes it out (with its note).
   /// Returns false when saving failed and the change was undone.
   Future<bool> toggle(Listing listing) async {
+    final account = accountGeneration;
+    if (!isCurrentAccount(account)) return false;
     final before = state.favourites;
     final adding = !state.isFavourite(listing.id);
     emit(
@@ -75,9 +85,9 @@ class FavouritesCubit extends Cubit<FavouritesState> {
       } else {
         await _repository.remove(listing.id);
       }
-      return true;
+      return isCurrentAccount(account);
     } catch (_) {
-      _undo(listing.id, before);
+      if (isCurrentAccount(account)) _undo(listing.id, before);
       return false;
     }
   }
@@ -85,6 +95,8 @@ class FavouritesCubit extends Cubit<FavouritesState> {
   /// Saves the note of a favourite: trimmed, and an empty one clears it.
   /// Returns false when the listing is not a favourite or saving failed.
   Future<bool> saveNote(String listingId, String text) async {
+    final account = accountGeneration;
+    if (!isCurrentAccount(account)) return false;
     final before = state.favourites;
     if (!state.isFavourite(listingId)) return false;
 
@@ -99,19 +111,18 @@ class FavouritesCubit extends Cubit<FavouritesState> {
     );
     try {
       await _repository.saveNote(listingId, note);
-      return true;
+      return isCurrentAccount(account);
     } catch (_) {
-      _undo(listingId, before);
+      if (isCurrentAccount(account)) _undo(listingId, before);
       return false;
     }
   }
 
-  /// Saves one item of a favourite's viewing checklist: its mark (null:
-  /// not looked at) and note (trimmed; empty clears it). Returns false when
-  /// the listing is not a favourite or saving failed.
   /// Sets the price to be alerted at (null clears it). Returns false when
   /// it could not be saved; the change is undone then.
   Future<bool> saveTargetPrice(String listingId, double? targetPrice) async {
+    final account = accountGeneration;
+    if (!isCurrentAccount(account)) return false;
     final before = state.favourites;
     if (!state.isFavourite(listingId)) return false;
 
@@ -125,19 +136,24 @@ class FavouritesCubit extends Cubit<FavouritesState> {
     );
     try {
       await _repository.saveTargetPrice(listingId, targetPrice);
-      return true;
+      return isCurrentAccount(account);
     } catch (_) {
-      _undo(listingId, before);
+      if (isCurrentAccount(account)) _undo(listingId, before);
       return false;
     }
   }
 
+  /// Saves one item of a favourite's viewing checklist: its mark (null:
+  /// not looked at) and note (trimmed; empty clears it). Returns false when
+  /// the listing is not a favourite or saving failed.
   Future<bool> saveChecklistItem(
     String listingId,
     String key, {
     ChecklistMark? mark,
     String? note,
   }) async {
+    final account = accountGeneration;
+    if (!isCurrentAccount(account)) return false;
     final before = state.favourites;
     final favourite = state.favouriteOf(listingId);
     if (favourite == null) return false;
@@ -158,8 +174,9 @@ class FavouritesCubit extends Cubit<FavouritesState> {
     );
     try {
       await _repository.saveChecklist(listingId, checklist);
-      return true;
+      return isCurrentAccount(account);
     } catch (_) {
+      if (!isCurrentAccount(account)) return false;
       // Only this item goes back: another one may have been saved since.
       final now = state.favouriteOf(listingId);
       if (now != null) {

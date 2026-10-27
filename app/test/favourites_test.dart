@@ -10,6 +10,15 @@ import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/fav
 import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/favourites_state.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/favourites_text.dart';
 
+import 'helpers/session_fixture.dart';
+
+late SessionFixture _session;
+
+FavouritesCubit _cubit(
+  FavouritesRepository repository, {
+  DateTime Function()? clock,
+}) => _session.track(FavouritesCubit(repository, _session.cubit, clock: clock));
+
 Map<String, dynamic> _listingRow(String id, {String status = 'active'}) => {
   'id': id,
   'source': 'olx',
@@ -59,6 +68,15 @@ class _GoesDown extends _FakeFavourites {
       down ? Future.error(StateError('offline')) : super.getAll();
 }
 
+class _DeferredFavourites extends _FakeFavourites {
+  _DeferredFavourites(super.items);
+
+  Future<List<Favourite>>? loadResult;
+
+  @override
+  Future<List<Favourite>> getAll() async => loadResult ?? super.getAll();
+}
+
 class _FakeFavourites implements FavouritesRepository {
   _FakeFavourites(this.items, {this.fail = false, this.failWrites = false});
 
@@ -68,33 +86,38 @@ class _FakeFavourites implements FavouritesRepository {
   /// Loads work, saving fails.
   final bool failWrites;
   final calls = <String>[];
+  Future<void>? writeDelay;
 
   @override
   Future<List<Favourite>> getAll() async {
     if (fail) throw StateError('offline');
-    return items;
+    return List.of(items);
   }
 
   @override
   Future<void> add(String listingId) async {
+    if (writeDelay case final delay?) await delay;
     if (fail || failWrites) throw StateError('offline');
     calls.add('add $listingId');
   }
 
   @override
   Future<void> remove(String listingId) async {
+    if (writeDelay case final delay?) await delay;
     if (fail || failWrites) throw StateError('offline');
     calls.add('remove $listingId');
   }
 
   @override
   Future<void> saveNote(String listingId, String? note) async {
+    if (writeDelay case final delay?) await delay;
     if (fail || failWrites) throw StateError('offline');
     calls.add('note $listingId $note');
   }
 
   @override
   Future<void> saveTargetPrice(String listingId, double? targetPrice) async {
+    if (writeDelay case final delay?) await delay;
     if (fail || failWrites) throw StateError('offline');
     calls.add('target $listingId $targetPrice');
   }
@@ -104,12 +127,15 @@ class _FakeFavourites implements FavouritesRepository {
     String listingId,
     Map<String, ChecklistEntry> checklist,
   ) async {
+    if (writeDelay case final delay?) await delay;
     if (fail || failWrites) throw StateError('offline');
     calls.add('checklist $listingId ${checklist.keys.join(',')}');
   }
 }
 
 void main() {
+  setUp(() => _session = SessionFixture());
+
   test('a favourite row becomes a favourite with its listing and note', () {
     final favourite = FavouriteModel.fromJson({
       'listing_id': 'l1',
@@ -174,13 +200,13 @@ void main() {
   group('FavouritesCubit', () {
     test('load shows the favourites; a failed refresh keeps them', () async {
       final repo = _FakeFavourites([_favourite('l1')]);
-      final cubit = FavouritesCubit(repo);
+      final cubit = _cubit(repo);
       await cubit.load();
       expect(cubit.state.status, FavouritesStatus.success);
       expect(cubit.state.isFavourite('l1'), isTrue);
       expect(cubit.state.isFavourite('l2'), isFalse);
 
-      final failing = FavouritesCubit(_FakeFavourites([], fail: true));
+      final failing = _cubit(_FakeFavourites([], fail: true));
       await failing.load();
       expect(failing.state.status, FavouritesStatus.failure);
     });
@@ -190,7 +216,7 @@ void main() {
       () async {
         final repo = _FakeFavourites([_favourite('l1')]);
         final now = DateTime(2026, 10, 20, 9);
-        final cubit = FavouritesCubit(repo, clock: () => now);
+        final cubit = _cubit(repo, clock: () => now);
         await cubit.load();
 
         expect(await cubit.toggle(_listing('l2')), isTrue);
@@ -205,7 +231,7 @@ void main() {
     );
 
     test('a toggle that fails to save is undone', () async {
-      final cubit = FavouritesCubit(_FakeFavourites([], fail: true));
+      final cubit = _cubit(_FakeFavourites([], fail: true));
 
       expect(await cubit.toggle(_listing('l1')), isFalse);
       expect(cubit.state.isFavourite('l1'), isFalse);
@@ -216,7 +242,7 @@ void main() {
         _favourite('l1', note: 'Antiga'),
         _favourite('l2', note: 'Outra'),
       ]);
-      final cubit = FavouritesCubit(repo);
+      final cubit = _cubit(repo);
       await cubit.load();
 
       expect(await cubit.saveNote('l1', '  Pede 6 500 €  '), isTrue);
@@ -229,7 +255,7 @@ void main() {
 
     test('a note on a listing that is not a favourite is not saved', () async {
       final repo = _FakeFavourites([]);
-      final cubit = FavouritesCubit(repo);
+      final cubit = _cubit(repo);
       await cubit.load();
 
       expect(await cubit.saveNote('l9', 'x'), isFalse);
@@ -238,7 +264,7 @@ void main() {
 
     test('a checklist item is marked, noted and cleared', () async {
       final repo = _FakeFavourites([_favourite('l1', note: 'Antiga')]);
-      final cubit = FavouritesCubit(repo);
+      final cubit = _cubit(repo);
       await cubit.load();
 
       expect(
@@ -273,7 +299,7 @@ void main() {
     });
 
     test('a checklist item that fails to save is undone', () async {
-      final cubit = FavouritesCubit(
+      final cubit = _cubit(
         _FakeFavourites([_favourite('l1')], failWrites: true),
       );
       await cubit.load();
@@ -287,7 +313,7 @@ void main() {
 
     test('a target price is set, cleared, and undone when it fails', () async {
       final repo = _FakeFavourites([_favourite('l1')]);
-      final cubit = FavouritesCubit(repo);
+      final cubit = _cubit(repo);
       await cubit.load();
 
       expect(await cubit.saveTargetPrice('l1', 6800), isTrue);
@@ -298,7 +324,7 @@ void main() {
       expect(await cubit.saveTargetPrice('l9', 1), isFalse);
       expect(repo.calls, ['target l1 6800.0', 'target l1 null']);
 
-      final failing = FavouritesCubit(
+      final failing = _cubit(
         _FakeFavourites([_favourite('l1')], failWrites: true),
       );
       await failing.load();
@@ -307,7 +333,7 @@ void main() {
     });
 
     test('a note that fails to save is undone', () async {
-      final cubit = FavouritesCubit(
+      final cubit = _cubit(
         _FakeFavourites([_favourite('l1', note: 'Antiga')], failWrites: true),
       );
       await cubit.load();
@@ -318,7 +344,7 @@ void main() {
 
     test('undoing a failed save keeps a later change to another', () async {
       final repo = _SlowNotes([_favourite('l1'), _favourite('l2')]);
-      final cubit = FavouritesCubit(repo);
+      final cubit = _cubit(repo);
       await cubit.load();
 
       final first = cubit.saveNote('l1', 'Primeira');
@@ -332,16 +358,120 @@ void main() {
 
     test("another account's favourites go even if loading fails", () async {
       final repo = _GoesDown([_favourite('l1', note: 'Privada')]);
-      final cubit = FavouritesCubit(repo);
+      final cubit = _cubit(repo);
       await cubit.load();
       repo.down = true;
 
       await cubit.load(); // a refresh that fails keeps them
       expect(cubit.state.isFavourite('l1'), isTrue);
-      await cubit.load(otherAccount: true);
+      await _session.changeAccount('other');
       expect(cubit.state.favourites, isEmpty);
       expect(cubit.state.status, FavouritesStatus.failure);
     });
+
+    test(
+      "an old load cannot restore another account's private notes",
+      () async {
+        final response = Completer<List<Favourite>>();
+        final repo = _DeferredFavourites([_favourite('l2', note: 'Current')])
+          ..loadResult = response.future;
+        final cubit = _cubit(repo);
+        addTearDown(cubit.close);
+        final older = cubit.load();
+        repo.loadResult = null;
+        await _session.changeAccount('other');
+
+        response.complete([_favourite('l1', note: 'Private')]);
+        await older;
+
+        expect(cubit.state.favourites.map((f) => f.listingId), ['l2']);
+      },
+    );
+
+    test("a failed old save cannot restore another account's note", () async {
+      final repo = _SlowNotes([_favourite('l1', note: 'Private')]);
+      final cubit = _cubit(repo);
+      addTearDown(cubit.close);
+      await cubit.load();
+      final saving = cubit.saveNote('l1', 'Changed');
+      repo.items[0] = _favourite('l1', note: 'Current');
+      await _session.changeAccount('other');
+
+      repo.l1Save.completeError(StateError('offline'));
+      expect(await saving, isFalse);
+
+      expect(cubit.state.favouriteOf('l1')?.note, 'Current');
+    });
+
+    test('a newer refresh wins within the same account', () async {
+      final response = Completer<List<Favourite>>();
+      final repo = _DeferredFavourites([_favourite('current')])
+        ..loadResult = response.future;
+      final cubit = _cubit(repo);
+      final older = cubit.load();
+      repo.loadResult = null;
+      await cubit.load();
+
+      response.complete([_favourite('old')]);
+      await older;
+
+      expect(cubit.state.favourites.map((f) => f.listingId), ['current']);
+    });
+
+    final changes = <String, Future<bool> Function(FavouritesCubit)>{
+      'add': (cubit) => cubit.toggle(_listing('l2')),
+      'remove': (cubit) => cubit.toggle(_listing('l1')),
+      'note': (cubit) => cubit.saveNote('l1', 'Changed'),
+      'target': (cubit) => cubit.saveTargetPrice('l1', 6000),
+      'checklist': (cubit) =>
+          cubit.saveChecklistItem('l1', 'tyres', mark: ChecklistMark.issue),
+    };
+    for (final change in changes.entries) {
+      for (final fails in [false, true]) {
+        test(
+          '${change.key} ${fails ? 'failure' : 'success'} stays in its account',
+          () async {
+            final response = Completer<void>();
+            final repo = _FakeFavourites([_favourite('l1', note: 'Private')])
+              ..writeDelay = response.future;
+            final cubit = _cubit(repo);
+            await cubit.load();
+            final saving = change.value(cubit);
+            repo.items[0] = _favourite('l1', note: 'Current');
+            await _session.changeAccount('other');
+            final current = cubit.state;
+
+            if (fails) {
+              response.completeError(StateError('offline'));
+            } else {
+              response.complete();
+            }
+
+            expect(await saving, isFalse);
+            expect(cubit.state, current);
+          },
+        );
+      }
+    }
+
+    for (final fails in [false, true]) {
+      test('a load can ${fails ? 'fail' : 'finish'} after closing', () async {
+        final response = Completer<List<Favourite>>();
+        final repo = _DeferredFavourites([])..loadResult = response.future;
+        final cubit = _cubit(repo);
+        final loading = cubit.load();
+        await cubit.close();
+
+        if (fails) {
+          response.completeError(StateError('offline'));
+        } else {
+          response.complete([_favourite('old')]);
+        }
+        await loading;
+
+        expect(cubit.state.favourites, isEmpty);
+      });
+    }
   });
 
   test('normalizeNote trims and keeps notes within the limit', () {

@@ -3,10 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../app/di/injection.dart';
 import '../../app/theme/app_theme.dart';
-import '../../features/listings/presentation/cubit/alerts_cubit.dart';
-import '../../features/listings/presentation/cubit/favourites_cubit.dart';
-import '../../features/listings/presentation/cubit/listings_cubit.dart';
-import '../../features/listings/presentation/cubit/saved_searches_cubit.dart';
 import 'account_cubit.dart';
 
 Future<void> showAccountSheet(BuildContext context) {
@@ -46,11 +42,6 @@ class _AccountSheetState extends State<_AccountSheet> {
     return BlocConsumer<AccountCubit, AccountState>(
       listenWhen: (a, b) => !a.done && b.done,
       listener: (context, state) {
-        // The shared cubits hold the previous user's data: reload them.
-        getIt<SavedSearchesCubit>().load();
-        getIt<AlertsCubit>().load();
-        getIt<FavouritesCubit>().load(otherAccount: true);
-        getIt<ListingsCubit>().load(models: true);
         Navigator.of(context).pop();
       },
       builder: (context, state) {

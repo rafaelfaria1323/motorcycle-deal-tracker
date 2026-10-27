@@ -1,13 +1,14 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-
+import '../../../../core/auth/account_scoped_cubit.dart';
+import '../../../../core/auth/session_cubit.dart';
 import '../../domain/entities/first_page.dart';
 import '../../domain/entities/listing_filters.dart';
 import '../../domain/entities/listing_sort.dart';
 import '../../domain/repositories/listings_repository.dart';
 import 'listings_state.dart';
 
-class ListingsCubit extends Cubit<ListingsState> {
-  ListingsCubit(this._repository) : super(const ListingsState());
+class ListingsCubit extends AccountScopedCubit<ListingsState> {
+  ListingsCubit(this._repository, SessionCubit session)
+    : super(session, const ListingsState());
 
   final ListingsRepository _repository;
 
@@ -17,12 +18,20 @@ class ListingsCubit extends Cubit<ListingsState> {
   /// Bumped by each [load]: an answer to an older one is dropped.
   var _generation = 0;
 
+  @override
+  void resetForAccount() {
+    emit(ListingsState(filters: state.filters, sort: state.sort));
+  }
+
   /// Loads the first page (and the model list, the first time or when
   /// [models]: another account, or its models changed). [early]: the
   /// page `index.html` asked for before the app started, used instead of
   /// asking the database when it came and the filters and order are still
   /// the defaults it was asked with.
+  @override
   Future<void> load({bool models = false, Future<FirstPage?>? early}) async {
+    final account = accountGeneration;
+    if (!isCurrentAccount(account)) return;
     final generation = ++_generation;
     emit(state.copyWith(status: ListingsStatus.loading, loadingMore: false));
     final filters = state.filters;
@@ -48,7 +57,7 @@ class ListingsCubit extends Cubit<ListingsState> {
             ).wait;
       // Filters changed or a reload started while loading: that newer
       // load wins.
-      if (generation != _generation) return;
+      if (!isCurrentAccount(account) || generation != _generation) return;
       emit(
         state.copyWith(
           status: ListingsStatus.success,
@@ -58,7 +67,7 @@ class ListingsCubit extends Cubit<ListingsState> {
         ),
       );
     } catch (_) {
-      if (generation != _generation) return;
+      if (!isCurrentAccount(account) || generation != _generation) return;
       emit(state.copyWith(status: ListingsStatus.failure));
     }
   }
@@ -66,7 +75,9 @@ class ListingsCubit extends Cubit<ListingsState> {
   /// Appends the next page; does nothing while one is loading or when
   /// there are no more.
   Future<void> loadMore() async {
-    if (state.status != ListingsStatus.success ||
+    final account = accountGeneration;
+    if (!isCurrentAccount(account) ||
+        state.status != ListingsStatus.success ||
         !state.hasMore ||
         state.loadingMore) {
       return;
@@ -82,7 +93,7 @@ class ListingsCubit extends Cubit<ListingsState> {
         offset: state.listings.length,
         limit: pageSize,
       );
-      if (generation != _generation) return;
+      if (!isCurrentAccount(account) || generation != _generation) return;
       emit(
         state.copyWith(
           listings: [...state.listings, ...page],
@@ -92,17 +103,20 @@ class ListingsCubit extends Cubit<ListingsState> {
       );
     } catch (_) {
       // Keep what is shown; scrolling again retries.
-      if (generation == _generation) emit(state.copyWith(loadingMore: false));
+      if (isCurrentAccount(account) && generation == _generation) {
+        emit(state.copyWith(loadingMore: false));
+      }
     }
   }
 
   Future<void> applySort(ListingSort sort) async {
-    if (sort == state.sort) return;
+    if (!isCurrentAccount(accountGeneration) || sort == state.sort) return;
     emit(state.copyWith(sort: sort));
     await load();
   }
 
   Future<void> applyFilters(ListingFilters filters) async {
+    if (!isCurrentAccount(accountGeneration)) return;
     emit(state.copyWith(filters: filters));
     await load();
   }

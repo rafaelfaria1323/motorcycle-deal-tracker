@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -10,10 +8,6 @@ import '../../../app/router/app_routes.dart';
 import '../../../core/auth/account_cubit.dart';
 import '../../../core/auth/session_cubit.dart';
 import '../../../core/widgets/state_message.dart';
-import '../../listings/presentation/cubit/alerts_cubit.dart';
-import '../../listings/presentation/cubit/favourites_cubit.dart';
-import '../../listings/presentation/cubit/listings_cubit.dart';
-import '../../listings/presentation/cubit/saved_searches_cubit.dart';
 import '../domain/accounts_repository.dart';
 import 'accounts_text.dart';
 
@@ -78,11 +72,6 @@ class _JoinPageState extends State<JoinPage> {
       });
       return;
     }
-    // The shared cubits hold the anonymous session's data: reload them.
-    unawaited(getIt<ListingsCubit>().load(models: true));
-    unawaited(getIt<SavedSearchesCubit>().load());
-    unawaited(getIt<AlertsCubit>().load());
-    unawaited(getIt<FavouritesCubit>().load(otherAccount: true));
     if (mounted) context.go(AppRoutes.deals);
   }
 
