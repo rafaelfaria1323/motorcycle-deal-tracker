@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
 import 'package:motorcycle_deal_tracker/features/listings/data/models/dealer_reliability_model.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/dealer_reliability.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/dealer_text.dart';
 
 DealerReliability _dealer({
@@ -25,7 +26,35 @@ DealerReliability _dealer({
   firstSeenAt: firstSeenAt,
 );
 
+Listing _listing(SellerType sellerType, String? sellerName) => Listing(
+  id: '1',
+  source: 'standvirtual',
+  url: 'https://example.com/1',
+  brand: 'Yamaha',
+  model: 'MT-07',
+  status: ListingStatus.active,
+  sellerType: sellerType,
+  sellerName: sellerName,
+  images: const [],
+);
+
 void main() {
+  group('dealerLookupName', () {
+    test("a dealer's name, trimmed", () {
+      expect(
+        dealerLookupName(_listing(SellerType.dealer, '  Motos Lda ')),
+        'Motos Lda',
+      );
+    });
+
+    test('none for private or unknown sellers, or without a name', () {
+      expect(dealerLookupName(_listing(SellerType.private, 'Motos Lda')), null);
+      expect(dealerLookupName(_listing(SellerType.unknown, 'Motos Lda')), null);
+      expect(dealerLookupName(_listing(SellerType.dealer, '   ')), null);
+      expect(dealerLookupName(_listing(SellerType.dealer, null)), null);
+    });
+  });
+
   group('dealerHeadline', () {
     test('bikes seen, since when, and how many are for sale', () {
       final since = DateTime.utc(2026, 8, 21, 12);

@@ -145,7 +145,7 @@ class _JoinPageState extends State<JoinPage> {
                     autofillHints: const [AutofillHints.email],
                     decoration: InputDecoration(
                       labelText: context.strings.email,
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -156,7 +156,7 @@ class _JoinPageState extends State<JoinPage> {
                     decoration: InputDecoration(
                       labelText: context.strings.password,
                       helperText: context.strings.atLeast8Characters,
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -166,7 +166,7 @@ class _JoinPageState extends State<JoinPage> {
                     autofillHints: const [AutofillHints.newPassword],
                     decoration: InputDecoration(
                       labelText: context.strings.repeatYourPassword,
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                     ),
                     onSubmitted: (_) => _busy ? null : _create(),
                   ),

@@ -222,7 +222,7 @@ class _OfferCardState extends State<OfferCard> {
           decoration: InputDecoration(
             labelText: context.strings.sellerAskedFor,
             suffixText: '€',
-            border: OutlineInputBorder(),
+            border: const OutlineInputBorder(),
             isDense: true,
           ),
           onChanged: (_) => setState(() {}),

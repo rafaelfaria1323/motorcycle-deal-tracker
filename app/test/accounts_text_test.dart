@@ -93,7 +93,7 @@ void main() {
       'Administrador · Criada a 01/10/2026 · nunca entrou',
     );
     expect(
-      Account.fromJson({
+      Account.fromJson(const {
         'user_id': 'u2',
         'email': 'b@c.pt',
         'created_at': '2026-10-01T10:00:00Z',

@@ -1,9 +1,18 @@
 import '../../../core/formatting/formatters.dart';
 import '../domain/entities/dealer_reliability.dart';
+import '../domain/entities/listing.dart';
 import '../../../core/localization/localizations.dart';
 
 /// Below this many bikes the figures say little about a dealer.
 const minDealerBikes = 5;
+
+/// The name to look the listing's dealer up by, trimmed; null for private
+/// or unknown sellers (their names are never stored) and empty names.
+String? dealerLookupName(Listing listing) {
+  if (listing.sellerType != SellerType.dealer) return null;
+  final name = listing.sellerName?.trim();
+  return name == null || name.isEmpty ? null : name;
+}
 
 /// "Motos Lda: 12 motas vistas desde 21/08/2026 (5 à venda)".
 String dealerHeadline(

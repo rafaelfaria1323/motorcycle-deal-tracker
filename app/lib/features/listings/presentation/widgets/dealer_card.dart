@@ -26,10 +26,7 @@ class _DealerCardState extends State<DealerCard> {
   @override
   void initState() {
     super.initState();
-    final name = widget.listing.sellerName?.trim();
-    if (widget.listing.sellerType == SellerType.dealer &&
-        name != null &&
-        name.isNotEmpty) {
+    if (dealerLookupName(widget.listing) case final name?) {
       _future = getIt<DealerRepository>()
           .getByName(name)
           .catchError((Object _) => null);

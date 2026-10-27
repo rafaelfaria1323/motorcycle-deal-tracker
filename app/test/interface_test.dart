@@ -200,7 +200,7 @@ void main() {
     for (final preferences in [
       const ListingCardPreferences.defaults(),
       ListingCardPreferences(ListingCardField.values),
-      ListingCardPreferences([]),
+      ListingCardPreferences(const []),
     ]) {
       testWidgets(
         'grid cards fit long names with ${preferences.fields.length} fields at ${scale}x text',
@@ -422,7 +422,7 @@ void main() {
     'saved choices apply to favourites without hiding essential state',
     (tester) async {
       final fixture = InterfaceFixture(signedIn: true);
-      fixture.cardPreferencesRepository.value = ListingCardPreferences([
+      fixture.cardPreferencesRepository.value = ListingCardPreferences(const [
         ListingCardField.riskScore,
         ListingCardField.registrations,
         ListingCardField.publishedAt,
@@ -481,7 +481,7 @@ void main() {
           theme: AppTheme.light,
           home: Scaffold(
             body: ListingCard(
-              preferences: ListingCardPreferences([]),
+              preferences: ListingCardPreferences(const []),
               listing: const Listing(
                 id: 'removed',
                 source: 'olx',
@@ -621,7 +621,7 @@ void main() {
           pendingSave.complete();
         } else {
           users.add(
-            User(
+            const User(
               id: 'another-user',
               appMetadata: const {},
               userMetadata: const {},

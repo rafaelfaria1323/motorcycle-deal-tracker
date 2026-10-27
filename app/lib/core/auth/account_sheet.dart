@@ -110,7 +110,7 @@ class _AccountSheetState extends State<_AccountSheet> {
         autofillHints: const [AutofillHints.username],
         decoration: InputDecoration(
           labelText: context.strings.email,
-          border: OutlineInputBorder(),
+          border: const OutlineInputBorder(),
         ),
       ),
       const SizedBox(height: 12),
@@ -120,7 +120,7 @@ class _AccountSheetState extends State<_AccountSheet> {
         autofillHints: const [AutofillHints.password],
         decoration: InputDecoration(
           labelText: context.strings.password,
-          border: OutlineInputBorder(),
+          border: const OutlineInputBorder(),
         ),
         onSubmitted: (_) => cubit.signIn(_email.text, _password.text),
       ),

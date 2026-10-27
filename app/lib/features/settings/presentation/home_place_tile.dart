@@ -139,8 +139,8 @@ class _PlaceSearchDialogState extends State<_PlaceSearchDialog> {
               textCapitalization: TextCapitalization.words,
               decoration: InputDecoration(
                 hintText: context.strings.enterCityOrTown,
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.search),
+                border: const OutlineInputBorder(),
               ),
               onChanged: _onChanged,
             ),
