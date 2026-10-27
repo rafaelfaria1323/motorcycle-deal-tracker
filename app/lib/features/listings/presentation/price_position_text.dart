@@ -71,12 +71,7 @@ String? pricePositionLine(
   if (price == null) return null;
   final position = pricePosition(price, others);
   if (position == null) {
-    return language.messages.pricePositionFewData(
-      count: others.length.toString(),
-      listingsWord: others.length == 1
-          ? language.messages.activeListing
-          : language.messages.activeListings,
-    );
+    return language.messages.pricePositionFewData(count: others.length);
   }
 
   final p = position;

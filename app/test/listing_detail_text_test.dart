@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
+import 'package:motorcycle_deal_tracker/core/localization/app_language.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/listing_detail_text.dart';
 
@@ -69,6 +70,25 @@ void main() {
     expect(bikeFacts(full), contains(('Livro de revisões', 'Não')));
     expect(bikeFacts(full), contains(('Origem', 'Importada')));
     expect(bikeFacts(full), contains(('Garantia do vendedor', '18 meses')));
+  });
+
+  test('one month of warranty is singular', () {
+    const oneMonth = Listing(
+      id: 'l4',
+      source: 'standvirtual',
+      url: 'https://www.standvirtual.com/motos/anuncio/y.html',
+      brand: 'Honda',
+      model: 'CB650R',
+      status: ListingStatus.active,
+      sellerType: SellerType.dealer,
+      images: [],
+      dealerWarrantyMonths: 1,
+    );
+    expect(bikeFacts(oneMonth), contains(('Garantia do vendedor', '1 mês')));
+    expect(
+      bikeFacts(oneMonth, language: AppLanguage.english),
+      contains(('Seller warranty', '1 month')),
+    );
   });
 
   test('a mileage read from the description says so', () {

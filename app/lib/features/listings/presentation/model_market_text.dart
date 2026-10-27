@@ -26,14 +26,7 @@ List<String> priceSpreadLines(
 }) {
   if (p == null) return [language.messages.noActiveListingsWithPrice];
   if (p.count < minMarketData) {
-    return [
-      language.messages.askingPricesFewData(
-        count: p.count.toString(),
-        listingsWord: p.count == 1
-            ? language.messages.listing
-            : language.messages.listings,
-      ),
-    ];
+    return [language.messages.askingPricesFewData(count: p.count)];
   }
 
   String price(double value) => Formatters.price(value, language: language);

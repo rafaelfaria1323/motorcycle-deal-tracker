@@ -191,10 +191,7 @@ String ownershipTotalLine(
   OwnershipCost c, {
   AppLanguage language = AppLanguage.portuguese,
 }) => language.messages.ownershipTotal(
-  years: c.years.toString(),
-  yearsWord: c.years == 1
-      ? language.messages.yearOwnershipCost
-      : language.messages.years,
+  years: c.years,
   total: roughPrice(c.total, language: language),
 );
 
@@ -209,10 +206,7 @@ List<String> ownershipLines(
   return [
     language.messages.ownershipDepreciation(
       price: roughPrice(c.depreciation, language: language),
-      years: c.years.toString(),
-      yearsWord: c.years == 1
-          ? language.messages.yearOwnershipCost
-          : language.messages.years,
+      years: c.years,
     ),
     switch (c.iuc) {
       null when year != null && year < iucFirstYear =>

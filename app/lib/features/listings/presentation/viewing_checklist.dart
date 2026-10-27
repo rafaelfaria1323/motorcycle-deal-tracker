@@ -136,9 +136,7 @@ String checklistSummaryText(
     return language.messages.pointsToCheckAtViewing(total: (total).toString());
   }
   final issues = marks.where((m) => m == ChecklistMark.issue).length;
-  final issuesText = issues == 1
-      ? language.messages.text1Problem
-      : language.messages.problems(issues: (issues).toString());
+  final issuesText = language.messages.problems(issues: issues);
   if (marks.length == total) {
     return issues == 0
         ? language.messages.everythingCheckedNoProblems
@@ -162,6 +160,6 @@ String? checklistIssuesText(
       if (checklist[item.key]?.mark == ChecklistMark.issue) item.title,
   ];
   if (titles.isEmpty) return null;
-  return '${titles.length == 1 ? language.messages.problem : language.messages.problemsViewingChecklist}: '
+  return '${language.messages.checklistIssuesHeading(count: titles.length)}: '
       '${titles.join(', ')}';
 }

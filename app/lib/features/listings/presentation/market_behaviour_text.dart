@@ -21,12 +21,7 @@ List<String> marketLines(
   AppLanguage language = AppLanguage.portuguese,
 }) {
   final lines = <String>[
-    language.messages.activeOfModel(
-      liveCount: m.liveCount.toString(),
-      listingsWord: m.liveCount == 1
-          ? language.messages.activeListing
-          : language.messages.activeListings,
-    ),
+    language.messages.activeOfModel(liveCount: m.liveCount),
   ];
 
   final toGone = m.medianDaysToGone;
@@ -39,14 +34,7 @@ List<String> marketLines(
       ),
     );
   } else {
-    lines.add(
-      language.messages.timeToGoneFewData(
-        goneCount: m.goneCount.toString(),
-        listingsWord: m.goneCount == 1
-            ? language.messages.listingLeftMarket
-            : language.messages.listingsLeftMarket,
-      ),
-    );
+    lines.add(language.messages.timeToGoneFewData(goneCount: m.goneCount));
   }
 
   if (m.pricedCount >= minMarketData) {
@@ -82,17 +70,9 @@ List<String> marketLines(
       (true, false) => language.messages.thisListingWasPublishedToday,
       (true, true) => language.messages.firstSeenToday,
       (false, false) => language.messages.publishedForDays(
-        daysListed: (daysListed).toString(),
-        daysWord: daysListed == 1
-            ? language.messages.day
-            : language.messages.days,
+        daysListed: daysListed,
       ),
-      (false, true) => language.messages.firstSeenAgo(
-        daysListed: (daysListed).toString(),
-        daysWord: daysListed == 1
-            ? language.messages.day
-            : language.messages.days,
-      ),
+      (false, true) => language.messages.firstSeenAgo(daysListed: daysListed),
     });
     if (enoughGone && daysListed > 2 * toGone) {
       lines.add(language.messages.forSaleForMoreThanTwiceUsualTime);
