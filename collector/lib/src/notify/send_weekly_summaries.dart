@@ -32,22 +32,18 @@ Future<({int accounts, int devices, int sent})> sendWeeklySummaries(
   WebPushSender push,
   Map<String, WeeklySummary> summaries,
 ) async {
-  var devices = 0;
-  var sent = 0;
   for (final MapEntry(key: user, value: summary) in summaries.entries) {
     await store.saveWeeklySummary(user, summary, weeklySummaryJson(summary));
   }
-  final languages = await store.accountLanguages(summaries.keys.toList());
-  for (final MapEntry(key: user, value: summary) in summaries.entries) {
-    final result = await pushToUsers(
-      store,
-      push,
-      [user],
-      (language) => weeklySummaryPush(summary, language: language),
-      languages: languages,
-    );
-    devices += result.devices;
-    sent += result.sent;
-  }
-  return (accounts: summaries.length, devices: devices, sent: sent);
+  final result = await pushToUsers(
+    store,
+    push,
+    summaries.keys.toList(),
+    (user, language) => weeklySummaryPush(summaries[user]!, language: language),
+  );
+  return (
+    accounts: summaries.length,
+    devices: result.devices,
+    sent: result.sent,
+  );
 }
