@@ -6,7 +6,8 @@ abstract interface class CollectorRunsRepository {
   /// The most recent run, or null when there is none (or no access).
   Future<CollectorRun?> getLatest();
 
-  /// The runs started since [since], newest first; empty without access.
+  /// The runs started since [since] with their problems, newest first;
+  /// empty without access.
   Future<List<CollectorRun>> getSince(DateTime since);
 
   /// The last [limit] runs with their problems, sites and searches, newest
@@ -19,7 +20,8 @@ class SupabaseCollectorRunsRepository implements CollectorRunsRepository {
 
   final SupabaseClient _client;
 
-  static const _columns = 'status, started_at, finished_at, requests, counts';
+  static const _columns =
+      'status, started_at, finished_at, requests, counts, scoring_ms';
 
   @override
   Future<CollectorRun?> getLatest() async {
@@ -45,7 +47,7 @@ class SupabaseCollectorRunsRepository implements CollectorRunsRepository {
   Future<List<CollectorRun>> getSince(DateTime since) async {
     final rows = await _client
         .from('collector_runs')
-        .select(_columns)
+        .select('$_columns, problems')
         .gte('started_at', since.toUtc().toIso8601String())
         .order('started_at', ascending: false);
     return rows.map(_run).toList();
@@ -70,6 +72,10 @@ class SupabaseCollectorRunsRepository implements CollectorRunsRepository {
         if (s is Map<String, dynamic>) SearchRead.fromJson(s),
     ],
     runUrl: row['run_url'] as String?,
+    scoringTime: switch (row['scoring_ms']) {
+      final num ms => Duration(milliseconds: ms.toInt()),
+      _ => null,
+    },
   );
 
   static Map<String, int> _ints(Object? json) => {

@@ -48,12 +48,17 @@ change the fetching rules, model matching, or per-search removal safeguards.
 After each scheduled run `bin/report_run.dart` records it in `collector_runs`
 (with the error lines of a run that was not ok, each search's pages and
 ads from those lines, each site's requests today
-and pause from its fetch state file, and the GitHub run's address; shown
-in the app's "Estado da recolha") and, when its status differs from the previous run's (ok, blocked, failed),
+and pause from its fetch state file, how long the scores took
+(`scoring_ms`) and the GitHub run's address; shown
+in the app's "Estado da recolha") and, when its status differs from the previous run's (ok, partial, blocked, failed),
 sends one notification to the admins' devices (Web Push; a tap opens
 "Estado da recolha"): what went wrong on which site
 (`notify/run_health.dart`), or that the collection works again. The same
-problem is not repeated on every run.
+problem is not repeated on every run. A run is `partial` when its only
+problems were passing fetch failures (`Failed:` lines: a timeout or server
+error after the retry) and it still finished scores and alerts: it is told
+only when the same site fails in the next run too, and its GitHub job stays
+green with a warning.
 
 Readable records are kept even when other records cannot be read. These
 `Read issue:` lines fail the run (also for a saved-file import or dry run),

@@ -468,7 +468,10 @@ invites; written by the collector on each run).
   them again; null is worked out on the fly meanwhile).
   `recalculate_deal_scores()` runs with `jit = off` (compiling cost more
   than it saved). The collector's role (`service_role`) has a 60 s
-  statement timeout (Supabase's default is about 8 s).
+  statement timeout (Supabase's default is about 8 s). Each run stores how
+  long the scores took (`collector_runs.scoring_ms`, from finishRun's
+  "Scored N listing(s) in X ms." line, `scoringMs`); "Estado da recolha"
+  warns above 30 s.
 - The service-role key is only ever used by the collector, never the app.
 - `source_data_quality` (view, readable by everyone) feeds "Qualidade dos
   dados" in Mais, including `last_seen_at` (stale after 24 h: "verifique a
@@ -482,7 +485,11 @@ invites; written by the collector on each run).
   admins' devices (Web Push, `pushToUsers`; a tap opens "Estado da
   recolha") when a run's status differs from the previous run's (`run_health.dart`:
   the error lines of each site, or "voltou a funcionar"), never twice for
-  the same problem. It also stores `problems` (`runProblems`, runs not
+  the same problem. Status `partial` (`runStatus`): the only problems were
+  `Failed:` lines (a timeout or server error after the retry) and the run
+  still finished; it counts as ok unless the run before also failed on the
+  same site ("falhou duas vezes seguidas"), its GitHub job stays green with
+  a warning, and the app shows it as "Incompleta". It also stores `problems` (`runProblems`, runs not
   ok), `sites` (each fetch state file's `report()`: requests today,
   paused until), `searches` (`searchesRead`: per search the pages it
   spans and the pages read, from `searches.json`'s `pages`, the ads found,
@@ -490,7 +497,8 @@ invites; written by the collector on each run).
   importBatch's "Search (<site>): ..." lines, keep their wording) and
   `run_url` (`githubRunUrl`), shown to admins in
   Mais › "Estado da recolha" (`collection_status_page.dart`, route
-  `/collection-status`, pushed), with the database's size against the
+  `/collection-status`, pushed; also the last 30 days' failures by site
+  and cause, `failureHistoryText`), with the database's size against the
   free plan's 500 MB and its 5 biggest tables (`database_usage`, admins;
   red from 80 %).
 - Schedules live in Supabase, not in the workflows (GitHub's scheduler never

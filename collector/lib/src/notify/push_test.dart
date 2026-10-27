@@ -48,22 +48,24 @@ Map<String, Object?> samplePushMessage(
     'body': [?m['body'] as String?, note].where((l) => l != '').join('\n'),
     'tag': 'push-test',
   };
+  const ok = (status: 'ok', problems: <String>[]);
+  // The usual failure: the same site's timeout in two runs in a row.
+  const timedOut = (
+    status: 'partial',
+    problems: ['olx: Failed: TimeoutException (exemplo)'],
+  );
   final health = switch (kind) {
-    'run_failed' => runHealthMessage(
-      previous: 'ok',
-      current: 'failed',
-      log: '== olx ==\nFailed: TimeoutException (exemplo)',
-    ),
-    'run_blocked' => runHealthMessage(
-      previous: 'ok',
-      current: 'blocked',
-      log: '== standvirtual ==\nStopped, the site pushed back: 429 (exemplo)',
-    ),
-    'run_recovered' => runHealthMessage(
-      previous: 'failed',
-      current: 'ok',
-      log: '',
-    ),
+    'run_failed' => runHealthMessage([timedOut, timedOut, ok]),
+    'run_blocked' => runHealthMessage([
+      (
+        status: 'blocked',
+        problems: [
+          'standvirtual: Stopped, the site pushed back: 429 (exemplo)',
+        ],
+      ),
+      ok,
+    ]),
+    'run_recovered' => runHealthMessage([ok, timedOut, timedOut]),
     _ => null,
   };
   if (health != null) return withNote(health);

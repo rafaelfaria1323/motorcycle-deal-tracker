@@ -24,6 +24,18 @@ void main() {
     expect(collectorHealth(r, now), CollectorHealth.stale);
   });
 
+  test('a partial run is fine, but still stale when old', () {
+    final recent = now.subtract(const Duration(hours: 1));
+    expect(collectorHealth(run('partial', recent), now), CollectorHealth.ok);
+    expect(
+      collectorHealth(
+        run('partial', now.subtract(const Duration(hours: 13))),
+        now,
+      ),
+      CollectorHealth.stale,
+    );
+  });
+
   test('blocked and failed are reported whatever their age', () {
     final recent = now.subtract(const Duration(hours: 1));
     expect(
