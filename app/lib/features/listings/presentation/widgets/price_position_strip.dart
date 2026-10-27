@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/theme/app_theme.dart';
 import '../../../../core/formatting/formatters.dart';
 import '../price_position_text.dart';
 import '../../../../core/localization/localizations.dart';
@@ -14,11 +15,7 @@ class PricePositionStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final labelStyle = (theme.textTheme.labelSmall ?? const TextStyle())
-        .copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-          fontFeatures: const [FontFeature.tabularFigures()],
-        );
+    final labelStyle = AppTheme.figureLabel(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

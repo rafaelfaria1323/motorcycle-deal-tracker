@@ -19,6 +19,48 @@ abstract final class AppTheme {
   static TextStyle errorText(BuildContext context) =>
       TextStyle(color: Theme.of(context).colorScheme.error);
 
+  /// Prices and scores: every digit the same width, so figures line up.
+  static const tabularFigures = [FontFeature.tabularFigures()];
+
+  /// Small grey figures beside a chart or a price strip.
+  static TextStyle figureLabel(BuildContext context) {
+    final theme = Theme.of(context);
+    return (theme.textTheme.labelSmall ?? const TextStyle()).copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+      fontFeatures: tabularFigures,
+    );
+  }
+
+  /// The small capitals line above a title (a page's eyebrow, the listing's
+  /// site): bold and spaced, in the accent colour.
+  static TextStyle? eyebrow(BuildContext context) {
+    final theme = Theme.of(context);
+    return theme.textTheme.labelSmall?.copyWith(
+      fontWeight: FontWeight.w700,
+      letterSpacing: 1.6,
+      color: theme.colorScheme.primary,
+    );
+  }
+
+  /// A heading in capitals over a group of rows (a day of alerts, a kind
+  /// of account).
+  static TextStyle? groupLabel(BuildContext context) {
+    final theme = Theme.of(context);
+    return theme.textTheme.labelMedium?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+      letterSpacing: 1.2,
+    );
+  }
+
+  /// Small text on a dark pill over a photo (the card's place, the
+  /// badge's "Deal Score").
+  static const onPhotoLabel = TextStyle(
+    fontFamily: bodyFont,
+    fontSize: 12,
+    fontWeight: FontWeight.w600,
+    color: AppColors.onPhoto,
+  );
+
   static ThemeData get light => _build(_lightScheme, AppColors.light);
 
   static ThemeData get dark => _build(_darkScheme, AppColors.dark);

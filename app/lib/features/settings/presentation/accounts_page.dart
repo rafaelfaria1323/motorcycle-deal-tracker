@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/di/injection.dart';
+import '../../../app/theme/app_theme.dart';
 import '../../../core/platform/app_build.dart';
 import '../../../core/widgets/page_back_button.dart';
 import '../../../core/widgets/show_message.dart';
@@ -296,16 +297,9 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
-      child: Text(
-        text.toUpperCase(),
-        style: theme.textTheme.labelMedium?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-          letterSpacing: 1.2,
-        ),
-      ),
+      child: Text(text.toUpperCase(), style: AppTheme.groupLabel(context)),
     );
   }
 }

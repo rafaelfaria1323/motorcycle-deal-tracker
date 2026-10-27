@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_theme.dart';
 import '../../../../core/widgets/confirm_delete.dart';
 import '../../../../core/widgets/page_intro.dart';
 import '../../../../core/widgets/show_message.dart';
@@ -174,10 +175,7 @@ class AlertsPage extends StatelessWidget {
                               children: [
                                 Text(
                                   day.label.toUpperCase(),
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                    letterSpacing: 1.2,
-                                  ),
+                                  style: AppTheme.groupLabel(context),
                                 ),
                                 const SizedBox(width: 12),
                                 const Expanded(child: Divider()),

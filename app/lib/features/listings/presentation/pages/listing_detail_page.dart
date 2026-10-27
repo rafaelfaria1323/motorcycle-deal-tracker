@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
+import '../../../../app/theme/app_theme.dart';
 import '../../../../core/formatting/formatters.dart';
 import '../../../../core/widgets/page_back_button.dart';
 import '../../../../core/widgets/section_card.dart';
@@ -317,9 +318,7 @@ class _ContentState extends State<_Content> {
                                   language: context.language,
                                 ),
                                 style: theme.textTheme.headlineSmall?.copyWith(
-                                  fontFeatures: const [
-                                    FontFeature.tabularFigures(),
-                                  ],
+                                  fontFeatures: AppTheme.tabularFigures,
                                 ),
                               ),
                             ),
@@ -398,11 +397,7 @@ class _Header extends StatelessWidget {
       children: [
         Text(
           sourceLabel(listing.source, language: context.language).toUpperCase(),
-          style: textTheme.labelSmall?.copyWith(
-            letterSpacing: 1.5,
-            fontWeight: FontWeight.w700,
-            color: theme.colorScheme.primary,
-          ),
+          style: AppTheme.eyebrow(context),
         ),
         const SizedBox(height: 8),
         Text(
@@ -418,7 +413,7 @@ class _Header extends StatelessWidget {
               Formatters.price(listing.price, language: context.language),
               style: textTheme.displaySmall?.copyWith(
                 fontSize: 42,
-                fontFeatures: const [FontFeature.tabularFigures()],
+                fontFeatures: AppTheme.tabularFigures,
               ),
             ),
             PriceChangeTag(listing: listing),
