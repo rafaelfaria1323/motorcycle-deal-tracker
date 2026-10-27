@@ -3,7 +3,8 @@
 The app is built and published to Cloudflare Pages by
 `.github/workflows/deploy-web.yml` on every merge to `main` that touches
 `app/` or adds a migration, and from the Actions tab ("Deploy web app" →
-"Run workflow"). Tests must pass before anything is published.
+"Run workflow"). The web app and the APK are built while the tests and migrations run;
+they must pass before anything is published.
 
 Database migrations are applied by the same workflow, before the app: the
 `migrate` job asks Supabase which migrations it is missing; if any, it tests
@@ -187,9 +188,10 @@ searches.
 ## Android app
 
 Every deploy also builds the Android app (`deploy-web.yml`, job
-`android`; Gradle's downloads, its build cache and the NDK are kept
-between deploys, `tool/android_cache_keys.sh`) and puts it on the GitHub
-release `android`, replacing the previous one:
+`android`, beside the tests; Gradle's downloads, its build cache and the
+NDK are kept between deploys, `tool/android_cache_keys.sh`) and, once the
+migrations and tests passed, puts it on the GitHub release `android`
+(job `android-release`), replacing the previous one:
 `https://github.com/rafaelfaria1323/motorcycle-deal-tracker/releases/download/android/motorcycle-deal-tracker.apk`.
 On an Android phone, Mais shows "App Android". In Chrome it downloads the
 app the first time; Android asks once to allow installs from Chrome. After
