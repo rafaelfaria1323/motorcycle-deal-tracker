@@ -416,7 +416,10 @@ invites; written by the collector on each run).
   racing-orange primary, white cards with a hairline border, no shadows or
   tints) and `app_colors.dart` (`AppColors.of(context)`: positive/negative
   and Deal Score band colours, light and dark). Never hard-code colours in
-  widgets. `theme_contrast_test.dart` checks the WCAG contrast of the
+  widgets. Shared text styles live in `AppTheme` too (`tabularFigures`
+  for prices and scores, `eyebrow`, `groupLabel`, `figureLabel`,
+  `onPhotoLabel`, `errorText`): use them rather than setting weights and
+  sizes in a widget. `theme_contrast_test.dart` checks the WCAG contrast of the
   colours (text 4.5:1, score badges 3:1): keep it green when changing them. Fonts are bundled (`assets/fonts`, Latin subset plus arrows,
   `tool/font_arrows.py`): Barlow for text, Barlow Semi Condensed
   (`AppTheme.displayFont`) for titles, prices and scores; prices use
@@ -838,7 +841,9 @@ Deleting an alert hides it, never removes its event history:
 deduplication intact. The app loads only `dismissed_at is null`; direct
 alert deletion and writes beyond `read_at` remain forbidden. The collector's
 pending query already excludes handled notifications. Alert refreshes and
-failed read writes must not bring dismissed rows back.
+failed read writes must not bring dismissed rows back. A deleted alert
+brings no later `listing_removed` or `back_on_market` for its listing:
+those follow only alerts still shown (and favourites).
 
 Types: `target_price_reached` (a favourite's `target_price`, set from
 "Quanto oferecer": the listing is live at that price or less, at a price
@@ -860,7 +865,8 @@ model (`only_my_colours`); all in `saved_search_matches`.
 `notified_at` marks alerts already sent (only real accounts; up to 200
 a run, oldest first; kept for the next run when the push keys can't be
 read, and while no device took a push that failed, for 24 h; older ones
-are marked without a push): to the account's devices by Web Push, or FCM
+are marked without a push; a device whose push failed isn't tried again
+in the same run): to the account's devices by Web Push, or FCM
 for the Android app (`push_subscriptions`, saved from Mais ›
 "Notificações neste aparelho", saved again on each visit, removed on
 sign-out; on the iPhone only in the home-screen app;
