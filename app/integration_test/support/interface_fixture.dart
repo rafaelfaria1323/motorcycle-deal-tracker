@@ -102,13 +102,27 @@ class InterfaceFixture {
   final InterfaceSearches searchesRepository;
   final bool signedIn;
   final Stream<User?> userChanges;
+  late final session = SessionCubit(
+    signedIn
+        ? const SessionState(
+            userId: 'interface-user',
+            email: 'owner@example.pt',
+            signedIn: true,
+          )
+        : const SessionState(),
+    userChanges,
+  );
   final cardPreferencesRepository = InterfaceCardPreferences();
   late final alertsRepository = InterfaceAlerts(searchesRepository);
-  late final listings = ListingsCubit(repository);
-  late final searches = SavedSearchesCubit(searchesRepository, repository);
-  late final alerts = AlertsCubit(alertsRepository);
+  late final listings = ListingsCubit(repository, session);
+  late final searches = SavedSearchesCubit(
+    searchesRepository,
+    repository,
+    session,
+  );
+  late final alerts = AlertsCubit(alertsRepository, session);
   final favouritesRepository = InterfaceFavourites();
-  late final favourites = FavouritesCubit(favouritesRepository);
+  late final favourites = FavouritesCubit(favouritesRepository, session);
   final compare = CompareCubit();
 
   Future<void> initialize() async {
@@ -125,16 +139,6 @@ class InterfaceFixture {
       dispose: (c) => c.close(),
     );
     getIt.registerSingleton<CompareCubit>(compare, dispose: (c) => c.close());
-    final session = SessionCubit(
-      signedIn
-          ? const SessionState(
-              userId: 'interface-user',
-              email: 'owner@example.pt',
-              signedIn: true,
-            )
-          : const SessionState(),
-      userChanges,
-    );
     getIt.registerSingleton<SessionCubit>(session, dispose: (c) => c.close());
     getIt.registerSingleton<ListingCardPreferencesCubit>(
       ListingCardPreferencesCubit(cardPreferencesRepository, session),

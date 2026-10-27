@@ -1,4 +1,4 @@
-# Motorcycle Deal Tracker — Concept & Architecture (status 2026-10-25)
+# Motorcycle Deal Tracker — Concept & Architecture (status 2026-10-27)
 
 **Legend:** ✅ done · 🟡 partly done · ⬜ not started · ➕ added along the way
 
@@ -71,6 +71,13 @@ Tracked models (catalog) → searches → Collectors / Adapters → Normalizatio
 ```
 
 *Each source has its own adapter + mapper (`manual`, `standvirtual`, `standvirtual-search`, `olx-search`); model matching (`ModelResolver`) and everything after normalization are shared.*
+
+*The app's shared listings, searches, alerts and favourites follow the
+session's account identity themselves (`AccountScopedCubit`, roadmap N.20),
+not the auth screens. Account changes clear their caches before reloading,
+even offline; late loads, writes and failed optimistic rollbacks cannot
+restore the previous account's private state. Filters and sort survive,
+and anonymous startup keeps its public prefetch.*
 
 *The collector remains pure Dart: `html` selects Standvirtual's JSON script
 and decodes HTML description fragments without hand-maintained entity

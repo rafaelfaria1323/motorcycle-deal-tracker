@@ -26,6 +26,7 @@ the database schema, secrets or workflows goes to "Needs Rafael".
 
 ## Done
 
+- 2026-10-27: Shared listing, saved-search, alert and favourite cubits inherit `AccountScopedCubit`: session identity owns cache resets and reloads, rather than duplicate callbacks in auth screens. Account generations guard delayed reads, writes and optimistic rollbacks; latest-load/count generations and disposal guards prevent stale results. Filters, sort and anonymous prefetch are preserved (roadmap N.20).
 - 2026-10-20: `injection.dart` takes the client from `getIt<SupabaseClient>()` everywhere (seven direct `Supabase.instance.client` reads) and is one registration chain.
 - 2026-10-20: The OLX and Standvirtual search adapters' `read()` loops became one `readSavedSearchPages` in `saved_pages.dart` (files, manifest, records, models, problems, stale and unreadable files); each site passes only its per-page bookkeeping and its end-of-run check (OLX's missing pages, Standvirtual's pages not saved). Messages unchanged; the existing adapter tests cover it.
 - 2026-10-20: The two error-coloured texts (account sheet, saved search criteria) use `AppTheme.errorText(context)`; the other two spots are an icon colour and a button background, not text, so they stay.

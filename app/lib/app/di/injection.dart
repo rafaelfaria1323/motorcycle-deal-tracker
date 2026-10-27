@@ -54,7 +54,8 @@ void configureDependencies() {
       () => SupabaseListingsRepository(getIt<SupabaseClient>()),
     )
     ..registerLazySingleton<ListingsCubit>(
-      () => ListingsCubit(getIt<ListingsRepository>()),
+      () => ListingsCubit(getIt<ListingsRepository>(), getIt<SessionCubit>()),
+      dispose: (cubit) => cubit.close(),
     )
     ..registerFactory<ListingDetailCubit>(
       () => ListingDetailCubit(getIt<ListingsRepository>()),
@@ -66,24 +67,32 @@ void configureDependencies() {
       () => SavedSearchesCubit(
         getIt<SavedSearchesRepository>(),
         getIt<ListingsRepository>(),
+        getIt<SessionCubit>(),
       ),
+      dispose: (cubit) => cubit.close(),
     )
     ..registerLazySingleton<AlertsRepository>(
       () => SupabaseAlertsRepository(getIt<SupabaseClient>()),
     )
     ..registerLazySingleton<AlertsCubit>(
-      () => AlertsCubit(getIt<AlertsRepository>()),
+      () => AlertsCubit(getIt<AlertsRepository>(), getIt<SessionCubit>()),
+      dispose: (cubit) => cubit.close(),
     )
     ..registerLazySingleton<FavouritesRepository>(
       () => SupabaseFavouritesRepository(getIt<SupabaseClient>()),
     )
     ..registerLazySingleton<FavouritesCubit>(
-      () => FavouritesCubit(getIt<FavouritesRepository>()),
+      () =>
+          FavouritesCubit(getIt<FavouritesRepository>(), getIt<SessionCubit>()),
+      dispose: (cubit) => cubit.close(),
     )
     ..registerFactory(
       () => AccountCubit(getIt<SupabaseClient>(), getIt<PushRepository>()),
     )
-    ..registerLazySingleton(() => SessionCubit.of(getIt<SupabaseClient>()))
+    ..registerLazySingleton(
+      () => SessionCubit.of(getIt<SupabaseClient>()),
+      dispose: (cubit) => cubit.close(),
+    )
     ..registerLazySingleton<ListingCardPreferencesRepository>(
       () => SupabaseListingCardPreferencesRepository(getIt<SupabaseClient>()),
     )

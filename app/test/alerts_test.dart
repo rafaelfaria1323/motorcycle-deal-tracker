@@ -7,6 +7,13 @@ import 'package:motorcycle_deal_tracker/features/listings/domain/repositories/al
 import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/alerts_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/alerts_state.dart';
 
+import 'helpers/session_fixture.dart';
+
+late SessionFixture _session;
+
+AlertsCubit _cubit(AlertsRepository repository) =>
+    _session.track(AlertsCubit(repository, _session.cubit));
+
 Map<String, dynamic> _row(String id, {String? readAt}) => {
   'id': id,
   'type': 'new_listing',
@@ -47,14 +54,17 @@ class _FakeAlerts implements AlertsRepository {
   Future<void>? readDelay;
   Future<void>? dismissDelay;
   Future<List<ListingAlert>>? loadResult;
+  bool failLoad = false;
 
   @override
-  Future<List<ListingAlert>> getAll() async =>
-      loadResult ??
-      [
-        for (final alert in items)
-          if (!dismissed.contains(alert.id)) alert,
-      ];
+  Future<List<ListingAlert>> getAll() async {
+    if (failLoad) throw StateError('offline');
+    return loadResult ??
+        [
+          for (final alert in items)
+            if (!dismissed.contains(alert.id)) alert,
+        ];
+  }
 
   @override
   Future<void> markRead(String id) async {
@@ -78,6 +88,8 @@ class _FakeAlerts implements AlertsRepository {
 }
 
 void main() {
+  setUp(() => _session = SessionFixture());
+
   test('an alert row becomes an alert with its listing and search', () {
     final alert = ListingAlertModel.fromJson(_row('a1'));
 
@@ -105,7 +117,7 @@ void main() {
       ListingAlertModel.fromJson(_row('a1')),
       ListingAlertModel.fromJson(_row('a2')),
     ]);
-    final cubit = AlertsCubit(repo);
+    final cubit = _cubit(repo);
     await cubit.load();
     expect(cubit.state.unreadCount, 2);
 
@@ -116,7 +128,7 @@ void main() {
   });
 
   test('a failed save puts the alert back to unread', () async {
-    final cubit = AlertsCubit(
+    final cubit = _cubit(
       _FakeAlerts([ListingAlertModel.fromJson(_row('a1'))], failMarkRead: true),
     );
     await cubit.load();
@@ -127,7 +139,7 @@ void main() {
   });
 
   test('markAllRead clears every unread alert', () async {
-    final cubit = AlertsCubit(
+    final cubit = _cubit(
       _FakeAlerts([
         ListingAlertModel.fromJson(_row('a1')),
         ListingAlertModel.fromJson(_row('a2')),
@@ -152,7 +164,7 @@ void main() {
 
   test('refreshing a renamed search updates the alert', () async {
     final repo = _FakeAlerts([ListingAlertModel.fromJson(_row('a1'))]);
-    final cubit = AlertsCubit(repo);
+    final cubit = _cubit(repo);
     addTearDown(cubit.close);
     await cubit.load();
     repo.items[0] = ListingAlertModel.fromJson(
@@ -168,7 +180,7 @@ void main() {
       ListingAlertModel.fromJson(_row('a1')),
       ListingAlertModel.fromJson(_row('a2')),
     ])..dismissDelay = saved.future;
-    final cubit = AlertsCubit(repo);
+    final cubit = _cubit(repo);
     addTearDown(cubit.close);
     await cubit.load();
 
@@ -186,7 +198,7 @@ void main() {
 
   test('a failed dismissal keeps the alert and its unread badge', () async {
     final alert = ListingAlertModel.fromJson(_row('a1'));
-    final cubit = AlertsCubit(_FakeAlerts([alert], failDismiss: true));
+    final cubit = _cubit(_FakeAlerts([alert], failDismiss: true));
     addTearDown(cubit.close);
     await cubit.load();
     expect(await cubit.dismiss(alert.id), isFalse);
@@ -203,7 +215,7 @@ void main() {
           ListingAlertModel.fromJson(_row('a1')),
           ListingAlertModel.fromJson(_row('a2')),
         ], failMarkRead: true)..readDelay = write.future;
-        final cubit = AlertsCubit(repo);
+        final cubit = _cubit(repo);
         addTearDown(cubit.close);
         await cubit.load();
 
@@ -223,7 +235,7 @@ void main() {
       ListingAlertModel.fromJson(_row('a1')),
       ListingAlertModel.fromJson(_row('a2')),
     ])..readDelay = write.future;
-    final cubit = AlertsCubit(repo);
+    final cubit = _cubit(repo);
     addTearDown(cubit.close);
     await cubit.load();
     final first = cubit.markRead('a1');
@@ -238,7 +250,7 @@ void main() {
 
   test('an older refresh cannot bring a dismissed alert back', () async {
     final repo = _FakeAlerts([ListingAlertModel.fromJson(_row('a1'))]);
-    final cubit = AlertsCubit(repo);
+    final cubit = _cubit(repo);
     addTearDown(cubit.close);
     await cubit.load();
     final response = Completer<List<ListingAlert>>();
@@ -253,7 +265,7 @@ void main() {
 
   test('an older load cannot overwrite a newer result', () async {
     final repo = _FakeAlerts([ListingAlertModel.fromJson(_row('a1'))]);
-    final cubit = AlertsCubit(repo);
+    final cubit = _cubit(repo);
     addTearDown(cubit.close);
     final response = Completer<List<ListingAlert>>();
     repo.loadResult = response.future;
@@ -270,7 +282,7 @@ void main() {
     'a pending refresh retains new alerts while excluding a dismissal',
     () async {
       final repo = _FakeAlerts([ListingAlertModel.fromJson(_row('a1'))]);
-      final cubit = AlertsCubit(repo);
+      final cubit = _cubit(repo);
       addTearDown(cubit.close);
       await cubit.load();
       final response = Completer<List<ListingAlert>>();
@@ -290,11 +302,79 @@ void main() {
   test('a pending refresh can finish after the cubit closes', () async {
     final response = Completer<List<ListingAlert>>();
     final repo = _FakeAlerts([])..loadResult = response.future;
-    final cubit = AlertsCubit(repo);
+    final cubit = _cubit(repo);
     final load = cubit.load();
     await cubit.close();
     response.complete([]);
     await load;
+  });
+
+  test('an account change clears alerts and the badge even offline', () async {
+    final repository = _FakeAlerts([ListingAlertModel.fromJson(_row('a1'))]);
+    final cubit = _cubit(repository);
+    await cubit.load();
+    repository.failLoad = true;
+
+    await _session.changeAccount('other');
+
+    expect(cubit.state.alerts, isEmpty);
+    expect(cubit.state.unreadCount, 0);
+    expect(cubit.state.status, AlertsStatus.failure);
+  });
+
+  for (final fails in [false, true]) {
+    test(
+      'an old alert load cannot ${fails ? 'fail' : 'replace'} a new account',
+      () async {
+        final response = Completer<List<ListingAlert>>();
+        final repository = _FakeAlerts([
+          ListingAlertModel.fromJson(_row('current')),
+        ])..loadResult = response.future;
+        final cubit = _cubit(repository);
+        final older = cubit.load();
+        repository.loadResult = null;
+        await _session.changeAccount('other');
+        final current = cubit.state;
+
+        if (fails) {
+          response.completeError(StateError('offline'));
+        } else {
+          response.complete([ListingAlertModel.fromJson(_row('private'))]);
+        }
+        await older;
+
+        expect(cubit.state, current);
+        expect(cubit.state.alerts.single.id, 'current');
+      },
+    );
+  }
+
+  test('dismissal completion stays with its account', () async {
+    final response = Completer<void>();
+    final repository = _FakeAlerts([ListingAlertModel.fromJson(_row('a1'))])
+      ..dismissDelay = response.future;
+    final cubit = _cubit(repository);
+    await cubit.load();
+    final dismissing = cubit.dismiss('a1');
+    await _session.changeAccount('other');
+    final current = cubit.state;
+
+    response.complete();
+
+    expect(await dismissing, isFalse);
+    expect(cubit.state, current);
+  });
+
+  test('dismissal guards are reset with the account scope', () async {
+    final repository = _FakeAlerts([ListingAlertModel.fromJson(_row('a1'))]);
+    final cubit = _cubit(repository);
+    await cubit.load();
+    await cubit.dismiss('a1');
+    repository.dismissed.clear();
+
+    await _session.changeAccount('other');
+
+    expect(cubit.state.alerts.single.id, 'a1');
   });
 
   test('a price reduction keeps the old and the new price', () {

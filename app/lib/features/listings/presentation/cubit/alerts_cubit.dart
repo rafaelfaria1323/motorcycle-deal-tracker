@@ -1,27 +1,36 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-
+import '../../../../core/auth/account_scoped_cubit.dart';
+import '../../../../core/auth/session_cubit.dart';
 import '../../domain/repositories/alerts_repository.dart';
 import 'alerts_state.dart';
 
-class AlertsCubit extends Cubit<AlertsState> {
-  AlertsCubit(this._repository) : super(const AlertsState());
+class AlertsCubit extends AccountScopedCubit<AlertsState> {
+  AlertsCubit(this._repository, SessionCubit session)
+    : super(session, const AlertsState());
 
   final AlertsRepository _repository;
   // An in-flight refresh may still contain an alert just dismissed.
   final _dismissedIds = <String>{};
   int _loadGeneration = 0;
 
+  @override
+  void resetForAccount() {
+    _dismissedIds.clear();
+    super.resetForAccount();
+  }
+
   /// Loads (or refreshes) the alerts. A failed refresh keeps the list that is
   /// already on screen.
+  @override
   Future<void> load() async {
-    if (isClosed) return;
+    final account = accountGeneration;
+    if (!isCurrentAccount(account)) return;
     final generation = ++_loadGeneration;
     if (state.status != AlertsStatus.success) {
       emit(state.copyWith(status: AlertsStatus.loading));
     }
     try {
       final alerts = await _repository.getAll();
-      if (isClosed || generation != _loadGeneration) return;
+      if (!isCurrentAccount(account) || generation != _loadGeneration) return;
       emit(
         state.copyWith(
           status: AlertsStatus.success,
@@ -32,7 +41,7 @@ class AlertsCubit extends Cubit<AlertsState> {
         ),
       );
     } catch (_) {
-      if (isClosed || generation != _loadGeneration) return;
+      if (!isCurrentAccount(account) || generation != _loadGeneration) return;
       if (state.status != AlertsStatus.success) {
         emit(state.copyWith(status: AlertsStatus.failure));
       }
@@ -41,6 +50,8 @@ class AlertsCubit extends Cubit<AlertsState> {
 
   /// Marks one alert as read right away, and undoes it if saving fails.
   Future<void> markRead(String id) async {
+    final account = accountGeneration;
+    if (!isCurrentAccount(account)) return;
     final before = state.alerts;
     final target = before.where((a) => a.id == id).firstOrNull;
     if (target == null || target.isRead) return;
@@ -56,11 +67,13 @@ class AlertsCubit extends Cubit<AlertsState> {
     try {
       await _repository.markRead(id);
     } catch (_) {
-      _restoreUnread({id}, now);
+      if (isCurrentAccount(account)) _restoreUnread({id}, now);
     }
   }
 
   Future<void> markAllRead() async {
+    final account = accountGeneration;
+    if (!isCurrentAccount(account)) return;
     final before = state.alerts;
     if (state.unreadCount == 0) return;
 
@@ -75,6 +88,7 @@ class AlertsCubit extends Cubit<AlertsState> {
     try {
       await _repository.markAllRead();
     } catch (_) {
+      if (!isCurrentAccount(account)) return;
       _restoreUnread({
         for (final alert in before)
           if (!alert.isRead) alert.id,
@@ -97,9 +111,11 @@ class AlertsCubit extends Cubit<AlertsState> {
   }
 
   Future<bool> dismiss(String id) async {
+    final account = accountGeneration;
+    if (!isCurrentAccount(account)) return false;
     try {
       await _repository.dismiss(id);
-      if (isClosed) return false;
+      if (!isCurrentAccount(account)) return false;
       _dismissedIds.add(id);
       emit(
         state.copyWith(
