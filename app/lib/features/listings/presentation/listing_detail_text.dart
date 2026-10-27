@@ -99,7 +99,7 @@ List<Fact> bikeFacts(
   if (listing.dealerWarrantyMonths case final months?)
     (
       language.messages.sellerWarranty,
-      language.messages.months(months: (months).toString()),
+      language.messages.months(months: months),
     ),
 ];
 

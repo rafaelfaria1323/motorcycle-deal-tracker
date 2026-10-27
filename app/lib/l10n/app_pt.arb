@@ -265,16 +265,12 @@
   "@expiresToday": {
     "description": "Interface text in collection_status_text, tokenText."
   },
-  "text1DayLeft": "falta 1 dia",
-  "@text1DayLeft": {
-    "description": "Interface text in collection_status_text, tokenText."
-  },
-  "daysLeft": "faltam {days} dias",
+  "daysLeft": "{days, plural, =0{faltam 0 dias} =1{falta 1 dia} other{faltam {days} dias}}",
   "@daysLeft": {
     "description": "Interface text in collection_status_text, tokenText.",
     "placeholders": {
       "days": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -335,7 +331,7 @@
       }
     }
   },
-  "requestsToday": "{name}: {used} {requestsWord} hoje (UTC)",
+  "requestsToday": "{name}: {used, plural, =0{0 pedidos} =1{1 pedido} other{{used} pedidos}} hoje (UTC)",
   "@requestsToday": {
     "description": "Interface text in collection_status_text, siteBudgetText.",
     "placeholders": {
@@ -343,10 +339,7 @@
         "type": "String"
       },
       "used": {
-        "type": "String"
-      },
-      "requestsWord": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -359,7 +352,7 @@
       }
     }
   },
-  "pagesReadOf": "{pages} de {spans} {pagesWord}",
+  "pagesReadOf": "{pages} de {spans, plural, =0{0 páginas} =1{1 página} other{{spans} páginas}}",
   "@pagesReadOf": {
     "description": "Interface text in collection_status_text, searchReadText.",
     "placeholders": {
@@ -367,10 +360,7 @@
         "type": "String"
       },
       "spans": {
-        "type": "String"
-      },
-      "pagesWord": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -459,51 +449,16 @@
       }
     }
   },
-  "newListing": "anúncio novo",
-  "@newListing": {
-    "description": "Interface text in collection_text, runCountsText."
-  },
-  "newListings": "anúncios novos",
-  "@newListings": {
-    "description": "Interface text in collection_text, runCountsText."
-  },
-  "priceChanged": "preço alterado",
-  "@priceChanged": {
-    "description": "Interface text in collection_text, runCountsText."
-  },
-  "pricesChanged": "preços alterados",
-  "@pricesChanged": {
-    "description": "Interface text in collection_text, runCountsText."
-  },
-  "listingRemoved": "anúncio removido",
-  "@listingRemoved": {
-    "description": "Interface text in collection_text, runCountsText."
-  },
-  "listingsRemoved": "anúncios removidos",
-  "@listingsRemoved": {
-    "description": "Interface text in collection_text, runCountsText."
-  },
-  "alert": "alerta",
-  "@alert": {
-    "description": "Interface text in collection_text, runCountsText."
-  },
-  "alertsCollectionText": "alertas",
-  "@alertsCollectionText": {
-    "description": "Interface text in collection_text, runCountsText."
-  },
   "noNewListingsOrChanges": "Sem anúncios novos nem alterações",
   "@noNewListingsOrChanges": {
     "description": "Interface text in collection_text, runCountsText."
   },
-  "runsThisMonth": "{count} {runsWord} este mês, cerca de {minutes} min de GitHub Actions",
+  "runsThisMonth": "{count, plural, =0{0 recolhas} =1{1 recolha} other{{count} recolhas}} este mês, cerca de {minutes} min de GitHub Actions",
   "@runsThisMonth": {
     "description": "Interface text in collection_text, monthUsageText.",
     "placeholders": {
       "count": {
-        "type": "String"
-      },
-      "runsWord": {
-        "type": "String"
+        "type": "int"
       },
       "minutes": {
         "type": "String"
@@ -601,16 +556,12 @@
       }
     }
   },
-  "text1ListingPageUnread": "1 página de anúncio por ler",
-  "@text1ListingPageUnread": {
-    "description": "Interface text in data_quality_text, qualityDetailsLine."
-  },
-  "listingPagesUnread": "{detailsPending} páginas de anúncio por ler",
+  "listingPagesUnread": "{detailsPending, plural, =0{0 páginas de anúncio por ler} =1{1 página de anúncio por ler} other{{detailsPending} páginas de anúncio por ler}}",
   "@listingPagesUnread": {
     "description": "Interface text in data_quality_text, qualityDetailsLine.",
     "placeholders": {
       "detailsPending": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -951,14 +902,6 @@
   "@cardPreferencesSaveError": {
     "description": "Interface text in listing_card_preferences_cubit, save."
   },
-  "listing": "anúncio",
-  "@listing": {
-    "description": "Interface text in collection_status_text, searchReadText."
-  },
-  "listings": "anúncios",
-  "@listings": {
-    "description": "Interface text in collection_status_text, searchReadText."
-  },
   "loadedListing": "carregado",
   "@loadedListing": {
     "description": "Interface text in dashboard_text, listingsResultsText."
@@ -967,7 +910,7 @@
   "@loadedListings": {
     "description": "Interface text in dashboard_text, listingsResultsText."
   },
-  "dealerBikesLine": "{name}: {bikes} {bikesWord}{since} ({live} à venda)",
+  "dealerBikesLine": "{name}: {bikes, plural, =0{0 motas vistas} =1{1 mota vista} other{{bikes} motas vistas}}{since} ({live} à venda)",
   "@dealerBikesLine": {
     "description": "Interface text in dealer_text, dealerHeadline.",
     "placeholders": {
@@ -975,10 +918,7 @@
         "type": "String"
       },
       "bikes": {
-        "type": "String"
-      },
-      "bikesWord": {
-        "type": "String"
+        "type": "int"
       },
       "since": {
         "type": "String"
@@ -1027,15 +967,12 @@
       }
     }
   },
-  "dealerRepeated": "{repeated} {listingsWord} da mesma mota usada no mesmo site",
+  "dealerRepeated": "{repeated, plural, =0{0 anúncios repetidos} =1{1 anúncio repetido} other{{repeated} anúncios repetidos}} da mesma mota usada no mesmo site",
   "@dealerRepeated": {
     "description": "Interface text in dealer_text, dealerLines.",
     "placeholders": {
       "repeated": {
-        "type": "String"
-      },
-      "listingsWord": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -1074,20 +1011,7 @@
       }
     }
   },
-  "text1Listing": "1 anúncio",
-  "@text1Listing": {
-    "description": "Interface text in data_quality_text, qualitySharpPricesLine."
-  },
-  "listingsDataQualityText": "{n} anúncios",
-  "@listingsDataQualityText": {
-    "description": "Interface text in data_quality_text, qualitySharpPricesLine.",
-    "placeholders": {
-      "n": {
-        "type": "String"
-      }
-    }
-  },
-  "favouritesRemoved": "{count}, {removed} já {listingsWord}",
+  "favouritesRemoved": "{count}, {removed, plural, =0{0 já removidos} =1{1 já removido} other{{removed} já removidos}}",
   "@favouritesRemoved": {
     "description": "Interface text in favourites_text, favouritesCountText.",
     "placeholders": {
@@ -1095,10 +1019,7 @@
         "type": "String"
       },
       "removed": {
-        "type": "String"
-      },
-      "listingsWord": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -1171,15 +1092,12 @@
       }
     }
   },
-  "sellerWarrantyMonths": "{months} {monthsWord} de garantia do vendedor",
+  "sellerWarrantyMonths": "{months, plural, =0{0 meses} =1{1 mês} other{{months} meses}} de garantia do vendedor",
   "@sellerWarrantyMonths": {
     "description": "Interface text in listing_card_text, listingCardExtraFacts.",
     "placeholders": {
       "months": {
-        "type": "String"
-      },
-      "monthsWord": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -1311,12 +1229,12 @@
   "@sellerWarranty": {
     "description": "Interface text in listing_detail_text, bikeFacts."
   },
-  "months": "{months} meses",
+  "months": "{months, plural, =0{0 meses} =1{1 mês} other{{months} meses}}",
   "@months": {
     "description": "Interface text in listing_detail_text, bikeFacts.",
     "placeholders": {
       "months": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -1440,15 +1358,12 @@
   "@manualImport": {
     "description": "Interface text in listing_labels, sourceLabel."
   },
-  "activeOfModel": "{liveCount} {listingsWord} deste modelo",
+  "activeOfModel": "{liveCount, plural, =0{0 anúncios ativos} =1{1 anúncio ativo} other{{liveCount} anúncios ativos}} deste modelo",
   "@activeOfModel": {
     "description": "Interface text in market_behaviour_text, marketLines.",
     "placeholders": {
       "liveCount": {
-        "type": "String"
-      },
-      "listingsWord": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -1464,15 +1379,12 @@
       }
     }
   },
-  "timeToGoneFewData": "Tempo até sair do mercado: ainda poucos dados ({goneCount} {listingsWord})",
+  "timeToGoneFewData": "Tempo até sair do mercado: ainda poucos dados ({goneCount, plural, =0{0 anúncios saíram} =1{1 anúncio saiu} other{{goneCount} anúncios saíram}})",
   "@timeToGoneFewData": {
     "description": "Interface text in market_behaviour_text, marketLines.",
     "placeholders": {
       "goneCount": {
-        "type": "String"
-      },
-      "listingsWord": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -1509,27 +1421,21 @@
   "@firstSeenToday": {
     "description": "Interface text in market_behaviour_text, marketLines."
   },
-  "publishedForDays": "Este anúncio está publicado há {daysListed} {daysWord}",
+  "publishedForDays": "Este anúncio está publicado há {daysListed, plural, =0{0 dias} =1{1 dia} other{{daysListed} dias}}",
   "@publishedForDays": {
     "description": "Interface text in market_behaviour_text, marketLines.",
     "placeholders": {
       "daysListed": {
-        "type": "String"
-      },
-      "daysWord": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
-  "firstSeenAgo": "Visto pela primeira vez há {daysListed} {daysWord}",
+  "firstSeenAgo": "Visto pela primeira vez há {daysListed, plural, =0{0 dias} =1{1 dia} other{{daysListed} dias}}",
   "@firstSeenAgo": {
     "description": "Interface text in market_behaviour_text, marketLines.",
     "placeholders": {
       "daysListed": {
-        "type": "String"
-      },
-      "daysWord": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -1580,15 +1486,12 @@
   "@noActiveListingsWithPrice": {
     "description": "Interface text in model_market_text, priceSpreadLines."
   },
-  "askingPricesFewData": "Preços pedidos: ainda poucos dados ({count} {listingsWord})",
+  "askingPricesFewData": "Preços pedidos: ainda poucos dados ({count, plural, =0{0 anúncios} =1{1 anúncio} other{{count} anúncios}})",
   "@askingPricesFewData": {
     "description": "Interface text in model_market_text, priceSpreadLines.",
     "placeholders": {
       "count": {
-        "type": "String"
-      },
-      "listingsWord": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -1685,33 +1588,6 @@
         "type": "String"
       },
       "price3": {
-        "type": "String"
-      }
-    }
-  },
-  "thereIsAnotherOfSimilarYearWithNo": "Há outra {model} de ano parecido, sem mais km, por {price}.",
-  "@thereIsAnotherOfSimilarYearWithNo": {
-    "description": "Interface text in negotiation_text, negotiationArguments.",
-    "placeholders": {
-      "model": {
-        "type": "String"
-      },
-      "price": {
-        "type": "String"
-      }
-    }
-  },
-  "thereAreCheaperOfSimilarYearWithNo": "Há {length} {model} de ano parecido, sem mais km, mais baratas: desde {price}.",
-  "@thereAreCheaperOfSimilarYearWithNo": {
-    "description": "Interface text in negotiation_text, negotiationArguments.",
-    "placeholders": {
-      "length": {
-        "type": "String"
-      },
-      "model": {
-        "type": "String"
-      },
-      "price": {
         "type": "String"
       }
     }
@@ -2231,22 +2107,19 @@
       }
     }
   },
-  "ownershipTotal": "Em {years} {yearsWord}: cerca de {total}",
+  "ownershipTotal": "Em {years, plural, =0{0 anos} =1{1 ano} other{{years} anos}}: cerca de {total}",
   "@ownershipTotal": {
     "description": "Interface text in ownership_cost, ownershipTotalLine.",
     "placeholders": {
       "years": {
-        "type": "String"
-      },
-      "yearsWord": {
-        "type": "String"
+        "type": "int"
       },
       "total": {
         "type": "String"
       }
     }
   },
-  "ownershipDepreciation": "Desvalorização: {price} por ano (média de {years} {yearsWord})",
+  "ownershipDepreciation": "Desvalorização: {price} por ano (média de {years, plural, =0{0 anos} =1{1 ano} other{{years} anos}})",
   "@ownershipDepreciation": {
     "description": "Interface text in ownership_cost, ownershipLines.",
     "placeholders": {
@@ -2254,10 +2127,7 @@
         "type": "String"
       },
       "years": {
-        "type": "String"
-      },
-      "yearsWord": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -2897,15 +2767,12 @@
       }
     }
   },
-  "pricePositionFewData": "Preço face aos outros anúncios: ainda poucos dados ({count} {listingsWord})",
+  "pricePositionFewData": "Preço face aos outros anúncios: ainda poucos dados ({count, plural, =0{0 anúncios ativos} =1{1 anúncio ativo} other{{count} anúncios ativos}})",
   "@pricePositionFewData": {
     "description": "Interface text in price_position_text, pricePositionLine.",
     "placeholders": {
       "count": {
-        "type": "String"
-      },
-      "listingsWord": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -3763,16 +3630,12 @@
       }
     }
   },
-  "text1Problem": "1 problema",
-  "@text1Problem": {
-    "description": "Interface text in viewing_checklist, checklistSummaryText."
-  },
-  "problems": "{issues} problemas",
+  "problems": "{issues, plural, =0{0 problemas} =1{1 problema} other{{issues} problemas}}",
   "@problems": {
     "description": "Interface text in viewing_checklist, checklistSummaryText.",
     "placeholders": {
       "issues": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -3800,30 +3663,6 @@
         "type": "String"
       }
     }
-  },
-  "priceDropWeeklySummaryText": "baixa de preço",
-  "@priceDropWeeklySummaryText": {
-    "description": "Interface text in weekly_summary_text, summaryCountLines."
-  },
-  "priceDropsWeeklySummaryText": "baixas de preço",
-  "@priceDropsWeeklySummaryText": {
-    "description": "Interface text in weekly_summary_text, summaryCountLines."
-  },
-  "leftMarket": "saiu do mercado",
-  "@leftMarket": {
-    "description": "Interface text in weekly_summary_text, summaryCountLines."
-  },
-  "leftMarketWeeklySummaryText": "saíram do mercado",
-  "@leftMarketWeeklySummaryText": {
-    "description": "Interface text in weekly_summary_text, summaryCountLines."
-  },
-  "activeListing": "anúncio ativo",
-  "@activeListing": {
-    "description": "Interface text in data_quality_text, qualityTitle."
-  },
-  "activeListings": "anúncios ativos",
-  "@activeListings": {
-    "description": "Interface text in data_quality_text, qualityTitle."
   },
   "scoreWeeklySummaryText": "Pontuação {dealScore}",
   "@scoreWeeklySummaryText": {
@@ -5037,22 +4876,6 @@
   "@nearFreePlanLimitAboveItSupabaseOnly": {
     "description": "Interface text in collection_status_text, databaseUsageText."
   },
-  "request": "pedido",
-  "@request": {
-    "description": "Interface text in collection_status_text, siteBudgetText."
-  },
-  "requestsCollectionStatusText": "pedidos",
-  "@requestsCollectionStatusText": {
-    "description": "Interface text in collection_status_text, siteBudgetText."
-  },
-  "page": "página",
-  "@page": {
-    "description": "Interface text in collection_status_text, searchReadText."
-  },
-  "pages": "páginas",
-  "@pages": {
-    "description": "Interface text in collection_status_text, searchReadText."
-  },
   "notFullyRead": " · não lida toda",
   "@notFullyRead": {
     "description": "Interface text in collection_status_text, searchReadText."
@@ -5072,30 +4895,6 @@
       }
     }
   },
-  "collection": "recolha",
-  "@collection": {
-    "description": "Interface text in collection_text, monthUsageText."
-  },
-  "collections": "recolhas",
-  "@collections": {
-    "description": "Interface text in collection_text, monthUsageText."
-  },
-  "duplicate": "duplicado",
-  "@duplicate": {
-    "description": "Interface text in data_quality_text, qualityMixLine."
-  },
-  "duplicates": "duplicados",
-  "@duplicates": {
-    "description": "Interface text in data_quality_text, qualityMixLine."
-  },
-  "bikeSeen": "mota vista",
-  "@bikeSeen": {
-    "description": "Interface text in dealer_text, dealerHeadline."
-  },
-  "bikesSeen": "motas vistas",
-  "@bikesSeen": {
-    "description": "Interface text in dealer_text, dealerHeadline."
-  },
   "since": " desde {date}",
   "@since": {
     "description": "Interface text in dealer_text, dealerHeadline.",
@@ -5105,30 +4904,6 @@
       }
     }
   },
-  "repeatedListing": "anúncio repetido",
-  "@repeatedListing": {
-    "description": "Interface text in dealer_text, dealerLines."
-  },
-  "repeatedListings": "anúncios repetidos",
-  "@repeatedListings": {
-    "description": "Interface text in dealer_text, dealerLines."
-  },
-  "removedListing": "removido",
-  "@removedListing": {
-    "description": "Interface text in favourites_text, favouritesCountText."
-  },
-  "removedListingsFavouritesText": "removidos",
-  "@removedListingsFavouritesText": {
-    "description": "Interface text in favourites_text, favouritesCountText."
-  },
-  "month": "mês",
-  "@month": {
-    "description": "Interface text in listing_card_text, listingCardExtraFacts."
-  },
-  "monthsListingCardText": "meses",
-  "@monthsListingCardText": {
-    "description": "Interface text in listing_card_text, listingCardExtraFacts."
-  },
   "less": "menos",
   "@less": {
     "description": "Interface text in listing_dates_text, relistText."
@@ -5136,22 +4911,6 @@
   "moreListingDatesText": "mais",
   "@moreListingDatesText": {
     "description": "Interface text in listing_dates_text, relistText."
-  },
-  "listingLeftMarket": "anúncio saiu",
-  "@listingLeftMarket": {
-    "description": "Interface text in market_behaviour_text, marketLines."
-  },
-  "listingsLeftMarket": "anúncios saíram",
-  "@listingsLeftMarket": {
-    "description": "Interface text in market_behaviour_text, marketLines."
-  },
-  "day": "dia",
-  "@day": {
-    "description": "Interface text in market_behaviour_text, marketLines."
-  },
-  "days": "dias",
-  "@days": {
-    "description": "Interface text in market_behaviour_text, marketLines."
   },
   "fromNegotiationText": " de {year}",
   "@fromNegotiationText": {
@@ -5186,14 +4945,6 @@
   "@sellerMayAcceptLowerOffer": {
     "description": "Interface text in offer_text, suggestOffer."
   },
-  "yearOwnershipCost": "ano",
-  "@yearOwnershipCost": {
-    "description": "Interface text in ownership_cost, ownershipTotalLine."
-  },
-  "years": "anos",
-  "@years": {
-    "description": "Interface text in ownership_cost, ownershipTotalLine."
-  },
   "acrossBikes": " em {bikes} motas",
   "@acrossBikes": {
     "description": "Interface text in score_explanation, sellerLine.",
@@ -5212,10 +4963,6 @@
       }
     }
   },
-  "problemsViewingChecklist": "Problemas",
-  "@problemsViewingChecklist": {
-    "description": "Interface text in viewing_checklist, checklistIssuesText."
-  },
   "by": " por {who}",
   "@by": {
     "description": "Interface text in accounts_text, inviteSubtitle.",
@@ -5225,15 +4972,12 @@
       }
     }
   },
-  "inDays": "dentro de {days} {daysWord}",
+  "inDays": "dentro de {days, plural, =0{0 dias} =1{1 dia} other{{days} dias}}",
   "@inDays": {
     "description": "Interface text in accounts_text, inviteSubtitle.",
     "placeholders": {
       "days": {
-        "type": "String"
-      },
-      "daysWord": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -5410,5 +5154,110 @@
   "countingFailures": "A contar as falhas…",
   "@countingFailures": {
     "description": "Interface text in collection_status_page, while the failures load."
+  },
+  "listingCount": "{count, plural, =0{0 anúncios} =1{1 anúncio} other{{count} anúncios}}",
+  "@listingCount": {
+    "description": "Interface text: a number of listings (\"3 anúncios\").",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "activeListingCount": "{count, plural, =0{0 anúncios ativos} =1{1 anúncio ativo} other{{count} anúncios ativos}}",
+  "@activeListingCount": {
+    "description": "Interface text: a number of live listings, in data quality and the weekly summary.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "newListingCount": "{count, plural, =0{0 anúncios novos} =1{1 anúncio novo} other{{count} anúncios novos}}",
+  "@newListingCount": {
+    "description": "Interface text: a number of new listings, in a run's counts and the weekly summary.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "priceChangeCount": "{count, plural, =0{0 preços alterados} =1{1 preço alterado} other{{count} preços alterados}}",
+  "@priceChangeCount": {
+    "description": "Interface text in collection_text, runCountsText.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "removedListingCount": "{count, plural, =0{0 anúncios removidos} =1{1 anúncio removido} other{{count} anúncios removidos}}",
+  "@removedListingCount": {
+    "description": "Interface text in collection_text, runCountsText.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "alertCount": "{count, plural, =0{0 alertas} =1{1 alerta} other{{count} alertas}}",
+  "@alertCount": {
+    "description": "Interface text in collection_text, runCountsText.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "duplicateCount": "{count, plural, =0{0 duplicados} =1{1 duplicado} other{{count} duplicados}}",
+  "@duplicateCount": {
+    "description": "Interface text in data_quality_text, qualityMixLine.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "priceDropCount": "{count, plural, =0{0 baixas de preço} =1{1 baixa de preço} other{{count} baixas de preço}}",
+  "@priceDropCount": {
+    "description": "Interface text in weekly_summary_text, summaryCountLines.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leftMarketCount": "{count, plural, =0{0 saíram do mercado} =1{1 saiu do mercado} other{{count} saíram do mercado}}",
+  "@leftMarketCount": {
+    "description": "Interface text in weekly_summary_text, summaryCountLines.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "checklistIssuesHeading": "{count, plural, =1{Problema} other{Problemas}}",
+  "@checklistIssuesHeading": {
+    "description": "Interface text in viewing_checklist, checklistIssuesText: the heading before the items marked as a problem.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cheaperSimilarListings": "{count, plural, =1{Há outra {model} de ano parecido, sem mais km, por {price}.} other{Há {count} {model} de ano parecido, sem mais km, mais baratas: desde {price}.}}",
+  "@cheaperSimilarListings": {
+    "description": "Interface text in negotiation_text: cheaper live listings of the same model.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "model": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
   }
 }

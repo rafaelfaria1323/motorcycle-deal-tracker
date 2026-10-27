@@ -22,15 +22,7 @@ String favouritesCountText(
 }) {
   final total = favourites.length;
   final removed = favourites.where((f) => f.listing?.isRemoved ?? false).length;
-  final count = total == 1
-      ? language.messages.text1Listing
-      : language.messages.listingsDataQualityText(n: (total).toString());
+  final count = language.messages.listingCount(count: total);
   if (removed == 0) return count;
-  return language.messages.favouritesRemoved(
-    count: count,
-    removed: (removed).toString(),
-    listingsWord: removed == 1
-        ? language.messages.removedListing
-        : language.messages.removedListingsFavouritesText,
-  );
+  return language.messages.favouritesRemoved(count: count, removed: removed);
 }

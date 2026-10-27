@@ -5,8 +5,6 @@ import '../../../core/localization/localizations.dart';
 String _day(DateTime t) =>
     '${t.day.toString().padLeft(2, '0')}/${t.month.toString().padLeft(2, '0')}';
 
-String _count(int n, String one, String many) => '$n ${n == 1 ? one : many}';
-
 /// "De 12/10 a 18/10": the 7 days, the last one included.
 String summaryPeriodText(
   WeeklySummary s, {
@@ -21,26 +19,10 @@ List<String> summaryCountLines(
   WeeklySummary s, {
   AppLanguage language = AppLanguage.portuguese,
 }) => [
-  _count(
-    s.newCount,
-    language.messages.newListing,
-    language.messages.newListings,
-  ),
-  _count(
-    s.dropCount,
-    language.messages.priceDropWeeklySummaryText,
-    language.messages.priceDropsWeeklySummaryText,
-  ),
-  _count(
-    s.goneCount,
-    language.messages.leftMarket,
-    language.messages.leftMarketWeeklySummaryText,
-  ),
-  _count(
-    s.liveCount,
-    language.messages.activeListing,
-    language.messages.activeListings,
-  ),
+  language.messages.newListingCount(count: s.newCount),
+  language.messages.priceDropCount(count: s.dropCount),
+  language.messages.leftMarketCount(count: s.goneCount),
+  language.messages.activeListingCount(count: s.liveCount),
 ];
 
 /// "Yamaha MT-07 2, Honda CB650R 1"; null without new listings.

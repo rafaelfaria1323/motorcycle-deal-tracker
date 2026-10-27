@@ -81,12 +81,7 @@ String inviteSubtitle(
   return language.messages.inviteUnused(
     expires: days < 1
         ? language.messages.today
-        : language.messages.inDays(
-            days: (days).toString(),
-            daysWord: days == 1
-                ? language.messages.day
-                : language.messages.days,
-          ),
+        : language.messages.inDays(days: days),
   );
 }
 

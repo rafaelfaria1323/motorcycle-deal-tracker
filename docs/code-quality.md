@@ -17,12 +17,12 @@ the database schema, secrets or workflows goes to "Needs Rafael".
 
 ## To do
 
-- About 25 strings put a count and its noun side by side through a placeholder the caller fills with the singular or plural word (`{count} {listingsWord}`, `{daysListed} {daysWord}`, picked by `n == 1 ? ... : ...`); ICU plurals (`{count, plural, =1{anúncio} other{anúncios}}`) would keep the word in the resource and drop those caller ternaries and their singular/plural keys.
 
 ## Needs Rafael
 
 ## Done
 
+- 2026-10-27: Counts and their nouns are ICU plurals (`{count, plural, =0{0 anúncios} =1{1 anúncio} other{{count} anúncios}}`): the 16 strings with a `{…Word}` placeholder, the pairs of one/many messages (`text1Listing` / `listingsDataQualityText`, `text1DayLeft` / `daysLeft`, `thereIsAnother…` / `thereAreCheaper…`, "Problema" / "Problemas") and the counts built in code (a run's counts, the weekly summary's, data quality's) now take an `int` and pick the word in the resource; 46 keys of bare words or halves went. Each plural has an explicit `=0`: Intl's rule for `pt` counts 0 as "one". It also fixes the listing page's "1 meses" of seller warranty (tested).
 - 2026-10-27: The ARB resources have names by purpose (148 keys: the 73 named after a 40+ character English sentence, e.g. `githubTokenIsMissingFromSupabaseVaultCollections` → `githubTokenMissing`, and the 77 with `{value}` placeholders, e.g. `at` → `runLine`, `now` → `priceNowChanged`) and placeholders by what they hold (`{ago}`, `{duration}`, `{asked}`, `{listingsWord}`; no `{value}` left). Both ARB files and every caller were renamed by one script that matches the call's own parentheses, then checked: every call's named arguments equal its string's placeholders.
 - 2026-10-27: `prefer_const_constructors` and `prefer_const_literals_to_create_immutables` are on again (`app/analysis_options.yaml`): the 36 widgets and test values #202 left without `const` got it back.
 - 2026-10-27: The listing and settings sections' `FutureBuilder`s stay in their widgets: each loads one read once and shows a placeholder, the data or nothing, which is Flutter's own tested state handling; a cubit per section would add about 40 lines each with no new behaviour (the compare page already retries). Where there was logic, it moved out: who is looked up as a dealer is `dealerLookupName` (`dealer_text.dart`, tested: private or unknown sellers and blank names are never looked up).

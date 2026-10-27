@@ -8,8 +8,8 @@ String qualityTitle(
   SourceQuality q, {
   AppLanguage language = AppLanguage.portuguese,
 }) =>
-    '${sourceLabel(q.source, language: language)} · ${q.liveCount} '
-    '${q.liveCount == 1 ? language.messages.activeListing : language.messages.activeListings}';
+    '${sourceLabel(q.source, language: language)} · '
+    '${language.messages.activeListingCount(count: q.liveCount)}';
 
 /// What the site's live listings are: tracked, other models, duplicates.
 String qualityMixLine(
@@ -26,8 +26,7 @@ String qualityMixLine(
         percent: percent(q.unmatchedCount, q.liveCount, language: language),
       ),
     if (q.duplicateCount > 0)
-      '${q.duplicateCount} '
-          '${q.duplicateCount == 1 ? language.messages.duplicate : language.messages.duplicates} '
+      '${language.messages.duplicateCount(count: q.duplicateCount)} '
           '(${percent(q.duplicateCount, q.liveCount, language: language)})',
   ];
   return parts.join(' · ');
@@ -60,11 +59,7 @@ String? qualityDetailsLine(
   AppLanguage language = AppLanguage.portuguese,
 }) {
   if (q.detailsPending == 0) return null;
-  return q.detailsPending == 1
-      ? language.messages.text1ListingPageUnread
-      : language.messages.listingPagesUnread(
-          detailsPending: q.detailsPending.toString(),
-        );
+  return language.messages.listingPagesUnread(detailsPending: q.detailsPending);
 }
 
 /// Collections run 7 times a day; a day without seeing any listing means
@@ -94,9 +89,7 @@ String? qualitySharpPricesLine(
   final n = q.sharpPriceChanges;
   if (n == 0) return null;
   return language.messages.sharpPriceChangesLine(
-    listings: n == 1
-        ? language.messages.text1Listing
-        : language.messages.listingsDataQualityText(n: (n).toString()),
+    listings: language.messages.listingCount(count: n),
   );
 }
 

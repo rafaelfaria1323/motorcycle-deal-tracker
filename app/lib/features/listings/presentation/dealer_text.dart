@@ -22,10 +22,7 @@ String dealerHeadline(
   final since = d.firstSeenAt;
   return language.messages.dealerBikesLine(
     name: d.name,
-    bikes: d.bikes.toString(),
-    bikesWord: d.bikes == 1
-        ? language.messages.bikeSeen
-        : language.messages.bikesSeen,
+    bikes: d.bikes,
     since: since == null
         ? ''
         : language.messages.since(date: Formatters.date(since)),
@@ -50,13 +47,7 @@ List<String> dealerLines(
       language.messages.dealerSharpChanges(share: share(d.sharpChanges)),
     if (d.missingMileage > 0)
       language.messages.dealerNoMileage(share: share(d.missingMileage)),
-    if (d.repeated > 0)
-      language.messages.dealerRepeated(
-        repeated: d.repeated.toString(),
-        listingsWord: d.repeated == 1
-            ? language.messages.repeatedListing
-            : language.messages.repeatedListings,
-      ),
+    if (d.repeated > 0) language.messages.dealerRepeated(repeated: d.repeated),
   ];
   return [
     if (warnings.isEmpty) language.messages.noWarningSignsInThisDealerSListings,

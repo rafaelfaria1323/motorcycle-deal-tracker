@@ -149,16 +149,11 @@ List<String> negotiationArguments(
         .fold<double?>(null, (a, b) => a == null || b < a ? b : a);
     if (cheapest != null) {
       arguments.add(
-        cheaper.length == 1
-            ? language.messages.thereIsAnotherOfSimilarYearWithNo(
-                model: listing.model,
-                price: Formatters.price(cheapest, language: language),
-              )
-            : language.messages.thereAreCheaperOfSimilarYearWithNo(
-                length: cheaper.length.toString(),
-                model: listing.model,
-                price: Formatters.price(cheapest, language: language),
-              ),
+        language.messages.cheaperSimilarListings(
+          count: cheaper.length,
+          model: listing.model,
+          price: Formatters.price(cheapest, language: language),
+        ),
       );
     }
   }

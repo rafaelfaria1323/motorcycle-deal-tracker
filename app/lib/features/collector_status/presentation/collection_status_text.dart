@@ -36,9 +36,7 @@ const tokenWarningDays = 14;
       final days = expires.difference(now).inDays;
       final left = days <= 0
           ? language.messages.expiresToday
-          : days == 1
-          ? language.messages.text1DayLeft
-          : language.messages.daysLeft(days: (days).toString());
+          : language.messages.daysLeft(days: days);
       return (
         text: language.messages.githubTokenValidUntil(
           date: Formatters.date(expires),
@@ -128,13 +126,7 @@ const siteNames = {'standvirtual': 'Standvirtual', 'olx': 'OLX'};
       now.toUtc().toIso8601String().substring(0, 10);
   final used = sameDay ? budget.requestsToday : 0;
   return (
-    text: language.messages.requestsToday(
-      name: name,
-      used: (used).toString(),
-      requestsWord: used == 1
-          ? language.messages.request
-          : language.messages.requestsCollectionStatusText,
-    ),
+    text: language.messages.requestsToday(name: name, used: used),
     warning: false,
   );
 }
@@ -153,11 +145,9 @@ String searchReadText(
   }
   final pages = language.messages.pagesReadOf(
     pages: s.pages.toString(),
-    spans: (spans).toString(),
-    pagesWord: spans == 1 ? language.messages.page : language.messages.pages,
+    spans: spans,
   );
-  final ads =
-      '${s.ads} ${s.ads == 1 ? language.messages.listing : language.messages.listings}';
+  final ads = language.messages.listingCount(count: s.ads);
   return language.messages.searchReadLine(
     name: name,
     pages: pages,

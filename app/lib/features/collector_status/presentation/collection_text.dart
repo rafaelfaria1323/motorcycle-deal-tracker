@@ -164,32 +164,16 @@ String? runCountsText(
   AppLanguage language = AppLanguage.portuguese,
 }) {
   if (counts.isEmpty) return null;
-  String part(String key, String one, String many) {
-    final n = counts[key] ?? 0;
-    return n == 1 ? '1 $one' : '$n $many';
-  }
-
+  final messages = language.messages;
   final parts = [
-    if ((counts['new'] ?? 0) > 0)
-      part('new', language.messages.newListing, language.messages.newListings),
-    if ((counts['price_changes'] ?? 0) > 0)
-      part(
-        'price_changes',
-        language.messages.priceChanged,
-        language.messages.pricesChanged,
-      ),
-    if ((counts['removed'] ?? 0) > 0)
-      part(
-        'removed',
-        language.messages.listingRemoved,
-        language.messages.listingsRemoved,
-      ),
-    if ((counts['alerts'] ?? 0) > 0)
-      part(
-        'alerts',
-        language.messages.alert,
-        language.messages.alertsCollectionText,
-      ),
+    if (counts['new'] case final n? when n > 0)
+      messages.newListingCount(count: n),
+    if (counts['price_changes'] case final n? when n > 0)
+      messages.priceChangeCount(count: n),
+    if (counts['removed'] case final n? when n > 0)
+      messages.removedListingCount(count: n),
+    if (counts['alerts'] case final n? when n > 0)
+      messages.alertCount(count: n),
   ];
   if (parts.isEmpty) return language.messages.noNewListingsOrChanges;
   return parts.join(', ');
@@ -207,10 +191,7 @@ String monthUsageText(
 }) {
   final minutes = runs.fold<int>(0, (sum, r) => sum + estimatedMinutes(r));
   return language.messages.runsThisMonth(
-    count: runs.length.toString(),
-    runsWord: runs.length == 1
-        ? language.messages.collection
-        : language.messages.collections,
+    count: runs.length,
     minutes: (minutes).toString(),
   );
 }

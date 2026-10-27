@@ -74,12 +74,7 @@ List<(ListingCardField, String)> listingCardExtraFacts(
     if (listing.dealerWarrantyMonths case final months?)
       (
         ListingCardField.dealerWarrantyMonths,
-        language.messages.sellerWarrantyMonths(
-          months: (months).toString(),
-          monthsWord: months == 1
-              ? language.messages.month
-              : language.messages.monthsListingCardText,
-        ),
+        language.messages.sellerWarrantyMonths(months: months),
       ),
   if (preferences.shows(ListingCardField.sellerName) &&
       listing.sellerType == SellerType.dealer)
