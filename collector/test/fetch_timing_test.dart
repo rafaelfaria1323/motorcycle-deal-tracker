@@ -11,6 +11,17 @@ final _now = DateTime.utc(2030, 10, 25, 12);
 final _url = Uri.parse('https://www.olx.pt${FetchSite.olx.pathPrefix}test/');
 const _robots = 'User-agent: *\nAllow: /\n';
 
+/// No pauses and no retry: the transport tests see each request alone.
+const _noRetry = FetchPolicy(
+  minDelay: Duration.zero,
+  jitter: Duration.zero,
+  retryDelay: null,
+);
+
+/// No pauses, the default retry.
+const _retry = FetchPolicy(minDelay: Duration.zero, jitter: Duration.zero);
+const _retryDelay = Duration(seconds: 60);
+
 void _withFetcher(
   void Function(
     FakeAsync async,
@@ -19,10 +30,7 @@ void _withFetcher(
     Map<String, String> files,
   )
   body, {
-  FetchPolicy policy = const FetchPolicy(
-    minDelay: Duration.zero,
-    jitter: Duration.zero,
-  ),
+  FetchPolicy policy = _noRetry,
   FetchState? state,
 }) {
   final files = <String, String>{
@@ -301,6 +309,139 @@ void main() {
     });
   }
 
+  group('one retry', () {
+    test('a timeout is retried once, 60 s later, and counted', () {
+      _withFetcher((async, fetcher, client, files) {
+        unawaited(fetcher.prepare());
+        async.flushMicrotasks();
+        final timeout = fetcher.policy.timeout;
+        client.responseDelay = timeout + const Duration(seconds: 10);
+        String? page;
+        Object? failure;
+        unawaited(
+          fetcher
+              .get(_url)
+              .then((p) => page = p, onError: (Object e) => failure = e),
+        );
+        async.elapse(timeout);
+        expect(client.requests, hasLength(2));
+        client.responseDelay = Duration.zero;
+        async.elapse(const Duration(seconds: 59, milliseconds: 999));
+        expect(client.requests, hasLength(2));
+        async.elapse(const Duration(milliseconds: 1));
+        expect(client.requests, hasLength(3));
+        expect(client.requests.last, _now.add(timeout + _retryDelay));
+        expect(page, '__PRERENDERED_STATE__');
+        expect(failure, isNull);
+        expect(fetcher.requestsThisRun, 3);
+        final state = jsonDecode(files['state.json']!) as Map<String, dynamic>;
+        expect(state['requests'], 3);
+        async.elapse(const Duration(seconds: 10));
+      }, policy: _retry);
+    });
+
+    for (final status in [500, 502, 504]) {
+      test('HTTP $status twice fails with its status after 2 requests', () {
+        _withFetcher((async, fetcher, client, _) {
+          unawaited(fetcher.prepare());
+          async.flushMicrotasks();
+          client.statusCode = status;
+          Object? failure;
+          unawaited(
+            fetcher
+                .get(_url)
+                .then<void>((_) {}, onError: (Object e) => failure = e),
+          );
+          async.elapse(_retryDelay);
+          expect(
+            failure,
+            isA<FetchFailed>().having((e) => e.statusCode, 'status', status),
+          );
+          expect(client.requests, hasLength(3));
+        }, policy: _retry);
+      });
+    }
+
+    test('a 502 followed by the page returns the page', () {
+      _withFetcher((async, fetcher, client, _) {
+        unawaited(fetcher.prepare());
+        async.flushMicrotasks();
+        client.statuses.add(502);
+        String? page;
+        unawaited(fetcher.get(_url).then((p) => page = p));
+        async.elapse(_retryDelay);
+        expect(page, '__PRERENDERED_STATE__');
+        expect(client.requests, hasLength(3));
+      }, policy: _retry);
+    });
+
+    for (final status in [403, 404, 410, 429, 503]) {
+      test('HTTP $status is never retried', () {
+        _withFetcher((async, fetcher, client, _) {
+          unawaited(fetcher.prepare());
+          async.flushMicrotasks();
+          client.statusCode = status;
+          Object? failure;
+          unawaited(
+            fetcher
+                .get(_url)
+                .then<void>((_) {}, onError: (Object e) => failure = e),
+          );
+          async.flushMicrotasks();
+          expect(failure, isNotNull);
+          expect(client.requests, hasLength(2));
+          async.elapse(_retryDelay * 2);
+          expect(client.requests, hasLength(2));
+        }, policy: _retry);
+      });
+    }
+
+    test('a page that is not normal is never retried', () {
+      _withFetcher((async, fetcher, client, _) {
+        unawaited(fetcher.prepare());
+        async.flushMicrotasks();
+        client.body = Stream.value(utf8.encode('<html>verify</html>'));
+        Object? failure;
+        unawaited(
+          fetcher
+              .get(_url)
+              .then<void>((_) {}, onError: (Object e) => failure = e),
+        );
+        async.flushMicrotasks();
+        expect(failure, isA<FetchBlocked>());
+        async.elapse(_retryDelay * 2);
+        expect(client.requests, hasLength(2));
+      }, policy: _retry);
+    });
+
+    test('the run time ending before the retry keeps the first failure', () {
+      _withFetcher(
+        (async, fetcher, client, _) {
+          unawaited(fetcher.prepare());
+          async.flushMicrotasks();
+          client.statusCode = 502;
+          Object? failure;
+          unawaited(
+            fetcher
+                .get(_url)
+                .then<void>((_) {}, onError: (Object e) => failure = e),
+          );
+          async.elapse(_retryDelay);
+          expect(
+            failure,
+            isA<FetchFailed>().having((e) => e.statusCode, 'status', 502),
+          );
+          expect(client.requests, hasLength(2));
+        },
+        policy: const FetchPolicy(
+          minDelay: Duration.zero,
+          jitter: Duration.zero,
+          maxRunTime: Duration(seconds: 30),
+        ),
+      );
+    });
+  });
+
   for (final age in [
     const Duration(hours: 24) - const Duration(milliseconds: 1),
     const Duration(hours: 24),
@@ -421,6 +562,9 @@ class _Client implements HttpClient {
   final opened = <_Request>[];
   Duration responseDelay = Duration.zero;
   int statusCode = 200;
+
+  /// Statuses for the next pages, before [statusCode].
+  final statuses = <int>[];
   Stream<List<int>>? body;
 
   @override
@@ -430,7 +574,9 @@ class _Client implements HttpClient {
     final request = _Request(
       _Response(
         robots ? _robots : '__PRERENDERED_STATE__',
-        statusCode: robots ? 200 : statusCode,
+        statusCode: robots
+            ? 200
+            : (statuses.isNotEmpty ? statuses.removeAt(0) : statusCode),
         stream: robots ? null : body,
       ),
       responseDelay,
@@ -499,12 +645,23 @@ class _Response extends Stream<List<int>> implements HttpClientResponse {
     Function? onError,
     void Function()? onDone,
     bool? cancelOnError,
-  }) => (_stream ?? Stream.value(utf8.encode(body))).listen(
+  }) => (_stream ?? _page()).listen(
     onData,
     onError: onError,
     onDone: onDone,
     cancelOnError: cancelOnError,
   );
+
+  /// The page, from a stream whose cancel completes in the fake zone (a
+  /// plain stream's cancel returns a root-zone future fake time never
+  /// completes).
+  Stream<List<int>> _page() {
+    final controller = StreamController<List<int>>(onCancel: () async {});
+    controller
+      ..add(utf8.encode(body))
+      ..close();
+    return controller.stream;
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

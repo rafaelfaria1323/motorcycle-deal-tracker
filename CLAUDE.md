@@ -635,7 +635,10 @@ functions for manual work.
   (`FetchPolicy.robotsMaxAge`, RFC 9309's limit; Rafael, 2026-10-22),
   forgotten on a block, so the run after the pause reads it again.
 - 6-10 s between requests (counted from the end of the previous request,
-  so work done in between counts), **never parallel**, no retries; stop on
+  so work done in between counts), **never parallel**; one retry of a
+  page, 60 s later, only after a timeout, a dropped connection or HTTP
+  500/502/504 (`FetchPolicy.retryDelay`, counted as a request; Rafael,
+  2026-10-27), never after 403/429/503 or a non-normal page; stop on
   403/429/503 or a non-normal page, then pause 24 h (state: requests
   today, the last block and robots.txt, in
   `collector/.fetch_state.json` and `.fetch_state.olx.json`, cached
