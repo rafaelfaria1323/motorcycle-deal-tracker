@@ -187,8 +187,9 @@ searches.
 ## Android app
 
 Every deploy also builds the Android app (`deploy-web.yml`, job
-`android`) and puts it on the GitHub release `android`, replacing the
-previous one:
+`android`; Gradle's downloads, its build cache and the NDK are kept
+between deploys, `tool/android_cache_keys.sh`) and puts it on the GitHub
+release `android`, replacing the previous one:
 `https://github.com/rafaelfaria1323/motorcycle-deal-tracker/releases/download/android/motorcycle-deal-tracker.apk`.
 On an Android phone, Mais shows "App Android". In Chrome it downloads the
 app the first time; Android asks once to allow installs from Chrome. After

@@ -150,7 +150,9 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   (job android, tool/android_build.sh:
                                   app/android made by `flutter create`,
                                   never committed, fitted by
-                                  tool/android_manifest.py; signed with
+                                  tool/android_manifest.py; ~/.gradle and
+                                  the NDK cached, tool/android_cache_keys.sh,
+                                  android-check.yml only reads them; signed with
                                   the secrets' key, on the GitHub release
                                   `android` with android.json, the build
                                   number the app compares with its own)
