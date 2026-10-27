@@ -457,6 +457,18 @@ invites; written by the collector on each run).
   pg-safeupdate, which refuses them otherwise, also inside functions the
   app or the collector calls (`make sql-lint`'s safeupdate check).
 - Pure scoring functions take plain values (testable with literals).
+- Scoring speed: the description's signals are stored per listing
+  (`text_signals` = `description_signals()`: accident, repair, scratches,
+  A2 version, single owner; `text_extras` = `listing_extras()`), filled by
+  the trigger `listings_text_signals` only when the variant or description
+  changes; the risk view reads them through `risk_from_signals`
+  (`risk_assessment` = the same rules on raw text, for tests). A migration
+  that changes one of those text functions must refresh them: `update
+  public.listings set text_signals = null where ...` (the trigger fills
+  them again; null is worked out on the fly meanwhile).
+  `recalculate_deal_scores()` runs with `jit = off` (compiling cost more
+  than it saved). The collector's role (`service_role`) has a 60 s
+  statement timeout (Supabase's default is about 8 s).
 - The service-role key is only ever used by the collector, never the app.
 - `source_data_quality` (view, readable by everyone) feeds "Qualidade dos
   dados" in Mais, including `last_seen_at` (stale after 24 h: "verifique a
@@ -630,7 +642,8 @@ functions for manual work.
   between Actions runs; written whole through a temporary file; a damaged
   one starts afresh, and a site still refusing pauses again at once).
   Blocking statuses are handled from the headers, before reading the body.
-  A timeout cancels the active request/response before the next request.
+  A timeout (45 s for connecting and the headers, 60 s for the page)
+  cancels the active request/response before the next request.
 - No request caps since 2026-10-22 (Rafael: remove them, show the amounts,
   adjust later): a run reads every page of the searches and every
   Standvirtual listing page still waiting, at most 30 minutes per site

@@ -236,14 +236,17 @@ void main() {
     _withFetcher((async, fetcher, client, _) {
       unawaited(fetcher.prepare());
       async.flushMicrotasks();
-      client.responseDelay = const Duration(seconds: 30);
+      final timeout = const FetchPolicy().timeout;
+      client.responseDelay = timeout + const Duration(seconds: 10);
       Object? failure;
       unawaited(
         fetcher
             .get(_url)
             .then<void>((_) {}, onError: (Object error) => failure = error),
       );
-      async.elapse(const Duration(seconds: 20));
+      async.elapse(timeout - const Duration(milliseconds: 1));
+      expect(failure, isNull);
+      async.elapse(const Duration(milliseconds: 1));
       expect(
         failure,
         isA<FetchFailed>().having((e) => e.statusCode, 'statusCode', isNull),

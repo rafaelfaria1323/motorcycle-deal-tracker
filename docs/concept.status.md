@@ -125,7 +125,7 @@ Initial price, current price, every change with date, percentage, and time onlin
 | Market / listing behaviour | 10% | ⬜ data being collected |
 | Risk indicators | 10% | ✅ |
 
-Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are parameters of one SQL function ✅.
+Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are parameters of one SQL function ✅. *All live listings are scored again after each collection in one call (about 3 s for 1 500 listings since N.22: the description's signals are worked out once per text, not every run).*
 
 ➕ Favourite colours (15.23): each account picks its colours per model (blue MT-07, red CBR650R); a listing in one is marked and explained as a plus, can be filtered ("Só nas suas cores", with the cheapest sort: the best price in that colour) and alerted on by saved searches ("Novo anúncio na sua cor"), but never scored (an older bike or one with more km must not win on colour).
 

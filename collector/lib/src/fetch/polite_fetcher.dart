@@ -52,7 +52,7 @@ class FetchPolicy {
     this.maxRequestsPerRun,
     this.maxRequestsPerDay,
     this.maxRunTime = const Duration(minutes: 30),
-    this.timeout = const Duration(seconds: 20),
+    this.timeout = const Duration(seconds: 45),
     this.readTimeout = const Duration(seconds: 60),
     this.cooldownAfterBlock = const Duration(hours: 24),
     this.robotsMaxAge = const Duration(hours: 24),
@@ -72,7 +72,9 @@ class FetchPolicy {
   /// still to read) inside the job's time; the rest waits for the next run.
   final Duration? maxRunTime;
 
-  /// For connecting and the response's headers.
+  /// For connecting and the response's headers. OLX answers in 1-2 s, but
+  /// three runs (2026-10-24 to 26) lost a search when it sent no headers
+  /// within 20 s; a longer wait costs nothing when it answers.
   final Duration timeout;
 
   /// For reading the page once it is coming in: OLX's pages are 2 MB, and
