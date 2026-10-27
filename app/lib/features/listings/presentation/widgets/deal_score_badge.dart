@@ -45,7 +45,7 @@ class DealScoreBadge extends StatelessWidget {
             fontSize: large ? 32 : 22,
             height: 1.1,
             color: AppColors.onPhoto,
-            fontFeatures: const [FontFeature.tabularFigures()],
+            fontFeatures: AppTheme.tabularFigures,
           ),
         ),
       ),
@@ -69,12 +69,7 @@ class DealScoreBadge extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       context.strings.dealScore,
-                      style: TextStyle(
-                        fontFamily: AppTheme.bodyFont,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.onPhoto,
-                      ),
+                      style: AppTheme.onPhotoLabel.copyWith(fontSize: 10),
                     ),
                   ],
                 ),

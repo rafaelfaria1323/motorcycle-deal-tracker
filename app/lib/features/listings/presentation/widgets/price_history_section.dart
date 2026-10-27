@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/di/injection.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_theme.dart';
 import '../../../../core/formatting/formatters.dart';
 import '../../../../core/localization/localizations.dart';
 import '../../../../core/widgets/section_card.dart';
@@ -67,11 +68,7 @@ class _PriceHistorySectionState extends State<PriceHistorySection> {
                   ? widget.listing.priceBeforeDrop
                   : null,
             );
-            final labelStyle = (theme.textTheme.labelSmall ?? const TextStyle())
-                .copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                );
+            final labelStyle = AppTheme.figureLabel(context);
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

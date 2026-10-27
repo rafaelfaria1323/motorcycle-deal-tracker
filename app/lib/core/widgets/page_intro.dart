@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../app/theme/app_theme.dart';
+
 class PageIntro extends StatelessWidget {
   const PageIntro({
     required this.eyebrow,
@@ -30,11 +32,7 @@ class PageIntro extends StatelessWidget {
             Expanded(
               child: Text(
                 eyebrow.toUpperCase(),
-                style: theme.textTheme.labelSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.6,
-                  color: scheme.primary,
-                ),
+                style: AppTheme.eyebrow(context),
               ),
             ),
           ],

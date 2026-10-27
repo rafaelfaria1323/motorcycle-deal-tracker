@@ -118,6 +118,19 @@ void main() {
       expect(plan.skipReason, 'no search was read in full');
     });
 
+    test('a run whose only search had a problem removes nothing', () {
+      final plan = removalPlan(
+        batch(
+          [mapped('1', search: a)],
+          issues: [const ParseIssue(1, 'more pages exist', search: a)],
+          manifest: const SearchManifest(planned: [a], files: {'a.html': a}),
+        ),
+      );
+
+      expect(plan.skipReason, 'no search was read in full');
+      expect(plan.seenIds, isEmpty);
+    });
+
     test('a problem in a search outside the plan still keeps unkeyed ones', () {
       final plan = removalPlan(
         batch(

@@ -29,7 +29,7 @@ Unchanged.
 - ✅ Calculate an explainable Deal Score.
 - ✅ Calculate a separate Risk Score.
 - ✅ Create saved searches. *Also by minimum Deal Score / maximum Risk Score.*
-- ✅ Send alerts. *In the app and as notifications on each account's phone (Web Push; FCM in the Android app), plus each account's weekly summary on Mondays (a notification that opens "Resumo da semana" in the app). An alert whose push fails is tried again on the next runs (for a day); signing out stops a device's notifications. Only events of the last day alert (following a model doesn't bring old news), and a listing that goes, comes back and goes again alerts each time.*
+- ✅ Send alerts. *In the app and as notifications on each account's phone (Web Push; FCM in the Android app), plus each account's weekly summary on Mondays (a notification that opens "Resumo da semana" in the app). An alert whose push fails is tried again on the next runs (for a day), and a device that failed isn't tried again in the same run; signing out stops a device's notifications. Only events of the last day alert (following a model doesn't bring old news), and a listing that goes, comes back and goes again alerts each time.*
 - ✅ Compare motorcycles. *Up to 3 listings side by side ("Comparar" on a card, long press in Ofertas or "Comparar" on a listing), best value per row highlighted.*
 - 🟡 Show market trends. *Time on market, price drops, depreciation and the spread of live asking prices per model, and the tracked models compared side by side ("Comparar modelos"); price trends need more history.*
 
@@ -170,7 +170,7 @@ All criteria (➕ plus minimum Deal Score and maximum Risk Score) and all four n
 
 ## 16. Alerts ✅
 
-All four types, each at most once per event, only for events after the search was created. ➕ Favourites alert their owner about price drops and removal without a saved search (once per event, also when a search covers the listing). ➕ "Chegou ao seu preço": a favourite's target price reached (15.19). Delivered to each account's devices (Web Push / FCM). In the app: grouped by day, unread count on the Alertas tab. ➕ Swipe left to confirm deletion or right to edit the originating saved search, also available in the options menu (15.32); no edit action without a source search. Dismissed alerts leave the list and unread badge, and pending delivery is marked handled, while their history remains to prevent repeated events.
+All four types, each at most once per event, only for events after the search was created. ➕ Favourites alert their owner about price drops and removal without a saved search (once per event, also when a search covers the listing). ➕ "Chegou ao seu preço": a favourite's target price reached (15.19). Delivered to each account's devices (Web Push / FCM). In the app: grouped by day, unread count on the Alertas tab. ➕ Swipe left to confirm deletion or right to edit the originating saved search, also available in the options menu (15.32); no edit action without a source search. Dismissed alerts leave the list and unread badge, and pending delivery is marked handled, while their history remains to prevent repeated events. A dismissed alert brings no later "removed" or "back on the market" alert for its listing (roadmap N.26).
 
 ## 17. Dashboard ✅
 

@@ -87,16 +87,17 @@ class OlxMapper {
   /// counts as the second word at most, or later when every word before it
   /// is [_saleWords]: "R7 troca Yamaha" keeps its model.
   static String _withoutBrand(String title, String brand) {
-    final words = title.trim().split(RegExp(r'\s+'));
+    final whole = title.trim();
+    final words = whole.split(RegExp(r'\s+'));
     final key = brand.toLowerCase();
     final at = words.indexWhere((w) => w.toLowerCase() == key);
-    if (at < 0) return title.trim();
+    if (at < 0) return whole;
     if (at > 1 &&
         !words.take(at).every((w) => _saleWords.contains(w.toLowerCase()))) {
-      return title.trim();
+      return whole;
     }
     final rest = words.sublist(at + 1).join(' ');
-    return rest.isEmpty ? title.trim() : rest;
+    return rest.isEmpty ? whole : rest;
   }
 
   /// [title] without anything shaped like a Portuguese phone number (nine

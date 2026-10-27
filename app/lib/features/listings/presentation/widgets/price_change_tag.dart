@@ -29,10 +29,7 @@ class PriceChangeTag extends StatelessWidget {
       ),
       child: Text(
         '${dropped ? '↓' : '↑'} ${Formatters.price(change.abs(), language: context.language)}',
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: color,
-          fontWeight: FontWeight.w600,
-        ),
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(color: color),
       ),
     );
   }

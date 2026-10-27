@@ -158,6 +158,35 @@ void main() {
     expect(push.sent, hasLength(1));
   });
 
+  test('a device whose push failed is not tried again this run', () async {
+    final store = _Store([_withId('a'), _withId('b'), _withId('c')])
+      ..devices = {
+        'u1': [_device('https://p/down'), _device('https://p/up')],
+        'u2': [_device('https://p/down2')],
+      };
+    store.pending.addAll([_withId('d', user: 'u2'), _withId('e', user: 'u2')]);
+    final push = _Push({
+      'https://p/down': PushResult.failed,
+      'https://p/down2': PushResult.failed,
+    });
+
+    final result = await notifyPending(store, push: push, now: _now);
+
+    expect(
+      [for (final (endpoint, _) in push.sent) endpoint],
+      [
+        'https://p/down',
+        'https://p/up',
+        'https://p/up',
+        'https://p/up',
+        'https://p/down2',
+      ],
+    );
+    // The other device got a, b and c; d and e reached no device and wait.
+    expect(result, (alerts: 3, pushes: 3));
+    expect(store.notified, ['a', 'b', 'c']);
+  });
+
   test('one device failing does not repeat it on the others', () async {
     final store = _Store([_withId('a')])
       ..devices = {

@@ -32,7 +32,7 @@ class SiteModel {
 
 /// One entry per brand and model: every page of a site repeats the lists.
 List<SiteModel> uniqueSiteModels(Iterable<SiteModel> models) =>
-    {for (final m in models) '${m.makeId}/${m.modelId}': m}.values.toList();
+    {for (final m in models) (m.makeId, m.modelId): m}.values.toList();
 
 /// The brands and models in a Standvirtual search page's filters (the
 /// `filters` payload of `__NEXT_DATA__`): the brand list, and one model

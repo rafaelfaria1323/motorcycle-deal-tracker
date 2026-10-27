@@ -36,7 +36,9 @@ with the service account in env `FIREBASE_SERVICE_ACCOUNT`).
 Alerts dismissed in the app keep their event history. The owner-checked
 `dismiss_alert` RPC sets `dismissed_at` and marks them read and handled
 (`notified_at`), preserving existing timestamps, so the collector neither
-regenerates the same event nor picks it up as a pending notification.
+regenerates the same event nor picks it up as a pending notification, and
+a dismissed alert brings no later "removed" or "back on the market" alert
+for its listing.
 
 Every catalog model has searches for both OLX and Standvirtual, including
 models added before automatic source coverage. The database keeps existing

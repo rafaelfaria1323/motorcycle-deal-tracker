@@ -119,3 +119,55 @@ begin
   exception when unique_violation then null;
   end;
 end $$;
+
+-- A deleted alert brings none of the listing's later news (removed, back
+-- on the market); an alert still shown does, also beside a deleted one.
+insert into auth.users (id, is_anonymous)
+values ('00000000-0000-0000-0000-0000000000b1', false),  -- deleted its alert
+       ('00000000-0000-0000-0000-0000000000b2', false),  -- kept it
+       ('00000000-0000-0000-0000-0000000000b3', false);  -- deleted one of two
+
+insert into public.listings (source, source_listing_id, url, brand, model, price,
+                             status, last_checked_at, first_seen_at)
+values ('olx', 'dismiss-gone', 'https://x/dismiss-gone', 'Yamaha', 'MT-07', 7000,
+        'removed', now(), now() - interval '30 days'),
+       ('olx', 'dismiss-back', 'https://x/dismiss-back', 'Yamaha', 'MT-07', 6800,
+        'active', now(), now() - interval '1 day');
+update public.listings b
+set relisted_from = g.id, relisted_price = g.price
+from public.listings g
+where b.source_listing_id = 'dismiss-back' and g.source_listing_id = 'dismiss-gone';
+
+insert into public.saved_searches (user_id, name, is_active, notify_listing_removed)
+select u, 'MT', true, true
+from unnest(array['00000000-0000-0000-0000-0000000000b1',
+                  '00000000-0000-0000-0000-0000000000b2',
+                  '00000000-0000-0000-0000-0000000000b3']::uuid[]) u;
+
+insert into public.alerts (user_id, saved_search_id, listing_id, type, dismissed_at,
+                           price_history_id)
+select s.user_id, s.id, l.id, v.type::public.alert_type, v.dismissed::timestamptz,
+       null
+from public.saved_searches s
+join (values ('00000000-0000-0000-0000-0000000000b1'::uuid, 'new_listing', '2026-10-20T12:00:00Z'),
+             ('00000000-0000-0000-0000-0000000000b2'::uuid, 'new_listing', null),
+             ('00000000-0000-0000-0000-0000000000b3'::uuid, 'new_listing', '2026-10-20T12:00:00Z'),
+             ('00000000-0000-0000-0000-0000000000b3'::uuid, 'excellent_opportunity', null)
+     ) v(owner, type, dismissed) on v.owner = s.user_id
+cross join public.listings l
+where l.source_listing_id = 'dismiss-gone';
+
+do $$
+begin
+  assert public.generate_listing_removed_alerts() = 2, 'b2 and b3 only';
+  assert public.generate_back_on_market_alerts() = 2, 'b2 and b3 only';
+  assert not exists (select 1 from public.alerts
+                     where user_id = '00000000-0000-0000-0000-0000000000b1'
+                       and type in ('listing_removed', 'back_on_market')),
+    'the account that deleted its only alert hears nothing more';
+  assert (select count(*) from public.alerts
+          where user_id in ('00000000-0000-0000-0000-0000000000b2',
+                            '00000000-0000-0000-0000-0000000000b3')
+            and type in ('listing_removed', 'back_on_market')) = 4,
+    'an alert still shown keeps the follow-ups';
+end $$;

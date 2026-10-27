@@ -20,13 +20,14 @@ Map<String, dynamic> node({
   String? sellerName = 'Stand Exemplo',
   String city = 'Viseu',
   String price = '7500',
+  String currency = 'EUR',
   String year = '2024',
   String? cc,
 }) => {
   'id': id,
   'url': 'https://www.standvirtual.com/motos/anuncio/x-ID$id.html',
   'price': {
-    'amount': {'value': price, 'currencyCode': 'EUR'},
+    'amount': {'value': price, 'currencyCode': currency},
   },
   'location': {
     'city': {'name': city},
@@ -144,6 +145,37 @@ void main() {
     expect(adapter.parseSearchPage(searchPage([node()])).models, isEmpty);
   });
 
+  test('a model list belongs to the brand its brand condition names', () {
+    final page = adapter.parseSearchPage(
+      searchPage(
+        [node()],
+        filters: {
+          'states': [
+            filterState('filter_enum_make', [
+              {'id': 'honda', 'name': 'Honda'},
+              {'id': 'yamaha', 'name': 'Yamaha'},
+            ]),
+            {
+              ...filterState('filter_enum_model', [
+                {'id': 'forza', 'name': 'Forza'},
+              ]),
+              'conditions': [
+                {'filterId': 'filter_enum_make', 'value': null},
+                {'filterId': 'filter_enum_body_type', 'value': 'yamaha'},
+                {'filterId': 'filter_enum_make', 'value': 'honda'},
+              ],
+            },
+          ],
+        },
+      ),
+    );
+
+    expect(
+      [for (final m in page.models) '${m.makeName}/${m.modelName}'],
+      ['Honda/Forza'],
+    );
+  });
+
   test('reads every listing of a search page', () {
     final page = adapter.parseSearchPage(
       searchPage([
@@ -197,6 +229,29 @@ void main() {
 
     const url = 'https://www.standvirtual.com/motos/yamaha/mt-07';
     final first = [for (var i = 1; i <= 32; i++) node(id: '$i')];
+
+    test('a rejected ad still on the site counts as seen', () async {
+      File(
+        '${dir.path}/p1.html',
+      ).writeAsStringSync(searchPage([node(), node(id: '2', currency: 'GBP')]));
+      await const SearchManifest(
+        planned: [url],
+        files: {'p1.html': url},
+      ).writeTo(dir.path);
+
+      final batch = await loadBatch('standvirtual-search', dir.path, catalog);
+      final plan = removalPlan(batch);
+
+      expect(batch.records[1].outcome, isA<Rejected>());
+      expect(plan.searches, [url]);
+      expect(
+        plan.seenIds,
+        unorderedEquals([
+          StandvirtualMapper.listingId('1'),
+          StandvirtualMapper.listingId('2'),
+        ]),
+      );
+    });
 
     test('is incomplete until every page is saved', () async {
       File(

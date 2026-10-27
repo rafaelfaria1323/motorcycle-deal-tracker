@@ -15,7 +15,9 @@ const pushRetryWindow = Duration(hours: 24);
 /// nothing is marked, so the next run sends them. An alert whose every
 /// push failed stays pending until [pushRetryWindow] has passed.
 /// Returns how many alerts were marked and how many pushes reached a
-/// device. A device that no longer exists is forgotten.
+/// device. A device that no longer exists is forgotten; one whose push
+/// failed is not tried again this run (its push service is down or asks
+/// us to slow down, and each try can wait 45 s), so its alerts wait.
 Future<({int alerts, int pushes})> notifyPending(
   ListingStore store, {
   WebPushSender? push,
@@ -33,6 +35,7 @@ Future<({int alerts, int pushes})> notifyPending(
   final sent = <String>[];
   final reached = <String>{};
   final gone = <String>{};
+  final down = <String>{};
   var pushes = 0;
   for (final alert in pending) {
     final created = alert.createdAt;
@@ -48,6 +51,10 @@ Future<({int alerts, int pushes})> notifyPending(
     for (final device in devices[alert.userId] ?? const <PushTarget>[]) {
       if (old) break;
       if (gone.contains(device.endpoint)) continue;
+      if (down.contains(device.endpoint)) {
+        failed = true;
+        continue;
+      }
       switch (await push.send(device, message)) {
         case PushResult.sent:
           pushes++;
@@ -57,6 +64,7 @@ Future<({int alerts, int pushes})> notifyPending(
           gone.add(device.endpoint);
         case PushResult.failed:
           failed = true;
+          down.add(device.endpoint);
       }
     }
     // Retried only when no device got it: a second push to the devices

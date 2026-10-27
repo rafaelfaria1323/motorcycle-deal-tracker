@@ -127,7 +127,8 @@ Screen names below use the Portuguese labels; English provides the same screens.
   are in its options menu. Without a source search, only deletion is
   available. Deleted alerts leave the list and unread count but retain
   their database history, so the same event cannot be generated again;
-  pending notifications are marked handled without a push.
+  pending notifications are marked handled without a push, and the
+  listing's later removal or return no longer alerts because of them.
 - **Mais:** account, "Idioma", "Cartões dos anúncios" (the same card display choices as Ofertas), sharing (the app's link; admins: "Contas e convites"), "Notificações neste aparelho" (with "Enviar notificação de teste", an example of any alert or collection message, and "Enviar o resumo da semana"), "Resumo da semana" (your models' last 7 days, made every Monday and sent as a notification that opens it: counts, new listings per model, the best deals and the biggest drops, each opening its listing), "A sua localidade" (your home town: every listing
   shows its distance from it), "Modelos acompanhados" (your own models: switch on/off, first
   year, favourite colours of each (listings in them are marked "Cor

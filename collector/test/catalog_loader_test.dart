@@ -64,4 +64,32 @@ void main() {
   test('no rows give an empty catalog', () {
     expect(catalogFromRows(const []).entries, isEmpty);
   });
+
+  group('lookups', () {
+    const cb650r = CatalogEntry(
+      slug: 'honda-cb650r',
+      brand: 'Honda',
+      model: 'CB650R',
+      minYear: 2023,
+    );
+    const mt07 = CatalogEntry(
+      slug: 'yamaha-mt-07',
+      brand: 'Yamaha',
+      model: 'MT-07',
+      minYear: 2021,
+    );
+    final catalog = Catalog(const [cb650r, mt07]);
+
+    test('find needs the brand and the model, spelled loosely', () {
+      expect(catalog.find('yamaha', 'mt07'), mt07);
+      expect(catalog.find('Honda', 'MT-07'), isNull);
+      expect(catalog.find('Yamaha', 'MT-09'), isNull);
+    });
+
+    test('a near miss is a longer name of a model of the same brand', () {
+      expect(catalog.nearMiss('Yamaha', 'MT-07 ABS'), mt07);
+      expect(catalog.nearMiss('Honda', 'MT-07 ABS'), isNull);
+      expect(catalog.nearMiss('Yamaha', 'Tracer 7'), isNull);
+    });
+  });
 }

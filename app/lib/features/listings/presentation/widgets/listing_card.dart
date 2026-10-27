@@ -247,7 +247,7 @@ class _CardDetails extends StatelessWidget {
                 style: textTheme.headlineSmall?.copyWith(
                   fontSize: 30,
                   height: 1.1,
-                  fontFeatures: const [FontFeature.tabularFigures()],
+                  fontFeatures: AppTheme.tabularFigures,
                 ),
               ),
               if (preferences.shows(ListingCardField.priceChange))
@@ -430,12 +430,7 @@ class _PhotoPill extends StatelessWidget {
                 text,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontFamily: AppTheme.bodyFont,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.onPhoto,
-                ),
+                style: AppTheme.onPhotoLabel,
               ),
             ),
           ],
