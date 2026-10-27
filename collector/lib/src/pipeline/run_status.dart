@@ -8,17 +8,40 @@ import '../notify/run_health.dart';
 /// and its only problems were a site's passing fetch failures (`Failed: `,
 /// a timeout, a dropped connection or an HTTP error still there after the
 /// retry): the other searches and sites were read, and the lost ones are
-/// read again by the next run. The admins hear of it only when the same
-/// site fails again in the next run (runHealthMessage).
+/// read again by the next run. The pages such a failure left unread
+/// (`Read issue: …(the others were not read)`) come with it. So is a saved
+/// page the site served without
+/// its results (`Read issue: <page>: not a search results page`, OLX once
+/// sent a page of a search with no ads in it) while another search of the
+/// same site was read in full: its search removes nothing, and a site
+/// whose pages all fail that way still fails. The admins hear of it only
+/// when the same site fails again in the next run (runHealthMessage).
 String runStatus(int exitCode, String log) {
   if (exitCode == 0) return 'ok';
   const blockedMarks = ['the site pushed back', 'paused until'];
   if (blockedMarks.any(log.contains)) return 'blocked';
   final problems = runProblems(log, max: 1 << 20, maxChars: 1 << 20);
+  final failedSites = {
+    for (final p in problems)
+      if (RegExp(r'^(\w+): Failed: ').firstMatch(p) case final m?) m.group(1),
+  };
+  final readInFull = {
+    for (final s in searchesRead(log))
+      if (s['in_full'] == true) s['site'],
+  };
+  bool isPassing(String problem) {
+    final issue = RegExp(r'^(\w+): Read issue: (.*)$').firstMatch(problem);
+    if (issue == null) return RegExp(r'^\w+: Failed: ').hasMatch(problem);
+    final (site, text) = (issue.group(1), issue.group(2)!);
+    if (text.endsWith('were not read)')) return failedSites.contains(site);
+    return text.endsWith(': not a search results page') &&
+        readInFull.contains(site);
+  }
+
   final passing =
       log.contains(RegExp(r'^\s*Notifications sent: ', multiLine: true)) &&
       problems.isNotEmpty &&
-      problems.every(RegExp(r'^\w+: Failed: ').hasMatch);
+      problems.every(isPassing);
   return passing ? 'partial' : 'failed';
 }
 

@@ -1,7 +1,7 @@
 # Collector
 
 Dart command line that fills the database. GitHub Actions runs it at
-00:00, 08:00 and every 2 hours from 12:00 to 20:00, Lisbon time
+00:00 and every 2 hours from 08:00 to 22:00, Lisbon time
 (`.github/workflows/collect.yml`, started by Supabase pg_cron); it uses the
 Supabase service-role key, which the app never sees.
 
@@ -58,7 +58,9 @@ sends one notification to the admins' devices (Web Push; a tap opens
 (`notify/run_health.dart`), or that the collection works again. The same
 problem is not repeated on every run. A run is `partial` when its only
 problems were passing fetch failures (`Failed:` lines: a timeout or server
-error after the retry) and it still finished scores and alerts: it is told
+error after the retry, and the pages they left unread; or one page the site
+served without its results while another search of it was read in full) and
+it still finished scores and alerts: it is told
 only when the same site fails in the next run too, and its GitHub job stays
 green with a warning.
 

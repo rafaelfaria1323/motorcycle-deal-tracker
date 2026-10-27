@@ -21,20 +21,24 @@ void main() {
       );
     });
 
-    test('every 2 hours in the afternoon', () {
+    test('every 2 hours from 08:00 to 22:00', () {
+      expect(
+        nextCollection(DateTime.utc(2026, 12, 1, 8)),
+        DateTime.utc(2026, 12, 1, 10),
+      );
       expect(
         nextCollection(DateTime.utc(2026, 12, 1, 12)),
         DateTime.utc(2026, 12, 1, 14),
       );
       expect(
-        nextCollection(DateTime.utc(2026, 12, 1, 19, 5)),
-        DateTime.utc(2026, 12, 1, 20),
+        nextCollection(DateTime.utc(2026, 12, 1, 20, 10)),
+        DateTime.utc(2026, 12, 1, 22),
       );
     });
 
-    test('midnight, then 08:00, then 12:00', () {
+    test('midnight, then 08:00, then 10:00', () {
       expect(
-        nextCollection(DateTime.utc(2026, 12, 1, 20, 10)),
+        nextCollection(DateTime.utc(2026, 12, 1, 22, 10)),
         DateTime.utc(2026, 12, 2),
       );
       expect(
@@ -43,11 +47,15 @@ void main() {
       );
       expect(
         nextCollection(DateTime.utc(2026, 12, 2, 9)),
-        DateTime.utc(2026, 12, 2, 12),
+        DateTime.utc(2026, 12, 2, 10),
       );
     });
 
     test('in summer time the same Lisbon hours are an hour earlier in UTC', () {
+      expect(
+        nextCollection(DateTime.utc(2026, 7, 1, 19)),
+        DateTime.utc(2026, 7, 1, 21),
+      );
       expect(
         nextCollection(DateTime.utc(2026, 7, 1, 21)),
         DateTime.utc(2026, 7, 1, 23),

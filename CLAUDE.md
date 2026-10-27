@@ -107,8 +107,8 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
             test-hardening.md (backlogs of the automatic passes),
             paid-plans.md (paid plans and other income: a plan, not
             started; roadmap Sprint 16)
-.github/workflows/collect.yml     Collection at 00:00, 08:00 and every 2 h
-                                  from 12:00 to 20:00 (Lisbon time),
+.github/workflows/collect.yml     Collection at 00:00 and every 2 h
+                                  from 08:00 to 22:00 (Lisbon time),
                                   started by Supabase pg_cron (see below)
 .github/workflows/weekly-summary.yml  Mondays 07:52 UTC (pg_cron): each account's
                                   summary of the week, kept for the app and
@@ -523,8 +523,10 @@ invites; written by the collector on each run).
   recolha") when a run's status differs from the previous run's (`run_health.dart`:
   the error lines of each site, or "voltou a funcionar"), never twice for
   the same problem. Status `partial` (`runStatus`): the only problems were
-  `Failed:` lines (a timeout or server error after the retry) and the run
-  still finished; it counts as ok unless the run before also failed on the
+  `Failed:` lines (a timeout or server error after the retry), the pages
+  they left unread, or a page the site served without its results while
+  another search of that site was read in full, and the run still
+  finished; it counts as ok unless the run before also failed on the
   same site ("falhou duas vezes seguidas"), its GitHub job stays green with
   a warning, and the app shows it as "Incompleta". It also stores `problems` (`runProblems`, runs not
   ok), `sites` (each fetch state file's `report()`: requests today,
@@ -540,8 +542,8 @@ invites; written by the collector on each run).
   red from 80 %).
 - Schedules live in Supabase, not in the workflows (GitHub's scheduler never
   started `collect.yml`): pg_cron jobs `collect-listings` (`0 * * * *`,
-  `dispatch_collection()`: only at the Lisbon hours 0, 8, 12, 14, 16, 18
-  and 20, `collection_due`, so summer time needs no change)
+  `dispatch_collection()`: only at the Lisbon hours 0, 8, 10, 12, 14, 16,
+  18, 20 and 22, `collection_due`, so summer time needs no change)
   and `weekly-summary` (`52 7 * * 1`) call `dispatch_workflow()`, which
   starts the workflow through GitHub's workflow_dispatch API with pg_net and
   the Vault secret `github_dispatch_token` (fine-grained, this repo only,
