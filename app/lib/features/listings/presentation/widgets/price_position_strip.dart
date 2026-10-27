@@ -45,10 +45,7 @@ class PricePositionStrip extends StatelessWidget {
             ),
           ],
         ),
-        Text(
-          context.strings.askingPricesWithoutAdjustingForYearAndMileage,
-          style: labelStyle,
-        ),
+        Text(context.strings.askingPricesUnadjusted, style: labelStyle),
       ],
     );
   }

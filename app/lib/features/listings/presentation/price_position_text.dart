@@ -71,9 +71,9 @@ String? pricePositionLine(
   if (price == null) return null;
   final position = pricePosition(price, others);
   if (position == null) {
-    return language.messages.priceAgainstOtherListingsNotEnoughDataYet(
-      length: others.length.toString(),
-      value: others.length == 1
+    return language.messages.pricePositionFewData(
+      count: others.length.toString(),
+      listingsWord: others.length == 1
           ? language.messages.activeListing
           : language.messages.activeListings,
     );
@@ -85,13 +85,13 @@ String? pricePositionLine(
     price: Formatters.price(p.median, language: language),
   );
   if (p.same == 0 && p.cheaper == 0) {
-    return language.messages.lowestPriceAmongThisModelSActiveListings(
+    return language.messages.priceLowestAmongActive(
       all: (all).toString(),
       median: median,
     );
   }
   if (p.same == 0 && p.dearer == 0) {
-    return language.messages.highestPriceAmongThisModelSActiveListings(
+    return language.messages.priceHighestAmongActive(
       all: (all).toString(),
       median: median,
     );

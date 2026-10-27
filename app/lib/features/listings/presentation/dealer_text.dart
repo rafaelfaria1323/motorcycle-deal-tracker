@@ -20,13 +20,13 @@ String dealerHeadline(
   AppLanguage language = AppLanguage.portuguese,
 }) {
   final since = d.firstSeenAt;
-  return language.messages.forSale(
+  return language.messages.dealerBikesLine(
     name: d.name,
     bikes: d.bikes.toString(),
-    value: d.bikes == 1
+    bikesWord: d.bikes == 1
         ? language.messages.bikeSeen
         : language.messages.bikesSeen,
-    value4: since == null
+    since: since == null
         ? ''
         : language.messages.since(date: Formatters.date(since)),
     live: d.live.toString(),
@@ -45,19 +45,15 @@ List<String> dealerLines(
   );
   final warnings = [
     if (d.relisted > 0)
-      language.messages.relistedAfterEarlierListingDisappeared(
-        value: share(d.relisted),
-      ),
+      language.messages.dealerRelisted(share: share(d.relisted)),
     if (d.sharpChanges > 0)
-      language.messages.withSharpPriceChanges50OrMoreIn(
-        value: share(d.sharpChanges),
-      ),
+      language.messages.dealerSharpChanges(share: share(d.sharpChanges)),
     if (d.missingMileage > 0)
-      language.messages.withNoMileage(value: share(d.missingMileage)),
+      language.messages.dealerNoMileage(share: share(d.missingMileage)),
     if (d.repeated > 0)
-      language.messages.forSameUsedBikeOnSameSite(
+      language.messages.dealerRepeated(
         repeated: d.repeated.toString(),
-        value: d.repeated == 1
+        listingsWord: d.repeated == 1
             ? language.messages.repeatedListing
             : language.messages.repeatedListings,
       ),
@@ -67,7 +63,7 @@ List<String> dealerLines(
     ...warnings,
     d.dropped == 0
         ? language.messages.hasNotReducedAnyBikeSPriceYet
-        : language.messages.reducedPriceOf(value: share(d.dropped)),
+        : language.messages.dealerDropped(share: share(d.dropped)),
     if (d.bikes < minDealerBikes)
       language.messages.notEnoughDataAboutThisDealerYetFewer(
         minDealerBikes: (minDealerBikes).toString(),

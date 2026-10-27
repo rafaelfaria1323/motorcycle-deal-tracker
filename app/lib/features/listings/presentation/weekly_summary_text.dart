@@ -12,8 +12,8 @@ String summaryPeriodText(
   WeeklySummary s, {
   AppLanguage language = AppLanguage.portuguese,
 }) => language.messages.fromTo(
-  value: _day(s.since),
-  value2: _day(s.until.subtract(const Duration(days: 1))),
+  from: _day(s.since),
+  to: _day(s.until.subtract(const Duration(days: 1))),
 );
 
 /// The week's counts, one line each.
@@ -84,7 +84,7 @@ String priceDropText(
 String summaryMadeText(
   WeeklySummary s, {
   AppLanguage language = AppLanguage.portuguese,
-}) => language.messages.createdOnAtUsingYourFollowedModelsArrives(
+}) => language.messages.weeklySummaryCreated(
   date: Formatters.date(s.madeAt),
   time: Formatters.time(s.madeAt),
 );

@@ -331,9 +331,7 @@ class _AddModelSheetState extends State<_AddModelSheet> {
                   _field(
                     _aliases,
                     context.strings.otherNamesOptional,
-                    helper: context
-                        .strings
-                        .otherWaysSellersWriteModelSeparatedByCommas,
+                    helper: context.strings.aliasesHelp,
                   ),
                 ],
               ),

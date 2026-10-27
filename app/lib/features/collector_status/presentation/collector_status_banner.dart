@@ -51,8 +51,8 @@ class _CollectorStatusBannerState extends State<CollectorStatusBanner> {
               color: scheme.tertiaryContainer,
               icon: Icons.schedule,
               title: context.strings.noRecentUpdates,
-              text: context.strings.lastCollectionWasPricesMayBeOutOf(
-                value: agoText(run!.finishedAt, language: context.language),
+              text: context.strings.bannerStale(
+                ago: agoText(run!.finishedAt, language: context.language),
               ),
             );
           case CollectorHealth.blocked:
@@ -60,18 +60,17 @@ class _CollectorStatusBannerState extends State<CollectorStatusBanner> {
               color: scheme.errorContainer,
               icon: Icons.block,
               title: context.strings.collectionBlockedBySite,
-              text: context.strings
-                  .duringLastCollectionSiteRefusedRequestsCollectionIs(
-                    value: agoText(run!.finishedAt, language: context.language),
-                  ),
+              text: context.strings.bannerSiteBlocked(
+                ago: agoText(run!.finishedAt, language: context.language),
+              ),
             );
           case CollectorHealth.failed:
             return _card(
               color: scheme.errorContainer,
               icon: Icons.error_outline,
               title: context.strings.lastCollectionFailed,
-              text: context.strings.seeLogInGitHubActions(
-                value: capitalize(
+              text: context.strings.bannerFailed(
+                ago: capitalize(
                   agoText(run!.finishedAt, language: context.language),
                 ),
               ),

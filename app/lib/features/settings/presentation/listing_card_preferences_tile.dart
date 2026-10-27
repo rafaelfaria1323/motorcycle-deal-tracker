@@ -101,9 +101,9 @@ class _CardPreferencesDialogState extends State<_CardPreferencesDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(context.strings.chooseDetailsShownInDealsAndFavouritesWhen),
+              Text(context.strings.cardDetailsIntro),
               const SizedBox(height: 12),
-              Text(context.strings.photoModelPriceRemovalNoticesAndActionsAre),
+              Text(context.strings.cardAlwaysShown),
               const SizedBox(height: 12),
               if (state.status == ListingCardPreferencesStatus.loading)
                 const Center(child: CircularProgressIndicator())

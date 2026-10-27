@@ -61,9 +61,7 @@ class _HomePlaceTileState extends State<HomePlaceTile> {
           subtitle: Text(
             home == null
                 ? context.strings.setItToSeeHowFarAwayEach
-                : context
-                      .strings
-                      .yourHomeLocationDistancesToListingsAreMeasured,
+                : context.strings.homePlaceHelp,
           ),
           trailing: const Icon(Icons.chevron_right),
           onTap: snapshot.connectionState == ConnectionState.done

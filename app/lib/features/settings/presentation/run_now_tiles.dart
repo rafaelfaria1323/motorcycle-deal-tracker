@@ -74,9 +74,7 @@ class _RunNowTilesState extends State<RunNowTiles> {
             ListTile(
               leading: const Icon(Icons.monitor_heart_outlined),
               title: Text(context.strings.collectionStatus),
-              subtitle: Text(
-                context.strings.recentCollectionsAndErrorsTodaySRequestsAnd,
-              ),
+              subtitle: Text(context.strings.collectionStatusSubtitle),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.push(AppRoutes.collectionStatus),
             ),

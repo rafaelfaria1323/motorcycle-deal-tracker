@@ -123,8 +123,8 @@ class _StartupState extends State<Startup> {
                   icon: Icons.cloud_off,
                   title: _startupLanguage.messages.couldNotOpenApp,
                   message: _startupLanguage.messages
-                      .checkYourInternetConnectionAndTryAgain(
-                        value: _describe(snapshot.error),
+                      .startupConnectionError(
+                        error: _describe(snapshot.error),
                       ),
                   actionLabel: _startupLanguage.messages.retry,
                   onAction: () => setState(() => _ready = _start()),

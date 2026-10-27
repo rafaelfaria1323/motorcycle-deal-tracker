@@ -109,8 +109,8 @@ class _JoinPageState extends State<JoinPage> {
               return StateMessage(
                 icon: Icons.account_circle_outlined,
                 title: context.strings.youAreAlreadySignedIn,
-                message: context.strings.youAreSignedInAsSignOutTo(
-                  value: session.email ?? '',
+                message: context.strings.joinSignedInAs(
+                  email: session.email ?? '',
                 ),
                 actionLabel: context.strings.signOut,
                 onAction: () => getIt<AccountCubit>().signOut(),
@@ -134,7 +134,7 @@ class _JoinPageState extends State<JoinPage> {
           children: [
             Text(context.strings.welcome, style: theme.textTheme.headlineSmall),
             const SizedBox(height: 8),
-            Text(context.strings.youHaveBeenInvitedToMotorcycleDealTracker),
+            Text(context.strings.inviteShareText),
             const SizedBox(height: 20),
             AutofillGroup(
               child: Column(

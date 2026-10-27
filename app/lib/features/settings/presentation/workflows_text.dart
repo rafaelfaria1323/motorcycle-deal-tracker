@@ -8,8 +8,8 @@ import '../../../core/localization/localizations.dart';
 }) => switch (workflow) {
   AppWorkflow.collect => (
     title: language.messages.collectNow,
-    subtitle: language.messages.readSitesNowOutsideScheduleRequestsAppearIn,
-    started: language.messages.collectionStartedNewListingsShouldAppearInAbout,
+    subtitle: language.messages.collectNowSubtitle,
+    started: language.messages.collectionStarted,
   ),
   AppWorkflow.weeklySummary => (
     title: language.messages.sendWeeklySummary,
@@ -19,7 +19,7 @@ import '../../../core/localization/localizations.dart';
   AppWorkflow.pushTest => (
     title: language.messages.sendTestNotification,
     subtitle: language.messages.chooseTypeToConfirmThatAlertsReachYour,
-    started: language.messages.testNotificationRequestedItShouldArriveIn1,
+    started: language.messages.pushTestRequested,
   ),
 };
 
@@ -50,9 +50,9 @@ String startErrorText(
   String? code, {
   AppLanguage language = AppLanguage.portuguese,
 }) => switch (code) {
-  '55006' => language.messages.thisWasRequestedRecentlyWaitMomentAndTry,
+  '55006' => language.messages.startWorkflowTooSoon,
   '55000' => language.messages.githubTokenIsMissingFromSupabaseVault,
-  '58000' => language.messages.githubRejectedRequestCheckGitHubTokenActionsRead,
+  '58000' => language.messages.startWorkflowRejected,
   '42501' => language.messages.onlyAdministratorCanDoThis,
   _ => language.messages.couldNotStartTryAgain,
 };

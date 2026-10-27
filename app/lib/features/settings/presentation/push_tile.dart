@@ -69,10 +69,7 @@ class _PushTileState extends State<PushTile> {
     final messenger = ScaffoldMessenger.of(context);
     final key = _publicKey;
     if (on && key == null) {
-      showMessage(
-        messenger,
-        messageStrings.notificationsWillBeAvailableAfterNextCollection,
-      );
+      showMessage(messenger, messageStrings.pushNotReadyYet);
       return;
     }
     setState(() => _busy = true);
@@ -87,7 +84,7 @@ class _PushTileState extends State<PushTile> {
       showMessage(
         messenger,
         on
-            ? messageStrings.couldNotEnableNotificationsCheckPermissionAndTry
+            ? messageStrings.pushEnableFailed
             : messageStrings.couldNotDisableNotificationsTryAgain,
       );
     }

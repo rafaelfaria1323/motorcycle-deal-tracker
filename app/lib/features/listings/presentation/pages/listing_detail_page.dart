@@ -586,7 +586,7 @@ class _CompareButton extends StatelessWidget {
             if (!cubit.toggle(listingId)) {
               showMessage(
                 messenger,
-                context.strings.youAlreadyHaveListingsToCompareRemoveOne(
+                context.strings.compareFull(
                   maxCompared: (maxCompared).toString(),
                 ),
               );
@@ -596,10 +596,7 @@ class _CompareButton extends StatelessWidget {
             if (added) {
               showMessage(messenger, context.strings.removedFromComparison);
             } else if (now.length < 2) {
-              showMessage(
-                messenger,
-                context.strings.addedToComparisonChooseAnotherListingToCompare,
-              );
+              showMessage(messenger, context.strings.compareAddedChooseAnother);
             } else {
               messenger.showSnackBar(
                 SnackBar(

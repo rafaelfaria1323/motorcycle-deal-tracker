@@ -79,8 +79,8 @@ class _ChecklistSheet extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    context.strings.markWhatYouCheckedAndTapItemTo(
-                      value: checklistSummaryText(
+                    context.strings.checklistIntro(
+                      summary: checklistSummaryText(
                         favourite.checklist,
                         language: context.language,
                       ),

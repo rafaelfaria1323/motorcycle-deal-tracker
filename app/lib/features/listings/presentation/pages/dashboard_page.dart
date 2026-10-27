@@ -96,7 +96,7 @@ class DashboardPage extends StatelessWidget {
       final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
       showMessage(
         messenger,
-        context.strings.youAlreadyHaveListingsToCompareRemoveOne(
+        context.strings.compareFull(
           maxCompared: (maxCompared).toString(),
         ),
       );
@@ -189,7 +189,7 @@ class DashboardPage extends StatelessWidget {
                             title: context.strings.yourNextBikeStartsHere,
                             description: context
                                 .strings
-                                .comparePricesCheckHistoryAndChooseWithConfidence,
+                                .dealsIntro,
                           ),
                           const SizedBox(height: 24),
                           BlocBuilder<SavedSearchesCubit, SavedSearchesState>(

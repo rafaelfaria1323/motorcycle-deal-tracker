@@ -328,7 +328,7 @@ class _ModelDialogState extends State<_ModelDialog> {
                 ),
               ],
             ),
-            Text(context.strings.olderListingsAreIgnoredEarlierYearBringsMore),
+            Text(context.strings.firstYearHelp),
             const SizedBox(height: 16),
             Text(
               context.strings.preferredColours,
@@ -362,8 +362,7 @@ class _ModelDialogState extends State<_ModelDialog> {
               ),
               decoration: InputDecoration(
                 labelText: context.strings.newBikePriceInput,
-                helperText:
-                    context.strings.listPriceOnManufacturerSWebsiteRecordedWith,
+                helperText: context.strings.newPriceHelp,
                 helperMaxLines: 3,
                 errorText: _priceError,
                 border: const OutlineInputBorder(),

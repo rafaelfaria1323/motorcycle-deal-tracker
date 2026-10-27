@@ -20,11 +20,11 @@
   "@couldNotOpenApp": {
     "description": "Interface text in startup, build."
   },
-  "checkYourInternetConnectionAndTryAgain": "Verifique a ligação à internet e tente de novo.\n({value})",
-  "@checkYourInternetConnectionAndTryAgain": {
+  "startupConnectionError": "Verifique a ligação à internet e tente de novo.\n({error})",
+  "@startupConnectionError": {
     "description": "Interface text in startup, build.",
     "placeholders": {
-      "value": {
+      "error": {
         "type": "String"
       }
     }
@@ -86,11 +86,11 @@
   "@incorrectEmailOrPassword": {
     "description": "Interface text in account_text, authErrorText."
   },
-  "percentage": "{value} %",
+  "percentage": "{number} %",
   "@percentage": {
     "description": "Interface text in formatters, percent.",
     "placeholders": {
-      "value": {
+      "number": {
         "type": "String"
       }
     }
@@ -120,20 +120,20 @@
   "@delete": {
     "description": "Interface text in confirm_delete, confirmDelete."
   },
-  "lastCollectionTook": "Última recolha {value}, demorou {value2}",
+  "lastCollectionTook": "Última recolha {ago}, demorou {duration}",
   "@lastCollectionTook": {
     "description": "Interface text in collection_details, build.",
     "placeholders": {
-      "value": {
+      "ago": {
         "type": "String"
       },
-      "value2": {
+      "duration": {
         "type": "String"
       }
     }
   },
-  "githubActionsMinutesAreFreeAndUnlimitedWhile": "Os minutos do GitHub Actions são gratuitos e ilimitados enquanto o repositório for público; num repositório privado contam para os 2000 min/mês gratuitos.",
-  "@githubActionsMinutesAreFreeAndUnlimitedWhile": {
+  "githubActionsMinutesNote": "Os minutos do GitHub Actions são gratuitos e ilimitados enquanto o repositório for público; num repositório privado contam para os 2000 min/mês gratuitos.",
+  "@githubActionsMinutesNote": {
     "description": "Interface text in collection_details, build."
   },
   "collectionStatus": "Estado da recolha",
@@ -148,8 +148,8 @@
   "@automaticStart": {
     "description": "Interface text in collection_status_page, build."
   },
-  "supabaseUsesThisTokenToStartCollectionsAnd": "O Supabase usa este token para iniciar as recolhas e o resumo semanal. Avisa também no Telegram 14 dias antes de terminar.",
-  "@supabaseUsesThisTokenToStartCollectionsAnd": {
+  "githubTokenExplanation": "O Supabase usa este token para iniciar as recolhas e o resumo semanal. Avisa também no Telegram 14 dias antes de terminar.",
+  "@githubTokenExplanation": {
     "description": "Interface text in collection_status_page, build."
   },
   "database": "Base de dados",
@@ -164,16 +164,16 @@
   "@sites": {
     "description": "Interface text in collection_status_page, build."
   },
-  "noRequestLimitsEachCollectionReadsEverySearch": "Sem limite de pedidos: cada recolha lê todas as páginas das pesquisas e os anúncios por ler, um pedido de cada vez, 6 a 10 s entre eles, até 30 min por site. Se um site recusar pedidos, fica em pausa 24 h.",
-  "@noRequestLimitsEachCollectionReadsEverySearch": {
+  "requestLimitsNote": "Sem limite de pedidos: cada recolha lê todas as páginas das pesquisas e os anúncios por ler, um pedido de cada vez, 6 a 10 s entre eles, até 30 min por site. Se um site recusar pedidos, fica em pausa 24 h.",
+  "@requestLimitsNote": {
     "description": "Interface text in collection_status_page, build."
   },
   "noDataYetItWillAppearAfterNext": "Ainda sem dados: aparecem depois da próxima recolha.",
   "@noDataYetItWillAppearAfterNext": {
     "description": "Interface text in collection_status_page, build."
   },
-  "fromLastCollectionPagesReadForEachSearch": "Da última recolha: páginas lidas de cada pesquisa e anúncios encontrados. Só uma pesquisa lida toda marca como retirados os anúncios que já não aparecem.",
-  "@fromLastCollectionPagesReadForEachSearch": {
+  "searchesReadIntro": "Da última recolha: páginas lidas de cada pesquisa e anúncios encontrados. Só uma pesquisa lida toda marca como retirados os anúncios que já não aparecem.",
+  "@searchesReadIntro": {
     "description": "Interface text in collection_status_page, build."
   },
   "requestsPerDay": "Pedidos por dia",
@@ -220,20 +220,20 @@
   "@couldNotMeasureDatabase": {
     "description": "Interface text in collection_status_page, build."
   },
-  "took": "Demorou {value}",
+  "took": "Demorou {duration}",
   "@took": {
     "description": "Interface text in collection_status_page, build.",
     "placeholders": {
-      "value": {
+      "duration": {
         "type": "String"
       }
     }
   },
-  "at": "{value} · {date} às {time}",
-  "@at": {
+  "runLine": "{status} · {date} às {time}",
+  "@runLine": {
     "description": "Interface text in collection_status_page, build.",
     "placeholders": {
-      "value": {
+      "status": {
         "type": "String"
       },
       "date": {
@@ -244,15 +244,15 @@
       }
     }
   },
-  "githubTokenIsMissingFromSupabaseVaultCollections": "Falta o token do GitHub no Vault do Supabase: as recolhas não começam sozinhas (docs/hosting.md).",
-  "@githubTokenIsMissingFromSupabaseVaultCollections": {
+  "githubTokenMissing": "Falta o token do GitHub no Vault do Supabase: as recolhas não começam sozinhas (docs/hosting.md).",
+  "@githubTokenMissing": {
     "description": "Interface text in collection_status_text, tokenText."
   },
-  "githubRejectedTokenHTTPCreateNewOneAnd": "O GitHub recusou o token (HTTP {value}). Crie um novo e substitua-o no Vault do Supabase.",
-  "@githubRejectedTokenHTTPCreateNewOneAnd": {
+  "githubTokenRejected": "O GitHub recusou o token (HTTP {status}). Crie um novo e substitua-o no Vault do Supabase.",
+  "@githubTokenRejected": {
     "description": "Interface text in collection_status_text, tokenText.",
     "placeholders": {
-      "value": {
+      "status": {
         "type": "String"
       }
     }
@@ -278,7 +278,7 @@
       }
     }
   },
-  "githubTokenValidUntil": "Token do GitHub válido até {date} ({left}).{value}",
+  "githubTokenValidUntil": "Token do GitHub válido até {date} ({left}).{renewHint}",
   "@githubTokenValidUntil": {
     "description": "Interface text in collection_status_text, tokenText.",
     "placeholders": {
@@ -288,34 +288,34 @@
       "left": {
         "type": "String"
       },
-      "value": {
+      "renewHint": {
         "type": "String"
       }
     }
   },
-  "databaseUsesOfMB": "A base de dados ocupa {value} de {value2} MB ({percent}).{value4}",
-  "@databaseUsesOfMB": {
+  "databaseUsage": "A base de dados ocupa {used} de {limit} MB ({percent}).{warning}",
+  "@databaseUsage": {
     "description": "Interface text in collection_status_text, databaseUsageText.",
     "placeholders": {
-      "value": {
+      "used": {
         "type": "String"
       },
-      "value2": {
+      "limit": {
         "type": "String"
       },
       "percent": {
         "type": "String"
       },
-      "value4": {
+      "warning": {
         "type": "String"
       }
     }
   },
-  "largestTables": "Maiores tabelas: {value}",
+  "largestTables": "Maiores tabelas: {tables}",
   "@largestTables": {
     "description": "Interface text in collection_status_text, biggestTablesText.",
     "placeholders": {
-      "value": {
+      "tables": {
         "type": "String"
       }
     }
@@ -335,8 +335,8 @@
       }
     }
   },
-  "todayUTC": "{name}: {used} {value} hoje (UTC)",
-  "@todayUTC": {
+  "requestsToday": "{name}: {used} {requestsWord} hoje (UTC)",
+  "@requestsToday": {
     "description": "Interface text in collection_status_text, siteBudgetText.",
     "placeholders": {
       "name": {
@@ -345,7 +345,7 @@
       "used": {
         "type": "String"
       },
-      "value": {
+      "requestsWord": {
         "type": "String"
       }
     }
@@ -359,8 +359,8 @@
       }
     }
   },
-  "ofText": "{pages} de {spans} {value}",
-  "@ofText": {
+  "pagesReadOf": "{pages} de {spans} {pagesWord}",
+  "@pagesReadOf": {
     "description": "Interface text in collection_status_text, searchReadText.",
     "placeholders": {
       "pages": {
@@ -369,13 +369,13 @@
       "spans": {
         "type": "String"
       },
-      "value": {
+      "pagesWord": {
         "type": "String"
       }
     }
   },
-  "forTrackedModels": "{name}: {pages}, {ads} ({followed} dos modelos acompanhados){value}",
-  "@forTrackedModels": {
+  "searchReadLine": "{name}: {pages}, {ads} ({followed} dos modelos acompanhados){notFullyRead}",
+  "@searchReadLine": {
     "description": "Interface text in collection_status_text, searchReadText.",
     "placeholders": {
       "name": {
@@ -390,7 +390,7 @@
       "followed": {
         "type": "String"
       },
-      "value": {
+      "notFullyRead": {
         "type": "String"
       }
     }
@@ -411,11 +411,11 @@
   "@tomorrow": {
     "description": "Interface text in collection_text, nextCollectionText."
   },
-  "nextCollectionAtGitHubMayDelayItBy": "Próxima recolha: {value} às {time} (o GitHub pode atrasá-la alguns minutos)",
-  "@nextCollectionAtGitHubMayDelayItBy": {
+  "nextCollection": "Próxima recolha: {day} às {time} (o GitHub pode atrasá-la alguns minutos)",
+  "@nextCollection": {
     "description": "Interface text in collection_text, nextCollectionText.",
     "placeholders": {
-      "value": {
+      "day": {
         "type": "String"
       },
       "time": {
@@ -423,11 +423,11 @@
       }
     }
   },
-  "minAgo": "há {value} min",
-  "@minAgo": {
+  "minutesAgo": "há {minutes} min",
+  "@minutesAgo": {
     "description": "Interface text in collection_text, agoText.",
     "placeholders": {
-      "value": {
+      "minutes": {
         "type": "String"
       }
     }
@@ -441,20 +441,20 @@
       }
     }
   },
-  "requests": "Pedidos: {value}",
-  "@requests": {
+  "requestsPerSite": "Pedidos: {sites}",
+  "@requestsPerSite": {
     "description": "Interface text in collection_text, requestsText.",
     "placeholders": {
-      "value": {
+      "sites": {
         "type": "String"
       }
     }
   },
-  "requestsThisMonth": "Pedidos este mês: {value}",
+  "requestsThisMonth": "Pedidos este mês: {sites}",
   "@requestsThisMonth": {
     "description": "Interface text in collection_text, monthRequestsText.",
     "placeholders": {
-      "value": {
+      "sites": {
         "type": "String"
       }
     }
@@ -495,14 +495,14 @@
   "@noNewListingsOrChanges": {
     "description": "Interface text in collection_text, runCountsText."
   },
-  "thisMonthAboutMinutesOfGitHubActions": "{length} {value} este mês, cerca de {minutes} min de GitHub Actions",
-  "@thisMonthAboutMinutesOfGitHubActions": {
+  "runsThisMonth": "{count} {runsWord} este mês, cerca de {minutes} min de GitHub Actions",
+  "@runsThisMonth": {
     "description": "Interface text in collection_text, monthUsageText.",
     "placeholders": {
-      "length": {
+      "count": {
         "type": "String"
       },
-      "value": {
+      "runsWord": {
         "type": "String"
       },
       "minutes": {
@@ -514,11 +514,11 @@
   "@noRecentUpdates": {
     "description": "Interface text in collector_status_banner, _status."
   },
-  "lastCollectionWasPricesMayBeOutOf": "A última recolha foi {value}. Os preços podem estar desatualizados.",
-  "@lastCollectionWasPricesMayBeOutOf": {
+  "bannerStale": "A última recolha foi {ago}. Os preços podem estar desatualizados.",
+  "@bannerStale": {
     "description": "Interface text in collector_status_banner, _status.",
     "placeholders": {
-      "value": {
+      "ago": {
         "type": "String"
       }
     }
@@ -527,11 +527,11 @@
   "@collectionBlockedBySite": {
     "description": "Interface text in collector_status_banner, _status."
   },
-  "duringLastCollectionSiteRefusedRequestsCollectionIs": "Na última recolha ({value}) um dos sites recusou os pedidos. A recolha fica em pausa durante 24 h e volta a tentar automaticamente.",
-  "@duringLastCollectionSiteRefusedRequestsCollectionIs": {
+  "bannerSiteBlocked": "Na última recolha ({ago}) um dos sites recusou os pedidos. A recolha fica em pausa durante 24 h e volta a tentar automaticamente.",
+  "@bannerSiteBlocked": {
     "description": "Interface text in collector_status_banner, _status.",
     "placeholders": {
-      "value": {
+      "ago": {
         "type": "String"
       }
     }
@@ -540,11 +540,11 @@
   "@lastCollectionFailed": {
     "description": "Interface text in collector_status_banner, _status."
   },
-  "seeLogInGitHubActions": "{value}. Veja o registo no GitHub Actions.",
-  "@seeLogInGitHubActions": {
+  "bannerFailed": "{ago}. Veja o registo no GitHub Actions.",
+  "@bannerFailed": {
     "description": "Interface text in collector_status_banner, _status.",
     "placeholders": {
-      "value": {
+      "ago": {
         "type": "String"
       }
     }
@@ -562,41 +562,41 @@
       }
     }
   },
-  "withoutModel": "{unmatchedCount} sem modelo ({value})",
+  "withoutModel": "{unmatchedCount} sem modelo ({percent})",
   "@withoutModel": {
     "description": "Interface text in data_quality_text, qualityMixLine.",
     "placeholders": {
       "unmatchedCount": {
         "type": "String"
       },
-      "value": {
+      "percent": {
         "type": "String"
       }
     }
   },
-  "year": "ano {value}",
-  "@year": {
+  "missingYearShare": "ano {percent}",
+  "@missingYearShare": {
     "description": "Interface text in data_quality_text, qualityMissingLine.",
     "placeholders": {
-      "value": {
+      "percent": {
         "type": "String"
       }
     }
   },
-  "location": "localização {value}",
-  "@location": {
+  "missingLocationShare": "localização {percent}",
+  "@missingLocationShare": {
     "description": "Interface text in data_quality_text, qualityMissingLine.",
     "placeholders": {
-      "value": {
+      "percent": {
         "type": "String"
       }
     }
   },
-  "missing": "Em falta: {value}",
-  "@missing": {
+  "missingFields": "Em falta: {fields}",
+  "@missingFields": {
     "description": "Interface text in data_quality_text, qualityMissingLine.",
     "placeholders": {
-      "value": {
+      "fields": {
         "type": "String"
       }
     }
@@ -632,11 +632,11 @@
       }
     }
   },
-  "withPriceChangeOf50OrMoreIn": "{value} com o preço alterado em 50 % ou mais de uma só vez nos últimos 30 dias (possível erro de leitura)",
-  "@withPriceChangeOf50OrMoreIn": {
+  "sharpPriceChangesLine": "{listings} com o preço alterado em 50 % ou mais de uma só vez nos últimos 30 dias (possível erro de leitura)",
+  "@sharpPriceChangesLine": {
     "description": "Interface text in data_quality_text, qualitySharpPricesLine.",
     "placeholders": {
-      "value": {
+      "listings": {
         "type": "String"
       }
     }
@@ -840,8 +840,8 @@
   "@inOneOfYourPreferredColoursDoesNot": {
     "description": "Interface text in colour_text, favouriteColourLine."
   },
-  "inOneOfYourPreferredColoursDoesNotColourText": "Numa das suas cores preferidas: {label} (não conta na pontuação)",
-  "@inOneOfYourPreferredColoursDoesNotColourText": {
+  "inYourColour": "Numa das suas cores preferidas: {label} (não conta na pontuação)",
+  "@inYourColour": {
     "description": "Interface text in colour_text, favouriteColourLine.",
     "placeholders": {
       "label": {
@@ -862,11 +862,11 @@
       }
     }
   },
-  "aboveMarketValue": "{value} % acima do mercado",
+  "aboveMarketValue": "{percent} % acima do mercado",
   "@aboveMarketValue": {
     "description": "Interface text in compare_text, _marketText.",
     "placeholders": {
-      "value": {
+      "percent": {
         "type": "String"
       }
     }
@@ -967,8 +967,8 @@
   "@loadedListings": {
     "description": "Interface text in dashboard_text, listingsResultsText."
   },
-  "forSale": "{name}: {bikes} {value}{value4} ({live} à venda)",
-  "@forSale": {
+  "dealerBikesLine": "{name}: {bikes} {bikesWord}{since} ({live} à venda)",
+  "@dealerBikesLine": {
     "description": "Interface text in dealer_text, dealerHeadline.",
     "placeholders": {
       "name": {
@@ -977,10 +977,10 @@
       "bikes": {
         "type": "String"
       },
-      "value": {
+      "bikesWord": {
         "type": "String"
       },
-      "value4": {
+      "since": {
         "type": "String"
       },
       "live": {
@@ -1000,41 +1000,41 @@
       }
     }
   },
-  "relistedAfterEarlierListingDisappeared": "{value} publicadas de novo depois de o anúncio sair",
-  "@relistedAfterEarlierListingDisappeared": {
+  "dealerRelisted": "{share} publicadas de novo depois de o anúncio sair",
+  "@dealerRelisted": {
     "description": "Interface text in dealer_text, dealerLines.",
     "placeholders": {
-      "value": {
+      "share": {
         "type": "String"
       }
     }
   },
-  "withSharpPriceChanges50OrMoreIn": "{value} com mudanças de preço bruscas (50 % ou mais de uma vez)",
-  "@withSharpPriceChanges50OrMoreIn": {
+  "dealerSharpChanges": "{share} com mudanças de preço bruscas (50 % ou mais de uma vez)",
+  "@dealerSharpChanges": {
     "description": "Interface text in dealer_text, dealerLines.",
     "placeholders": {
-      "value": {
+      "share": {
         "type": "String"
       }
     }
   },
-  "withNoMileage": "{value} sem quilómetros",
-  "@withNoMileage": {
+  "dealerNoMileage": "{share} sem quilómetros",
+  "@dealerNoMileage": {
     "description": "Interface text in dealer_text, dealerLines.",
     "placeholders": {
-      "value": {
+      "share": {
         "type": "String"
       }
     }
   },
-  "forSameUsedBikeOnSameSite": "{repeated} {value} da mesma mota usada no mesmo site",
-  "@forSameUsedBikeOnSameSite": {
+  "dealerRepeated": "{repeated} {listingsWord} da mesma mota usada no mesmo site",
+  "@dealerRepeated": {
     "description": "Interface text in dealer_text, dealerLines.",
     "placeholders": {
       "repeated": {
         "type": "String"
       },
-      "value": {
+      "listingsWord": {
         "type": "String"
       }
     }
@@ -1047,11 +1047,11 @@
   "@hasNotReducedAnyBikeSPriceYet": {
     "description": "Interface text in dealer_text, dealerLines."
   },
-  "reducedPriceOf": "Baixou o preço de {value}",
-  "@reducedPriceOf": {
+  "dealerDropped": "Baixou o preço de {share}",
+  "@dealerDropped": {
     "description": "Interface text in dealer_text, dealerLines.",
     "placeholders": {
-      "value": {
+      "share": {
         "type": "String"
       }
     }
@@ -1087,8 +1087,8 @@
       }
     }
   },
-  "already": "{count}, {removed} já {value}",
-  "@already": {
+  "favouritesRemoved": "{count}, {removed} já {listingsWord}",
+  "@favouritesRemoved": {
     "description": "Interface text in favourites_text, favouritesCountText.",
     "placeholders": {
       "count": {
@@ -1097,7 +1097,7 @@
       "removed": {
         "type": "String"
       },
-      "value": {
+      "listingsWord": {
         "type": "String"
       }
     }
@@ -1171,14 +1171,14 @@
       }
     }
   },
-  "ofSellerWarranty": "{months} {value} de garantia do vendedor",
-  "@ofSellerWarranty": {
+  "sellerWarrantyMonths": "{months} {monthsWord} de garantia do vendedor",
+  "@sellerWarrantyMonths": {
     "description": "Interface text in listing_card_text, listingCardExtraFacts.",
     "placeholders": {
       "months": {
         "type": "String"
       },
-      "value": {
+      "monthsWord": {
         "type": "String"
       }
     }
@@ -1192,20 +1192,20 @@
       }
     }
   },
-  "published": "Publicado: {value}",
-  "@published": {
+  "publishedOn": "Publicado: {date}",
+  "@publishedOn": {
     "description": "Interface text in listing_card_text, listingCardExtraFacts.",
     "placeholders": {
-      "value": {
+      "date": {
         "type": "String"
       }
     }
   },
-  "renewedOnSite": "Renovado no site: {value}",
+  "renewedOnSite": "Renovado no site: {date}",
   "@renewedOnSite": {
     "description": "Interface text in listing_card_text, listingCardExtraFacts.",
     "placeholders": {
-      "value": {
+      "date": {
         "type": "String"
       }
     }
@@ -1219,20 +1219,20 @@
       }
     }
   },
-  "wasForSaleInEarlierListingSince": "Esteve à venda noutro anúncio desde {value}",
-  "@wasForSaleInEarlierListingSince": {
+  "relistedSince": "Esteve à venda noutro anúncio desde {date}",
+  "@relistedSince": {
     "description": "Interface text in listing_dates_text, relistText.",
     "placeholders": {
-      "value": {
+      "date": {
         "type": "String"
       }
     }
   },
-  "now": " (agora {value} {price})",
-  "@now": {
+  "priceNowChanged": " (agora {direction} {price})",
+  "@priceNowChanged": {
     "description": "Interface text in listing_dates_text, relistText.",
     "placeholders": {
-      "value": {
+      "direction": {
         "type": "String"
       },
       "price": {
@@ -1264,11 +1264,11 @@
       }
     }
   },
-  "viewOn": "Ver no {value}",
-  "@viewOn": {
+  "viewOnSite": "Ver no {site}",
+  "@viewOnSite": {
     "description": "Interface text in listing_detail_text, originalLinkLabel.",
     "placeholders": {
-      "value": {
+      "site": {
         "type": "String"
       }
     }
@@ -1440,20 +1440,20 @@
   "@manualImport": {
     "description": "Interface text in listing_labels, sourceLabel."
   },
-  "ofThisModel": "{liveCount} {value} deste modelo",
-  "@ofThisModel": {
+  "activeOfModel": "{liveCount} {listingsWord} deste modelo",
+  "@activeOfModel": {
     "description": "Interface text in market_behaviour_text, marketLines.",
     "placeholders": {
       "liveCount": {
         "type": "String"
       },
-      "value": {
+      "listingsWord": {
         "type": "String"
       }
     }
   },
-  "typicalTimeUntilLeavingMarketDaysListings": "Tempo típico até sair do mercado: {toGone} dias ({goneCount} anúncios)",
-  "@typicalTimeUntilLeavingMarketDaysListings": {
+  "typicalTimeToGone": "Tempo típico até sair do mercado: {toGone} dias ({goneCount} anúncios)",
+  "@typicalTimeToGone": {
     "description": "Interface text in market_behaviour_text, marketLines.",
     "placeholders": {
       "toGone": {
@@ -1464,14 +1464,14 @@
       }
     }
   },
-  "timeUntilLeavingMarketNotEnoughDataYet": "Tempo até sair do mercado: ainda poucos dados ({goneCount} {value})",
-  "@timeUntilLeavingMarketNotEnoughDataYet": {
+  "timeToGoneFewData": "Tempo até sair do mercado: ainda poucos dados ({goneCount} {listingsWord})",
+  "@timeToGoneFewData": {
     "description": "Interface text in market_behaviour_text, marketLines.",
     "placeholders": {
       "goneCount": {
         "type": "String"
       },
-      "value": {
+      "listingsWord": {
         "type": "String"
       }
     }
@@ -1509,26 +1509,26 @@
   "@firstSeenToday": {
     "description": "Interface text in market_behaviour_text, marketLines."
   },
-  "thisListingHasBeenPublishedFor": "Este anúncio está publicado há {daysListed} {value}",
-  "@thisListingHasBeenPublishedFor": {
+  "publishedForDays": "Este anúncio está publicado há {daysListed} {daysWord}",
+  "@publishedForDays": {
     "description": "Interface text in market_behaviour_text, marketLines.",
     "placeholders": {
       "daysListed": {
         "type": "String"
       },
-      "value": {
+      "daysWord": {
         "type": "String"
       }
     }
   },
-  "firstSeenAgo": "Visto pela primeira vez há {daysListed} {value}",
+  "firstSeenAgo": "Visto pela primeira vez há {daysListed} {daysWord}",
   "@firstSeenAgo": {
     "description": "Interface text in market_behaviour_text, marketLines.",
     "placeholders": {
       "daysListed": {
         "type": "String"
       },
-      "value": {
+      "daysWord": {
         "type": "String"
       }
     }
@@ -1537,14 +1537,14 @@
   "@forSaleForMoreThanTwiceUsualTime": {
     "description": "Interface text in market_behaviour_text, marketLines."
   },
-  "perYearAndPer10000Km": "{value} por ano e {value2} por 10 000 km",
-  "@perYearAndPer10000Km": {
+  "depreciationRates": "{perYear} por ano e {per10000Km} por 10 000 km",
+  "@depreciationRates": {
     "description": "Interface text in market_behaviour_text, depreciationLine.",
     "placeholders": {
-      "value": {
+      "perYear": {
         "type": "String"
       },
-      "value2": {
+      "per10000Km": {
         "type": "String"
       }
     }
@@ -1561,8 +1561,8 @@
       }
     }
   },
-  "depreciationNotEnoughDataYetOfListingsUsing": "Desvalorização: ainda poucos dados ({sampleCount} de {minDepreciationData} anúncios); usa-se a regra geral de {rates}",
-  "@depreciationNotEnoughDataYetOfListingsUsing": {
+  "depreciationGeneralRule": "Desvalorização: ainda poucos dados ({sampleCount} de {minDepreciationData} anúncios); usa-se a regra geral de {rates}",
+  "@depreciationGeneralRule": {
     "description": "Interface text in market_behaviour_text, depreciationLine.",
     "placeholders": {
       "sampleCount": {
@@ -1580,14 +1580,14 @@
   "@noActiveListingsWithPrice": {
     "description": "Interface text in model_market_text, priceSpreadLines."
   },
-  "askingPricesNotEnoughDataYet": "Preços pedidos: ainda poucos dados ({count} {value})",
-  "@askingPricesNotEnoughDataYet": {
+  "askingPricesFewData": "Preços pedidos: ainda poucos dados ({count} {listingsWord})",
+  "@askingPricesFewData": {
     "description": "Interface text in model_market_text, priceSpreadLines.",
     "placeholders": {
       "count": {
         "type": "String"
       },
-      "value": {
+      "listingsWord": {
         "type": "String"
       }
     }
@@ -1622,29 +1622,29 @@
       }
     }
   },
-  "typicalAskingPriceHalfAreBetweenAnd": "Preço pedido típico {value} (metade entre {value2} e {value3})",
-  "@typicalAskingPriceHalfAreBetweenAnd": {
+  "typicalAskingPrice": "Preço pedido típico {median} (metade entre {p25} e {p75})",
+  "@typicalAskingPrice": {
     "description": "Interface text in model_market_text, priceSpreadLines.",
     "placeholders": {
-      "value": {
+      "median": {
         "type": "String"
       },
-      "value2": {
+      "p25": {
         "type": "String"
       },
-      "value3": {
+      "p75": {
         "type": "String"
       }
     }
   },
-  "fromTo": "De {value} a {value2}",
+  "fromTo": "De {from} a {to}",
   "@fromTo": {
     "description": "Interface text in model_market_text, priceSpreadLines.",
     "placeholders": {
-      "value": {
+      "from": {
         "type": "String"
       },
-      "value2": {
+      "to": {
         "type": "String"
       }
     }
@@ -1772,11 +1772,11 @@
   "@tyres": {
     "description": "Interface text in negotiation_text, negotiationArguments."
   },
-  "atYearsOldTyresNeedReplacingIfThey": "Com {value} anos, se os pneus forem os de origem precisam de troca (~{price}).",
-  "@atYearsOldTyresNeedReplacingIfThey": {
+  "argumentOldTyres": "Com {age} anos, se os pneus forem os de origem precisam de troca (~{price}).",
+  "@argumentOldTyres": {
     "description": "Interface text in negotiation_text, negotiationArguments.",
     "placeholders": {
-      "value": {
+      "age": {
         "type": "String"
       },
       "price": {
@@ -1784,8 +1784,8 @@
       }
     }
   },
-  "descriptionMentionsAccidentOrImpactItWillBe": "A descrição fala em acidente ou toque: vale menos quando a vender.",
-  "@descriptionMentionsAccidentOrImpactItWillBe": {
+  "argumentAccidentResale": "A descrição fala em acidente ou toque: vale menos quando a vender.",
+  "@argumentAccidentResale": {
     "description": "Interface text in negotiation_text, _riskArguments."
   },
   "itNeedsRepairsOrPartsYouWillHave": "Precisa de reparações ou peças: o custo fica por sua conta.",
@@ -1816,8 +1816,8 @@
   "@itWasUnrestrictedA2VersionAndDoesNot": {
     "description": "Interface text in negotiation_text, _riskArguments."
   },
-  "descriptionMentionsMoreMileageThanListingStates": "A descrição fala em mais quilómetros do que o anúncio indica.",
-  "@descriptionMentionsMoreMileageThanListingStates": {
+  "argumentMoreMileageInText": "A descrição fala em mais quilómetros do que o anúncio indica.",
+  "@argumentMoreMileageInText": {
     "description": "Interface text in negotiation_text, _riskArguments."
   },
   "yearInDescriptionDoesNotMatchListing": "O ano na descrição não bate certo com o do anúncio.",
@@ -1876,14 +1876,14 @@
       }
     }
   },
-  "sellerUrgencyNegotiationText": "Pressa do vendedor: {label} ({value})",
-  "@sellerUrgencyNegotiationText": {
+  "sellerUrgencyLine": "Pressa do vendedor: {label} ({reasons})",
+  "@sellerUrgencyLine": {
     "description": "Interface text in negotiation_text, text.",
     "placeholders": {
       "label": {
         "type": "String"
       },
-      "value": {
+      "reasons": {
         "type": "String"
       }
     }
@@ -1930,8 +1930,8 @@
   "@newTyres": {
     "description": "Interface text in negotiation_text, dealerAsks."
   },
-  "warrantyInWritingPortugueseLawRequiresAtLeast": "a garantia por escrito (numa usada vendida por um stand, a lei dá pelo menos 18 meses)",
-  "@warrantyInWritingPortugueseLawRequiresAtLeast": {
+  "dealerAskWarranty": "a garantia por escrito (numa usada vendida por um stand, a lei dá pelo menos 18 meses)",
+  "@dealerAskWarranty": {
     "description": "Interface text in negotiation_text, dealerAsks."
   },
   "ownershipRegistrationPaidByDealer": "o registo de propriedade pago por eles",
@@ -1942,8 +1942,8 @@
   "@helloGoodAfternoon": {
     "description": "Interface text in negotiation_text, dealerMessage."
   },
-  "iAmInterestedInIfWeAgreeOn": "Tenho interesse na {brand} {model}{value}. Se fecharmos por {price}, consegue incluir:",
-  "@iAmInterestedInIfWeAgreeOn": {
+  "dealerAsksMessage": "Tenho interesse na {brand} {model}{year}. Se fecharmos por {price}, consegue incluir:",
+  "@dealerAsksMessage": {
     "description": "Interface text in negotiation_text, dealerMessage.",
     "placeholders": {
       "brand": {
@@ -1952,7 +1952,7 @@
       "model": {
         "type": "String"
       },
-      "value": {
+      "year": {
         "type": "String"
       },
       "price": {
@@ -2014,14 +2014,14 @@
   "@itIsNotCheaperThanNewOneCheck": {
     "description": "Interface text in new_price_text, newPriceLines."
   },
-  "newBikePriceCheckedOn": "Preço de uma nova verificado em {date}{value}",
+  "newBikePriceCheckedOn": "Preço de uma nova verificado em {date}{staleNote}",
   "@newBikePriceCheckedOn": {
     "description": "Interface text in new_price_text, newPriceLines.",
     "placeholders": {
       "date": {
         "type": "String"
       },
-      "value": {
+      "staleNote": {
         "type": "String"
       }
     }
@@ -2050,29 +2050,29 @@
   "@finalOffer": {
     "description": "Interface text in offer_text, steps."
   },
-  "acceptIsBelowYourOpeningOffer": "Aceite: {value} é menos do que a sua primeira proposta.",
-  "@acceptIsBelowYourOpeningOffer": {
+  "counterAcceptBelowOpening": "Aceite: {asked} é menos do que a sua primeira proposta.",
+  "@counterAcceptBelowOpening": {
     "description": "Interface text in offer_text, reply.",
     "placeholders": {
-      "value": {
+      "asked": {
         "type": "String"
       }
     }
   },
-  "acceptIsWithinWhatIsWorthPaying": "Aceite: {value} está dentro do que vale a pena pagar.",
-  "@acceptIsWithinWhatIsWorthPaying": {
+  "counterAcceptWithinWorth": "Aceite: {asked} está dentro do que vale a pena pagar.",
+  "@counterAcceptWithinWorth": {
     "description": "Interface text in offer_text, reply.",
     "placeholders": {
-      "value": {
+      "asked": {
         "type": "String"
       }
     }
   },
-  "acceptIsWithinMaximum": "Aceite: {value} está dentro do máximo ({price}).",
-  "@acceptIsWithinMaximum": {
+  "counterAcceptWithinCeiling": "Aceite: {asked} está dentro do máximo ({price}).",
+  "@counterAcceptWithinCeiling": {
     "description": "Interface text in offer_text, reply.",
     "placeholders": {
-      "value": {
+      "asked": {
         "type": "String"
       },
       "price": {
@@ -2080,23 +2080,23 @@
       }
     }
   },
-  "offerHalfwayIfSellerWillNotGoLower": "Proponha {price} (a meio caminho). Se não baixar mais, {value} ainda está dentro do máximo.",
-  "@offerHalfwayIfSellerWillNotGoLower": {
+  "counterOfferHalfway": "Proponha {price} (a meio caminho). Se não baixar mais, {asked} ainda está dentro do máximo.",
+  "@counterOfferHalfway": {
     "description": "Interface text in offer_text, reply.",
     "placeholders": {
       "price": {
         "type": "String"
       },
-      "value": {
+      "asked": {
         "type": "String"
       }
     }
   },
-  "exceedsMaximumOfferAsYourFinalOfferAnd": "{value} passa do máximo: ofereça {price} como última proposta e, se não aceitar, procure outra mota.",
-  "@exceedsMaximumOfferAsYourFinalOfferAnd": {
+  "counterAboveCeiling": "{asked} passa do máximo: ofereça {price} como última proposta e, se não aceitar, procure outra mota.",
+  "@counterAboveCeiling": {
     "description": "Interface text in offer_text, reply.",
     "placeholders": {
-      "value": {
+      "asked": {
         "type": "String"
       },
       "price": {
@@ -2128,8 +2128,8 @@
       }
     }
   },
-  "askingPriceIsAlreadyBelowEstimatedValueThere": "O preço pedido já está {percent} abaixo do valor estimado ({price}): há menos margem para negociar.",
-  "@askingPriceIsAlreadyBelowEstimatedValueThere": {
+  "offerAlreadyBelowEstimate": "O preço pedido já está {percent} abaixo do valor estimado ({price}): há menos margem para negociar.",
+  "@offerAlreadyBelowEstimate": {
     "description": "Interface text in offer_text, suggestOffer.",
     "placeholders": {
       "percent": {
@@ -2144,8 +2144,8 @@
   "@askingPriceIsInLineWithEstimatedValue": {
     "description": "Interface text in offer_text, suggestOffer."
   },
-  "dealerStartBelowPriceDealersRarelyNegotiateMuch": "Vendedor profissional: ponto de partida {percent} abaixo (os stands negociam pouco o preço).",
-  "@dealerStartBelowPriceDealersRarelyNegotiateMuch": {
+  "offerDealerOpening": "Vendedor profissional: ponto de partida {percent} abaixo (os stands negociam pouco o preço).",
+  "@offerDealerOpening": {
     "description": "Interface text in offer_text, suggestOffer.",
     "placeholders": {
       "percent": {
@@ -2162,11 +2162,11 @@
       }
     }
   },
-  "typicalForThisModelDays": "{value} típico deste modelo ({typicalDays} dias)",
-  "@typicalForThisModelDays": {
+  "onSaleVsTypical": "{howMuch} típico deste modelo ({typicalDays} dias)",
+  "@onSaleVsTypical": {
     "description": "Interface text in offer_text, suggestOffer.",
     "placeholders": {
-      "value": {
+      "howMuch": {
         "type": "String"
       },
       "typicalDays": {
@@ -2178,8 +2178,8 @@
   "@longTime": {
     "description": "Interface text in offer_text, suggestOffer."
   },
-  "forSaleForDaysOfferText": "À venda há {daysListed} dias, {howLong}: {value}.",
-  "@forSaleForDaysOfferText": {
+  "offerLongOnSale": "À venda há {daysListed} dias, {howLong}: {consequence}.",
+  "@offerLongOnSale": {
     "description": "Interface text in offer_text, suggestOffer.",
     "placeholders": {
       "daysListed": {
@@ -2188,7 +2188,7 @@
       "howLong": {
         "type": "String"
       },
-      "value": {
+      "consequence": {
         "type": "String"
       }
     }
@@ -2201,8 +2201,8 @@
   "@sellerHasAlreadyReducedPriceThereIsLess": {
     "description": "Interface text in offer_text, suggestOffer."
   },
-  "manySellersOfThisModelEventuallyReduceTheir": "Muitos vendedores deste modelo acabam por baixar o preço (descida típica {percent}).",
-  "@manySellersOfThisModelEventuallyReduceTheir": {
+  "offerSellersOftenDrop": "Muitos vendedores deste modelo acabam por baixar o preço (descida típica {percent}).",
+  "@offerSellersOftenDrop": {
     "description": "Interface text in offer_text, suggestOffer.",
     "placeholders": {
       "percent": {
@@ -2214,55 +2214,55 @@
   "@riskIsHighCheckWhatIsMissingAnd": {
     "description": "Interface text in offer_text, suggestOffer."
   },
-  "listingMentionsAccidentOrOutstandingRepairsStartLower": "O anúncio fala de um acidente ou de reparações por fazer: comece mais abaixo, peça fotos ou um orçamento da reparação e desconte-o.",
-  "@listingMentionsAccidentOrOutstandingRepairsStartLower": {
+  "offerDamage": "O anúncio fala de um acidente ou de reparações por fazer: comece mais abaixo, peça fotos ou um orçamento da reparação e desconte-o.",
+  "@offerDamage": {
     "description": "Interface text in offer_text, suggestOffer."
   },
-  "listingMentionsScratchesOrDentsUseThemTo": "O anúncio fala de riscos ou mossas: use-os para negociar.",
-  "@listingMentionsScratchesOrDentsUseThemTo": {
+  "offerScratches": "O anúncio fala de riscos ou mossas: use-os para negociar.",
+  "@offerScratches": {
     "description": "Interface text in offer_text, suggestOffer."
   },
-  "costsAboutPerYear": "Custa cerca de {value} por ano",
+  "costsAboutPerYear": "Custa cerca de {price} por ano",
   "@costsAboutPerYear": {
     "description": "Interface text in ownership_cost, ownershipHeadline.",
     "placeholders": {
-      "value": {
+      "price": {
         "type": "String"
       }
     }
   },
-  "overAbout": "Em {years} {value}: cerca de {value3}",
-  "@overAbout": {
+  "ownershipTotal": "Em {years} {yearsWord}: cerca de {total}",
+  "@ownershipTotal": {
     "description": "Interface text in ownership_cost, ownershipTotalLine.",
     "placeholders": {
       "years": {
         "type": "String"
       },
-      "value": {
+      "yearsWord": {
         "type": "String"
       },
-      "value3": {
+      "total": {
         "type": "String"
       }
     }
   },
-  "depreciationPerYearAverageOver": "Desvalorização: {value} por ano (média de {years} {value3})",
-  "@depreciationPerYearAverageOver": {
+  "ownershipDepreciation": "Desvalorização: {price} por ano (média de {years} {yearsWord})",
+  "@ownershipDepreciation": {
     "description": "Interface text in ownership_cost, ownershipLines.",
     "placeholders": {
-      "value": {
+      "price": {
         "type": "String"
       },
       "years": {
         "type": "String"
       },
-      "value3": {
+      "yearsWord": {
         "type": "String"
       }
     }
   },
-  "roadTaxIUCNotCalculatedForRegistrationsBefore": "IUC: não calculado para matrículas anteriores a {iucFirstYear}",
-  "@roadTaxIUCNotCalculatedForRegistrationsBefore": {
+  "iucNotCalculated": "IUC: não calculado para matrículas anteriores a {iucFirstYear}",
+  "@iucNotCalculated": {
     "description": "Interface text in ownership_cost, ownershipLines.",
     "placeholders": {
       "iucFirstYear": {
@@ -2287,8 +2287,8 @@
       }
     }
   },
-  "insuranceNotIncludedEnterYourInsurancePremium": "Seguro: não incluído; indique o valor do seu seguro",
-  "@insuranceNotIncludedEnterYourInsurancePremium": {
+  "insuranceNotEntered": "Seguro: não incluído; indique o valor do seu seguro",
+  "@insuranceNotEntered": {
     "description": "Interface text in ownership_cost, ownershipLines."
   },
   "insuranceYourFigure": "Seguro: {price} (o seu valor)",
@@ -2300,14 +2300,14 @@
       }
     }
   },
-  "tyresSetEveryAtLeastEveryYears": "Pneus: {price} (um jogo a cada {value}, pelo menos a cada {tyreMaxYears} anos)",
-  "@tyresSetEveryAtLeastEveryYears": {
+  "ownershipTyres": "Pneus: {price} (um jogo a cada {distance}, pelo menos a cada {tyreMaxYears} anos)",
+  "@ownershipTyres": {
     "description": "Interface text in ownership_cost, ownershipLines.",
     "placeholders": {
       "price": {
         "type": "String"
       },
-      "value": {
+      "distance": {
         "type": "String"
       },
       "tyreMaxYears": {
@@ -2315,26 +2315,26 @@
       }
     }
   },
-  "servicingEveryAtLeastOnceYear": "Revisões: {price} (a cada {value}, pelo menos uma por ano)",
-  "@servicingEveryAtLeastOnceYear": {
+  "ownershipServicing": "Revisões: {price} (a cada {distance}, pelo menos uma por ano)",
+  "@ownershipServicing": {
     "description": "Interface text in ownership_cost, ownershipLines.",
     "placeholders": {
       "price": {
         "type": "String"
       },
-      "value": {
+      "distance": {
         "type": "String"
       }
     }
   },
-  "chainAndSprocketKitEvery": "Kit de transmissão: {price} (a cada {value})",
-  "@chainAndSprocketKitEvery": {
+  "ownershipChain": "Kit de transmissão: {price} (a cada {distance})",
+  "@ownershipChain": {
     "description": "Interface text in ownership_cost, ownershipLines.",
     "placeholders": {
       "price": {
         "type": "String"
       },
-      "value": {
+      "distance": {
         "type": "String"
       }
     }
@@ -2407,8 +2407,8 @@
   "@whatChanged": {
     "description": "Interface text in alerts_page, build."
   },
-  "newListingsPriceDropsAndUpdatesAboutBikes": "Novos anúncios, baixas de preço e novidades das motas que acompanha. Deslize para a esquerda para eliminar ou para a direita para editar a pesquisa de origem.",
-  "@newListingsPriceDropsAndUpdatesAboutBikes": {
+  "alertsIntro": "Novos anúncios, baixas de preço e novidades das motas que acompanha. Deslize para a esquerda para eliminar ou para a direita para editar a pesquisa de origem.",
+  "@alertsIntro": {
     "description": "Interface text in alerts_page, build."
   },
   "unread": "Não lido",
@@ -2468,8 +2468,8 @@
   "@couldNotSaveSearch": {
     "description": "Interface text in dashboard_page, _saveSearch."
   },
-  "youAlreadyHaveListingsToCompareRemoveOne": "Já tem {maxCompared} anúncios na comparação. Retire um primeiro.",
-  "@youAlreadyHaveListingsToCompareRemoveOne": {
+  "compareFull": "Já tem {maxCompared} anúncios na comparação. Retire um primeiro.",
+  "@compareFull": {
     "description": "Interface text in dashboard_page, _toggleCompare.",
     "placeholders": {
       "maxCompared": {
@@ -2502,8 +2502,8 @@
   "@yourNextBikeStartsHere": {
     "description": "Interface text in dashboard_page, build."
   },
-  "comparePricesCheckHistoryAndChooseWithConfidence": "Compare o preço, conheça o histórico e escolha com confiança.",
-  "@comparePricesCheckHistoryAndChooseWithConfidence": {
+  "dealsIntro": "Compare o preço, conheça o histórico e escolha com confiança.",
+  "@dealsIntro": {
     "description": "Interface text in dashboard_page, build."
   },
   "removeFilter": "Remover filtro",
@@ -2687,8 +2687,8 @@
   "@removedFromComparison": {
     "description": "Interface text in listing_detail_page, build."
   },
-  "addedToComparisonChooseAnotherListingToCompare": "Na comparação. Escolha outro anúncio para comparar.",
-  "@addedToComparisonChooseAnotherListingToCompare": {
+  "compareAddedChooseAnother": "Na comparação. Escolha outro anúncio para comparar.",
+  "@compareAddedChooseAnother": {
     "description": "Interface text in listing_detail_page, build."
   },
   "inComparison": "Na comparação ({length})",
@@ -2716,8 +2716,8 @@
   "@chooseModelsInMoreFollowedModels": {
     "description": "Interface text in model_market_page, build."
   },
-  "askingPricesInActiveListingsExcludingDuplicatesAnd": "Preços pedidos nos anúncios ativos, sem duplicados e sem ajustar ano e quilómetros.",
-  "@askingPricesInActiveListingsExcludingDuplicatesAnd": {
+  "marketPricesNote": "Preços pedidos nos anúncios ativos, sem duplicados e sem ajustar ano e quilómetros.",
+  "@marketPricesNote": {
     "description": "Interface text in model_market_page, build."
   },
   "searchDeleted": "Pesquisa eliminada",
@@ -2752,8 +2752,8 @@
   "@yourSearches": {
     "description": "Interface text in saved_searches_page, build."
   },
-  "yourCriteriaAlwaysToHandFollowNewListings": "Os seus critérios, sempre à mão. Acompanhe os novos anúncios e as alterações de preço. Deslize para a direita para editar ou para a esquerda para eliminar.",
-  "@yourCriteriaAlwaysToHandFollowNewListings": {
+  "searchesIntro": "Os seus critérios, sempre à mão. Acompanhe os novos anúncios e as alterações de preço. Deslize para a direita para editar ou para a esquerda para eliminar.",
+  "@searchesIntro": {
     "description": "Interface text in saved_searches_page, build."
   },
   "searchOptions": "Opções da pesquisa",
@@ -2792,8 +2792,8 @@
   "@fromYear": {
     "description": "Interface text in tracked_models_page, build."
   },
-  "olderListingsAreIgnoredEarlierYearBringsMore": "Anúncios mais antigos são ignorados. Um ano mais antigo traz mais anúncios, mas a pesquisa ocupa mais pedidos.",
-  "@olderListingsAreIgnoredEarlierYearBringsMore": {
+  "firstYearHelp": "Anúncios mais antigos são ignorados. Um ano mais antigo traz mais anúncios, mas a pesquisa ocupa mais pedidos.",
+  "@firstYearHelp": {
     "description": "Interface text in tracked_models_page, build."
   },
   "preferredColours": "Cores preferidas",
@@ -2808,8 +2808,8 @@
   "@newBikePriceInput": {
     "description": "Interface text in tracked_models_page, build."
   },
-  "listPriceOnManufacturerSWebsiteRecordedWith": "Preço de tabela no site da marca. Fica registado com a data de hoje; deixe vazio para apagar.",
-  "@listPriceOnManufacturerSWebsiteRecordedWith": {
+  "newPriceHelp": "Preço de tabela no site da marca. Fica registado com a data de hoje; deixe vazio para apagar.",
+  "@newPriceHelp": {
     "description": "Interface text in tracked_models_page, build."
   },
   "save": "Guardar",
@@ -2824,8 +2824,8 @@
   "@availableWhenSignedIn": {
     "description": "Interface text in weekly_summary_page, build."
   },
-  "summaryCoversModelsFollowedByYourAccount": "O resumo é feito com os modelos que a sua conta acompanha.",
-  "@summaryCoversModelsFollowedByYourAccount": {
+  "weeklySummaryScope": "O resumo é feito com os modelos que a sua conta acompanha.",
+  "@weeklySummaryScope": {
     "description": "Interface text in weekly_summary_page, build."
   },
   "couldNotLoadSummary": "Não foi possível carregar o resumo",
@@ -2836,8 +2836,8 @@
   "@noSummaryYet": {
     "description": "Interface text in weekly_summary_page, build."
   },
-  "firstArrivesOnMondayMorningYouCanRequest": "O primeiro chega na segunda-feira de manhã. Pode pedir um já.",
-  "@firstArrivesOnMondayMorningYouCanRequest": {
+  "weeklySummaryNoneYet": "O primeiro chega na segunda-feira de manhã. Pode pedir um já.",
+  "@weeklySummaryNoneYet": {
     "description": "Interface text in weekly_summary_page, build."
   },
   "newText": "Novos: {byModel}",
@@ -2861,11 +2861,11 @@
   "@largestDrops": {
     "description": "Interface text in weekly_summary_page, build."
   },
-  "accordingToPriceWasPreviouslyDownSoFar": "Segundo o {value}, o preço já foi {price} (−{pct} até hoje), antes de começarmos a seguir este anúncio.",
-  "@accordingToPriceWasPreviouslyDownSoFar": {
+  "siteDropLine": "Segundo o {site}, o preço já foi {price} (−{pct} até hoje), antes de começarmos a seguir este anúncio.",
+  "@siteDropLine": {
     "description": "Interface text in price_history_text, siteDropLine.",
     "placeholders": {
-      "value": {
+      "site": {
         "type": "String"
       },
       "price": {
@@ -2897,14 +2897,14 @@
       }
     }
   },
-  "priceAgainstOtherListingsNotEnoughDataYet": "Preço face aos outros anúncios: ainda poucos dados ({length} {value})",
-  "@priceAgainstOtherListingsNotEnoughDataYet": {
+  "pricePositionFewData": "Preço face aos outros anúncios: ainda poucos dados ({count} {listingsWord})",
+  "@pricePositionFewData": {
     "description": "Interface text in price_position_text, pricePositionLine.",
     "placeholders": {
-      "length": {
+      "count": {
         "type": "String"
       },
-      "value": {
+      "listingsWord": {
         "type": "String"
       }
     }
@@ -2918,8 +2918,8 @@
       }
     }
   },
-  "lowestPriceAmongThisModelSActiveListings": "O preço mais baixo dos {all} anúncios ativos deste modelo ({median})",
-  "@lowestPriceAmongThisModelSActiveListings": {
+  "priceLowestAmongActive": "O preço mais baixo dos {all} anúncios ativos deste modelo ({median})",
+  "@priceLowestAmongActive": {
     "description": "Interface text in price_position_text, pricePositionLine.",
     "placeholders": {
       "all": {
@@ -2930,8 +2930,8 @@
       }
     }
   },
-  "highestPriceAmongThisModelSActiveListings": "O preço mais alto dos {all} anúncios ativos deste modelo ({median})",
-  "@highestPriceAmongThisModelSActiveListings": {
+  "priceHighestAmongActive": "O preço mais alto dos {all} anúncios ativos deste modelo ({median})",
+  "@priceHighestAmongActive": {
     "description": "Interface text in price_position_text, pricePositionLine.",
     "placeholders": {
       "all": {
@@ -3088,11 +3088,11 @@
   "@inYourColours": {
     "description": "Interface text in saved_search_summary, onlyMyColoursLabel."
   },
-  "withText": "com {value}",
-  "@withText": {
+  "withExtra": "com {extra}",
+  "@withExtra": {
     "description": "Interface text in saved_search_summary, extraFilterLabel.",
     "placeholders": {
-      "value": {
+      "extra": {
         "type": "String"
       }
     }
@@ -3114,11 +3114,11 @@
   "@lowRiskCriterion": {
     "description": "Interface text in score_criteria, riskCriterionLabel."
   },
-  "riskUpTo": "Risco até {value}",
+  "riskUpTo": "Risco até {risk}",
   "@riskUpTo": {
     "description": "Interface text in score_criteria, riskCriterionLabel.",
     "placeholders": {
-      "value": {
+      "risk": {
         "type": "String"
       }
     }
@@ -3289,8 +3289,8 @@
   "@descriptionMentionsAccidentFallOrImpact": {
     "description": "Interface text in score_explanation, _riskLines."
   },
-  "descriptionMentionsRepairsOrMissingOrBrokenParts": "A descrição fala em reparações ou peças em falta ou partidas",
-  "@descriptionMentionsRepairsOrMissingOrBrokenParts": {
+  "riskNeedsRepair": "A descrição fala em reparações ou peças em falta ou partidas",
+  "@riskNeedsRepair": {
     "description": "Interface text in score_explanation, _riskLines."
   },
   "descriptionMentionsScratchesOrDents": "A descrição fala em riscos ou mossas",
@@ -3305,8 +3305,8 @@
   "@yearNotStated": {
     "description": "Interface text in score_explanation, _riskLines."
   },
-  "implausibleMileageForItsYearCheckWithSeller": "Quilometragem pouco provável para o ano, confirme com o vendedor",
-  "@implausibleMileageForItsYearCheckWithSeller": {
+  "riskImplausibleMileage": "Quilometragem pouco provável para o ano, confirme com o vendedor",
+  "@riskImplausibleMileage": {
     "description": "Interface text in score_explanation, _riskLines."
   },
   "veryShortDescription": "Descrição muito curta",
@@ -3325,20 +3325,20 @@
   "@importedBike": {
     "description": "Interface text in score_explanation, _riskLines."
   },
-  "yearInDescriptionDoesNotMatchListingScoreExplanation": "O ano escrito na descrição não bate certo com o do anúncio",
-  "@yearInDescriptionDoesNotMatchListingScoreExplanation": {
+  "riskTextYear": "O ano escrito na descrição não bate certo com o do anúncio",
+  "@riskTextYear": {
     "description": "Interface text in score_explanation, _riskLines."
   },
-  "descriptionMentionsMoreKilometresThanListingStates": "A descrição fala em mais quilómetros do que o anúncio indica",
-  "@descriptionMentionsMoreKilometresThanListingStates": {
+  "riskTextMoreKm": "A descrição fala em mais quilómetros do que o anúncio indica",
+  "@riskTextMoreKm": {
     "description": "Interface text in score_explanation, _riskLines."
   },
-  "descriptionSaysImportedListingSaysPortugueseMarket": "A descrição diz importada, o anúncio diz nacional",
-  "@descriptionSaysImportedListingSaysPortugueseMarket": {
+  "riskTextImported": "A descrição diz importada, o anúncio diz nacional",
+  "@riskTextImported": {
     "description": "Interface text in score_explanation, _riskLines."
   },
-  "descriptionSaysThereIsNoServiceBookListing": "A descrição diz sem livro, o anúncio diz livro de revisões",
-  "@descriptionSaysThereIsNoServiceBookListing": {
+  "riskTextNoServiceBook": "A descrição diz sem livro, o anúncio diz livro de revisões",
+  "@riskTextNoServiceBook": {
     "description": "Interface text in score_explanation, _riskLines."
   },
   "wasForSaleInEarlierListingAndDid": "Já esteve à venda noutro anúncio e não foi vendida",
@@ -3353,8 +3353,8 @@
   "@a2Version35KWFullPowerRequiresRemoving": {
     "description": "Interface text in score_explanation, _riskLines."
   },
-  "unrestrictedA2VersionCheckThatDocumentsShowFull": "Versão A2 deslimitada: confirme que os documentos já indicam a potência toda",
-  "@unrestrictedA2VersionCheckThatDocumentsShowFull": {
+  "riskA2Unlocked": "Versão A2 deslimitada: confirme que os documentos já indicam a potência toda",
+  "@riskA2Unlocked": {
     "description": "Interface text in score_explanation, _riskLines."
   },
   "stillUnderFactoryWarranty": "Ainda com garantia de fábrica",
@@ -3430,8 +3430,8 @@
       }
     }
   },
-  "notEnoughComparableListingsToEstimateValuePrice": "Ainda poucos anúncios comparáveis ({marketCount}) para estimar o valor: o preço não conta",
-  "@notEnoughComparableListingsToEstimateValuePrice": {
+  "priceNotEnoughComparables": "Ainda poucos anúncios comparáveis ({marketCount}) para estimar o valor: o preço não conta",
+  "@priceNotEnoughComparables": {
     "description": "Interface text in score_explanation, explain.",
     "placeholders": {
       "marketCount": {
@@ -3443,8 +3443,8 @@
   "@withoutPriceComparisonScoreIsCappedAt70": {
     "description": "Interface text in score_explanation, explain."
   },
-  "withDamageOrOutstandingRepairsScoreIsCapped": "Com danos ou reparações por fazer, a pontuação fica no máximo em 50: o valor estimado é o de motas sem danos",
-  "@withDamageOrOutstandingRepairsScoreIsCapped": {
+  "scoreCappedForDamage": "Com danos ou reparações por fazer, a pontuação fica no máximo em 50: o valor estimado é o de motas sem danos",
+  "@scoreCappedForDamage": {
     "description": "Interface text in score_explanation, explain."
   },
   "modelYear": "Modelo de {year}",
@@ -3510,11 +3510,11 @@
       }
     }
   },
-  "onText": " no {value}",
-  "@onText": {
+  "onSite": " no {site}",
+  "@onSite": {
     "description": "Interface text in seller_message_text, sellerMessage.",
     "placeholders": {
-      "value": {
+      "site": {
         "type": "String"
       }
     }
@@ -3593,14 +3593,14 @@
   "@noNewBikePrice": {
     "description": "Interface text in tracked_models_text, newPriceSubtitle."
   },
-  "newBikePriceTrackedModelsText": "Preço de uma nova: {price}{value}",
-  "@newBikePriceTrackedModelsText": {
+  "newBikePriceLine": "Preço de uma nova: {price}{checkedNote}",
+  "@newBikePriceLine": {
     "description": "Interface text in tracked_models_text, newPriceSubtitle.",
     "placeholders": {
       "price": {
         "type": "String"
       },
-      "value": {
+      "checkedNote": {
         "type": "String"
       }
     }
@@ -3609,8 +3609,8 @@
   "@invalidPrice": {
     "description": "Interface text in tracked_models_text, parseNewPrice."
   },
-  "searchesInEachCollectionModelsFromAllAccounts": "Pesquisas em cada recolha (modelos de todas as contas): {olx} no OLX e {standvirtual} no Standvirtual, cada uma com todas as páginas. Os pedidos de cada recolha aparecem em Mais › Recolha de dados.",
-  "@searchesInEachCollectionModelsFromAllAccounts": {
+  "searchesPerCollection": "Pesquisas em cada recolha (modelos de todas as contas): {olx} no OLX e {standvirtual} no Standvirtual, cada uma com todas as páginas. Os pedidos de cada recolha aparecem em Mais › Recolha de dados.",
+  "@searchesPerCollection": {
     "description": "Interface text in tracked_models_text, searchesLine.",
     "placeholders": {
       "olx": {
@@ -3666,16 +3666,16 @@
   "@registrationCertificate": {
     "description": "Interface text in viewing_checklist, viewingChecklist."
   },
-  "askForVehicleRegistrationCertificateItShowsLiens": "Peça a certidão de registo automóvel: mostra penhoras, reservas de propriedade e crédito por pagar.",
-  "@askForVehicleRegistrationCertificateItShowsLiens": {
+  "checklistRegistryHint": "Peça a certidão de registo automóvel: mostra penhoras, reservas de propriedade e crédito por pagar.",
+  "@checklistRegistryHint": {
     "description": "Interface text in viewing_checklist, viewingChecklist."
   },
   "servicing": "Revisões",
   "@servicing": {
     "description": "Interface text in viewing_checklist, viewingChecklist."
   },
-  "serviceBookStampsAndInvoicesMileageIsConsistent": "Livro com carimbos e faturas das revisões; os quilómetros batem certo com as datas.",
-  "@serviceBookStampsAndInvoicesMileageIsConsistent": {
+  "checklistServiceHint": "Livro com carimbos e faturas das revisões; os quilómetros batem certo com as datas.",
+  "@checklistServiceHint": {
     "description": "Interface text in viewing_checklist, viewingChecklist."
   },
   "keys": "Chaves",
@@ -3694,12 +3694,12 @@
   "@signsOfFall": {
     "description": "Interface text in viewing_checklist, viewingChecklist."
   },
-  "scratchedOrBentLeversFootrestsHandlebarEndsAnd": "Manetes, poisa-pés, pontas do guiador e espelhos riscados ou dobrados; depósito amolgado; carenagens de cores diferentes.",
-  "@scratchedOrBentLeversFootrestsHandlebarEndsAnd": {
+  "checklistBodyworkHint": "Manetes, poisa-pés, pontas do guiador e espelhos riscados ou dobrados; depósito amolgado; carenagens de cores diferentes.",
+  "@checklistBodyworkHint": {
     "description": "Interface text in viewing_checklist, viewingChecklist."
   },
-  "treadAndManufactureDateDOTLastFourDigits": "Piso e data de fabrico (DOT: os quatro últimos dígitos são a semana e o ano). Com mais de 5 anos, conte com trocá-los.",
-  "@treadAndManufactureDateDOTLastFourDigits": {
+  "checklistTyresHint": "Piso e data de fabrico (DOT: os quatro últimos dígitos são a semana e o ano). Com mais de 5 anos, conte com trocá-los.",
+  "@checklistTyresHint": {
     "description": "Interface text in viewing_checklist, viewingChecklist."
   },
   "chainAndSprockets": "Corrente e cremalheira",
@@ -3742,8 +3742,8 @@
   "@lightsAndElectrics": {
     "description": "Interface text in viewing_checklist, viewingChecklist."
   },
-  "headlightIndicatorsBrakeLightHornNoWarningLights": "Farol, piscas, luz de travão, buzina; painel sem avisos acesos.",
-  "@headlightIndicatorsBrakeLightHornNoWarningLights": {
+  "checklistLightsHint": "Farol, piscas, luz de travão, buzina; painel sem avisos acesos.",
+  "@checklistLightsHint": {
     "description": "Interface text in viewing_checklist, viewingChecklist."
   },
   "testRide": "Experimentar a andar",
@@ -3834,8 +3834,8 @@
       }
     }
   },
-  "createdOnAtUsingYourFollowedModelsArrives": "Feito a {date} às {time}, com os seus modelos acompanhados. Chega todas as segundas-feiras de manhã aos aparelhos com notificações ativas.",
-  "@createdOnAtUsingYourFollowedModelsArrives": {
+  "weeklySummaryCreated": "Feito a {date} às {time}, com os seus modelos acompanhados. Chega todas as segundas-feiras de manhã aos aparelhos com notificações ativas.",
+  "@weeklySummaryCreated": {
     "description": "Interface text in weekly_summary_text, summaryMadeText.",
     "placeholders": {
       "date": {
@@ -3902,8 +3902,8 @@
   "@otherNamesOptional": {
     "description": "Interface text in add_model_sheet, build."
   },
-  "otherWaysSellersWriteModelSeparatedByCommas": "Como os vendedores também escrevem o modelo, separados por vírgulas. Ex.: Z 650, Z-650",
-  "@otherWaysSellersWriteModelSeparatedByCommas": {
+  "aliasesHelp": "Como os vendedores também escrevem o modelo, separados por vírgulas. Ex.: Z 650, Z-650",
+  "@aliasesHelp": {
     "description": "Interface text in add_model_sheet, build."
   },
   "add": "Adicionar",
@@ -4036,8 +4036,8 @@
   "@yourNotes": {
     "description": "Interface text in favourite_widgets, _edit."
   },
-  "forExampleCalledStillAvailableServicedInMarch": "Ex.: Liguei, ainda disponível. Revisão feita em março.",
-  "@forExampleCalledStillAvailableServicedInMarch": {
+  "favouriteNoteHint": "Ex.: Liguei, ainda disponível. Revisão feita em março.",
+  "@favouriteNoteHint": {
     "description": "Interface text in favourite_widgets, _edit."
   },
   "couldNotSaveNote": "Não foi possível guardar a nota",
@@ -4156,11 +4156,11 @@
   "@estimateBasedOnAskingPricesNotSalesSee": {
     "description": "Interface text in offer_card, _content."
   },
-  "beforeOfferingResolveThisIsNotMatterOf": "Antes de propor: resolva {value}. Não é uma questão de preço.",
-  "@beforeOfferingResolveThisIsNotMatterOf": {
+  "visitBlockers": "Antes de propor: resolva {blockers}. Não é uma questão de preço.",
+  "@visitBlockers": {
     "description": "Interface text in offer_card, _content.",
     "placeholders": {
-      "value": {
+      "blockers": {
         "type": "String"
       }
     }
@@ -4291,8 +4291,8 @@
       }
     }
   },
-  "askingPricesWithoutAdjustingForYearAndMileage": "Preços pedidos, sem ajustar ano e km",
-  "@askingPricesWithoutAdjustingForYearAndMileage": {
+  "askingPricesUnadjusted": "Preços pedidos, sem ajustar ano e km",
+  "@askingPricesUnadjusted": {
     "description": "Interface text in price_position_strip, build."
   },
   "basedOnOfFactors": "Baseado em {used} de {total} fatores",
@@ -4344,11 +4344,11 @@
   "@forViewing": {
     "description": "Interface text in viewing_checklist_card, build."
   },
-  "markWhatYouCheckedAndTapItemTo": "{value}. Marque o que viu e toque num ponto para escrever o que encontrou.",
-  "@markWhatYouCheckedAndTapItemTo": {
+  "checklistIntro": "{summary}. Marque o que viu e toque num ponto para escrever o que encontrou.",
+  "@checklistIntro": {
     "description": "Interface text in viewing_checklist_card, build.",
     "placeholders": {
-      "value": {
+      "summary": {
         "type": "String"
       }
     }
@@ -4395,8 +4395,8 @@
       }
     }
   },
-  "accountWillLoseAccessAndItsSearchesAlerts": "A conta deixa de poder entrar, e as suas pesquisas, alertas, favoritos e notificações são apagados. Não pode ser desfeito.",
-  "@accountWillLoseAccessAndItsSearchesAlerts": {
+  "removeAccountWarning": "A conta deixa de poder entrar, e as suas pesquisas, alertas, favoritos e notificações são apagados. Não pode ser desfeito.",
+  "@removeAccountWarning": {
     "description": "Interface text in accounts_page, _removeAccount."
   },
   "couldNotRemoveAccount": "Não foi possível remover a conta.",
@@ -4468,8 +4468,8 @@
   "@removeAccount": {
     "description": "Interface text in accounts_page, build."
   },
-  "eachAccountChoosesItsModelsSearchesAndAlerts": "Cada conta escolhe os seus modelos, pesquisas e alertas; os anúncios são recolhidos uma vez para todas. Os administradores convidam pessoas e gerem as contas.",
-  "@eachAccountChoosesItsModelsSearchesAndAlerts": {
+  "accountsIntro": "Cada conta escolhe os seus modelos, pesquisas e alertas; os anúncios são recolhidos uma vez para todas. Os administradores convidam pessoas e gerem as contas.",
+  "@accountsIntro": {
     "description": "Interface text in accounts_page, build."
   },
   "newInvite": "Novo convite",
@@ -4528,19 +4528,19 @@
   "@checkYourEmailAndPasswordAtLeast8": {
     "description": "Interface text in accounts_text, redeemErrorText."
   },
-  "accountCreationIsNotAvailableYetTryAgain": "A criação de contas ainda não está disponível. Tente daqui a algumas horas.",
-  "@accountCreationIsNotAvailableYetTryAgain": {
+  "inviteServiceNotReady": "A criação de contas ainda não está disponível. Tente daqui a algumas horas.",
+  "@inviteServiceNotReady": {
     "description": "Interface text in accounts_text, redeemErrorText."
   },
   "couldNotCreateAccountTryAgain": "Não foi possível criar a conta. Tente novamente.",
   "@couldNotCreateAccountTryAgain": {
     "description": "Interface text in accounts_text, redeemErrorText."
   },
-  "usedOn": "Usado{value} a {date}",
-  "@usedOn": {
+  "inviteUsed": "Usado{byWho} a {date}",
+  "@inviteUsed": {
     "description": "Interface text in accounts_text, inviteSubtitle.",
     "placeholders": {
-      "value": {
+      "byWho": {
         "type": "String"
       },
       "date": {
@@ -4557,11 +4557,11 @@
       }
     }
   },
-  "unusedExpires": "Por usar · expira {value}",
-  "@unusedExpires": {
+  "inviteUnused": "Por usar · expira {expires}",
+  "@inviteUnused": {
     "description": "Interface text in accounts_text, inviteSubtitle.",
     "placeholders": {
-      "value": {
+      "expires": {
         "type": "String"
       }
     }
@@ -4676,8 +4676,8 @@
       }
     }
   },
-  "couldNotDownloadNewVersionCheckYourConnection": "Não foi possível descarregar a versão nova. Verifique a ligação e tente de novo.",
-  "@couldNotDownloadNewVersionCheckYourConnection": {
+  "apkDownloadFailed": "Não foi possível descarregar a versão nova. Verifique a ligação e tente de novo.",
+  "@apkDownloadFailed": {
     "description": "Interface text in android_app_tile, _update."
   },
   "yourHomeLocation": "A sua localidade",
@@ -4688,8 +4688,8 @@
   "@setItToSeeHowFarAwayEach": {
     "description": "Interface text in home_place_tile, build."
   },
-  "yourHomeLocationDistancesToListingsAreMeasured": "A sua localidade: a distância de cada anúncio conta a partir daqui",
-  "@yourHomeLocationDistancesToListingsAreMeasured": {
+  "homePlaceHelp": "A sua localidade: a distância de cada anúncio conta a partir daqui",
+  "@homePlaceHelp": {
     "description": "Interface text in home_place_tile, build."
   },
   "enterCityOrTown": "Escreva a cidade ou vila",
@@ -4724,11 +4724,11 @@
   "@youAreAlreadySignedIn": {
     "description": "Interface text in join_page, build."
   },
-  "youAreSignedInAsSignOutTo": "Está com a conta {value}. Termine a sessão para criar uma conta nova com este convite.",
-  "@youAreSignedInAsSignOutTo": {
+  "joinSignedInAs": "Está com a conta {email}. Termine a sessão para criar uma conta nova com este convite.",
+  "@joinSignedInAs": {
     "description": "Interface text in join_page, build.",
     "placeholders": {
-      "value": {
+      "email": {
         "type": "String"
       }
     }
@@ -4737,8 +4737,8 @@
   "@welcome": {
     "description": "Interface text in join_page, _form."
   },
-  "youHaveBeenInvitedToMotorcycleDealTracker": "Recebeu um convite para o Motorcycle Deal Tracker: as motas usadas à venda em Portugal, com o preço justo e a pontuação de cada anúncio. Escolha o email e a palavra-passe com que vai entrar.",
-  "@youHaveBeenInvitedToMotorcycleDealTracker": {
+  "inviteShareText": "Recebeu um convite para o Motorcycle Deal Tracker: as motas usadas à venda em Portugal, com o preço justo e a pontuação de cada anúncio. Escolha o email e a palavra-passe com que vai entrar.",
+  "@inviteShareText": {
     "description": "Interface text in join_page, _form."
   },
   "atLeast8Characters": "Pelo menos 8 caracteres",
@@ -4777,12 +4777,12 @@
   "@chooseDetailsShownInDealsAndFavourites": {
     "description": "Interface text in listing_card_preferences_tile, build."
   },
-  "chooseDetailsShownInDealsAndFavouritesWhen": "Escolha os detalhes apresentados em Ofertas e Favoritos, quando disponíveis. As escolhas ficam guardadas na sua conta, em todos os dispositivos.",
-  "@chooseDetailsShownInDealsAndFavouritesWhen": {
+  "cardDetailsIntro": "Escolha os detalhes apresentados em Ofertas e Favoritos, quando disponíveis. As escolhas ficam guardadas na sua conta, em todos os dispositivos.",
+  "@cardDetailsIntro": {
     "description": "Interface text in listing_card_preferences_tile, build."
   },
-  "photoModelPriceRemovalNoticesAndActionsAre": "A fotografia, o modelo, o preço, os avisos de remoção e as ações ficam sempre visíveis.",
-  "@photoModelPriceRemovalNoticesAndActionsAre": {
+  "cardAlwaysShown": "A fotografia, o modelo, o preço, os avisos de remoção e as ações ficam sempre visíveis.",
+  "@cardAlwaysShown": {
     "description": "Interface text in listing_card_preferences_tile, build."
   },
   "restoreDefaults": "Repor predefinições",
@@ -4833,8 +4833,8 @@
   "@whichModelsToCollectFromWhichYearYour": {
     "description": "Interface text in more_page, build."
   },
-  "askingPricesTimeUntilLeavingMarketAndDepreciation": "Preços pedidos, tempo até sair do mercado e desvalorização dos modelos acompanhados",
-  "@askingPricesTimeUntilLeavingMarketAndDepreciation": {
+  "marketPageSubtitle": "Preços pedidos, tempo até sair do mercado e desvalorização dos modelos acompanhados",
+  "@marketPageSubtitle": {
     "description": "Interface text in more_page, build."
   },
   "notifications": "Notificações",
@@ -4849,8 +4849,8 @@
   "@dataCollection": {
     "description": "Interface text in more_page, build."
   },
-  "collectionStatusAndDurationAreAvailableWhenSigned": "O estado e a duração das recolhas aparecem com sessão iniciada.",
-  "@collectionStatusAndDurationAreAvailableWhenSigned": {
+  "collectionStatusNeedsSignIn": "O estado e a duração das recolhas aparecem com sessão iniciada.",
+  "@collectionStatusNeedsSignIn": {
     "description": "Interface text in more_page, build."
   },
   "dataQuality": "Qualidade dos dados",
@@ -4861,8 +4861,8 @@
   "@signInToReceiveAlertsOnThisDevice": {
     "description": "Interface text in push_text, pushSubtitle."
   },
-  "enabledAlertsArriveAfterEachCollectionTapTo": "Ativas: os alertas chegam depois de cada recolha e, ao tocar, abrem o anúncio",
-  "@enabledAlertsArriveAfterEachCollectionTapTo": {
+  "pushEnabled": "Ativas: os alertas chegam depois de cada recolha e, ao tocar, abrem o anúncio",
+  "@pushEnabled": {
     "description": "Interface text in push_text, pushSubtitle."
   },
   "receiveAlertsOnThisDeviceTapToOpen": "Receba os alertas neste aparelho; ao tocar, abre o anúncio na app",
@@ -4873,24 +4873,24 @@
   "@onIPhoneOpenAppFromHomeScreenShare": {
     "description": "Interface text in push_text, pushSubtitle."
   },
-  "blockedOnThisDeviceAllowNotificationsInSettings": "Bloqueadas neste aparelho: permita-as nas definições (no iPhone, Definições › Notificações)",
-  "@blockedOnThisDeviceAllowNotificationsInSettings": {
+  "pushBlocked": "Bloqueadas neste aparelho: permita-as nas definições (no iPhone, Definições › Notificações)",
+  "@pushBlocked": {
     "description": "Interface text in push_text, pushSubtitle."
   },
   "thisBrowserDoesNotSupportNotifications": "Este navegador não recebe notificações",
   "@thisBrowserDoesNotSupportNotifications": {
     "description": "Interface text in push_text, pushSubtitle."
   },
-  "thisAndroidAppIsNotConfiguredForNotifications": "A app Android ainda não recebe notificações: para as receber, abra a app no Chrome e ative-as lá",
-  "@thisAndroidAppIsNotConfiguredForNotifications": {
+  "pushNotConfiguredAndroid": "A app Android ainda não recebe notificações: para as receber, abra a app no Chrome e ative-as lá",
+  "@pushNotConfiguredAndroid": {
     "description": "Interface text in push_text, pushSubtitle."
   },
-  "notificationsWillBeAvailableAfterNextCollection": "As notificações ficam disponíveis depois da próxima recolha.",
-  "@notificationsWillBeAvailableAfterNextCollection": {
+  "pushNotReadyYet": "As notificações ficam disponíveis depois da próxima recolha.",
+  "@pushNotReadyYet": {
     "description": "Interface text in push_tile, _set."
   },
-  "couldNotEnableNotificationsCheckPermissionAndTry": "Não foi possível ativar as notificações. Verifique a permissão e tente novamente.",
-  "@couldNotEnableNotificationsCheckPermissionAndTry": {
+  "pushEnableFailed": "Não foi possível ativar as notificações. Verifique a permissão e tente novamente.",
+  "@pushEnableFailed": {
     "description": "Interface text in push_tile, _set."
   },
   "couldNotDisableNotificationsTryAgain": "Não foi possível desativar. Tente novamente.",
@@ -4917,8 +4917,8 @@
   "@start": {
     "description": "Interface text in run_now_tiles, _start."
   },
-  "recentCollectionsAndErrorsTodaySRequestsAnd": "Últimas recolhas e erros, pedidos de hoje e o token do GitHub",
-  "@recentCollectionsAndErrorsTodaySRequestsAnd": {
+  "collectionStatusSubtitle": "Últimas recolhas e erros, pedidos de hoje e o token do GitHub",
+  "@collectionStatusSubtitle": {
     "description": "Interface text in run_now_tiles, build."
   },
   "linkCopiedPasteItIntoMessage": "Link copiado. Cole-o numa mensagem.",
@@ -4933,8 +4933,8 @@
   "@linkToViewListingsWithoutAccount": {
     "description": "Interface text in share_tiles, build."
   },
-  "linkToViewListingsAskAdministratorForInvite": "O link para ver os anúncios. Para ter conta, peça um convite a um administrador",
-  "@linkToViewListingsAskAdministratorForInvite": {
+  "viewLinkHelp": "O link para ver os anúncios. Para ter conta, peça um convite a um administrador",
+  "@viewLinkHelp": {
     "description": "Interface text in share_tiles, build."
   },
   "invitePeopleWithLinkAndSeeWhoHas": "Convide pessoas com um link e veja quem tem conta",
@@ -4945,12 +4945,12 @@
   "@collectNow": {
     "description": "Interface text in workflows_text, workflowText."
   },
-  "readSitesNowOutsideScheduleRequestsAppearIn": "Lê os sites já, fora do horário (os pedidos ficam em Estado da recolha)",
-  "@readSitesNowOutsideScheduleRequestsAppearIn": {
+  "collectNowSubtitle": "Lê os sites já, fora do horário (os pedidos ficam em Estado da recolha)",
+  "@collectNowSubtitle": {
     "description": "Interface text in workflows_text, workflowText."
   },
-  "collectionStartedNewListingsShouldAppearInAbout": "Recolha iniciada. Os anúncios novos aparecem daqui a cerca de 10 minutos.",
-  "@collectionStartedNewListingsShouldAppearInAbout": {
+  "collectionStarted": "Recolha iniciada. Os anúncios novos aparecem daqui a cerca de 10 minutos.",
+  "@collectionStarted": {
     "description": "Interface text in workflows_text, workflowText."
   },
   "sendWeeklySummary": "Enviar o resumo da semana",
@@ -4973,8 +4973,8 @@
   "@chooseTypeToConfirmThatAlertsReachYour": {
     "description": "Interface text in workflows_text, workflowText."
   },
-  "testNotificationRequestedItShouldArriveIn1": "Notificação de teste pedida. Chega dentro de 1 a 2 minutos; se não chegar, desative e volte a ativar as notificações.",
-  "@testNotificationRequestedItShouldArriveIn1": {
+  "pushTestRequested": "Notificação de teste pedida. Chega dentro de 1 a 2 minutos; se não chegar, desative e volte a ativar as notificações.",
+  "@pushTestRequested": {
     "description": "Interface text in workflows_text, workflowText."
   },
   "simpleTestNotification": "Notificação de teste simples",
@@ -5009,16 +5009,16 @@
   "@collectionRecoveredAdministrators": {
     "description": "Interface text in workflows_text, pushTestKindText."
   },
-  "thisWasRequestedRecentlyWaitMomentAndTry": "Já foi pedido há pouco. Aguarde um momento e tente novamente.",
-  "@thisWasRequestedRecentlyWaitMomentAndTry": {
+  "startWorkflowTooSoon": "Já foi pedido há pouco. Aguarde um momento e tente novamente.",
+  "@startWorkflowTooSoon": {
     "description": "Interface text in workflows_text, startErrorText."
   },
   "githubTokenIsMissingFromSupabaseVault": "Falta o token do GitHub no Vault do Supabase.",
   "@githubTokenIsMissingFromSupabaseVault": {
     "description": "Interface text in workflows_text, startErrorText."
   },
-  "githubRejectedRequestCheckGitHubTokenActionsRead": "O GitHub recusou o pedido. Verifique o token do GitHub (Actions: leitura e escrita).",
-  "@githubRejectedRequestCheckGitHubTokenActionsRead": {
+  "startWorkflowRejected": "O GitHub recusou o pedido. Verifique o token do GitHub (Actions: leitura e escrita).",
+  "@startWorkflowRejected": {
     "description": "Interface text in workflows_text, startErrorText."
   },
   "onlyAdministratorCanDoThis": "Só um administrador pode fazer isto.",
@@ -5057,17 +5057,17 @@
   "@notFullyRead": {
     "description": "Interface text in collection_status_text, searchReadText."
   },
-  "perCollection": "{value} {value2} ({value3} por recolha)",
-  "@perCollection": {
+  "requestsPerCollection": "{site} {total} ({perRun} por recolha)",
+  "@requestsPerCollection": {
     "description": "Interface text in collection_text, monthRequestsText.",
     "placeholders": {
-      "value": {
+      "site": {
         "type": "String"
       },
-      "value2": {
+      "total": {
         "type": "String"
       },
-      "value3": {
+      "perRun": {
         "type": "String"
       }
     }
@@ -5225,14 +5225,14 @@
       }
     }
   },
-  "inText": "dentro de {days} {value}",
-  "@inText": {
+  "inDays": "dentro de {days} {daysWord}",
+  "@inDays": {
     "description": "Interface text in accounts_text, inviteSubtitle.",
     "placeholders": {
       "days": {
         "type": "String"
       },
-      "value": {
+      "daysWord": {
         "type": "String"
       }
     }

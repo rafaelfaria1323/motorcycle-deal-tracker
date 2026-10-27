@@ -138,8 +138,8 @@ String onlyMyColoursLabel({AppLanguage language = AppLanguage.portuguese}) =>
 String extraFilterLabel(
   String code, {
   AppLanguage language = AppLanguage.portuguese,
-}) => language.messages.withText(
-  value: extraLabels(language: language)[code] ?? code,
+}) => language.messages.withExtra(
+  extra: extraLabels(language: language)[code] ?? code,
 );
 
 /// One applied filter as a removable chip: its label and the filters

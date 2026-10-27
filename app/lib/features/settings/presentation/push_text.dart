@@ -9,17 +9,14 @@ String pushSubtitle(
 }) {
   if (!signedIn) return language.messages.signInToReceiveAlertsOnThisDevice;
   return switch (state) {
-    PushState.on =>
-      language.messages.enabledAlertsArriveAfterEachCollectionTapTo,
+    PushState.on => language.messages.pushEnabled,
     PushState.off => language.messages.receiveAlertsOnThisDeviceTapToOpen,
     PushState.needsHomeScreen =>
       language.messages.onIPhoneOpenAppFromHomeScreenShare,
-    PushState.denied =>
-      language.messages.blockedOnThisDeviceAllowNotificationsInSettings,
+    PushState.denied => language.messages.pushBlocked,
     PushState.unsupported =>
       language.messages.thisBrowserDoesNotSupportNotifications,
-    PushState.nativeApp =>
-      language.messages.thisAndroidAppIsNotConfiguredForNotifications,
+    PushState.nativeApp => language.messages.pushNotConfiguredAndroid,
   };
 }
 

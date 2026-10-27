@@ -60,8 +60,8 @@ class _CollectionDetailsState extends State<CollectionDetails> {
             (
               Icons.update,
               context.strings.lastCollectionTook(
-                value: agoText(last.finishedAt, language: context.language),
-                value2: durationText(last.duration),
+                ago: agoText(last.finishedAt, language: context.language),
+                duration: durationText(last.duration),
               ),
             ),
             if (runCountsText(last.counts, language: context.language)
@@ -94,7 +94,7 @@ class _CollectionDetailsState extends State<CollectionDetails> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                 child: Text(
-                  context.strings.githubActionsMinutesAreFreeAndUnlimitedWhile,
+                  context.strings.githubActionsMinutesNote,
                   style: Theme.of(
                     context,
                   ).textTheme.bodySmall?.copyWith(color: muted),

@@ -27,9 +27,9 @@ List<String> priceSpreadLines(
   if (p == null) return [language.messages.noActiveListingsWithPrice];
   if (p.count < minMarketData) {
     return [
-      language.messages.askingPricesNotEnoughDataYet(
+      language.messages.askingPricesFewData(
         count: p.count.toString(),
-        value: p.count == 1
+        listingsWord: p.count == 1
             ? language.messages.listing
             : language.messages.listings,
       ),
@@ -53,12 +53,12 @@ List<String> priceSpreadLines(
     ),
   };
   return [
-    language.messages.typicalAskingPriceHalfAreBetweenAnd(
-      value: price(p.median),
-      value2: price(p.p25),
-      value3: price(p.p75),
+    language.messages.typicalAskingPrice(
+      median: price(p.median),
+      p25: price(p.p25),
+      p75: price(p.p75),
     ),
-    language.messages.fromTo(value: price(p.min), value2: price(p.max)),
+    language.messages.fromTo(from: price(p.min), to: price(p.max)),
     ?typical,
   ];
 }

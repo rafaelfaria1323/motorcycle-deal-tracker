@@ -148,9 +148,7 @@ class AlertsPage extends StatelessWidget {
                         PageIntro(
                           eyebrow: context.strings.alerts,
                           title: context.strings.whatChanged,
-                          description: context
-                              .strings
-                              .newListingsPriceDropsAndUpdatesAboutBikes,
+                          description: context.strings.alertsIntro,
                         ),
                         const SizedBox(height: 20),
                         Text(

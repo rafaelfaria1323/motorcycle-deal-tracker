@@ -128,7 +128,7 @@ class _AccountsPageState extends State<AccountsPage> {
 
     final ok = await _confirm(
       messageStrings.removeAccountsPage(email: account.email),
-      messageStrings.accountWillLoseAccessAndItsSearchesAlerts,
+      messageStrings.removeAccountWarning,
       messageStrings.removeOfferCard,
     );
     if (!ok || !mounted) return;
@@ -278,9 +278,7 @@ class _AccountsPageState extends State<AccountsPage> {
                 ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                child: Text(
-                  context.strings.eachAccountChoosesItsModelsSearchesAndAlerts,
-                ),
+                child: Text(context.strings.accountsIntro),
               ),
             ],
           );

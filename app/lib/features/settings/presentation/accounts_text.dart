@@ -56,7 +56,7 @@ String redeemErrorText(
   'P0002' => inviteStatusText(InviteStatus.unknown, language: language)!,
   '23505' => language.messages.thisEmailAlreadyHasAccountSignInThrough,
   '22023' => language.messages.checkYourEmailAndPasswordAtLeast8,
-  '55000' => language.messages.accountCreationIsNotAvailableYetTryAgain,
+  '55000' => language.messages.inviteServiceNotReady,
   _ => language.messages.couldNotCreateAccountTryAgain,
 };
 
@@ -69,8 +69,8 @@ String inviteSubtitle(
 }) {
   if (invite.usedAt != null) {
     final who = emails[invite.usedBy];
-    return language.messages.usedOn(
-      value: who == null ? '' : language.messages.by(who: who),
+    return language.messages.inviteUsed(
+      byWho: who == null ? '' : language.messages.by(who: who),
       date: Formatters.date(invite.usedAt!),
     );
   }
@@ -78,12 +78,14 @@ String inviteSubtitle(
     return language.messages.expiredOn(date: Formatters.date(invite.expiresAt));
   }
   final days = invite.expiresAt.difference(now).inHours ~/ 24;
-  return language.messages.unusedExpires(
-    value: days < 1
+  return language.messages.inviteUnused(
+    expires: days < 1
         ? language.messages.today
-        : language.messages.inText(
+        : language.messages.inDays(
             days: (days).toString(),
-            value: days == 1 ? language.messages.day : language.messages.days,
+            daysWord: days == 1
+                ? language.messages.day
+                : language.messages.days,
           ),
   );
 }

@@ -74,9 +74,9 @@ List<(ListingCardField, String)> listingCardExtraFacts(
     if (listing.dealerWarrantyMonths case final months?)
       (
         ListingCardField.dealerWarrantyMonths,
-        language.messages.ofSellerWarranty(
+        language.messages.sellerWarrantyMonths(
           months: (months).toString(),
-          value: months == 1
+          monthsWord: months == 1
               ? language.messages.month
               : language.messages.monthsListingCardText,
         ),
@@ -90,8 +90,8 @@ List<(ListingCardField, String)> listingCardExtraFacts(
     if (listing.publishedAt case final published?)
       (
         ListingCardField.publishedAt,
-        language.messages.published(
-          value: dateWithAge(published, now: now, language: language),
+        language.messages.publishedOn(
+          date: dateWithAge(published, now: now, language: language),
         ),
       ),
   if (preferences.shows(ListingCardField.siteRefreshedAt))
@@ -99,7 +99,7 @@ List<(ListingCardField, String)> listingCardExtraFacts(
       (
         ListingCardField.siteRefreshedAt,
         language.messages.renewedOnSite(
-          value: dateWithAge(renewed, now: now, language: language),
+          date: dateWithAge(renewed, now: now, language: language),
         ),
       ),
   if (preferences.shows(ListingCardField.status) &&

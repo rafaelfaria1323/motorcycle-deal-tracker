@@ -136,9 +136,7 @@ class SavedSearchesPage extends StatelessWidget {
                       PageIntro(
                         eyebrow: context.strings.savedSearches,
                         title: context.strings.yourSearches,
-                        description: context
-                            .strings
-                            .yourCriteriaAlwaysToHandFollowNewListings,
+                        description: context.strings.searchesIntro,
                       ),
                       const SizedBox(height: 28),
                       for (final search in state.searches)

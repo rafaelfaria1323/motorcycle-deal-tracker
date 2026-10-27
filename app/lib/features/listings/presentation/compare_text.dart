@@ -45,7 +45,7 @@ String _marketText(Listing l, {AppLanguage language = AppLanguage.portuguese}) {
   if (rounded == 0) return language.messages.atMarketValue;
   return rounded > 0
       ? language.messages.belowMarketValue(rounded: (rounded).toString())
-      : language.messages.aboveMarketValue(value: (-rounded).toString());
+      : language.messages.aboveMarketValue(percent: (-rounded).toString());
 }
 
 String _or(Object? value) => value == null ? '—' : '$value';

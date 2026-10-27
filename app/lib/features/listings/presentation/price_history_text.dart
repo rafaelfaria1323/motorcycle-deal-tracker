@@ -20,8 +20,8 @@ String? siteDropLine(
     decimals: 1,
     language: language,
   );
-  return language.messages.accordingToPriceWasPreviouslyDownSoFar(
-    value: sourceLabel(listing.source, language: language),
+  return language.messages.siteDropLine(
+    site: sourceLabel(listing.source, language: language),
     price: Formatters.price(before, language: language),
     pct: pct,
   );

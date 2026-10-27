@@ -223,8 +223,8 @@ List<String> negotiationArguments(
       !extras.contains('new_tyres') &&
       visit?.repairs.any((r) => r.title == language.messages.tyres) != true) {
     arguments.add(
-      language.messages.atYearsOldTyresNeedReplacingIfThey(
-        value: (now.year - year).toString(),
+      language.messages.argumentOldTyres(
+        age: (now.year - year).toString(),
         price: Formatters.price(
           runningCostsFor(listing.engineCc).tyreSet,
           language: language,
@@ -239,10 +239,7 @@ List<String> negotiationArguments(
 List<(String, String)> _riskArguments({
   AppLanguage language = AppLanguage.portuguese,
 }) => [
-  (
-    'possible_accident',
-    language.messages.descriptionMentionsAccidentOrImpactItWillBe,
-  ),
+  ('possible_accident', language.messages.argumentAccidentResale),
   ('needs_repair', language.messages.itNeedsRepairsOrPartsYouWillHave),
   ('cosmetic_damage', language.messages.itHasScratchesOrDentsThatAffectPrice),
   (
@@ -253,10 +250,7 @@ List<(String, String)> _riskArguments({
   ('imported', language.messages.itIsImportedItWillBeWorthLess),
   ('a2_limited', language.messages.itIsA2Version35KWRemovingRestriction),
   ('a2_unlocked', language.messages.itWasUnrestrictedA2VersionAndDoesNot),
-  (
-    'text_mileage_mismatch',
-    language.messages.descriptionMentionsMoreMileageThanListingStates,
-  ),
+  ('text_mileage_mismatch', language.messages.argumentMoreMileageInText),
   (
     'text_year_mismatch',
     language.messages.yearInDescriptionDoesNotMatchListing,
@@ -310,9 +304,9 @@ class SellerUrgency {
     };
     return reasons.isEmpty
         ? language.messages.sellerUrgency(label: label)
-        : language.messages.sellerUrgencyNegotiationText(
+        : language.messages.sellerUrgencyLine(
             label: label,
-            value: reasons.join(', '),
+            reasons: reasons.join(', '),
           );
   }
 }
@@ -412,7 +406,7 @@ List<String> dealerAsks(
   return [
     language.messages.serviceBeforeDelivery,
     if (tyresDue) language.messages.newTyres,
-    language.messages.warrantyInWritingPortugueseLawRequiresAtLeast,
+    language.messages.dealerAskWarranty,
     language.messages.ownershipRegistrationPaidByDealer,
   ];
 }
@@ -428,10 +422,10 @@ String dealerMessage(
   return [
     language.messages.helloGoodAfternoon,
     '',
-    language.messages.iAmInterestedInIfWeAgreeOn(
+    language.messages.dealerAsksMessage(
       brand: listing.brand,
       model: listing.model,
-      value: listing.year == null
+      year: listing.year == null
           ? ''
           : language.messages.fromNegotiationText(
               year: listing.year.toString(),

@@ -116,7 +116,7 @@ void main() {
         goneCount: 0,
         pricedCount: 0,
         droppedCount: 0,
-        depreciation: const Depreciation(
+        depreciation: Depreciation(
           sampleCount: 40,
           isFitted: true,
           perYear: 0.05,

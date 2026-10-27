@@ -37,12 +37,12 @@ List<ChecklistSection> viewingChecklist({
         ChecklistItem(
           'registry',
           language.messages.registrationCertificate,
-          language.messages.askForVehicleRegistrationCertificateItShowsLiens,
+          language.messages.checklistRegistryHint,
         ),
         ChecklistItem(
           'service',
           language.messages.servicing,
-          language.messages.serviceBookStampsAndInvoicesMileageIsConsistent,
+          language.messages.checklistServiceHint,
         ),
         ChecklistItem(
           'keys',
@@ -57,12 +57,12 @@ List<ChecklistSection> viewingChecklist({
         ChecklistItem(
           'fall',
           language.messages.signsOfFall,
-          language.messages.scratchedOrBentLeversFootrestsHandlebarEndsAnd,
+          language.messages.checklistBodyworkHint,
         ),
         ChecklistItem(
           'tyres',
           language.messages.tyres,
-          language.messages.treadAndManufactureDateDOTLastFourDigits,
+          language.messages.checklistTyresHint,
         ),
         ChecklistItem(
           'chain',
@@ -92,7 +92,7 @@ List<ChecklistSection> viewingChecklist({
         ChecklistItem(
           'electrics',
           language.messages.lightsAndElectrics,
-          language.messages.headlightIndicatorsBrakeLightHornNoWarningLights,
+          language.messages.checklistLightsHint,
         ),
         ChecklistItem(
           'test_ride',

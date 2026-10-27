@@ -62,7 +62,7 @@ List<String> newPriceLines(
     lines.add(
       language.messages.newBikePriceCheckedOn(
         date: Formatters.date(checked),
-        value: age > newPriceStaleAfterDays
+        staleNote: age > newPriceStaleAfterDays
             ? language.messages.itMayBeOutOfDate
             : '',
       ),

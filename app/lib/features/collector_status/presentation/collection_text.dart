@@ -50,10 +50,7 @@ String nextCollectionText(
   final time =
       '${next.hour.toString().padLeft(2, '0')}:'
       '${next.minute.toString().padLeft(2, '0')}';
-  return language.messages.nextCollectionAtGitHubMayDelayItBy(
-    value: when,
-    time: time,
-  );
+  return language.messages.nextCollection(day: when, time: time);
 }
 
 /// "há 3 h" (or minutes, or days).
@@ -65,8 +62,8 @@ String agoText(
   final diff = (now ?? DateTime.now()).difference(time);
   // A time slightly ahead (clock skew between phone and server) reads as now.
   if (diff.inMinutes < 60) {
-    return language.messages.minAgo(
-      value: (diff.inMinutes < 0 ? 0 : diff.inMinutes).toString(),
+    return language.messages.minutesAgo(
+      minutes: (diff.inMinutes < 0 ? 0 : diff.inMinutes).toString(),
     );
   }
   if (diff.inHours < 48) {
@@ -93,7 +90,7 @@ String? requestsText(
   AppLanguage language = AppLanguage.portuguese,
 }) => requests.isEmpty
     ? null
-    : language.messages.requests(value: _perSite(requests));
+    : language.messages.requestsPerSite(sites: _perSite(requests));
 
 String _perSite(Map<String, int> requests) => [
   for (final MapEntry(:key, :value) in requests.entries)
@@ -117,12 +114,12 @@ String? monthRequestsText(
   }
   if (totals.isEmpty) return null;
   return language.messages.requestsThisMonth(
-    value: [
+    sites: [
       for (final MapEntry(:key, :value) in totals.entries)
-        language.messages.perCollection(
-          value: siteNames[key] ?? key,
-          value2: (value).toString(),
-          value3: (value / counted[key]!).round().toString(),
+        language.messages.requestsPerCollection(
+          site: siteNames[key] ?? key,
+          total: (value).toString(),
+          perRun: (value / counted[key]!).round().toString(),
         ),
     ].join(' · '),
   );
@@ -209,9 +206,9 @@ String monthUsageText(
   AppLanguage language = AppLanguage.portuguese,
 }) {
   final minutes = runs.fold<int>(0, (sum, r) => sum + estimatedMinutes(r));
-  return language.messages.thisMonthAboutMinutesOfGitHubActions(
-    length: runs.length.toString(),
-    value: runs.length == 1
+  return language.messages.runsThisMonth(
+    count: runs.length.toString(),
+    runsWord: runs.length == 1
         ? language.messages.collection
         : language.messages.collections,
     minutes: (minutes).toString(),

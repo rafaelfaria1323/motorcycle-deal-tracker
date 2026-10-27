@@ -138,7 +138,7 @@ class MorePage extends StatelessWidget {
                           subtitle: Text(
                             context
                                 .strings
-                                .askingPricesTimeUntilLeavingMarketAndDepreciation,
+                                .marketPageSubtitle,
                           ),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () => context.push(AppRoutes.modelMarket),
@@ -186,7 +186,7 @@ class MorePage extends StatelessWidget {
                               child: Text(
                                 context
                                     .strings
-                                    .collectionStatusAndDurationAreAvailableWhenSigned,
+                                    .collectionStatusNeedsSignIn,
                               ),
                             ),
                         ],

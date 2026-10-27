@@ -623,8 +623,8 @@ void main() {
           users.add(
             const User(
               id: 'another-user',
-              appMetadata: const {},
-              userMetadata: const {},
+              appMetadata: {},
+              userMetadata: {},
               aud: 'authenticated',
               createdAt: '2026-10-25T00:00:00Z',
             ),

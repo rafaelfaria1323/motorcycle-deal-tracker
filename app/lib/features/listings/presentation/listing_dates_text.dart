@@ -34,8 +34,8 @@ String? relistText(
 }) {
   final since = listing.relistedSince;
   if (listing.relistedFrom == null || since == null) return null;
-  final text = language.messages.wasForSaleInEarlierListingSince(
-    value: dateWithAge(since, now: now, language: language),
+  final text = language.messages.relistedSince(
+    date: dateWithAge(since, now: now, language: language),
   );
   final before = listing.relistedPrice;
   final price = listing.price;
@@ -43,8 +43,8 @@ String? relistText(
   final change = price == null ? 0.0 : price - before;
   final changeText = change.abs() < 1
       ? ''
-      : language.messages.now(
-          value: change < 0
+      : language.messages.priceNowChanged(
+          direction: change < 0
               ? language.messages.less
               : language.messages.moreListingDatesText,
           price: Formatters.price(change.abs(), language: language),
