@@ -1,8 +1,8 @@
 .DEFAULT_GOAL := help
-.PHONY: help app-get app-run app-check app-smoke app-build app-serve \
-        collector-get collector-check collect-dry collect \
+.PHONY: help app-get app-run app-analyze app-check app-smoke app-build app-serve \
+        collector-get collector-lint collector-check collect-dry collect \
         db-push db-new db-test sql-lint check tool-check lint-scripts format clean mutation \
-        coverage duplication dead-code \
+        coverage app-coverage collector-coverage duplication dead-code \
         require-collector-env require-file
 
 # Which source the collector reads: manual (a JSON file), standvirtual
@@ -36,8 +36,11 @@ app-get: ## Install app dependencies
 app-run: ## Run the app in Chrome (uses app/env/dev.json)
 	cd app && flutter run -d chrome --dart-define-from-file=env/dev.json
 
-app-check: ## Analyze and test the app
-	cd app && flutter analyze && flutter test
+app-analyze: ## Analyze the app
+	cd app && flutter analyze
+
+app-check: app-analyze ## Analyze and test the app
+	cd app && flutter test
 
 app-smoke: ## Offline Chrome smoke test (needs matching ChromeDriver on PATH)
 	bash tool/app_smoke.sh
@@ -53,8 +56,11 @@ app-serve: app-build ## Serve the release build on http://localhost:8080 (PWA te
 collector-get: ## Install collector dependencies
 	cd collector && dart pub get
 
-collector-check: ## Format check, analyze and test the collector
-	cd collector && dart format --output=none --set-exit-if-changed . && dart analyze && dart test
+collector-lint: ## Format check and analyze the collector
+	cd collector && dart format --output=none --set-exit-if-changed . && dart analyze
+
+collector-check: collector-lint ## Format check, analyze and test the collector
+	cd collector && dart test
 
 collect-dry: require-collector-env ## Preview, writes nothing: make collect-dry [SOURCE=standvirtual] [FILE=...]
 	cd collector && dart run bin/collector.dart $(SOURCE) $(or $(FILE),$(DEFAULT_INPUT)) --dry-run $(ARGS)
@@ -133,12 +139,19 @@ APP_COVERAGE_MIN ?= 90
 COLLECTOR_COVERAGE_MIN ?= 70
 APP_LOGIC_FILES = _text\.dart$$|/domain/|/data/models/|/cubit/|/core/formatting/|/core/localization/|/language_cubit\.dart$$|/supabase_language_repository\.dart$$|ownership_cost\.dart$$|viewing_checklist\.dart$$
 
-coverage: ## Test coverage of app logic and collector, with floors (needs `dart pub global activate coverage`)
+# The coverage targets run the tests themselves (a failing test fails
+# them), so CI runs app-analyze / collector-lint plus these instead of
+# make check: each test suite once.
+coverage: app-coverage collector-coverage ## Test coverage of app logic and collector, with floors (needs `dart pub global activate coverage`)
+
+app-coverage: ## The app's tests with coverage and its floor
 	cd app && flutter test --coverage
-	cd collector && dart test --coverage=coverage && dart pub global run coverage:format_coverage \
-	  --lcov --in=coverage --out=coverage/lcov.info --report-on=lib --package=.
 	python3 tool/lcov_summary.py app/coverage/lcov.info --name app \
 	  --only '$(APP_LOGIC_FILES)' --min $(APP_COVERAGE_MIN)
+
+collector-coverage: ## The collector's tests with coverage and its floor (needs `dart pub global activate coverage`)
+	cd collector && dart test --coverage=coverage && dart pub global run coverage:format_coverage \
+	  --lcov --in=coverage --out=coverage/lcov.info --report-on=lib --package=.
 	python3 tool/lcov_summary.py collector/coverage/lcov.info --name collector \
 	  --min $(COLLECTOR_COVERAGE_MIN)
 

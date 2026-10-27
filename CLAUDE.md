@@ -118,9 +118,16 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   devices of whoever asked in the app; input
                                   `kind`: an example of one alert or
                                   collection message (`pushTestKinds`)
-.github/workflows/check.yml       `make check` (with Flutter), `make app-smoke`
-                                  (offline Chrome flow) and `make db-test`
-                                  (Postgres service) on every pull request to main
+.github/workflows/check.yml       On every pull request to main, three parallel
+                                  jobs: app (`make app-analyze`, `dead-code`,
+                                  `app-coverage`), smoke (`make app-smoke`,
+                                  offline Chrome flow) and collector-db
+                                  (migrations, `lint-scripts`, `collector-lint`,
+                                  `collector-coverage`, `tool-check`,
+                                  `duplication`, `sql-lint` with `db-test` on a
+                                  Postgres service); each test suite runs once,
+                                  in its coverage target; the job `check` passes
+                                  only when all three did
 .github/workflows/preview-web.yml Every PR touching app/: the app built and
                                   published to pr-<number>.<project>.pages.dev,
                                   linked in one comment on the PR (real
@@ -136,9 +143,10 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
 .github/workflows/deploy-web.yml  On merges touching app/ or adding
                                   migrations: apply the migrations the
                                   database is missing (tested again
-                                  first; skipped if none),
-                                  then test, build and publish the app to
-                                  Cloudflare Pages; then the Android APK
+                                  first; skipped if none) while the app's
+                                  tests run on the merged code; then, side
+                                  by side, build and publish the app to
+                                  Cloudflare Pages and the Android APK
                                   (job android, tool/android_build.sh:
                                   app/android made by `flutter create`,
                                   never committed, fitted by
@@ -195,7 +203,8 @@ Makefile    All commands (`make help`)
 
 ```
 make check                     analyze + test app and collector, test tool/ (before every commit)
-make coverage / duplication    coverage floors and copy-paste check (also in CI)
+make coverage / duplication    coverage floors (runs the tests; app-coverage / collector-coverage
+                               one side) and copy-paste check (also in CI)
 make lint-scripts              actionlint on the workflows, shellcheck on tool/*.sh (also in CI)
 make dead-code                 unused code and files in the app (dart_code_linter; also in CI)
 make app-run                   run the app in Chrome (app/env/dev.json)

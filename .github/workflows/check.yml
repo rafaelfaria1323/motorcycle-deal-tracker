@@ -5,6 +5,9 @@ name: Check
 # `make app-smoke` (offline Chrome flow), and `make db-test`
 # (migrations and SQL tests on Postgres), so a change is
 # proven before it is merged rather than when the deploy runs.
+# Three jobs run side by side (app, smoke, collector and database); each
+# test suite runs once, inside its coverage target. The job `check` waits
+# for them and is the one result the PR shows as "check".
 # PRs opened by a workflow (code quality, test hardening) don't trigger
 # pull_request runs (GitHub's rule for GITHUB_TOKEN), so backlog-pass.yml
 # starts this by workflow_dispatch on the PR's branch; the result is
@@ -23,7 +26,52 @@ permissions:
   contents: read
 
 jobs:
-  check:
+  # The app: analyze, unused code, then its tests once, with coverage and
+  # the floor of its logic (Makefile's APP_COVERAGE_MIN).
+  app:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: cd app && flutter pub get
+
+      - name: make app-analyze
+        run: make app-analyze
+
+      # Unused code and unused files in the app (dart_code_linter).
+      - name: make dead-code
+        run: |
+          dart pub global activate dart_code_linter 4.4.2 >/dev/null
+          make dead-code
+
+      - name: make app-coverage (the app's tests)
+        run: make app-coverage
+
+  # The offline Chrome flow (ChromeDriver is on the runner image).
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: make app-smoke
+        run: make app-smoke
+
+  # Everything without Flutter's app: migrations, workflows and scripts,
+  # the collector, tool/, copy-paste and the database.
+  collector-db:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     # Plain Postgres for `make db-test`: every migration applied to an
@@ -57,39 +105,30 @@ jobs:
           bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.12/scripts/download-actionlint.bash) 1.7.12 "$RUNNER_TEMP"
           PATH="$RUNNER_TEMP:$PATH" make lint-scripts
 
+      # The same Dart as the app's (the collector is tested with it).
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
 
       - name: Install dependencies
-        run: |
-          cd app && flutter pub get
-          cd ../collector && dart pub get
+        run: cd collector && dart pub get
 
-      - name: make check
-        run: make check
+      - name: make collector-lint
+        run: make collector-lint
 
-      - name: make app-smoke
-        run: make app-smoke
-
-      # Checks without AI: copy-pasted code above 1 % fails; line coverage
-      # of the app's logic and of the collector below their floors (the
-      # Makefile's *_COVERAGE_MIN) fails. Both reports are on the run's
-      # summary page.
-      - name: make duplication
-        run: make duplication
-
-      # Unused code and unused files in the app (dart_code_linter).
-      - name: make dead-code
-        run: |
-          dart pub global activate dart_code_linter 4.4.2 >/dev/null
-          make dead-code
-
-      - name: make coverage
+      # The collector's tests once, with coverage and its floor.
+      - name: make collector-coverage (the collector's tests)
         run: |
           dart pub global activate coverage >/dev/null
-          make coverage
+          make collector-coverage
+
+      - name: make tool-check
+        run: make tool-check
+
+      # Copy-pasted code above 1 % of the lines fails (jscpd).
+      - name: make duplication
+        run: make duplication
 
       # make sql-lint runs make db-test first, then checks the database it
       # leaves (plpgsql_check, splinter) and squawk on this PR's new
@@ -106,3 +145,20 @@ jobs:
             'apt-get update -qq && apt-get install -y -qq postgresql-16-plpgsql-check' >/dev/null
           pipx install squawk-cli==2.70.0 >/dev/null
           make sql-lint
+
+  # The single result named "check", as before the split: green only when
+  # all three jobs passed (also when one was cancelled or skipped).
+  check:
+    needs: [app, smoke, collector-db]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: All checks passed
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Results: $RESULTS"
+          for result in $RESULTS; do
+            [ "$result" = success ] || exit 1
+          done

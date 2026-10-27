@@ -1,8 +1,10 @@
 name: Deploy web app
 
 # On a merge to main: first the database (the migrations it is missing, if
-# any), then the app, so the app never reaches a database without the
-# columns it reads. A failed migration stops the app deploy.
+# any) and, at the same time, the app's tests on the merged code; then the
+# web app and the Android app side by side, so the app never reaches a
+# database without the columns it reads. A failed migration or test stops
+# both.
 on:
   workflow_dispatch: # manual "Run workflow" button
   push:
@@ -102,8 +104,27 @@ jobs:
           echo "::add-mask::$db_url"
           tool/apply_migrations.sh "$db_url"
 
+  # The app's tests on the merged code (it can differ from what the pull
+  # request tested when main moved), next to the migrations.
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install app dependencies
+        run: cd app && flutter pub get
+
+      - name: Test
+        run: cd app && flutter test
+
   deploy:
-    needs: migrate
+    needs: [migrate, test]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -120,9 +141,6 @@ jobs:
 
       - name: Install app dependencies
         run: cd app && flutter pub get
-
-      - name: Test
-        run: cd app && flutter test
 
       # The publishable key is meant for browsers (row-level security protects
       # the data); it is a secret only to keep it out of the repository.
@@ -155,13 +173,13 @@ jobs:
           npx --yes wrangler@4 pages deploy app/build/web \
             --project-name="$PAGES_PROJECT" --branch=main --commit-dirty=true
 
-  # The Android app, after the web app (same tested code): built, signed
+  # The Android app, next to the web app (same tested code): built, signed
   # with the key in the secrets (the same key every time, or Android
   # refuses to install an update over the app) and put on the `android`
   # release. Skipped until ANDROID_KEYSTORE_BASE64 and
   # ANDROID_KEYSTORE_PASSWORD are set (docs/hosting.md, "Android app").
   android:
-    needs: deploy
+    needs: [migrate, test]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:

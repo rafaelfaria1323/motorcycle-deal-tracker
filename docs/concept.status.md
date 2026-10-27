@@ -219,7 +219,7 @@ the standard card layout would remain free.
 
 ## 24. Product Philosophy ✅
 
-Simple, explainable, incremental, testable (Dart unit tests, mutation testing, and SQL tests on a real Postgres in CI), data-driven. The core idea is validated on real data from two sources.
+Simple, explainable, incremental, testable (Dart unit tests, mutation testing, and SQL tests on a real Postgres in CI, each suite run once, in parallel jobs: roadmap N.27), data-driven. The core idea is validated on real data from two sources.
 
 ## 25. Final Vision
 
