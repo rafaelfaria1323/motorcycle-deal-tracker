@@ -11,9 +11,11 @@ class CollectorRun extends Equatable {
     this.sites = const {},
     this.searches = const [],
     this.runUrl,
+    this.scoringTime,
   });
 
-  /// 'ok', 'blocked' or 'failed'.
+  /// 'ok', 'partial' (only a site's passing fetch failure: the rest was
+  /// read and scored), 'blocked' or 'failed'.
   final String status;
   final DateTime startedAt;
   final DateTime finishedAt;
@@ -38,6 +40,10 @@ class CollectorRun extends Equatable {
   /// The GitHub Actions run's page.
   final String? runUrl;
 
+  /// How long the scores took to work out; null for older runs or one that
+  /// stopped before them.
+  final Duration? scoringTime;
+
   Duration get duration => finishedAt.difference(startedAt);
 
   @override
@@ -51,6 +57,7 @@ class CollectorRun extends Equatable {
     sites,
     searches,
     runUrl,
+    scoringTime,
   ];
 }
 
@@ -90,7 +97,15 @@ class SearchRead extends Equatable {
   final bool inFull;
 
   @override
-  List<Object?> get props => [site, search, pages, spans, ads, followed, inFull];
+  List<Object?> get props => [
+    site,
+    search,
+    pages,
+    spans,
+    ads,
+    followed,
+    inFull,
+  ];
 }
 
 /// One site's requests used today (UTC day), and until when it is paused
@@ -115,7 +130,9 @@ class SiteBudget extends Equatable {
 
 enum CollectorHealth { unknown, ok, stale, blocked, failed }
 
-/// What the dashboard should say about data freshness.
+/// What the dashboard should say about data freshness. A partial run is
+/// fine here: its lost search is read again by the next run, and the
+/// admins hear of it when the same site fails twice in a row.
 CollectorHealth collectorHealth(
   CollectorRun? run,
   DateTime now, {
@@ -123,7 +140,9 @@ CollectorHealth collectorHealth(
 }) {
   if (run == null) return CollectorHealth.unknown;
   if (run.status == 'blocked') return CollectorHealth.blocked;
-  if (run.status != 'ok') return CollectorHealth.failed;
+  if (run.status != 'ok' && run.status != 'partial') {
+    return CollectorHealth.failed;
+  }
   if (now.difference(run.finishedAt) > maxAge) return CollectorHealth.stale;
   return CollectorHealth.ok;
 }

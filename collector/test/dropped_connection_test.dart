@@ -111,6 +111,8 @@ void main() {
         policy: const FetchPolicy(
           minDelay: Duration.zero,
           jitter: Duration.zero,
+          // Retried once, and it drops again.
+          retryDelay: Duration(milliseconds: 10),
         ),
       );
       await fetcher.prepare();
@@ -141,6 +143,7 @@ void main() {
             minDelay: Duration.zero,
             jitter: Duration.zero,
             readTimeout: Duration(milliseconds: 200),
+            retryDelay: null,
           ),
         );
         try {

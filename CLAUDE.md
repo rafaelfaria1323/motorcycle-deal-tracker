@@ -475,6 +475,21 @@ invites; written by the collector on each run).
   pg-safeupdate, which refuses them otherwise, also inside functions the
   app or the collector calls (`make sql-lint`'s safeupdate check).
 - Pure scoring functions take plain values (testable with literals).
+- Scoring speed: the description's signals are stored per listing
+  (`text_signals` = `description_signals()`: accident, repair, scratches,
+  A2 version, single owner; `text_extras` = `listing_extras()`), filled by
+  the trigger `listings_text_signals` only when the variant or description
+  changes; the risk view reads them through `risk_from_signals`
+  (`risk_assessment` = the same rules on raw text, for tests). A migration
+  that changes one of those text functions must refresh them: `update
+  public.listings set text_signals = null where ...` (the trigger fills
+  them again; null is worked out on the fly meanwhile).
+  `recalculate_deal_scores()` runs with `jit = off` (compiling cost more
+  than it saved). The collector's role (`service_role`) has a 60 s
+  statement timeout (Supabase's default is about 8 s). Each run stores how
+  long the scores took (`collector_runs.scoring_ms`, from finishRun's
+  "Scored N listing(s) in X ms." line, `scoringMs`); "Estado da recolha"
+  warns above 30 s.
 - The service-role key is only ever used by the collector, never the app.
 - `source_data_quality` (view, readable by everyone) feeds "Qualidade dos
   dados" in Mais, including `last_seen_at` (stale after 24 h: "verifique a
@@ -488,7 +503,11 @@ invites; written by the collector on each run).
   admins' devices (Web Push, `pushToUsers`; a tap opens "Estado da
   recolha") when a run's status differs from the previous run's (`run_health.dart`:
   the error lines of each site, or "voltou a funcionar"), never twice for
-  the same problem. It also stores `problems` (`runProblems`, runs not
+  the same problem. Status `partial` (`runStatus`): the only problems were
+  `Failed:` lines (a timeout or server error after the retry) and the run
+  still finished; it counts as ok unless the run before also failed on the
+  same site ("falhou duas vezes seguidas"), its GitHub job stays green with
+  a warning, and the app shows it as "Incompleta". It also stores `problems` (`runProblems`, runs not
   ok), `sites` (each fetch state file's `report()`: requests today,
   paused until), `searches` (`searchesRead`: per search the pages it
   spans and the pages read, from `searches.json`'s `pages`, the ads found,
@@ -496,7 +515,8 @@ invites; written by the collector on each run).
   importBatch's "Search (<site>): ..." lines, keep their wording) and
   `run_url` (`githubRunUrl`), shown to admins in
   Mais › "Estado da recolha" (`collection_status_page.dart`, route
-  `/collection-status`, pushed), with the database's size against the
+  `/collection-status`, pushed; also the last 30 days' failures by site
+  and cause, `failureHistoryText`), with the database's size against the
   free plan's 500 MB and its 5 biggest tables (`database_usage`, admins;
   red from 80 %).
 - Schedules live in Supabase, not in the workflows (GitHub's scheduler never
@@ -641,14 +661,18 @@ functions for manual work.
   (`FetchPolicy.robotsMaxAge`, RFC 9309's limit; Rafael, 2026-10-22),
   forgotten on a block, so the run after the pause reads it again.
 - 6-10 s between requests (counted from the end of the previous request,
-  so work done in between counts), **never parallel**, no retries; stop on
+  so work done in between counts), **never parallel**; one retry of a
+  page, 60 s later, only after a timeout, a dropped connection or HTTP
+  500/502/504 (`FetchPolicy.retryDelay`, counted as a request; Rafael,
+  2026-10-27), never after 403/429/503 or a non-normal page; stop on
   403/429/503 or a non-normal page, then pause 24 h (state: requests
   today, the last block and robots.txt, in
   `collector/.fetch_state.json` and `.fetch_state.olx.json`, cached
   between Actions runs; written whole through a temporary file; a damaged
   one starts afresh, and a site still refusing pauses again at once).
   Blocking statuses are handled from the headers, before reading the body.
-  A timeout cancels the active request/response before the next request.
+  A timeout (45 s for connecting and the headers, 60 s for the page)
+  cancels the active request/response before the next request.
 - No request caps since 2026-10-22 (Rafael: remove them, show the amounts,
   adjust later): a run reads every page of the searches and every
   Standvirtual listing page still waiting, at most 30 minutes per site

@@ -31,6 +31,20 @@ fetching or retries. The normal fetcher, year/engine filters, model
 matching and incomplete-search removal safeguards still apply. Following
 more searches can mean more requests within the existing run-time limits.
 
+### 2026-10-27: one retry after a passing error (N.22)
+
+**Why.** Four runs in three days lost a whole search to one passing error:
+OLX sending no headers within the timeout (three times) and a Standvirtual
+HTTP 502. The search then removed nothing and the run failed.
+
+**Decision (Rafael).** A page that timed out, whose connection dropped or
+that answered HTTP 500, 502 or 504 is asked for once more, 60 seconds
+later (`FetchPolicy.retryDelay`). The retry is an ordinary request: counted,
+after the usual pause, never in parallel, and within the run's 30 minutes
+(if they run out first, the first failure stands). A second failure stops
+the site's run as before. Blocks (403, 429, 503) and pages that aren't
+normal are never retried and still pause the site for 24 hours.
+
 ### 2026-10-22: robots.txt kept up to 24 hours (R.4)
 
 **Decision (Rafael).** robots.txt is read once a day per site instead of

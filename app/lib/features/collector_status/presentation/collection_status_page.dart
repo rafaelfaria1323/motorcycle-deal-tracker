@@ -21,9 +21,9 @@ import '../../../core/localization/localizations.dart';
 
 /// "Estado da recolha" (admins, from Mais): whether the GitHub token still
 /// starts the runs, how much database space is used, each site's requests
-/// today and pause, the requests of each of the last 7 days, and the last
-/// runs with what went wrong and a link to
-/// each one on GitHub.
+/// today and pause, the requests of each of the last 7 days, the last 30
+/// days' failures by site and cause, and the last runs with what went
+/// wrong, how long the scores took and a link to each one on GitHub.
 class CollectionStatusPage extends StatefulWidget {
   const CollectionStatusPage({super.key});
 
@@ -35,7 +35,7 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
   static const _runs = 20;
 
   late Future<List<CollectorRun>> _recent;
-  late Future<List<CollectorRun>> _week;
+  late Future<List<CollectorRun>> _month;
   late Future<GithubToken?> _token;
   late Future<DatabaseUsage?> _usage;
 
@@ -48,8 +48,8 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
   void _load() {
     final repository = getIt<CollectorRunsRepository>();
     _recent = repository.getRecent(_runs);
-    _week = repository
-        .getSince(DateTime.now().subtract(const Duration(days: 7)))
+    _month = repository
+        .getSince(DateTime.now().subtract(const Duration(days: 30)))
         .catchError((Object _) => const <CollectorRun>[]);
     _token = getIt<GithubTokenRepository>().check().then<GithubToken?>(
       (t) => t,
@@ -63,7 +63,7 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
 
   Future<void> _reload() async {
     setState(_load);
-    await (_recent, _week, _token, _usage).wait;
+    await (_recent, _month, _token, _usage).wait;
   }
 
   @override
@@ -157,7 +157,13 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
                 SectionCard(
                   title: context.strings.requestsPerDay,
                   footnote: context.strings.last7DaysAddingTogetherEachDayS,
-                  children: [_DailyRequests(runs: _week, now: now)],
+                  children: [_DailyRequests(runs: _month, now: now)],
+                ),
+                const SizedBox(height: 12),
+                SectionCard(
+                  title: context.strings.failuresLast30Days,
+                  footnote: context.strings.failuresLast30DaysFootnote,
+                  children: [_FailureHistory(runs: _month)],
                 ),
                 const SizedBox(height: 12),
                 SectionCard(
@@ -216,8 +222,12 @@ class _DailyRequests extends StatelessWidget {
         if (snapshot.connectionState != ConnectionState.done) {
           return BulletLine(context.strings.countingRequests);
         }
+        final week = now.subtract(const Duration(days: 7));
         final days = dailyRequestsText(
-          snapshot.data ?? const [],
+          [
+            for (final run in snapshot.data ?? const <CollectorRun>[])
+              if (run.startedAt.isAfter(week)) run,
+          ],
           now,
           language: context.language,
         );
@@ -227,6 +237,39 @@ class _DailyRequests extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [for (final day in days) BulletLine(day)],
+        );
+      },
+    );
+  }
+}
+
+class _FailureHistory extends StatelessWidget {
+  const _FailureHistory({required this.runs});
+
+  final Future<List<CollectorRun>> runs;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<CollectorRun>>(
+      future: runs,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return BulletLine(context.strings.countingFailures);
+        }
+        final runs = snapshot.data ?? const <CollectorRun>[];
+        if (runs.isEmpty) {
+          return BulletLine(context.strings.noCollectionRunsRecordedYet);
+        }
+        final causes = failureHistoryText(runs, language: context.language);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            BulletLine(
+              failureShareText(runs, language: context.language),
+              icon: causes.isEmpty ? Icons.check_circle_outline : null,
+            ),
+            for (final cause in causes) BulletLine(cause),
+          ],
         );
       },
     );
@@ -299,22 +342,30 @@ class _RunTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final ok = run.status == 'ok';
+    final colors = AppColors.of(context);
     final url = run.runUrl;
+    final scoring = switch (run.scoringTime) {
+      final time? => scoringText(time, language: context.language),
+      null => null,
+    };
     final details = [
       context.strings.took(value: durationText(run.duration)),
+      if (scoring != null && !scoring.warning) scoring.text,
       ?requestsText(run.requests, language: context.language),
       ?runCountsText(run.counts, language: context.language),
+    ];
+    final warnings = [
+      if (scoring != null && scoring.warning) scoring.text,
+      ...run.problems,
     ];
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: Icon(
-        ok ? Icons.check_circle_outline : Icons.error_outline,
-        color: ok
-            ? AppColors.of(context).positive
-            : AppColors.of(context).negative,
-      ),
+      leading: switch (run.status) {
+        'ok' => Icon(Icons.check_circle_outline, color: colors.positive),
+        'partial' => Icon(Icons.warning_amber_rounded, color: colors.negative),
+        _ => Icon(Icons.error_outline, color: colors.negative),
+      },
       title: Text(
         context.strings.at(
           value: runStatusLabel(run.status, language: context.language),
@@ -326,13 +377,13 @@ class _RunTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(details.join(' · ')),
-          for (final problem in run.problems)
+          for (final warning in warnings)
             Padding(
               padding: const EdgeInsets.only(top: 2),
               child: Text(
-                problem,
+                warning,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.of(context).negative,
+                  color: colors.negative,
                 ),
               ),
             ),

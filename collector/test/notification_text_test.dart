@@ -83,25 +83,29 @@ void main() {
 
   test('health copy is English but original diagnostic lines stay intact', () {
     const diagnostic = 'olx: Failed: mensagem original';
-    final message = runHealthMessage(
-      previous: 'ok',
-      current: 'failed',
-      log: diagnostic,
-      language: english,
-    )!;
+    final message = runHealthMessage([
+      (status: 'failed', problems: [diagnostic]),
+      (status: 'ok', problems: <String>[]),
+    ], language: english)!;
     expect(message['title'], '⚠️ Listing collection failed.');
     expect(message['body'], startsWith(diagnostic));
     expect(message['body'], contains('Prices in the app may be out of date'));
     expect(message['url'], '/#/collection-status');
     expect(message['tag'], 'run-health');
     expect(
-      runHealthMessage(
-        previous: 'failed',
-        current: 'failed',
-        log: diagnostic,
-        language: english,
-      ),
+      runHealthMessage([
+        (status: 'failed', problems: [diagnostic]),
+        (status: 'failed', problems: [diagnostic]),
+      ], language: english),
       isNull,
+    );
+    expect(
+      runHealthMessage([
+        (status: 'partial', problems: [diagnostic]),
+        (status: 'partial', problems: [diagnostic]),
+        (status: 'ok', problems: <String>[]),
+      ], language: english)?['title'],
+      '⚠️ Listing collection failed twice in a row.',
     );
   });
 

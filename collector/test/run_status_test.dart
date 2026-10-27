@@ -16,6 +16,84 @@ void main() {
     expect(runStatus(65, 'Read issue: page-2.html: bad JSON'), 'failed');
   });
 
+  group('partial', () {
+    const end =
+        '== all sites ==\n'
+        'Scored 900 listing(s) in 4200 ms.\n'
+        'Alerts created: 2\n'
+        'Notifications sent: 2 (3 to devices)\n'
+        'Refresh finished in 1500 s, 1 site(s) failed.\n'
+        'make: *** [Makefile:88: refresh] Error 75\n';
+
+    test('only passing fetch failures, and the run got to its end', () {
+      expect(
+        runStatus(
+          2,
+          '== standvirtual ==\n'
+          'Stored 2 new, 30 already stored, 0 duplicate(s) in the input.\n'
+          '== olx ==\n'
+          'Retrying once in 60 s: https://www.olx.pt/x: timed out\n'
+          'Failed: https://www.olx.pt/x: timed out\n'
+          '$end',
+        ),
+        'partial',
+      );
+      expect(
+        runStatus(
+          2,
+          '== standvirtual ==\n'
+          'Failed: https://www.standvirtual.com/motos/y: HTTP 502\n'
+          '== olx ==\n'
+          'Failed: https://www.olx.pt/x: Connection reset by peer\n'
+          '$end',
+        ),
+        'partial',
+      );
+    });
+
+    test('any other problem, or a run that stopped early, is a failure', () {
+      const olxFailed =
+          '== olx ==\n'
+          'Failed: https://www.olx.pt/x: timed out\n';
+      for (final other in [
+        'Read issue: page-2.html: bad JSON\n',
+        'Database error: timeout\n',
+        'Not a search results page: no state\n',
+      ]) {
+        expect(runStatus(2, '$olxFailed$other$end'), 'failed');
+      }
+      // A database error after the sites, before the notifications.
+      expect(
+        runStatus(
+          2,
+          '$olxFailed== all sites ==\n'
+          'Database error: canceling statement due to statement timeout\n',
+        ),
+        'failed',
+      );
+      // Unhandled: no error line of ours, no end.
+      expect(
+        runStatus(2, '${olxFailed}Unhandled exception:\nBad state: x\n'),
+        'failed',
+      );
+      // No site's error line at all.
+      expect(runStatus(2, end), 'failed');
+    });
+  });
+
+  test('the scoring time is read from finishRun\'s line', () {
+    expect(
+      scoringMs(
+        '== all sites ==\n'
+        'Duplicates flagged: 3\n'
+        '  Scored 912 listing(s) in 41230 ms.\n',
+      ),
+      41230,
+    );
+    expect(scoringMs('Scored 89 listing(s).\n'), isNull);
+    expect(scoringMs(''), isNull);
+  });
+
   test('the tail keeps the last lines', () {
     final log = List.generate(100, (i) => 'line $i').join('\n');
     final tail = logTail(log, lines: 3);

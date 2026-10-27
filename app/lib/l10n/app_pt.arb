@@ -5310,5 +5310,105 @@
         "type": "int"
       }
     }
+  },
+  "partialRun": "Incompleta",
+  "@partialRun": {
+    "description": "Interface text in collection_status_text, runStatusLabel."
+  },
+  "scoringTime": "Pontuações em {seconds} s",
+  "@scoringTime": {
+    "description": "Interface text in collection_status_text, scoringText: how long the run's scoring took.",
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "scoringTookTooLong": "As pontuações demoraram {seconds} s, mais de metade do limite de {limit} s da base de dados.",
+  "@scoringTookTooLong": {
+    "description": "Interface text in collection_status_text, scoringText: warning past half of the database's statement timeout.",
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "failureSiteRefused": "O site recusou os pedidos",
+  "@failureSiteRefused": {
+    "description": "Interface text in collection_status_text, failureCause."
+  },
+  "failurePausedOrNotAllowed": "Em pausa ou pedido não permitido",
+  "@failurePausedOrNotAllowed": {
+    "description": "Interface text in collection_status_text, failureCause."
+  },
+  "failureNoResponse": "Sem resposta ou erro do site (tempo esgotado, HTTP 5xx)",
+  "@failureNoResponse": {
+    "description": "Interface text in collection_status_text, failureCause."
+  },
+  "failureDatabase": "Erro da base de dados",
+  "@failureDatabase": {
+    "description": "Interface text in collection_status_text, failureCause."
+  },
+  "failureUnreadablePages": "Páginas que não foi possível ler",
+  "@failureUnreadablePages": {
+    "description": "Interface text in collection_status_text, failureCause."
+  },
+  "failureOther": "Outro erro",
+  "@failureOther": {
+    "description": "Interface text in collection_status_text, failureCause."
+  },
+  "failureHistoryLine": "{cause}: {count, plural, =1{1 recolha, a {date} às {time}} other{{count} recolhas, a última a {date} às {time}}}",
+  "@failureHistoryLine": {
+    "description": "Interface text in collection_status_text, failureHistoryText: one site and cause, how many runs and the last one.",
+    "placeholders": {
+      "cause": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "failureShareNone": "{count, plural, =1{A recolha correu bem} other{As {count} recolhas correram todas bem}}",
+  "@failureShareNone": {
+    "description": "Interface text in collection_status_text, failureShareText: no run failed.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "failureShare": "{failed} de {total, plural, =1{1 recolha} other{{total} recolhas}} {failed, plural, =1{não correu bem} other{não correram bem}}",
+  "@failureShare": {
+    "description": "Interface text in collection_status_text, failureShareText: how many runs were not ok.",
+    "placeholders": {
+      "failed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "failuresLast30Days": "Falhas nos últimos 30 dias",
+  "@failuresLast30Days": {
+    "description": "Interface text in collection_status_page, section title."
+  },
+  "failuresLast30DaysFootnote": "Por site e causa. Uma recolha incompleta perdeu uma pesquisa ou um site por uma falha passageira; a seguinte volta a ler. O aviso no telemóvel só chega se o mesmo site falhar em duas recolhas seguidas.",
+  "@failuresLast30DaysFootnote": {
+    "description": "Interface text in collection_status_page, failures section footnote."
+  },
+  "countingFailures": "A contar as falhas…",
+  "@countingFailures": {
+    "description": "Interface text in collection_status_page, while the failures load."
   }
 }

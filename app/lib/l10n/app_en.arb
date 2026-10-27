@@ -949,5 +949,20 @@
   "authAccountUnavailable": "This account cannot sign in. Contact an administrator.",
   "listingsResultCount": "{count, plural, =0{0 listings} =1{1 listing} other{{count} listings}}{hasMore, select, true{ loaded} other{}}",
   "matchingListingCount": "{count, plural, =0{0 matching listings} =1{1 matching listing} other{{count} matching listings}}",
-  "unreadAlertCount": "{count, plural, =0{All read} =1{1 unread alert} other{{count} unread alerts}}"
+  "unreadAlertCount": "{count, plural, =0{All read} =1{1 unread alert} other{{count} unread alerts}}",
+  "partialRun": "Incomplete",
+  "scoringTime": "Scores in {seconds} s",
+  "scoringTookTooLong": "Scoring took {seconds} s, more than half of the database's {limit} s limit.",
+  "failureSiteRefused": "The site refused the requests",
+  "failurePausedOrNotAllowed": "Paused or request not allowed",
+  "failureNoResponse": "No response or site error (timeout, HTTP 5xx)",
+  "failureDatabase": "Database error",
+  "failureUnreadablePages": "Pages that could not be read",
+  "failureOther": "Other error",
+  "failureHistoryLine": "{cause}: {count, plural, =1{1 collection, on {date} at {time}} other{{count} collections, the last on {date} at {time}}}",
+  "failureShareNone": "{count, plural, =1{The collection went well} other{All {count} collections went well}}",
+  "failureShare": "{failed} of {total, plural, =1{1 collection} other{{total} collections}} went wrong",
+  "failuresLast30Days": "Failures in the last 30 days",
+  "failuresLast30DaysFootnote": "By site and cause. An incomplete collection missed a search or a site through a passing failure; the next one reads it again. The phone is only notified when the same site fails in two collections in a row.",
+  "countingFailures": "Counting failures…"
 }

@@ -78,6 +78,10 @@ extension NotificationText on NotificationLanguage {
     '⚠️ A recolha de anúncios falhou.',
     '⚠️ Listing collection failed.',
   );
+  String get failedTwice => _text(
+    '⚠️ A recolha de anúncios falhou duas vezes seguidas.',
+    '⚠️ Listing collection failed twice in a row.',
+  );
   String get failedAdvice => _text(
     'Os preços na app podem ficar desatualizados até a recolha voltar a '
         'funcionar.',

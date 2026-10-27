@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:motorcycle_deal_tracker/core/localization/app_language.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/domain/collector_run.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/domain/database_usage.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/domain/github_token.dart';
@@ -195,8 +196,129 @@ void main() {
 
   test('run labels', () {
     expect(runStatusLabel('ok'), 'Correu bem');
+    expect(runStatusLabel('partial'), 'Incompleta');
     expect(runStatusLabel('blocked'), 'Bloqueada');
     expect(runStatusLabel('failed'), 'Falhou');
+  });
+
+  test('the scoring time warns past half the database\'s limit', () {
+    expect(scoringText(const Duration(milliseconds: 4210)), (
+      text: 'Pontuações em 4,2 s',
+      warning: false,
+    ));
+    expect(scoringText(const Duration(seconds: 30)).warning, isFalse);
+    expect(scoringText(const Duration(milliseconds: 41230)), (
+      text:
+          'As pontuações demoraram 41,2 s, mais de metade do limite de 60 s '
+          'da base de dados.',
+      warning: true,
+    ));
+  });
+
+  group('failures', () {
+    CollectorRun run(String status, DateTime started, List<String> problems) =>
+        CollectorRun(
+          status: status,
+          startedAt: started,
+          finishedAt: started.add(const Duration(minutes: 20)),
+          problems: problems,
+        );
+
+    test('causes from the error lines', () {
+      expect(
+        failureCause('olx: Failed: https://www.olx.pt/x: timed out'),
+        'Sem resposta ou erro do site (tempo esgotado, HTTP 5xx)',
+      );
+      expect(
+        failureCause('standvirtual: Stopped, the site pushed back: HTTP 429'),
+        'O site recusou os pedidos',
+      );
+      expect(
+        failureCause('olx: Not fetched: paused until 2026-10-22'),
+        'Em pausa ou pedido não permitido',
+      );
+      expect(
+        failureCause('Database error: canceling statement'),
+        'Erro da base de dados',
+      );
+      for (final line in [
+        'olx: Read issue: page-2.html: bad JSON',
+        'olx: Cannot read the saved pages: gone (samples/olx)',
+        'olx: Not a search results page: no state',
+      ]) {
+        expect(failureCause(line), 'Páginas que não foi possível ler');
+      }
+      expect(failureCause('Missing SUPABASE_URL'), 'Outro erro');
+    });
+
+    test('by site and cause, most frequent first, a run once each', () {
+      final runs = [
+        run('partial', DateTime.utc(2026, 10, 26, 13, 2), [
+          'olx: Failed: https://www.olx.pt/a: timed out',
+          'olx: Failed: https://www.olx.pt/b: timed out',
+        ]),
+        run('ok', DateTime.utc(2026, 10, 26, 11), const []),
+        run('failed', DateTime.utc(2026, 10, 25, 19), [
+          'standvirtual: Failed: https://www.standvirtual.com/motos/y: '
+              'HTTP 502',
+          'Database error: canceling statement',
+        ]),
+        run('partial', DateTime.utc(2026, 10, 24, 7), [
+          'olx: Failed: https://www.olx.pt/a: HTTP 504',
+        ]),
+        run('failed', DateTime.utc(2026, 10, 23, 23), const []),
+      ];
+
+      expect(failureHistoryText(runs), [
+        'OLX · Sem resposta ou erro do site (tempo esgotado, HTTP 5xx): 2 '
+            'recolhas, a última a 26/10 às 13:02',
+        'Standvirtual · Sem resposta ou erro do site (tempo esgotado, HTTP '
+            '5xx): 1 recolha, a 25/10 às 19:00',
+        'Erro da base de dados: 1 recolha, a 25/10 às 19:00',
+        'Outro erro: 1 recolha, a 23/10 às 23:00',
+      ]);
+      expect(failureShareText(runs), '4 de 5 recolhas não correram bem');
+      expect(failureHistoryText(runs.sublist(1, 2)), isEmpty);
+      expect(failureShareText(runs.sublist(1, 2)), 'A recolha correu bem');
+      expect(
+        failureShareText([runs[1], runs[1]]),
+        'As 2 recolhas correram todas bem',
+      );
+      expect(
+        failureShareText(runs.sublist(0, 1)),
+        '1 de 1 recolha não correu bem',
+      );
+    });
+
+    test('in English', () {
+      const en = AppLanguage.english;
+      final runs = [
+        run('partial', DateTime.utc(2026, 10, 26, 13, 2), [
+          'olx: Failed: https://www.olx.pt/a: timed out',
+        ]),
+        run('ok', DateTime.utc(2026, 10, 26, 11), const []),
+        run('partial', DateTime.utc(2026, 10, 24, 7), [
+          'olx: Failed: https://www.olx.pt/a: HTTP 504',
+        ]),
+      ];
+      expect(runStatusLabel('partial', language: en), 'Incomplete');
+      expect(failureHistoryText(runs, language: en), [
+        'OLX · No response or site error (timeout, HTTP 5xx): 2 collections, '
+            'the last on 26/10 at 13:02',
+      ]);
+      expect(
+        failureShareText(runs, language: en),
+        '2 of 3 collections went wrong',
+      );
+      expect(
+        failureShareText(runs.sublist(1, 2), language: en),
+        'The collection went well',
+      );
+      expect(
+        scoringText(const Duration(milliseconds: 4210), language: en).text,
+        'Scores in 4.2 s',
+      );
+    });
   });
 
   group('database usage', () {
