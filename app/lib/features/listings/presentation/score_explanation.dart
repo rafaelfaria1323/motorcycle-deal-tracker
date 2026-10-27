@@ -214,7 +214,7 @@ abstract final class ScoreExplainer {
       ),
       'needs_repair': (
         ExplanationTone.negative,
-        language.messages.descriptionMentionsRepairsOrMissingOrBrokenParts,
+        language.messages.riskNeedsRepair,
       ),
       'cosmetic_damage': (
         ExplanationTone.negative,
@@ -227,7 +227,7 @@ abstract final class ScoreExplainer {
       'no_year': (ExplanationTone.negative, language.messages.yearNotStated),
       'suspicious_mileage': (
         ExplanationTone.negative,
-        language.messages.implausibleMileageForItsYearCheckWithSeller,
+        language.messages.riskImplausibleMileage,
       ),
       'thin_description': (
         ExplanationTone.negative,
@@ -248,19 +248,19 @@ abstract final class ScoreExplainer {
       'imported': (ExplanationTone.negative, language.messages.importedBike),
       'text_year_mismatch': (
         ExplanationTone.negative,
-        language.messages.yearInDescriptionDoesNotMatchListingScoreExplanation,
+        language.messages.riskTextYear,
       ),
       'text_mileage_mismatch': (
         ExplanationTone.negative,
-        language.messages.descriptionMentionsMoreKilometresThanListingStates,
+        language.messages.riskTextMoreKm,
       ),
       'text_origin_mismatch': (
         ExplanationTone.negative,
-        language.messages.descriptionSaysImportedListingSaysPortugueseMarket,
+        language.messages.riskTextImported,
       ),
       'text_service_book_mismatch': (
         ExplanationTone.negative,
-        language.messages.descriptionSaysThereIsNoServiceBookListing,
+        language.messages.riskTextNoServiceBook,
       ),
       'relisted': (
         ExplanationTone.negative,
@@ -276,7 +276,7 @@ abstract final class ScoreExplainer {
       ),
       'a2_unlocked': (
         ExplanationTone.negative,
-        language.messages.unrestrictedA2VersionCheckThatDocumentsShowFull,
+        language.messages.riskA2Unlocked,
       ),
       'first_owner': (ExplanationTone.positive, language.messages.firstOwner),
       'service_book': (
@@ -383,7 +383,7 @@ abstract final class ScoreExplainer {
       lines.add(
         ExplanationLine(
           ExplanationTone.neutral,
-          language.messages.notEnoughComparableListingsToEstimateValuePrice(
+          language.messages.priceNotEnoughComparables(
             marketCount: (marketCount).toString(),
           ),
         ),
@@ -401,7 +401,7 @@ abstract final class ScoreExplainer {
       lines.add(
         ExplanationLine(
           ExplanationTone.negative,
-          language.messages.withDamageOrOutstandingRepairsScoreIsCapped,
+          language.messages.scoreCappedForDamage,
         ),
       );
     }

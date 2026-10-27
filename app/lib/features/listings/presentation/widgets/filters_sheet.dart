@@ -163,7 +163,7 @@ class _FiltersSheetState extends State<FiltersSheet> {
             controller: _location,
             decoration: InputDecoration(
               labelText: context.strings.locationCompareText,
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 12),
@@ -172,7 +172,7 @@ class _FiltersSheetState extends State<FiltersSheet> {
             decoration: InputDecoration(
               labelText: context.strings.maximumDistance,
               helperText: context.strings.fromYourHomeLocationInMore,
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
             ),
             items: [
               DropdownMenuItem(value: null, child: Text(context.strings.any)),
@@ -190,7 +190,7 @@ class _FiltersSheetState extends State<FiltersSheet> {
             initialValue: _minDealScore,
             decoration: InputDecoration(
               labelText: context.strings.minimumDealScore,
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
             ),
             items: [
               DropdownMenuItem(value: null, child: Text(context.strings.any)),
@@ -209,7 +209,7 @@ class _FiltersSheetState extends State<FiltersSheet> {
             initialValue: _maxRiskScore,
             decoration: InputDecoration(
               labelText: context.strings.maximumRisk,
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
             ),
             items: [
               DropdownMenuItem(value: null, child: Text(context.strings.any)),

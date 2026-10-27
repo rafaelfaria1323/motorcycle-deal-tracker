@@ -26,10 +26,10 @@ String favouritesCountText(
       ? language.messages.text1Listing
       : language.messages.listingsDataQualityText(n: (total).toString());
   if (removed == 0) return count;
-  return language.messages.already(
+  return language.messages.favouritesRemoved(
     count: count,
     removed: (removed).toString(),
-    value: removed == 1
+    listingsWord: removed == 1
         ? language.messages.removedListing
         : language.messages.removedListingsFavouritesText,
   );

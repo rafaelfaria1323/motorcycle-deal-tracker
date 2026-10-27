@@ -17,15 +17,11 @@ const tokenWarningDays = 14;
 }) {
   switch (token.state) {
     case GithubTokenState.missing:
-      return (
-        text:
-            language.messages.githubTokenIsMissingFromSupabaseVaultCollections,
-        warning: true,
-      );
+      return (text: language.messages.githubTokenMissing, warning: true);
     case GithubTokenState.refused:
       return (
-        text: language.messages.githubRejectedTokenHTTPCreateNewOneAnd(
-          value: (token.httpStatus ?? '?').toString(),
+        text: language.messages.githubTokenRejected(
+          status: (token.httpStatus ?? '?').toString(),
         ),
         warning: true,
       );
@@ -47,7 +43,7 @@ const tokenWarningDays = 14;
         text: language.messages.githubTokenValidUntil(
           date: Formatters.date(expires),
           left: left,
-          value: days < tokenWarningDays
+          renewHint: days < tokenWarningDays
               ? language.messages.createNewOneAndReplaceItInSupabase
               : '',
         ),
@@ -76,11 +72,11 @@ String megabytes(int bytes, {AppLanguage language = AppLanguage.portuguese}) =>
   final share = usage.bytes / databaseLimitBytes;
   final warning = share >= databaseWarningShare;
   return (
-    text: language.messages.databaseUsesOfMB(
-      value: megabytes(usage.bytes, language: language),
-      value2: (databaseLimitBytes ~/ _megabyte).toString(),
+    text: language.messages.databaseUsage(
+      used: megabytes(usage.bytes, language: language),
+      limit: (databaseLimitBytes ~/ _megabyte).toString(),
       percent: Formatters.percent(share * 100, language: language),
-      value4: warning
+      warning: warning
           ? language.messages.nearFreePlanLimitAboveItSupabaseOnly
           : '',
     ),
@@ -99,7 +95,7 @@ String? biggestTablesText(
     for (final t in usage.tables)
       '${t.name} ${megabytes(t.bytes, language: language)}',
   ];
-  return language.messages.largestTables(value: tables.join(', '));
+  return language.messages.largestTables(tables: tables.join(', '));
 }
 
 const siteNames = {'standvirtual': 'Standvirtual', 'olx': 'OLX'};
@@ -132,10 +128,10 @@ const siteNames = {'standvirtual': 'Standvirtual', 'olx': 'OLX'};
       now.toUtc().toIso8601String().substring(0, 10);
   final used = sameDay ? budget.requestsToday : 0;
   return (
-    text: language.messages.todayUTC(
+    text: language.messages.requestsToday(
       name: name,
       used: (used).toString(),
-      value: used == 1
+      requestsWord: used == 1
           ? language.messages.request
           : language.messages.requestsCollectionStatusText,
     ),
@@ -155,19 +151,19 @@ String searchReadText(
   if (spans == null) {
     return language.messages.notReadInThisCollection(name: name);
   }
-  final pages = language.messages.ofText(
+  final pages = language.messages.pagesReadOf(
     pages: s.pages.toString(),
     spans: (spans).toString(),
-    value: spans == 1 ? language.messages.page : language.messages.pages,
+    pagesWord: spans == 1 ? language.messages.page : language.messages.pages,
   );
   final ads =
       '${s.ads} ${s.ads == 1 ? language.messages.listing : language.messages.listings}';
-  return language.messages.forTrackedModels(
+  return language.messages.searchReadLine(
     name: name,
     pages: pages,
     ads: ads,
     followed: s.followed.toString(),
-    value: s.inFull ? '' : language.messages.notFullyRead,
+    notFullyRead: s.inFull ? '' : language.messages.notFullyRead,
   );
 }
 

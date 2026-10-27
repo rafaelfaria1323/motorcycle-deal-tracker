@@ -23,7 +23,7 @@ String qualityMixLine(
     if (q.unmatchedCount > 0)
       language.messages.withoutModel(
         unmatchedCount: q.unmatchedCount.toString(),
-        value: percent(q.unmatchedCount, q.liveCount, language: language),
+        percent: percent(q.unmatchedCount, q.liveCount, language: language),
       ),
     if (q.duplicateCount > 0)
       '${q.duplicateCount} '
@@ -40,18 +40,18 @@ String? qualityMissingLine(
 }) {
   final parts = [
     if (q.missingYear > 0)
-      language.messages.year(
-        value: percent(q.missingYear, q.scoredCount, language: language),
+      language.messages.missingYearShare(
+        percent: percent(q.missingYear, q.scoredCount, language: language),
       ),
     if (q.missingMileage > 0)
       'km ${percent(q.missingMileage, q.scoredCount, language: language)}',
     if (q.missingLocation > 0)
-      language.messages.location(
-        value: percent(q.missingLocation, q.scoredCount, language: language),
+      language.messages.missingLocationShare(
+        percent: percent(q.missingLocation, q.scoredCount, language: language),
       ),
   ];
   if (parts.isEmpty) return null;
-  return language.messages.missing(value: parts.join(' · '));
+  return language.messages.missingFields(fields: parts.join(' · '));
 }
 
 /// Null when every listing page has been read.
@@ -93,8 +93,8 @@ String? qualitySharpPricesLine(
 }) {
   final n = q.sharpPriceChanges;
   if (n == 0) return null;
-  return language.messages.withPriceChangeOf50OrMoreIn(
-    value: n == 1
+  return language.messages.sharpPriceChangesLine(
+    listings: n == 1
         ? language.messages.text1Listing
         : language.messages.listingsDataQualityText(n: (n).toString()),
   );
@@ -109,5 +109,5 @@ String percent(
   if (whole <= 0 || part <= 0) return language.messages.zeroPercent;
   final value = part * 100 / whole;
   if (value < 1) return language.messages.lessThanOnePercent;
-  return language.messages.percentage(value: value.round().toString());
+  return language.messages.percentage(number: value.round().toString());
 }

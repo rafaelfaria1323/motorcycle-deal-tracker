@@ -124,7 +124,7 @@ void main() {
   });
 
   test('reads the view row', () {
-    final q = SourceQuality.fromJson({
+    final q = SourceQuality.fromJson(const {
       'source': 'standvirtual',
       'live_count': 40,
       'unmatched_count': 3,
@@ -154,7 +154,7 @@ void main() {
   });
 
   test('a view without the newer columns still reads', () {
-    final q = SourceQuality.fromJson({'source': 'olx', 'live_count': 3});
+    final q = SourceQuality.fromJson(const {'source': 'olx', 'live_count': 3});
     expect(q.lastSeenAt, isNull);
     expect(q.sharpPriceChanges, 0);
   });

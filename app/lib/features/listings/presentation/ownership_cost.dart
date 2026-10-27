@@ -183,19 +183,19 @@ String ownershipHeadline(
   OwnershipCost c, {
   AppLanguage language = AppLanguage.portuguese,
 }) => language.messages.costsAboutPerYear(
-  value: roughPrice(c.perYear, language: language),
+  price: roughPrice(c.perYear, language: language),
 );
 
 /// "Em 3 anos: cerca de 4 350 €".
 String ownershipTotalLine(
   OwnershipCost c, {
   AppLanguage language = AppLanguage.portuguese,
-}) => language.messages.overAbout(
+}) => language.messages.ownershipTotal(
   years: c.years.toString(),
-  value: c.years == 1
+  yearsWord: c.years == 1
       ? language.messages.yearOwnershipCost
       : language.messages.years,
-  value3: roughPrice(c.total, language: language),
+  total: roughPrice(c.total, language: language),
 );
 
 /// One line per part of the cost, in the order they are added up.
@@ -207,16 +207,16 @@ List<String> ownershipLines(
   final t = c.table;
   String km(int value) => Formatters.mileage(value, language: language);
   return [
-    language.messages.depreciationPerYearAverageOver(
-      value: roughPrice(c.depreciation, language: language),
+    language.messages.ownershipDepreciation(
+      price: roughPrice(c.depreciation, language: language),
       years: c.years.toString(),
-      value3: c.years == 1
+      yearsWord: c.years == 1
           ? language.messages.yearOwnershipCost
           : language.messages.years,
     ),
     switch (c.iuc) {
       null when year != null && year < iucFirstYear =>
-        language.messages.roadTaxIUCNotCalculatedForRegistrationsBefore(
+        language.messages.iucNotCalculated(
           iucFirstYear: (iucFirstYear).toString(),
         ),
       null => language.messages.roadTaxIUCModelEngineSizeUnknown,
@@ -226,22 +226,22 @@ List<String> ownershipLines(
       ),
     },
     c.insurance == null
-        ? language.messages.insuranceNotIncludedEnterYourInsurancePremium
+        ? language.messages.insuranceNotEntered
         : language.messages.insuranceYourFigure(
             price: Formatters.price(c.insurance, language: language),
           ),
-    language.messages.tyresSetEveryAtLeastEveryYears(
+    language.messages.ownershipTyres(
       price: Formatters.price(c.tyres, language: language),
-      value: km(t.tyreLifeKm),
+      distance: km(t.tyreLifeKm),
       tyreMaxYears: (tyreMaxYears).toString(),
     ),
-    language.messages.servicingEveryAtLeastOnceYear(
+    language.messages.ownershipServicing(
       price: Formatters.price(c.services, language: language),
-      value: km(t.serviceIntervalKm),
+      distance: km(t.serviceIntervalKm),
     ),
-    language.messages.chainAndSprocketKitEvery(
+    language.messages.ownershipChain(
       price: Formatters.price(c.chain, language: language),
-      value: km(t.chainLifeKm),
+      distance: km(t.chainLifeKm),
     ),
   ];
 }

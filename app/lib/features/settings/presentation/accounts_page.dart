@@ -128,7 +128,7 @@ class _AccountsPageState extends State<AccountsPage> {
 
     final ok = await _confirm(
       messageStrings.removeAccountsPage(email: account.email),
-      messageStrings.accountWillLoseAccessAndItsSearchesAlerts,
+      messageStrings.removeAccountWarning,
       messageStrings.removeOfferCard,
     );
     if (!ok || !mounted) return;
@@ -174,7 +174,7 @@ class _AccountsPageState extends State<AccountsPage> {
               _Header(context.strings.invites),
               if (data.invites.isEmpty)
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Text(context.strings.thereAreNoInvitesYetTapInviteTo),
                 ),
               for (final invite in data.invites)
@@ -277,10 +277,8 @@ class _AccountsPageState extends State<AccountsPage> {
                         ),
                 ),
               Padding(
-                padding: EdgeInsets.fromLTRB(20, 16, 20, 0),
-                child: Text(
-                  context.strings.eachAccountChoosesItsModelsSearchesAndAlerts,
-                ),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                child: Text(context.strings.accountsIntro),
               ),
             ],
           );
@@ -333,7 +331,7 @@ class _NoteDialogState extends State<_NoteDialog> {
         decoration: InputDecoration(
           labelText: context.strings.forWhomOptional,
           helperText: context.strings.onlyShownInThisList,
-          border: OutlineInputBorder(),
+          border: const OutlineInputBorder(),
         ),
         onSubmitted: (text) => Navigator.of(context).pop(text),
       ),

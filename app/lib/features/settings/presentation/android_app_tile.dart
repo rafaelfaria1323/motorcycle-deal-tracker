@@ -57,11 +57,7 @@ class _AndroidAppTileState extends State<AndroidAppTile> {
       await ApkInstaller.install(AppBuild.apkUrl);
     } on Exception {
       messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            messageStrings.couldNotDownloadNewVersionCheckYourConnection,
-          ),
-        ),
+        SnackBar(content: Text(messageStrings.apkDownloadFailed)),
       );
     } finally {
       if (mounted) setState(() => _downloading = false);

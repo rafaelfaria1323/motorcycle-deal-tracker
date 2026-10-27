@@ -48,7 +48,7 @@ void main() {
 
     test('an unknown state reads as refused', () {
       expect(
-        GithubToken.fromJson({'state': 'odd'}).state,
+        GithubToken.fromJson(const {'state': 'odd'}).state,
         GithubTokenState.refused,
       );
     });
@@ -127,7 +127,7 @@ void main() {
 
     test('reads the run\'s JSON (an older run\'s daily_limit ignored)', () {
       expect(
-        SiteBudget.fromJson({
+        SiteBudget.fromJson(const {
           'requests_today': 47,
           'daily_limit': 120,
           'paused_until': '2026-10-22T08:00:00.000Z',
@@ -362,7 +362,7 @@ void main() {
 
     test('reads the database function\'s answer', () {
       expect(
-        DatabaseUsage.fromJson({
+        DatabaseUsage.fromJson(const {
           'database_bytes': 2048,
           'tables': [
             {'name': 'listings', 'bytes': 1024},

@@ -61,8 +61,6 @@ ExplanationLine? favouriteColourLine(
     ExplanationTone.positive,
     label == null
         ? language.messages.inOneOfYourPreferredColoursDoesNot
-        : language.messages.inOneOfYourPreferredColoursDoesNotColourText(
-            label: label,
-          ),
+        : language.messages.inYourColour(label: label),
   );
 }

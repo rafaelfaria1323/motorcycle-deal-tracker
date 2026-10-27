@@ -20,5 +20,5 @@ String riskCriterionLabel(
 }) => max < 20
     ? language.messages.lowRiskCriterion
     : language.messages.riskUpTo(
-        value: ScoreExplainer.riskLabel(max, language: language).toLowerCase(),
+        risk: ScoreExplainer.riskLabel(max, language: language).toLowerCase(),
       );

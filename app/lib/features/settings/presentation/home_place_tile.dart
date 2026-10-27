@@ -61,9 +61,7 @@ class _HomePlaceTileState extends State<HomePlaceTile> {
           subtitle: Text(
             home == null
                 ? context.strings.setItToSeeHowFarAwayEach
-                : context
-                      .strings
-                      .yourHomeLocationDistancesToListingsAreMeasured,
+                : context.strings.homePlaceHelp,
           ),
           trailing: const Icon(Icons.chevron_right),
           onTap: snapshot.connectionState == ConnectionState.done
@@ -139,8 +137,8 @@ class _PlaceSearchDialogState extends State<_PlaceSearchDialog> {
               textCapitalization: TextCapitalization.words,
               decoration: InputDecoration(
                 hintText: context.strings.enterCityOrTown,
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.search),
+                border: const OutlineInputBorder(),
               ),
               onChanged: _onChanged,
             ),

@@ -21,9 +21,9 @@ List<String> marketLines(
   AppLanguage language = AppLanguage.portuguese,
 }) {
   final lines = <String>[
-    language.messages.ofThisModel(
+    language.messages.activeOfModel(
       liveCount: m.liveCount.toString(),
-      value: m.liveCount == 1
+      listingsWord: m.liveCount == 1
           ? language.messages.activeListing
           : language.messages.activeListings,
     ),
@@ -33,16 +33,16 @@ List<String> marketLines(
   final enoughGone = m.goneCount >= minMarketData && toGone != null;
   if (enoughGone) {
     lines.add(
-      language.messages.typicalTimeUntilLeavingMarketDaysListings(
+      language.messages.typicalTimeToGone(
         toGone: (toGone).toString(),
         goneCount: m.goneCount.toString(),
       ),
     );
   } else {
     lines.add(
-      language.messages.timeUntilLeavingMarketNotEnoughDataYet(
+      language.messages.timeToGoneFewData(
         goneCount: m.goneCount.toString(),
-        value: m.goneCount == 1
+        listingsWord: m.goneCount == 1
             ? language.messages.listingLeftMarket
             : language.messages.listingsLeftMarket,
       ),
@@ -81,13 +81,17 @@ List<String> marketLines(
     lines.add(switch ((daysListed <= 0, firstSeenOnly)) {
       (true, false) => language.messages.thisListingWasPublishedToday,
       (true, true) => language.messages.firstSeenToday,
-      (false, false) => language.messages.thisListingHasBeenPublishedFor(
+      (false, false) => language.messages.publishedForDays(
         daysListed: (daysListed).toString(),
-        value: daysListed == 1 ? language.messages.day : language.messages.days,
+        daysWord: daysListed == 1
+            ? language.messages.day
+            : language.messages.days,
       ),
       (false, true) => language.messages.firstSeenAgo(
         daysListed: (daysListed).toString(),
-        value: daysListed == 1 ? language.messages.day : language.messages.days,
+        daysWord: daysListed == 1
+            ? language.messages.day
+            : language.messages.days,
       ),
     });
     if (enoughGone && daysListed > 2 * toGone) {
@@ -107,9 +111,9 @@ String depreciationLine(
     decimals: 1,
     language: language,
   );
-  final rates = language.messages.perYearAndPer10000Km(
-    value: pct(d.perYear),
-    value2: pct(d.per1000Km * 10),
+  final rates = language.messages.depreciationRates(
+    perYear: pct(d.perYear),
+    per10000Km: pct(d.per1000Km * 10),
   );
 
   return d.isFitted
@@ -117,7 +121,7 @@ String depreciationLine(
           rates: rates,
           sampleCount: d.sampleCount.toString(),
         )
-      : language.messages.depreciationNotEnoughDataYetOfListingsUsing(
+      : language.messages.depreciationGeneralRule(
           sampleCount: d.sampleCount.toString(),
           minDepreciationData: (minDepreciationData).toString(),
           rates: rates,

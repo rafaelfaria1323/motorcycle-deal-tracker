@@ -93,7 +93,7 @@ class _WeeklySummaryPageState extends State<WeeklySummaryPage> {
             return StateMessage(
               icon: Icons.lock_outline,
               title: context.strings.availableWhenSignedIn,
-              message: context.strings.summaryCoversModelsFollowedByYourAccount,
+              message: context.strings.weeklySummaryScope,
             );
           }
           if (snapshot.hasError) {
@@ -112,7 +112,7 @@ class _WeeklySummaryPageState extends State<WeeklySummaryPage> {
             return StateMessage(
               icon: Icons.summarize_outlined,
               title: context.strings.noSummaryYet,
-              message: context.strings.firstArrivesOnMondayMorningYouCanRequest,
+              message: context.strings.weeklySummaryNoneYet,
               actionLabel: _asking ? null : ask.title,
               onAction: () => unawaited(_ask()),
             );

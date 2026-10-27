@@ -85,13 +85,13 @@ class OfferSuggestion {
     final value = Formatters.price(counter, language: language);
     if (counter <= opening) {
       return OfferReply(
-        language.messages.acceptIsBelowYourOpeningOffer(value: value),
+        language.messages.counterAcceptBelowOpening(asked: value),
         acceptMessage(counter, language: language),
       );
     }
     if (counter <= second) {
       return OfferReply(
-        language.messages.acceptIsWithinWhatIsWorthPaying(value: value),
+        language.messages.counterAcceptWithinWorth(asked: value),
         acceptMessage(counter, language: language),
       );
     }
@@ -101,24 +101,24 @@ class OfferSuggestion {
       // one step from the seller's price.
       if (halfway <= second || counter - halfway <= offerStep) {
         return OfferReply(
-          language.messages.acceptIsWithinMaximum(
-            value: value,
+          language.messages.counterAcceptWithinCeiling(
+            asked: value,
             price: Formatters.price(ceiling, language: language),
           ),
           acceptMessage(counter, language: language),
         );
       }
       return OfferReply(
-        language.messages.offerHalfwayIfSellerWillNotGoLower(
+        language.messages.counterOfferHalfway(
           price: Formatters.price(halfway, language: language),
-          value: value,
+          asked: value,
         ),
         offerMessage(halfway, language: language),
       );
     }
     return OfferReply(
-      language.messages.exceedsMaximumOfferAsYourFinalOfferAnd(
-        value: value,
+      language.messages.counterAboveCeiling(
+        asked: value,
         price: Formatters.price(ceiling, language: language),
       ),
       lastOfferMessage(ceiling, language: language),
@@ -268,7 +268,7 @@ OfferSuggestion? suggestOffer(
       );
     } else if (price < estimate * 0.98) {
       reasons.add(
-        language.messages.askingPriceIsAlreadyBelowEstimatedValueThere(
+        language.messages.offerAlreadyBelowEstimate(
           percent: Formatters.percent(alreadyBelow * 100, language: language),
           price: Formatters.price(estimate, language: language),
         ),
@@ -282,7 +282,7 @@ OfferSuggestion? suggestOffer(
   var margin = dealer ? dealerMargin : privateMargin;
   reasons.add(
     dealer
-        ? language.messages.dealerStartBelowPriceDealersRarelyNegotiateMuch(
+        ? language.messages.offerDealerOpening(
             percent: Formatters.percent(dealerMargin * 100, language: language),
           )
         : language.messages.privateSellerStartBelowPrice(
@@ -310,8 +310,8 @@ OfferSuggestion? suggestOffer(
         : 0;
     margin += longListingMargins[level];
     final howLong = enoughGone
-        ? language.messages.typicalForThisModelDays(
-            value: [
+        ? language.messages.onSaleVsTypical(
+            howMuch: [
               language.messages.moreThan,
               language.messages.moreThanTwice,
               language.messages.moreThanThreeTimes,
@@ -320,10 +320,10 @@ OfferSuggestion? suggestOffer(
           )
         : language.messages.longTime;
     reasons.add(
-      language.messages.forSaleForDaysOfferText(
+      language.messages.offerLongOnSale(
         daysListed: (daysListed).toString(),
         howLong: howLong,
-        value: level == 0
+        consequence: level == 0
             ? language.messages.thereIsMoreRoomToNegotiate
             : language.messages.sellerMayAcceptLowerOffer,
       ),
@@ -348,7 +348,7 @@ OfferSuggestion? suggestOffer(
     final usual = min(market.medianDropPct! / 2, 4.0);
     margin += usual / 100;
     reasons.add(
-      language.messages.manySellersOfThisModelEventuallyReduceTheir(
+      language.messages.offerSellersOftenDrop(
         percent: Formatters.percent(
           market.medianDropPct!,
           decimals: 1,
@@ -366,12 +366,10 @@ OfferSuggestion? suggestOffer(
 
   if (damaged) {
     margin += damageMargin;
-    reasons.add(
-      language.messages.listingMentionsAccidentOrOutstandingRepairsStartLower,
-    );
+    reasons.add(language.messages.offerDamage);
   } else if (riskReasons.contains('cosmetic_damage')) {
     margin += cosmeticMargin;
-    reasons.add(language.messages.listingMentionsScratchesOrDentsUseThemTo);
+    reasons.add(language.messages.offerScratches);
   }
 
   if (ceiling < offerStep) return null;

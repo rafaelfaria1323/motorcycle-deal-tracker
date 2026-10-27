@@ -41,7 +41,7 @@ class MorePage extends StatelessWidget {
               child: ListView(
                 children: [
                   Padding(
-                    padding: EdgeInsets.fromLTRB(20, 16, 20, 4),
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
                     child: PageIntro(
                       eyebrow: context.strings.more,
                       title: context.strings.yourGarage,
@@ -138,7 +138,7 @@ class MorePage extends StatelessWidget {
                           subtitle: Text(
                             context
                                 .strings
-                                .askingPricesTimeUntilLeavingMarketAndDepreciation,
+                                .marketPageSubtitle,
                           ),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () => context.push(AppRoutes.modelMarket),
@@ -182,11 +182,11 @@ class MorePage extends StatelessWidget {
                           ),
                           if (!signedIn)
                             Padding(
-                              padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                               child: Text(
                                 context
                                     .strings
-                                    .collectionStatusAndDurationAreAvailableWhenSigned,
+                                    .collectionStatusNeedsSignIn,
                               ),
                             ),
                         ],

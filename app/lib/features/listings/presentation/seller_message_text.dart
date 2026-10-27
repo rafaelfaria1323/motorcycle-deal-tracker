@@ -17,8 +17,8 @@ String sellerMessage(
       language.messages.fromSellerMessageText(year: listing.year.toString()),
   ].join(' ');
   final site = switch (listing.source) {
-    'olx' || 'standvirtual' => language.messages.onText(
-      value: sourceLabel(listing.source, language: language),
+    'olx' || 'standvirtual' => language.messages.onSite(
+      site: sourceLabel(listing.source, language: language),
     ),
     _ => '',
   };

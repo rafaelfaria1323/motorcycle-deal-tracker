@@ -91,9 +91,7 @@ class FavouriteNoteCard extends StatelessWidget {
       builder: (localizationContext) => NoteDialog(
         title: localizationContext.strings.yourNotes,
         initial: note ?? '',
-        hintText: localizationContext
-            .strings
-            .forExampleCalledStillAvailableServicedInMarch,
+        hintText: localizationContext.strings.favouriteNoteHint,
         maxLength: FavouritesCubit.maxNoteLength,
       ),
     );

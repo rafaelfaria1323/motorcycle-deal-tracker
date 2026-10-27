@@ -170,9 +170,7 @@ class _OfferCardState extends State<OfferCard> {
         if (visit.blockers.isNotEmpty) ...[
           const SizedBox(height: 8),
           Text(
-            context.strings.beforeOfferingResolveThisIsNotMatterOf(
-              value: visit.blockers.join(', '),
-            ),
+            context.strings.visitBlockers(blockers: visit.blockers.join(', ')),
             style: theme.textTheme.bodyMedium?.copyWith(color: scheme.error),
           ),
         ],
@@ -222,7 +220,7 @@ class _OfferCardState extends State<OfferCard> {
           decoration: InputDecoration(
             labelText: context.strings.sellerAskedFor,
             suffixText: '€',
-            border: OutlineInputBorder(),
+            border: const OutlineInputBorder(),
             isDense: true,
           ),
           onChanged: (_) => setState(() {}),

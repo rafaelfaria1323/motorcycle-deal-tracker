@@ -103,9 +103,7 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
               children: [
                 SectionCard(
                   title: context.strings.automaticStart,
-                  footnote: context
-                      .strings
-                      .supabaseUsesThisTokenToStartCollectionsAnd,
+                  footnote: context.strings.githubTokenExplanation,
                   children: [_TokenLine(token: _token, now: now)],
                 ),
                 const SizedBox(height: 12),
@@ -118,9 +116,7 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
                 const SizedBox(height: 12),
                 SectionCard(
                   title: context.strings.sites,
-                  footnote: context
-                      .strings
-                      .noRequestLimitsEachCollectionReadsEverySearch,
+                  footnote: context.strings.requestLimitsNote,
                   children: [
                     if (latestWithSites == null)
                       BulletLine(context.strings.noDataYetItWillAppearAfterNext)
@@ -141,8 +137,7 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
                 const SizedBox(height: 12),
                 SectionCard(
                   title: context.strings.searches,
-                  footnote:
-                      context.strings.fromLastCollectionPagesReadForEachSearch,
+                  footnote: context.strings.searchesReadIntro,
                   children: [
                     if (latestWithSearches == null)
                       BulletLine(context.strings.noDataYetItWillAppearAfterNext)
@@ -349,7 +344,7 @@ class _RunTile extends StatelessWidget {
       null => null,
     };
     final details = [
-      context.strings.took(value: durationText(run.duration)),
+      context.strings.took(duration: durationText(run.duration)),
       if (scoring != null && !scoring.warning) scoring.text,
       ?requestsText(run.requests, language: context.language),
       ?runCountsText(run.counts, language: context.language),
@@ -367,8 +362,8 @@ class _RunTile extends StatelessWidget {
         _ => Icon(Icons.error_outline, color: colors.negative),
       },
       title: Text(
-        context.strings.at(
-          value: runStatusLabel(run.status, language: context.language),
+        context.strings.runLine(
+          status: runStatusLabel(run.status, language: context.language),
           date: Formatters.date(run.startedAt),
           time: Formatters.time(run.startedAt),
         ),

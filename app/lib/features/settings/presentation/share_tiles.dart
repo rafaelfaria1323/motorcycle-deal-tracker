@@ -37,7 +37,7 @@ class _ShareTilesState extends State<ShareTiles> {
             subtitle: Text(
               snapshot.data == true
                   ? context.strings.linkToViewListingsWithoutAccount
-                  : context.strings.linkToViewListingsAskAdministratorForInvite,
+                  : context.strings.viewLinkHelp,
             ),
             onTap: () => shareOrCopy(
               ScaffoldMessenger.of(context),

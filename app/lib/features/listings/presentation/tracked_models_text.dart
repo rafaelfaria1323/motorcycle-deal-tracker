@@ -33,9 +33,9 @@ String newPriceSubtitle(
   final price = m.newPrice;
   if (price == null) return language.messages.noNewBikePrice;
   final checked = m.newPriceCheckedAt;
-  return language.messages.newBikePriceTrackedModelsText(
+  return language.messages.newBikePriceLine(
     price: Formatters.price(price, language: language),
-    value: checked == null
+    checkedNote: checked == null
         ? ''
         : language.messages.checkedOn(date: Formatters.date(checked)),
   );
@@ -86,7 +86,7 @@ String searchesLine(
   AppLanguage language = AppLanguage.portuguese,
 }) {
   final counts = searchCounts(models);
-  return language.messages.searchesInEachCollectionModelsFromAllAccounts(
+  return language.messages.searchesPerCollection(
     olx: counts.olx.toString(),
     standvirtual: counts.standvirtual.toString(),
   );

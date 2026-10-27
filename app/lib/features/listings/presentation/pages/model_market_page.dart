@@ -61,9 +61,7 @@ class _ModelMarketPageState extends State<ModelMarketPage> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
                 child: Text(
-                  context
-                      .strings
-                      .askingPricesInActiveListingsExcludingDuplicatesAnd,
+                  context.strings.marketPricesNote,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),

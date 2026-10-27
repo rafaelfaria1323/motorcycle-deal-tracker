@@ -45,8 +45,8 @@ String originalLinkLabel(
   String source, {
   AppLanguage language = AppLanguage.portuguese,
 }) => switch (source) {
-  'standvirtual' || 'olx' => language.messages.viewOn(
-    value: sourceLabel(source, language: language),
+  'standvirtual' || 'olx' => language.messages.viewOnSite(
+    site: sourceLabel(source, language: language),
   ),
   _ => language.messages.viewOriginalListing,
 };

@@ -37,7 +37,7 @@ abstract final class Formatters {
     int decimals = 0,
     AppLanguage language = AppLanguage.portuguese,
   }) => language.messages.percentage(
-    value: decimal(value, decimals: decimals, language: language),
+    number: decimal(value, decimals: decimals, language: language),
   );
 
   static String mileage(

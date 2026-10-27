@@ -14,8 +14,8 @@ import 'package:motorcycle_deal_tracker/features/listings/presentation/listing_c
 import 'package:motorcycle_deal_tracker/features/listings/presentation/listing_labels.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-final _minimal = ListingCardPreferences([]);
-final _riskOnly = ListingCardPreferences([ListingCardField.riskScore]);
+final _minimal = ListingCardPreferences(const []);
+final _riskOnly = ListingCardPreferences(const [ListingCardField.riskScore]);
 const _defaults = ListingCardPreferences.defaults();
 
 Listing _cardListing([Map<String, dynamic> fields = const {}]) =>
@@ -235,7 +235,7 @@ void main() {
   });
 
   test('owner counts take precedence over first-owner scoring signals', () {
-    final preferences = ListingCardPreferences([
+    final preferences = ListingCardPreferences(const [
       ListingCardField.registrations,
     ]);
     final cases = <(Map<String, dynamic>, String?)>[
@@ -272,7 +272,7 @@ void main() {
   test(
     'negative facts remain visible and missing or private data is omitted',
     () {
-      final preferences = ListingCardPreferences([
+      final preferences = ListingCardPreferences(const [
         ListingCardField.serviceBook,
         ListingCardField.origin,
         ListingCardField.colour,
@@ -316,7 +316,7 @@ void main() {
   test(
     'publication is not discovery and renewal follows the detail-page rule',
     () {
-      final preferences = ListingCardPreferences([
+      final preferences = ListingCardPreferences(const [
         ListingCardField.publishedAt,
         ListingCardField.siteRefreshedAt,
       ]);
@@ -390,7 +390,7 @@ void main() {
       ];
       expect(
         await repository.get('a'),
-        ListingCardPreferences([
+        ListingCardPreferences(const [
           ListingCardField.sellerType,
           ListingCardField.riskScore,
         ]),
