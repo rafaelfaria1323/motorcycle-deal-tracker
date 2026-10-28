@@ -10,6 +10,7 @@ class ModelMarket extends Equatable {
     required this.model,
     this.prices,
     this.behaviour,
+    this.trend = const [],
   });
 
   final String motorcycleId;
@@ -20,10 +21,44 @@ class ModelMarket extends Equatable {
   final PriceSpread? prices;
   final MarketBehaviour? behaviour;
 
+  /// The last weeks' asking prices, oldest first; weeks without ads left
+  /// out.
+  final List<PriceTrendWeek> trend;
+
   String get name => '$brand $model';
 
   @override
-  List<Object?> get props => [motorcycleId, brand, model, prices, behaviour];
+  List<Object?> get props => [
+    motorcycleId,
+    brand,
+    model,
+    prices,
+    behaviour,
+    trend,
+  ];
+}
+
+/// One week of a model's asking prices (`model_price_trend`): the ads seen
+/// that week at their price by its end.
+class PriceTrendWeek extends Equatable {
+  const PriceTrendWeek({
+    required this.weekStart,
+    required this.count,
+    required this.median,
+    required this.adjustedMedian,
+  });
+
+  /// The Monday the week starts on.
+  final DateTime weekStart;
+  final int count;
+  final double median;
+
+  /// The median with every bike brought to the model's typical year and
+  /// mileage of today, so a week with newer bikes doesn't look dearer.
+  final double adjustedMedian;
+
+  @override
+  List<Object?> get props => [weekStart, count, median, adjustedMedian];
 }
 
 /// The model's live asking prices (duplicates left out).

@@ -7,6 +7,7 @@ import '../../domain/entities/model_market.dart';
 import '../../domain/repositories/market_behaviour_repository.dart';
 import '../market_behaviour_text.dart';
 import '../model_market_text.dart';
+import '../widgets/price_trend_sparkline.dart';
 import '../../../../core/localization/localizations.dart';
 
 /// The tracked models side by side: asking prices, how fast listings leave
@@ -84,6 +85,7 @@ class _ModelCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final behaviour = model.behaviour;
+    final trend = trendWeeksWithData(model.trend);
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -98,6 +100,15 @@ class _ModelCard extends StatelessWidget {
               language: context.language,
             ))
               _Line(icon: Icons.euro, text: line),
+            _Line(
+              icon: Icons.show_chart,
+              text: priceTrendLine(model.trend, language: context.language),
+            ),
+            if (trend.length >= 2)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(26, 4, 0, 6),
+                child: PriceTrendSparkline(weeks: trend),
+              ),
             if (behaviour != null)
               for (final line in marketLines(
                 behaviour,

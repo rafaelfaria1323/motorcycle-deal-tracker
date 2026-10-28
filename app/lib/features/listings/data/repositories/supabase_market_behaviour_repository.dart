@@ -90,10 +90,11 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
       return {for (final r in rows) r['motorcycle_id'] as String: r};
     }
 
-    final (prices, behaviour, depreciation) = await (
+    final (prices, behaviour, depreciation, trend) = await (
       byModel('model_price_summary'),
       byModel('model_market_behaviour'),
       byModel('model_depreciation'),
+      _trend(ids),
     ).wait;
 
     return [
@@ -103,8 +104,23 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
           prices[m['id']],
           behaviour[m['id']],
           depreciation[m['id']],
+          trend[m['id']] ?? const [],
         ),
     ];
+  }
+
+  /// Each model's weeks, oldest first.
+  Future<Map<String, List<PriceTrendWeek>>> _trend(List<String> ids) async {
+    final rows = await _client
+        .from('model_price_trend')
+        .select()
+        .inFilter('motorcycle_id', ids)
+        .order('week_start');
+    final weeks = <String, List<PriceTrendWeek>>{};
+    for (final r in rows) {
+      (weeks[r['motorcycle_id'] as String] ??= []).add(priceTrendWeekFrom(r));
+    }
+    return weeks;
   }
 
   ModelMarket _modelMarket(
@@ -112,6 +128,7 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
     Map<String, dynamic>? prices,
     Map<String, dynamic>? behaviour,
     Map<String, dynamic>? depreciation,
+    List<PriceTrendWeek> trend,
   ) {
     double number(String key) => (prices![key] as num).toDouble();
     return ModelMarket(
@@ -136,6 +153,7 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
               behaviour,
               depreciation == null ? null : _depreciationFrom(depreciation),
             ),
+      trend: trend,
     );
   }
 
@@ -177,3 +195,11 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
           .eq('motorcycle_id', motorcycleId)
           .maybeSingle();
 }
+
+/// A row of `model_price_trend`.
+PriceTrendWeek priceTrendWeekFrom(Map<String, dynamic> row) => PriceTrendWeek(
+  weekStart: DateTime.parse(row['week_start'] as String),
+  count: (row['listing_count'] as num).toInt(),
+  median: (row['median_price'] as num).toDouble(),
+  adjustedMedian: (row['median_adjusted_price'] as num).toDouble(),
+);
