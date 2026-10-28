@@ -1,6 +1,11 @@
 import '../domain/entities/listing.dart';
 import '../../../core/localization/localizations.dart';
 
+/// How many of a listing's first photos the image model sees, and so how
+/// many an admin can mark for it to learn from (the collector's
+/// `photosPerListing`; `photo_marks` allows photos 0-2).
+const markablePhotos = 3;
+
 /// What a photo hint's code says; null for a code this build doesn't know
 /// (the database may add one before the app has its words).
 String? photoHintLabel(
@@ -15,6 +20,7 @@ String? photoHintLabel(
     'broken_parts' => m.photoHintBrokenParts,
     'missing_parts' => m.photoHintMissingParts,
     'rust' => m.photoHintRust,
+    'learned' => m.photoHintLearned,
     _ => null,
   };
 }

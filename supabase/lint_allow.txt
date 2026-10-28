@@ -83,3 +83,15 @@ authenticated_security_definer_function_executable_public_github_token_status_
 # (else 42501) and says only the database's size and its 5 biggest tables'
 # names and sizes (pg_database_size needs a role allowed to connect).
 authenticated_security_definer_function_executable_public_database_usage_
+
+# The admins' photo marks and the classifier trained on them (P.3): no API
+# access, only set_photo_mark / my_photo_marks (admins) and the collector's
+# photo_training_set / store_photo_classifier (security definer).
+rls_enabled_no_policy_public_photo_marks
+rls_enabled_no_policy_public_photo_classifiers
+
+# Marking photos (admins, P.3): set_photo_mark calls require_admin() first
+# (else 42501) and writes only the caller's own mark on photos 0-2;
+# my_photo_marks returns only the caller's own marks, and none unless admin.
+authenticated_security_definer_function_executable_public_set_photo_mark_p_listing uuid, p_photo integer, p_problem boolean
+authenticated_security_definer_function_executable_public_my_photo_marks_p_listing uuid

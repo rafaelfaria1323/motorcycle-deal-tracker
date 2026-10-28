@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/auth/session_cubit.dart';
 import '../../../../core/widgets/page_back_button.dart';
+import '../../../settings/domain/accounts_repository.dart';
+import '../../domain/repositories/photo_marks_repository.dart';
 import '../listing_detail_text.dart';
+import '../photo_hints_text.dart';
 import '../photo_viewer_args.dart';
 import 'listing_photo.dart';
 import 'zoomable_photo.dart';
@@ -182,7 +187,9 @@ class _RoundButton extends StatelessWidget {
 }
 
 /// The photos full screen (route `/deals/<id>/photos`), each one zoomable
-/// (pinch, mouse wheel or double tap).
+/// (pinch, mouse wheel or double tap). Admins can also mark each of the
+/// first [markablePhotos] as a problem or fine, for the image model to
+/// learn from (P.3).
 class FullScreenGallery extends StatefulWidget {
   const FullScreenGallery({
     required this.listingId,
@@ -202,6 +209,55 @@ class _FullScreenGalleryState extends State<FullScreenGallery> {
   late var _index = widget.args.index;
   // While a photo is zoomed a drag moves it, not to the next photo.
   var _zoomed = false;
+  // The admin's marks by photo; null: not an admin (or not loaded).
+  Map<int, bool>? _marks;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMarks();
+  }
+
+  Future<void> _loadMarks() async {
+    if (!getIt<SessionCubit>().state.signedIn) return;
+    try {
+      if (!await getIt<AccountsRepository>().isAdmin()) return;
+      final marks = await getIt<PhotoMarksRepository>().marks(widget.listingId);
+      if (mounted) setState(() => _marks = marks);
+    } on Object {
+      // Without the marks the photos are only shown, as for everyone.
+    }
+  }
+
+  Future<void> _mark(int photo, bool? problem) async {
+    final marks = _marks;
+    if (marks == null) return;
+    final before = marks[photo];
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = context.strings.photoMarkFailed;
+    setState(() => _marks = _withMark(marks, photo, problem));
+    try {
+      await getIt<PhotoMarksRepository>().setMark(
+        widget.listingId,
+        photo,
+        problem,
+      );
+    } on Object {
+      if (!mounted) return;
+      setState(() => _marks = _withMark(_marks!, photo, before));
+      messenger.showSnackBar(SnackBar(content: Text(failed)));
+    }
+  }
+
+  static Map<int, bool> _withMark(
+    Map<int, bool> marks,
+    int photo,
+    bool? mark,
+  ) => {
+    for (final e in marks.entries)
+      if (e.key != photo) e.key: e.value,
+    photo: ?mark,
+  };
 
   @override
   void dispose() {
@@ -216,9 +272,16 @@ class _FullScreenGalleryState extends State<FullScreenGallery> {
   @override
   Widget build(BuildContext context) {
     final images = widget.args.images;
+    final marks = _marks;
 
     return Scaffold(
       backgroundColor: AppColors.photoBackdrop,
+      bottomNavigationBar: marks != null && _index < markablePhotos
+          ? _PhotoMarkBar(
+              mark: marks[_index],
+              onChanged: (problem) => _mark(_index, problem),
+            )
+          : null,
       appBar: AppBar(
         leading: CloseButton(
           onPressed: () => goBack(
@@ -254,6 +317,60 @@ class _FullScreenGalleryState extends State<FullScreenGallery> {
                 count: images.length,
                 controller: _controller,
               ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// An admin's mark on the photo shown: a problem or fine; tapping the one
+/// chosen clears it.
+class _PhotoMarkBar extends StatelessWidget {
+  const _PhotoMarkBar({required this.mark, required this.onChanged});
+
+  final bool? mark;
+  final ValueChanged<bool?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = context.strings;
+    final mark = this.mark;
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              strings.photoMarkTitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.onPhoto),
+            ),
+            const SizedBox(height: 8),
+            SegmentedButton<bool>(
+              segments: [
+                ButtonSegment(
+                  value: true,
+                  label: Text(strings.photoMarkProblem),
+                  icon: const Icon(Icons.report_outlined),
+                ),
+                ButtonSegment(
+                  value: false,
+                  label: Text(strings.photoMarkFine),
+                  icon: const Icon(Icons.check),
+                ),
+              ],
+              selected: {?mark},
+              emptySelectionAllowed: true,
+              onSelectionChanged: (selected) =>
+                  onChanged(selected.isEmpty ? null : selected.first),
+              style: SegmentedButton.styleFrom(
+                backgroundColor: AppColors.photoControlScrim,
+                foregroundColor: AppColors.onPhoto,
+              ),
+            ),
           ],
         ),
       ),

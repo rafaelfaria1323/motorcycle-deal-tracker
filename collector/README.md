@@ -56,7 +56,14 @@ missing parts or rust, kept by `store_photo_features` and shown in the
 app as hints, never a score. It runs when `PHOTO_MODEL_DIR` names the
 model's folder (`tool/photo_model.sh <dir>` downloads it; `pip install -r
 tool/photo_requirements.txt`; `PHOTO_PYTHON`, default `python3`);
-without it the photos are only fingerprinted.
+without it the photos are only fingerprinted. With the model on, the
+step first learns from the admins' marks (P.3, `photos/photo_classifier.dart`):
+when they changed since the last classifier (`photo_training_set`'s
+`marks_key`) and there are at least 10 photos of each kind, a logistic
+regression in plain Dart (standardised, balanced, L2; 5-fold balanced
+accuracy logged) is trained on the stored embeddings and kept by
+`store_photo_classifier`, which refreshes every examined listing's hints
+with the code `learned`. About 8 s for 300 marks; nothing when unchanged.
 
 Alerts dismissed in the app keep their event history. The owner-checked
 `dismiss_alert` RPC sets `dismissed_at` and marks them read and handled

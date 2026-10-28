@@ -82,7 +82,8 @@ Screen names below use the Portuguese labels; English provides the same screens.
   Ofertas, long press the card, or "Comparar" on a listing's page), the best
   value of each row marked.
 - **Listing page:** photo gallery (full screen on a tap; there pinch, the
-  mouse wheel or a double tap zooms); model, price and facts with the Deal
+  mouse wheel or a double tap zooms; admins also mark each of the first 3
+  photos "Problema" or "Bem", which the collector learns from, P.3); model, price and facts with the Deal
   Score and its verdict beside them; removed / duplicate / relisted notices;
   your note when it is a favourite. Photos and summary sit side by side
   on wide screens and stack on phones, with a visible fullscreen control.
@@ -94,8 +95,9 @@ Screen names below use the Portuguese labels; English provides the same screens.
     on both sites: relists, sharp price changes, missing mileage, repeated
     ads, price drops; from 5 bikes it also counts in the Deal Score, and
     the reasons say how the dealer scored), and "O que as fotos podem
-    mostrar": a free image model's hints of damage in the photos (a tap
-    opens the photo; never part of a score).
+    mostrar": a free image model's hints of damage in the photos, and
+    "Parecida com fotos marcadas como problema" once the admins' marks
+    trained a classifier (a tap opens the photo; never part of a score).
   - **Detalhes:** the bike's facts, the seller's description, the ad's
     facts.
   - **Mercado:** market behaviour for the model (with where the asking

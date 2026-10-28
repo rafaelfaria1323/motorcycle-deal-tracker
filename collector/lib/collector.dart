@@ -33,6 +33,7 @@ export 'src/notify/send_weekly_summaries.dart';
 export 'src/notify/telegram_notifier.dart';
 export 'src/notify/weekly_summary.dart';
 export 'src/notify/web_push.dart';
+export 'src/photos/photo_classifier.dart';
 export 'src/photos/photo_examiner.dart';
 export 'src/photos/photo_fingerprints.dart';
 export 'src/photos/photo_hash.dart';

@@ -213,6 +213,50 @@ class ListingStore {
     return _count(result);
   }
 
+  /// The admins' photo marks for [model] to learn from (P.3), with the
+  /// marks' state now and the state the stored classifier learned from.
+  Future<PhotoTrainingSet> photoTrainingSet(String model) async {
+    final rows = (await _client.rpc<List<dynamic>>(
+      'photo_training_set',
+      params: {'p_model': model},
+    )).cast<Map<String, dynamic>>();
+    return (
+      samples: [
+        for (final r in rows)
+          if (r['features'] case final String features)
+            (
+              features: featuresFromBase64(features),
+              problem: r['problem'] as bool,
+            ),
+      ],
+      marksKey: rows.isEmpty ? '' : rows.first['marks_key'] as String,
+      trainedKey: rows.isEmpty ? null : rows.first['trained_key'] as String?,
+    );
+  }
+
+  /// Stores [model]'s [classifier], trained on the marks' state
+  /// [marksKey]; the database refreshes the hints of every listing examined
+  /// with that model and returns how many.
+  Future<int> storePhotoClassifier(
+    String model,
+    PhotoClassifier classifier, {
+    required String marksKey,
+  }) async {
+    final result = await _client.rpc<Object?>(
+      'store_photo_classifier',
+      params: {
+        'p_model': model,
+        'p_weights': classifier.weights,
+        'p_bias': classifier.bias,
+        'p_samples': classifier.samples,
+        'p_problems': classifier.problems,
+        'p_accuracy': classifier.accuracy,
+        'p_marks_key': marksKey,
+      },
+    );
+    return _count(result);
+  }
+
   /// Inserts listings that are not stored yet. Existing ones (same source and
   /// source id) are left untouched, so running the same file twice is safe.
   Future<StoreResult> save(

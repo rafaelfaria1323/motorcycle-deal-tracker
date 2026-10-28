@@ -5593,5 +5593,25 @@
         "type": "String"
       }
     }
+  },
+  "photoHintLearned": "Parecida com fotos marcadas como problema",
+  "@photoHintLearned": {
+    "description": "Interface text in photo_hints_text / photo_gallery (photo marks, P.3)."
+  },
+  "photoMarkTitle": "Ensinar o modelo de imagem: esta foto mostra um problema?",
+  "@photoMarkTitle": {
+    "description": "Interface text in photo_hints_text / photo_gallery (photo marks, P.3)."
+  },
+  "photoMarkProblem": "Problema",
+  "@photoMarkProblem": {
+    "description": "Interface text in photo_hints_text / photo_gallery (photo marks, P.3)."
+  },
+  "photoMarkFine": "Bem",
+  "@photoMarkFine": {
+    "description": "Interface text in photo_hints_text / photo_gallery (photo marks, P.3)."
+  },
+  "photoMarkFailed": "Não foi possível guardar a marca. Tente novamente.",
+  "@photoMarkFailed": {
+    "description": "Interface text in photo_hints_text / photo_gallery (photo marks, P.3)."
   }
 }

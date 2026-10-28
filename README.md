@@ -46,6 +46,7 @@ Tracked models (chosen in the app)
   → collector (GitHub Actions, started 9 times a day by Supabase pg_cron): searches → polite fetch → parse → store
   → photo fingerprints (photo CDN only, after the run): ads with the same photos
     + damage hints (CLIP, a free image model run on the same photos)
+    + a classifier trained on the admins' marks on those photos (no AI service)
   → Supabase / Postgres: price history, duplicates, fair value, scores, alerts
   → app (Flutter Web on Cloudflare Pages): Ofertas · Pesquisas · Alertas · Mais
   → phones (Web Push; FCM in the Android app): each account's new alerts after each run (a tap opens the listing), its
@@ -113,7 +114,10 @@ After each run, up to 3 photos of each new listing are hashed (no AI) from
 the photo CDN the sites use, never their pages: one at a time 2-3 s apart,
 at most 5 minutes, counted apart from the sites' requests. Only the hashes
 are kept; they find ads with the same photos (duplicates, relists, photos
-reused from another bike).
+reused from another bike). The same photos go to a free image model run on
+the runner for damage hints (P.2); admins can mark them as a problem or fine
+in the full-screen photos, and the collector learns from those marks (P.3:
+a logistic regression in plain Dart on the stored embeddings).
 
 Partial imports keep readable listings but report parsing or transport
 failures instead of a successful run. Repeated Standvirtual pages are not
