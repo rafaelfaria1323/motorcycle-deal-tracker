@@ -183,7 +183,9 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   */mutation_targets.txt: after merges only
                                   the changed ones, "Run workflow" all (4+4
                                   parallel jobs). Report only (run summary,
-                                  HTML artifacts); test hardening's find
+                                  HTML artifacts), except that a full run
+                                  fails below `MUTATION_FLOOR` (N.4, in
+                                  the workflow); test hardening's find
                                   runs start from the last full run's
                                   surviving mutants
 .github/workflows/backlog-pass.yml  Shared by both: "To do" empty -> after 10

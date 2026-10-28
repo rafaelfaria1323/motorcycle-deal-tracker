@@ -13,8 +13,9 @@ and its tests run after each one. A change no test notices is a
   run <package> <out_dir> <file>...
       Mutates the files (in place: the tool restores each file after its
       run, so don't stop it halfway) and writes one report per file.
-  summary <dir>...
-      Prints a Markdown summary of the reports found in the folders.
+  summary [--floor N] <dir>...
+      Prints a Markdown summary of the reports found in the folders; with
+      --floor, fails (exit 1) when the score is below N %.
 """
 
 import json
@@ -129,6 +130,10 @@ def _table_value(markdown, key):
 
 
 def summary(args):
+    floor = None
+    if args[:1] == ['--floor']:
+        floor = float(args[1])
+        args = args[2:]
     rows = []
     survivors = []
     for base in args:
@@ -186,6 +191,9 @@ def summary(args):
         for target, line, original, modified in survivors:
             out.append(f'- `{target}:{line}`: `{original}` → `{modified}`')
     print('\n'.join(out))
+    if floor is not None and score < floor:
+        sys.exit(f'Mutation score {score:.1f} % is below the floor of '
+                 f'{floor:g} %.')
 
 
 def main():

@@ -456,8 +456,8 @@ ChromeDriver; the test's data never comes from Supabase.*
 *`make duplication` (jscpd via npx, also in `check.yml`): exact clones of 70+ tokens in app/lib and the collector; over 1 % of lines fails. Today 0.22 % (4 small clones).*
 ## N.3 Coverage floors ✅
 *`make coverage` (also in `check.yml`, summary on the run page): line coverage of the collector (floor 70 %, today 74 %) and of the app's logic (texts, entities, models, cubits; floor 90 %, today 94.7 %), by `tool/lcov_summary.py` (tests: `tool/test_lcov_summary.py`). Raise a floor as tests are added; lower one only with a reason.*
-## N.4 Mutation score floor ⬜
-*Mutation testing already runs without AI after merges (`mutation.yml`); a minimum score comes once the next full run gives the current one.*
+## N.4 Mutation score floor ✅
+*A full `mutation.yml` run ("Run workflow", every target) fails when its score over all targets is below `MUTATION_FLOOR` (set in the workflow, a few points under the score measured when it was set; raised as it rises, never lowered to get green). `tool/mutation.py summary --floor N` writes the summary first, then fails; `tool/test_mutation.py` tests it. Runs after merges, on the changed files only, stay report-only.*
 ## N.5 Dependabot ✅
 *`.github/dependabot.yml`: weekly PRs for the app's and the collector's packages and the GitHub Actions (minor and patch grouped), each checked like any PR (no preview: Dependabot's PRs get no secrets). Replaces deprecated action versions too.*
 ## N.6 SonarQube Cloud (maybe later) ⬜
