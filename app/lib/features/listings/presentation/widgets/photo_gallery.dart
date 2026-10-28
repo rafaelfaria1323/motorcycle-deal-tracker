@@ -256,7 +256,7 @@ class _FullScreenGalleryState extends State<FullScreenGallery> {
   ) => {
     for (final e in marks.entries)
       if (e.key != photo) e.key: e.value,
-    if (mark != null) photo: mark,
+    photo: ?mark,
   };
 
   @override
@@ -362,7 +362,7 @@ class _PhotoMarkBar extends StatelessWidget {
                   icon: const Icon(Icons.check),
                 ),
               ],
-              selected: {if (mark != null) mark},
+              selected: {?mark},
               emptySelectionAllowed: true,
               onSelectionChanged: (selected) =>
                   onChanged(selected.isEmpty ? null : selected.first),
