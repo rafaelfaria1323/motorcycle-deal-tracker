@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/di/injection.dart';
 import '../../../../core/widgets/page_back_button.dart';
-import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/model_market.dart';
 import '../../domain/repositories/market_behaviour_repository.dart';
 import '../market_behaviour_text.dart';
 import '../model_market_text.dart';
+import '../widgets/icon_line.dart';
+import '../widgets/tracked_models_builder.dart';
 import '../widgets/price_trend_sparkline.dart';
 import '../../../../core/localization/localizations.dart';
 
@@ -33,28 +34,10 @@ class _ModelMarketPageState extends State<ModelMarketPage> {
         leading: const PageBackButton(),
         title: Text(context.strings.compareModels),
       ),
-      body: FutureBuilder<List<ModelMarket>>(
+      body: TrackedModelsBuilder(
         future: _future,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return StateMessage(
-              icon: Icons.cloud_off_outlined,
-              title: context.strings.couldNotLoadModels,
-              actionLabel: context.strings.retry,
-              onAction: () => setState(() => _future = _load()),
-            );
-          }
-          final models = snapshot.data;
-          if (models == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (models.isEmpty) {
-            return StateMessage(
-              icon: Icons.two_wheeler,
-              title: context.strings.noFollowedModels,
-              message: context.strings.chooseModelsInMoreFollowedModels,
-            );
-          }
+        onRetry: () => setState(() => _future = _load()),
+        builder: (context, models) {
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
             children: [
@@ -99,8 +82,8 @@ class _ModelCard extends StatelessWidget {
               model.prices,
               language: context.language,
             ))
-              _Line(icon: Icons.euro, text: line),
-            _Line(
+              IconLine(icon: Icons.euro, text: line),
+            IconLine(
               icon: Icons.show_chart,
               text: priceTrendLine(model.trend, language: context.language),
             ),
@@ -114,35 +97,9 @@ class _ModelCard extends StatelessWidget {
                 behaviour,
                 language: context.language,
               ))
-                _Line(icon: Icons.insights_outlined, text: line),
+                IconLine(icon: Icons.insights_outlined, text: line),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _Line extends StatelessWidget {
-  const _Line({required this.icon, required this.text});
-
-  final IconData icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            icon,
-            size: 18,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(width: 8),
-          Expanded(child: Text(text)),
-        ],
       ),
     );
   }

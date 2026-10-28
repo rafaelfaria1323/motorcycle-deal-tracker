@@ -933,5 +933,21 @@
   "priceTrendFewData": "Price trend: not enough data yet",
   "priceTrendSteady": "Typical price steady over the last {weeks, plural, =1{week} other{{weeks} weeks}} (adjusted for year and km)",
   "priceTrendDown": "Typical price down {pct} over the last {weeks, plural, =1{week} other{{weeks} weeks}} (adjusted for year and km)",
-  "priceTrendUp": "Typical price up {pct} over the last {weeks, plural, =1{week} other{{weeks} weeks}} (adjusted for year and km)"
+  "priceTrendUp": "Typical price up {pct} over the last {weeks, plural, =1{week} other{{weeks} weeks}} (adjusted for year and km)",
+  "bikeValueTitle": "What is my bike worth",
+  "bikeValueSubtitle": "Market value, asking price and trade-in for a bike of yours",
+  "bikeValueIntro": "Choose your bike's model, year and mileage. The value comes from that model's active listings, adjusted for year and mileage.",
+  "bikeValueYear": "Year",
+  "bikeValueMileage": "Mileage in km (optional)",
+  "bikeValueYearInvalid": "Enter a year between {first} and {last}",
+  "bikeValueMileageInvalid": "Enter the mileage in digits only",
+  "bikeValueCalculate": "Calculate",
+  "bikeValueCouldNotCalculate": "Could not work out the value",
+  "bikeValueFewData": "Not enough listings of this model yet to estimate the value ({count, plural, =0{no comparables} =1{1 comparable} other{{count} comparables}}; 3 needed)",
+  "bikeValueEstimate": "Market value: {price} (most between {low} and {high}; {count, plural, =1{1 listing} other{{count} listings}})",
+  "bikeValueAskModel": "To sell, ask about {price}: sellers of this model usually drop {percent}",
+  "bikeValueAskDefault": "To sell, ask about {price}: {percent} above the value, room to negotiate",
+  "bikeValueTradeIn": "As a trade-in, a dealer will give about {price} or less: it needs a margin to resell with a warranty",
+  "bikeValueNote": "Estimate from asking prices in listings, not from sales. The trade-in is a rule of thumb (about 80 % of the value).",
+  "bikeValueChooseModel": "Choose the model"
 }

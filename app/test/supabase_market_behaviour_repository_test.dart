@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart';
 import 'package:http/testing.dart';
@@ -23,6 +25,9 @@ void main() {
         requests.add(request);
         final body = status != 200
             ? '{"code":"42501","message":"Permission denied"}'
+            : request.url.path.endsWith('bike_value')
+            ? '[{"comparable_count":3,"fair_price":6000,'
+                  '"low_price":5800,"high_price":6200}]'
             : request.url.path.endsWith('model_market_behaviour')
             ? '{"live_count":12,"gone_count":30,"priced_count":40,'
                   '"dropped_count":9,"median_days_to_gone":21}'
@@ -90,4 +95,40 @@ void main() {
     expect(week.median, 7250);
     expect(week.adjustedMedian, 7100.5);
   });
+
+  test('bikeValueFrom reads the row of bike_value', () {
+    final value = bikeValueFrom({
+      'comparable_count': 7,
+      'fair_price': 6300.5,
+      'low_price': 6100,
+      'high_price': 6450,
+    });
+    expect(value.comparableCount, 7);
+    expect(value.estimate, 6300.5);
+    expect(value.low, 6100);
+    expect(value.high, 6450);
+
+    final none = bikeValueFrom({
+      'comparable_count': 0,
+      'fair_price': null,
+      'low_price': null,
+      'high_price': null,
+    });
+    expect(none.estimate, isNull);
+  });
+
+  test(
+    'getBikeValue asks bike_value for the model, year and mileage',
+    () async {
+      final value = await repository.getBikeValue('m1', year: 2020);
+      expect(requests.single.url.path, endsWith('/rpc/bike_value'));
+      expect(jsonDecode(requests.single.body), {
+        'p_motorcycle_id': 'm1',
+        'p_year': 2020,
+        'p_mileage': null,
+      });
+      expect(value.comparableCount, 3);
+      expect(value.estimate, 6000);
+    },
+  );
 }

@@ -312,7 +312,8 @@ invites; written by the collector on each run).
 - Routing: go_router `StatefulShellRoute` (Ofertas / Pesquisas / Alertas /
   Mais). Account, "Modelos acompanhados" and collection status live in Mais.
   Switching tabs uses `context.go`; full pages outside the shell
-  (`/models`, `/market`, `/favourites`, `/compare?ids=a,b,c`, `/summary`)
+  (`/models`, `/market`, `/worth`, `/favourites`, `/compare?ids=a,b,c`,
+  `/summary`)
   and an ad (`/deals/<id>`, from anywhere) are pushed, so back returns
   where the person was; pushed pages show their own address
   (`GoRouter.optionURLReflectsImperativeAPIs`, set in `main.dart`). The
@@ -731,6 +732,10 @@ functions for manual work.
   prices understate mileage). Comparables without year or mileage are left
   out when the listing has them. The app says the estimate comes from
   asking prices.
+  `bike_value(model, year, km)` applies the same rules to a bike of one's
+  own (Mais › "Quanto vale a minha mota", `/worth`, `bike_value_text.dart`:
+  the asking price adds the model's typical drop, 3-8 %, else 5 %;
+  trade-in 80 %).
   Price score (2.5 points per %: 0 / 100 at 20 % above / below) and the
   risk's price signal need >= 3 comparables; so does the app's offer.
 - Deal score = weighted average of the available slices: price 35,

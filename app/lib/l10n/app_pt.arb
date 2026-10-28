@@ -5296,5 +5296,117 @@
         "type": "String"
       }
     }
+  },
+  "bikeValueTitle": "Quanto vale a minha mota",
+  "@bikeValueTitle": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueSubtitle": "Valor de mercado, preço a pedir e retoma de uma mota sua",
+  "@bikeValueSubtitle": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueIntro": "Escolha o modelo, o ano e os quilómetros da sua mota. O valor vem dos anúncios ativos desse modelo, ajustados ao ano e aos quilómetros.",
+  "@bikeValueIntro": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueYear": "Ano",
+  "@bikeValueYear": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueMileage": "Quilómetros (opcional)",
+  "@bikeValueMileage": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueYearInvalid": "Indique um ano entre {first} e {last}",
+  "@bikeValueYearInvalid": {
+    "description": "Interface text in bike_value_text / bike_value_page.",
+    "placeholders": {
+      "first": {
+        "type": "int"
+      },
+      "last": {
+        "type": "int"
+      }
+    }
+  },
+  "bikeValueMileageInvalid": "Indique os quilómetros só com algarismos",
+  "@bikeValueMileageInvalid": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueCalculate": "Calcular",
+  "@bikeValueCalculate": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueCouldNotCalculate": "Não foi possível calcular o valor",
+  "@bikeValueCouldNotCalculate": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueFewData": "Ainda poucos anúncios deste modelo para estimar o valor ({count, plural, =0{nenhum comparável} =1{1 comparável} other{{count} comparáveis}}; são precisos 3)",
+  "@bikeValueFewData": {
+    "description": "Interface text in bike_value_text / bike_value_page.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bikeValueEstimate": "Valor de mercado: {price} (a maioria entre {low} e {high}; {count, plural, =1{1 anúncio} other{{count} anúncios}})",
+  "@bikeValueEstimate": {
+    "description": "Interface text in bike_value_text / bike_value_page.",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "low": {
+        "type": "String"
+      },
+      "high": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bikeValueAskModel": "Para vender, peça cerca de {price}: os vendedores deste modelo costumam baixar {percent}",
+  "@bikeValueAskModel": {
+    "description": "Interface text in bike_value_text / bike_value_page.",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "bikeValueAskDefault": "Para vender, peça cerca de {price}: {percent} acima do valor, para negociar",
+  "@bikeValueAskDefault": {
+    "description": "Interface text in bike_value_text / bike_value_page.",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "bikeValueTradeIn": "Na retoma, um stand dará cerca de {price} ou menos: precisa de margem para revender com garantia",
+  "@bikeValueTradeIn": {
+    "description": "Interface text in bike_value_text / bike_value_page.",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "bikeValueNote": "Estimativa a partir dos preços pedidos nos anúncios, não de vendas. A retoma é uma regra prática (cerca de 80 % do valor).",
+  "@bikeValueNote": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueChooseModel": "Escolha o modelo",
+  "@bikeValueChooseModel": {
+    "description": "Interface text in bike_value_text / bike_value_page."
   }
 }

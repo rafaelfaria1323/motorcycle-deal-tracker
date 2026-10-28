@@ -156,7 +156,8 @@ feature; the permission and invited-account rules above still apply.
 - **Quanto vale a minha mota** (sellers, a second audience). Model, year
   and km in; out come the estimate from the same comparables, how long
   such bikes take to sell, an asking price and a trade-in floor. It uses
-  only our own aggregates.
+  only our own aggregates. Built free for every account (roadmap 16.9,
+  2026-10-28); listed here only as a possible paid feature.
 - **Relatório de um anúncio.** One ad's full analysis as a link to
   share: estimate, history, relists, contradictions, offer plan and
   visit checklist. Sold one at a time, for people who found an ad and

@@ -12,6 +12,7 @@ import '../../features/listings/presentation/cubit/listings_state.dart';
 import '../../features/listings/presentation/cubit/saved_searches_cubit.dart';
 import '../../features/listings/presentation/compare_text.dart';
 import '../../features/listings/presentation/pages/alerts_page.dart';
+import '../../features/listings/presentation/pages/bike_value_page.dart';
 import '../../features/listings/presentation/pages/compare_page.dart';
 import '../../features/listings/presentation/pages/dashboard_page.dart';
 import '../../features/listings/presentation/pages/favourites_page.dart';
@@ -140,6 +141,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.modelMarket,
       builder: (context, state) => const ModelMarketPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.bikeValue,
+      builder: (context, state) => const BikeValuePage(),
     ),
     GoRoute(
       path: AppRoutes.favourites,
