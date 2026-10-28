@@ -30,7 +30,9 @@ addresses the search and listing pages give), never from a site page.
 Its own fetcher and state (`FetchSite.photos`, `.fetch_state.photos.json`):
 one photo at a time, 2-3 s apart, at most 5 minutes a run, after the run
 is recorded; the same stops and 24 h pause on 403/429/503 or a reply that
-isn't an image, and robots.txt is obeyed when the CDN has one. The first
+isn't an image, and robots.txt is obeyed when the CDN has one (the
+longest matching Allow/Disallow line decides, RFC 9309; a refused photo
+stops the step and leaves the listings unchecked). The first
 3 photos of each listing, once. Only a 64-bit hash of each photo is kept,
 never the photo. The requests are counted apart ("Photo requests:"), so
 the sites' counts are unchanged.

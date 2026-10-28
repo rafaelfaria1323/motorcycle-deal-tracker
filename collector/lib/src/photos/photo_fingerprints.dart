@@ -66,6 +66,10 @@ Future<int> fingerprintPhotos(
     }
   } on FetchLimitReached catch (e) {
     log.writeln('Stopped: $e; the rest waits for the next run.');
+  } on FetchDisallowed catch (e) {
+    // The CDN's rules cover every photo alike: the listing being read and
+    // the rest stay unchecked, so a change of rules brings them back.
+    log.writeln('Stopped: $e; the rest waits until it is allowed.');
   } on FetchBlocked catch (e) {
     stop = e;
   } on FetchFailed catch (e) {
@@ -102,6 +106,8 @@ Future<List<int>?> _photoOf(
     if (e.statusCode != 404 && e.statusCode != 410) rethrow;
     log.writeln('  - skipped $url: $e');
   } on FetchLimitReached {
+    rethrow;
+  } on FetchDisallowed {
     rethrow;
   } on FetchRefused catch (e) {
     log.writeln('  - skipped $url: $e');

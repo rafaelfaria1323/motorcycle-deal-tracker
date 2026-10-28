@@ -133,6 +133,33 @@ void main() {
     expect([for (final l in store.stored!) l.id], ['a']);
   });
 
+  test("the photo CDN's robots.txt refusing stops the step and leaves "
+      'the listing unchecked', () async {
+    final store = _Store();
+    final out = StringBuffer();
+    final fetcher = _Fetcher({
+      '$_cdn/a-1/image': _photo,
+      '$_cdn/b-1/image': _photo,
+      '$_cdn/b-2/image': const FetchDisallowed(
+        'disallowed by robots.txt (Disallow: /)',
+      ),
+    });
+
+    final stored = await fingerprintPhotos(
+      store,
+      fetcher,
+      [_pending('a', 1), _pending('b', 2), _pending('c', 1)],
+      examiner: _Examiner([0.1, 0.1]),
+      out: out,
+    );
+
+    expect(stored, 1);
+    expect([for (final l in store.stored!) l.id], ['a']);
+    expect([for (final l in store.features!) l.id], ['a']);
+    expect(fetcher.requested, hasLength(3));
+    expect('$out', contains('Stopped: disallowed by robots.txt'));
+  });
+
   for (final failure in [
     const FetchBlocked('HTTP 429'),
     const FetchFailed('Timed out receiving the page'),

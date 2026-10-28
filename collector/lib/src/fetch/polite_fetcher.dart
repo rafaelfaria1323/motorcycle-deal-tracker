@@ -25,6 +25,11 @@ class FetchLimitReached extends FetchRefused {
   const FetchLimitReached(super.reason);
 }
 
+/// The site's robots.txt does not allow this address.
+class FetchDisallowed extends FetchRefused {
+  const FetchDisallowed(super.reason);
+}
+
 /// The site pushed back. Stop, and do not try again soon.
 class FetchBlocked implements Exception {
   const FetchBlocked(this.reason);
@@ -401,7 +406,10 @@ class PoliteFetcher {
       final target =
           current.path + (current.hasQuery ? '?${current.query}' : '');
       if (!_robots.isAllowed(target)) {
-        throw FetchRefused('$current: disallowed by robots.txt');
+        throw FetchDisallowed(
+          '$current: disallowed by robots.txt '
+          '(${_robots.decidingRule(target)})',
+        );
       }
 
       final response = await _requestOnceMore(current);

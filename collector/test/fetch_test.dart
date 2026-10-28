@@ -41,6 +41,20 @@ void main() {
       expect(rules.isAllowed('/motos/anuncio/x-IDabc.html'), isTrue);
     });
 
+    test('the longest matching rule decides; Allow wins a tie', () {
+      final cdn = RobotsRules.parse(
+        'User-agent: *\nDisallow: /\nAllow: /v1/files/\n'
+        'Disallow: /v1/files/private/\nAllow: /tie\nDisallow: /tie\n',
+      );
+      expect(cdn.isAllowed('/v1/files/x/image'), isTrue);
+      expect(cdn.decidingRule('/v1/files/x/image'), 'Allow: /v1/files/');
+      expect(cdn.isAllowed('/v1/files/private/x'), isFalse);
+      expect(cdn.isAllowed('/other'), isFalse);
+      expect(cdn.decidingRule('/other'), 'Disallow: /');
+      expect(cdn.isAllowed('/tie'), isTrue);
+      expect(RobotsRules.parse('').decidingRule('/x'), 'no rule');
+    });
+
     test('rules of other bots do not apply to us', () {
       expect(rules.isAllowed('/'), isTrue);
       expect(rules.isAllowed('/x/payment/'), isTrue);

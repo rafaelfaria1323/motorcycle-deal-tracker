@@ -1,10 +1,12 @@
-/// The part of robots.txt we need: the Disallow rules of the `*` group.
-/// (Standvirtual's file has a single `Allow: /`, so Allow lines are ignored.)
+/// The part of robots.txt we need: the Allow and Disallow rules of the `*`
+/// group. As RFC 9309 says, the longest matching rule decides and an Allow
+/// wins a tie (a CDN's `Disallow: /` with `Allow: /v1/files/` allows the
+/// files).
 class RobotsRules {
-  RobotsRules(this._disallow);
+  RobotsRules(this._rules);
 
   factory RobotsRules.parse(String text) {
-    final patterns = <RegExp>[];
+    final rules = <_Rule>[];
     var inStarGroup = false;
     var previousWasAgent = false;
 
@@ -24,19 +26,39 @@ class RobotsRules {
         previousWasAgent = true;
       } else {
         previousWasAgent = false;
-        if (inStarGroup && field == 'disallow' && value.isNotEmpty) {
-          patterns.add(_toRegExp(value));
+        final allow = field == 'allow';
+        if (inStarGroup && (allow || field == 'disallow') && value.isNotEmpty) {
+          rules.add((pattern: _toRegExp(value), text: value, allow: allow));
         }
       }
     }
-    return RobotsRules(patterns);
+    return RobotsRules(rules);
   }
 
-  final List<RegExp> _disallow;
+  final List<_Rule> _rules;
 
   /// [pathAndQuery] is the path plus `?query`, e.g. `/motos/x?page=2`.
-  bool isAllowed(String pathAndQuery) =>
-      !_disallow.any((rule) => rule.hasMatch(pathAndQuery));
+  bool isAllowed(String pathAndQuery) => _decisive(pathAndQuery)?.allow ?? true;
+
+  /// The line that decides [pathAndQuery], for logs: `Disallow: /`.
+  String decidingRule(String pathAndQuery) {
+    final rule = _decisive(pathAndQuery);
+    if (rule == null) return 'no rule';
+    return '${rule.allow ? 'Allow' : 'Disallow'}: ${rule.text}';
+  }
+
+  _Rule? _decisive(String pathAndQuery) {
+    _Rule? decisive;
+    for (final rule in _rules) {
+      if (!rule.pattern.hasMatch(pathAndQuery)) continue;
+      if (decisive == null ||
+          rule.text.length > decisive.text.length ||
+          (rule.text.length == decisive.text.length && rule.allow)) {
+        decisive = rule;
+      }
+    }
+    return decisive;
+  }
 
   static RegExp _toRegExp(String rule) {
     final out = StringBuffer('^');
@@ -53,3 +75,5 @@ class RobotsRules {
     return RegExp(out.toString());
   }
 }
+
+typedef _Rule = ({RegExp pattern, String text, bool allow});
