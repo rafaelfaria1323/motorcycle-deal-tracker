@@ -5452,5 +5452,101 @@
   "bikeValueRequestReady": "Valor pronto",
   "@bikeValueRequestReady": {
     "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueCondition": "Estado da mota (opcional)",
+  "@bikeValueCondition": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueConditionHint": "Ajusta o valor aos anúncios comparáveis. Não muda o pedido: a recolha só precisa da marca, do modelo e do ano.",
+  "@bikeValueConditionHint": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueDamage": "Quedas ou acidentes",
+  "@bikeValueDamage": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueDamageNone": "Nenhum",
+  "@bikeValueDamageNone": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueDamageDropped": "Caiu (só danos estéticos)",
+  "@bikeValueDamageDropped": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueDamageAccident": "Teve um acidente",
+  "@bikeValueDamageAccident": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueOwners": "Donos",
+  "@bikeValueOwners": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueUnknown": "Não sei",
+  "@bikeValueUnknown": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueOwnersOne": "1 (primeiro dono)",
+  "@bikeValueOwnersOne": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueOwnersTwo": "2",
+  "@bikeValueOwnersTwo": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueOwnersMore": "3 ou mais",
+  "@bikeValueOwnersMore": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueServiceBook": "Livro de revisões",
+  "@bikeValueServiceBook": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueServiceBookYes": "Tem, com as revisões",
+  "@bikeValueServiceBookYes": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueServiceBookNo": "Não tem",
+  "@bikeValueServiceBookNo": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueWarranty": "Ainda tem garantia de fábrica",
+  "@bikeValueWarranty": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueConditionLine": "Ajustado ao estado: {reasons} (total {total})",
+  "@bikeValueConditionLine": {
+    "description": "Interface text in bike_value_text / bike_value_page.",
+    "placeholders": {
+      "reasons": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "bikeValueFactorAccident": "acidente",
+  "@bikeValueFactorAccident": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueFactorDropped": "queda",
+  "@bikeValueFactorDropped": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueFactorFirstOwner": "primeiro dono",
+  "@bikeValueFactorFirstOwner": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueFactorManyOwners": "3 ou mais donos",
+  "@bikeValueFactorManyOwners": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueFactorNoServiceBook": "sem livro de revisões",
+  "@bikeValueFactorNoServiceBook": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueFactorWarranty": "com garantia",
+  "@bikeValueFactorWarranty": {
+    "description": "Interface text in bike_value_text / bike_value_page."
   }
 }
