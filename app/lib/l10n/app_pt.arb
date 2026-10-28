@@ -1388,6 +1388,28 @@
       }
     }
   },
+  "timeToSaleEstimate": "Para este anúncio: cerca de {days, plural, =1{1 dia} other{{days} dias}} até sair do mercado (estimativa pelos anúncios {band, select, below{deste modelo abaixo do valor estimado} near{deste modelo perto do valor estimado} above{deste modelo acima do valor estimado} other{deste modelo}}: {goneCount} saíram, {liveCount} ainda à venda)",
+  "@timeToSaleEstimate": {
+    "description": "Interface text in time_to_sale_text, timeToSaleLine. How much longer this listing is likely to stay on sale, from the model's ads that left and those still live.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "band": {
+        "type": "String"
+      },
+      "goneCount": {
+        "type": "int"
+      },
+      "liveCount": {
+        "type": "int"
+      }
+    }
+  },
+  "timeToSaleBeyondData": "Para este anúncio: já está à venda há mais tempo do que quase todos os anúncios deste modelo que saíram; sem estimativa do tempo que falta",
+  "@timeToSaleBeyondData": {
+    "description": "Interface text in time_to_sale_text, timeToSaleLine."
+  },
   "noSellerHasReducedPriceSinceWeStarted": "Nenhum vendedor baixou o preço desde que acompanhamos este modelo",
   "@noSellerHasReducedPriceSinceWeStarted": {
     "description": "Interface text in market_behaviour_text, marketLines."

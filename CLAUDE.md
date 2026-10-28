@@ -885,6 +885,16 @@ every photo examined, only the first 3 fingerprinted; then
   the market, share and size of price drops (measured from the higher of the
   first price seen and `price_before_drop`), depreciation rates. Show "ainda
   poucos dados" below 5 data points.
+- Time to sale per listing (`listing_time_to_sale`, 10.4; security
+  invoker, readable by everyone): Kaplan-Meier over the model's other
+  non-duplicate ads (gone = removed/sold after its days, live = lasted at
+  least its age; `median_days_remaining`, pure), conditioned on this ad's
+  age; by price band (`market_band`: >= 5 % below / near / >= 5 % above
+  the estimate) once 5+ of the band's ads are gone, else the whole model;
+  nothing below 5 gone. `listings.last_pct_below_market` (trigger
+  `listings_keep_market_position`) keeps a gone ad's last position, since
+  its scores are cleared. App: `time_to_sale_text.dart`, in "Mercado
+  deste modelo". Never a score slice.
 - Price trends (`model_price_trend`): per model and week (last 12), the ads
   seen that week at their price by its end (no duplicates, none under
   300 €), plain and adjusted median (each price brought to the model's

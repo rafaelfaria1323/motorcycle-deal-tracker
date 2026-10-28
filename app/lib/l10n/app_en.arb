@@ -227,6 +227,8 @@
   "activeOfModel": "{liveCount, plural, =0{0 active listings} =1{1 active listing} other{{liveCount} active listings}} of this model",
   "typicalTimeToGone": "Typical time until leaving the market: {toGone} days ({goneCount} listings)",
   "timeToGoneFewData": "Time until leaving the market: not enough data yet ({goneCount, plural, =0{0 listings left the market} =1{1 listing left the market} other{{goneCount} listings left the market}})",
+  "timeToSaleEstimate": "For this listing: about {days, plural, =1{1 day} other{{days} days}} until it leaves the market (estimated from {band, select, below{this model's listings below the estimated value} near{this model's listings near the estimated value} above{this model's listings above the estimated value} other{this model's listings}}: {goneCount} left, {liveCount} still for sale)",
+  "timeToSaleBeyondData": "For this listing: already on sale longer than almost every listing of this model that left; no estimate of the time left",
   "noSellerHasReducedPriceSinceWeStarted": "No seller has reduced the price since we started tracking this model",
   "ofSellersReducedTheirPrice": "{percent} of sellers reduced their price",
   "ofSellersReducedTheirPriceTypicalDrop": "{percent} of sellers reduced their price (typical drop {percent2})",

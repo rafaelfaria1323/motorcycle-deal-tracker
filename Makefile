@@ -144,7 +144,7 @@ check: app-check collector-check tool-check ## Run all checks (run before commit
 # added; lower one only with a reason in the commit. The app's floor counts
 # its logic (texts, entities, models, cubits), not the widgets.
 APP_COVERAGE_MIN ?= 90
-COLLECTOR_COVERAGE_MIN ?= 70
+COLLECTOR_COVERAGE_MIN ?= 85
 APP_LOGIC_FILES = _text\.dart$$|/domain/|/data/models/|/cubit/|/core/formatting/|/core/localization/|/language_cubit\.dart$$|/supabase_language_repository\.dart$$|ownership_cost\.dart$$|viewing_checklist\.dart$$
 
 # The coverage targets run the tests themselves (a failing test fails

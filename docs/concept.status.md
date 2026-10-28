@@ -1,4 +1,4 @@
-# Motorcycle Deal Tracker — Concept & Architecture (status 2026-10-27)
+# Motorcycle Deal Tracker — Concept & Architecture (status 2026-10-28)
 
 **Legend:** ✅ done · 🟡 partly done · ⬜ not started · ➕ added along the way
 
@@ -185,7 +185,7 @@ All four types, each at most once per event, only for events after the search wa
 
 ## 18. Listing Detail Page ✅
 
-✅ Photos (gallery, full screen; every photo of the ad, up to 30, 14.4h), price, year, mileage (read from the description when the ad's field is empty, 14.4i), location, seller, seller type, source, original link, Deal Score, Risk Score, explanation, estimated value, price history, first/last seen, status, new-motorcycle comparison. ➕ Owners, service book, origin, colour (marked when it is one of the person's favourites, 15.23), warranty, publication date, full description, market behaviour card (with depreciation and where the asking price sits among the model's live listings), "also listed as" duplicates. *The Deal Score and its verdict sit beside the price; below, four parts picked at the top (Avaliação, Detalhes, Mercado, Negociar, 15.17; Detalhes second since 15.27) instead of one long list of cards; the button to the ad stays at the bottom of the screen.*
+✅ Photos (gallery, full screen; every photo of the ad, up to 30, 14.4h), price, year, mileage (read from the description when the ad's field is empty, 14.4i), location, seller, seller type, source, original link, Deal Score, Risk Score, explanation, estimated value, price history, first/last seen, status, new-motorcycle comparison. ➕ Owners, service book, origin, colour (marked when it is one of the person's favourites, 15.23), warranty, publication date, full description, market behaviour card (with depreciation, where the asking price sits among the model's live listings, and how much longer this ad is likely to stay up, from the model's ads at a similar price: 10.4), "also listed as" duplicates. *The Deal Score and its verdict sit beside the price; below, four parts picked at the top (Avaliação, Detalhes, Mercado, Negociar, 15.17; Detalhes second since 15.27) instead of one long list of cards; the button to the ad stays at the bottom of the screen.*
 
 *13.7: photo and summary side by side on wide screens, stacked on phones; explicit fullscreen photo control; scrollable section tabs retaining opened content; fixed original-listing action with the price beside it on wide screens.*
 
@@ -208,7 +208,7 @@ Private sellers' names and all phone numbers are never stored; saved pages and f
 
 ## 23. Future Features ⬜
 
-Comparison ✅ (listings side by side), buying assistant, checklists, cost calculators, price prediction, weekly ranking ✅ (the weekly summary's best deals, 14.4d), smart alerts, model price history, imports, dealer integration. ➕ Depreciation tracking ✅ (per-model rates fitted from data).
+Comparison ✅ (listings side by side), buying assistant, checklists, cost calculators, price prediction, weekly ranking ✅ (the weekly summary's best deals, 14.4d), smart alerts, model price history, imports, dealer integration. ➕ Depreciation tracking ✅ (per-model rates fitted from data). ➕ Time to sale per listing ✅ (10.4: survival of the model's ads at a similar price, from this ad's age; a first step of price prediction).
 
 Planned in roadmap Sprint 15 ("Deciding and buying"): ➕ favourites with private notes ✅ (15.1; a favourite always alerts on price drops and removal), price to offer (buying assistant, 15.2; more room for a bike with damage in its text, 15.26) ✅, ➕ negotiation arguments, visit repairs off the offer, messages per step and a target price alert (15.19) ✅, ➕ "back on the market" alert for followed bikes (15.14) ✅, ➕ message to the seller (15.12) ✅, viewing checklist (15.3) ✅, cost of ownership (cost calculator, 15.4) ✅, relists as a risk signal (15.5) ✅, text contradictions as risk signals (15.6) ✅, dealer reliability (15.7) ✅ (figures shown and scored), price trends (model price history, 15.8) ✅, more sources and imports (15.9) ⬜, web push (15.10) ✅.
 

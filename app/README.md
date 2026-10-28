@@ -103,7 +103,9 @@ Screen names below use the Portuguese labels; English provides the same screens.
   - **Detalhes:** the bike's facts, the seller's description, the ad's
     facts.
   - **Mercado:** market behaviour for the model (with where the asking
-    price sits among the model's live listings), the price history, the
+    price sits among the model's live listings, and about how many days
+    this ad has left on the market, from the model's ads at a similar
+    price), the price history, the
     comparison with a new one, "Custo de ter esta mota" (yearly cost:
     depreciation, IUC, your insurance, tyres, services, chain; "Alterar"
     sets your insurance, km per year and years to keep, saved to your

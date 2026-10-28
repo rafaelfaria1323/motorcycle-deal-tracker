@@ -62,6 +62,17 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
   }
 
   @override
+  Future<TimeToSale?> getTimeToSale(String listingId) async {
+    final rows = await _client.rpc<List<dynamic>>(
+      'listing_time_to_sale',
+      params: {'p_listing_id': listingId},
+    );
+    return rows.isEmpty
+        ? null
+        : timeToSaleFrom(rows.first as Map<String, dynamic>);
+  }
+
+  @override
   Future<Map<String, double>> getLivePrices(String motorcycleId) async {
     final rows = await _client
         .from('listings')
@@ -283,6 +294,21 @@ PriceTrendWeek priceTrendWeekFrom(Map<String, dynamic> row) => PriceTrendWeek(
   count: (row['listing_count'] as num).toInt(),
   median: (row['median_price'] as num).toDouble(),
   adjustedMedian: (row['median_adjusted_price'] as num).toDouble(),
+);
+
+/// The row of `listing_time_to_sale`.
+TimeToSale timeToSaleFrom(Map<String, dynamic> row) => TimeToSale(
+  band: switch (row['band']) {
+    'below' => PriceBand.below,
+    'near' => PriceBand.near,
+    'above' => PriceBand.above,
+    _ => null,
+  },
+  goneCount: (row['gone_count'] as num).toInt(),
+  liveCount: (row['live_count'] as num).toInt(),
+  daysListed: (row['days_listed'] as num).toInt(),
+  typicalDays: (row['typical_days'] as num?)?.toInt(),
+  remainingDays: (row['remaining_days'] as num?)?.toInt(),
 );
 
 /// The row of `bike_value`.

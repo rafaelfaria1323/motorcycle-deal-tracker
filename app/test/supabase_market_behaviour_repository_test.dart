@@ -5,6 +5,7 @@ import 'package:http/http.dart';
 import 'package:http/testing.dart';
 import 'package:motorcycle_deal_tracker/features/listings/data/repositories/supabase_market_behaviour_repository.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/bike_value_request.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/entities/market_behaviour.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
@@ -101,6 +102,69 @@ void main() {
     expect(week.count, 12);
     expect(week.median, 7250);
     expect(week.adjustedMedian, 7100.5);
+  });
+
+  test('timeToSaleFrom reads the row of listing_time_to_sale', () {
+    expect(
+      timeToSaleFrom({
+        'band': 'below',
+        'gone_count': 7,
+        'live_count': 12,
+        'days_listed': 9,
+        'typical_days': 20,
+        'remaining_days': 11,
+      }),
+      const TimeToSale(
+        band: PriceBand.below,
+        goneCount: 7,
+        liveCount: 12,
+        daysListed: 9,
+        typicalDays: 20,
+        remainingDays: 11,
+      ),
+    );
+    expect(
+      timeToSaleFrom({
+        'band': null,
+        'gone_count': 2,
+        'live_count': 3,
+        'days_listed': 0,
+        'typical_days': null,
+        'remaining_days': null,
+      }),
+      const TimeToSale(goneCount: 2, liveCount: 3, daysListed: 0),
+    );
+    expect(
+      timeToSaleFrom({
+        'band': 'near',
+        'gone_count': 5,
+        'live_count': 0,
+        'days_listed': 1,
+      }).band,
+      PriceBand.near,
+    );
+    expect(
+      timeToSaleFrom({
+        'band': 'above',
+        'gone_count': 5,
+        'live_count': 0,
+        'days_listed': 1,
+      }).band,
+      PriceBand.above,
+    );
+  });
+
+  test('getTimeToSale asks for the listing; no row reads as null', () async {
+    reply =
+        '[{"band":null,"gone_count":6,"live_count":4,"days_listed":3,'
+        '"typical_days":15,"remaining_days":12}]';
+    final t = await repository.getTimeToSale('l1');
+    expect(requests.single.url.path, endsWith('listing_time_to_sale'));
+    expect(jsonDecode(requests.single.body), {'p_listing_id': 'l1'});
+    expect(t!.remainingDays, 12);
+
+    reply = '[]';
+    expect(await repository.getTimeToSale('l2'), isNull);
   });
 
   test('bikeValueFrom reads the row of bike_value', () {
