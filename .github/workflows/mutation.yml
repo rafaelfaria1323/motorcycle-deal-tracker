@@ -136,7 +136,8 @@ jobs:
           status=0
           python3 -I tool/mutation.py summary "${floor[@]}" reports \
             > mutation-summary.md || status=$?
-          cat mutation-summary.md >> "$GITHUB_STEP_SUMMARY"
+          # Also in the log: the score stays readable without the summary page.
+          tee -a "$GITHUB_STEP_SUMMARY" < mutation-summary.md
           exit "$status"
 
       - uses: actions/upload-artifact@v7

@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
 import 'package:motorcycle_deal_tracker/core/localization/localizations.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/bike_value.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/entities/bike_value_request.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/market_behaviour.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/bike_value_text.dart';
 
@@ -98,5 +99,40 @@ void main() {
     final lines = bikeValueLines(value, null, language: AppLanguage.english);
     expect(lines[0].text, startsWith('Market value: '));
     expect(lines[1].text, contains('room to negotiate'));
+  });
+
+  group('bikeValueRequestLine', () {
+    final asked = BikeValueRequest(
+      id: 'r1',
+      motorcycleId: 'm1',
+      brand: 'Kawasaki',
+      model: 'Z650',
+      year: 2019,
+      mileage: 30000,
+      requestedAt: DateTime.utc(2026, 10, 28, 9),
+    );
+
+    test('year, mileage and whether it still waits', () {
+      expect(
+        bikeValueRequestLine(asked),
+        '2019 · ${Formatters.mileage(30000)} · À espera da recolha',
+      );
+    });
+
+    test('answered, without mileage, in English', () {
+      final answered = BikeValueRequest(
+        id: 'r2',
+        motorcycleId: 'm1',
+        brand: 'Kawasaki',
+        model: 'Z650',
+        year: 2019,
+        requestedAt: DateTime.utc(2026, 10, 28, 9),
+        answeredAt: DateTime.utc(2026, 10, 28, 10),
+      );
+      expect(
+        bikeValueRequestLine(answered, language: AppLanguage.english),
+        '2019 · Value ready',
+      );
+    });
   });
 }

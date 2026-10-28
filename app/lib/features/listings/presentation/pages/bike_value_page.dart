@@ -1,42 +1,104 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../../app/di/injection.dart';
+import '../../../../core/auth/session_cubit.dart';
 import '../../../../core/localization/localizations.dart';
 import '../../../../core/widgets/page_back_button.dart';
 import '../../../../core/widgets/state_message.dart';
+import '../../../collector_status/presentation/collection_text.dart';
 import '../../domain/entities/bike_value.dart';
+import '../../domain/entities/bike_value_request.dart';
+import '../../domain/entities/market_behaviour.dart';
 import '../../domain/entities/model_market.dart';
+import '../../domain/repositories/catalog_repository.dart';
 import '../../domain/repositories/market_behaviour_repository.dart';
 import '../bike_value_text.dart';
+import '../widgets/add_model_sheet.dart';
 import '../widgets/icon_line.dart';
 import '../widgets/tracked_models_builder.dart';
 
-/// "Quanto vale a minha mota": the market value of a bike of one of the
-/// followed models, the price to ask for it and a dealer's trade-in.
+/// "Quanto vale a minha mota": the market value of a bike, the price to
+/// ask for it and a dealer's trade-in. Anonymous sessions value the
+/// collected models; accounts value any make and model: one nobody
+/// collects yet is asked for, collected at the next collection, and
+/// answered with a notification ([requestId] opens that answer).
 class BikeValuePage extends StatefulWidget {
-  const BikeValuePage({super.key});
+  const BikeValuePage({this.requestId, super.key});
 
-  /// The oldest year the form takes.
-  static const firstYear = 1980;
+  /// The request to show (`/worth?request=<id>`, from the notification).
+  final String? requestId;
+
+  /// The oldest year the form takes (as request_bike_value).
+  static const firstYear = 1990;
 
   @override
   State<BikeValuePage> createState() => _BikeValuePageState();
 }
 
+/// What "Calcular" gave: the value, or null while the request waits for a
+/// collection.
+typedef _Outcome = ({
+  String name,
+  int year,
+  BikeValue? value,
+  MarketBehaviour? market,
+});
+
+/// The dropdown's entry that opens the make and model form.
+const _otherModel = '';
+
 class _BikeValuePageState extends State<BikeValuePage> {
+  final _repository = getIt<MarketBehaviourRepository>();
+  final _signedIn = getIt<SessionCubit>().state.signedIn;
   late Future<List<ModelMarket>> _models = _loadModels();
+  List<BikeValueRequest> _requests = const [];
   final _form = GlobalKey<FormState>();
   final _year = TextEditingController();
   final _mileage = TextEditingController();
   String? _motorcycleId;
 
-  /// The model asked about and its value, once "Calcular" was pressed.
-  ModelMarket? _asked;
-  Future<BikeValue>? _value;
+  /// Bumped to reset the dropdown when the make and model form is closed
+  /// without a model.
+  int _resets = 0;
+
+  /// Models added through "Outra marca ou modelo…" on this visit.
+  final _added = <String, String>{};
+
+  /// What was asked and its value, once "Calcular" was pressed.
+  Future<_Outcome>? _outcome;
+  String? _shownRequest;
 
   Future<List<ModelMarket>> _loadModels() async {
-    final models = await getIt<MarketBehaviourRepository>().getTrackedModels();
+    final models = await _repository.getTrackedModels();
     return [...models]..sort((a, b) => a.name.compareTo(b.name));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadRequests());
+  }
+
+  /// The account's requests; a failed read leaves the list as it was (it
+  /// is only a shortcut to earlier answers).
+  Future<void> _loadRequests() async {
+    if (!_signedIn) return;
+    try {
+      final requests = await _repository.getBikeValueRequests();
+      if (!mounted) return;
+      setState(() => _requests = requests);
+      _openRequest(requests);
+    } catch (_) {
+      // Kept as it was.
+    }
+  }
+
+  @override
+  void didUpdateWidget(BikeValuePage old) {
+    super.didUpdateWidget(old);
+    if (widget.requestId != old.requestId) unawaited(_loadRequests());
   }
 
   @override
@@ -54,17 +116,137 @@ class _BikeValuePageState extends State<BikeValuePage> {
     return RegExp(r'^\d+$').hasMatch(digits) ? int.parse(digits) : null;
   }
 
-  void _calculate(List<ModelMarket> models) {
-    if (!_form.currentState!.validate()) return;
-    final model = models.firstWhere((m) => m.motorcycleId == _motorcycleId);
+  /// The models to choose from: the collected ones, those of the account's
+  /// requests and those added now, by id.
+  Map<String, String> _choices(
+    List<ModelMarket> models,
+    List<BikeValueRequest> requests,
+  ) {
+    final choices = {
+      for (final m in models) m.motorcycleId: m.name,
+      for (final r in requests) r.motorcycleId: r.name,
+      ..._added,
+    };
+    final sorted = choices.entries.toList()
+      ..sort((a, b) => a.value.compareTo(b.value));
+    return Map.fromEntries(sorted);
+  }
+
+  /// Opens the request the notification named, once.
+  void _openRequest(List<BikeValueRequest> requests) {
+    final id = widget.requestId;
+    if (id == null || id == _shownRequest) return;
+    for (final request in requests) {
+      if (request.id == id) {
+        _shownRequest = id;
+        _show(request);
+      }
+    }
+  }
+
+  /// Fills the form with [request] and shows its value or that it waits.
+  void _show(BikeValueRequest request) {
+    _year.text = '${request.year}';
+    _mileage.text = request.mileage?.toString() ?? '';
     setState(() {
-      _asked = model;
-      _value = getIt<MarketBehaviourRepository>().getBikeValue(
-        model.motorcycleId,
+      _added.putIfAbsent(request.motorcycleId, () => request.name);
+      _motorcycleId = request.motorcycleId;
+      _outcome = _valueOf(
+        request.motorcycleId,
+        request.name,
+        year: request.year,
+        mileage: request.mileage,
+        waiting: request.waiting,
+      );
+    });
+  }
+
+  Future<_Outcome> _valueOf(
+    String motorcycleId,
+    String name, {
+    required int year,
+    required int? mileage,
+    bool waiting = false,
+  }) async {
+    if (waiting) return (name: name, year: year, value: null, market: null);
+    final (value, market) = await (
+      _repository.getBikeValue(motorcycleId, year: year, mileage: mileage),
+      _repository.getForModel(motorcycleId),
+    ).wait;
+    return (name: name, year: year, value: value, market: market);
+  }
+
+  Future<_Outcome> _ask(
+    String motorcycleId,
+    String name, {
+    required int year,
+    required int? mileage,
+  }) async {
+    if (!_signedIn) {
+      return _valueOf(motorcycleId, name, year: year, mileage: mileage);
+    }
+    final asked = await _repository.requestBikeValue(
+      motorcycleId,
+      year: year,
+      mileage: mileage,
+    );
+    await _loadRequests();
+    return _valueOf(
+      motorcycleId,
+      name,
+      year: year,
+      mileage: mileage,
+      waiting: !asked.ready,
+    );
+  }
+
+  void _calculate(Map<String, String> choices) {
+    if (!_form.currentState!.validate()) return;
+    final id = _motorcycleId!;
+    setState(() {
+      _added.putIfAbsent(id, () => choices[id]!);
+      _outcome = _ask(
+        id,
+        choices[id]!,
         year: int.parse(_year.text.trim()),
         mileage: _mileage.text.trim().isEmpty ? null : _mileageValue(),
       );
     });
+  }
+
+  /// "Outra marca ou modelo…": the make and model form, then the catalog
+  /// model for it (added when new, not followed).
+  Future<void> _pickOther() async {
+    final picked = await showAddModelSheet(
+      context,
+      getIt<CatalogRepository>(),
+      forValue: true,
+    );
+    if (!mounted) return;
+    if (picked == null) {
+      setState(() => _resets++);
+      return;
+    }
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = context.strings.bikeValueCouldNotUseModel;
+    try {
+      final id = await _repository.bikeValueModel(
+        brand: picked.brand,
+        model: picked.model,
+        olxSearch: picked.olxSearch,
+        standvirtualSearch: picked.standvirtualSearch,
+        engineCcMin: picked.engineCcMin,
+        engineCcMax: picked.engineCcMax,
+      );
+      if (!mounted) return;
+      setState(() {
+        _added[id] = '${picked.brand} ${picked.model}';
+        _motorcycleId = id;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _resets++);
+      messenger.showSnackBar(SnackBar(content: Text(failed)));
+    }
   }
 
   @override
@@ -76,16 +258,23 @@ class _BikeValuePageState extends State<BikeValuePage> {
       ),
       body: TrackedModelsBuilder(
         future: _models,
+        allowEmpty: _signedIn,
         onRetry: () => setState(() => _models = _loadModels()),
         builder: (context, models) {
+          final choices = _choices(models, _requests);
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
             children: [
-              Text(context.strings.bikeValueIntro),
+              Text(
+                _signedIn
+                    ? context.strings.bikeValueIntroAnyModel
+                    : context.strings.bikeValueIntro,
+              ),
               const SizedBox(height: 16),
-              _formFields(context, models),
+              _formFields(context, choices),
               const SizedBox(height: 16),
-              if (_value != null) _result(context, models),
+              if (_outcome != null) _result(context, choices),
+              if (_requests.isNotEmpty) ..._requestList(context, _requests),
             ],
           );
         },
@@ -93,7 +282,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
     );
   }
 
-  Widget _formFields(BuildContext context, List<ModelMarket> models) {
+  Widget _formFields(BuildContext context, Map<String, String> choices) {
     final strings = context.strings;
     return Form(
       key: _form,
@@ -101,6 +290,8 @@ class _BikeValuePageState extends State<BikeValuePage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           DropdownButtonFormField<String>(
+            // Rebuilt when a model is picked from outside the dropdown.
+            key: ValueKey((_motorcycleId, _resets)),
             initialValue: _motorcycleId,
             isExpanded: true,
             decoration: InputDecoration(
@@ -108,12 +299,24 @@ class _BikeValuePageState extends State<BikeValuePage> {
               border: const OutlineInputBorder(),
             ),
             items: [
-              for (final m in models)
-                DropdownMenuItem(value: m.motorcycleId, child: Text(m.name)),
+              for (final MapEntry(:key, :value) in choices.entries)
+                DropdownMenuItem(value: key, child: Text(value)),
+              if (_signedIn)
+                DropdownMenuItem(
+                  value: _otherModel,
+                  child: Text(strings.bikeValueOtherModel),
+                ),
             ],
-            validator: (value) =>
-                value == null ? strings.bikeValueChooseModel : null,
-            onChanged: (value) => setState(() => _motorcycleId = value),
+            validator: (value) => value == null || value == _otherModel
+                ? strings.bikeValueChooseModel
+                : null,
+            onChanged: (value) {
+              if (value == _otherModel) {
+                unawaited(_pickOther());
+              } else {
+                setState(() => _motorcycleId = value);
+              }
+            },
           ),
           const SizedBox(height: 12),
           TextFormField(
@@ -150,7 +353,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
           ),
           const SizedBox(height: 12),
           FilledButton.icon(
-            onPressed: () => _calculate(models),
+            onPressed: () => _calculate(choices),
             icon: const Icon(Icons.calculate_outlined),
             label: Text(strings.bikeValueCalculate),
           ),
@@ -159,24 +362,34 @@ class _BikeValuePageState extends State<BikeValuePage> {
     );
   }
 
-  Widget _result(BuildContext context, List<ModelMarket> models) {
-    final model = _asked!;
-    return FutureBuilder<BikeValue>(
-      future: _value,
+  Widget _result(BuildContext context, Map<String, String> choices) {
+    return FutureBuilder<_Outcome>(
+      future: _outcome,
       builder: (context, snapshot) {
+        final strings = context.strings;
+        if (snapshot.error is BikeValueRequestLimit) {
+          return StateMessage(
+            icon: Icons.hourglass_top,
+            title: strings.bikeValueRequestLimit,
+          );
+        }
         if (snapshot.hasError) {
           return StateMessage(
             icon: Icons.cloud_off_outlined,
-            title: context.strings.bikeValueCouldNotCalculate,
-            actionLabel: context.strings.retry,
-            onAction: () => _calculate(models),
+            title: strings.bikeValueCouldNotCalculate,
+            actionLabel: strings.retry,
+            onAction: () => _calculate(choices),
           );
         }
-        final value = snapshot.data;
-        if (value == null) {
+        final outcome = snapshot.data;
+        if (outcome == null) {
           return const Center(child: CircularProgressIndicator());
         }
         final theme = Theme.of(context);
+        final muted = theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        );
+        final value = outcome.value;
         return Card(
           margin: EdgeInsets.zero,
           child: Padding(
@@ -184,27 +397,66 @@ class _BikeValuePageState extends State<BikeValuePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(model.name, style: theme.textTheme.titleMedium),
-                const SizedBox(height: 8),
-                for (final line in bikeValueLines(
-                  value,
-                  model.behaviour,
-                  language: context.language,
-                ))
-                  IconLine(icon: _icons[line.kind]!, text: line.text),
-                const SizedBox(height: 8),
                 Text(
-                  context.strings.bikeValueNote,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+                  '${outcome.name} ${outcome.year}',
+                  style: theme.textTheme.titleMedium,
                 ),
+                const SizedBox(height: 8),
+                if (value == null) ...[
+                  IconLine(
+                    icon: Icons.travel_explore,
+                    text: strings.bikeValueWaiting,
+                  ),
+                  IconLine(
+                    icon: Icons.schedule,
+                    text: nextCollectionText(
+                      DateTime.now(),
+                      language: context.language,
+                    ),
+                  ),
+                ] else ...[
+                  for (final line in bikeValueLines(
+                    value,
+                    outcome.market,
+                    language: context.language,
+                  ))
+                    IconLine(icon: _icons[line.kind]!, text: line.text),
+                  const SizedBox(height: 8),
+                  Text(strings.bikeValueNote, style: muted),
+                ],
               ],
             ),
           ),
         );
       },
     );
+  }
+
+  List<Widget> _requestList(
+    BuildContext context,
+    List<BikeValueRequest> requests,
+  ) {
+    final theme = Theme.of(context);
+    return [
+      const SizedBox(height: 24),
+      Text(
+        context.strings.bikeValueRequests,
+        style: theme.textTheme.titleSmall,
+      ),
+      for (final request in requests)
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: Icon(
+            request.waiting ? Icons.hourglass_top : Icons.euro,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          title: Text(request.name),
+          subtitle: Text(
+            bikeValueRequestLine(request, language: context.language),
+          ),
+          onTap: () => _show(request),
+        ),
+    ];
   }
 }
 

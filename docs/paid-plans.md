@@ -157,7 +157,12 @@ feature; the permission and invited-account rules above still apply.
   and km in; out come the estimate from the same comparables, how long
   such bikes take to sell, an asking price and a trade-in floor. It uses
   only our own aggregates. Built free for every account (roadmap 16.9,
-  2026-10-28); listed here only as a possible paid feature.
+  2026-10-28); listed here only as a possible paid feature. Since
+  2026-10-28 it also values any brand and model (collected on request,
+  answered after the next scheduled collection, at most 3 waiting
+  requests per account a day). Rafael: free while there are no users,
+  paid in the future; collecting a model for a request costs requests
+  to the sites, so this is the part to charge for first.
 - **Relatório de um anúncio.** One ad's full analysis as a link to
   share: estimate, history, relists, contradictions, offer plan and
   visit checklist. Sold one at a time, for people who found an ad and

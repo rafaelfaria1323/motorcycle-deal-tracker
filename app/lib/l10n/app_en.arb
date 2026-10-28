@@ -949,5 +949,16 @@
   "bikeValueAskDefault": "To sell, ask about {price}: {percent} above the value, room to negotiate",
   "bikeValueTradeIn": "As a trade-in, a dealer will give about {price} or less: it needs a margin to resell with a warranty",
   "bikeValueNote": "Estimate from asking prices in listings, not from sales. The trade-in is a rule of thumb (about 80 % of the value).",
-  "bikeValueChooseModel": "Choose the model"
+  "bikeValueChooseModel": "Choose the model",
+  "bikeValueIntroAnyModel": "Choose your bike's model, year and mileage. The value comes from that model's live listings, adjusted to the year and mileage. Any make and model: if we don't collect its listings yet, we'll look for them at the next collection and let you know when the value is ready.",
+  "bikeValueOtherModel": "Another make or model…",
+  "bikeValueOtherModelTitle": "Which bike do you have?",
+  "bikeValueOtherModelIntro": "Choose the make and model. If we don't collect its listings yet, we'll look for them on OLX and Standvirtual at the next collection (you won't start following the model).",
+  "bikeValueOtherModelUse": "Use this model",
+  "bikeValueCouldNotUseModel": "Couldn't use this model. Try again.",
+  "bikeValueWaiting": "We haven't collected enough listings of this bike yet. We'll look for them on OLX and Standvirtual at the next collection and send you a notification with the value.",
+  "bikeValueRequestLimit": "You already have 3 requests waiting today. Try tomorrow or choose a model already collected.",
+  "bikeValueRequests": "Your requests",
+  "bikeValueRequestWaiting": "Waiting for the collection",
+  "bikeValueRequestReady": "Value ready"
 }

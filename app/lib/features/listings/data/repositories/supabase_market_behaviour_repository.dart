@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/entities/bike_value.dart';
+import '../../domain/entities/bike_value_request.dart';
 import '../../domain/entities/market_behaviour.dart';
 import '../../domain/entities/model_market.dart';
 import '../../domain/repositories/market_behaviour_repository.dart';
@@ -129,6 +130,66 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
         : bikeValueFrom(rows.first as Map<String, dynamic>);
   }
 
+  @override
+  Future<String> bikeValueModel({
+    required String brand,
+    required String model,
+    String? olxSearch,
+    String? standvirtualSearch,
+    int? engineCcMin,
+    int? engineCcMax,
+  }) => _client.rpc<String>(
+    'bike_value_model',
+    params: {
+      'p_brand': brand,
+      'p_model': model,
+      'p_olx_search': olxSearch,
+      'p_standvirtual_search': standvirtualSearch,
+      'p_engine_cc_min': engineCcMin,
+      'p_engine_cc_max': engineCcMax,
+    },
+  );
+
+  @override
+  Future<({String requestId, bool ready})> requestBikeValue(
+    String motorcycleId, {
+    required int year,
+    int? mileage,
+  }) async {
+    try {
+      final rows = await _client.rpc<List<dynamic>>(
+        'request_bike_value',
+        params: {
+          'p_motorcycle_id': motorcycleId,
+          'p_year': year,
+          'p_mileage': mileage,
+        },
+      );
+      final row = rows.first as Map<String, dynamic>;
+      return (
+        requestId: row['request_id'] as String,
+        ready: row['ready'] as bool,
+      );
+    } on PostgrestException catch (e) {
+      // request_bike_value's cap on waiting requests a day.
+      if (e.code == '54000') throw const BikeValueRequestLimit();
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<BikeValueRequest>> getBikeValueRequests() async {
+    final rows = await _client
+        .from('bike_value_requests')
+        .select(
+          'id, motorcycle_id, year, mileage, requested_at, answered_at, '
+          'motorcycles(brand, model)',
+        )
+        .order('requested_at', ascending: false)
+        .limit(20);
+    return [for (final r in rows) bikeValueRequestFrom(r)];
+  }
+
   /// Each model's weeks, oldest first.
   Future<Map<String, List<PriceTrendWeek>>> _trend(List<String> ids) async {
     final rows = await _client
@@ -231,3 +292,19 @@ BikeValue bikeValueFrom(Map<String, dynamic> row) => BikeValue(
   low: (row['low_price'] as num?)?.toDouble(),
   high: (row['high_price'] as num?)?.toDouble(),
 );
+
+/// A row of `bike_value_requests` with its model's names.
+BikeValueRequest bikeValueRequestFrom(Map<String, dynamic> row) {
+  final model = row['motorcycles'] as Map<String, dynamic>;
+  final answered = row['answered_at'] as String?;
+  return BikeValueRequest(
+    id: row['id'] as String,
+    motorcycleId: row['motorcycle_id'] as String,
+    brand: model['brand'] as String,
+    model: model['model'] as String,
+    year: (row['year'] as num).toInt(),
+    mileage: (row['mileage'] as num?)?.toInt(),
+    requestedAt: DateTime.parse(row['requested_at'] as String),
+    answeredAt: answered == null ? null : DateTime.parse(answered),
+  );
+}

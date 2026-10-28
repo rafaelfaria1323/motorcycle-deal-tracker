@@ -45,6 +45,7 @@ void main() {
     _Catalog repository,
     ValueChanged<NewModel?> onResult, {
     double textScale = 1,
+    bool forValue = false,
   }) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
@@ -66,7 +67,13 @@ void main() {
           body: Builder(
             builder: (context) => TextButton(
               onPressed: () async =>
-                  onResult(await showAddModelSheet(context, repository)),
+                  onResult(
+                    await showAddModelSheet(
+                      context,
+                      repository,
+                      forValue: forValue,
+                    ),
+                  ),
               child: const Text('Abrir'),
             ),
           ),
@@ -238,5 +245,31 @@ void main() {
 
     expect(result?.aliases, ['Z 650', 'Z-650']);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('for a bike\'s value: no first year or other names', (
+    tester,
+  ) async {
+    NewModel? result;
+    await open(
+      tester,
+      _Catalog()..makes = [],
+      (value) => result = value,
+      forValue: true,
+    );
+
+    expect(find.text('Que mota tem?'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'Desde o ano'), findsNothing);
+    expect(find.text('Outros nomes do modelo'), findsNothing);
+    await enter(tester, 'Marca', 'Kawasaki');
+    await enter(tester, 'Modelo', 'Z650');
+    final button = find.widgetWithText(FilledButton, 'Usar este modelo');
+    await tester.ensureVisible(button);
+    await tester.pump();
+    await tester.tap(button);
+    await tester.pumpAndSettle();
+
+    expect(result?.brand, 'Kawasaki');
+    expect(result?.model, 'Z650');
   });
 }

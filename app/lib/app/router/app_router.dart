@@ -144,7 +144,8 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: AppRoutes.bikeValue,
-      builder: (context, state) => const BikeValuePage(),
+      builder: (context, state) =>
+          BikeValuePage(requestId: state.uri.queryParameters['request']),
     ),
     GoRoute(
       path: AppRoutes.favourites,

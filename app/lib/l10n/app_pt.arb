@@ -5408,5 +5408,49 @@
   "bikeValueChooseModel": "Escolha o modelo",
   "@bikeValueChooseModel": {
     "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueIntroAnyModel": "Escolha o modelo, o ano e os quilómetros da sua mota. O valor vem dos anúncios ativos desse modelo, ajustados ao ano e aos quilómetros. Qualquer marca e modelo: se ainda não recolhemos os anúncios dela, vamos procurá-los na próxima recolha e avisamos quando o valor estiver pronto.",
+  "@bikeValueIntroAnyModel": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueOtherModel": "Outra marca ou modelo…",
+  "@bikeValueOtherModel": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueOtherModelTitle": "Que mota tem?",
+  "@bikeValueOtherModelTitle": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueOtherModelIntro": "Escolha a marca e o modelo. Se ainda não recolhemos os anúncios dela, vamos procurá-los no OLX e no Standvirtual na próxima recolha (não passa a acompanhar o modelo).",
+  "@bikeValueOtherModelIntro": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueOtherModelUse": "Usar este modelo",
+  "@bikeValueOtherModelUse": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueCouldNotUseModel": "Não foi possível usar este modelo. Tente novamente.",
+  "@bikeValueCouldNotUseModel": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueWaiting": "Ainda não recolhemos anúncios suficientes desta mota. Vamos procurá-los no OLX e no Standvirtual na próxima recolha e enviamos-lhe uma notificação com o valor.",
+  "@bikeValueWaiting": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueRequestLimit": "Já tem 3 pedidos à espera hoje. Tente amanhã ou escolha um modelo já recolhido.",
+  "@bikeValueRequestLimit": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueRequests": "Os seus pedidos",
+  "@bikeValueRequests": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueRequestWaiting": "À espera da recolha",
+  "@bikeValueRequestWaiting": {
+    "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "bikeValueRequestReady": "Valor pronto",
+  "@bikeValueRequestReady": {
+    "description": "Interface text in bike_value_text / bike_value_page."
   }
 }

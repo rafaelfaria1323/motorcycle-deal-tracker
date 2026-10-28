@@ -6,18 +6,20 @@ import '../../domain/entities/model_market.dart';
 
 /// The followed models' market once [future] gives it: a spinner meanwhile,
 /// the failure with "Tentar novamente" ([onRetry]), or a message when no
-/// model is followed.
+/// model is followed (unless [allowEmpty]: the page offers others).
 class TrackedModelsBuilder extends StatelessWidget {
   const TrackedModelsBuilder({
     required this.future,
     required this.onRetry,
     required this.builder,
+    this.allowEmpty = false,
     super.key,
   });
 
   final Future<List<ModelMarket>> future;
   final VoidCallback onRetry;
   final Widget Function(BuildContext context, List<ModelMarket> models) builder;
+  final bool allowEmpty;
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +38,7 @@ class TrackedModelsBuilder extends StatelessWidget {
         if (models == null) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (models.isEmpty) {
+        if (models.isEmpty && !allowEmpty) {
           return StateMessage(
             icon: Icons.two_wheeler,
             title: context.strings.noFollowedModels,

@@ -1,6 +1,7 @@
 import '../../../core/formatting/formatters.dart';
 import '../../../core/localization/localizations.dart';
 import '../domain/entities/bike_value.dart';
+import '../domain/entities/bike_value_request.dart';
 import '../domain/entities/market_behaviour.dart';
 import 'market_behaviour_text.dart';
 import 'offer_text.dart';
@@ -95,3 +96,20 @@ bool askingRoomFromModel(MarketBehaviour? market) =>
     market.medianDropPct != null;
 
 double _roundDown(double value) => (value / offerStep).floor() * offerStep;
+
+/// A request in "Os seus pedidos": "2019 · 30 000 km · À espera da
+/// recolha" (the mileage left out when not given).
+String bikeValueRequestLine(
+  BikeValueRequest request, {
+  AppLanguage language = AppLanguage.portuguese,
+}) {
+  final messages = language.messages;
+  return [
+    '${request.year}',
+    if (request.mileage != null)
+      Formatters.mileage(request.mileage, language: language),
+    request.waiting
+        ? messages.bikeValueRequestWaiting
+        : messages.bikeValueRequestReady,
+  ].join(' · ');
+}
