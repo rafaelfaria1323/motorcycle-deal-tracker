@@ -25,6 +25,7 @@ void main() {
       'broken_parts',
       'missing_parts',
       'rust',
+      'learned',
     ]) {
       for (final language in AppLanguage.values) {
         expect(photoHintLabel(code, language: language), isNotEmpty);

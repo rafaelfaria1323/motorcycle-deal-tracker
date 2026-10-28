@@ -25,3 +25,4 @@ lib/src/pipeline/run_status.dart
 lib/src/pipeline/enrich_steps.dart
 lib/src/fetch/search_manifest.dart
 lib/src/adapters/standvirtual/standvirtual_mapper.dart
+lib/src/photos/photo_classifier.dart

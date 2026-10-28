@@ -632,6 +632,20 @@ embedding, for P.3; RLS, no API access; `listings.photo_hints` =
 `photo_hint_codes`, share >= 0.5, the threshold lives there). Without the
 model, or once it fails, photos are only fingerprinted and wait. The app
 shows them in Avaliação (`PhotoHintsCard`), never in a score.
+P.3: admins mark photos 0-2 in the full-screen photos (`FullScreenGallery`,
+"Problema" / "Bem"; `set_photo_mark` (require_admin) / `my_photo_marks`;
+`photo_marks`, RLS, no API access). With the model on, `bin/photos.dart`
+first runs `trainOnPhotoMarks` (`photos/photo_classifier.dart`): when
+`photo_training_set`'s `marks_key` differs from the stored classifier's
+and there are 10+ photos of each kind (`minMarksPerClass`; current admins'
+marks only, a disagreement counts as a problem), a logistic regression in
+plain Dart on the stored embeddings (standardised then folded back,
+balanced, L2, deterministic, 5-fold balanced accuracy logged) goes to
+`store_photo_classifier` (`photo_classifiers`, one per model), which
+refreshes every examined listing's hints (`refresh_photo_hints`: the code
+`learned`, `photo_learned_share`, threshold 0.5; `store_photo_features`
+applies it too). `prune_unfollowed_listings` may delete a marked listing
+and its marks (known, accepted).
 
 - **Read failures**: `importBatch` keeps readable records and returns
   whether the input was clean. `refresh.dart` and `collector.dart` report

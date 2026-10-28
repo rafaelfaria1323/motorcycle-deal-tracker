@@ -992,5 +992,10 @@
   "photoHintBrokenParts": "Possible broken parts",
   "photoHintMissingParts": "Possible missing parts",
   "photoHintRust": "Possible rust",
-  "photoNumber": "Photo {number}"
+  "photoNumber": "Photo {number}",
+  "photoHintLearned": "Like photos marked as a problem",
+  "photoMarkTitle": "Teach the image model: does this photo show a problem?",
+  "photoMarkProblem": "Problem",
+  "photoMarkFine": "Fine",
+  "photoMarkFailed": "Couldn't save the mark. Try again."
 }

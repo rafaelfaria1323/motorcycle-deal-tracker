@@ -31,7 +31,9 @@ Future<void> main(List<String> args) async {
       '  the photo CDN only, and finds the listings sharing them. With\n'
       '  PHOTO_MODEL_DIR set (tool/photo_model.sh), the same photos are\n'
       '  also shown to the image model for damage hints (P.2), with\n'
-      '  PHOTO_PYTHON (python3 by default) running tool/photo_examine.py.',
+      '  PHOTO_PYTHON (python3 by default) running tool/photo_examine.py;\n'
+      '  then a classifier is trained on the admins\' photo marks (P.3)\n'
+      '  when they changed.',
     );
     exitCode = 64;
     return;
@@ -51,6 +53,9 @@ Future<void> main(List<String> args) async {
             log: stdout,
           );
     try {
+      // The admins' marks first (P.3), so the photos examined below already
+      // get the hint learned from them.
+      if (examiner != null) await trainOnPhotoMarks(store, examiner.model);
       final pending = await store.listingsMissingPhotoChecks(
         max ?? 200,
         examine: examiner != null || (dryRun && modelDir.isNotEmpty),
