@@ -87,7 +87,7 @@ Do not implement several unrelated features at once.
 ## 5.1 Choose first source ✅
 *First a manual JSON import (`source = 'manual'`); Standvirtual followed in Sprint 9, OLX in 9.7.*
 ## 5.2 Confirm permitted data access 🟡
-*API options checked, robots.txt of both sites checked and respected (read once a day, kept up to 24 h since R.4). **Terms of use of Standvirtual and OLX still to be read and quoted in `docs/sources.md`.** Decision recorded: low-volume personal fetcher.*
+*API options checked, robots.txt of both sites checked and respected (read once a day, kept up to 24 h since R.4). Decision recorded: low-volume personal fetcher. Terms of use read (Rafael's summary, 2026-10-28, recorded in `docs/sources.md`): Standvirtual restricts commercial use without permission and repeated, systematic download or aggregation of its data; OLX restricts aggregating its data to share with third parties and offers an API after approval. So neither grants automated collection; the basis stays personal use at the owner's risk, no rule changed. Left (Rafael's): the current versions' verbatim clauses, whether invited accounts count as OLX's "terceiros", and asking both sites for permission or OLX's API.*
 ## 5.3 Create parser/adapter ✅
 ## 5.4 Map source fields ✅
 ## 5.5 Store listings ✅
