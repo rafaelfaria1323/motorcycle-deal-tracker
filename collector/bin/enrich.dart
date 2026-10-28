@@ -21,8 +21,8 @@ Future<void> main(List<String> args) async {
     stderr.writeln(
       'Usage: dart run bin/enrich.dart [--dry-run] [--max=<n>] (default 10)\n'
       '  Reads the listing page of up to <max> live listings that have no\n'
-      '  details yet (newest first, pages that failed before last) and\n'
-      '  stores what it adds.',
+      '  details yet (favourites, alerted ones, then by Deal Score; pages\n'
+      '  that failed before last) and stores what it adds.',
     );
     exitCode = 64;
     return;
