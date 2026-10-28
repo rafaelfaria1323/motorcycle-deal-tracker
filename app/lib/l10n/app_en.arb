@@ -528,6 +528,7 @@
   "riskTextNoServiceBook": "The description says there is no service book; the listing says there is",
   "wasForSaleInEarlierListingAndDid": "Was for sale in an earlier listing and did not sell",
   "relistedSeveralTimesOrForSaleForMore": "Relisted several times or for sale for more than 90 days without selling",
+  "riskPhotosReused": "Same photos as an ad of another model or a dealer's: check they are of this bike",
   "a2Version35KWFullPowerRequiresRemoving": "A2 version (35 kW): full power requires removing the restriction and updating the documents",
   "riskA2Unlocked": "Unrestricted A2 version: check that the documents show full power",
   "stillUnderFactoryWarranty": "Still under factory warranty",

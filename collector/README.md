@@ -42,6 +42,14 @@ the "Quanto vale a minha mota" requests whose model this run collected
 (`answer_bike_value_requests`) and pushes each value to the asker's
 devices (`notify/bike_value_push.dart`).
 
+After the run is recorded, `bin/photos.dart` (`make photos`, the
+workflow's "Fingerprint photos") hashes the first 3 photos of each new
+listing (dHash, `photos/photo_hash.dart`, no AI) from the photo CDN only,
+one at a time 2-3 s apart, at most 5 minutes; its requests are logged as
+"Photo requests:", apart from the sites'. The database
+(`store_photo_hashes`) links listings with the same photos, which the
+next run's duplicates, relists and Risk Score (`photos_reused`) use.
+
 Alerts dismissed in the app keep their event history. The owner-checked
 `dismiss_alert` RPC sets `dismissed_at` and marks them read and handled
 (`notified_at`), preserving existing timestamps, so the collector neither
@@ -123,6 +131,7 @@ remain operational messages. There is no translation service or AI.
 | `make fetch-dry` / `fetch SITE=...` | Check, or download, the search pages |
 | `make collect-dry` / `collect SOURCE=... FILE=...` | Import saved pages or a JSON file |
 | `make enrich-dry` / `enrich` | Standvirtual listing details |
+| `make photos-dry` / `photos [ARGS=--max=50]` | Photo fingerprints of new listings (photo CDN, 5 minutes) |
 | `make notify-test` | Send a test message to Telegram |
 | `make push-test` | Send a test notification (Web Push) to the admins' devices (`push-test.yml` from the app: to the asking account's; `PUSH_KIND=price_reduction` etc. sends an example of that notification, `pushTestKinds`) |
 | `make weekly-summary [ARGS=--dry-run]` | Make and send (or print) each account's summary of the week |
@@ -134,7 +143,7 @@ Secrets go in `collector/.env` (gitignored): `SUPABASE_URL`,
 ## Code layout
 
 ```text
-bin/        entry points (refresh, fetch, collector, enrich, searches, report_run, notify_test, weekly_summary)
+bin/        entry points (refresh, fetch, collector, enrich, photos, searches, report_run, notify_test, weekly_summary)
 lib/        fetcher, site adapters and mappers, model matching, store, run steps
 test/       unit tests
 samples/    small listing files for trying `make collect` by hand

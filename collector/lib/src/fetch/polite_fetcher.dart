@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:clock/clock.dart';
 
@@ -208,6 +209,8 @@ class FetchSite {
     required this.pathPrefix,
     required this.pageMarker,
     required this.statePath,
+    this.accept = 'text/html,application/xhtml+xml',
+    this.robotsRequired = true,
   });
 
   static const standvirtual = FetchSite(
@@ -224,6 +227,18 @@ class FetchSite {
     statePath: '.fetch_state.olx.json',
   );
 
+  /// The listings' photos (both sites keep them there): only the addresses
+  /// the listings give, read by [PoliteFetcher.getImage]. A photo server's
+  /// missing robots.txt (4xx) allows everything (RFC 9309).
+  static const photos = FetchSite(
+    host: 'ireland.apollo.olxcdn.com',
+    pathPrefix: '/v1/files/',
+    pageMarker: '',
+    statePath: '.fetch_state.photos.json',
+    accept: 'image/jpeg,image/webp,image/png',
+    robotsRequired: false,
+  );
+
   static const byName = {'standvirtual': standvirtual, 'olx': olx};
 
   final String host;
@@ -235,6 +250,13 @@ class FetchSite {
   /// block or verification page.
   final String pageMarker;
   final String statePath;
+
+  /// The Accept header of every request.
+  final String accept;
+
+  /// False: robots.txt answered with 4xx means no rules (RFC 9309); the
+  /// sites' pages are never fetched without one.
+  final bool robotsRequired;
 }
 
 /// Null when the address may be fetched, otherwise why not.
@@ -249,6 +271,13 @@ String? urlProblem(Uri url, {required FetchSite site}) {
   }
   return null;
 }
+
+typedef _Response = ({
+  int status,
+  List<int> body,
+  String? location,
+  String? contentType,
+});
 
 /// A deliberately slow, one-at-a-time, honest downloader for one website.
 class PoliteFetcher {
@@ -322,21 +351,49 @@ class PoliteFetcher {
       return;
     }
     final robots = await _request(Uri.https(site.host, '/robots.txt'));
+    final unavailable = robots.status >= 400 && robots.status < 500;
+    if (!site.robotsRequired && unavailable) {
+      _robots = RobotsRules.parse('');
+      _state
+        ..robots = ''
+        ..robotsReadAt = clock.now().toUtc();
+      await _saveState();
+      return;
+    }
     if (robots.status != 200) {
       throw FetchRefused(
         'could not read robots.txt (HTTP ${robots.status}); '
         'not fetching without it',
       );
     }
-    _robots = RobotsRules.parse(robots.body);
+    final rules = utf8.decode(robots.body, allowMalformed: true);
+    _robots = RobotsRules.parse(rules);
     _state
-      ..robots = robots.body
+      ..robots = rules
       ..robotsReadAt = clock.now().toUtc();
     await _saveState();
   }
 
   /// Downloads one page and returns its HTML.
   Future<String> get(Uri url) async {
+    var text = '';
+    await _fetch(url, (response) {
+      text = utf8.decode(response.body, allowMalformed: true);
+      return text.contains(site.pageMarker);
+    });
+    return text;
+  }
+
+  /// Downloads one photo and returns its bytes. A 200 that isn't an image
+  /// is treated as a block page, like a page without its marker.
+  Future<List<int>> getImage(Uri url) => _fetch(
+    url,
+    (response) =>
+        response.contentType?.trim().toLowerCase().startsWith('image/') ??
+        false,
+  );
+
+  Future<List<int>> _fetch(Uri url, bool Function(_Response) isNormal) async {
     var current = url;
     for (var hop = 0; hop <= 3; hop++) {
       final problem = urlProblem(current, site: site);
@@ -351,7 +408,7 @@ class PoliteFetcher {
       final status = response.status;
 
       if (status == 200) {
-        if (!response.body.contains(site.pageMarker)) {
+        if (!isNormal(response)) {
           await _markBlocked();
           throw FetchBlocked(
             '$current: not a normal page (a block or verification page?)',
@@ -374,9 +431,7 @@ class PoliteFetcher {
   /// [_request], and once more after [FetchPolicy.retryDelay] when it timed
   /// out, the connection failed or the server had a passing error. The
   /// retry is a request like any other (counted, never in parallel).
-  Future<({int status, String body, String? location})> _requestOnceMore(
-    Uri url,
-  ) async {
+  Future<_Response> _requestOnceMore(Uri url) async {
     final delay = policy.retryDelay;
     if (delay == null) return _request(url);
     FetchFailed first;
@@ -400,9 +455,7 @@ class PoliteFetcher {
     }
   }
 
-  Future<({int status, String body, String? location})> _request(
-    Uri url,
-  ) async {
+  Future<_Response> _request(Uri url) async {
     final perRun = policy.maxRequestsPerRun;
     if (perRun != null && _runRequests >= perRun) {
       throw FetchLimitReached('run limit of $perRun requests reached');
@@ -433,20 +486,18 @@ class PoliteFetcher {
 
     HttpClientRequest? request;
     HttpClientResponse? response;
-    StreamSubscription<String>? subscription;
+    StreamSubscription<List<int>>? subscription;
     try {
       request = await _client.getUrl(url).timeout(policy.timeout);
       request.followRedirects = false;
       request.headers
-        ..set(HttpHeaders.acceptHeader, 'text/html,application/xhtml+xml')
+        ..set(HttpHeaders.acceptHeader, site.accept)
         ..set(HttpHeaders.acceptLanguageHeader, 'pt-PT,pt;q=0.9');
       response = await request.close().timeout(policy.timeout);
 
-      final body = StringBuffer();
+      final body = BytesBuilder(copy: false);
       if (response.statusCode == 200) {
-        subscription = response
-            .transform(const Utf8Decoder(allowMalformed: true))
-            .listen(body.write);
+        subscription = response.listen(body.add);
         await subscription.asFuture<void>().timeout(policy.readTimeout);
         subscription = null;
       } else {
@@ -461,8 +512,9 @@ class PoliteFetcher {
       }
       return (
         status: response.statusCode,
-        body: body.toString(),
+        body: body.takeBytes(),
         location: response.headers.value(HttpHeaders.locationHeader),
+        contentType: response.headers.value(HttpHeaders.contentTypeHeader),
       );
     } on TimeoutException {
       throw FetchFailed('$url: timed out');

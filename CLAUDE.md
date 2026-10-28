@@ -112,7 +112,9 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   from 08:00 to 22:00 (Lisbon time),
                                   started by Supabase pg_cron (see below);
                                   in full at 00, 08, 14 and 20 h, light
-                                  (R.2) otherwise (input `read`)
+                                  (R.2) otherwise (input `read`); then
+                                  the photo fingerprints (`make photos`,
+                                  P.1, continue-on-error)
 .github/workflows/weekly-summary.yml  Mondays 08:52 Lisbon time (pg_cron): each account's
                                   summary of the week, kept for the app and
                                   pushed to its devices (bin/weekly_summary.dart);
@@ -228,6 +230,8 @@ make searches SITE=olx|standvirtual   write the tracked models' searches
 make fetch-dry|fetch SITE=...  download those search pages (polite, capped)
 make collect-dry|collect SOURCE=manual|standvirtual|standvirtual-search|olx-search FILE=... [ARGS=--full]
 make enrich-dry|enrich         read Standvirtual listing pages for details (10 by default)
+make photos-dry|photos         photo fingerprints of new listings (bin/photos.dart, photo CDN,
+                               5 min, 200 listings; ARGS=--max=N)
 make refresh ARGS=--full       one process for both sites (bin/refresh.dart): searches -> fetch
                                -> import (with removal) -> enrich, then scores/alerts once
                                (ARGS="--full --light": light run, R.2)
@@ -602,6 +606,18 @@ pushed to the asker's devices). The single-step commands (`fetch.dart`,
 `collector.dart`, `enrich.dart`, `searches.dart`) reuse the same library
 functions for manual work.
 
+After the run is recorded, `collect.yml` runs `bin/photos.dart` (P.1,
+`continue-on-error`): `listings_missing_photo_hashes` (live, followed
+models, `photos_hashed_at is null`, Standvirtual only after its listing
+page; non-duplicates and newest first) → the first 3 photos of each
+(`photosPerListing`) → dHash (`photos/photo_hash.dart`, package `image`,
+64 bits, no AI) → `store_photo_hashes` (`listing_photo_hashes`, GIN on
+the 8 tagged bytes `bands`; `listing_photo_matches`: within 5 bits is the
+same photo, one in 5+ other ads is a banner and counts for nothing, 2
+shared photos or 1 when either ad has one). Both tables: RLS without
+policies, no API access. The next run's `finishRun` uses them; the photo
+step itself scores nothing.
+
 - **Read failures**: `importBatch` keeps readable records and returns
   whether the input was clean. `refresh.dart` and `collector.dart` report
   a failed run for read issues (also dry runs and `--force`), without
@@ -684,10 +700,12 @@ functions for manual work.
   (the app's "(lido na descrição)"); the ad's own field always wins.
 - Dealer boilerplate sentences are stripped from descriptions (they caused
   false duplicates). Duplicates are detected across sources too; a removed
-  listing keeps its mark (only live listings are worked out again).
+  listing keeps its mark (only live listings are worked out again). The
+  same model and year with matching photos (`listing_photo_matches`) and
+  the mileage within 1 000 km (or unknown) scores 100, whatever the text.
 - Relisted ads (`mark_relists`, called at the end of `mark_duplicates`): a
   live listing that matches a gone ad (same model and year, duplicate
-  similarity >= 70) which disappeared up to 90 days before it was first
+  similarity >= 70, or matching photos) which disappeared up to 90 days before it was first
   seen gets `relisted_from`, `relisted_since` (when the bike first went on
   sale, following earlier relists) and `relisted_price`. Shown on the
   listing page ("Anúncio publicado de novo") and a risk reason (see Scoring
@@ -728,6 +746,15 @@ functions for manual work.
   counts as failed; a search with a page missing is not read in full, so
   it removes nothing. The single-step commands take an optional cap
   (`fetch.dart --max`, `enrich.dart --max`, 10 by default).
+- Photos (P.1; Rafael, 2026-10-28: no more requests to the sites, not
+  slower): only `https://ireland.apollo.olxcdn.com/v1/files/...` (the CDN
+  both sites serve photos from), `FetchSite.photos` with its own state
+  `.fetch_state.photos.json` (cached with the others): 2-3 s apart,
+  never parallel, at most 5 minutes a run, the same stops and 24 h pause
+  (a reply that isn't an image is a block); robots.txt obeyed when there
+  is one (`robotsRequired: false`: a 4xx means no rules). 3 photos per
+  listing, once. Counted apart ("Photo requests:", never "Requests
+  used:"). Only hashes are kept, never the photos.
 - Honest user agent. Saved pages, manifests, generated search lists and
   fetch state are never committed (they contain sellers' contact details).
 - Never store private sellers' names or anyone's phone numbers.
@@ -802,7 +829,9 @@ functions for manual work.
   read, or on OLX, whose results hold the whole description), 3+ owners, no service book, imported, implausible mileage (under
   100 km on a bike 3+ years old, or over 25 000 km a year), relisted (5;
   `relisted_often` 10: twice, or on sale for over 90 days counting the
-  earlier ads), the text contradicting the ad's fields
+  earlier ads), photos reused (`photos_reused` 10: an ad first seen
+  earlier with the same photos is another model, or a dealer's on a
+  private ad), the text contradicting the ad's fields
   (`text_contradictions`: year 2+ apart (not a year still to come or after
   "até"), more km, imported, no service
   book; 10 each), an A2 (35 kW) version (`power_version` on variant and

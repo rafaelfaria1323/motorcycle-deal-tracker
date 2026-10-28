@@ -133,6 +133,48 @@ class ListingStore {
     return _count(result);
   }
 
+  /// Live listings whose first photos have not been fingerprinted yet
+  /// (`listings_missing_photo_hashes`): followed models, not duplicates,
+  /// Standvirtual only once its listing page gave the photos; newest first.
+  /// Each with its first [photosPerListing] addresses.
+  Future<List<({String id, List<String> images})>> listingsMissingPhotoHashes(
+    int? limit,
+  ) async {
+    final rows = await _client.rpc<List<dynamic>>(
+      'listings_missing_photo_hashes',
+      params: {'p_limit': limit, 'p_photos': photosPerListing},
+    );
+    return [
+      for (final r in rows.cast<Map<String, dynamic>>())
+        (
+          id: r['id'] as String,
+          images: (r['images'] as List<dynamic>).cast<String>(),
+        ),
+    ];
+  }
+
+  /// Stores each listing's photo hashes (64-bit dHash, sent as decimal text:
+  /// JSON numbers lose the low bits) and finds the listings sharing them;
+  /// returns how many listings were stored.
+  Future<int> storePhotoHashes(
+    List<({String id, List<int> hashes})> listings,
+  ) async {
+    if (listings.isEmpty) return 0;
+    final result = await _client.rpc<Object?>(
+      'store_photo_hashes',
+      params: {
+        'p_listings': [
+          for (final l in listings)
+            {
+              'id': l.id,
+              'hashes': [for (final h in l.hashes) h.toString()],
+            },
+        ],
+      },
+    );
+    return _count(result);
+  }
+
   /// Inserts listings that are not stored yet. Existing ones (same source and
   /// source id) are left untouched, so running the same file twice is safe.
   Future<StoreResult> save(
