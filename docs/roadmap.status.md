@@ -152,7 +152,7 @@ Do not implement several unrelated features at once.
 ➕ 9.13 OLX searches ask for the engine size ✅ *Rafael, 2026-10-21: "more than 100 ads are unmatched, we are spending resources on things not worth it". OLX's model filter is a family ("R" = R125 to R1, "CB"/"CBR" = 125 to 1000 cc), so the R7 and CB650R/CBR650R searches read every other model of the family. Now a search whose models all fit one OLX engine-size band asks for that band (`501-1000-cc` today: all four followed models), so the 125-500 cc bikes are no longer read: fewer pages per run and fewer stored ads. The unmatched ads already stored were set to removed once (not those with an alert or a favourite); the next run brings back the ones still found. See `docs/sources.md`. Tests: `search_plan_test.dart`, `unmatched_cleanup_test.sql`.*
 ➕ 9.14 Every OLX engine-size band ✅ *Rafael, 2026-10-21: after the Forza 350 and ADV 350 were followed, OLX went from 4 to 9 requests a run: OLX has no model filter for them, so their searches are word searches ("q-honda-forza-350") that bring every Honda (PCX, NX500, Transalp…), 2 pages each. `olxEngineBands` now holds every value of OLX's own filter list (`ate-50-cc`, `51-125-cc`, `126-500-cc`, `501-1000-cc`, `mais-de-1000-cc`, read from the search pages' `filter_enum_cilindrada`), so those searches ask for 126-500 cc and any model, word search or family, gets its band when its engine range fits one. The unmatched ads the two searches already stored stay as they are (they show nowhere). Test: `search_plan_test.dart`.*
 
-# Sprint 10 — Market Intelligence 🟡
+# Sprint 10 — Market Intelligence ✅
 
 ## 10.1 Market price distribution ✅
 *"Mercado deste modelo" on the listing page opens with where the asking price sits among the model's other live listings (duplicates, the listing itself and the one it repeats left out): how many are cheaper, the same and dearer, with the median, or "o preço mais baixo/alto dos N"; below 5 others "ainda poucos dados". A strip shows every live asking price from lowest to highest with this listing's dot highlighted, labelled as asking prices not adjusted for year and km (the estimated value does that). Pure logic in `price_position_text.dart` (tested, all 42 mutations caught); prices read straight from `listings`, no migration.*
@@ -160,16 +160,18 @@ Do not implement several unrelated features at once.
 *Mais → "Comparar modelos" (`/market`): one card per tracked model, cheapest typical asking price first: the median asking price with the middle half and the range, the typical bike (median year and mileage), then the same market lines as the listing page (live listings, time until leaving the market, price drops, depreciation). Below 5 listings "ainda poucos dados". New view `model_price_summary` (live, non-duplicate listings with a price; quartiles with `percentile_cont`), checked on a local Postgres. Pure logic in `model_market_text.dart` (tested, all 17 mutations caught).*
 ## 10.3 Price trends ✅
 *View `model_price_trend` (readable by everyone): per model and week (Monday, UTC; the last 12 weeks), the non-duplicate ads seen that week (first seen before it ended, last seen after it began), each at the last price recorded by the week's end, ads under 300 € left out: the count, the plain median and the adjusted median, with every price brought to the model's typical bike of today (median year and mileage of the live listings) by `age_mileage_factor` and the model's own depreciation rates, so a week with newer bikes doesn't look dearer. "Comparar modelos" shows per model "Preço típico desceu 3,2 % nas últimas 4 semanas (ajustado ao ano e km)" (the latest week with 5 or more ads against the one 4 weeks before it, or the earliest since; under 1 % "estável"; "Tendência dos preços: ainda poucos dados" with fewer than two such weeks) and a small line of the weekly adjusted medians (`price_trend_sparkline.dart`). Pure logic in `model_market_text.dart` (`priceTrendLine`, tested); SQL test `price_trend_test.sql`. The weeks before price history began (2026-10-12) have no rows.*
-## 10.4 Time-to-sale estimation 🟡
+## 10.4 Time-to-sale estimation ✅
 *"Mercado deste modelo" on the detail page: typical time until a listing leaves the market, share and size of price drops, depreciation rates, and how long this listing has been up (from the site's publication date; without one it says "Visto pela primeira vez há…", counted from the day the collector first saw it, never "publicado"). Shows "ainda poucos dados" until enough history exists.*
+
+*Per listing (`listing_time_to_sale`, `20261028220000_time_to_sale.sql`): how much longer this ad is likely to stay up, from the model's other non-duplicate ads counted as survival is (Kaplan-Meier, `median_days_remaining`, pure and tested with literals): a gone ad (removed or sold) left after its days, a live one is known to have lasted at least its age, so slow sellers still on sale aren't left out as a median of the gone ones alone would. Conditioned on this ad's age: the first day by which half the ads that lasted as long as it has had left, minus its age (at least 1). By price band (`market_band`: 5 % or more below the estimate, near it, 5 % or more above) once 5 or more of the band's ads have left, else every ad of the model; nothing below 5 gone ads, and "já está à venda há mais tempo do que quase todos..." when too few lasted as long. A gone listing's scores are cleared, so `listings.last_pct_below_market` (trigger `listings_keep_market_position`) keeps where its price last sat. Shown in "Mercado deste modelo" ("Para este anúncio: cerca de 12 dias até sair do mercado (estimativa pelos anúncios deste modelo abaixo do valor estimado: 14 saíram, 9 ainda à venda)"); `time_to_sale_text.dart`, tested; SQL test `time_to_sale_test.sql`. Gone means left the site: we can't tell a sale from a withdrawal.*
 ## 10.5 Deal ranking ✅
 *The dashboard sorted by Deal Score is the ranking.*
 
 ➕ Fair value per listing adjusted for age and mileage ✅ (see 4.1, 4.3)
 
-# Sprint 11 — Quality 🟡
+# Sprint 11 — Quality ✅
 
-## 11.1 Unit tests 🟡
+## 11.1 Unit tests ✅
 *App: alerts, saved searches, score explainer, risk reasons, market behaviour, collector status, new-price text, catalog, tracked-models, model-picker, price-position and model-market text. Collector: import, enrich and notify steps (with fakes), JSON readers, adapters, mappers, model resolver (real OLX titles), search plan, removal plan, normalizers, store, fetcher, robots.txt, run status. SQL has its own tests since 11.2.*
 
 *Collector parser/timing coverage (11.1): pure-Dart `html` now selects
@@ -179,8 +181,20 @@ dealer boilerplate. Regression cases include reordered/single-quoted
 attributes, encoded Portuguese characters, one-pass entity decoding and
 oversized numeric references. The fetcher uses `clock`; `fake_async` with
 in-memory HTTP/files tests exact request spacing, deadline handling,
-24-hour robots/block boundaries and UTC-day rollover. Real local-HTTP
-pagination/error tests remain. Fetching and privacy rules are unchanged.*
+24-hour robots/block boundaries and UTC-day rollover. Pagination and
+errors over real local HTTP: `fetch_searches_test.dart` (loopback server).
+Fetching and privacy rules are unchanged.*
+
+*Store contract (`listing_store_api_test.dart`): every `ListingStore`
+call made against a loopback stand-in for the API, recording each
+request. Each RPC's parameter names are checked against the latest
+definition of its SQL function in `supabase/migrations` (none it doesn't
+declare, none without a default left out), every RPC named anywhere in
+the collector must be a function of the migrations, the tables it reads
+must exist, and the bodies of the trickier calls (removal, rematch,
+photo hashes as text, dates, push keys made once) are pinned. A renamed
+argument now fails here, not in a scheduled run. Collector coverage 84.7
+-> 92.3 %; its floor raised from 70 to 85 %.*
 
 ## 11.2 Integration tests ✅
 
@@ -455,7 +469,7 @@ ChromeDriver; the test's data never comes from Supabase.*
 ## N.2 Copy-paste check ✅
 *`make duplication` (jscpd via npx, also in `check.yml`): exact clones of 70+ tokens in app/lib and the collector; over 1 % of lines fails. Today 0.22 % (4 small clones).*
 ## N.3 Coverage floors ✅
-*`make coverage` (also in `check.yml`, summary on the run page): line coverage of the collector (floor 70 %, today 74 %) and of the app's logic (texts, entities, models, cubits; floor 90 %, today 94.7 %), by `tool/lcov_summary.py` (tests: `tool/test_lcov_summary.py`). Raise a floor as tests are added; lower one only with a reason.*
+*`make coverage` (also in `check.yml`, summary on the run page): line coverage of the collector (floor 85 %, today 92.3 %) and of the app's logic (texts, entities, models, cubits; floor 90 %, today 94.7 %), by `tool/lcov_summary.py` (tests: `tool/test_lcov_summary.py`). Raise a floor as tests are added; lower one only with a reason.*
 ## N.4 Mutation score floor ✅
 *A full `mutation.yml` run ("Run workflow", every target) fails when its score over all targets is below `MUTATION_FLOOR` (set in the workflow, a few points under the score measured when it was set; raised as it rises, never lowered to get green). `tool/mutation.py summary --floor N` writes the summary first, then fails; `tool/test_mutation.py` tests it. Runs after merges, on the changed files only, stay report-only.*
 
