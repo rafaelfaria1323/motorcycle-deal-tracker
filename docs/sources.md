@@ -26,7 +26,7 @@ tratamento repetido e sistemático de dados" that breaks the terms of use.
 
 | Point in the terms | What the app does today | Reading |
 |---|---|---|
-| OLX: aggregating the site's data to share with third parties on other sites | Collects OLX ads into a private database shown to invited accounts (no public page, no republishing, every ad links back) | Unclear: the invited accounts are people other than Rafael |
+| OLX: aggregating the site's data to share with third parties on other sites | Collects OLX ads into a private database used only by Rafael (invites exist but nobody else uses the app, 2026-10-28; no public page, no republishing, every ad links back) | In line while only Rafael uses it; inviting others would reopen it |
 | Standvirtual: repeated and systematic download or aggregation of data | Reads the followed models' search pages 9 times a day and each listing page once | Not allowed as written, unless the clause is read as applying only to professional sellers' accounts, or only where it breaks the other terms |
 | Standvirtual: commercial use without express permission | Free, personal, no income (paid plans on hold, 16.0) | Allowed |
 | Both: public ads are not free to reuse | Stores only what the scores need; never private sellers' names or phone numbers | In line |
@@ -36,8 +36,8 @@ basis stays personal, non-commercial, low-volume use with the risk
 accepted by the owner (2026-10-19). The terms confirm what that entry
 assumed: neither site grants automated collection, and Standvirtual's
 wording names it. No rule is loosened. Still open, Rafael's decisions:
-(1) whether to keep the invited accounts given OLX's "partilha com
-terceiros", (2) asking both sites for written permission or OLX's API
+(1) inviting anyone else would count as OLX's "partilha com
+terceiros": ask first, (2) asking both sites for written permission or OLX's API
 (the access request below), (3) the verbatim clauses of the current
 versions, to be pasted into the table at the end.
 
@@ -349,7 +349,7 @@ people's content and contact details.
 | Source | Clause (summary) | Verdict |
 |---|---|---|
 | Standvirtual terms | No commercial use without express permission; no repeated, systematic download, aggregation or processing of data against the terms. _Verbatim clause of the current version to be pasted._ | Automated collection not granted; personal use at the owner's risk |
-| OLX Portugal terms | Restrictions on using the content and on aggregating and processing the site's data to share with third parties on other sites; API only after registration and approval. _Verbatim clause of the current version to be pasted._ | Unclear for invited accounts; automated collection not granted |
+| OLX Portugal terms | Restrictions on using the content and on aggregating and processing the site's data to share with third parties on other sites; API only after registration and approval. _Verbatim clause of the current version to be pasted._ | Automated collection not granted; sharing with others unclear (today only the owner uses the app) |
 
 Standvirtual's terms are linked from its footer to a help-centre page that is
 rendered with JavaScript, so they could not be read automatically.
