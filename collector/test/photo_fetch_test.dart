@@ -32,11 +32,13 @@ void main() {
   late HttpServer server;
   late Directory dir;
   late int robotsStatus;
+  late String robotsTxt;
   final accepts = <String?>[];
 
   setUp(() async {
     dir = Directory.systemTemp.createTempSync('photos');
     robotsStatus = 404;
+    robotsTxt = 'User-agent: *\nDisallow: /';
     accepts.clear();
     server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     server.listen((request) async {
@@ -45,7 +47,7 @@ void main() {
       switch (request.uri.path) {
         case '/robots.txt':
           response.statusCode = robotsStatus;
-          if (robotsStatus == 200) response.write('User-agent: *\nDisallow: /');
+          if (robotsStatus == 200) response.write(robotsTxt);
         case '/v1/files/photo/image':
           response.headers.contentType = ContentType('image', 'jpeg');
           response.add([1, 2, 3]);
@@ -101,9 +103,26 @@ void main() {
     robotsStatus = 200;
     await expectLater(
       withFetcher((f) => f.getImage(Uri.parse(photo))),
-      throwsA(isA<FetchRefused>()),
+      throwsA(
+        isA<FetchDisallowed>().having(
+          (e) => e.reason,
+          'reason',
+          endsWith('(Disallow: /)'),
+        ),
+      ),
     );
   });
+
+  test(
+    'a longer Allow opens the photos under a Disallow of the rest',
+    () async {
+      robotsStatus = 200;
+      robotsTxt = 'User-agent: *\nDisallow: /\nAllow: /v1/files/\n';
+      final bytes = await withFetcher((f) => f.getImage(Uri.parse(photo)));
+
+      expect(bytes, [1, 2, 3]);
+    },
+  );
 
   test('a page instead of a photo is a block', () async {
     await expectLater(

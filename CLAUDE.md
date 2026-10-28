@@ -781,8 +781,10 @@ and its marks (known, accepted).
   `.fetch_state.photos.json` (cached with the others): 2-3 s apart,
   never parallel, at most 5 minutes a run, the same stops and 24 h pause
   (a reply that isn't an image is a block); robots.txt obeyed when there
-  is one (`robotsRequired: false`: a 4xx means no rules). 3 photos per
-  listing, once. Counted apart ("Photo requests:", never "Requests
+  is one (`robotsRequired: false`: a 4xx means no rules); as on the
+  sites, the longest matching Allow/Disallow line decides (RFC 9309), and
+  a photo it refuses stops the step without marking any listing checked
+  (`FetchDisallowed`). 3 photos per listing, once. Counted apart ("Photo requests:", never "Requests
   used:"). Only hashes and the image model's scores and embeddings
   are kept, never the photos.
 - Honest user agent. Saved pages, manifests, generated search lists and
