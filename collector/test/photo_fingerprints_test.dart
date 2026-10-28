@@ -29,6 +29,18 @@ class _Fetcher implements PoliteFetcher {
 
 class _Store implements ListingStore {
   List<({String id, List<int> hashes})>? stored;
+  String? model;
+  List<({String id, List<PhotoFeatures> photos})>? features;
+
+  @override
+  Future<int> storePhotoFeatures(
+    String model,
+    List<({String id, List<PhotoFeatures> photos})> listings,
+  ) async {
+    this.model = model;
+    features = listings;
+    return listings.length;
+  }
 
   @override
   Future<int> storePhotoHashes(
@@ -37,6 +49,33 @@ class _Store implements ListingStore {
     stored = listings;
     return listings.length;
   }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Answers in turn: a share of `fallen`, null (unreadable) or a failure.
+class _Examiner implements PhotoExaminer {
+  _Examiner(this.answers);
+
+  final List<Object?> answers;
+  var seen = 0;
+
+  @override
+  String get model => 'test-model';
+
+  @override
+  Future<PhotoExamination?> examine(List<int> photo) async {
+    final answer = answers[seen++];
+    return switch (answer) {
+      final double p => (scores: {'fallen': p}, features: 'AAE='),
+      final Exception e => throw e,
+      _ => null,
+    };
+  }
+
+  @override
+  Future<void> close() async {}
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -118,4 +157,65 @@ void main() {
       expect(fetcher.requested, ['$_cdn/a-1/image', '$_cdn/b-1/image']);
     });
   }
+
+  test('with an examiner the same photos are examined, by their place in '
+      'the ad', () async {
+    final store = _Store();
+    final fetcher = _Fetcher({
+      '$_cdn/a-1/image': _photo,
+      '$_cdn/a-2/image': const FetchFailed('HTTP 404', statusCode: 404),
+      '$_cdn/a-3/image': _photo,
+      '$_cdn/b-1/image': _photo,
+    });
+
+    await fingerprintPhotos(
+      store,
+      fetcher,
+      [_pending('a', 3), _pending('b', 1)],
+      examiner: _Examiner([0.9, null, 0.2]),
+      out: StringBuffer(),
+    );
+
+    // No request more than the fingerprints'.
+    expect(fetcher.requested, hasLength(4));
+    expect(store.model, 'test-model');
+    expect([for (final l in store.features!) l.id], ['a', 'b']);
+    final a = store.features!.first.photos;
+    // The third photo, whose answer was null, is left out.
+    expect([for (final p in a) p.photo], [0]);
+    expect(a.single.examination.scores, {'fallen': 0.9});
+    expect(store.features!.last.photos.single.photo, 0);
+  });
+
+  test('an examiner that fails leaves the rest fingerprinted, without '
+      'hints', () async {
+    final store = _Store();
+    final out = StringBuffer();
+    await fingerprintPhotos(
+      store,
+      _Fetcher({
+        '$_cdn/a-1/image': _photo,
+        '$_cdn/b-1/image': _photo,
+        '$_cdn/b-2/image': _photo,
+        '$_cdn/c-1/image': _photo,
+      }),
+      [_pending('a', 1), _pending('b', 2), _pending('c', 1)],
+      examiner: _Examiner([0.5, const PhotoExaminerFailed('it died')]),
+      out: out,
+    );
+
+    expect([for (final l in store.stored!) l.id], ['a', 'b', 'c']);
+    expect([for (final l in store.stored!) l.hashes.length], [1, 2, 1]);
+    // b was cut short: it waits for its hints whole.
+    expect([for (final l in store.features!) l.id], ['a']);
+    expect('$out', contains('Photo hints stopped: it died'));
+  });
+
+  test('without an examiner no hints are stored', () async {
+    final store = _Store();
+    await fingerprintPhotos(store, _Fetcher({'$_cdn/a-1/image': _photo}), [
+      _pending('a', 1),
+    ], out: StringBuffer());
+    expect(store.features, isNull);
+  });
 }

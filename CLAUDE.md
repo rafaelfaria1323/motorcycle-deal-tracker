@@ -113,8 +113,10 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   started by Supabase pg_cron (see below);
                                   in full at 00, 08, 14 and 20 h, light
                                   (R.2) otherwise (input `read`); then
-                                  the photo fingerprints (`make photos`,
-                                  P.1, continue-on-error)
+                                  the photo fingerprints and damage hints
+                                  (`make photos`, P.1/P.2; Python and
+                                  the cached CLIP model,
+                                  tool/photo_model.sh; continue-on-error)
 .github/workflows/weekly-summary.yml  Mondays 08:52 Lisbon time (pg_cron): each account's
                                   summary of the week, kept for the app and
                                   pushed to its devices (bin/weekly_summary.dart);
@@ -231,7 +233,8 @@ make fetch-dry|fetch SITE=...  download those search pages (polite, capped)
 make collect-dry|collect SOURCE=manual|standvirtual|standvirtual-search|olx-search FILE=... [ARGS=--full]
 make enrich-dry|enrich         read Standvirtual listing pages for details (10 by default)
 make photos-dry|photos         photo fingerprints of new listings (bin/photos.dart, photo CDN,
-                               5 min, 200 listings; ARGS=--max=N)
+                               5 min, 200 listings; ARGS=--max=N), and damage hints when
+                               PHOTO_MODEL_DIR names the CLIP model (tool/photo_model.sh)
 make refresh ARGS=--full       one process for both sites (bin/refresh.dart): searches -> fetch
                                -> import (with removal) -> enrich, then scores/alerts once
                                (ARGS="--full --light": light run, R.2)
@@ -607,9 +610,10 @@ pushed to the asker's devices). The single-step commands (`fetch.dart`,
 functions for manual work.
 
 After the run is recorded, `collect.yml` runs `bin/photos.dart` (P.1,
-`continue-on-error`): `listings_missing_photo_hashes` (live, followed
+`continue-on-error`): `listings_missing_photo_checks` (live, followed
 models, `photos_hashed_at is null`, Standvirtual only after its listing
-page; non-duplicates and newest first) → the first 3 photos of each
+page; non-duplicates and newest first; then, with the model on, those
+not yet `photos_examined_at`) → the first 3 photos of each
 (`photosPerListing`) → dHash (`photos/photo_hash.dart`, package `image`,
 64 bits, no AI) → `store_photo_hashes` (`listing_photo_hashes`, GIN on
 the 8 tagged bytes `bands`; `listing_photo_matches`: within 5 bits is the
@@ -617,6 +621,17 @@ same photo, one in 5+ other ads is a banner and counts for nothing, 2
 shared photos or 1 when either ad has one). Both tables: RLS without
 policies, no API access. The next run's `finishRun` uses them; the photo
 step itself scores nothing.
+The same photos, from memory, go to the damage hints (P.2,
+`photos/photo_examiner.dart` → `tool/photo_examine.py`: CLIP ViT-B/32
+ONNX, onnxruntime CPU, one JSON line per photo each way; env
+`PHOTO_MODEL_DIR`, `PHOTO_PYTHON`; zero-shot shares of `crashed`,
+`fallen`, `scratches`, `broken_parts`, `missing_parts`, `rust`, `ok`,
+`other`; codes never change, the app's `photoHintLabel`) →
+`store_photo_features` (`listing_photo_features`: scores and the int8
+embedding, for P.3; RLS, no API access; `listings.photo_hints` =
+`photo_hint_codes`, share >= 0.5, the threshold lives there). Without the
+model, or once it fails, photos are only fingerprinted and wait. The app
+shows them in Avaliação (`PhotoHintsCard`), never in a score.
 
 - **Read failures**: `importBatch` keeps readable records and returns
   whether the input was clean. `refresh.dart` and `collector.dart` report
@@ -754,7 +769,8 @@ step itself scores nothing.
   (a reply that isn't an image is a block); robots.txt obeyed when there
   is one (`robotsRequired: false`: a 4xx means no rules). 3 photos per
   listing, once. Counted apart ("Photo requests:", never "Requests
-  used:"). Only hashes are kept, never the photos.
+  used:"). Only hashes and the image model's scores and embeddings
+  are kept, never the photos.
 - Honest user agent. Saved pages, manifests, generated search lists and
   fetch state are never committed (they contain sellers' contact details).
 - Never store private sellers' names or anyone's phone numbers.

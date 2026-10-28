@@ -30,6 +30,7 @@ import '../widgets/new_price_card.dart';
 import '../widgets/offer_card.dart';
 import '../widgets/ownership_cost_card.dart';
 import '../widgets/photo_gallery.dart';
+import '../widgets/photo_hints_card.dart';
 import '../widgets/price_change_tag.dart';
 import '../widgets/price_history_section.dart';
 import '../widgets/score_explanation_card.dart';
@@ -164,6 +165,7 @@ class _ContentState extends State<_Content> {
           )
         else
           ScoreExplanationCard(listing: listing),
+        PhotoHintsCard(listing: listing),
         AlsoListedSection(listing: listing),
         DealerCard(listing: listing),
       ],

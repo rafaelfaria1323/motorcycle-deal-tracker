@@ -1,4 +1,5 @@
 import '../../domain/entities/listing.dart';
+import '../../domain/entities/photo_hint.dart';
 
 class ListingModel extends Listing {
   const ListingModel({
@@ -43,6 +44,7 @@ class ListingModel extends Listing {
     super.distanceKm,
     super.colour,
     super.myColour,
+    super.photoHints,
   });
 
   /// The columns lists need (cards, alerts, other sources of a bike); the
@@ -110,8 +112,22 @@ class ListingModel extends Listing {
       distanceKm: (json['distance_km'] as num?)?.toInt(),
       colour: json['colour'] as String?,
       myColour: json['my_colour'] as bool? ?? false,
+      photoHints: photoHintsOf(json['photo_hints']),
     );
   }
+
+  /// `photo_hints` ([{code, photo, p}]); entries without a code or photo
+  /// are left out.
+  static List<PhotoHint> photoHintsOf(Object? value) => [
+    if (value is List)
+      for (final hint in value)
+        if (hint case {
+          'code': final String code,
+          'photo': final num photo,
+          'p': final num share,
+        })
+          PhotoHint(code: code, photo: photo.toInt(), share: share.toDouble()),
+  ];
 
   /// The middle of the model's engine range ("680-710" -> 695), or the one
   /// limit it has; null without either.

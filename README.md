@@ -45,6 +45,7 @@ are kept, and missing ones get a name-based search. No search URLs to copy.
 Tracked models (chosen in the app)
   → collector (GitHub Actions, started 9 times a day by Supabase pg_cron): searches → polite fetch → parse → store
   → photo fingerprints (photo CDN only, after the run): ads with the same photos
+    + damage hints (CLIP, a free image model run on the same photos)
   → Supabase / Postgres: price history, duplicates, fair value, scores, alerts
   → app (Flutter Web on Cloudflare Pages): Ofertas · Pesquisas · Alertas · Mais
   → phones (Web Push; FCM in the Android app): each account's new alerts after each run (a tap opens the listing), its

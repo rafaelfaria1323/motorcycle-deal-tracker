@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'photo_hint.dart';
+
 enum ListingStatus { active, priceChanged, removed, sold, unknown }
 
 enum SellerType { private, dealer, unknown }
@@ -47,6 +49,7 @@ class Listing extends Equatable {
     this.distanceKm,
     this.colour,
     this.myColour = false,
+    this.photoHints = const [],
   });
 
   final String id;
@@ -119,6 +122,10 @@ class Listing extends Equatable {
   /// The colour is one of the signed-in person's favourites (the computed
   /// field `my_colour`). A plus shown to them, never part of the Deal Score.
   final bool myColour;
+
+  /// What the image model may have seen in the first photos, likeliest
+  /// first. Only loaded on the detail page; hints, never a score.
+  final List<PhotoHint> photoHints;
 
   /// The price changes are measured from: the first price we saw, or a
   /// higher earlier price the site reported.

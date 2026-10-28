@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/features/listings/data/models/listing_model.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/entities/photo_hint.dart';
 
 Map<String, dynamic> _row([Map<String, dynamic> extra = const {}]) => {
   'id': 'l1',
@@ -115,6 +116,28 @@ void main() {
     expect(listing.colour, 'blue');
     expect(listing.myColour, isTrue);
     expect(ListingModel.fromJson(_row()).myColour, isFalse);
+  });
+
+  test('reads the photo hints, leaving out malformed ones', () {
+    final listing = ListingModel.fromJson(
+      _row({
+        'photo_hints': [
+          {'code': 'fallen', 'photo': 2, 'p': 0.8},
+          {'code': 'rust', 'p': 0.6},
+          'scratches',
+          {'code': 'scratches', 'photo': 0, 'p': 1},
+        ],
+      }),
+    );
+    expect(listing.photoHints, const [
+      PhotoHint(code: 'fallen', photo: 2, share: 0.8),
+      PhotoHint(code: 'scratches', photo: 0, share: 1),
+    ]);
+    expect(ListingModel.fromJson(_row()).photoHints, isEmpty);
+    expect(
+      ListingModel.fromJson(_row({'photo_hints': 'x'})).photoHints,
+      isEmpty,
+    );
   });
 
   test('unknown seller types and statuses fall back to unknown', () {

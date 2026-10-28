@@ -1,0 +1,6 @@
+# tool/photo_examine.py (P.2): installed by collect.yml (and check.yml,
+# with onnx for the tests) in a virtual environment, never system-wide.
+numpy==2.5.4
+onnxruntime==1.31.1
+pillow==13.0.0
+tokenizers==0.23.3

@@ -133,16 +133,23 @@ class ListingStore {
     return _count(result);
   }
 
-  /// Live listings whose first photos have not been fingerprinted yet
-  /// (`listings_missing_photo_hashes`): followed models, not duplicates,
-  /// Standvirtual only once its listing page gave the photos; newest first.
-  /// Each with its first [photosPerListing] addresses.
-  Future<List<({String id, List<String> images})>> listingsMissingPhotoHashes(
-    int? limit,
-  ) async {
+  /// Live listings whose first photos have not been fingerprinted yet, or,
+  /// with [examine], not shown to the image model yet either
+  /// (`listings_missing_photo_checks`): followed models, not duplicates
+  /// first, Standvirtual only once its listing page gave the photos; never
+  /// fingerprinted first, then newest first. Each with its first
+  /// [photosPerListing] addresses.
+  Future<List<({String id, List<String> images})>> listingsMissingPhotoChecks(
+    int? limit, {
+    required bool examine,
+  }) async {
     final rows = await _client.rpc<List<dynamic>>(
-      'listings_missing_photo_hashes',
-      params: {'p_limit': limit, 'p_photos': photosPerListing},
+      'listings_missing_photo_checks',
+      params: {
+        'p_limit': limit,
+        'p_photos': photosPerListing,
+        'p_examine': examine,
+      },
     );
     return [
       for (final r in rows.cast<Map<String, dynamic>>())
@@ -168,6 +175,37 @@ class ListingStore {
             {
               'id': l.id,
               'hashes': [for (final h in l.hashes) h.toString()],
+            },
+        ],
+      },
+    );
+    return _count(result);
+  }
+
+  /// Stores what [model] saw in each listing's photos (P.2) and the hints
+  /// the database draws from it (`store_photo_features`); a listing with no
+  /// photo examined still counts as done. Returns how many were stored.
+  Future<int> storePhotoFeatures(
+    String model,
+    List<({String id, List<PhotoFeatures> photos})> listings,
+  ) async {
+    if (listings.isEmpty) return 0;
+    final result = await _client.rpc<Object?>(
+      'store_photo_features',
+      params: {
+        'p_model': model,
+        'p_listings': [
+          for (final l in listings)
+            {
+              'id': l.id,
+              'photos': [
+                for (final p in l.photos)
+                  {
+                    'photo': p.photo,
+                    'scores': p.examination.scores,
+                    'features': p.examination.features,
+                  },
+              ],
             },
         ],
       },

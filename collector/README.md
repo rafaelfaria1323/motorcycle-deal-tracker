@@ -49,6 +49,14 @@ one at a time 2-3 s apart, at most 5 minutes; its requests are logged as
 "Photo requests:", apart from the sites'. The database
 (`store_photo_hashes`) links listings with the same photos, which the
 next run's duplicates, relists and Risk Score (`photos_reused`) use.
+The same photos, from memory, go to a free image model (P.2: CLIP
+ViT-B/32, `tool/photo_examine.py` with onnxruntime, its own process): it
+says how much each looks like a crash, a fall, scratches, broken or
+missing parts or rust, kept by `store_photo_features` and shown in the
+app as hints, never a score. It runs when `PHOTO_MODEL_DIR` names the
+model's folder (`tool/photo_model.sh <dir>` downloads it; `pip install -r
+tool/photo_requirements.txt`; `PHOTO_PYTHON`, default `python3`);
+without it the photos are only fingerprinted.
 
 Alerts dismissed in the app keep their event history. The owner-checked
 `dismiss_alert` RPC sets `dismissed_at` and marks them read and handled
@@ -131,7 +139,7 @@ remain operational messages. There is no translation service or AI.
 | `make fetch-dry` / `fetch SITE=...` | Check, or download, the search pages |
 | `make collect-dry` / `collect SOURCE=... FILE=...` | Import saved pages or a JSON file |
 | `make enrich-dry` / `enrich` | Standvirtual listing details |
-| `make photos-dry` / `photos [ARGS=--max=50]` | Photo fingerprints of new listings (photo CDN, 5 minutes) |
+| `make photos-dry` / `photos [ARGS=--max=50]` | Photo fingerprints of new listings (photo CDN, 5 minutes), and their damage hints with `PHOTO_MODEL_DIR` set |
 | `make notify-test` | Send a test message to Telegram |
 | `make push-test` | Send a test notification (Web Push) to the admins' devices (`push-test.yml` from the app: to the asking account's; `PUSH_KIND=price_reduction` etc. sends an example of that notification, `pushTestKinds`) |
 | `make weekly-summary [ARGS=--dry-run]` | Make and send (or print) each account's summary of the week |
