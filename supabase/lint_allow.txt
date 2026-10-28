@@ -16,9 +16,11 @@ rls_enabled_no_policy_public_github_token_check
 auth_rls_init_plan_public_collector_runs_account users read runs
 
 # The catalog RPCs the app calls when the owner edits "Modelos
-# acompanhados": each starts with require_account() (signed in, not
-# anonymous); anon can't execute them.
+# acompanhados" or asks for a bike's value: each starts with
+# require_account() (signed in, not anonymous); anon can't execute them.
 authenticated_security_definer_function_executable_public_add_catalog_model_p_brand text, p_model text, p_min_year integer, p_olx_search text, p_standvirtual_search text, p_aliases text[], p_engine_cc_min integer, p_engine_cc_max integer
+authenticated_security_definer_function_executable_public_bike_value_model_p_brand text, p_model text, p_olx_search text, p_standvirtual_search text, p_engine_cc_min integer, p_engine_cc_max integer
+authenticated_security_definer_function_executable_public_request_bike_value_p_motorcycle_id uuid, p_year integer, p_mileage integer
 authenticated_security_definer_function_executable_public_set_model_min_year_p_motorcycle_id uuid, p_min_year integer
 authenticated_security_definer_function_executable_public_set_model_colours_p_motorcycle_id uuid, p_colours text[]
 authenticated_security_definer_function_executable_public_set_model_new_price_p_motorcycle_id uuid, p_price numeric, p_checked_at date

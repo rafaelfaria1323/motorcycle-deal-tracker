@@ -2,6 +2,7 @@ import 'dart:io';
 
 import '../catalog/catalog.dart';
 import '../normalized/normalized_listing.dart';
+import '../notify/bike_value_push.dart';
 import '../notify/notify_pending.dart';
 import '../notify/fcm.dart';
 import '../notify/web_push.dart';
@@ -166,9 +167,14 @@ Future<bool> importBatch(
   return batch.issues.isEmpty;
 }
 
-/// Steps 5-7, once per run after every import: duplicates, scores, alerts
-/// and the phone notifications.
-Future<void> finishRun(ListingStore store, {StringSink? out}) async {
+/// Steps 5-8, once per run after every import: duplicates, scores, alerts,
+/// the phone notifications and (with the run's [startedAt]) the valuations
+/// waiting for the models it read.
+Future<void> finishRun(
+  ListingStore store, {
+  DateTime? startedAt,
+  StringSink? out,
+}) async {
   final log = out ?? stdout;
   // 5. Recompute. Duplicates first, so the market prices and scores that
   //    follow leave them out. Done on every run because a listing can come
@@ -203,4 +209,14 @@ Future<void> finishRun(ListingStore store, {StringSink? out}) async {
     'Notifications sent: ${notified.alerts} '
     '(${notified.pushes} to devices)',
   );
+
+  // 8. "Quanto vale a minha mota" requests that waited for this run.
+  if (startedAt != null) {
+    final valued = await answerBikeValues(store, push, startedAt);
+    if (valued.answered > 0) {
+      log.writeln(
+        'Bike values answered: ${valued.answered} (${valued.sent} to devices)',
+      );
+    }
+  }
 }

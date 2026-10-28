@@ -568,6 +568,19 @@ class ListingStore {
     return rows.isEmpty ? null : rows.single;
   }
 
+  /// Marks answered the valuations waiting for a model the run that started
+  /// at [startedAt] read, with their values (`answer_bike_value_requests`).
+  Future<List<BikeValueAnswer>> answerBikeValues(DateTime startedAt) async {
+    final rows = await _client.rpc<List<dynamic>>(
+      'answer_bike_value_requests',
+      params: {'p_started_at': startedAt.toUtc().toIso8601String()},
+    );
+    return [
+      for (final row in rows)
+        BikeValueAnswer.fromRow(row as Map<String, dynamic>),
+    ];
+  }
+
   /// The account that last started [workflow] from the app since [since].
   Future<String?> lastWorkflowStarter(String workflow, DateTime since) async {
     final rows = await _client

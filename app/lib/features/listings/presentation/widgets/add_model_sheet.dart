@@ -20,23 +20,27 @@ typedef NewModel = ({
 
 /// Asks for a model to track on both sites; returns null if cancelled.
 /// Known site filters are kept; the database builds any missing searches.
+/// [forValue]: the model of a bike to value ("Quanto vale a minha mota"),
+/// without the first year and other names (its minYear is unused).
 Future<NewModel?> showAddModelSheet(
   BuildContext context,
-  CatalogRepository repository,
-) {
+  CatalogRepository repository, {
+  bool forValue = false,
+}) {
   return showModalBottomSheet<NewModel>(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
     useSafeArea: true,
-    builder: (_) => _AddModelSheet(repository),
+    builder: (_) => _AddModelSheet(repository, forValue: forValue),
   );
 }
 
 class _AddModelSheet extends StatefulWidget {
-  const _AddModelSheet(this.repository);
+  const _AddModelSheet(this.repository, {required this.forValue});
 
   final CatalogRepository repository;
+  final bool forValue;
 
   @override
   State<_AddModelSheet> createState() => _AddModelSheetState();
@@ -259,6 +263,7 @@ class _AddModelSheetState extends State<_AddModelSheet> {
     final loading = _makes == null && !_byHand;
     final picked = _usePicker ? _fromPicker : null;
     final problem = _makesProblem ?? (_usePicker ? _modelsProblem : null);
+    final forValue = widget.forValue;
     return Padding(
       padding: EdgeInsets.fromLTRB(
         24,
@@ -272,11 +277,17 @@ class _AddModelSheetState extends State<_AddModelSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              context.strings.addModel,
+              forValue
+                  ? context.strings.bikeValueOtherModelTitle
+                  : context.strings.addModel,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
-            Text(context.strings.chooseMakeAndModelWeSearchOLXAnd),
+            Text(
+              forValue
+                  ? context.strings.bikeValueOtherModelIntro
+                  : context.strings.chooseMakeAndModelWeSearchOLXAnd,
+            ),
             const SizedBox(height: 16),
             if (loading)
               const Padding(
@@ -302,7 +313,7 @@ class _AddModelSheetState extends State<_AddModelSheet> {
                 keyboard: TextInputType.number,
                 helper: context.strings.leaveBlankForAllEngineSizesForExample,
               ),
-              if (picked != null)
+              if (picked != null && !forValue)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Text(
@@ -315,30 +326,36 @@ class _AddModelSheetState extends State<_AddModelSheet> {
                     ),
                   ),
                 ),
-              _field(
-                _year,
-                context.strings.fromYear,
-                problemKey: 'year',
-                keyboard: TextInputType.number,
-              ),
-              ExpansionTile(
-                tilePadding: EdgeInsets.zero,
-                childrenPadding: const EdgeInsets.only(top: 8),
-                shape: const Border(),
-                collapsedShape: const Border(),
-                title: Text(context.strings.otherModelNames),
-                children: [
-                  _field(
-                    _aliases,
-                    context.strings.otherNamesOptional,
-                    helper: context.strings.aliasesHelp,
-                  ),
-                ],
-              ),
+              if (!forValue) ...[
+                _field(
+                  _year,
+                  context.strings.fromYear,
+                  problemKey: 'year',
+                  keyboard: TextInputType.number,
+                ),
+                ExpansionTile(
+                  tilePadding: EdgeInsets.zero,
+                  childrenPadding: const EdgeInsets.only(top: 8),
+                  shape: const Border(),
+                  collapsedShape: const Border(),
+                  title: Text(context.strings.otherModelNames),
+                  children: [
+                    _field(
+                      _aliases,
+                      context.strings.otherNamesOptional,
+                      helper: context.strings.aliasesHelp,
+                    ),
+                  ],
+                ),
+              ],
               const SizedBox(height: 12),
               FilledButton(
                 onPressed: _submit,
-                child: Text(context.strings.add),
+                child: Text(
+                  forValue
+                      ? context.strings.bikeValueOtherModelUse
+                      : context.strings.add,
+                ),
               ),
             ],
             if (_usePicker || loading)

@@ -52,6 +52,9 @@ Future<void> main(List<String> args) async {
   if (sites.isEmpty) sites.addAll([FetchSite.standvirtual, FetchSite.olx]);
 
   final watch = Stopwatch()..start();
+  // Before the catalog is read: a valuation's model collected from before
+  // now is in this run's searches.
+  final startedAt = DateTime.now().toUtc();
   var failed = 0;
   try {
     await withServiceClient((client) async {
@@ -88,7 +91,7 @@ Future<void> main(List<String> args) async {
       }
 
       stdout.writeln('== all sites ==');
-      await finishRun(store);
+      await finishRun(store, startedAt: startedAt);
     });
   } finally {
     stdout.writeln(

@@ -37,7 +37,10 @@ For each site (Standvirtual, OLX):
 Then, once for both sites: find duplicates, recalculate the scores,
 generate the alerts and send the new ones to each account's devices (Web
 Push; the Android app's through Firebase Cloud Messaging, `notify/fcm.dart`,
-with the service account in env `FIREBASE_SERVICE_ACCOUNT`).
+with the service account in env `FIREBASE_SERVICE_ACCOUNT`). Last, it answers
+the "Quanto vale a minha mota" requests whose model this run collected
+(`answer_bike_value_requests`) and pushes each value to the asker's
+devices (`notify/bike_value_push.dart`).
 
 Alerts dismissed in the app keep their event history. The owner-checked
 `dismiss_alert` RPC sets `dismissed_at` and marks them read and handled

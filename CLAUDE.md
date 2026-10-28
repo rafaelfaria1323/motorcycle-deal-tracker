@@ -18,7 +18,8 @@ pipeline, rules).
 Catalog (table `motorcycles`): 13 models. Each account chooses its own
 models and first years in the app ("Modelos acompanhados", table
 `user_models`); the collector searches every model any account follows
-(`motorcycles.is_active` = someone follows it, `min_year` = the earliest
+(`motorcycles.is_active` = someone follows it or asked its value in the
+last 30 days, `min_year` = the earliest
 year asked, kept by `refresh_collected_model()`), so one collection fills
 the database for every account. Collected at the switch: Yamaha MT-07,
 Yamaha R7, Honda CB650R, Honda CBR650R. Available: Tracer 7, R1, R3, R9,
@@ -596,7 +597,8 @@ save → markSeen → rematch → applyPriceChanges → setSearchKeys → applyP
 → applyListingDates → saveSiteModels → (if `--full`) markRemoved; Standvirtual then reads the details of every
 listing waiting for them (`enrichDetails`) with the same fetcher. Then once for all sites
 (`finishRun`): markDuplicates → recalculateScores → generateAlerts →
-notifications (Web Push). The single-step commands (`fetch.dart`,
+notifications (Web Push) → bike values answered (`answer_bike_value_requests`,
+pushed to the asker's devices). The single-step commands (`fetch.dart`,
 `collector.dart`, `enrich.dart`, `searches.dart`) reuse the same library
 functions for manual work.
 
@@ -747,7 +749,16 @@ functions for manual work.
   `bike_value(model, year, km)` applies the same rules to a bike of one's
   own (Mais › "Quanto vale a minha mota", `/worth`, `bike_value_text.dart`:
   the asking price adds the model's typical drop, 3-8 %, else 5 %;
-  trade-in 80 %).
+  trade-in 80 %). Signed-in accounts can value any brand and model:
+  `bike_value_model` finds or adds it (followed by nobody, both sites'
+  searches), `request_bike_value` (table `bike_value_requests`, owner
+  reads only; at most 3 waiting a day) answers at once when the model is
+  already collected for that year, else collects it from the year minus 3
+  (`collected_since`) and waits for the next scheduled collection (no
+  extra dispatch); `finishRun` answers it and pushes the value
+  (`bike_value_push.dart`, opens `/worth?request=<id>`). pg_cron
+  `expire-bike-value-models` (`29 3 * * *`) stops collecting such models
+  30 days after the last request.
   Price score (2.5 points per %: 0 / 100 at 20 % above / below) and the
   risk's price signal need >= 3 comparables; so does the app's offer.
 - Deal score = weighted average of the available slices: price 35,

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart';
 import 'package:http/testing.dart';
 import 'package:motorcycle_deal_tracker/features/listings/data/repositories/supabase_market_behaviour_repository.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/entities/bike_value_request.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
@@ -13,9 +14,13 @@ void main() {
   late int status;
   late DateTime now;
 
+  /// The response when set, instead of the one picked by the address.
+  String? reply;
+
   setUp(() {
     requests = [];
     status = 200;
+    reply = null;
     now = DateTime(2026, 10, 27, 12);
     client = SupabaseClient(
       'https://db.example',
@@ -23,7 +28,9 @@ void main() {
       authOptions: const AuthClientOptions(autoRefreshToken: false),
       httpClient: MockClient((request) async {
         requests.add(request);
-        final body = status != 200
+        final body = reply != null
+            ? reply!
+            : status != 200
             ? '{"code":"42501","message":"Permission denied"}'
             : request.url.path.endsWith('bike_value')
             ? '[{"comparable_count":3,"fair_price":6000,'
@@ -131,4 +138,93 @@ void main() {
       expect(value.estimate, 6000);
     },
   );
+
+  test('requestBikeValue asks for the bike and says if it is ready', () async {
+    reply = '[{"request_id":"r1","ready":false}]';
+    final asked = await repository.requestBikeValue(
+      'm1',
+      year: 2019,
+      mileage: 30000,
+    );
+    expect(requests.single.url.path, endsWith('/rpc/request_bike_value'));
+    expect(jsonDecode(requests.single.body), {
+      'p_motorcycle_id': 'm1',
+      'p_year': 2019,
+      'p_mileage': 30000,
+    });
+    expect(asked, (requestId: 'r1', ready: false));
+  });
+
+  test('the cap on waiting requests reads as BikeValueRequestLimit', () async {
+    status = 400;
+    reply = '{"code":"54000","message":"3 requests waiting today"}';
+    await expectLater(
+      repository.requestBikeValue('m1', year: 2019),
+      throwsA(isA<BikeValueRequestLimit>()),
+    );
+
+    reply = null;
+    await expectLater(
+      repository.requestBikeValue('m1', year: 2019),
+      throwsA(isA<PostgrestException>()),
+    );
+  });
+
+  test('bikeValueModel sends the make, model and searches', () async {
+    reply = '"m9"';
+    final id = await repository.bikeValueModel(
+      brand: 'Kawasaki',
+      model: 'Z650',
+      standvirtualSearch: 'https://www.standvirtual.com/motos/kawasaki/z650',
+    );
+    expect(id, 'm9');
+    expect(requests.single.url.path, endsWith('/rpc/bike_value_model'));
+    expect(jsonDecode(requests.single.body), {
+      'p_brand': 'Kawasaki',
+      'p_model': 'Z650',
+      'p_olx_search': null,
+      'p_standvirtual_search':
+          'https://www.standvirtual.com/motos/kawasaki/z650',
+      'p_engine_cc_min': null,
+      'p_engine_cc_max': null,
+    });
+  });
+
+  test('bikeValueRequestFrom reads a request with its model', () {
+    final request = bikeValueRequestFrom({
+      'id': 'r1',
+      'motorcycle_id': 'm1',
+      'year': 2019,
+      'mileage': null,
+      'requested_at': '2026-10-28T09:00:00Z',
+      'answered_at': null,
+      'motorcycles': {'brand': 'Kawasaki', 'model': 'Z650'},
+    });
+    expect(request.name, 'Kawasaki Z650');
+    expect(request.waiting, isTrue);
+    expect(request.mileage, isNull);
+    expect(request.requestedAt, DateTime.utc(2026, 10, 28, 9));
+
+    final answered = bikeValueRequestFrom({
+      'id': 'r2',
+      'motorcycle_id': 'm1',
+      'year': 2019,
+      'mileage': 30000,
+      'requested_at': '2026-10-28T09:00:00Z',
+      'answered_at': '2026-10-28T10:30:00Z',
+      'motorcycles': {'brand': 'Kawasaki', 'model': 'Z650'},
+    });
+    expect(answered.waiting, isFalse);
+    expect(answered.mileage, 30000);
+  });
+
+  test('getBikeValueRequests reads the newest 20 with their models', () async {
+    reply = '[]';
+    expect(await repository.getBikeValueRequests(), isEmpty);
+    final url = requests.single.url;
+    expect(url.path, endsWith('/bike_value_requests'));
+    expect(url.queryParameters['order'], 'requested_at.desc.nullslast');
+    expect(url.queryParameters['limit'], '20');
+    expect(url.queryParameters['select'], contains('motorcycles(brand,model)'));
+  });
 }

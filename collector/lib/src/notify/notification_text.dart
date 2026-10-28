@@ -108,6 +108,19 @@ extension NotificationText on NotificationLanguage {
   );
   String bestDeal(String deal) => _text('Melhor: $deal', 'Best: $deal');
 
+  String get bikeValueTitle => _text(
+    '💶 Já sabemos quanto vale a sua mota',
+    '💶 Your bike\'s value is ready',
+  );
+  String bikeValueEstimate(String price, int count) => _text(
+    'Cerca de $price (de ${_count(count, 'anúncio', 'anúncios')})',
+    'About $price (from ${_count(count, 'listing', 'listings')})',
+  );
+  String get bikeValueNone => _text(
+    'Ainda não há anúncios suficientes para uma estimativa.',
+    'There aren\'t enough listings for an estimate yet.',
+  );
+
   String number(int value) {
     final digits = value.abs().toString();
     final out = StringBuffer(value < 0 ? '-' : '');
