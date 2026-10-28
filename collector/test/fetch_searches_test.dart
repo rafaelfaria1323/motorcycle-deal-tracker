@@ -29,14 +29,36 @@ class _LocalClient implements HttpClient {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-String _page(int page, int totalPages) {
+/// An OLX search page; [ads] are (published, top ad) pairs.
+String _page(
+  int page,
+  int totalPages, {
+  List<(DateTime, bool)> ads = const [],
+}) {
   final state = {
     'listing': {
       'listing': {
         'pageNumber': page,
         'totalPages': totalPages,
-        'totalElements': 0,
-        'ads': <Object>[],
+        'totalElements': ads.length,
+        'ads': [
+          for (final (i, (published, top)) in ads.indexed)
+            {
+              'id': page * 100 + i,
+              'title': 'Yamaha MT-07',
+              'url': 'https://www.olx.pt/d/anuncio/x-ID${page * 100 + i}.html',
+              'status': 'active',
+              'description': 'Mota',
+              'isBusiness': false,
+              'isPromoted': top,
+              'createdTime': published.toIso8601String(),
+              'lastRefreshTime': null,
+              'params': <Object>[],
+              'price': {
+                'regularPrice': {'value': 7000, 'currencyCode': 'EUR'},
+              },
+            },
+        ],
         'requestParams': {'categoryPath': 'x', 'params': <String, String>{}},
       },
     },
@@ -441,5 +463,147 @@ void main() {
     expect(manifest.planned, ['$banded', '$search']);
     expect(manifest.files.values, ['$search']);
     expect('$log', contains('OLX found no ads'));
+  });
+
+  group('light runs (R.2)', () {
+    const policy = FetchPolicy(minDelay: Duration.zero, jitter: Duration.zero);
+    final now = DateTime.now().toUtc();
+
+    Future<FetchOutcome> lightRun({StringSink? out}) => local(() async {
+      final fetcher = PoliteFetcher(site: site, policy: policy);
+      await fetcher.prepare();
+      try {
+        return await fetchSearches(
+          fetcher,
+          [search],
+          dir.path,
+          light: true,
+          out: out ?? StringBuffer(),
+        );
+      } finally {
+        fetcher.close();
+      }
+    });
+
+    void readInFull(Duration ago) => File(site.statePath).writeAsStringSync(
+      jsonEncode(
+        FetchState(
+          day: '2026-10-19',
+          robots: robotsTxt,
+          robotsReadAt: now,
+          fullReads: {'$search': now.subtract(ago)},
+        ).toJson(),
+      ),
+    );
+
+    test('a search read in full lately stops at older ads', () async {
+      readInFull(const Duration(hours: 4));
+      // Page 2 reaches back past the full read (less the margin).
+      answer = (page) => _page(
+        page,
+        3,
+        ads: [
+          (now, false),
+          if (page == 2) (now.subtract(const Duration(hours: 7)), false),
+        ],
+      );
+      final log = StringBuffer();
+
+      final outcome = await lightRun(out: log);
+
+      expect(outcome.saved, 2);
+      expect(paths.first, contains('search%5Border%5D=created_at%3Adesc'));
+      expect(paths.where((p) => p.contains('page=3')), isEmpty);
+      final manifest = (await SearchManifest.readFrom(dir.path))!;
+      expect(manifest.newestOnly, {'$search'});
+      expect(manifest.pages, {'$search': 3});
+      // Not a full read: the one kept stays.
+      final state = (await readFetchState(site.statePath))!;
+      expect(
+        state.fullReads['$search'],
+        now.subtract(const Duration(hours: 4)),
+      );
+      expect('$log', contains('newest first: read 2 of 3 page(s)'));
+    });
+
+    test('old top ads do not stop it', () async {
+      readInFull(const Duration(hours: 4));
+      answer = (page) => _page(
+        page,
+        3,
+        ads: [(now.subtract(const Duration(days: 300)), true), (now, false)],
+      );
+
+      final outcome = await lightRun();
+
+      expect(outcome.saved, 3);
+      // Every page was read: a full read after all.
+      expect((await SearchManifest.readFrom(dir.path))!.newestOnly, isEmpty);
+    });
+
+    test('a search not read in full lately is read in full', () async {
+      readInFull(lightRunWindow + const Duration(minutes: 1));
+      answer = (page) => _page(
+        page,
+        3,
+        ads: [(now.subtract(const Duration(days: 30)), false)],
+      );
+      final log = StringBuffer();
+
+      final outcome = await lightRun(out: log);
+
+      expect(outcome.saved, 3);
+      expect(paths.where((p) => p.contains('search%5Border')), isEmpty);
+      expect((await SearchManifest.readFrom(dir.path))!.newestOnly, isEmpty);
+      final read = (await readFetchState(site.statePath))!.fullReads['$search'];
+      expect(
+        DateTime.now().toUtc().difference(read!),
+        lessThan(const Duration(minutes: 1)),
+      );
+      expect('$log', contains('read in full'));
+    });
+  });
+
+  group('lightRunCutoff', () {
+    final now = DateTime.utc(2026, 10, 28, 12);
+
+    test('none, too old or in the future: read in full', () {
+      expect(lightRunCutoff(null, now), isNull);
+      expect(
+        lightRunCutoff(
+          now.subtract(const Duration(hours: 12, seconds: 1)),
+          now,
+        ),
+        isNull,
+      );
+      expect(lightRunCutoff(now.add(const Duration(minutes: 1)), now), isNull);
+    });
+
+    test('within the window: the full read less the margin', () {
+      expect(
+        lightRunCutoff(DateTime.utc(2026, 10, 28, 8), now),
+        DateTime.utc(2026, 10, 28, 6),
+      );
+      expect(lightRunCutoff(now.subtract(lightRunWindow), now), isNotNull);
+    });
+  });
+
+  test('the fetch state keeps the full reads', () {
+    final at = DateTime.utc(2026, 10, 28, 8);
+    final state = FetchState.fromJson(
+      jsonDecode(
+            jsonEncode(
+              FetchState(day: '2026-10-28', fullReads: {'a': at}).toJson(),
+            ),
+          )
+          as Map<String, dynamic>,
+    );
+    expect(state.fullReads, {'a': at});
+    expect(state.rolledTo('2026-10-29').fullReads, {'a': at});
+    // A state file from before light runs.
+    expect(
+      FetchState.fromJson({'day': '2026-10-28', 'requests': 0}).fullReads,
+      isEmpty,
+    );
   });
 }

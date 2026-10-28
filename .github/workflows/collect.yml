@@ -12,7 +12,17 @@ on:
   # page still to read, 6-10 s apart, one at a time, at most 30 minutes per
   # site (FetchPolicy.maxRunTime; the rest waits for the next run). The
   # requests of each run and day are recorded and shown in the app.
+  # Light runs (R.2): at 00:00, 08:00, 14:00 and 20:00 every search is read
+  # in full; the other runs read a search read in full in the last 12 h
+  # newest first, only up to the ads published or renewed before that read
+  # (bin/refresh.dart --light; such a search removes nothing).
   workflow_dispatch:
+    inputs:
+      read:
+        description: 'auto: full at 00, 08, 14 and 20 h (Lisbon), else light'
+        type: choice
+        options: [auto, full, light]
+        default: auto
 
 # Never two runs at once: they would fetch the same site in parallel.
 concurrency:
@@ -57,10 +67,22 @@ jobs:
 
       - name: Refresh
         id: refresh
+        env:
+          READ: ${{ inputs.read }}
         run: |
           echo "started=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+          read="${READ:-auto}"
+          if [ "$read" = auto ]; then
+            case "$(TZ=Europe/Lisbon date +%H)" in
+              00 | 08 | 14 | 20) read=full ;;
+              *) read=light ;;
+            esac
+          fi
+          args=--full
+          if [ "$read" = light ]; then args="--full --light"; fi
+          echo "Reading: $read"
           set +e
-          make refresh ARGS=--full 2>&1 | tee run.log
+          make refresh ARGS="$args" 2>&1 | tee run.log
           echo "code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
           exit 0
 

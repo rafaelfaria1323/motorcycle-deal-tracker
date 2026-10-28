@@ -465,4 +465,70 @@ void main() {
       expect(priceBeforeDrop(null, 6500), isNull);
     });
   });
+
+  group('newest first (light runs)', () {
+    test('a page tells the oldest publication or bump, promoted aside', () {
+      final html = searchPage([
+        node(id: '1')..['createdAt'] = '2026-10-10T10:00:00Z',
+        node(id: '2')..['createdAt'] = '2026-10-17T10:00:00Z',
+      ], bumpDate: '2026-10-19T10:00:00Z');
+      // Both bumped later than they were published.
+      expect(
+        adapter.parseSearchPage(html).oldestOrganic,
+        DateTime.utc(2026, 10, 19, 10),
+      );
+
+      final promoted = jsonDecode(
+        RegExp(r'>(.*)<').firstMatch(searchPage([node()]))!.group(1)!,
+      );
+      final search = jsonDecode(
+        promoted['props']['pageProps']['urqlState']['b']['data'] as String,
+      );
+      search['advertSearch']['edges'] = [
+        {
+          'vas': {'isPromoted': true, 'bumpDate': null},
+          'node': node(id: '3')..['createdAt'] = '2025-01-01T10:00:00Z',
+        },
+        {
+          'vas': {'isPromoted': false, 'bumpDate': null},
+          'node': node(id: '4')..['createdAt'] = '2026-10-18T10:00:00Z',
+        },
+      ];
+      promoted['props']['pageProps']['urqlState']['b']['data'] = jsonEncode(
+        search,
+      );
+      expect(
+        adapter
+            .parseSearchPage(
+              "<script type='application/json' id='__NEXT_DATA__'>"
+              '${jsonEncode(promoted)}</script>',
+            )
+            .oldestOrganic,
+        DateTime.utc(2026, 10, 18, 10),
+      );
+    });
+
+    test(
+      'a search read newest first is no read issue, nor read in full',
+      () async {
+        final dir = Directory.systemTemp.createTempSync('standvirtual');
+        addTearDown(() => dir.deleteSync(recursive: true));
+        const url = 'https://www.standvirtual.com/motos/yamaha/mt-07';
+        File('${dir.path}/p1.html').writeAsStringSync(
+          searchPage([for (var i = 1; i <= 32; i++) node(id: '$i')], total: 70),
+        );
+        await const SearchManifest(
+          planned: [url],
+          files: {'p1.html': url},
+          pages: {url: 3},
+          newestOnly: {url},
+        ).writeTo(dir.path);
+
+        final batch = await loadBatch('standvirtual-search', dir.path, catalog);
+
+        expect(batch.issues, isEmpty);
+        expect(removalPlan(batch).searches, isNull);
+      },
+    );
+  });
 }

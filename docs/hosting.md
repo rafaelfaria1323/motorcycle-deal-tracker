@@ -123,7 +123,10 @@ the migration (`deploy-web.yml`) and deploys the app.
 4. **Watchdog.** `collection-watchdog` warns after 9 hours without a run:
    keep the longest gap between runs under that, or change the 9 in
    `check_collection_runs()` with the same migration.
-5. **Docs.** This file, `CLAUDE.md` (Database conventions, Layout),
+5. **Light runs.** `collect.yml`'s Refresh step reads in full at 00, 08,
+   14 and 20 h (R.2): keep those among the run hours, and the longest gap
+   between them under `lightRunWindow` (12 h, `fetch_searches.dart`).
+6. **Docs.** This file, `CLAUDE.md` (Database conventions, Layout),
    `collect.yml`'s comment and `docs/roadmap.status.md`.
 
 The weekly summary works the same way (job `weekly-summary`, `52 * * * 1`,
@@ -134,7 +137,10 @@ time through; the app shows no time for it).
 
 Since 2026-10-22 there is no request cap: each run reads every page of the
 searches and every Standvirtual listing page still to read, 6-10 s apart,
-for at most 30 minutes per site. The app shows the numbers: Mais ›
+for at most 30 minutes per site (except light runs, R.2: at 10, 12, 16,
+18 and 22 h Lisbon time a search read in full in the last 12 h is read
+newest first, only down to the ads already seen; `collect.yml`'s input
+`read` forces full or light). The app shows the numbers: Mais ›
 Recolha de dados (last run, this month with the average per run) and
 "Estado da recolha" (per day for the last week, today per site). To limit
 them again, set the caps in `FetchPolicy`

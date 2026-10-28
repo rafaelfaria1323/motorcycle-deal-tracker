@@ -12,7 +12,11 @@ For each site (Standvirtual, OLX):
 1. **Plan:** the searches of the models any account follows, read from the catalog
    (models that share a search share one request).
 2. **Fetch:** every page of each search (from the earliest tracked year),
-   politely (see the root README), at most 30 minutes per site.
+   politely (see the root README), at most 30 minutes per site. A light
+   run (`--light`: `collect.yml` at 10, 12, 16, 18 and 22 h Lisbon time)
+   reads a search read in full in the last 12 h newest first and stops at
+   the page that reaches ads 2 h older than that read; such a search
+   removes nothing, the full runs (00, 08, 14 and 20 h) do.
 3. **Import:** parse, match each listing to a model, store it, record price
    changes and dates, and mark listings that left the searches read in full
    as removed (`--full`). The brand and model lists in the search pages'
@@ -110,7 +114,7 @@ remain operational messages. There is no translation service or AI.
 
 | Command | What it does |
 |---|---|
-| `make refresh [ARGS=--full]` | The whole run for both sites |
+| `make refresh [ARGS=--full]` | The whole run for both sites (`ARGS="--full --light"`: a light run) |
 | `make refresh-olx` / `refresh-standvirtual` | The same for one site |
 | `make searches SITE=olx\|standvirtual` | Write the planned searches |
 | `make fetch-dry` / `fetch SITE=...` | Check, or download, the search pages |

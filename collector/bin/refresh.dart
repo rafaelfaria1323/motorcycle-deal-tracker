@@ -12,12 +12,15 @@ import 'package:supabase/supabase.dart';
 Future<void> main(List<String> args) async {
   final sites = <FetchSite>[];
   var full = false;
+  var light = false;
   var force = false;
   int? enrichMax; // every listing waiting
   var badArgs = false;
   for (final arg in args) {
     if (arg == '--full') {
       full = true;
+    } else if (arg == '--light') {
+      light = true;
     } else if (arg == '--force') {
       force = true;
     } else if (arg.startsWith('--site=')) {
@@ -32,9 +35,12 @@ Future<void> main(List<String> args) async {
   }
   if (badArgs) {
     stderr.writeln(
-      'Usage: dart run bin/refresh.dart [--full] [--force] '
+      'Usage: dart run bin/refresh.dart [--full] [--light] [--force] '
       '[--site=${FetchSite.byName.keys.join('|')}]... [--enrich-max=<n>]\n'
       '  --full   remove listings missing from searches read in full\n'
+      '  --light  read searches read in full in the last '
+      '${lightRunWindow.inHours} h newest\n'
+      '           first, only up to the ads published or renewed before\n'
       '  --site   only this site (repeatable; default: all)\n'
       '  --enrich-max  Standvirtual listing pages to read (default: all '
       'waiting,\n'
@@ -70,6 +76,7 @@ Future<void> main(List<String> args) async {
           catalog,
           store,
           full: full,
+          light: light,
           force: force,
           enrichMax: enrichMax,
         );
@@ -99,6 +106,7 @@ Future<int> _refreshSite(
   Catalog catalog,
   ListingStore store, {
   required bool full,
+  required bool light,
   required bool force,
   required int? enrichMax,
 }) async {
@@ -124,9 +132,12 @@ Future<int> _refreshSite(
       'robots.txt as read at ${fetcher.robotsReadAt?.toIso8601String()} '
       '(read again after 24 h)',
     );
-    final outcome = await fetchSearches(fetcher, [
-      for (final s in plan.searches) s.url,
-    ], directory);
+    final outcome = await fetchSearches(
+      fetcher,
+      [for (final s in plan.searches) s.url],
+      directory,
+      light: light,
+    );
 
     final batch = await loadBatch('$name-search', directory, catalog);
     final cleanInput = await importBatch(

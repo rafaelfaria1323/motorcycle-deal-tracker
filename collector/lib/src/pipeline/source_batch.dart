@@ -187,7 +187,10 @@ RemovalPlan removalPlan(SourceBatch batch) {
     }
   }
 
-  final complete = manifest.fetched.difference(incomplete);
+  // A light run's searches read newest first only: the rest is unread.
+  final complete = manifest.fetched
+      .difference(incomplete)
+      .difference(manifest.newestOnly);
   if (complete.isEmpty || seen.isEmpty) {
     return const RemovalPlan.skip('no search was read in full');
   }

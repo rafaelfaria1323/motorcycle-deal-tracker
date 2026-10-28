@@ -570,7 +570,7 @@ N.23's to sort after main's latest), applied on merge before deployment.*
 *Each run stores, for each search, the pages it spans, the pages read and the ads found (`collector_runs.searches`). After a week of uncapped runs these numbers say which of R.2–R.6 are worth building: a search that fits on one page gains nothing from R.2.*
 
 *`fetchSearches` keeps each search's page count from its first page in `searches.json` (`pages`; older manifests have none). `searchReports` (replacing `searchYields`) gives every planned search its pages spanned and read, ads, followed-model ads and whether it was read in full (`removalPlan`'s complete searches). `importBatch` logs one line each, named by its models (`refresh.dart` passes them): "Search (olx): yamaha-mt-07 · read 2 of 3 page(s) · 80 ad(s), 9 followed · not in full"; a search the run never reached reads "0 of ?". `report_run.dart` reads them back (`searchesRead`) into the new jsonb column (migration `20261024220000_run_searches.sql`, `[]` for older runs). "Estado da recolha" shows the last run's searches under "Pesquisas" (`searchReadText`). Tests: `search_manifest_test.dart`, `fetch_searches_test.dart`, `source_batch_test.dart`, `import_steps_test.dart`, `run_status_test.dart`, `collection_status_text_test.dart`, `access_test.sql`.*
-## R.2 Light runs, newest first ⬜
+## R.2 Light runs, newest first ✅
 *The biggest saving. A light run asks each search for its newest ads first, using the site's own sort, whose parameter is to be found in the sites' sort menu (as was done for the engine-size bands, 9.13). It stops paging once a page reaches ads older than that search's previous read (by the site's dates: Standvirtual's `createdAt`, OLX's `lastRefreshTime`), promoted ads aside. A search of 4 pages then costs 1 request instead of 4.*
 
 *What it can't do:*
@@ -578,8 +578,14 @@ N.23's to sort after main's latest), applied on merge before deployment.*
 - *A price change on a later page waits for the next full run. Check whether either site moves a repriced ad to the top; if one does, light runs see drops too.*
 
 *Full runs (every page, removals, every price) stay at 2–3 of the 7 hours, e.g. 08:00, 14:00 and 20:00; the rest are light. `refresh.dart`'s `--full` already decides whether a run removes listings; a light run is one without it that also stops paging early. Option: when a search's total count falls in a light run, read that search in full at once (something was removed).*
+
+*Done (2026-10-28). The sorts, checked on saved pages: Standvirtual's default order ("Destacado", `created_at:desc`) already lists ads by the later of `createdAt` and the renewal (`vas.bumpDate`), with top ads kept apart (`topads`, `vas.isPromoted`), so its address stays as it is ("Mais recentes", `created_at_first:desc`, ignores renewals). OLX's default is relevance; a light run adds `search[order]=created_at:desc` ("Mais recente", `OlxSearchAdapter.newestFirst`), top ads (`isPromoted`) aside.*
+
+*`refresh.dart --light`. The fetch state (`.fetch_state*.json`, cached between runs) keeps when each search was last read in full (`full_reads`; dropped after a week unread). In a light run, a search read in full within the last 12 h (`lightRunWindow`; also covers one failed full run) is read newest first back to 2 h before that read (`lightRunMargin`, `lightRunCutoff`): paging stops after the first page whose oldest ad (published or renewed, top ads aside: `oldestOrganic`) is older than that. Any other search, including a newly followed model's, is read in full, and a search whose every page was read counts as read in full anyway. A search stopped early is in `searches.json`'s `newest_only`: not a read issue (no "more pages exist" problem), but never read in full, so it removes nothing (`removalPlan`) and its report line says "not in full". `collect.yml` reads in full at 00:00, 08:00, 14:00 and 20:00 Lisbon time and light at 10, 12, 16, 18 and 22 (input `read`: auto, full or light; the app's "Recolher agora" is auto). A price change on a later page waits for the next full run, at most 6 h. Tests: `fetch_searches_test.dart` (stops at older ads with the order asked, old top ads don't stop it, a search not read lately is read in full and recorded, `lightRunCutoff`, `full_reads` kept), `olx_search_test.dart`, `standvirtual_search_test.dart`, `search_manifest_test.dart`, `source_batch_test.dart`.*
 ## R.3 One Standvirtual search per brand ⬜
 *If Standvirtual's model filter takes several models (check its filter list), the followed models of one brand share one search. Fewer half-empty last pages: the CB650R and CBR650R as one search of 32 per page instead of two. OLX already groups by family and engine size (9.13, 9.14).*
+
+*Not built yet (2026-10-28): whether Standvirtual's model filter takes several models is still to be checked on a saved filtered page, and R.1's numbers (pages per search in "Estado da recolha") say whether the half-empty last pages are worth it after R.2, which already reads most searches' first page only.*
 ## R.4 robots.txt kept up to 24 hours ✅
 *Rafael, 2026-10-22: "I would do it, yes" (it loosens the Fetching rule "robots.txt read every run"). RFC 9309 lets a crawler keep robots.txt for up to 24 hours. Each site's fetch state (`.fetch_state*.json`, already cached between runs) now keeps the robots.txt read and when (`robots`, `robots_read_at`). `prepare()` uses the kept copy while it is younger than `FetchPolicy.robotsMaxAge` (24 h; a read time in the future, a moved clock, counts as too old) and otherwise reads it again and keeps the new one. A block forgets it, so the first run after the 24 h pause reads it again. The kept copy decides what may be read, as a fresh one would. `refresh.dart` logs when the copy in use was read. With 7 runs a day: about 1 robots.txt request a day per site instead of 7. Tests: `fetch_test.dart` (kept across days and through JSON, the 24 h limit), `fetch_searches_test.dart` (the next run makes no request for it, the kept copy still refuses a disallowed page, a 24 h old one is read again, a block forgets it).*
 ## R.5 Listing pages that matter first ✅
@@ -588,6 +594,8 @@ N.23's to sort after main's latest), applied on merge before deployment.*
 *Done: the collector asks the database for them (`listings_missing_details`, migration `20261028140000`, collector only) instead of building the query itself. The order keeps the two older tiers first (pages that failed before last; missing details before missing only the photos), then, within each, someone's favourite, a listing with an alert still shown (dismissed ones don't count), then by Deal Score with the unscored first (new in this run: scores are worked out after the details, so their score isn't known yet), newest first among equals. `refresh.dart` and `enrich.dart` both use it. Tests: `listing_pages_order_test.sql`, `listings_missing_details_test.dart`.*
 ## R.6 Quiet searches read less often ⬜
 *After R.2: a search with no new ad in its last several light reads is read every other light run. Only if R.1's numbers show many such searches.*
+
+*Not built yet (2026-10-28): with R.2 a quiet search's light read is one page, so skipping it saves one request in five runs; to decide on a week of R.2's runs.*
 
 # Sprint 16 — Paid plans ⬜
 
@@ -642,7 +650,7 @@ N.23's to sort after main's latest), applied on merge before deployment.*
 
 1. Deal Score: the market-behaviour slice (time on market, price drops) once there is enough history; price trends per model (10.3, 15.8).
 2. Saved ads from other sites: update the price or mark sold from their page (after #43).
-3. Fewer requests: R.2 once R.1 has a week of uncapped runs' numbers (from 2026-10-22).
+3. Fewer requests: R.3 and R.6 once a week of light runs (R.2) shows what is left.
 
 **Open items for Rafael:** read the Standvirtual/OLX terms and record the clauses in `docs/sources.md`; check the new-bike reference prices; check the IUC table each January (`ownership_cost.dart`) and enter your insurance quote in "Custo de ter esta mota" → Alterar. Paid plans: on hold until the sites offer an API or a data licence (16.0); the business and legal decisions in `docs/paid-plans.md` §1.2–1.4 only then.
 

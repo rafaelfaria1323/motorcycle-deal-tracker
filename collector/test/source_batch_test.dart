@@ -199,4 +199,20 @@ void main() {
     ]);
     expect(searchReports(batch([mapped('1', search: a)])), isEmpty);
   });
+
+  test('a search read newest first removes nothing; the others go on', () {
+    final plan = removalPlan(
+      batch(
+        [mapped('1', search: a), mapped('2', search: b)],
+        manifest: const SearchManifest(
+          planned: [a, b],
+          files: {'a.html': a, 'b.html': b},
+          newestOnly: {b},
+        ),
+      ),
+    );
+
+    expect(plan.searches, [a]);
+    expect(plan.includeUnkeyed, isFalse);
+  });
 }

@@ -109,7 +109,9 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
             started; roadmap Sprint 16)
 .github/workflows/collect.yml     Collection at 00:00 and every 2 h
                                   from 08:00 to 22:00 (Lisbon time),
-                                  started by Supabase pg_cron (see below)
+                                  started by Supabase pg_cron (see below);
+                                  in full at 00, 08, 14 and 20 h, light
+                                  (R.2) otherwise (input `read`)
 .github/workflows/weekly-summary.yml  Mondays 08:52 Lisbon time (pg_cron): each account's
                                   summary of the week, kept for the app and
                                   pushed to its devices (bin/weekly_summary.dart);
@@ -225,6 +227,7 @@ make collect-dry|collect SOURCE=manual|standvirtual|standvirtual-search|olx-sear
 make enrich-dry|enrich         read Standvirtual listing pages for details (10 by default)
 make refresh ARGS=--full       one process for both sites (bin/refresh.dart): searches -> fetch
                                -> import (with removal) -> enrich, then scores/alerts once
+                               (ARGS="--full --light": light run, R.2)
 make refresh-olx|refresh-standvirtual   the same for one site
 make push-test                 send a test notification to the admins' devices (Web Push)
 make weekly-summary [ARGS=--dry-run]   make and send (or print) each account's weekly summary
@@ -610,7 +613,14 @@ functions for manual work.
   band that holds all its models (`olxEngineBand`, the values of OLX's own
   filter list: up to 50, 51-125, 126-500, 501-1000, over 1000 cc), so other
   models' ads aren't read; word searches ("q-honda-forza-350") too. Every page of a
-  search is read (OLX 40 listings each, Standvirtual 32, `?page=N`). Oldest models first, so when a site's run time
+  search is read (OLX 40 listings each, Standvirtual 32, `?page=N`), except
+  in light runs (`--light`, R.2; `collect.yml` reads in full at 00, 08, 14
+  and 20 h Lisbon time, input `read`): a search read in full in the last
+  12 h (the fetch state's `full_reads`) is read newest first (OLX
+  `search[order]=created_at:desc`; Standvirtual's default order already
+  is, by renewal) and stops after the page whose oldest ad, top ads aside,
+  is 2 h older than that read (`lightRunCutoff`); it is in `searches.json`'s
+  `newest_only`, no read issue, never read in full. Oldest models first, so when a site's run time
   (30 min) runs out the newest models' searches wait.
 - **Removal is per search** (`removalPlan`): each listing stores the search
   that found it (`listings.search_key`); a run removes only listings of the
