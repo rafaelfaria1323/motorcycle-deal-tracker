@@ -26,7 +26,9 @@ For each site (Standvirtual, OLX):
    the site's brand and model ("unmatched \"Honda NSS 350 Forza\""; on OLX
    the model is the title, long digit runs masked), so a missed rule can
    be spotted.
-4. **Details** (Standvirtual only): read the listing page of new listings.
+4. **Details** (Standvirtual only): read the listing page of new listings
+   (favourites and alerted ones first, then by Deal Score, so what waits
+   for the next run when time runs out matters least).
 
 Then, once for both sites: find duplicates, recalculate the scores,
 generate the alerts and send the new ones to each account's devices (Web
