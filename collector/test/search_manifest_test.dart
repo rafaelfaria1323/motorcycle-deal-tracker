@@ -44,4 +44,19 @@ void main() {
     file.writeAsStringSync('[]');
     await expectLater(SearchManifest.readFrom(dir.path), throwsFormatException);
   });
+
+  test('the searches read newest first are kept', () async {
+    await const SearchManifest(
+      planned: ['a', 'b'],
+      files: {'p1.html': 'a', 'p2.html': 'b'},
+      newestOnly: {'b'},
+    ).writeTo(dir.path);
+    expect((await SearchManifest.readFrom(dir.path))!.newestOnly, {'b'});
+
+    // Manifests written before light runs have none.
+    File(
+      '${dir.path}/${SearchManifest.fileName}',
+    ).writeAsStringSync('{"planned": ["a"], "files": {"p1.html": "a"}}');
+    expect((await SearchManifest.readFrom(dir.path))!.newestOnly, isEmpty);
+  });
 }

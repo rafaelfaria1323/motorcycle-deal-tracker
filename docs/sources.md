@@ -5,6 +5,25 @@ here. Robots.txt is not permission; the source's terms of use decide.
 
 ## Decision log
 
+### 2026-10-28: light runs read newest first (R.2)
+
+**Why.** Most runs re-read pages of ads already seen: a search of 4 pages
+costs 4 requests every run though only its first page changes.
+
+**Decision.** Fewer requests, never more: the rules are unchanged (same
+addresses, same pauses, one at a time). Four runs a day (00, 08, 14 and
+20 h Lisbon time) read every page as before; the other five read a search
+read in full in the last 12 hours only up to the ads published or renewed
+2 hours before that read, then stop. The sorts used are the sites' own,
+read from their sort menus on saved pages: OLX `search[order]=created_at:desc`
+("Mais recente"; its default is relevance); Standvirtual's default order
+("Destacado", `created_at:desc`) already lists ads by the later of
+publication and renewal (`vas.bumpDate`), so its address is unchanged
+("Mais recentes", `created_at_first:desc`, ignores renewals). Top ads are
+left out of the date check on both sites. A search read this way never
+removes listings, and a price change on a later page waits for the next
+full run.
+
 ### 2026-10-23: every added model is searched on both sites (9.9c)
 
 **Why.** The model picker's Standvirtual-only warning was accurate: a

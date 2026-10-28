@@ -9,6 +9,7 @@ class SearchManifest {
     required this.planned,
     required this.files,
     this.pages = const {},
+    this.newestOnly = const {},
   });
 
   static const fileName = 'searches.json';
@@ -23,6 +24,12 @@ class SearchManifest {
   /// first page); missing for a search whose first page wasn't saved.
   final Map<String, int> pages;
 
+  /// Searches a light run read only up to the ads published or renewed
+  /// before its window (newest first, R.2): their other pages were left
+  /// on purpose, so that isn't a read issue, but they aren't read in full
+  /// and remove nothing.
+  final Set<String> newestOnly;
+
   /// The searches with at least one saved page.
   Set<String> get fetched => files.values.toSet();
 
@@ -30,6 +37,7 @@ class SearchManifest {
     'planned': planned,
     'files': files,
     'pages': pages,
+    'newest_only': newestOnly.toList(),
   };
 
   Future<void> writeTo(String directory) =>
@@ -48,7 +56,8 @@ class SearchManifest {
     if (json is! Map<String, dynamic> ||
         json['planned'] is! List ||
         json['files'] is! Map ||
-        (json['pages'] != null && json['pages'] is! Map)) {
+        (json['pages'] != null && json['pages'] is! Map) ||
+        (json['newest_only'] != null && json['newest_only'] is! List)) {
       throw FormatException('$fileName in $directory is not a search manifest');
     }
     return SearchManifest(
@@ -56,6 +65,7 @@ class SearchManifest {
       files: Map<String, String>.from(json['files'] as Map),
       // Manifests written before the page counts were kept have none.
       pages: Map<String, int>.from(json['pages'] as Map? ?? const {}),
+      newestOnly: Set<String>.from(json['newest_only'] as List? ?? const []),
     );
   }
 }

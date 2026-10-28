@@ -17,6 +17,7 @@ class OlxSearchPage {
     required this.records,
     required this.problems,
     this.models = const [],
+    this.oldestOrganic,
   });
 
   /// What was searched (category and filters, without the page), so the
@@ -34,6 +35,11 @@ class OlxSearchPage {
 
   /// The models OLX offers for the page's brand.
   final List<SiteModel> models;
+
+  /// The oldest date among the page's ads that aren't top ads of when each
+  /// was published or last renewed (the later of the two): sorted newest
+  /// first ([newestFirst]), the pages after it hold only older ones.
+  final DateTime? oldestOrganic;
 }
 
 /// Reads OLX search results pages (saved by `make fetch` or by hand) out of
@@ -78,9 +84,10 @@ class OlxSearchAdapter implements SourceAdapter<OlxRawListing> {
         firstFile.putIfAbsent(key, () => i);
         manifestSearch.putIfAbsent(key, () => search);
       },
-      finish: () => [
+      finish: (newestOnly) => [
         for (final MapEntry(key: search, value: pages) in pagesBySearch.entries)
-          if (pages.length < totalPages[search]!)
+          if (pages.length < totalPages[search]! &&
+              !newestOnly.contains(manifestSearch[search]))
             ParseIssue(
               firstFile[search]!,
               '$search: ${pages.length} of ${totalPages[search]} page(s) '
@@ -90,6 +97,15 @@ class OlxSearchAdapter implements SourceAdapter<OlxRawListing> {
       ],
     );
   }
+
+  /// [search] sorted newest first (the sort menu's "Mais recente"), for a
+  /// light run that reads only the pages with ads new or renewed since.
+  static Uri newestFirst(Uri search) => search.replace(
+    queryParameters: {
+      ...search.queryParameters,
+      'search[order]': 'created_at:desc',
+    },
+  );
 
   /// The address of page [page] of a search (the first page has none).
   static Uri pageUrl(Uri search, int page) => search.replace(
@@ -131,11 +147,18 @@ class OlxSearchAdapter implements SourceAdapter<OlxRawListing> {
 
     final records = <OlxRawListing>[];
     final problems = <String>[];
+    final organic = <DateTime?>[];
     for (final ad in ads) {
       try {
         final map = asMap(ad);
         if (map == null) throw const FormatException('a result is not an ad');
         records.add(_fromAd(map, brand));
+        // Top ads stay at the top whatever the order.
+        if (map['isPromoted'] != true) {
+          organic.add(
+            laterOf(asTime(map['createdTime']), asTime(map['lastRefreshTime'])),
+          );
+        }
       } on FormatException catch (e) {
         problems.add(e.message);
       }
@@ -149,6 +172,7 @@ class OlxSearchAdapter implements SourceAdapter<OlxRawListing> {
       records: records,
       problems: problems,
       models: olxSiteModels(listing, brand),
+      oldestOrganic: earliestOf(organic),
     );
   }
 }

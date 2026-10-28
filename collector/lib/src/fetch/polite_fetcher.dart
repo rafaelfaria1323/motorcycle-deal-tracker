@@ -96,8 +96,9 @@ class FetchPolicy {
   final Duration robotsMaxAge;
 }
 
-/// What survives between runs: today's request count, the last block and
-/// the site's robots.txt as last read.
+/// What survives between runs: today's request count, the last block, the
+/// site's robots.txt as last read and when each search was last read in
+/// full.
 class FetchState {
   FetchState({
     required this.day,
@@ -105,7 +106,8 @@ class FetchState {
     this.blockedAt,
     this.robots,
     this.robotsReadAt,
-  });
+    Map<String, DateTime>? fullReads,
+  }) : fullReads = fullReads ?? {};
 
   factory FetchState.fromJson(Map<String, dynamic> json) => FetchState(
     day: json['day'] as String,
@@ -113,6 +115,11 @@ class FetchState {
     blockedAt: _time(json['blocked_at']),
     robots: json['robots'] as String?,
     robotsReadAt: _time(json['robots_read_at']),
+    fullReads: {
+      for (final MapEntry(:key, :value)
+          in (json['full_reads'] as Map<String, dynamic>? ?? const {}).entries)
+        key: DateTime.parse(value as String),
+    },
   );
 
   static DateTime? _time(Object? value) =>
@@ -124,12 +131,20 @@ class FetchState {
   String? robots;
   DateTime? robotsReadAt;
 
+  /// Search address -> when every page of it was last saved (R.2: a light
+  /// run reads only what is newer).
+  final Map<String, DateTime> fullReads;
+
   Map<String, dynamic> toJson() => {
     'day': day,
     'requests': requests,
     'blocked_at': blockedAt?.toUtc().toIso8601String(),
     'robots': robots,
     'robots_read_at': robotsReadAt?.toUtc().toIso8601String(),
+    'full_reads': {
+      for (final MapEntry(:key, :value) in fullReads.entries)
+        key: value.toUtc().toIso8601String(),
+    },
   };
 
   /// The count restarts each day; a block and robots.txt are remembered.
@@ -140,6 +155,7 @@ class FetchState {
           blockedAt: blockedAt,
           robots: robots,
           robotsReadAt: robotsReadAt,
+          fullReads: fullReads,
         );
 
   /// The robots.txt kept from an earlier read while younger than [maxAge]
@@ -268,6 +284,19 @@ class PoliteFetcher {
   /// When the robots.txt in use was read: in this run, or by an earlier one
   /// less than [FetchPolicy.robotsMaxAge] ago. Known after [prepare].
   DateTime? get robotsReadAt => _state.robotsReadAt;
+
+  /// When every page of [search] was last saved, by this run or one before.
+  DateTime? fullReadAt(Uri search) => _state.fullReads['$search'];
+
+  /// Records that every page of [search] was saved just now. Searches not
+  /// read in full for a week (no model follows them any more) are dropped.
+  Future<void> markFullRead(Uri search) async {
+    final now = clock.now().toUtc();
+    _state.fullReads
+      ..removeWhere((_, at) => now.difference(at) > const Duration(days: 7))
+      ..['$search'] = now;
+    await _saveState();
+  }
 
   /// Checks the pause after a block, loads robots.txt (the one kept in the
   /// state file while it is fresh, else from the site). Call before [get].

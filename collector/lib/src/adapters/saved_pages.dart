@@ -67,7 +67,7 @@ Future<ParseResult<R>> readSavedSearchPages<R, P>(
   required P Function(String html) parse,
   required SearchPageParts<R> Function(P page) parts,
   required void Function(P page, int index, String name, String? search) onPage,
-  required Iterable<ParseIssue> Function() finish,
+  required Iterable<ParseIssue> Function(Set<String> newestOnly) finish,
 }) async {
   final files = await listHtmlFiles(directory);
   final manifest = await SearchManifest.readFrom(directory);
@@ -98,7 +98,7 @@ Future<ParseResult<R>> readSavedSearchPages<R, P>(
       issues.add(ParseIssue(i, '$name: ${e.message}', search: search));
     }
   }
-  issues.addAll(finish());
+  issues.addAll(finish(manifest?.newestOnly ?? const {}));
   return ParseResult(
     records,
     issues,

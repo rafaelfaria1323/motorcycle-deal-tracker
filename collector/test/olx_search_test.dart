@@ -489,4 +489,73 @@ void main() {
     expect(names.length, 4);
     expect(names.every((n) => n.length <= 155 && n.endsWith('.html')), isTrue);
   });
+
+  group('newest first (light runs)', () {
+    test('the sort is the menu\'s "Mais recente", filters kept', () {
+      final search = Uri.parse(
+        'https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/yamaha/'
+        '?search%5Bfilter_enum_modelo%5D%5B0%5D=mt-07',
+      );
+      final sorted = OlxSearchAdapter.newestFirst(search);
+      expect(sorted.queryParameters, {
+        'search[filter_enum_modelo][0]': 'mt-07',
+        'search[order]': 'created_at:desc',
+      });
+      // Later pages keep the order.
+      expect(
+        OlxSearchAdapter.pageUrl(sorted, 2).queryParameters['search[order]'],
+        'created_at:desc',
+      );
+    });
+
+    test('a page tells the oldest renewal of its ads, top ads aside', () {
+      final renewedLately = ad(id: 1)
+        ..['createdTime'] = '2026-01-01T10:00:00Z'
+        ..['lastRefreshTime'] = '2026-10-20T10:00:00Z';
+      final older = ad(id: 2)
+        ..['createdTime'] = '2026-10-18T10:00:00Z'
+        ..['lastRefreshTime'] = null;
+      final topAd = ad(id: 3)
+        ..['isPromoted'] = true
+        ..['createdTime'] = '2025-01-01T10:00:00Z'
+        ..['lastRefreshTime'] = '2025-01-01T10:00:00Z';
+      final page = adapter.parseSearchPage(
+        searchPage([topAd, renewedLately, older]),
+      );
+      expect(page.oldestOrganic, DateTime.utc(2026, 10, 18, 10));
+
+      expect(
+        adapter.parseSearchPage(searchPage([topAd])).oldestOrganic,
+        isNull,
+      );
+    });
+
+    test(
+      'a search read newest first is no read issue, nor read in full',
+      () async {
+        final dir = Directory.systemTemp.createTempSync('olx');
+        addTearDown(() => dir.deleteSync(recursive: true));
+        const url = 'https://www.olx.pt/carros-motos-e-barcos/x/';
+        File(
+          '${dir.path}/p1.html',
+        ).writeAsStringSync(searchPage([ad()], totalPages: 3));
+        await const SearchManifest(
+          planned: [url],
+          files: {'p1.html': url},
+          pages: {url: 3},
+          newestOnly: {url},
+        ).writeTo(dir.path);
+
+        final batch = await loadBatch(
+          'olx-search',
+          dir.path,
+          Catalog(const [mt07Entry]),
+        );
+
+        expect(batch.issues, isEmpty);
+        expect(removalPlan(batch).searches, isNull);
+        expect(searchReports(batch).single.inFull, isFalse);
+      },
+    );
+  });
 }

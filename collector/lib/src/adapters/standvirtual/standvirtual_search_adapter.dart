@@ -17,6 +17,7 @@ class StandvirtualSearchPage {
     required this.shown,
     this.pageSize = 32,
     this.models = const [],
+    this.oldestOrganic,
   });
 
   final List<StandvirtualRawListing> records;
@@ -38,6 +39,13 @@ class StandvirtualSearchPage {
 
   /// The brands and models in the page's filters.
   final List<SiteModel> models;
+
+  /// The oldest date among the page's ads that aren't promoted of when
+  /// each was published or last renewed (bumped; the later of the two).
+  /// The site's own order ("Destacado") is newest first by that date (top
+  /// ads sit apart, in `topads`), so the pages after it hold only older
+  /// ones.
+  final DateTime? oldestOrganic;
 
   bool get isComplete => offset + shown >= total;
 
@@ -96,7 +104,7 @@ class StandvirtualSearchAdapter
         pageCount[key] = page.totalPages;
         firstFile.putIfAbsent(key, () => (i, name, search));
       },
-      finish: () => [
+      finish: (newestOnly) => [
         for (final MapEntry(:key, value: (i, name, search))
             in firstFile.entries)
           if (repeated.contains(key))
@@ -107,7 +115,8 @@ class StandvirtualSearchAdapter
               search: search,
             )
           else if (shown[key]! < totals[key]! &&
-              pages[key]!.length < pageCount[key]!)
+              pages[key]!.length < pageCount[key]! &&
+              !newestOnly.contains(search))
             ParseIssue(
               i,
               '$name: holds ${shown[key]} of ${totals[key]} listings (more '
@@ -165,15 +174,20 @@ class StandvirtualSearchAdapter
     }
     final records = <StandvirtualRawListing>[];
     final problems = <String>[];
+    final organic = <DateTime?>[];
     for (final edge in edges) {
       final node = asMap(asMap(edge)?['node']);
-      final bump = asMap(asMap(edge)?['vas'])?['bumpDate'];
+      final vas = asMap(asMap(edge)?['vas']);
+      final bump = vas?['bumpDate'];
       if (node == null) {
         problems.add('a result had no data');
         continue;
       }
       try {
         records.add(_fromNode(node, bumpDate: bump));
+        if (vas?['isPromoted'] != true) {
+          organic.add(laterOf(asTime(node['createdAt']), asTime(bump)));
+        }
       } on FormatException catch (e) {
         problems.add(e.message);
       }
@@ -187,6 +201,7 @@ class StandvirtualSearchAdapter
       shown: edges.length,
       pageSize: asInt(asMap(search['pageInfo'])?['pageSize']) ?? 32,
       models: models,
+      oldestOrganic: earliestOf(organic),
     );
   }
 }
