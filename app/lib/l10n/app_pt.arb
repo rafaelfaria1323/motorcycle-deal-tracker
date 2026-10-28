@@ -5613,5 +5613,29 @@
   "photoMarkFailed": "Não foi possível guardar a marca. Tente novamente.",
   "@photoMarkFailed": {
     "description": "Interface text in photo_hints_text / photo_gallery (photo marks, P.3)."
+  },
+  "photoExamAction": "Examinar todas as fotos",
+  "@photoExamAction": {
+    "description": "Interface text in photo_hints_card (examine every photo, P.4)."
+  },
+  "photoExamAvailable": "Só as primeiras 3 fotos foram vistas pelo modelo de imagem. Pode pedir que veja todas na próxima recolha.",
+  "@photoExamAvailable": {
+    "description": "Interface text in photo_hints_card (examine every photo, P.4)."
+  },
+  "photoExamRequested": "Pedido: todas as fotos são examinadas na próxima recolha.",
+  "@photoExamRequested": {
+    "description": "Interface text in photo_hints_card (examine every photo, P.4)."
+  },
+  "photoExamDone": "Todas as fotos foram examinadas.",
+  "@photoExamDone": {
+    "description": "Interface text in photo_hints_card (examine every photo, P.4)."
+  },
+  "photoExamLimit": "Já fez 5 pedidos hoje. Tente novamente amanhã.",
+  "@photoExamLimit": {
+    "description": "Interface text in photo_hints_card (examine every photo, P.4)."
+  },
+  "photoExamFailed": "Não foi possível fazer o pedido. Tente novamente.",
+  "@photoExamFailed": {
+    "description": "Interface text in photo_hints_card (examine every photo, P.4)."
   }
 }

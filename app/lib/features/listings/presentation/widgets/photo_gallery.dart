@@ -10,7 +10,7 @@ import '../../../../core/widgets/page_back_button.dart';
 import '../../../settings/domain/accounts_repository.dart';
 import '../../domain/repositories/photo_marks_repository.dart';
 import '../listing_detail_text.dart';
-import '../photo_hints_text.dart';
+import '../photo_exam_text.dart';
 import '../photo_viewer_args.dart';
 import 'listing_photo.dart';
 import 'zoomable_photo.dart';

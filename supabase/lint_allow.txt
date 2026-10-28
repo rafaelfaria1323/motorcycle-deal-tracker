@@ -95,3 +95,10 @@ rls_enabled_no_policy_public_photo_classifiers
 # my_photo_marks returns only the caller's own marks, and none unless admin.
 authenticated_security_definer_function_executable_public_set_photo_mark_p_listing uuid, p_photo integer, p_problem boolean
 authenticated_security_definer_function_executable_public_my_photo_marks_p_listing uuid
+
+# photo_exam_requests (P.4): RLS without policies on purpose; no API
+# access, only request_photo_exam writes it (the daily cap).
+rls_enabled_no_policy_public_photo_exam_requests
+# request_photo_exam: the app's "Examinar todas as fotos"; require_account,
+# live listings of a collected model only, at most 5 new requests a day.
+authenticated_security_definer_function_executable_public_request_photo_exam_p_listing uuid

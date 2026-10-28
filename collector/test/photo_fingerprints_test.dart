@@ -31,6 +31,13 @@ class _Store implements ListingStore {
   List<({String id, List<int> hashes})>? stored;
   String? model;
   List<({String id, List<PhotoFeatures> photos})>? features;
+  List<String>? finished;
+
+  @override
+  Future<int> finishPhotoExams(List<String> ids) async {
+    finished = ids;
+    return ids.length;
+  }
 
   @override
   Future<int> storePhotoFeatures(
@@ -245,4 +252,72 @@ void main() {
     ], out: StringBuffer());
     expect(store.features, isNull);
   });
+
+  test('a listing asked for in full has every photo examined, only the '
+      'first ones fingerprinted, then is marked done', () async {
+    final store = _Store();
+    final out = StringBuffer();
+    final fetcher = _Fetcher({
+      for (var i = 1; i <= 5; i++) '$_cdn/a-$i/image': _photo,
+      for (var i = 1; i <= 3; i++) '$_cdn/b-$i/image': _photo,
+    });
+
+    await fingerprintPhotos(
+      store,
+      fetcher,
+      [_pending('a', 5), _pending('b', 4)],
+      examiner: _Examiner([0.1, 0.1, 0.1, 0.1, 0.9, 0.1, 0.1, 0.1]),
+      exams: {'a'},
+      out: out,
+    );
+
+    // b, not asked for, stops at its third photo.
+    expect(fetcher.requested, hasLength(8));
+    expect([for (final l in store.stored!) l.hashes.length], [3, 3]);
+    expect(
+      [for (final p in store.features!.first.photos) p.photo],
+      [0, 1, 2, 3, 4],
+    );
+    expect(store.finished, ['a']);
+    expect('$out', contains('a: 3 photo(s), 5 examined'));
+  });
+
+  test('without an examiner a listing asked for in full is only '
+      'fingerprinted and keeps waiting', () async {
+    final store = _Store();
+    final fetcher = _Fetcher({
+      for (var i = 1; i <= 3; i++) '$_cdn/a-$i/image': _photo,
+    });
+    await fingerprintPhotos(
+      store,
+      fetcher,
+      [_pending('a', 5)],
+      exams: {'a'},
+      out: StringBuffer(),
+    );
+
+    expect(fetcher.requested, hasLength(3));
+    expect(store.finished, isNull);
+  });
+
+  test(
+    'a listing asked for in full and cut short is not marked done',
+    () async {
+      final store = _Store();
+      await fingerprintPhotos(
+        store,
+        _Fetcher({
+          for (var i = 1; i <= 3; i++) '$_cdn/a-$i/image': _photo,
+          '$_cdn/a-4/image': const FetchLimitReached('5 minutes'),
+        }),
+        [_pending('a', 5)],
+        examiner: _Examiner([0.1, 0.1, 0.1]),
+        exams: {'a'},
+        out: StringBuffer(),
+      );
+
+      expect(store.stored, isEmpty);
+      expect(store.finished, isNull);
+    },
+  );
 }

@@ -117,7 +117,9 @@ are kept; they find ads with the same photos (duplicates, relists, photos
 reused from another bike). The same photos go to a free image model run on
 the runner for damage hints (P.2); admins can mark them as a problem or fine
 in the full-screen photos, and the collector learns from those marks (P.3:
-a logistic regression in plain Dart on the stored embeddings).
+a logistic regression in plain Dart on the stored embeddings). An account can
+ask for every photo of one ad to be examined (P.4, "Examinar todas as
+fotos": up to 30, at the next run, within the same 5 minutes; 5 a day).
 
 Partial imports keep readable listings but report parsing or transport
 failures instead of a successful run. Repeated Standvirtual pages are not

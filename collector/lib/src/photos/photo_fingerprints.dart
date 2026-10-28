@@ -9,6 +9,10 @@ import 'photo_hash.dart';
 /// the ones a relist or a copied ad reuses, and each is one request.
 const photosPerListing = 3;
 
+/// How many photos of a listing someone asked to examine in full (P.4)
+/// are read: Standvirtual's listing pages keep up to 30 (`maxImages`).
+const photosPerExam = 30;
+
 /// The examiner's answer on one photo of a listing ([photo]: its place in
 /// the listing's images, from 0).
 typedef PhotoFeatures = ({int photo, PhotoExamination examination});
@@ -25,11 +29,17 @@ typedef PhotoFeatures = ({int photo, PhotoExamination examination});
 /// model, from memory: no extra request. A listing counts as examined only
 /// when the examiner lasted through all its photos; if it fails, the rest
 /// are only fingerprinted and wait for their hints.
+///
+/// The listings in [exams] (P.4, someone asked for every photo) have all of
+/// their images read and examined, the first [photosPerListing] also
+/// fingerprinted; once stored, their examination is marked done. Without
+/// an examiner only their first photos are read.
 Future<int> fingerprintPhotos(
   ListingStore store,
   PoliteFetcher fetcher,
   List<({String id, List<String> images})> pending, {
   PhotoExaminer? examiner,
+  Set<String> exams = const {},
   StringSink? out,
 }) async {
   final log = out ?? stdout;
@@ -42,7 +52,10 @@ Future<int> fingerprintPhotos(
     for (final p in pending) {
       final read = <int>[];
       final seen = <PhotoFeatures>[];
-      for (final (index, url) in p.images.take(photosPerListing).indexed) {
+      final whole = exams.contains(p.id);
+      for (final (index, url) in p.images.indexed) {
+        // The photos past the first are only for the image model.
+        if (index >= photosPerListing && (!whole || looking == null)) break;
         final photo = await _photoOf(fetcher, url, log);
         if (photo == null) continue;
         final hash = photoHash(photo);
@@ -50,7 +63,7 @@ Future<int> fingerprintPhotos(
           log.writeln('  - skipped $url: not a readable image');
           continue;
         }
-        read.add(hash);
+        if (index < photosPerListing) read.add(hash);
         if (looking == null) continue;
         try {
           final answer = await looking.examine(photo);
@@ -62,7 +75,11 @@ Future<int> fingerprintPhotos(
       }
       hashes.add((id: p.id, hashes: read));
       if (looking != null) examined.add((id: p.id, photos: seen));
-      log.writeln('  ${p.id}: ${read.length} photo(s)');
+      log.writeln(
+        whole && looking != null
+            ? '  ${p.id}: ${read.length} photo(s), ${seen.length} examined'
+            : '  ${p.id}: ${read.length} photo(s)',
+      );
     }
   } on FetchLimitReached catch (e) {
     log.writeln('Stopped: $e; the rest waits for the next run.');
@@ -82,6 +99,14 @@ Future<int> fingerprintPhotos(
   if (examiner != null) {
     final hinted = await store.storePhotoFeatures(examiner.model, examined);
     log.writeln('Photo hints stored for $hinted listing(s).');
+    final asked = [
+      for (final e in examined)
+        if (exams.contains(e.id)) e.id,
+    ];
+    if (asked.isNotEmpty) {
+      final done = await store.finishPhotoExams(asked);
+      log.writeln('Every photo examined for $done listing(s) asked for.');
+    }
   }
   if (stop != null) throw stop;
   return stored;
