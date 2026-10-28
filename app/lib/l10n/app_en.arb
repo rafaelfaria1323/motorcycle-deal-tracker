@@ -929,5 +929,9 @@
   "priceDropCount": "{count, plural, =0{0 price drops} =1{1 price drop} other{{count} price drops}}",
   "leftMarketCount": "{count} left the market",
   "checklistIssuesHeading": "{count, plural, =1{Problem} other{Problems}}",
-  "cheaperSimilarListings": "{count, plural, =1{There is another {model} of a similar year with no more mileage for {price}.} other{There are {count} cheaper {model} of a similar year with no more mileage: from {price}.}}"
+  "cheaperSimilarListings": "{count, plural, =1{There is another {model} of a similar year with no more mileage for {price}.} other{There are {count} cheaper {model} of a similar year with no more mileage: from {price}.}}",
+  "priceTrendFewData": "Price trend: not enough data yet",
+  "priceTrendSteady": "Typical price steady over the last {weeks, plural, =1{week} other{{weeks} weeks}} (adjusted for year and km)",
+  "priceTrendDown": "Typical price down {pct} over the last {weeks, plural, =1{week} other{{weeks} weeks}} (adjusted for year and km)",
+  "priceTrendUp": "Typical price up {pct} over the last {weeks, plural, =1{week} other{{weeks} weeks}} (adjusted for year and km)"
 }

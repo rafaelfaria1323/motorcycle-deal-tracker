@@ -5259,5 +5259,42 @@
         "type": "String"
       }
     }
+  },
+  "priceTrendFewData": "Tendência dos preços: ainda poucos dados",
+  "@priceTrendFewData": {
+    "description": "Interface text in model_market_text, priceTrendLine."
+  },
+  "priceTrendSteady": "Preço típico estável {weeks, plural, =1{na última semana} other{nas últimas {weeks} semanas}} (ajustado ao ano e km)",
+  "@priceTrendSteady": {
+    "description": "Interface text in model_market_text, priceTrendLine.",
+    "placeholders": {
+      "weeks": {
+        "type": "int"
+      }
+    }
+  },
+  "priceTrendDown": "Preço típico desceu {pct} {weeks, plural, =1{na última semana} other{nas últimas {weeks} semanas}} (ajustado ao ano e km)",
+  "@priceTrendDown": {
+    "description": "Interface text in model_market_text, priceTrendLine.",
+    "placeholders": {
+      "weeks": {
+        "type": "int"
+      },
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
+  "priceTrendUp": "Preço típico subiu {pct} {weeks, plural, =1{na última semana} other{nas últimas {weeks} semanas}} (ajustado ao ano e km)",
+  "@priceTrendUp": {
+    "description": "Interface text in model_market_text, priceTrendLine.",
+    "placeholders": {
+      "weeks": {
+        "type": "int"
+      },
+      "pct": {
+        "type": "String"
+      }
+    }
   }
 }

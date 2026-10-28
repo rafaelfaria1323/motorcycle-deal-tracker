@@ -781,6 +781,12 @@ functions for manual work.
   the market, share and size of price drops (measured from the higher of the
   first price seen and `price_before_drop`), depreciation rates. Show "ainda
   poucos dados" below 5 data points.
+- Price trends (`model_price_trend`): per model and week (last 12), the ads
+  seen that week at their price by its end (no duplicates, none under
+  300 €), plain and adjusted median (each price brought to the model's
+  typical year and mileage of today with its own depreciation rates). The
+  app's `priceTrendLine` compares the adjusted medians of weeks with 5+ ads,
+  up to 4 weeks apart. Market behaviour is never a Deal Score slice (4.7).
 - Price to offer (`offer_text.dart`, app only; none for asking prices under
   300 €, placeholders): ceiling = asking price or
   the estimated value when asking is > 2 % above it; opening 6 % (private) /

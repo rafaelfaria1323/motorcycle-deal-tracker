@@ -76,4 +76,18 @@ void main() {
     expect((await repository.getForModel('m1'))!.liveCount, 12);
     expect(requests, hasLength(4));
   });
+
+  test('priceTrendWeekFrom reads a row of model_price_trend', () {
+    final week = priceTrendWeekFrom({
+      'motorcycle_id': 'm1',
+      'week_start': '2026-10-19',
+      'listing_count': 12,
+      'median_price': 7250,
+      'median_adjusted_price': 7100.5,
+    });
+    expect(week.weekStart, DateTime(2026, 10, 19));
+    expect(week.count, 12);
+    expect(week.median, 7250);
+    expect(week.adjustedMedian, 7100.5);
+  });
 }
