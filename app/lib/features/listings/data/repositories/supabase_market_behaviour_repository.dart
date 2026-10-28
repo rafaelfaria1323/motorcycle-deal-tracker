@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../domain/entities/bike_value.dart';
 import '../../domain/entities/market_behaviour.dart';
 import '../../domain/entities/model_market.dart';
 import '../../domain/repositories/market_behaviour_repository.dart';
@@ -109,6 +110,25 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
     ];
   }
 
+  @override
+  Future<BikeValue> getBikeValue(
+    String motorcycleId, {
+    required int year,
+    int? mileage,
+  }) async {
+    final rows = await _client.rpc<List<dynamic>>(
+      'bike_value',
+      params: {
+        'p_motorcycle_id': motorcycleId,
+        'p_year': year,
+        'p_mileage': mileage,
+      },
+    );
+    return rows.isEmpty
+        ? const BikeValue(comparableCount: 0)
+        : bikeValueFrom(rows.first as Map<String, dynamic>);
+  }
+
   /// Each model's weeks, oldest first.
   Future<Map<String, List<PriceTrendWeek>>> _trend(List<String> ids) async {
     final rows = await _client
@@ -202,4 +222,12 @@ PriceTrendWeek priceTrendWeekFrom(Map<String, dynamic> row) => PriceTrendWeek(
   count: (row['listing_count'] as num).toInt(),
   median: (row['median_price'] as num).toDouble(),
   adjustedMedian: (row['median_adjusted_price'] as num).toDouble(),
+);
+
+/// The row of `bike_value`.
+BikeValue bikeValueFrom(Map<String, dynamic> row) => BikeValue(
+  comparableCount: (row['comparable_count'] as num).toInt(),
+  estimate: (row['fair_price'] as num?)?.toDouble(),
+  low: (row['low_price'] as num?)?.toDouble(),
+  high: (row['high_price'] as num?)?.toDouble(),
 );

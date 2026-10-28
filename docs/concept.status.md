@@ -31,7 +31,7 @@ Unchanged.
 - ✅ Create saved searches. *Also by minimum Deal Score / maximum Risk Score.*
 - ✅ Send alerts. *In the app and as notifications on each account's phone (Web Push; FCM in the Android app), plus each account's weekly summary on Mondays (a notification that opens "Resumo da semana" in the app). An alert whose push fails is tried again on the next runs (for a day), and a device that failed isn't tried again in the same run; signing out stops a device's notifications. Only events of the last day alert (following a model doesn't bring old news), and a listing that goes, comes back and goes again alerts each time.*
 - ✅ Compare motorcycles. *Up to 3 listings side by side ("Comparar" on a card, long press in Ofertas or "Comparar" on a listing), best value per row highlighted.*
-- ✅ Show market trends. *Time on market, price drops, depreciation and the spread of live asking prices per model, the tracked models compared side by side ("Comparar modelos"), and each model's weekly price trend there, adjusted for year and mileage (10.3).*
+- ✅ Show market trends. *Time on market, price drops, depreciation and the spread of live asking prices per model, the tracked models compared side by side ("Comparar modelos"), and each model's weekly price trend there, adjusted for year and mileage (10.3). For sellers, "Quanto vale a minha mota": the value of a bike of a followed model from its year and km, the price to ask, the time to sell and a trade-in floor (16.9, free).*
 
 ## 4. Motorcycle Models ✅
 

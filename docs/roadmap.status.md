@@ -625,8 +625,10 @@ N.23's to sort after main's latest), applied on merge before deployment.*
 *Supabase Pro (daily backups, no pausing, 8 GB), a domain of its own, the repository's visibility and licence. Request volume first: roadmap R, and a cap on the models a free account follows.*
 ## 16.8 Report of one ad ⬜
 *"Relatório de um anúncio": one ad's full analysis as a link to share, bought one at a time (`report_purchases`).*
-## 16.9 What is my bike worth ⬜
+## 16.9 What is my bike worth ✅
 *"Quanto vale a minha mota", for sellers: estimate, time to sell, asking price and trade-in floor, from the model's comparables and market behaviour.*
+
+*Built free for every account (2026-10-28), like the card choices: nothing is charged, `docs/paid-plans.md` keeps it only as a possible paid feature. Mais › "Quanto vale a minha mota" (`/worth`, pushed): one of the followed models, a year and optionally the km. `bike_value(model, year, km)` (SQL, security invoker, callable by the app) takes the fair price's own rules: live, non-duplicate ads of 300 € or more, only those within 3 years when there are 5 of them, none without year or km when they are given, each brought to that year and km by `age_mileage_factor` with the model's depreciation; it returns the count, the median and the middle half. The page (`bike_value_text.dart`, tested) shows the value and its range from 3 comparables (fewer: "ainda poucos anúncios"), the price to ask (the model's typical price drop above it, kept within 3-8 %, else 5 %; rounded down to 50 €), the model's typical time until leaving the market, and a dealer's trade-in as a rule of thumb (80 % of the value). SQL test `bike_value_test.sql`.*
 ## 16.10 Import calculator ⬜
 *A bike from Spain, Germany or France: price + ISV (engine size, reduced by age) + homologation, inspection and transport, against the Portuguese estimate. Tax rules to check; more sources need their terms read first.*
 ## 16.11 Shared lists and export ⬜

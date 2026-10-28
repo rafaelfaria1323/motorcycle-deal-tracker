@@ -5,6 +5,7 @@ abstract final class AppRoutes {
   static const more = '/more';
   static const models = '/models';
   static const modelMarket = '/market';
+  static const bikeValue = '/worth';
   static const comparePath = '/compare';
   static const favourites = '/favourites';
   static const accounts = '/accounts';
