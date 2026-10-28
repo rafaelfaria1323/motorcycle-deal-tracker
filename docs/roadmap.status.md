@@ -458,6 +458,8 @@ ChromeDriver; the test's data never comes from Supabase.*
 *`make coverage` (also in `check.yml`, summary on the run page): line coverage of the collector (floor 70 %, today 74 %) and of the app's logic (texts, entities, models, cubits; floor 90 %, today 94.7 %), by `tool/lcov_summary.py` (tests: `tool/test_lcov_summary.py`). Raise a floor as tests are added; lower one only with a reason.*
 ## N.4 Mutation score floor ✅
 *A full `mutation.yml` run ("Run workflow", every target) fails when its score over all targets is below `MUTATION_FLOOR` (set in the workflow, a few points under the score measured when it was set; raised as it rises, never lowered to get green). `tool/mutation.py summary --floor N` writes the summary first, then fails; `tool/test_mutation.py` tests it. Runs after merges, on the changed files only, stay report-only.*
+
+*2026-10-28: the first full run (40660940626) was cancelled: each collector mutation ran the whole suite (about 35 s), so the four collector jobs reached their 50 minutes. Each collector mutation now runs only the test files that name something the mutated file declares (`tests_using`: its top-level public classes, functions and constants; the whole suite when none does), as the app's runs its own test. `MUTATION_FLOOR` stays 60 until a full run finishes; then a few points under its score.*
 ## N.5 Dependabot ✅
 *`.github/dependabot.yml`: weekly PRs for the app's and the collector's packages and the GitHub Actions (minor and patch grouped), each checked like any PR (no preview: Dependabot's PRs get no secrets). Replaces deprecated action versions too.*
 ## N.6 SonarQube Cloud (maybe later) ⬜

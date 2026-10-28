@@ -6,7 +6,7 @@ import os
 import tempfile
 import unittest
 
-from mutation import summary
+from mutation import declared_names, summary, test_command, tests_using
 
 REPORT = """\
 | Key | Value |
@@ -55,6 +55,61 @@ class SummaryTest(unittest.TestCase):
         with self.assertRaises(SystemExit) as raised:
             self.run_summary('--floor', '90.5')
         self.assertIn('below the floor of 90.5 %', str(raised.exception))
+
+
+DART = """\
+import 'package:x/y.dart';
+
+const maxItems = 3;
+final class Fetcher {
+  void get(String url) {}
+  final RegExp pattern = RegExp('a');
+}
+sealed class Outcome {}
+enum Site { olx }
+typedef Rows = List<int>;
+List<String> cleanImages(List<String> raw) => raw;
+Map<String, int> get counts => {};
+T first<T>(List<T> values) => values.first;
+int _hidden() => 1;
+"""
+
+
+class TestsUsingTest(unittest.TestCase):
+    def test_top_level_public_names_only(self):
+        self.assertEqual(
+            declared_names(DART),
+            {'maxItems', 'Fetcher', 'Outcome', 'Site', 'Rows', 'cleanImages',
+             'counts', 'first'},
+        )
+
+    def test_the_test_files_naming_them(self):
+        with tempfile.TemporaryDirectory() as root:
+            os.makedirs(os.path.join(root, 'lib'))
+            os.makedirs(os.path.join(root, 'test', 'deep'))
+            files = {
+                'lib/a.dart': 'class Fetcher {}\nint cleanImages() => 1;\n',
+                'test/a_test.dart': 'Fetcher();',
+                'test/deep/b_test.dart': 'cleanImages();',
+                'test/c_test.dart': 'FetcherOther(); // not the same name',
+                'test/helpers.dart': 'Fetcher();',
+            }
+            for name, text in files.items():
+                with open(os.path.join(root, name), 'w', encoding='utf-8') as f:
+                    f.write(text)
+            self.assertEqual(
+                tests_using(root, 'lib/a.dart'),
+                ['test/a_test.dart', 'test/deep/b_test.dart'],
+            )
+
+    def test_commands(self):
+        self.assertEqual(
+            test_command('app', 'lib/x/y_text.dart'),
+            'flutter test --no-pub test/y_text_test.dart',
+        )
+        command = test_command('collector', 'lib/src/fetch/robots.dart')
+        self.assertTrue(command.startswith('dart test -r failures-only test/'))
+        self.assertIn('test/fetch_test.dart', command.split())
 
 
 if __name__ == '__main__':
