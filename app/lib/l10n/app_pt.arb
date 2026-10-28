@@ -5552,5 +5552,46 @@
   "bikeValueFactorWarranty": "com garantia",
   "@bikeValueFactorWarranty": {
     "description": "Interface text in bike_value_text / bike_value_page."
+  },
+  "photoHintsTitle": "O que as fotos podem mostrar",
+  "@photoHintsTitle": {
+    "description": "Interface text in photo_hints_text / photo_hints_card."
+  },
+  "photoHintsNote": "Pistas de um modelo de imagem gratuito, que se pode enganar: veja a foto e confirme na visita. Nunca contam para as pontuações.",
+  "@photoHintsNote": {
+    "description": "Interface text in photo_hints_text / photo_hints_card."
+  },
+  "photoHintCrashed": "Possíveis danos de um acidente",
+  "@photoHintCrashed": {
+    "description": "Interface text in photo_hints_text / photo_hints_card."
+  },
+  "photoHintFallen": "Possível queda: a mota no chão",
+  "@photoHintFallen": {
+    "description": "Interface text in photo_hints_text / photo_hints_card."
+  },
+  "photoHintScratches": "Possíveis riscos ou raspões",
+  "@photoHintScratches": {
+    "description": "Interface text in photo_hints_text / photo_hints_card."
+  },
+  "photoHintBrokenParts": "Possíveis peças partidas",
+  "@photoHintBrokenParts": {
+    "description": "Interface text in photo_hints_text / photo_hints_card."
+  },
+  "photoHintMissingParts": "Possíveis peças em falta",
+  "@photoHintMissingParts": {
+    "description": "Interface text in photo_hints_text / photo_hints_card."
+  },
+  "photoHintRust": "Possível ferrugem",
+  "@photoHintRust": {
+    "description": "Interface text in photo_hints_text / photo_hints_card."
+  },
+  "photoNumber": "Foto {number}",
+  "@photoNumber": {
+    "description": "Interface text in photo_hints_text / photo_hints_card.",
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
   }
 }

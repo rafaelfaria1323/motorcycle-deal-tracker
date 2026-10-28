@@ -983,5 +983,14 @@
   "bikeValueFactorFirstOwner": "first owner",
   "bikeValueFactorManyOwners": "3 or more owners",
   "bikeValueFactorNoServiceBook": "no service book",
-  "bikeValueFactorWarranty": "under warranty"
+  "bikeValueFactorWarranty": "under warranty",
+  "photoHintsTitle": "What the photos may show",
+  "photoHintsNote": "Hints from a free image model, which can be wrong: look at the photo and check at the viewing. They never count towards the scores.",
+  "photoHintCrashed": "Possible crash damage",
+  "photoHintFallen": "Possible fall: the bike on the ground",
+  "photoHintScratches": "Possible scratches or scuffs",
+  "photoHintBrokenParts": "Possible broken parts",
+  "photoHintMissingParts": "Possible missing parts",
+  "photoHintRust": "Possible rust",
+  "photoNumber": "Photo {number}"
 }

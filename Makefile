@@ -11,6 +11,8 @@
 SOURCE ?= manual
 # Which website make searches/fetch work on: standvirtual or olx.
 SITE ?= standvirtual
+# The Python of make tool-check.
+PYTHON ?= python3
 # Local secrets for the collector (not committed). GitHub Actions has no such
 # file and uses its repository secrets instead.
 -include collector/.env
@@ -129,8 +131,8 @@ sql-lint: db-test ## Static checks of the database: plpgsql_check, splinter, squ
 
 # ---- Everything ------------------------------------------------------------
 
-tool-check: ## Test the helper scripts in tool/ (Python)
-	python3 -m unittest discover -s tool -p 'test_*.py'
+tool-check: ## Test the helper scripts in tool/ (Python; PYTHON=... with tool/photo_requirements.txt runs the photo model's tests too)
+	$(PYTHON) -m unittest discover -s tool -p 'test_*.py'
 
 lint-scripts: ## Lint the workflows (actionlint, with shellcheck on their run: steps) and the shell scripts
 	actionlint

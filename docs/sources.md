@@ -5,6 +5,20 @@ here. Robots.txt is not permission; the source's terms of use decide.
 
 ## Decision log
 
+### 2026-10-28: damage hints from a free image model (P.2)
+
+**Why.** The second step of Rafael's photo checks: point out photos that
+may show damage, free, without tokens, more requests or a slower run.
+
+**Decision.** No new source and no extra request: the photos P.1 already
+downloads from the photo CDN are also given to CLIP ViT-B/32 (MIT
+licence, `Xenova/clip-vit-base-patch32` on Hugging Face, downloaded by
+the workflow once and cached; Hugging Face is not a listing source and
+sees no listing data) on the runner, from memory, never written to
+disk. Listings fingerprinted before it get their 3 photos from the CDN
+once more, under the same rules and 5-minute budget. Kept: the model's
+scores and each photo's embedding (512 bytes), never the photo.
+
 ### 2026-10-28: photo fingerprints from the photo CDN (P.1)
 
 **Why.** Rafael asked for the ads' photos to be examined, free and
