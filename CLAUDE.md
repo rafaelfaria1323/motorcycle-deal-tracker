@@ -749,7 +749,10 @@ functions for manual work.
   `bike_value(model, year, km)` applies the same rules to a bike of one's
   own (Mais › "Quanto vale a minha mota", `/worth`, `bike_value_text.dart`:
   the asking price adds the model's typical drop, 3-8 %, else 5 %;
-  trade-in 80 %). Signed-in accounts can value any brand and model:
+  trade-in 80 %; the owner's optional answers on its condition adjust
+  the value, app only and not part of the request: an accident -15 %, a
+  fall with cosmetic damage -5 %, first owner +3 %, 3+ owners -5 %, no
+  service book -5 %, factory warranty +3 %, `ConditionFactor`). Signed-in accounts can value any brand and model:
   `bike_value_model` finds or adds it (followed by nobody, both sites'
   searches), `request_bike_value` (table `bike_value_requests`, owner
   reads only; at most 3 waiting a day) answers at once when the model is

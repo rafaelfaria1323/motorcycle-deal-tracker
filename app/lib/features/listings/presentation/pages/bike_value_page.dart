@@ -8,6 +8,7 @@ import '../../../../core/localization/localizations.dart';
 import '../../../../core/widgets/page_back_button.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../../collector_status/presentation/collection_text.dart';
+import '../../domain/entities/bike_condition.dart';
 import '../../domain/entities/bike_value.dart';
 import '../../domain/entities/bike_value_request.dart';
 import '../../domain/entities/market_behaviour.dart';
@@ -58,6 +59,10 @@ class _BikeValuePageState extends State<BikeValuePage> {
   final _year = TextEditingController();
   final _mileage = TextEditingController();
   String? _motorcycleId;
+
+  /// What the owner says of the bike; it adjusts the value shown, at once,
+  /// and is not part of the request.
+  BikeCondition _condition = const BikeCondition();
 
   /// Bumped to reset the dropdown when the make and model form is closed
   /// without a model.
@@ -351,6 +356,8 @@ class _BikeValuePageState extends State<BikeValuePage> {
                 ? null
                 : strings.bikeValueMileageInvalid,
           ),
+          const SizedBox(height: 20),
+          ..._conditionFields(context),
           const SizedBox(height: 12),
           FilledButton.icon(
             onPressed: () => _calculate(choices),
@@ -360,6 +367,64 @@ class _BikeValuePageState extends State<BikeValuePage> {
         ],
       ),
     );
+  }
+
+  List<Widget> _conditionFields(BuildContext context) {
+    final strings = context.strings;
+    final theme = Theme.of(context);
+    void update(BikeCondition condition) =>
+        setState(() => _condition = condition);
+    return [
+      Text(strings.bikeValueCondition, style: theme.textTheme.titleSmall),
+      const SizedBox(height: 4),
+      Text(
+        strings.bikeValueConditionHint,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
+      const SizedBox(height: 12),
+      _ConditionChoice(
+        label: strings.bikeValueDamage,
+        value: _condition.damage,
+        options: {
+          BikeDamage.none: strings.bikeValueDamageNone,
+          BikeDamage.dropped: strings.bikeValueDamageDropped,
+          BikeDamage.accident: strings.bikeValueDamageAccident,
+        },
+        onChanged: (damage) => update(_condition.copyWith(damage: damage)),
+      ),
+      const SizedBox(height: 12),
+      _ConditionChoice(
+        label: strings.bikeValueOwners,
+        value: _condition.owners,
+        options: {
+          BikeOwners.unknown: strings.bikeValueUnknown,
+          BikeOwners.one: strings.bikeValueOwnersOne,
+          BikeOwners.two: strings.bikeValueOwnersTwo,
+          BikeOwners.threeOrMore: strings.bikeValueOwnersMore,
+        },
+        onChanged: (owners) => update(_condition.copyWith(owners: owners)),
+      ),
+      const SizedBox(height: 12),
+      _ConditionChoice(
+        label: strings.bikeValueServiceBook,
+        value: _condition.serviceBook,
+        options: {
+          BikeServiceBook.unknown: strings.bikeValueUnknown,
+          BikeServiceBook.yes: strings.bikeValueServiceBookYes,
+          BikeServiceBook.no: strings.bikeValueServiceBookNo,
+        },
+        onChanged: (book) => update(_condition.copyWith(serviceBook: book)),
+      ),
+      SwitchListTile(
+        contentPadding: EdgeInsets.zero,
+        title: Text(strings.bikeValueWarranty),
+        value: _condition.warranty,
+        onChanged: (warranty) =>
+            update(_condition.copyWith(warranty: warranty)),
+      ),
+    ];
   }
 
   Widget _result(BuildContext context, Map<String, String> choices) {
@@ -418,6 +483,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
                   for (final line in bikeValueLines(
                     value,
                     outcome.market,
+                    condition: _condition,
                     language: context.language,
                   ))
                     IconLine(icon: _icons[line.kind]!, text: line.text),
@@ -460,8 +526,41 @@ class _BikeValuePageState extends State<BikeValuePage> {
   }
 }
 
+/// One of the condition's answers, as a dropdown.
+class _ConditionChoice<T> extends StatelessWidget {
+  const _ConditionChoice({
+    required this.label,
+    required this.value,
+    required this.options,
+    required this.onChanged,
+  });
+
+  final String label;
+  final T value;
+  final Map<T, String> options;
+  final ValueChanged<T> onChanged;
+
+  @override
+  Widget build(BuildContext context) => DropdownButtonFormField<T>(
+    initialValue: value,
+    isExpanded: true,
+    decoration: InputDecoration(
+      labelText: label,
+      border: const OutlineInputBorder(),
+    ),
+    items: [
+      for (final MapEntry(:key, value: text) in options.entries)
+        DropdownMenuItem(value: key, child: Text(text)),
+    ],
+    onChanged: (picked) {
+      if (picked != null) onChanged(picked);
+    },
+  );
+}
+
 const _icons = {
   BikeValueLineKind.estimate: Icons.euro,
+  BikeValueLineKind.condition: Icons.tune,
   BikeValueLineKind.asking: Icons.sell_outlined,
   BikeValueLineKind.time: Icons.schedule,
   BikeValueLineKind.tradeIn: Icons.store_outlined,

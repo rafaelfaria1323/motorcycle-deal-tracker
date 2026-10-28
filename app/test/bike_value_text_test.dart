@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
 import 'package:motorcycle_deal_tracker/core/localization/localizations.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/entities/bike_condition.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/bike_value.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/bike_value_request.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/market_behaviour.dart';
@@ -67,7 +68,15 @@ void main() {
       value,
       market(gone: 6, toGone: 21, priced: 10, drop: 6),
     );
-    expect([for (final l in lines) l.kind], BikeValueLineKind.values);
+    expect(
+      [for (final l in lines) l.kind],
+      [
+        BikeValueLineKind.estimate,
+        BikeValueLineKind.asking,
+        BikeValueLineKind.time,
+        BikeValueLineKind.tradeIn,
+      ],
+    );
     expect(
       lines[0].text,
       'Valor de mercado: ${price(6320)} (a maioria entre ${price(6000)} e '
@@ -99,6 +108,93 @@ void main() {
     final lines = bikeValueLines(value, null, language: AppLanguage.english);
     expect(lines[0].text, startsWith('Market value: '));
     expect(lines[1].text, contains('room to negotiate'));
+  });
+
+  group('condition', () {
+    test('nothing known or usual changes nothing', () {
+      const usual = BikeCondition(
+        owners: BikeOwners.two,
+        serviceBook: BikeServiceBook.yes,
+      );
+      expect(conditionFactors(const BikeCondition()), isEmpty);
+      expect(conditionFactors(usual), isEmpty);
+      expect(conditionShare(usual), 0);
+      expect(
+        bikeValueLines(value, null, condition: usual),
+        bikeValueLines(value, null),
+      );
+    });
+
+    test('each answer brings its factor, in order', () {
+      const worst = BikeCondition(
+        damage: BikeDamage.accident,
+        owners: BikeOwners.threeOrMore,
+        serviceBook: BikeServiceBook.no,
+      );
+      expect(conditionFactors(worst), [
+        ConditionFactor.accident,
+        ConditionFactor.manyOwners,
+        ConditionFactor.noServiceBook,
+      ]);
+      expect(conditionShare(worst), closeTo(-0.25, 1e-9));
+      const best = BikeCondition(owners: BikeOwners.one, warranty: true);
+      expect(conditionFactors(best), [
+        ConditionFactor.firstOwner,
+        ConditionFactor.warranty,
+      ]);
+      expect(conditionShare(best), closeTo(0.06, 1e-9));
+      expect(
+        conditionFactors(const BikeCondition(damage: BikeDamage.dropped)),
+        [ConditionFactor.dropped],
+      );
+    });
+
+    test('adjusts the value, its range, the asking price and trade-in', () {
+      // Dropped (-5 %) and first owner (+3 %): x0.98.
+      final lines = bikeValueLines(
+        value,
+        null,
+        condition: const BikeCondition(
+          damage: BikeDamage.dropped,
+          owners: BikeOwners.one,
+        ),
+      );
+      expect([for (final l in lines) l.kind], BikeValueLineKind.values);
+      // 6320 x 0.98 = 6193.6; 6000 -> 5880; 6600 -> 6468.
+      expect(
+        lines[0].text,
+        'Valor de mercado: ${price(6193.6)} (a maioria entre ${price(5880)} '
+        'e ${price(6468)}; 8 anúncios)',
+      );
+      expect(
+        lines[1].text,
+        'Ajustado ao estado: queda −5 %, primeiro dono +3 % (total −2 %)',
+      );
+      // 6193.6 x 1.05 = 6503.28 -> 6500; x 0.8 = 4954.88 -> 4950.
+      expect(lines[2].text, contains(price(6500)));
+      expect(lines[4].text, contains('cerca de ${price(4950)} ou menos'));
+    });
+
+    test('in English; few comparables still say only that', () {
+      final lines = bikeValueLines(
+        value,
+        null,
+        condition: const BikeCondition(warranty: true),
+        language: AppLanguage.english,
+      );
+      expect(
+        lines[1].text,
+        'Adjusted for condition: under warranty +3% (total +3%)',
+      );
+      expect(
+        bikeValueLines(
+          const BikeValue(comparableCount: 2, estimate: 6000),
+          null,
+          condition: const BikeCondition(damage: BikeDamage.accident),
+        ),
+        hasLength(1),
+      );
+    });
   });
 
   group('bikeValueRequestLine', () {

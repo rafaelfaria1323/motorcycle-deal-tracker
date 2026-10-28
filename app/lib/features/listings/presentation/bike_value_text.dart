@@ -1,5 +1,6 @@
 import '../../../core/formatting/formatters.dart';
 import '../../../core/localization/localizations.dart';
+import '../domain/entities/bike_condition.dart';
 import '../domain/entities/bike_value.dart';
 import '../domain/entities/bike_value_request.dart';
 import '../domain/entities/market_behaviour.dart';
@@ -19,7 +20,7 @@ const maxAskingRoom = 0.08;
 /// the dealer has to resell with a margin and a warranty.
 const tradeInShare = 0.80;
 
-enum BikeValueLineKind { estimate, asking, time, tradeIn }
+enum BikeValueLineKind { estimate, condition, asking, time, tradeIn }
 
 typedef BikeValueLine = ({BikeValueLineKind kind, String text});
 
@@ -29,17 +30,55 @@ double askingRoom(MarketBehaviour? market) => askingRoomFromModel(market)
     ? (market!.medianDropPct! / 100).clamp(minAskingRoom, maxAskingRoom)
     : defaultAskingRoom;
 
-/// What to say about a bike's value: the estimate and its range, the price
-/// to ask, how long the model takes to sell and a dealer's trade-in. Fewer
-/// than [minComparables] listings give only a line saying so.
+/// What moves the value of a bike against the comparable listings (asking
+/// prices of bikes as advertised, mostly without damage), as rules of
+/// thumb in step with the offer's: an accident takes 15 %, a fall with
+/// cosmetic damage only 5 % (the offer's damage and scratches); a first
+/// owner adds 3 %, three or more owners take 5 % (the risk's signal); no
+/// service book takes 5 %; a factory warranty still running adds 3 %.
+enum ConditionFactor {
+  accident(-0.15),
+  dropped(-0.05),
+  firstOwner(0.03),
+  manyOwners(-0.05),
+  noServiceBook(-0.05),
+  warranty(0.03);
+
+  const ConditionFactor(this.share);
+
+  /// The change to the value, as a share (-0.15 = 15 % less).
+  final double share;
+}
+
+/// The factors [condition] brings, in [ConditionFactor]'s order; what is
+/// not known or usual (two owners, a service book) brings none.
+List<ConditionFactor> conditionFactors(BikeCondition condition) => [
+  if (condition.damage == BikeDamage.accident) ConditionFactor.accident,
+  if (condition.damage == BikeDamage.dropped) ConditionFactor.dropped,
+  if (condition.owners == BikeOwners.one) ConditionFactor.firstOwner,
+  if (condition.owners == BikeOwners.threeOrMore) ConditionFactor.manyOwners,
+  if (condition.serviceBook == BikeServiceBook.no)
+    ConditionFactor.noServiceBook,
+  if (condition.warranty) ConditionFactor.warranty,
+];
+
+/// The factors' total change, as a share (between -25 % and +6 %).
+double conditionShare(BikeCondition condition) =>
+    conditionFactors(condition).fold<double>(0, (sum, f) => sum + f.share);
+
+/// What to say about a bike's value: the estimate and its range (adjusted
+/// to [condition], with a line saying how), the price to ask, how long the
+/// model takes to sell and a dealer's trade-in. Fewer than
+/// [minComparables] listings give only a line saying so.
 List<BikeValueLine> bikeValueLines(
   BikeValue value,
   MarketBehaviour? market, {
+  BikeCondition condition = const BikeCondition(),
   AppLanguage language = AppLanguage.portuguese,
 }) {
   final messages = language.messages;
-  final estimate = value.estimate;
-  if (estimate == null || value.comparableCount < minComparables) {
+  final comparablesEstimate = value.estimate;
+  if (comparablesEstimate == null || value.comparableCount < minComparables) {
     return [
       (
         kind: BikeValueLineKind.estimate,
@@ -48,6 +87,9 @@ List<BikeValueLine> bikeValueLines(
     ];
   }
   String price(double amount) => Formatters.price(amount, language: language);
+  final factors = conditionFactors(condition);
+  final adjust = 1 + conditionShare(condition);
+  final estimate = comparablesEstimate * adjust;
 
   final room = askingRoom(market);
   final asking = price(_roundDown(estimate * (1 + room)));
@@ -60,11 +102,23 @@ List<BikeValueLine> bikeValueLines(
       kind: BikeValueLineKind.estimate,
       text: messages.bikeValueEstimate(
         price: price(estimate),
-        low: price(value.low ?? estimate),
-        high: price(value.high ?? estimate),
+        low: price((value.low ?? comparablesEstimate) * adjust),
+        high: price((value.high ?? comparablesEstimate) * adjust),
         count: value.comparableCount,
       ),
     ),
+    if (factors.isNotEmpty)
+      (
+        kind: BikeValueLineKind.condition,
+        text: messages.bikeValueConditionLine(
+          reasons: [
+            for (final f in factors)
+              '${_conditionLabel(f, messages)} '
+                  '${_signedPercent(f.share, language)}',
+          ].join(', '),
+          total: _signedPercent(adjust - 1, language),
+        ),
+      ),
     (
       kind: BikeValueLineKind.asking,
       text: askingRoomFromModel(market)
@@ -87,6 +141,23 @@ List<BikeValueLine> bikeValueLines(
       ),
     ),
   ];
+}
+
+String _conditionLabel(ConditionFactor factor, AppLocalizations messages) =>
+    switch (factor) {
+      ConditionFactor.accident => messages.bikeValueFactorAccident,
+      ConditionFactor.dropped => messages.bikeValueFactorDropped,
+      ConditionFactor.firstOwner => messages.bikeValueFactorFirstOwner,
+      ConditionFactor.manyOwners => messages.bikeValueFactorManyOwners,
+      ConditionFactor.noServiceBook => messages.bikeValueFactorNoServiceBook,
+      ConditionFactor.warranty => messages.bikeValueFactorWarranty,
+    };
+
+/// "+3 %", "−15 %", "0 %".
+String _signedPercent(double share, AppLanguage language) {
+  final percent = (share * 100).round();
+  final text = Formatters.percent(percent.abs(), language: language);
+  return percent > 0 ? '+$text' : (percent < 0 ? '−$text' : text);
 }
 
 /// Whether [askingRoom] comes from the model's own price drops.
