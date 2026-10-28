@@ -44,6 +44,7 @@ are kept, and missing ones get a name-based search. No search URLs to copy.
 ```text
 Tracked models (chosen in the app)
   → collector (GitHub Actions, started 9 times a day by Supabase pg_cron): searches → polite fetch → parse → store
+  → photo fingerprints (photo CDN only, after the run): ads with the same photos
   → Supabase / Postgres: price history, duplicates, fair value, scores, alerts
   → app (Flutter Web on Cloudflare Pages): Ofertas · Pesquisas · Alertas · Mais
   → phones (Web Push; FCM in the Android app): each account's new alerts after each run (a tap opens the listing), its
@@ -107,6 +108,11 @@ per site and run (no request cap since 2026-10-22; the requests are shown
 per run, day and month in the app), and a 24-hour pause after any refusal.
 Private sellers' names and phone numbers are never stored, and saved pages
 are never committed.
+After each run, up to 3 photos of each new listing are hashed (no AI) from
+the photo CDN the sites use, never their pages: one at a time 2-3 s apart,
+at most 5 minutes, counted apart from the sites' requests. Only the hashes
+are kept; they find ads with the same photos (duplicates, relists, photos
+reused from another bike).
 
 Partial imports keep readable listings but report parsing or transport
 failures instead of a successful run. Repeated Standvirtual pages are not

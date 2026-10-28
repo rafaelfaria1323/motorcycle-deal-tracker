@@ -1,6 +1,7 @@
 # Files mutated by `make mutation` / mutation.yml (biggest first, so the
-# parallel jobs get similar shares). Each mutation runs the whole test
-# suite. Pure logic only: thin I/O wrappers (store, Telegram, config, CLI)
+# parallel jobs get similar shares). Each mutation runs the test files
+# that name something the file declares (tool/mutation.py, tests_using;
+# the whole suite took about 35 s a mutation, past the jobs' time). Pure logic only: thin I/O wrappers (store, Telegram, config, CLI)
 # are left out.
 lib/src/fetch/polite_fetcher.dart
 lib/src/adapters/standvirtual/standvirtual_search_adapter.dart

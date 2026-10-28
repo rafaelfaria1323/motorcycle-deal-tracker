@@ -46,10 +46,57 @@ def own_test(target):
     return f'test/{name}_test.dart'
 
 
+# A top-level public name a Dart file declares: a class, enum, mixin,
+# extension or typedef, or a function, getter, variable or constant.
+_DECLARATION = re.compile(
+    r'^(?:(?:abstract|base|final|interface|sealed|mixin)\s+)*'
+    r'(?:class|enum|mixin|extension|typedef)\s+([A-Za-z]\w*)'
+    r'|^(?=[A-Za-z])(?!(?:import|export|part|library)\b)'
+    r'(?:[\w<>?,.]+\s+)*?(?:get\s+)?([A-Za-z]\w*)\s*(?:[(=;]|<[^>]*>\s*\()',
+    re.M,
+)
+
+
+def declared_names(source):
+    """Top-level public names declared in a Dart file's source."""
+    names = set()
+    for match in _DECLARATION.finditer(source):
+        name = match.group(1) or match.group(2)
+        if name not in ('const', 'final', 'late', 'var', 'void'):
+            names.add(name)
+    return names
+
+
+def tests_using(package_dir, target):
+    """The test files that name something the target declares, sorted.
+
+    Running only these per mutant, not the whole suite, keeps a full run
+    of the collector within the jobs' time (its suite takes about 35 s).
+    """
+    with open(os.path.join(package_dir, target), encoding='utf-8') as f:
+        names = declared_names(f.read())
+    if not names:
+        return []
+    word = re.compile(r'\b(?:' + '|'.join(sorted(names)) + r')\b')
+    test_dir = os.path.join(package_dir, 'test')
+    found = []
+    for dirpath, _, filenames in os.walk(test_dir):
+        for name in filenames:
+            if not name.endswith('_test.dart'):
+                continue
+            path = os.path.join(dirpath, name)
+            with open(path, encoding='utf-8') as f:
+                if word.search(f.read()):
+                    found.append(os.path.relpath(path, package_dir))
+    return sorted(found)
+
+
 def test_command(package, target):
     if package == 'app':
         return f'flutter test --no-pub {own_test(target)}'
-    return 'dart test -r failures-only'
+    tests = tests_using(os.path.join(ROOT, package), target)
+    # Nothing found: the whole suite, as before.
+    return ' '.join(['dart test -r failures-only', *tests])
 
 
 def plan(args):

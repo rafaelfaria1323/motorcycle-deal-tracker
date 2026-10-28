@@ -35,8 +35,9 @@ permissions:
 jobs:
   collect:
     runs-on: ubuntu-latest
-    # Two sites of at most 30 minutes of requests each, plus the imports.
-    timeout-minutes: 75
+    # Two sites of at most 30 minutes of requests each, plus the imports,
+    # and at most 5 minutes of photos.
+    timeout-minutes: 85
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -62,6 +63,7 @@ jobs:
           path: |
             collector/.fetch_state.json
             collector/.fetch_state.olx.json
+            collector/.fetch_state.photos.json
           key: fetch-state-${{ github.run_id }}
           restore-keys: fetch-state-
 
@@ -97,6 +99,17 @@ jobs:
           "${{ steps.refresh.outputs.started }}"
           ../run.log
 
+      # Photo fingerprints (P.1): up to 3 photos of each new listing, from
+      # OLX's photo CDN only (both sites' photos live there; no page of
+      # either site), 2-3 s apart, at most 5 minutes, after the run is
+      # recorded so it never delays it. The next run's scores use them.
+      # Its requests are counted apart ("Photo requests:"). Never fails
+      # the job: listings left over wait for the next run.
+      - name: Fingerprint photos
+        if: always() && steps.refresh.outputs.started != ''
+        continue-on-error: true
+        run: make photos
+
       - name: Save fetch state
         if: always()
         uses: actions/cache/save@v6
@@ -104,6 +117,7 @@ jobs:
           path: |
             collector/.fetch_state.json
             collector/.fetch_state.olx.json
+            collector/.fetch_state.photos.json
           key: fetch-state-${{ github.run_id }}
 
       - name: Keep the log

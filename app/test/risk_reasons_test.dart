@@ -70,6 +70,16 @@ void main() {
     );
   });
 
+  test('photos reused from another ad read as a negative', () {
+    final lines = ScoreExplainer.explain(
+      listingWith(['photos_reused']),
+    )!.lines;
+
+    expect(lines, hasLength(1));
+    expect(lines.single.tone, ExplanationTone.negative);
+    expect(lines.single.text, startsWith('Fotos iguais'));
+  });
+
   test('contradictions between the text and the ad read as negatives', () {
     for (final code in [
       'text_year_mismatch',

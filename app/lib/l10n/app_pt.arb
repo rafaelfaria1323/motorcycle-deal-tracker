@@ -3216,6 +3216,10 @@
   "@relistedSeveralTimesOrForSaleForMore": {
     "description": "Interface text in score_explanation, _riskLines."
   },
+  "riskPhotosReused": "Fotos iguais às de um anúncio de outro modelo ou de um stand: confirme que são desta mota",
+  "@riskPhotosReused": {
+    "description": "Interface text in score_explanation, _riskLines."
+  },
   "a2Version35KWFullPowerRequiresRemoving": "Versão A2 (35 kW): para ter a potência toda é preciso tirar a limitação e atualizar os documentos",
   "@a2Version35KWFullPowerRequiresRemoving": {
     "description": "Interface text in score_explanation, _riskLines."

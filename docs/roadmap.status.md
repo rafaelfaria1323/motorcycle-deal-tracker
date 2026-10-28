@@ -1,4 +1,4 @@
-# Motorcycle Deal Tracker — Small Interaction Roadmap (status 2026-10-27)
+# Motorcycle Deal Tracker — Small Interaction Roadmap (status 2026-10-28)
 
 **Legend:** ✅ done · 🟡 partly done / in progress · ⬜ not started · ➕ added along the way (not in the original plan)
 
@@ -458,6 +458,8 @@ ChromeDriver; the test's data never comes from Supabase.*
 *`make coverage` (also in `check.yml`, summary on the run page): line coverage of the collector (floor 70 %, today 74 %) and of the app's logic (texts, entities, models, cubits; floor 90 %, today 94.7 %), by `tool/lcov_summary.py` (tests: `tool/test_lcov_summary.py`). Raise a floor as tests are added; lower one only with a reason.*
 ## N.4 Mutation score floor ✅
 *A full `mutation.yml` run ("Run workflow", every target) fails when its score over all targets is below `MUTATION_FLOOR` (set in the workflow, a few points under the score measured when it was set; raised as it rises, never lowered to get green). `tool/mutation.py summary --floor N` writes the summary first, then fails; `tool/test_mutation.py` tests it. Runs after merges, on the changed files only, stay report-only.*
+
+*2026-10-28: the first full run (40660940626) was cancelled: each collector mutation ran the whole suite (about 35 s), so the four collector jobs reached their 50 minutes. Each collector mutation now runs only the test files that name something the mutated file declares (`tests_using`: its top-level public classes, functions and constants; the whole suite when none does), as the app's runs its own test. `MUTATION_FLOOR` stays 60 until a full run finishes; then a few points under its score.*
 ## N.5 Dependabot ✅
 *`.github/dependabot.yml`: weekly PRs for the app's and the collector's packages and the GitHub Actions (minor and patch grouped), each checked like any PR (no preview: Dependabot's PRs get no secrets). Replaces deprecated action versions too.*
 ## N.6 SonarQube Cloud (maybe later) ⬜
@@ -596,6 +598,17 @@ N.23's to sort after main's latest), applied on merge before deployment.*
 *After R.2: a search with no new ad in its last several light reads is read every other light run. Only if R.1's numbers show many such searches.*
 
 *Not built yet (2026-10-28): with R.2 a quiet search's light read is one page, so skipping it saves one request in five runs; to decide on a week of R.2's runs.*
+
+# Photo checks (P) 🟡
+*Rafael, 2026-10-28: look at the ads' photos for problems, free and without tokens, "the only thing that I do not want is to increase our requests to the sources or make the process extremely slow". The photos come from the photo CDN both sites use (`ireland.apollo.olxcdn.com/v1/files/`), never from the sites' pages, and are counted apart from them.*
+## P.1 Photo fingerprints ✅
+*No AI: a 64-bit difference hash (dHash: grey, 9x8, each pixel against its right-hand neighbour; `photos/photo_hash.dart`, package `image`) of the first 3 photos of each live listing of a followed model, once per listing (`listings.photos_hashed_at`). `bin/photos.dart` (`make photos`, `collect.yml`'s step "Fingerprint photos" after the run is recorded, `continue-on-error`): `listings_missing_photo_hashes` (newest first, non-duplicates first; Standvirtual only once its listing page was read, for the full photos), one photo at a time 2-3 s apart, at most 5 minutes, 200 listings, the same stop rules as the sites (`FetchSite.photos`: its own fetch state `.fetch_state.photos.json`; the CDN has no robots.txt, a 404 there means no rules; a reply that isn't an image is a block). Its requests are logged as "Photo requests:", not "Requests used:", so the sites' counts stay as they are. `store_photo_hashes` (migration `20261028170000`) keeps them in `listing_photo_hashes` (a GIN index on the 8 bytes: any two hashes within 7 bits share one) and the listings with the same photos in `listing_photo_matches`: photos within 5 bits are the same (a recompressed or resized copy), a photo in 5 or more other ads is a banner or stock photo and counts for nothing, two listings match with 2 shared photos (1 when either has only one). What it changes, at the next run's scores (no extra scoring time in the photo step): the same model and year with matching photos and the mileage within 1 000 km (or unknown) is a duplicate (score 100) whatever the text, and a relist; risk reason `photos_reused` (10) when an earlier ad of another model, or a dealer's earlier ad on a private one, has the same photos ("Fotos iguais às de um anúncio de outro modelo ou de um stand"). Dealer-to-dealer reuse of the same model isn't a reason (stands reuse their own photos). Tests: `photo_hash_test.dart`, `photo_fingerprints_test.dart`, `photo_fetch_test.dart`, `photo_fingerprints_test.sql`, `risk_reasons_test.dart`.*
+## P.2 Damage hints from a free model ⬜
+*A free, local image model (CLIP/SigLIP, zero-shot: "a scratched fuel tank", "a broken fairing") on the fingerprinted photos, shown as hints only, never a score.*
+## P.3 A model trained on Rafael's marks ⬜
+*Per-photo marks in the app ("problema" / "bem") train a small classifier on top of P.2's image features.*
+## P.4 "Examinar fotos" on the ad ⬜
+*Every photo of one ad examined on demand, from the CDN with the same rules.*
 
 # Sprint 16 — Paid plans ⬜
 

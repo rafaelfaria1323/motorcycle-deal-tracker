@@ -10,6 +10,11 @@ rls_enabled_no_policy_public_collection_watchdog
 # reads and writes it.
 rls_enabled_no_policy_public_github_token_check
 
+# Photo fingerprints and the listings sharing photos: no API access, only
+# the collector's store_photo_hashes() and the scoring (security definer).
+rls_enabled_no_policy_public_listing_photo_hashes
+rls_enabled_no_policy_public_listing_photo_matches
+
 # The policy already reads the JWT once per query: auth.jwt() sits inside
 # a scalar subquery, (select auth.jwt() ->> 'is_anonymous'). splinter only
 # recognises the form (select auth.jwt()) ->> ...

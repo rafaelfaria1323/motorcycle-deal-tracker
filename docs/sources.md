@@ -5,6 +5,22 @@ here. Robots.txt is not permission; the source's terms of use decide.
 
 ## Decision log
 
+### 2026-10-28: photo fingerprints from the photo CDN (P.1)
+
+**Why.** Rafael asked for the ads' photos to be examined, free and
+without tokens, without more requests to the sites or a slower run.
+
+**Decision.** The photos come only from the photo CDN both sites already
+serve them from (`https://ireland.apollo.olxcdn.com/v1/files/...`, the
+addresses the search and listing pages give), never from a site page.
+Its own fetcher and state (`FetchSite.photos`, `.fetch_state.photos.json`):
+one photo at a time, 2-3 s apart, at most 5 minutes a run, after the run
+is recorded; the same stops and 24 h pause on 403/429/503 or a reply that
+isn't an image, and robots.txt is obeyed when the CDN has one. The first
+3 photos of each listing, once. Only a 64-bit hash of each photo is kept,
+never the photo. The requests are counted apart ("Photo requests:"), so
+the sites' counts are unchanged.
+
 ### 2026-10-28: light runs read newest first (R.2)
 
 **Why.** Most runs re-read pages of ads already seen: a search of 4 pages

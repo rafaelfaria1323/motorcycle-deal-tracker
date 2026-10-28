@@ -92,6 +92,12 @@ enrich-dry: require-collector-env ## List the listings that still need details, 
 enrich: require-collector-env ## Read details of up to 10 new listings: make enrich [ARGS=--max=5]
 	cd collector && dart run bin/enrich.dart $(ARGS)
 
+photos-dry: require-collector-env ## List the listings whose photos wait for fingerprints, requests nothing
+	cd collector && dart run bin/photos.dart --dry-run
+
+photos: require-collector-env ## Fingerprint up to 3 photos of new listings (photo CDN, 5 min): make photos [ARGS=--max=50]
+	cd collector && dart run bin/photos.dart $(ARGS)
+
 # One process for the whole collection (bin/refresh.dart): each site's
 # searches are fetched and imported, Standvirtual's new listings get their
 # details with the same fetcher, then duplicates, scores, alerts and
