@@ -45,6 +45,8 @@ class ListingModel extends Listing {
     super.colour,
     super.myColour,
     super.photoHints,
+    super.photoExamRequestedAt,
+    super.photosExaminedAllAt,
   });
 
   /// The columns lists need (cards, alerts, other sources of a bike); the
@@ -113,6 +115,8 @@ class ListingModel extends Listing {
       colour: json['colour'] as String?,
       myColour: json['my_colour'] as bool? ?? false,
       photoHints: photoHintsOf(json['photo_hints']),
+      photoExamRequestedAt: dateOf(json['photo_exam_requested_at']),
+      photosExaminedAllAt: dateOf(json['photos_examined_all_at']),
     );
   }
 

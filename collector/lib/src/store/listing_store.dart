@@ -160,6 +160,36 @@ class ListingStore {
     ];
   }
 
+  /// Live listings someone asked to have every photo examined (P.4,
+  /// `listings_awaiting_photo_exam`), oldest request first, each with up
+  /// to [photosPerExam] addresses.
+  Future<List<({String id, List<String> images})>> listingsAwaitingPhotoExam(
+    int limit,
+  ) async {
+    final rows = await _client.rpc<List<dynamic>>(
+      'listings_awaiting_photo_exam',
+      params: {'p_limit': limit, 'p_photos': photosPerExam},
+    );
+    return [
+      for (final r in rows.cast<Map<String, dynamic>>())
+        (
+          id: r['id'] as String,
+          images: (r['images'] as List<dynamic>).cast<String>(),
+        ),
+    ];
+  }
+
+  /// Marks the examination of every photo of [ids] done (P.4); returns how
+  /// many were waiting for it.
+  Future<int> finishPhotoExams(List<String> ids) async {
+    if (ids.isEmpty) return 0;
+    final result = await _client.rpc<Object?>(
+      'finish_photo_exams',
+      params: {'p_listings': ids},
+    );
+    return _count(result);
+  }
+
   /// Stores each listing's photo hashes (64-bit dHash, sent as decimal text:
   /// JSON numbers lose the low bits) and finds the listings sharing them;
   /// returns how many listings were stored.

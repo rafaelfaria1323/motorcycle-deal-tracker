@@ -50,6 +50,8 @@ class Listing extends Equatable {
     this.colour,
     this.myColour = false,
     this.photoHints = const [],
+    this.photoExamRequestedAt,
+    this.photosExaminedAllAt,
   });
 
   final String id;
@@ -126,6 +128,14 @@ class Listing extends Equatable {
   /// What the image model may have seen in the first photos, likeliest
   /// first. Only loaded on the detail page; hints, never a score.
   final List<PhotoHint> photoHints;
+
+  /// When someone asked for every photo to be examined (P.4); null once
+  /// done or never asked. Only loaded on the detail page.
+  final DateTime? photoExamRequestedAt;
+
+  /// When every photo was shown to the image model (P.4); null: only the
+  /// first ones. Only loaded on the detail page.
+  final DateTime? photosExaminedAllAt;
 
   /// The price changes are measured from: the first price we saw, or a
   /// higher earlier price the site reported.

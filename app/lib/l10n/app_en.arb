@@ -997,5 +997,11 @@
   "photoMarkTitle": "Teach the image model: does this photo show a problem?",
   "photoMarkProblem": "Problem",
   "photoMarkFine": "Fine",
-  "photoMarkFailed": "Couldn't save the mark. Try again."
+  "photoMarkFailed": "Couldn't save the mark. Try again.",
+  "photoExamAction": "Examine every photo",
+  "photoExamAvailable": "Only the first 3 photos were seen by the image model. You can ask for all of them at the next collection.",
+  "photoExamRequested": "Requested: every photo is examined at the next collection.",
+  "photoExamDone": "Every photo was examined.",
+  "photoExamLimit": "You've made 5 requests today. Try again tomorrow.",
+  "photoExamFailed": "Couldn't make the request. Try again."
 }

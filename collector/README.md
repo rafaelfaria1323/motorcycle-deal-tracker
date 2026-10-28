@@ -64,6 +64,10 @@ regression in plain Dart (standardised, balanced, L2; 5-fold balanced
 accuracy logged) is trained on the stored embeddings and kept by
 `store_photo_classifier`, which refreshes every examined listing's hints
 with the code `learned`. About 8 s for 300 marks; nothing when unchanged.
+Then the ads someone asked to examine in full (P.4,
+`listings_awaiting_photo_exam`, 3 a run, `maxExamsPerRun`) go first:
+up to 30 photos each (`photosPerExam`) shown to the model, only the first
+3 fingerprinted; `finish_photo_exams` marks them done.
 
 Alerts dismissed in the app keep their event history. The owner-checked
 `dismiss_alert` RPC sets `dismissed_at` and marks them read and handled

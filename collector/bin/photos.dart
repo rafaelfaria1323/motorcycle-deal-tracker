@@ -10,6 +10,10 @@ const photoPolicy = FetchPolicy(
   maxRunTime: Duration(minutes: 5),
 );
 
+/// At most this many ads examined in full per run (P.4): 30 photos about
+/// 3 s apart take about a minute and a half each, of the run's 5 minutes.
+const maxExamsPerRun = 3;
+
 Future<void> main(List<String> args) async {
   var dryRun = false;
   int? max;
@@ -33,7 +37,8 @@ Future<void> main(List<String> args) async {
       '  also shown to the image model for damage hints (P.2), with\n'
       '  PHOTO_PYTHON (python3 by default) running tool/photo_examine.py;\n'
       '  then a classifier is trained on the admins\' photo marks (P.3)\n'
-      '  when they changed.',
+      '  when they changed, and the ads someone asked to examine in full\n'
+      '  (P.4) have up to $photosPerExam photos examined, first.',
     );
     exitCode = 64;
     return;
@@ -56,10 +61,24 @@ Future<void> main(List<String> args) async {
       // The admins' marks first (P.3), so the photos examined below already
       // get the hint learned from them.
       if (examiner != null) await trainOnPhotoMarks(store, examiner.model);
-      final pending = await store.listingsMissingPhotoChecks(
-        max ?? 200,
-        examine: examiner != null || (dryRun && modelDir.isNotEmpty),
-      );
+      final examine = examiner != null || (dryRun && modelDir.isNotEmpty);
+      // The ads someone asked to examine in full (P.4) go first: they were
+      // asked for and wait for no one else.
+      final exams = examine
+          ? await store.listingsAwaitingPhotoExam(maxExamsPerRun)
+          : const <({String id, List<String> images})>[];
+      final asked = {for (final e in exams) e.id};
+      final pending = [
+        ...exams,
+        for (final p in await store.listingsMissingPhotoChecks(
+          max ?? 200,
+          examine: examine,
+        ))
+          if (!asked.contains(p.id)) p,
+      ];
+      if (exams.isNotEmpty) {
+        stdout.writeln('${exams.length} listing(s) asked to examine in full.');
+      }
       stdout.writeln('${pending.length} listing(s) need photo checks.');
       if (pending.isEmpty) return;
       if (dryRun) {
@@ -76,7 +95,13 @@ Future<void> main(List<String> args) async {
       );
       try {
         await fetcher.prepare();
-        await fingerprintPhotos(store, fetcher, pending, examiner: examiner);
+        await fingerprintPhotos(
+          store,
+          fetcher,
+          pending,
+          examiner: examiner,
+          exams: asked,
+        );
       } finally {
         // Not "Requests used:": these are the CDN's, not the sites' pages.
         stdout.writeln('Photo requests: ${fetcher.requestsThisRun}');

@@ -646,6 +646,15 @@ refreshes every examined listing's hints (`refresh_photo_hints`: the code
 `learned`, `photo_learned_share`, threshold 0.5; `store_photo_features`
 applies it too). `prune_unfollowed_listings` may delete a marked listing
 and its marks (known, accepted).
+P.4: Avaliação's `PhotoHintsCard` lets signed-in accounts ask for every
+photo of a live ad with more than 3 ("Examinar todas as fotos",
+`photoExamOf` in `photo_exam_text.dart`; `request_photo_exam`, require_account,
+5 new a day, `photo_exam_requests` RLS without API access;
+`listings.photo_exam_requested_at`). With the model on, `bin/photos.dart`
+reads `listings_awaiting_photo_exam` first (`maxExamsPerRun` 3, up to
+`photosPerExam` 30 photos, within the step's 5 minutes, CDN only):
+every photo examined, only the first 3 fingerprinted; then
+`finish_photo_exams` stamps `photos_examined_all_at`.
 
 - **Read failures**: `importBatch` keeps readable records and returns
   whether the input was clean. `refresh.dart` and `collector.dart` report
