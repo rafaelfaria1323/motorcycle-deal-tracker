@@ -7,6 +7,10 @@ abstract interface class MarketBehaviourRepository {
   /// Null when the model has no listings.
   Future<MarketBehaviour?> getForModel(String motorcycleId);
 
+  /// How long the listing is likely to stay on the market; null when it
+  /// has no model.
+  Future<TimeToSale?> getTimeToSale(String listingId);
+
   /// Asking prices of the model's live listings (duplicates left out), by
   /// listing id.
   Future<Map<String, double>> getLivePrices(String motorcycleId);

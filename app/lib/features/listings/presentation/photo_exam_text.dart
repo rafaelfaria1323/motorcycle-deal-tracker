@@ -24,10 +24,7 @@ enum PhotoExam {
 /// Where [listing]'s examination of every photo stands.
 PhotoExam photoExamOf(Listing listing) {
   if (listing.photosExaminedAllAt != null) return PhotoExam.done;
-  final live =
-      listing.status == ListingStatus.active ||
-      listing.status == ListingStatus.priceChanged;
-  if (!live ||
+  if (!listing.isLive ||
       listing.motorcycleId == null ||
       listing.images.length <= markablePhotos) {
     return PhotoExam.none;

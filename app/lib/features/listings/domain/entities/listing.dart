@@ -165,6 +165,10 @@ class Listing extends Equatable {
 
   bool get isRemoved => status == ListingStatus.removed;
 
+  /// Still on sale, as the database's live statuses.
+  bool get isLive =>
+      status == ListingStatus.active || status == ListingStatus.priceChanged;
+
   @override
   List<Object?> get props => [
     id,
