@@ -811,7 +811,9 @@ every photo examined, only the first 3 fingerprinted; then
   clamped (0-15 %/year, 0-1 %/1000 km) and blended with the general rates
   (4 %/year, 0.2 %/1000 km) weighted by count; below 30 the general rates.
   The mileage rate is never below 0.5 %/1000 km (a buyer's minimum: asking
-  prices understate mileage). Comparables without year or mileage are left
+  prices understate mileage); the yearly rate is the best fit given the
+  mileage rate used (`(cov(year, ln p) + k cov(year, km)) / var(year)`), so
+  age isn't counted twice. Comparables without year or mileage are left
   out when the listing has them. The app says the estimate comes from
   asking prices.
   `bike_value(model, year, km)` applies the same rules to a bike of one's
@@ -838,7 +840,8 @@ every photo examined, only the first 3 fingerprinted; then
   at least one year's, age counted in days (`decimal_year`, so nothing
   jumps on 1 January) (`expected_mileage`); 100 up to half the normal, 75
   at it, 50 at 1.5x, 0 from 2.5x; no mileage but a year: 50; the app's
-  `mileageForAge` says the same in words, keep both in step), risk 10
+  `mileageForAge` says the same in words, keep both in step; the year part
+  is `age_score`, 10 points a year of age counted the same way), risk 10
   (inverted), seller 10 (`dealer_score`: dealers with 5+ bikes only, 100
   minus 100 x (relisted + sharp changes + repeated + half the ads without
   mileage) / bikes; private sellers and smaller dealers skip it; the
@@ -855,11 +858,16 @@ every photo examined, only the first 3 fingerprinted; then
   never change, the app's `extraLabels` and the saved-search check list the
   same). Extras are a bonus, not a slice: as a slice they lowered good
   scores. Without the price slice the score is at most 70
-  (`capped_without_price`); with an accident or a repair in the text
-  (`possible_accident`, `needs_repair`) at most 50 (`damage_cap`,
-  `capped_for_damage`: the estimate is of bikes without damage). Missing
-  slices are skipped.
-- Risk signals: price far below market, possible accident (text,
+  (`capped_without_price`). With an accident or a repair in the text
+  (`possible_accident`, `needs_repair`) the price slice and the risk's
+  price signals compare the price with the estimate less a repair
+  allowance (`damage_allowance`: accident 15 %, repair 10 %, both 20 %;
+  the breakdown's `damaged_value`, `pct_below_damaged_value`, while
+  `market_price` stays the undamaged estimate), and the score is at most
+  79 (`damage_cap`, `capped_for_damage`: never an excellent opportunity,
+  the damage is unseen). Missing slices are skipped.
+- Risk signals: price far below market (against the damaged value for
+  a damaged bike), possible accident (text,
   `mentions_accident`: also falls and knocks, "caiu", "foi ao chão", "teve
   um toque"; "nunca teve acidentes", "livre de sinistros", "macia ao
   toque", "o preço caiu" and insurance wording don't count), repairs or
@@ -882,7 +890,9 @@ every photo examined, only the first 3 fingerprinted; then
   único dono", "1ª mão", "first owner"; denials don't count), service
   book, factory warranty (negative points, floor 0).
 - Market behaviour per model (`model_market_behaviour`): time until leaving
-  the market, share and size of price drops (measured from the higher of the
+  the market (Kaplan-Meier median of the gone ads and those still for sale,
+  `median_days_remaining`; null until half have gone; the offer's and the
+  seller urgency's "typical time"), share and size of price drops (measured from the higher of the
   first price seen and `price_before_drop`), depreciation rates. Show "ainda
   poucos dados" below 5 data points.
 - Time to sale per listing (`listing_time_to_sale`, 10.4; security
@@ -909,9 +919,9 @@ every photo examined, only the first 3 fingerprinted; then
   drop, high risk; less after a drop and less by however far the asking
   price is already below the estimate; 1-10 %, and never under 90 % of the
   estimated value; a bike whose text tells of an accident or a repair
-  (`damageReasons`) gets +5 %, up to 15 %, its price below the estimate
-  takes nothing off and the estimate sets no floor (it is of bikes
-  without damage); scratches +2 %; rounded down to 50 €. The plan: the opening, one offer
+  (`damageReasons`) is judged against its `damaged_value` (ceiling,
+  "already below"), gets +5 %, up to 15 %, and that value sets no floor
+  (the real damage is unknown); scratches +2 %; rounded down to 50 €. The plan: the opening, one offer
   halfway ("Se recusar") and the ceiling as the last, each with a message
   to copy; "O vendedor pediu" answers a counter-offer (accept up to the
   second offer, propose halfway up to the ceiling, above it offer the

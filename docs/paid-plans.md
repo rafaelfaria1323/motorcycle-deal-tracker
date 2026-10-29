@@ -19,9 +19,11 @@ The collection's basis today is **personal, non-commercial use**
 (`docs/sources.md`, 2026-10-19: "The owner accepted the terms risk
 knowingly"). Charging money for access ends that basis.
 
-- **Terms of use.** Neither site's terms are read and recorded yet (open
-  item in `docs/sources.md`). Classified sites usually forbid automated
-  extraction and commercial reuse. Under EU law such terms can bind even
+- **Terms of use.** Read on 2026-10-28 (`docs/sources.md`): Standvirtual
+  forbids commercial use without express permission and repeated,
+  systematic download or aggregation of its data; OLX restricts
+  aggregating its data to share with third parties, and offers an API
+  only after approval. Under EU law such terms can bind even
   where no database right applies (CJEU, *Ryanair v PR Aviation*,
   C-30/14, 2015).
 - **Database right.** The EU database right (Directive 96/9/EC, in

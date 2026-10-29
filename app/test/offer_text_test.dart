@@ -18,6 +18,8 @@ Listing _listing({
   String? relistedFrom,
   int? comparables,
   List<String>? riskReasons,
+  double? damagedValue,
+  double? damageAllowance,
 }) => Listing(
   id: 'l1',
   source: 'olx',
@@ -42,6 +44,8 @@ Listing _listing({
           'market_price': estimate,
           'market_listing_count': ?comparables,
           'risk_reasons': ?riskReasons,
+          'damaged_value': ?damagedValue,
+          'damage_allowance': ?damageAllowance,
         },
 );
 
@@ -220,21 +224,37 @@ void main() {
       expect(all.opening, 6300); // 18 % capped at 10: 6300
     });
 
-    test('damage: the price below the estimate is no discount', () {
+    test('damage: judged against the estimate less the repair allowance', () {
       // The Honda ADV 350: 20 % below the estimate, a knock and parts to
-      // replace (risk 80). Without the damage rule it opened 1 % below.
+      // replace (risk 80), priced at its damaged value (20 % allowance).
       final adv = suggestOffer(
         _listing(
           price: 8000,
           estimate: 10000,
           riskScore: 80,
           riskReasons: const ['possible_accident', 'needs_repair'],
+          damagedValue: 8000,
+          damageAllowance: 0.2,
         ),
       )!;
       expect(adv.ceiling, 8000);
       expect(adv.opening, 6850); // 6 + 3 (risk) + 5 (damage) = 14 %: 6880
-      expect(adv.reasons.join(' '), contains('não um desconto'));
+      expect(adv.reasons.first, contains('para a reparação'));
       expect(adv.reasons.join(' '), contains('orçamento da reparação'));
+
+      // Priced like an undamaged bike: pay no more than its damaged value.
+      final full = suggestOffer(
+        _listing(
+          price: 10000,
+          estimate: 10000,
+          riskScore: 80,
+          riskReasons: const ['possible_accident', 'needs_repair'],
+          damagedValue: 8000,
+          damageAllowance: 0.2,
+        ),
+      )!;
+      expect(full.ceiling, 8000);
+      expect(full.opening, 6850);
 
       final undamaged = suggestOffer(
         _listing(price: 8000, estimate: 10000, riskScore: 80),

@@ -333,8 +333,16 @@ abstract final class ScoreExplainer {
     final lines = <ExplanationLine>[];
 
     // Price vs market
-    final pct = (data['pct_below_market'] as num?)?.toDouble();
-    final market = (data['market_price'] as num?)?.toDouble();
+    final undamaged = (data['market_price'] as num?)?.toDouble();
+    // With damage in the text the price is judged against the estimate
+    // less a repair allowance (damage_allowance).
+    final allowance = (data['damage_allowance'] as num?)?.toDouble();
+    final damagedValue = (data['damaged_value'] as num?)?.toDouble();
+    final damaged = allowance != null && damagedValue != null;
+    final pct = damaged
+        ? (data['pct_below_damaged_value'] as num?)?.toDouble()
+        : (data['pct_below_market'] as num?)?.toDouble();
+    final market = damaged ? damagedValue : undamaged;
     final price = listing.price;
     final marketCount = (data['market_listing_count'] as num?)?.toInt();
     // Below 3 comparables the price is not scored, so it is not explained.
@@ -378,10 +386,21 @@ abstract final class ScoreExplainer {
         ExplanationLine(
           ExplanationTone.neutral,
           language.messages.estimatedValueForThisYearAndMileageFrom(
-            price: Formatters.price(market, language: language),
+            price: Formatters.price(undamaged ?? market, language: language),
           ),
         ),
       );
+      if (allowance != null && damagedValue != null) {
+        lines.add(
+          ExplanationLine(
+            ExplanationTone.neutral,
+            language.messages.damagedValueWithRepairAllowance(
+              percent: Formatters.percent(allowance * 100, language: language),
+              price: Formatters.price(damagedValue, language: language),
+            ),
+          ),
+        );
+      }
     }
     if (!priceScored) {
       lines.add(

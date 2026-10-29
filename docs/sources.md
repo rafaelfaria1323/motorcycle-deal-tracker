@@ -5,6 +5,42 @@ here. Robots.txt is not permission; the source's terms of use decide.
 
 ## Decision log
 
+### 2026-10-28: terms of use read (5.2)
+
+**Source.** Rafael's summary of both sites' terms (in Portuguese, the
+key words quoted as he gave them). The exact clauses of the versions in
+force are still to be copied in; the summary itself says to check them.
+
+**OLX Portugal.** The archived general terms restrict the use of the
+site's content and "a agregação e o tratamento de dados do site para
+partilha com terceiros noutros sites". OLX's developer portal offers an
+API after registration and approval of the application; OLX may refuse
+or block that access if the application breaks the terms or harms the
+platform or its users.
+
+**Standvirtual.** The terms for professional sellers restrict commercial
+use of the site without express permission and "a descarga, agregação ou
+tratamento repetido e sistemático de dados" that breaks the terms of use.
+
+**What this means for the collector.**
+
+| Point in the terms | What the app does today | Reading |
+|---|---|---|
+| OLX: aggregating the site's data to share with third parties on other sites | Collects OLX ads into a private database used only by Rafael (invites exist but nobody else uses the app, 2026-10-28; no public page, no republishing, every ad links back) | In line while only Rafael uses it; inviting others would reopen it |
+| Standvirtual: repeated and systematic download or aggregation of data | Reads the followed models' search pages 9 times a day and each listing page once | Not allowed as written, unless the clause is read as applying only to professional sellers' accounts, or only where it breaks the other terms |
+| Standvirtual: commercial use without express permission | Free, personal, no income (paid plans on hold, 16.0) | Allowed |
+| Both: public ads are not free to reuse | Stores only what the scores need; never private sellers' names or phone numbers | In line |
+
+**Decision (unchanged until Rafael says otherwise).** The collection's
+basis stays personal, non-commercial, low-volume use with the risk
+accepted by the owner (2026-10-19). The terms confirm what that entry
+assumed: neither site grants automated collection, and Standvirtual's
+wording names it. No rule is loosened. Still open, Rafael's decisions:
+(1) inviting anyone else would count as OLX's "partilha com
+terceiros": ask first, (2) asking both sites for written permission or OLX's API
+(the access request below), (3) the verbatim clauses of the current
+versions, to be pasted into the table at the end.
+
 ### 2026-10-28: damage hints from a free image model (P.2)
 
 **Why.** The second step of Rafael's photo checks: point out photos that
@@ -253,8 +289,8 @@ skipped: the original is collected from Standvirtual.
 **Not committed.** Saved pages (`collector/samples/olx/`) are in
 `.gitignore`.
 
-**Open: OLX terms of use** (row in the table below): to be read and quoted
-by the owner.
+**OLX terms of use**: read on 2026-10-28 (decision log, top; row in the
+table below).
 
 ### 2026-10-19: low-volume personal fetcher for Standvirtual search pages (9.2)
 
@@ -308,12 +344,12 @@ duplicates.
 **Not committed.** Saved pages are in `.gitignore`: they contain other
 people's content and contact details.
 
-**Open: terms of use (to be filled by the owner).**
+**Terms of use** (read from Rafael's summary on 2026-10-28; see that entry).
 
-| Source | Clause (quote) | Verdict |
+| Source | Clause (summary) | Verdict |
 |---|---|---|
-| Standvirtual terms | _paste the clause(s) about robots, automated access, extraction, reuse of content/database_ | _allowed / not allowed / unclear_ |
-| OLX Portugal terms | _same_ | _same_ |
+| Standvirtual terms | No commercial use without express permission; no repeated, systematic download, aggregation or processing of data against the terms. _Verbatim clause of the current version to be pasted._ | Automated collection not granted; personal use at the owner's risk |
+| OLX Portugal terms | Restrictions on using the content and on aggregating and processing the site's data to share with third parties on other sites; API only after registration and approval. _Verbatim clause of the current version to be pasted._ | Automated collection not granted; sharing with others unclear (today only the owner uses the app) |
 
 Standvirtual's terms are linked from its footer to a help-centre page that is
 rendered with JavaScript, so they could not be read automatically.

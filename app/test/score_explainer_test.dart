@@ -194,12 +194,34 @@ void main() {
     expect(lines.single.text, contains('no máximo em 70'));
   });
 
-  test('a damaged bike says its score is capped at 50', () {
+  test('a damaged bike says its score is capped at 79', () {
     final lines = ScoreExplainer.explain(
-      _listing(dealScore: 50, breakdown: {'capped_for_damage': true}),
+      _listing(dealScore: 79, breakdown: {'capped_for_damage': true}),
     )!.lines;
     expect(lines.single.tone, ExplanationTone.negative);
-    expect(lines.single.text, contains('no máximo em 50'));
+    expect(lines.single.text, contains('no máximo em 79'));
+  });
+
+  test('a damaged bike\'s price is judged against its damaged value', () {
+    final lines = ScoreExplainer.explain(
+      _listing(
+        dealScore: 70,
+        price: 7000,
+        breakdown: {
+          'pct_below_market': 22.2,
+          'market_price': 9000,
+          'market_listing_count': 5,
+          'damage_allowance': 0.2,
+          'damaged_value': 7200,
+          'pct_below_damaged_value': 2.8,
+        },
+      ),
+      today: DateTime(2026, 12, 31),
+    )!.lines;
+    // 2.8 % below 7 200 is in line, not 22 % below 9 000.
+    expect(lines.first.tone, ExplanationTone.neutral);
+    expect(lines[1].text, startsWith('Valor estimado'));
+    expect(lines[2].text, contains('para a reparação'));
   });
 
   group('mileage against the bike\'s age (5 000 km a year is normal)', () {
