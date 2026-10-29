@@ -282,7 +282,7 @@ permissions policy (no camera, microphone, location or payment).
 
 Replace a secret at once if it may have leaked (pasted somewhere, a lost
 laptop, a log that showed it), and otherwise once a year, in January,
-together with the IUC check. The GitHub dispatch token has its own
+together with the IUC and ISV check (`iucBands`, `isvBands`). The GitHub dispatch token has its own
 expiry; Telegram and "Estado da recolha" warn 14 days before it.
 
 Rules for every one: make the new value first, put it everywhere it is

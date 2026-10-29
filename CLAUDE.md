@@ -845,7 +845,14 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   extra dispatch); `finishRun` answers it and pushes the value
   (`bike_value_push.dart`, opens `/worth?request=<id>`). pg_cron
   `expire-bike-value-models` (`29 3 * * *`) stops collecting such models
-  30 days after the last request.
+  30 days after the last request. Below the value, the import calculator
+  (16.10, `import_cost.dart`, `import_cost_text.dart`, `ImportCostCard`;
+  app only, the foreign price typed by the person): price + ISV (Tabela
+  C by engine size, `isvBands`, without the used-vehicle reduction; **check
+  every January** with `iucBands`) + legalisation (inspection 95 €,
+  registration 100 €, plates 30 €) + transport (Spain 350, France 550,
+  Germany 700 €, or a quote), against `conditionEstimate`; a bike of this
+  year or the last with 6 000 km or less warns of VAT paid here.
   Price score (2.5 points per %: 0 / 100 at 20 % above / below) and the
   risk's price signal need >= 3 comparables; so does the app's offer.
 - Deal score = weighted average of the available slices: price 35,

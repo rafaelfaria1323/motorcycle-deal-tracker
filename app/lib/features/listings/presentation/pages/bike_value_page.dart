@@ -18,10 +18,12 @@ import '../../domain/repositories/market_behaviour_repository.dart';
 import '../bike_value_text.dart';
 import '../widgets/add_model_sheet.dart';
 import '../widgets/icon_line.dart';
+import '../widgets/import_cost_card.dart';
 import '../widgets/tracked_models_builder.dart';
 
 /// "Quanto vale a minha mota": the market value of a bike, the price to
-/// ask for it and a dealer's trade-in. Anonymous sessions value the
+/// ask for it, a dealer's trade-in and what the same bike costs bought
+/// abroad ([ImportCostCard]). Anonymous sessions value the
 /// collected models; accounts value any make and model: one nobody
 /// collects yet is asked for, collected at the next collection, and
 /// answered with a notification ([requestId] opens that answer).
@@ -43,6 +45,7 @@ class BikeValuePage extends StatefulWidget {
 typedef _Outcome = ({
   String name,
   int year,
+  int? mileage,
   BikeValue? value,
   MarketBehaviour? market,
 });
@@ -173,12 +176,26 @@ class _BikeValuePageState extends State<BikeValuePage> {
     required int? mileage,
     bool waiting = false,
   }) async {
-    if (waiting) return (name: name, year: year, value: null, market: null);
+    if (waiting) {
+      return (
+        name: name,
+        year: year,
+        mileage: mileage,
+        value: null,
+        market: null,
+      );
+    }
     final (value, market) = await (
       _repository.getBikeValue(motorcycleId, year: year, mileage: mileage),
       _repository.getForModel(motorcycleId),
     ).wait;
-    return (name: name, year: year, value: value, market: market);
+    return (
+      name: name,
+      year: year,
+      mileage: mileage,
+      value: value,
+      market: market,
+    );
   }
 
   Future<_Outcome> _ask(
@@ -455,7 +472,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
           color: theme.colorScheme.onSurfaceVariant,
         );
         final value = outcome.value;
-        return Card(
+        final card = Card(
           margin: EdgeInsets.zero,
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -493,6 +510,19 @@ class _BikeValuePageState extends State<BikeValuePage> {
               ],
             ),
           ),
+        );
+        if (value == null) return card;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            card,
+            const SizedBox(height: 16),
+            ImportCostCard(
+              estimate: conditionEstimate(value, _condition),
+              year: outcome.year,
+              mileage: outcome.mileage,
+            ),
+          ],
         );
       },
     );

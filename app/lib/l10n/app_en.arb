@@ -1006,5 +1006,21 @@
   "photoExamRequested": "Requested: the photos are being examined, which takes a few minutes. With notifications on, we'll tell you when it's done.",
   "photoExamDone": "Every photo was examined.",
   "photoExamLimit": "You've made 5 requests today. Try again tomorrow.",
-  "photoExamFailed": "Couldn't make the request. Try again."
+  "photoExamFailed": "Couldn't make the request. Try again.",
+  "importCostTitle": "Buying it abroad?",
+  "importCostIntro": "Seen the same bike in Spain, France or Germany? Enter its price and engine size: we add the vehicle tax (ISV), the legalisation and the transport and compare it with its value here.",
+  "importCostCountry": "Country",
+  "importCountrySpain": "Spain",
+  "importCountryFrance": "France",
+  "importCountryGermany": "Germany",
+  "importCostPrice": "Price there",
+  "importCostEngineCc": "Engine size",
+  "importCostTransport": "Transport (optional)",
+  "importCostTransportHint": "If you have a quote; without one, we count about €{amount}",
+  "importCostTotal": "On the road here for {total}: {price} + ISV {isv} + legalisation {legalisation} + transport {transport}",
+  "importCostCheaper": "Here, the same bike is worth about {estimate}: you save {saving} ({percent})",
+  "importCostDearer": "Here, the same bike is worth about {estimate}: bringing it costs {extra} more",
+  "importCostNoEstimate": "There are still too few listings of this model here to compare",
+  "importCostVat": "Under 6 months or 6,000 km it counts as new: you also pay VAT here (23 %), even bought from a private seller",
+  "importCostNote": "Rules of thumb for {year}: inspection, registration and plates about {legalisation}. The ISV is the motorcycle table's, without the reduction for used bikes, which can only lower it. Without the certificate of conformity (COC), add its cost."
 }
