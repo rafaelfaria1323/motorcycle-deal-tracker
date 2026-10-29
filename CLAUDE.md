@@ -847,7 +847,9 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   `expire-bike-value-models` (`29 3 * * *`) stops collecting such models
   30 days after the last request. Mais › "Comprar no estrangeiro"
   (`/import`, the same page with `importing`): the same value, then the
-  import calculator above it (16.10, `import_cost.dart`, `import_cost_text.dart`, `ImportCostCard`;
+  import calculator above it; also on every listing with a price, in
+  Mercado, against its asking price, the engine size filled in
+  (`ImportComparison.listing`) (16.10, `import_cost.dart`, `import_cost_text.dart`, `ImportCostCard`;
   app only, the foreign price typed by the person): price + ISV (Tabela
   C by engine size, `isvBands`, without the used-vehicle reduction; **check
   every January** with `iucBands`) + legalisation (inspection 95 €,

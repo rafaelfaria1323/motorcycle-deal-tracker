@@ -1025,5 +1025,8 @@
   "importCostNote": "Rules of thumb for {year}: inspection, registration and plates about {legalisation}. The ISV is the motorcycle table's, without the reduction for used bikes, which can only lower it. Without the certificate of conformity (COC), add its cost.",
   "importPageTitle": "Buy abroad",
   "importPageSubtitle": "Is it worth bringing a bike from Spain, France or Germany?",
-  "importPageIntro": "Choose the model, year and mileage of the bike you saw abroad and tap Calculate: we work out what the same bike is worth here. Then enter its price there to see what bringing it costs and whether it pays off."
+  "importPageIntro": "Choose the model, year and mileage of the bike you saw abroad and tap Calculate: we work out what the same bike is worth here. Then enter its price there to see what bringing it costs and whether it pays off.",
+  "importCostIntroAd": "Seen the same bike in Spain, France or Germany? Enter its price there: we add the vehicle tax (ISV), the legalisation and the transport and compare it with this listing's price.",
+  "importCostCheaperThanAd": "This listing asks {asking}: bringing it saves {saving} ({percent})",
+  "importCostDearerThanAd": "This listing asks {asking}: bringing it costs {extra} more"
 }

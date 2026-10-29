@@ -7,19 +7,26 @@ import '../import_cost_text.dart';
 
 /// "E se a comprar no estrangeiro?": the same bike seen in Spain, France
 /// or Germany, its price there and engine size, gives its cost on the road
-/// here against [estimate], the value of the bike here (null with too few
-/// listings). Worked out as the owner types; nothing is saved.
+/// here against [estimate]: the value of the bike here (null with too few
+/// listings) or, [against] a listing, its asking price. Worked out as the
+/// person types; nothing is saved.
 class ImportCostCard extends StatefulWidget {
   const ImportCostCard({
     required this.estimate,
     required this.year,
     required this.mileage,
+    this.against = ImportComparison.value,
+    this.engineCc,
     super.key,
   });
 
   final double? estimate;
-  final int year;
+  final int? year;
   final int? mileage;
+  final ImportComparison against;
+
+  /// The model's engine size, filled in for the person (it can be changed).
+  final int? engineCc;
 
   @override
   State<ImportCostCard> createState() => _ImportCostCardState();
@@ -27,7 +34,9 @@ class ImportCostCard extends StatefulWidget {
 
 class _ImportCostCardState extends State<ImportCostCard> {
   final _price = TextEditingController();
-  final _engineCc = TextEditingController();
+  late final _engineCc = TextEditingController(
+    text: widget.engineCc?.toString() ?? '',
+  );
   final _transport = TextEditingController();
   ImportCountry _country = ImportCountry.spain;
 
@@ -82,7 +91,10 @@ class _ImportCostCardState extends State<ImportCostCard> {
       title: strings.importCostTitle,
       footnote: importCostNote(language: context.language),
       children: [
-        Text(strings.importCostIntro),
+        Text(switch (widget.against) {
+          ImportComparison.value => strings.importCostIntro,
+          ImportComparison.listing => strings.importCostIntroAd,
+        }),
         const SizedBox(height: 16),
         Padding(
           padding: const EdgeInsets.only(bottom: 12),
@@ -126,6 +138,7 @@ class _ImportCostCardState extends State<ImportCostCard> {
             year: widget.year,
             mileage: widget.mileage,
             now: DateTime.now(),
+            against: widget.against,
             language: context.language,
           ))
             BulletLine(line.text, icon: _icons[line.kind]),

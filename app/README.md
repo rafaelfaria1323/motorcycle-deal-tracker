@@ -106,7 +106,10 @@ Screen names below use the Portuguese labels; English provides the same screens.
     price sits among the model's live listings, and about how many days
     this ad has left on the market, from the model's ads at a similar
     price), the price history, the
-    comparison with a new one, "Custo de ter esta mota" (yearly cost:
+    comparison with a new one, "E se a comprar no estrangeiro?" (the
+    same bike's price in Spain, France or Germany, the engine size
+    filled in, plus ISV, legalisation and transport, against this ad's
+    price), "Custo de ter esta mota" (yearly cost:
     depreciation, IUC, your insurance, tyres, services, chain; "Alterar"
     sets your insurance, km per year and years to keep, saved to your
     account).

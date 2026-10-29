@@ -75,6 +75,42 @@ void main() {
     expect(lines[2].text, contains('IVA'));
   });
 
+  test("against a listing's asking price; no year, no VAT line", () {
+    final cheaper = importCostLines(
+      cost,
+      estimate: 7000,
+      year: null,
+      mileage: null,
+      now: now,
+      against: ImportComparison.listing,
+    );
+    expect(cheaper.map((l) => l.kind), [
+      ImportLineKind.cost,
+      ImportLineKind.comparison,
+    ]);
+    expect(
+      cheaper[1].text,
+      'Este anúncio pede ${price(7000)}: trazê-la poupa '
+      '${price(7000 - cost.total)} '
+      '(${Formatters.percent((7000 - cost.total) / 7000 * 100)})',
+    );
+    final dearer = importCostLines(
+      cost,
+      estimate: 6000,
+      year: 2021,
+      mileage: 20000,
+      now: now,
+      against: ImportComparison.listing,
+      language: AppLanguage.english,
+    );
+    expect(
+      dearer[1].text,
+      'This listing asks ${Formatters.price(6000, language: AppLanguage.english)}: '
+      'bringing it costs '
+      '${Formatters.price(cost.total - 6000, language: AppLanguage.english)} more',
+    );
+  });
+
   test('English, and the note', () {
     final lines = importCostLines(
       cost,
