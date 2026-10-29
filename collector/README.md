@@ -67,7 +67,10 @@ with the code `learned`. About 8 s for 300 marks; nothing when unchanged.
 Then the ads someone asked to examine in full (P.4,
 `listings_awaiting_photo_exam`, 3 a run, `maxExamsPerRun`) go first:
 up to 30 photos each (`photosPerExam`) shown to the model, only the first
-3 fingerprinted; `finish_photo_exams` marks them done.
+3 fingerprinted; `finish_photo_exams` marks them done, and each account
+that asked is told on its devices (P.7, `photo_exam_answers`,
+`tellPhotoExams`). A request starts `photos.yml` at once, so it is not
+left for the next collection.
 
 Alerts dismissed in the app keep their event history. The owner-checked
 `dismiss_alert` RPC sets `dismissed_at` and marks them read and handled
@@ -151,18 +154,17 @@ remain operational messages. There is no translation service or AI.
 | `make collect-dry` / `collect SOURCE=... FILE=...` | Import saved pages or a JSON file |
 | `make enrich-dry` / `enrich` | Standvirtual listing details |
 | `make photos-dry` / `photos [ARGS=--max=50]` | Photo fingerprints of new listings (photo CDN, 5 minutes), and their damage hints with `PHOTO_MODEL_DIR` set |
-| `make notify-test` | Send a test message to Telegram |
 | `make push-test` | Send a test notification (Web Push) to the admins' devices (`push-test.yml` from the app: to the asking account's; `PUSH_KIND=price_reduction` etc. sends an example of that notification, `pushTestKinds`) |
 | `make weekly-summary [ARGS=--dry-run]` | Make and send (or print) each account's summary of the week |
 | `make collector-check` | Format check, analyze and test |
 
 Secrets go in `collector/.env` (gitignored): `SUPABASE_URL`,
-`SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`.
+`SUPABASE_SERVICE_ROLE_KEY`.
 
 ## Code layout
 
 ```text
-bin/        entry points (refresh, fetch, collector, enrich, photos, searches, report_run, notify_test, weekly_summary)
+bin/        entry points (refresh, fetch, collector, enrich, photos, searches, report_run, push_test, weekly_summary)
 lib/        fetcher, site adapters and mappers, model matching, store, run steps
 test/       unit tests
 samples/    small listing files for trying `make collect` by hand

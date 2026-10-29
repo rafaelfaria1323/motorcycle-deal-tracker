@@ -4,7 +4,6 @@ import 'package:supabase/supabase.dart';
 
 import '../config/supabase_config.dart';
 import '../fetch/polite_fetcher.dart';
-import '../notify/telegram_notifier.dart';
 
 /// What a command prints and exits with (sysexits codes) when it stops on
 /// [error]; null for anything unexpected, which should crash with its
@@ -31,7 +30,6 @@ import '../notify/telegram_notifier.dart';
     message: 'Invalid input: $message',
     code: 65,
   ),
-  NotifyFailed() => (message: 'Not sent: $error', code: 69),
   _ => null,
 };
 

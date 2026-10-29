@@ -1,0 +1,15 @@
+name: Collector
+description: >
+  The Dart SDK and the collector's dependencies, the start of every
+  workflow that runs the collector (after actions/checkout).
+
+runs:
+  using: composite
+  steps:
+    - uses: dart-lang/setup-dart@v1
+      with:
+        sdk: stable
+
+    - name: Install collector dependencies
+      shell: bash
+      run: cd collector && dart pub get

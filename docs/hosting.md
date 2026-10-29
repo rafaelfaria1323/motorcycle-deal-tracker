@@ -169,8 +169,9 @@ Every hour (minute 20) the pg_cron job `collection-watchdog` checks the
 last recorded run. When none started in 9 hours (an expired token, for
 example) it sends a Telegram message, again once a day while it lasts,
 and "As recolhas de anúncios voltaram a começar" after the next run. It
-needs the bot's token and chat id in the Vault too (the same values as the
-`TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` repository secrets), saved once
+needs the bot's token and chat id in the Vault (the only place they are
+used: the collector no longer sends to Telegram, so the repository secrets
+`TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` can be deleted), saved once
 in the SQL Editor:
 
 ```sql
@@ -297,7 +298,7 @@ update `collector/.env` if you run the collector there.
 | GitHub dispatch token | Vault `github_dispatch_token` | See "Scheduled runs" above: new fine-grained token, `vault.update_secret`, check with `select public.dispatch_workflow('collect.yml');` (or "Recolher agora" in Mais), then delete the old token in GitHub. |
 | Supabase secret key | Repository secret `SUPABASE_SERVICE_ROLE_KEY`; the collector copies it into Vault `service_role_key` on each run (invites use it) | Supabase › Project Settings › API Keys › Secret keys: create a new one, put it in the repository secret, run "Collect listings" (Actions › Run workflow), check the run is green and an invite can be made, then delete the old key. A project still on the legacy `service_role` JWT can't replace it alone (a new JWT secret also changes the publishable key and signs everyone out): move to the new API keys first (the same page). |
 | Database password | Repository secret `SUPABASE_DB_PASSWORD` (migrations) | Supabase › Project Settings › Database › Reset database password, then the repository secret. Check with "Deploy web app" › Run workflow (the `migrate` job connects even when nothing is missing). |
-| Telegram bot token | Repository secret `TELEGRAM_BOT_TOKEN` and Vault `telegram_bot_token` | In Telegram, @BotFather › `/revoke` › the bot: the old token stops at once, so put the new one in both places straight away. Check with `select public.send_telegram('Teste');`. The chat id never changes. |
+| Telegram bot token | Vault `telegram_bot_token` | In Telegram, @BotFather › `/revoke` › the bot: the old token stops at once, so put the new one in the Vault straight away (`vault.update_secret`). Check with `select public.send_telegram('Teste');`. The chat id never changes. |
 | Cloudflare API token | Repository secret `CLOUDFLARE_API_TOKEN` | Cloudflare › My Profile › API Tokens › the token › "Roll", then the repository secret; check with "Deploy web app" › Run workflow. |
 | Firebase service account | Repository secret `FIREBASE_SERVICE_ACCOUNT` | Firebase › Project settings › Service accounts › "Generate new private key", paste it as the secret, delete the file; check with "Enviar notificação de teste" in the Android app; then delete the old key in Google Cloud › IAM › Service accounts › the account › Keys. `FIREBASE_ANDROID_CONFIG` is not a secret worth replacing (it is inside every APK). |
 | Claude token | Repository secret `CLAUDE_CODE_OAUTH_TOKEN` (backlog passes) | `claude setup-token` on the Mac, paste it as the secret (these tokens last a year, so this one also has its own date). |

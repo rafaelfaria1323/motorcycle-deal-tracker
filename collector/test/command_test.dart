@@ -95,7 +95,6 @@ void main() {
         66,
       ),
       const FormatException('bad JSON'): ('Invalid input: bad JSON', 65),
-      const NotifyFailed('HTTP 502'): ('Not sent: ', 69),
     };
     for (final MapEntry(key: error, value: (prefix, code)) in cases.entries) {
       final failure = describeFailure(error);

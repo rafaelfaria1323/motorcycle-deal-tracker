@@ -16,7 +16,7 @@ PYTHON ?= python3
 # Local secrets for the collector (not committed). GitHub Actions has no such
 # file and uses its repository secrets instead.
 -include collector/.env
-export SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY TELEGRAM_BOT_TOKEN TELEGRAM_CHAT_ID
+export SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY
 ifeq ($(SOURCE),standvirtual)
 DEFAULT_INPUT := samples/standvirtual
 else ifeq ($(SOURCE),standvirtual-search)
@@ -78,9 +78,6 @@ fetch-dry: searches ## Check the search addresses and limits, requests nothing: 
 
 fetch: searches ## Download the search pages, slowly and capped: make fetch [SITE=olx]
 	cd collector && dart run bin/fetch.dart $(SITE) .searches.$(SITE).txt $(ARGS)
-
-notify-test: require-collector-env ## Send a test message to Telegram
-	cd collector && dart run bin/notify_test.dart
 
 push-test: require-collector-env ## Send a test notification to the admins' devices (Web Push)
 	cd collector && dart run bin/push_test.dart

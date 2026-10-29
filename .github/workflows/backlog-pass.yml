@@ -1,6 +1,7 @@
-name: Backlog pass
+name: Backlog pass (shared, runs inside Code quality and Test hardening)
 
-# Shared by code-quality.yml and test-hardening.yml. Each run of a backlog
+# Shared by code-quality.yml and test-hardening.yml, which call it: its
+# runs are theirs, so the Actions tab lists this one with none of its own. Each run of a backlog
 # does ONE of two things:
 # - "To do" has items: Claude does up to 3 of them (fewer if fewer are
 #   left) and opens a PR with the changes. It does not look for new items.
