@@ -44,6 +44,7 @@ import 'package:motorcycle_deal_tracker/features/settings/domain/home_repository
 import 'package:motorcycle_deal_tracker/features/settings/domain/language_repository.dart';
 import 'package:motorcycle_deal_tracker/features/settings/domain/place.dart';
 import 'package:motorcycle_deal_tracker/features/settings/domain/push_repository.dart';
+import 'package:motorcycle_deal_tracker/features/settings/domain/quiet_hours.dart';
 import 'package:motorcycle_deal_tracker/features/settings/presentation/more_page.dart';
 import 'package:motorcycle_deal_tracker/features/settings/presentation/language_cubit.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -509,6 +510,9 @@ class _Home implements HomeRepository {
 class _Push implements PushRepository {
   @override
   Future<String?> publicKey() async => null;
+
+  @override
+  Future<QuietHours> quietHours() async => QuietHours.standard;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

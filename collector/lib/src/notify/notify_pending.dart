@@ -18,19 +18,24 @@ const pushRetryWindow = Duration(hours: 24);
 /// device. A device that no longer exists is forgotten; one whose push
 /// failed is not tried again this run (its push service is down or asks
 /// us to slow down, and each try can wait 45 s), so its alerts wait.
+/// Alerts of accounts in their quiet hours at [now] are not read: they go
+/// with the first run after.
 Future<({int alerts, int pushes})> notifyPending(
   ListingStore store, {
   WebPushSender? push,
   DateTime? now,
 }) async {
   if (push == null) return (alerts: 0, pushes: 0);
-  final pending = await store.pendingNotifications(limit: pendingPerRun);
+  final at = now ?? DateTime.now();
+  final pending = await store.pendingNotifications(
+    limit: pendingPerRun,
+    at: at,
+  );
   if (pending.isEmpty) return (alerts: 0, pushes: 0);
   final devices = await store.pushTargets();
   final languages = await store.accountLanguages(
     pending.map((alert) => alert.userId).whereType<String>().toSet().toList(),
   );
-  final at = now ?? DateTime.now();
 
   final sent = <String>[];
   final reached = <String>{};

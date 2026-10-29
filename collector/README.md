@@ -37,7 +37,9 @@ For each site (Standvirtual, OLX):
 Then, once for both sites: find duplicates, recalculate the scores,
 generate the alerts and send the new ones to each account's devices (Web
 Push; the Android app's through Firebase Cloud Messaging, `notify/fcm.dart`,
-with the service account in env `FIREBASE_SERVICE_ACCOUNT`). Last, it answers
+with the service account in env `FIREBASE_SERVICE_ACCOUNT`); the alerts of an
+account in its quiet hours (23:00 to 08:00 Lisbon time unless it changed
+them) wait for the first run after. Last, it answers
 the "Quanto vale a minha mota" requests whose model this run collected
 (`answer_bike_value_requests`) and pushes each value to the asker's
 devices (`notify/bike_value_push.dart`).
@@ -94,7 +96,8 @@ and pause from its fetch state file, how long the scores took
 in the app's "Estado da recolha") and, when its status differs from the previous run's (ok, partial, blocked, failed),
 sends one notification to the admins' devices (Web Push; a tap opens
 "Estado da recolha"): what went wrong on which site
-(`notify/run_health.dart`), or that the collection works again. The same
+(`notify/run_health.dart`; a job that stopped before the collector
+started, with no log, says nothing was collected), or that the collection works again. The same
 problem is not repeated on every run. A run is `partial` when its only
 problems were passing fetch failures (`Failed:` lines: a timeout or server
 error after the retry, and the pages they left unread; or one page the site

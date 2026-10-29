@@ -4,6 +4,7 @@ import '../../../app/di/injection.dart';
 import '../../../core/platform/push.dart';
 import '../../../core/widgets/show_message.dart';
 import '../domain/push_repository.dart';
+import '../domain/quiet_hours.dart';
 import '../domain/workflows_repository.dart';
 import 'push_text.dart';
 import 'start_workflow.dart';
@@ -13,7 +14,8 @@ import '../../../core/localization/localizations.dart';
 /// "Notificações neste aparelho" in Mais: the account's alerts as
 /// notifications on this phone or computer (Web Push). When they are on,
 /// a test notification or the weekly summary can be asked for now (sent by
-/// the collector, so it checks the whole path to the device).
+/// the collector, so it checks the whole path to the device). Signed-in
+/// accounts also set their quiet hours here (all their devices).
 class PushTile extends StatefulWidget {
   const PushTile({required this.signedIn, super.key});
 
@@ -28,6 +30,11 @@ class _PushTileState extends State<PushTile> {
   PushState? _state;
   bool _busy = false;
 
+  /// The account's quiet hours; null while loading or when they could not
+  /// be read ([_quietFailed]).
+  QuietHours? _quiet;
+  bool _quietFailed = false;
+
   /// The workflow being started from here (test, weekly summary).
   AppWorkflow? _starting;
 
@@ -39,6 +46,34 @@ class _PushTileState extends State<PushTile> {
   void initState() {
     super.initState();
     _load();
+    if (widget.signedIn) _loadQuiet();
+  }
+
+  Future<void> _loadQuiet() async {
+    if (_quietFailed) setState(() => _quietFailed = false);
+    try {
+      final hours = await _repository.quietHours();
+      if (mounted) setState(() => _quiet = hours);
+    } on Object catch (_) {
+      if (mounted) setState(() => _quietFailed = true);
+    }
+  }
+
+  Future<void> _editQuiet(QuietHours current) async {
+    final messageStrings = context.strings;
+    final messenger = ScaffoldMessenger.of(context);
+    final hours = await showDialog<QuietHours>(
+      context: context,
+      builder: (_) => _QuietHoursDialog(current),
+    );
+    if (hours == null || hours == current) return;
+    try {
+      await _repository.saveQuietHours(hours);
+    } on Object catch (_) {
+      showMessage(messenger, messageStrings.couldNotSaveTryAgain);
+      return;
+    }
+    if (mounted) setState(() => _quiet = hours);
   }
 
   Future<void> _load() async {
@@ -172,6 +207,27 @@ class _PushTileState extends State<PushTile> {
             onChanged: enabled ? _set : null,
           ),
         ),
+        if (widget.signedIn) ...[
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(Icons.bedtime_outlined),
+            title: Text(context.strings.quietHours),
+            subtitle: Text(switch (_quiet) {
+              final hours? => quietHoursSubtitle(
+                hours,
+                language: context.language,
+              ),
+              null when _quietFailed => context.strings.couldNotLoad,
+              null => context.strings.checking,
+            }),
+            trailing: const Icon(Icons.chevron_right),
+            enabled: _quiet != null || _quietFailed,
+            onTap: switch (_quiet) {
+              final hours? => () => _editQuiet(hours),
+              null => _loadQuiet,
+            },
+          ),
+        ],
         if (widget.signedIn && state == PushState.on)
           for (final (workflow, icon) in const [
             (AppWorkflow.pushTest, Icons.send_outlined),
@@ -196,6 +252,96 @@ class _PushTileState extends State<PushTile> {
               onTap: () => _send(workflow),
             ),
           ],
+      ],
+    );
+  }
+}
+
+/// Quiet hours: on or off, and from which hour to which (Portugal time).
+class _QuietHoursDialog extends StatefulWidget {
+  const _QuietHoursDialog(this.initial);
+
+  final QuietHours initial;
+
+  @override
+  State<_QuietHoursDialog> createState() => _QuietHoursDialogState();
+}
+
+class _QuietHoursDialogState extends State<_QuietHoursDialog> {
+  late QuietHours _hours = widget.initial;
+
+  Widget _hour(String label, int value, ValueChanged<int> onChanged) =>
+      DropdownButtonFormField<int>(
+        initialValue: value,
+        isExpanded: true,
+        decoration: InputDecoration(labelText: label),
+        items: [
+          for (var hour = 0; hour < 24; hour++)
+            DropdownMenuItem(value: hour, child: Text(quietHourText(hour))),
+        ],
+        onChanged: _hours.enabled
+            ? (hour) {
+                if (hour != null) onChanged(hour);
+              }
+            : null,
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(context.strings.quietHours),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(context.strings.quietHoursSwitch),
+              value: _hours.enabled,
+              onChanged: (on) =>
+                  setState(() => _hours = _hours.copyWith(enabled: on)),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: _hour(
+                    context.strings.quietHoursFrom,
+                    _hours.startHour,
+                    (hour) => setState(
+                      () => _hours = _hours.copyWith(startHour: hour),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _hour(
+                    context.strings.quietHoursTo,
+                    _hours.endHour,
+                    (hour) =>
+                        setState(() => _hours = _hours.copyWith(endHour: hour)),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(context.strings.quietHoursHelp),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(context.strings.cancel),
+        ),
+        FilledButton(
+          // The database refuses equal hours (no quiet time at all).
+          onPressed: _hours.startHour == _hours.endHour
+              ? null
+              : () => Navigator.of(context).pop(_hours),
+          child: Text(context.strings.save),
+        ),
       ],
     );
   }

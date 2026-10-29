@@ -5827,5 +5827,41 @@
         "type": "String"
       }
     }
+  },
+  "quietHours": "Horas de silêncio",
+  "@quietHours": {
+    "description": "Interface text in push_tile / push_text, quiet hours."
+  },
+  "quietHoursOn": "Das {start} às {end} (hora de Portugal): os alertas esperam e chegam com a recolha seguinte",
+  "@quietHoursOn": {
+    "description": "Interface text in push_tile / push_text, quiet hours.",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "quietHoursOff": "Desligadas: os alertas chegam a qualquer hora",
+  "@quietHoursOff": {
+    "description": "Interface text in push_tile / push_text, quiet hours."
+  },
+  "quietHoursSwitch": "Não enviar alertas a estas horas",
+  "@quietHoursSwitch": {
+    "description": "Interface text in push_tile / push_text, quiet hours."
+  },
+  "quietHoursFrom": "Das",
+  "@quietHoursFrom": {
+    "description": "Interface text in push_tile / push_text, quiet hours."
+  },
+  "quietHoursTo": "Às",
+  "@quietHoursTo": {
+    "description": "Interface text in push_tile / push_text, quiet hours."
+  },
+  "quietHoursHelp": "Vale para todos os seus aparelhos. Só os alertas esperam; os avisos da recolha e os testes chegam logo.",
+  "@quietHoursHelp": {
+    "description": "Interface text in push_tile / push_text, quiet hours."
   }
 }

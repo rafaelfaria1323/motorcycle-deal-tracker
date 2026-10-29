@@ -1028,5 +1028,12 @@
   "importPageIntro": "Choose the model, year and mileage of the bike you saw abroad and tap Calculate: we work out what the same bike is worth here. Then enter its price there to see what bringing it costs and whether it pays off.",
   "importCostIntroAd": "Seen the same bike in Spain, France or Germany? Enter its price there: we add the vehicle tax (ISV), the legalisation and the transport and compare it with this listing's price.",
   "importCostCheaperThanAd": "This listing asks {asking}: bringing it saves {saving} ({percent})",
-  "importCostDearerThanAd": "This listing asks {asking}: bringing it costs {extra} more"
+  "importCostDearerThanAd": "This listing asks {asking}: bringing it costs {extra} more",
+  "quietHours": "Quiet hours",
+  "quietHoursOn": "From {start} to {end} (Portugal time): alerts wait and arrive with the next collection",
+  "quietHoursOff": "Off: alerts arrive at any time",
+  "quietHoursSwitch": "Don't send alerts during these hours",
+  "quietHoursFrom": "From",
+  "quietHoursTo": "To",
+  "quietHoursHelp": "This applies to all your devices. Only alerts wait; collection warnings and tests arrive at once."
 }

@@ -511,12 +511,19 @@ class ListingStore {
     return _count(result);
   }
 
-  /// Alerts of real accounts not pushed yet, oldest first.
-  Future<List<PendingAlert>> pendingNotifications({int limit = 20}) async {
+  /// Alerts of real accounts not pushed yet, oldest first. With [at],
+  /// those of accounts in their quiet hours then are left out (they wait).
+  Future<List<PendingAlert>> pendingNotifications({
+    int limit = 20,
+    DateTime? at,
+  }) async {
     final rows =
         await _client.rpc<Object?>(
               'pending_notifications',
-              params: {'p_limit': limit},
+              params: {
+                'p_limit': limit,
+                if (at != null) 'p_at': at.toUtc().toIso8601String(),
+              },
             )
             as List<dynamic>;
     return [
