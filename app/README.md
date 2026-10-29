@@ -153,10 +153,10 @@ Screen names below use the Portuguese labels; English provides the same screens.
   the next collection, from its year and km: the market value and its
   range, adjusted to its condition when you say it (falls or accidents,
   owners, service book, warranty), the price to ask, the time to sell
-  and a dealer's trade-in; then "E se a comprar no estrangeiro?": the
-  same bike's price in Spain, France or Germany plus vehicle tax (ISV),
-  legalisation and transport, against its value here; your last requests
-  below), the collection status (last run, what it found, requests, next run; admins: "Estado da recolha" with the last runs, their errors and how long the scores took, the last 30 days' failures by site and cause, each site's requests today and pause, each search's pages read and ads found in the last run, the GitHub token's expiry and the database's size against the free plan's 500 MB, "Recolher agora") and data quality
+  and a dealer's trade-in; your last requests below), "Comprar no
+  estrangeiro" (the same form for a bike seen in Spain, France or
+  Germany: its price there plus vehicle tax (ISV), legalisation and
+  transport, against its value here), the collection status (last run, what it found, requests, next run; admins: "Estado da recolha" with the last runs, their errors and how long the scores took, the last 30 days' failures by site and cause, each site's requests today and pause, each search's pages read and ads found in the last run, the GitHub token's expiry and the database's size against the free plan's 500 MB, "Recolher agora") and data quality
   per site (live listings, unmatched, duplicates, missing year/km/location,
   when listings were last seen, sudden price changes).
 

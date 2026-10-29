@@ -1022,5 +1022,8 @@
   "importCostDearer": "Here, the same bike is worth about {estimate}: bringing it costs {extra} more",
   "importCostNoEstimate": "There are still too few listings of this model here to compare",
   "importCostVat": "Under 6 months or 6,000 km it counts as new: you also pay VAT here (23 %), even bought from a private seller",
-  "importCostNote": "Rules of thumb for {year}: inspection, registration and plates about {legalisation}. The ISV is the motorcycle table's, without the reduction for used bikes, which can only lower it. Without the certificate of conformity (COC), add its cost."
+  "importCostNote": "Rules of thumb for {year}: inspection, registration and plates about {legalisation}. The ISV is the motorcycle table's, without the reduction for used bikes, which can only lower it. Without the certificate of conformity (COC), add its cost.",
+  "importPageTitle": "Buy abroad",
+  "importPageSubtitle": "Is it worth bringing a bike from Spain, France or Germany?",
+  "importPageIntro": "Choose the model, year and mileage of the bike you saw abroad and tap Calculate: we work out what the same bike is worth here. Then enter its price there to see what bringing it costs and whether it pays off."
 }

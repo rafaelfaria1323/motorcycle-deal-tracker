@@ -148,6 +148,10 @@ final appRouter = GoRouter(
           BikeValuePage(requestId: state.uri.queryParameters['request']),
     ),
     GoRoute(
+      path: AppRoutes.importBike,
+      builder: (context, state) => const BikeValuePage(importing: true),
+    ),
+    GoRoute(
       path: AppRoutes.favourites,
       builder: (context, state) {
         // Opened directly (a reload), the shell has not loaded them yet.

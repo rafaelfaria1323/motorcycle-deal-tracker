@@ -22,16 +22,21 @@ import '../widgets/import_cost_card.dart';
 import '../widgets/tracked_models_builder.dart';
 
 /// "Quanto vale a minha mota": the market value of a bike, the price to
-/// ask for it, a dealer's trade-in and what the same bike costs bought
-/// abroad ([ImportCostCard]). Anonymous sessions value the
+/// ask for it and a dealer's trade-in. Anonymous sessions value the
 /// collected models; accounts value any make and model: one nobody
 /// collects yet is asked for, collected at the next collection, and
 /// answered with a notification ([requestId] opens that answer).
+/// With [importing] ("Comprar no estrangeiro", `/import`) the same value
+/// is what a bike seen abroad is weighed against ([ImportCostCard], shown
+/// first).
 class BikeValuePage extends StatefulWidget {
-  const BikeValuePage({this.requestId, super.key});
+  const BikeValuePage({this.requestId, this.importing = false, super.key});
 
   /// The request to show (`/worth?request=<id>`, from the notification).
   final String? requestId;
+
+  /// Whether the page is "Comprar no estrangeiro".
+  final bool importing;
 
   /// The oldest year the form takes (as request_bike_value).
   static const firstYear = 1990;
@@ -276,7 +281,11 @@ class _BikeValuePageState extends State<BikeValuePage> {
     return Scaffold(
       appBar: AppBar(
         leading: const PageBackButton(),
-        title: Text(context.strings.bikeValueTitle),
+        title: Text(
+          widget.importing
+              ? context.strings.importPageTitle
+              : context.strings.bikeValueTitle,
+        ),
       ),
       body: TrackedModelsBuilder(
         future: _models,
@@ -287,11 +296,11 @@ class _BikeValuePageState extends State<BikeValuePage> {
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
             children: [
-              Text(
-                _signedIn
-                    ? context.strings.bikeValueIntroAnyModel
-                    : context.strings.bikeValueIntro,
-              ),
+              Text(switch ((widget.importing, _signedIn)) {
+                (true, _) => context.strings.importPageIntro,
+                (false, true) => context.strings.bikeValueIntroAnyModel,
+                (false, false) => context.strings.bikeValueIntro,
+              }),
               const SizedBox(height: 16),
               _formFields(context, choices),
               const SizedBox(height: 16),
@@ -511,17 +520,17 @@ class _BikeValuePageState extends State<BikeValuePage> {
             ),
           ),
         );
-        if (value == null) return card;
+        if (value == null || !widget.importing) return card;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            card,
-            const SizedBox(height: 16),
             ImportCostCard(
               estimate: conditionEstimate(value, _condition),
               year: outcome.year,
               mileage: outcome.mileage,
             ),
+            const SizedBox(height: 16),
+            card,
           ],
         );
       },

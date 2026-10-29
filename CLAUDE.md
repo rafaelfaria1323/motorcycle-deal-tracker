@@ -333,7 +333,7 @@ invites; written by the collector on each run).
 - Routing: go_router `StatefulShellRoute` (Ofertas / Pesquisas / Alertas /
   Mais). Account, "Modelos acompanhados" and collection status live in Mais.
   Switching tabs uses `context.go`; full pages outside the shell
-  (`/models`, `/market`, `/worth`, `/favourites`, `/compare?ids=a,b,c`,
+  (`/models`, `/market`, `/worth`, `/import`, `/favourites`, `/compare?ids=a,b,c`,
   `/summary`)
   and an ad (`/deals/<id>`, from anywhere) are pushed, so back returns
   where the person was; pushed pages show their own address
@@ -845,8 +845,9 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   extra dispatch); `finishRun` answers it and pushes the value
   (`bike_value_push.dart`, opens `/worth?request=<id>`). pg_cron
   `expire-bike-value-models` (`29 3 * * *`) stops collecting such models
-  30 days after the last request. Below the value, the import calculator
-  (16.10, `import_cost.dart`, `import_cost_text.dart`, `ImportCostCard`;
+  30 days after the last request. Mais › "Comprar no estrangeiro"
+  (`/import`, the same page with `importing`): the same value, then the
+  import calculator above it (16.10, `import_cost.dart`, `import_cost_text.dart`, `ImportCostCard`;
   app only, the foreign price typed by the person): price + ISV (Tabela
   C by engine size, `isvBands`, without the used-vehicle reduction; **check
   every January** with `iucBands`) + legalisation (inspection 95 €,

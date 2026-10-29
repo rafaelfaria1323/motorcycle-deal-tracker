@@ -5784,5 +5784,17 @@
         "type": "String"
       }
     }
+  },
+  "importPageTitle": "Comprar no estrangeiro",
+  "@importPageTitle": {
+    "description": "Interface text in bike_value_page / more_page (16.10)."
+  },
+  "importPageSubtitle": "Compensa trazer uma mota de Espanha, França ou Alemanha?",
+  "@importPageSubtitle": {
+    "description": "Interface text in bike_value_page / more_page (16.10)."
+  },
+  "importPageIntro": "Escolha o modelo, o ano e os quilómetros da mota que viu no estrangeiro e carregue em Calcular: vemos quanto vale uma igual cá. Depois indique o preço lá para saber quanto lhe custa trazê-la e se compensa.",
+  "@importPageIntro": {
+    "description": "Interface text in bike_value_page / more_page (16.10)."
   }
 }
