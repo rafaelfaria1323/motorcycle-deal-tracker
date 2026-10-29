@@ -858,11 +858,16 @@ every photo examined, only the first 3 fingerprinted; then
   never change, the app's `extraLabels` and the saved-search check list the
   same). Extras are a bonus, not a slice: as a slice they lowered good
   scores. Without the price slice the score is at most 70
-  (`capped_without_price`); with an accident or a repair in the text
-  (`possible_accident`, `needs_repair`) at most 50 (`damage_cap`,
-  `capped_for_damage`: the estimate is of bikes without damage). Missing
-  slices are skipped.
-- Risk signals: price far below market, possible accident (text,
+  (`capped_without_price`). With an accident or a repair in the text
+  (`possible_accident`, `needs_repair`) the price slice and the risk's
+  price signals compare the price with the estimate less a repair
+  allowance (`damage_allowance`: accident 15 %, repair 10 %, both 20 %;
+  the breakdown's `damaged_value`, `pct_below_damaged_value`, while
+  `market_price` stays the undamaged estimate), and the score is at most
+  79 (`damage_cap`, `capped_for_damage`: never an excellent opportunity,
+  the damage is unseen). Missing slices are skipped.
+- Risk signals: price far below market (against the damaged value for
+  a damaged bike), possible accident (text,
   `mentions_accident`: also falls and knocks, "caiu", "foi ao chão", "teve
   um toque"; "nunca teve acidentes", "livre de sinistros", "macia ao
   toque", "o preço caiu" and insurance wording don't count), repairs or
@@ -914,9 +919,9 @@ every photo examined, only the first 3 fingerprinted; then
   drop, high risk; less after a drop and less by however far the asking
   price is already below the estimate; 1-10 %, and never under 90 % of the
   estimated value; a bike whose text tells of an accident or a repair
-  (`damageReasons`) gets +5 %, up to 15 %, its price below the estimate
-  takes nothing off and the estimate sets no floor (it is of bikes
-  without damage); scratches +2 %; rounded down to 50 €. The plan: the opening, one offer
+  (`damageReasons`) is judged against its `damaged_value` (ceiling,
+  "already below"), gets +5 %, up to 15 %, and that value sets no floor
+  (the real damage is unknown); scratches +2 %; rounded down to 50 €. The plan: the opening, one offer
   halfway ("Se recusar") and the ceiling as the last, each with a message
   to copy; "O vendedor pediu" answers a counter-offer (accept up to the
   second offer, propose halfway up to the ceiling, above it offer the

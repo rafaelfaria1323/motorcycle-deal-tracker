@@ -145,7 +145,8 @@ begin
 
   select * into r from public.risk_assessment(8000, 10000, this_year - 1, 5000,
     'Teve um acidente ligeiro.', 'Lisboa');
-  assert r.risk_score = 55 and r.reasons = array['possible_accident', 'price_below_market'],
+  -- 20 % below the undamaged value is only 5.9 % below the damaged one.
+  assert r.risk_score = 30 and r.reasons = array['possible_accident'],
     format('20 %% below and an accident, got %s %s', r.risk_score, r.reasons);
 
   -- The usual ways of saying there was no accident.

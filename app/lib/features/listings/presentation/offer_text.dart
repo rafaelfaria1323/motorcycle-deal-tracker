@@ -168,10 +168,10 @@ const maxMargin = 0.10;
 const maxBelowEstimate = 0.10;
 
 /// The text tells of an accident or a repair to do (the risk reasons that
-/// cap the Deal Score at 50): this much more room, up to
-/// [damagedMaxMargin]. The estimate is of bikes without damage, so a price
-/// below it is the damage, not a discount: it takes nothing off the room
-/// and the estimate sets no floor.
+/// cap the Deal Score at 79): the reference is the estimate less the
+/// database's repair allowance (`damaged_value`), with this much more room,
+/// up to [damagedMaxMargin]. The real damage is unknown, so the reference
+/// sets no floor.
 const damageMargin = 0.05;
 const damagedMaxMargin = 0.15;
 const damageReasons = {'possible_accident', 'needs_repair'};
@@ -216,12 +216,12 @@ OfferSuggestion? suggestOffer(
   AppLanguage language = AppLanguage.portuguese,
 }) {
   final price = listing.price;
-  final estimate = (listing.scoreBreakdown?['market_price'] as num?)
+  final undamaged = (listing.scoreBreakdown?['market_price'] as num?)
       ?.toDouble();
   if (price == null ||
       price < minRealPrice ||
-      estimate == null ||
-      estimate <= 0) {
+      undamaged == null ||
+      undamaged <= 0) {
     return null;
   }
   if (listing.isRemoved || listing.duplicateOf != null) return null;
@@ -233,16 +233,28 @@ OfferSuggestion? suggestOffer(
   final riskReasons =
       (listing.scoreBreakdown?['risk_reasons'] as List? ?? const []).toSet();
   final damaged = riskReasons.any(damageReasons.contains);
+  final damagedValue = (listing.scoreBreakdown?['damaged_value'] as num?)
+      ?.toDouble();
+  final allowance = (listing.scoreBreakdown?['damage_allowance'] as num?)
+      ?.toDouble();
+  final estimate = damaged && damagedValue != null && damagedValue > 0
+      ? damagedValue
+      : undamaged;
+  if (damaged && allowance != null && damagedValue != null) {
+    reasons.add(
+      language.messages.offerDamagedValue(
+        percent: Formatters.percent(allowance * 100, language: language),
+        price: Formatters.price(damagedValue, language: language),
+      ),
+    );
+  }
 
   // The most to pay: the asking price, or the estimated value when the
   // asking price is above it.
   final double ceiling;
   // How far below the estimate the asking price already is: the seller has
   // given that much already, so it comes off the room to negotiate.
-  // Not for a damaged bike: its lower price is the damage.
-  final alreadyBelow = price < estimate && !damaged
-      ? 1 - price / estimate
-      : 0.0;
+  final alreadyBelow = price < estimate ? 1 - price / estimate : 0.0;
   if (price > estimate * 1.02) {
     ceiling = _roundDown(estimate);
     reasons.add(
@@ -256,17 +268,7 @@ OfferSuggestion? suggestOffer(
     );
   } else {
     ceiling = _roundDown(price);
-    if (damaged && price < estimate * 0.98) {
-      reasons.add(
-        language.messages.askingPriceIsBelowEstimatedValueButThat(
-          percent: Formatters.percent(
-            (1 - price / estimate) * 100,
-            language: language,
-          ),
-          price: Formatters.price(estimate, language: language),
-        ),
-      );
-    } else if (price < estimate * 0.98) {
+    if (price < estimate * 0.98) {
       reasons.add(
         language.messages.offerAlreadyBelowEstimate(
           percent: Formatters.percent(alreadyBelow * 100, language: language),
@@ -379,7 +381,7 @@ OfferSuggestion? suggestOffer(
     0.01,
     damaged ? damagedMaxMargin : maxMargin,
   );
-  // The estimate is of bikes without damage: no floor from it.
+  // The damage is unknown: no floor from the reference.
   final floor = damaged
       ? offerStep
       : _roundDown(estimate * (1 - maxBelowEstimate));

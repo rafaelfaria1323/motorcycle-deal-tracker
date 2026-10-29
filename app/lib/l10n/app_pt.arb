@@ -2014,8 +2014,8 @@
       }
     }
   },
-  "askingPriceIsBelowEstimatedValueButThat": "O preço pedido está {percent} abaixo do valor estimado ({price}), mas esse valor é o de motas sem danos: a diferença é o dano, não um desconto.",
-  "@askingPriceIsBelowEstimatedValueButThat": {
+  "offerAlreadyBelowEstimate": "O preço pedido já está {percent} abaixo do valor estimado ({price}): há menos margem para negociar.",
+  "@offerAlreadyBelowEstimate": {
     "description": "Interface text in offer_text, suggestOffer.",
     "placeholders": {
       "percent": {
@@ -2026,8 +2026,8 @@
       }
     }
   },
-  "offerAlreadyBelowEstimate": "O preço pedido já está {percent} abaixo do valor estimado ({price}): há menos margem para negociar.",
-  "@offerAlreadyBelowEstimate": {
+  "offerDamagedValue": "O anúncio fala de danos ou reparações: o valor de referência é o estimado menos {percent} para a reparação ({price}). Peça um orçamento: se a reparação custar mais, desça a oferta.",
+  "@offerDamagedValue": {
     "description": "Interface text in offer_text, suggestOffer.",
     "placeholders": {
       "percent": {
@@ -3323,6 +3323,18 @@
       }
     }
   },
+  "damagedValueWithRepairAllowance": "O anúncio fala de danos ou reparações: o preço é comparado com o valor estimado menos {percent} para a reparação ({price})",
+  "@damagedValueWithRepairAllowance": {
+    "description": "Interface text in score_explanation, explain.",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "priceNotEnoughComparables": "Ainda poucos anúncios comparáveis ({marketCount}) para estimar o valor: o preço não conta",
   "@priceNotEnoughComparables": {
     "description": "Interface text in score_explanation, explain.",
@@ -3336,7 +3348,7 @@
   "@withoutPriceComparisonScoreIsCappedAt70": {
     "description": "Interface text in score_explanation, explain."
   },
-  "scoreCappedForDamage": "Com danos ou reparações por fazer, a pontuação fica no máximo em 50: o valor estimado é o de motas sem danos",
+  "scoreCappedForDamage": "Com danos ou reparações por fazer, a pontuação fica no máximo em 79: o dano não se vê nas fotos, por isso nunca é uma oportunidade excelente",
   "@scoreCappedForDamage": {
     "description": "Interface text in score_explanation, explain."
   },
