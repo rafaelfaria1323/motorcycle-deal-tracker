@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:motorcycle_deal_tracker/core/localization/app_language.dart';
 import 'package:motorcycle_deal_tracker/core/platform/push.dart';
+import 'package:motorcycle_deal_tracker/features/settings/domain/quiet_hours.dart';
 import 'package:motorcycle_deal_tracker/features/settings/presentation/push_text.dart';
 
 void main() {
@@ -52,5 +54,25 @@ void main() {
         auth: 'Auth',
       ),
     );
+  });
+
+  test('quiet hours say when alerts wait, in both languages', () {
+    expect(
+      quietHoursSubtitle(QuietHours.standard),
+      startsWith('Das 23:00 às 08:00 (hora de Portugal)'),
+    );
+    expect(
+      quietHoursSubtitle(
+        const QuietHours(enabled: true, startHour: 0, endHour: 9),
+        language: AppLanguage.english,
+      ),
+      startsWith('From 00:00 to 09:00 (Portugal time)'),
+    );
+    expect(
+      quietHoursSubtitle(QuietHours.standard.copyWith(enabled: false)),
+      startsWith('Desligadas'),
+    );
+    expect(quietHourText(8), '08:00');
+    expect(quietHourText(23), '23:00');
   });
 }

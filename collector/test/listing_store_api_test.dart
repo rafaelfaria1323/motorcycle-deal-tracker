@@ -181,7 +181,7 @@ void main() {
     ]);
     await store.setSearchKeys('olx', {'a': 's'});
     await store.generateAlerts();
-    await store.pendingNotifications(limit: 5);
+    await store.pendingNotifications(limit: 5, at: DateTime.utc(2026, 10, 29));
     await store.storeServiceAccess('https://x.supabase.co', 'key');
     await store.pushKeys();
     await store.answerBikeValues(DateTime.utc(2026, 10, 28));

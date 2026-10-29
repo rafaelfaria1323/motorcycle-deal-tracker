@@ -82,6 +82,12 @@ extension NotificationText on NotificationLanguage {
     '⚠️ A recolha de anúncios falhou duas vezes seguidas.',
     '⚠️ Listing collection failed twice in a row.',
   );
+  String get notStarted => _text(
+    'Parou antes de começar (ao preparar a execução no GitHub): nada foi '
+        'recolhido. Veja a execução em Estado da recolha.',
+    'It stopped before starting (while preparing the GitHub run): nothing '
+        'was collected. See the run in Collection status.',
+  );
   String get failedAdvice => _text(
     'Os preços na app podem ficar desatualizados até a recolha voltar a '
         'funcionar.',

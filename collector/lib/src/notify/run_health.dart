@@ -21,9 +21,11 @@ Map<String, Object?>? runHealthMessage(
   if (current == previous) return null;
   if (current == 'ok' && previous == null) return null;
   final again = current == 'failed' && runs.first.status == 'partial';
+  final notStarted = runs.first.problems.contains(noLogProblem);
   final (title, advice) = switch (current) {
     'ok' => (language.recovered, null),
     'blocked' => (language.blocked, language.blockedAdvice),
+    _ when notStarted => (language.failed, language.notStarted),
     _ => (
       again ? language.failedTwice : language.failed,
       language.failedAdvice,
@@ -31,7 +33,10 @@ Map<String, Object?>? runHealthMessage(
   };
   return {
     'title': title,
-    'body': [if (current != 'ok') ...runs.first.problems, ?advice].join('\n'),
+    'body': [
+      if (current != 'ok' && !notStarted) ...runs.first.problems,
+      ?advice,
+    ].join('\n'),
     'url': '/#/collection-status',
     'tag': 'run-health',
     'language': language.code,
@@ -70,12 +75,21 @@ const _problemMarks = [
   'Database error: ',
 ];
 
+/// The problem of a run that left no log: the job stopped before the
+/// collector started (installing Dart or its dependencies), so nothing
+/// was collected. Its notification says so instead of the usual advice.
+const noLogProblem =
+    'No run log: the job stopped before the collector started '
+    '(see the GitHub run).';
+
 /// What went wrong in a run, from refresh.dart's error lines, each with the
 /// site it happened on (`standvirtual: Failed: …`). Without any, the last
-/// line that is not make's own (an error before the sites started). At most
-/// [max] lines, each cut to [maxChars].
+/// line that is not make's own (an error before the sites started); with
+/// no log at all, [noLogProblem]. At most [max] lines, each cut to
+/// [maxChars].
 List<String> runProblems(String log, {int max = 5, int maxChars = 200}) {
   final lines = log.split('\n').map((l) => l.trim()).where((l) => l != '');
+  if (lines.isEmpty) return const [noLogProblem];
   final problems = <String>[];
   String? site;
   for (final line in lines) {

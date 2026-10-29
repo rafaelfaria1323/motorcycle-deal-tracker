@@ -133,16 +133,18 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   devices of whoever asked in the app; input
                                   `kind`: an example of one alert or
                                   collection message (`pushTestKinds`)
-.github/workflows/check.yml       On every pull request to main, three parallel
+.github/workflows/check.yml       On every pull request to main, four parallel
                                   jobs: app (`make app-analyze`, `dead-code`,
                                   `app-coverage`), smoke (`make app-smoke`,
                                   offline Chrome flow) and collector-db
                                   (migrations, `lint-scripts`, `collector-lint`,
                                   `collector-coverage`, `tool-check`,
                                   `duplication`, `sql-lint` with `db-test` on a
-                                  Postgres service); each test suite runs once,
+                                  Postgres service) and collector-setup (the
+                                  shared .github/actions/collector, then the
+                                  collector started); each test suite runs once,
                                   in its coverage target; the job `check` passes
-                                  only when all three did
+                                  only when all four did
 .github/workflows/preview-web.yml Every PR touching app/: the app built and
                                   published to pr-<number>.<project>.pages.dev,
                                   linked in one comment on the PR (real
@@ -506,7 +508,7 @@ invites; written by the collector on each run).
 - Table privileges: anon and authenticated have only `select` on public's
   tables (also tables made later: default privileges); authenticated writes
   only saved_searches, listing_favourites, user_home, ownership_settings,
-  inserts/updates its own listing_card_preferences and account_languages,
+  inserts/updates its own listing_card_preferences, account_languages and quiet_hours,
   deletes invites and push_subscriptions, and updates `alerts.read_at`
   (`20261024170000_tighten_api_grants.sql`, `api_grants_test.sql`). A new
   table the app writes needs its own `grant` (RLS still limits the rows);
@@ -1033,6 +1035,12 @@ several models (`motorcycle_ids`, empty: any; as Ofertas'
 `ListingFilters.motorcycleIds`), a maximum distance from the owner's home, equipment (`extras`, all
 required; `listing_extras` codes) and only the owner's colours of each
 model (`only_my_colours`); all in `saved_search_matches`.
+Quiet hours (`quiet_hours`, one owner-only row per account, none = on,
+23:00 to 08:00 Lisbon time; Mais › "Notificações neste aparelho" ›
+"Horas de silêncio"): `pending_notifications(p_limit, p_at)` leaves out
+the alerts of accounts in their quiet hours at `p_at` (the collector's
+time; null leaves nobody out, as the SQL tests use it), so they go with
+the first run after; only alerts wait, never the other pushes.
 `notified_at` marks alerts already sent (only real accounts; up to 200
 a run, oldest first; kept for the next run when the push keys can't be
 read, and while no device took a push that failed, for 24 h; older ones

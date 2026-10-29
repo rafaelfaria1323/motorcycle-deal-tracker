@@ -50,12 +50,17 @@ class _Store implements ListingStore {
   ) async => summaries[userId] = json;
 
   @override
-  Future<List<PendingAlert>> pendingNotifications({int limit = 20}) async {
+  Future<List<PendingAlert>> pendingNotifications({
+    int limit = 20,
+    DateTime? at,
+  }) async {
     limits.add(limit);
+    times.add(at);
     return pending;
   }
 
   final limits = <int>[];
+  final times = <DateTime?>[];
 
   @override
   Future<Map<String, List<PushTarget>>> pushTargets() async => devices;
@@ -131,6 +136,9 @@ void main() {
     ));
     expect(store.notified, ['a', 'b']);
     expect(store.limits, [pendingPerRun]);
+    expect(store.times, [
+      _now,
+    ], reason: "quiet hours are judged at the run's time");
   });
 
   test('without Web Push nothing is marked: the next run sends', () async {
