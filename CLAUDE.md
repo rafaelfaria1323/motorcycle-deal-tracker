@@ -811,7 +811,9 @@ every photo examined, only the first 3 fingerprinted; then
   clamped (0-15 %/year, 0-1 %/1000 km) and blended with the general rates
   (4 %/year, 0.2 %/1000 km) weighted by count; below 30 the general rates.
   The mileage rate is never below 0.5 %/1000 km (a buyer's minimum: asking
-  prices understate mileage). Comparables without year or mileage are left
+  prices understate mileage); the yearly rate is the best fit given the
+  mileage rate used (`(cov(year, ln p) + k cov(year, km)) / var(year)`), so
+  age isn't counted twice. Comparables without year or mileage are left
   out when the listing has them. The app says the estimate comes from
   asking prices.
   `bike_value(model, year, km)` applies the same rules to a bike of one's
@@ -838,7 +840,8 @@ every photo examined, only the first 3 fingerprinted; then
   at least one year's, age counted in days (`decimal_year`, so nothing
   jumps on 1 January) (`expected_mileage`); 100 up to half the normal, 75
   at it, 50 at 1.5x, 0 from 2.5x; no mileage but a year: 50; the app's
-  `mileageForAge` says the same in words, keep both in step), risk 10
+  `mileageForAge` says the same in words, keep both in step; the year part
+  is `age_score`, 10 points a year of age counted the same way), risk 10
   (inverted), seller 10 (`dealer_score`: dealers with 5+ bikes only, 100
   minus 100 x (relisted + sharp changes + repeated + half the ads without
   mileage) / bikes; private sellers and smaller dealers skip it; the
@@ -882,7 +885,9 @@ every photo examined, only the first 3 fingerprinted; then
   único dono", "1ª mão", "first owner"; denials don't count), service
   book, factory warranty (negative points, floor 0).
 - Market behaviour per model (`model_market_behaviour`): time until leaving
-  the market, share and size of price drops (measured from the higher of the
+  the market (Kaplan-Meier median of the gone ads and those still for sale,
+  `median_days_remaining`; null until half have gone; the offer's and the
+  seller urgency's "typical time"), share and size of price drops (measured from the higher of the
   first price seen and `price_before_drop`), depreciation rates. Show "ainda
   poucos dados" below 5 data points.
 - Time to sale per listing (`listing_time_to_sale`, 10.4; security

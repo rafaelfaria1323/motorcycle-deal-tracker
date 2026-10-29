@@ -134,8 +134,8 @@ Initial price, current price, every change with date, percentage, and time onlin
 
 | Factor | Weight | Status |
 |---|---:|---|
-| Price vs market | 35% | ✅ fair value adjusted for age and mileage (per-model rates, comparables within 3 years when enough), from 3 comparables; without it the score is at most 70 (15.18) |
-| Year / mileage | 20% | ✅ |
+| Price vs market | 35% | ✅ fair value adjusted for age and mileage (per-model rates, comparables within 3 years when enough), from 3 comparables; without it the score is at most 70 (15.18); the yearly rate fitted given the mileage rate used, so age isn't counted twice (15.33) |
+| Year / mileage | 20% | ✅ both counted in days (15.18, 15.33: nothing jumps on 1 January) |
 | Version / equipment | 15% | 🔄 a bonus instead (15.18): +1 point per extra worth money named in the ad (quickshifter, exhaust, luggage, heated grips, suspension, cruise control, steering damper, new tyres), at most +3 (15.21; as a weighted slice it lowered good scores, at +2 each up to +10 five small extras outweighed a year newer); the version itself is not scored |
 | Seller / confidence | 10% | ✅ dealers with 5+ bikes, from their ads' warning signs (15.7); private sellers and small dealers skip the slice |
 | Market / listing behaviour | 10% | ⬜ data being collected |

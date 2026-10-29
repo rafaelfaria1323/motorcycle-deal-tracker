@@ -126,7 +126,7 @@ begin
   perform public.recalculate_deal_scores();
   assert (select (score_breakdown -> 'scores' ->> 'year_mileage')::numeric
           from public.listings where source_listing_id = 'r16')
-         = round(0.7 * 50 + 0.3 * public.year_score(2024), 1),
+         = round(0.7 * 50 + 0.3 * public.age_score(2024), 1),
     'hidden mileage counts as 50';
 end $$;
 

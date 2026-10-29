@@ -28,6 +28,17 @@ begin
   assert public.year_score(null, 2026) is null, 'no year';
   assert public.year_score(this_year) = 100, 'the reference defaults to this year';
 
+  -- age_score: the same 10 points a year, counted in days from mid-year
+  -- registration, so 1 January changes nothing.
+  assert public.age_score(2026, 10, 2026.25) = 100, 'not yet half a year';
+  assert public.age_score(2020, 10, 2026.5) = 40, 'six years old';
+  assert public.age_score(2025, 10, 2026.0) = 95, 'eighteen months';
+  assert public.age_score(2024, 10, 2025.999) = public.age_score(2024, 10, 2026.001),
+    'no jump on 1 January';
+  assert public.age_score(2027, 10, 2026.5) = 100, 'next year clamped';
+  assert public.age_score(2010, 10, 2026.5) = 0, 'old clamped';
+  assert public.age_score(null) is null, 'no year';
+
   -- mileage_score: linear from 100 at 0 km to 0 at 20 000 km.
   assert public.mileage_score(0) = 100, 'new';
   assert public.mileage_score(5000) = 75, '5 000 km';
