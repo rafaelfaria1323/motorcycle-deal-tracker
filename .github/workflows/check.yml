@@ -5,8 +5,9 @@ name: Check
 # `make app-smoke` (offline Chrome flow), and `make db-test`
 # (migrations and SQL tests on Postgres), so a change is
 # proven before it is merged rather than when the deploy runs.
-# Three jobs run side by side (app, smoke, collector and database); each
-# test suite runs once, inside its coverage target. The job `check` waits
+# Four jobs run side by side (app, smoke, collector and database, the
+# workflows' shared collector setup); each test suite runs once, inside
+# its coverage target. The job `check` waits
 # for them and is the one result the PR shows as "check".
 # PRs opened by a workflow (code quality, test hardening) don't trigger
 # pull_request runs (GitHub's rule for GITHUB_TOKEN), so backlog-pass.yml
@@ -156,10 +157,32 @@ jobs:
           pipx install squawk-cli==2.70.0 >/dev/null
           make sql-lint
 
+  # The shared setup the collection, photo, test-notification and weekly
+  # summary workflows start with (.github/actions/collector): it is not
+  # used above, and a break in it showed only when the 12:00 collection
+  # of 2026-10-29 failed. Then one of their commands is started (no
+  # arguments: its usage, exit 64), so the installed collector runs.
+  collector-setup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/collector
+
+      - name: The collector starts
+        run: |
+          cd collector
+          set +e
+          dart run bin/report_run.dart
+          code=$?
+          set -e
+          [ "$code" = 64 ] || { echo "Expected exit 64, got $code"; exit 1; }
+
   # The single result named "check", as before the split: green only when
-  # all three jobs passed (also when one was cancelled or skipped).
+  # all four jobs passed (also when one was cancelled or skipped).
   check:
-    needs: [app, smoke, collector-db]
+    needs: [app, smoke, collector-db, collector-setup]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5

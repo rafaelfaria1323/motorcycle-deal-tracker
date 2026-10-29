@@ -38,6 +38,25 @@ void main() {
       });
     });
 
+    test('a run that never started says nothing was collected', () {
+      for (final language in NotificationLanguage.values) {
+        expect(
+          runHealthMessage([
+            run('failed', const [noLogProblem]),
+            run('ok'),
+          ], language: language),
+          containsPair('body', language.notStarted),
+        );
+      }
+      expect(
+        runHealthMessage([
+          run('failed', const [noLogProblem]),
+          run('ok'),
+        ]),
+        containsPair('title', '⚠️ A recolha de anúncios falhou.'),
+      );
+    });
+
     test('a block says the site waits 24 hours', () {
       expect(
         runHealthMessage([run('blocked'), run('failed')]),
@@ -162,6 +181,11 @@ void main() {
   });
 
   group('runProblems', () {
+    test('no log at all: the job stopped before the collector', () {
+      expect(runProblems(''), [noLogProblem]);
+      expect(runProblems('\n  \n'), [noLogProblem]);
+    });
+
     test('read issues keep their site and cause after a partial import', () {
       const log =
           '== olx ==\n'
@@ -205,7 +229,6 @@ void main() {
 
       expect(runProblems(log), ['Missing SUPABASE_URL']);
       expect(runProblems('make: *** Error 1'), isEmpty);
-      expect(runProblems(''), isEmpty);
     });
 
     test('at most max lines, each cut to maxChars', () {

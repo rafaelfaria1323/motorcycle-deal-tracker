@@ -133,16 +133,18 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   devices of whoever asked in the app; input
                                   `kind`: an example of one alert or
                                   collection message (`pushTestKinds`)
-.github/workflows/check.yml       On every pull request to main, three parallel
+.github/workflows/check.yml       On every pull request to main, four parallel
                                   jobs: app (`make app-analyze`, `dead-code`,
                                   `app-coverage`), smoke (`make app-smoke`,
                                   offline Chrome flow) and collector-db
                                   (migrations, `lint-scripts`, `collector-lint`,
                                   `collector-coverage`, `tool-check`,
                                   `duplication`, `sql-lint` with `db-test` on a
-                                  Postgres service); each test suite runs once,
+                                  Postgres service) and collector-setup (the
+                                  shared .github/actions/collector, then the
+                                  collector started); each test suite runs once,
                                   in its coverage target; the job `check` passes
-                                  only when all three did
+                                  only when all four did
 .github/workflows/preview-web.yml Every PR touching app/: the app built and
                                   published to pr-<number>.<project>.pages.dev,
                                   linked in one comment on the PR (real
