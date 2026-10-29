@@ -66,6 +66,17 @@ List<ConditionFactor> conditionFactors(BikeCondition condition) => [
 double conditionShare(BikeCondition condition) =>
     conditionFactors(condition).fold<double>(0, (sum, f) => sum + f.share);
 
+/// The value adjusted to [condition]; null below [minComparables]
+/// listings.
+double? conditionEstimate(
+  BikeValue value, [
+  BikeCondition condition = const BikeCondition(),
+]) {
+  final estimate = value.estimate;
+  if (estimate == null || value.comparableCount < minComparables) return null;
+  return estimate * (1 + conditionShare(condition));
+}
+
 /// What to say about a bike's value: the estimate and its range (adjusted
 /// to [condition], with a line saying how), the price to ask, how long the
 /// model takes to sell and a dealer's trade-in. Fewer than
@@ -77,8 +88,8 @@ List<BikeValueLine> bikeValueLines(
   AppLanguage language = AppLanguage.portuguese,
 }) {
   final messages = language.messages;
-  final comparablesEstimate = value.estimate;
-  if (comparablesEstimate == null || value.comparableCount < minComparables) {
+  final estimate = conditionEstimate(value, condition);
+  if (estimate == null) {
     return [
       (
         kind: BikeValueLineKind.estimate,
@@ -89,7 +100,7 @@ List<BikeValueLine> bikeValueLines(
   String price(double amount) => Formatters.price(amount, language: language);
   final factors = conditionFactors(condition);
   final adjust = 1 + conditionShare(condition);
-  final estimate = comparablesEstimate * adjust;
+  final comparablesEstimate = value.estimate!;
 
   final room = askingRoom(market);
   final asking = price(_roundDown(estimate * (1 + room)));

@@ -5671,5 +5671,161 @@
   "photoExamFailed": "Não foi possível fazer o pedido. Tente novamente.",
   "@photoExamFailed": {
     "description": "Interface text in photo_hints_card (examine every photo, P.4)."
+  },
+  "importCostTitle": "E se a comprar no estrangeiro?",
+  "@importCostTitle": {
+    "description": "Interface text in import_cost_text / import_cost_card (16.10)."
+  },
+  "importCostIntro": "Viu uma igual em Espanha, França ou Alemanha? Indique o preço e a cilindrada: somamos o ISV, a legalização e o transporte e comparamos com o valor cá.",
+  "@importCostIntro": {
+    "description": "Interface text in import_cost_text / import_cost_card (16.10)."
+  },
+  "importCostCountry": "País",
+  "@importCostCountry": {
+    "description": "Interface text in import_cost_text / import_cost_card (16.10)."
+  },
+  "importCountrySpain": "Espanha",
+  "@importCountrySpain": {
+    "description": "Interface text in import_cost_text / import_cost_card (16.10)."
+  },
+  "importCountryFrance": "França",
+  "@importCountryFrance": {
+    "description": "Interface text in import_cost_text / import_cost_card (16.10)."
+  },
+  "importCountryGermany": "Alemanha",
+  "@importCountryGermany": {
+    "description": "Interface text in import_cost_text / import_cost_card (16.10)."
+  },
+  "importCostPrice": "Preço lá",
+  "@importCostPrice": {
+    "description": "Interface text in import_cost_text / import_cost_card (16.10)."
+  },
+  "importCostEngineCc": "Cilindrada",
+  "@importCostEngineCc": {
+    "description": "Interface text in import_cost_text / import_cost_card (16.10)."
+  },
+  "importCostTransport": "Transporte (opcional)",
+  "@importCostTransport": {
+    "description": "Interface text in import_cost_text / import_cost_card (16.10)."
+  },
+  "importCostTransportHint": "Se tiver um orçamento; sem ele, contamos cerca de {amount} €",
+  "@importCostTransportHint": {
+    "description": "Interface text in import_cost_text / import_cost_card (16.10).",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "importCostTotal": "Cá na estrada por {total}: {price} + ISV {isv} + legalização {legalisation} + transporte {transport}",
+  "@importCostTotal": {
+    "description": "Interface text in import_cost_text / import_cost_card (16.10).",
+    "placeholders": {
+      "total": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      },
+      "isv": {
+        "type": "String"
+      },
+      "legalisation": {
+        "type": "String"
+      },
+      "transport": {
+        "type": "String"
+      }
+    }
+  },
+  "importCostCheaper": "Cá, uma igual vale cerca de {estimate}: poupa {saving} ({percent})",
+  "@importCostCheaper": {
+    "description": "Interface text in import_cost_text / import_cost_card (16.10).",
+    "placeholders": {
+      "estimate": {
+        "type": "String"
+      },
+      "saving": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "importCostDearer": "Cá, uma igual vale cerca de {estimate}: trazê-la sai {extra} mais caro",
+  "@importCostDearer": {
+    "description": "Interface text in import_cost_text / import_cost_card (16.10).",
+    "placeholders": {
+      "estimate": {
+        "type": "String"
+      },
+      "extra": {
+        "type": "String"
+      }
+    }
+  },
+  "importCostNoEstimate": "Ainda há poucos anúncios deste modelo cá para comparar",
+  "@importCostNoEstimate": {
+    "description": "Interface text in import_cost_text / import_cost_card (16.10)."
+  },
+  "importCostVat": "Com menos de 6 meses ou 6 000 km conta como nova: paga também o IVA cá (23 %), mesmo comprada a um particular",
+  "@importCostVat": {
+    "description": "Interface text in import_cost_text / import_cost_card (16.10)."
+  },
+  "importCostNote": "Regras práticas de {year}: inspeção, matrícula e placas cerca de {legalisation}. O ISV é o da tabela das motas, sem a redução dos usados, que só o pode baixar. Sem o certificado de conformidade (COC), junte o seu custo.",
+  "@importCostNote": {
+    "description": "Interface text in import_cost_text / import_cost_card (16.10).",
+    "placeholders": {
+      "year": {
+        "type": "String"
+      },
+      "legalisation": {
+        "type": "String"
+      }
+    }
+  },
+  "importPageTitle": "Comprar no estrangeiro",
+  "@importPageTitle": {
+    "description": "Interface text in bike_value_page / more_page (16.10)."
+  },
+  "importPageSubtitle": "Compensa trazer uma mota de Espanha, França ou Alemanha?",
+  "@importPageSubtitle": {
+    "description": "Interface text in bike_value_page / more_page (16.10)."
+  },
+  "importPageIntro": "Escolha o modelo, o ano e os quilómetros da mota que viu no estrangeiro e carregue em Calcular: vemos quanto vale uma igual cá. Depois indique o preço lá para saber quanto lhe custa trazê-la e se compensa.",
+  "@importPageIntro": {
+    "description": "Interface text in bike_value_page / more_page (16.10)."
+  },
+  "importCostIntroAd": "Viu uma igual em Espanha, França ou Alemanha? Indique o preço lá: somamos o ISV, a legalização e o transporte e comparamos com o preço deste anúncio.",
+  "@importCostIntroAd": {
+    "description": "Interface text in import_cost_text / import_cost_card (16.10)."
+  },
+  "importCostCheaperThanAd": "Este anúncio pede {asking}: trazê-la poupa {saving} ({percent})",
+  "@importCostCheaperThanAd": {
+    "description": "Interface text in import_cost_text / import_cost_card (16.10).",
+    "placeholders": {
+      "asking": {
+        "type": "String"
+      },
+      "saving": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "importCostDearerThanAd": "Este anúncio pede {asking}: trazê-la sai {extra} mais caro",
+  "@importCostDearerThanAd": {
+    "description": "Interface text in import_cost_text / import_cost_card (16.10).",
+    "placeholders": {
+      "asking": {
+        "type": "String"
+      },
+      "extra": {
+        "type": "String"
+      }
+    }
   }
 }

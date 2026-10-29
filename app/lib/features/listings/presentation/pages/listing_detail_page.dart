@@ -16,6 +16,7 @@ import '../compare_text.dart';
 import '../cubit/compare_cubit.dart';
 import '../cubit/listing_detail_cubit.dart';
 import '../cubit/listing_detail_state.dart';
+import '../import_cost_text.dart';
 import '../listing_dates_text.dart';
 import '../listing_detail_text.dart';
 import '../listing_labels.dart';
@@ -25,6 +26,7 @@ import '../widgets/deal_score_badge.dart';
 import '../widgets/dealer_card.dart';
 import '../widgets/facts_card.dart';
 import '../widgets/favourite_widgets.dart';
+import '../widgets/import_cost_card.dart';
 import '../widgets/market_behaviour_section.dart';
 import '../widgets/new_price_card.dart';
 import '../widgets/offer_card.dart';
@@ -178,6 +180,15 @@ class _ContentState extends State<_Content> {
         MarketBehaviourSection(listing: listing),
         PriceHistorySection(listing: listing),
         NewPriceCard(listing: listing),
+        if (listing.price case final asking?)
+          ImportCostCard(
+            key: ValueKey(listing.id),
+            estimate: asking,
+            against: ImportComparison.listing,
+            year: listing.year,
+            mileage: listing.mileage,
+            engineCc: listing.engineCc,
+          ),
         OwnershipCostCard(listing: listing),
       ],
       _Section.details => [
