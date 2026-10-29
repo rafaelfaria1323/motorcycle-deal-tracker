@@ -121,6 +121,20 @@ extension NotificationText on NotificationLanguage {
     'There aren\'t enough listings for an estimate yet.',
   );
 
+  String get photoExamTitle => _text(
+    '📷 Todas as fotos foram examinadas',
+    '📷 Every photo was examined',
+  );
+  String photoExamHints(int kinds) => kinds == 0
+      ? _text(
+          'Nenhuma pista de problemas nas fotos.',
+          'No hint of problems in the photos.',
+        )
+      : _text(
+          '${_count(kinds, 'pista', 'pistas')} nas fotos: veja a Avaliação.',
+          '${_count(kinds, 'hint', 'hints')} in the photos: see the Assessment.',
+        );
+
   String number(int value) {
     final digits = value.abs().toString();
     final out = StringBuffer(value < 0 ? '-' : '');

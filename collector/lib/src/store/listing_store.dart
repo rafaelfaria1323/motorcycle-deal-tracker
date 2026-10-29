@@ -190,6 +190,20 @@ class ListingStore {
     return _count(result);
   }
 
+  /// Who asked for every photo of [ids] examined, for those now done
+  /// (`photo_exam_answers`).
+  Future<List<PhotoExamAnswer>> photoExamAnswers(List<String> ids) async {
+    if (ids.isEmpty) return const [];
+    final rows = await _client.rpc<List<dynamic>>(
+      'photo_exam_answers',
+      params: {'p_listings': ids},
+    );
+    return [
+      for (final row in rows)
+        PhotoExamAnswer.fromRow(row as Map<String, dynamic>),
+    ];
+  }
+
   /// Stores each listing's photo hashes (64-bit dHash, sent as decimal text:
   /// JSON numbers lose the low bits) and finds the listings sharing them;
   /// returns how many listings were stored.

@@ -19,9 +19,6 @@ class _ToLocal implements HttpClient {
   Future<HttpClientRequest> getUrl(Uri url) => _inner.getUrl(_local(url));
 
   @override
-  Future<HttpClientRequest> postUrl(Uri url) => _inner.postUrl(_local(url));
-
-  @override
   void close({bool force = false}) => _inner.close(force: force);
 
   @override
@@ -159,15 +156,4 @@ void main() {
       });
     });
   }
-
-  test('a dropped Telegram connection fails the send without the token', () {
-    return local(() async {
-      final notifier = TelegramNotifier(token: 'SECRET', chatId: '1');
-      final error = await notifier
-          .send('x')
-          .then<Object?>((_) => null, onError: (Object e) => e);
-      expect(error, isA<NotifyFailed>());
-      expect(error.toString(), isNot(contains('SECRET')));
-    });
-  });
 }

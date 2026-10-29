@@ -62,7 +62,7 @@ Tracked models (chosen in the app)
 | [`collector/`](collector/README.md) | Dart command line: fetches, parses and stores listings, then scores and alerts |
 | `supabase/` | Database migrations: tables, scoring, alerts, views, access rules; `tests/`: SQL tests (`make db-test`) |
 | `docs/` | Progress and decisions (see below) |
-| `.github/workflows/` | `collect.yml` (00:00 and every 2 hours from 08:00 to 22:00, Lisbon time, started by Supabase pg_cron), `check.yml` (on every pull request, in parallel: the app's analyze, unused code and tests with coverage; `make app-smoke`; the collector's checks and tests with coverage, `tool/` and the database tests), `deploy-web.yml` (on merge: new migrations, the app's tests and the builds side by side, then the web app and the Android APK published, the APK on the release `android`, which the Android app installs as its update), `android-check.yml` (the APK built on pull requests that touch the Android side), `weekly-summary.yml` (Mondays, each account's week in the app and on its devices; or one account's when asked in the app), `notify-test.yml` (Telegram test), `push-test.yml` (a test notification to the devices of whoever asked in the app), `mutation.yml` (mutation testing without AI: after merges the changed files, by hand all of them, held to a minimum score; report on the run's page), `code-quality.yml` and `test-hardening.yml` (Claude works through the backlogs, fixing every 5 merged PRs and finding new items after 10 in `docs/code-quality.md` and `docs/test-hardening.md`; shared steps in `backlog-pass.yml`) |
+| `.github/workflows/` | `collect.yml` (00:00 and every 2 hours from 08:00 to 22:00, Lisbon time, started by Supabase pg_cron), `check.yml` (on every pull request, in parallel: the app's analyze, unused code and tests with coverage; `make app-smoke`; the collector's checks and tests with coverage, `tool/` and the database tests), `deploy-web.yml` (on merge: new migrations, the app's tests and the builds side by side, then the web app and the Android APK published, the APK on the release `android`, which the Android app installs as its update), `android-check.yml` (the APK built on pull requests that touch the Android side), `weekly-summary.yml` (Mondays, each account's week in the app and on its devices; or one account's when asked in the app), `photos.yml` (the photo fingerprints and damage hints: after each collection, and at once when someone asks for every photo of an ad; shared setup in `.github/actions/collector`), `push-test.yml` (a test notification to the devices of whoever asked in the app), `mutation.yml` (mutation testing without AI: after merges the changed files, by hand all of them, held to a minimum score; report on the run's page), `code-quality.yml` and `test-hardening.yml` (Claude works through the backlogs, fixing every 5 merged PRs and finding new items after 10 in `docs/code-quality.md` and `docs/test-hardening.md`; shared steps in `backlog-pass.yml`) |
 
 ## Getting started
 
@@ -85,7 +85,7 @@ from `make check`; CI runs both (the tests inside `make app-coverage` /
 for HTML5 parsing and `clock` / `fake_async` for deterministic timing tests.
 
 `collector/.env` (never committed) holds `SUPABASE_URL`,
-`SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`.
+and `SUPABASE_SERVICE_ROLE_KEY`.
 GitHub Actions uses repository secrets with the same names, plus
 `SUPABASE_PUBLISHABLE_KEY`, `CLOUDFLARE_API_TOKEN` and
 `CLOUDFLARE_ACCOUNT_ID` for the web deploy, `ANDROID_KEYSTORE_BASE64`
@@ -119,7 +119,9 @@ the runner for damage hints (P.2); admins can mark them as a problem or fine
 in the full-screen photos, and the collector learns from those marks (P.3:
 a logistic regression in plain Dart on the stored embeddings). An account can
 ask for every photo of one ad to be examined (P.4, "Examinar todas as
-fotos": up to 30, at the next run, within the same 5 minutes; 5 a day).
+fotos": up to 30, within the same 5 minutes; 5 a day). The request starts
+the photo step at once (P.7), and the account is told on its devices when
+it is done.
 
 Partial imports keep readable listings but report parsing or transport
 failures instead of a successful run. Repeated Standvirtual pages are not

@@ -122,6 +122,22 @@ void main() {
     expect(featuresFromBase64(base64Encode([127, 129, 0])), [1, -1, 0]);
   });
 
+  test('featuresFromBase64 reads Postgres\'s lines of 76 characters', () {
+    // encode(features, 'base64') of a 512-byte embedding, as the database
+    // returns it: a line break after every 76 characters.
+    final bytes = [for (var i = 0; i < 512; i++) i % 256];
+    final encoded = base64Encode(bytes);
+    final wrapped = [
+      for (var i = 0; i < encoded.length; i += 76)
+        encoded.substring(i, i + 76 > encoded.length ? encoded.length : i + 76),
+    ].join('\n');
+    expect(wrapped, contains('\n'));
+    final features = featuresFromBase64(wrapped);
+    expect(features, hasLength(512));
+    expect(features[127], 1);
+    expect(features[129], -1);
+  });
+
   group('trainOnPhotoMarks', () {
     test('nothing when the marks did not change', () async {
       final store = _Store((

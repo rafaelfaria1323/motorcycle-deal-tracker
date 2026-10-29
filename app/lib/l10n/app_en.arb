@@ -1002,8 +1002,8 @@
   "photoMarkFine": "Fine",
   "photoMarkFailed": "Couldn't save the mark. Try again.",
   "photoExamAction": "Examine every photo",
-  "photoExamAvailable": "Only the first 3 photos were seen by the image model. You can ask for all of them at the next collection.",
-  "photoExamRequested": "Requested: every photo is examined at the next collection.",
+  "photoExamAvailable": "Only the first 3 photos were seen by the image model. You can ask for all of them: it takes a few minutes.",
+  "photoExamRequested": "Requested: the photos are being examined, which takes a few minutes. With notifications on, we'll tell you when it's done.",
   "photoExamDone": "Every photo was examined.",
   "photoExamLimit": "You've made 5 requests today. Try again tomorrow.",
   "photoExamFailed": "Couldn't make the request. Try again."

@@ -1,4 +1,7 @@
--- Every photo of one ad examined on request (20261028210000_photo_exams.sql).
+-- Every photo of one ad examined on request (20261028210000_photo_exams.sql;
+-- started at once and told when done, 20261029110000_photo_exams_now.sql).
+select vault.create_secret('token', 'github_dispatch_token');
+
 update public.motorcycles set is_active = true where slug = 'yamaha-mt-07';
 
 insert into auth.users (id, email, created_at, is_anonymous) values
@@ -45,7 +48,11 @@ declare
 begin
   v_first := public.request_photo_exam(v_e1);
   assert v_first is not null, 'asked';
+  assert (select count(*) from net.calls
+          where url like '%/actions/workflows/photos.yml/dispatches') = 1,
+    'a new request starts the photo step';
   assert public.request_photo_exam(v_e1) = v_first, 'asking again keeps the request';
+  assert (select count(*) from net.calls) = 1, 'asking again starts nothing';
   perform public.request_photo_exam(v_e2);
 
   -- Only live ads with photos beyond the first 3.
@@ -73,6 +80,7 @@ begin
     assert false, 'a sixth request';
   exception when sqlstate '54000' then null;
   end;
+  assert (select count(*) from net.calls) = 5, 'one start per new request';
 end $$;
 
 -- The app can't reach the requests or the collector's functions.
@@ -84,6 +92,8 @@ begin
     'public.listings_awaiting_photo_exam(integer, integer)', 'execute'), 'queue callable';
   assert not has_function_privilege('authenticated',
     'public.finish_photo_exams(uuid[])', 'execute'), 'finish callable';
+  assert not has_function_privilege('authenticated',
+    'public.photo_exam_answers(uuid[])', 'execute'), 'answers callable';
 end $$;
 
 -- The collector: the requests in order, with up to p_photos photos; once
@@ -104,7 +114,19 @@ begin
   assert (select cardinality(images) from public.listings_awaiting_photo_exam(10, 6)
           where id = v_e1) = 6, 'up to p_photos photos';
 
+  assert not exists (select 1 from public.photo_exam_answers(array[v_e1])),
+    'no answer before it is done';
+  update public.listings
+  set photo_hints = '[{"code": "rust", "photo": 4, "p": 0.6},
+                      {"code": "rust", "photo": 5, "p": 0.7},
+                      {"code": "scratches", "photo": 1, "p": 0.5}]'
+  where id = v_e1;
   assert public.finish_photo_exams(array[v_e1]) = 1, 'finished';
+  assert (select count(*) from public.photo_exam_answers(array[v_e1, v_e2])) = 1,
+    'only finished listings, each asker';
+  assert (select (user_id, brand, model, year, hints)
+                 = ('00000000-0000-0000-0000-0000000000a1'::uuid, 'Yamaha', 'MT-07', 2020, 2)
+          from public.photo_exam_answers(array[v_e1])), 'the asker, the bike, kinds of hint';
   assert public.finish_photo_exams(array[v_e1]) = 0, 'finished once';
   assert not exists (select 1 from public.listings_awaiting_photo_exam(10, 30)
                      where id = v_e1), 'left the queue';

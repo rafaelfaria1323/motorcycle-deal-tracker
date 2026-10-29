@@ -106,9 +106,28 @@ Future<void> main(List<String> args) async {
         // Not "Requests used:": these are the CDN's, not the sites' pages.
         stdout.writeln('Photo requests: ${fetcher.requestsThisRun}');
         fetcher.close();
+        // Also after a stop: the examinations stored before it are done.
+        await _tellAskers(store, asked.toList());
       }
     } finally {
       await examiner?.close();
     }
   });
+}
+
+/// Tells whoever asked for the examinations of [asked] that finished on
+/// their devices. A push that can't go out loses nothing: the hints show
+/// in the app.
+Future<void> _tellAskers(ListingStore store, List<String> asked) async {
+  if (asked.isEmpty) return;
+  try {
+    final push = WebPushSender(
+      await store.pushKeys(),
+      fcm: FcmSender.fromEnvironment(),
+    );
+    final sent = await tellPhotoExams(store, push, asked);
+    stdout.writeln('Photo exams told: $sent push(es) to devices.');
+  } on Object catch (e) {
+    stdout.writeln('Photo exams not told on devices: $e');
+  }
 }

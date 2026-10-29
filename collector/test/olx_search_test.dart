@@ -509,7 +509,7 @@ void main() {
     });
 
     test('a page tells the oldest renewal of its ads, top ads aside', () {
-      final renewedLately = ad(id: 1)
+      final renewedLately = ad()
         ..['createdTime'] = '2026-01-01T10:00:00Z'
         ..['lastRefreshTime'] = '2026-10-20T10:00:00Z';
       final older = ad(id: 2)

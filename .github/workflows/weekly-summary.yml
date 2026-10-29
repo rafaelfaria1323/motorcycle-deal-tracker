@@ -36,12 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: dart-lang/setup-dart@v1
-        with:
-          sdk: stable
-
-      - name: Install collector dependencies
-        run: cd collector && dart pub get
+      - uses: ./.github/actions/collector
 
       - name: Send the summary
         run: cd collector && dart run bin/weekly_summary.dart

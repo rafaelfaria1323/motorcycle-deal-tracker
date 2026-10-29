@@ -113,10 +113,18 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   started by Supabase pg_cron (see below);
                                   in full at 00, 08, 14 and 20 h, light
                                   (R.2) otherwise (input `read`); then
-                                  the photo fingerprints and damage hints
+                                  its job `photos` calls photos.yml
+.github/workflows/photos.yml      The photo fingerprints and damage hints
                                   (`make photos`, P.1/P.2; Python and
                                   the cached CLIP model,
-                                  tool/photo_model.sh; continue-on-error)
+                                  tool/photo_model.sh; a failure warns):
+                                  after each collection, and at once when
+                                  an account asks for every photo of an
+                                  ad (P.7); one run at a time (concurrency
+                                  `photos`); its own photo state cache
+.github/actions/collector         Shared steps: Dart and the collector's
+                                  dependencies (collect, photos,
+                                  push-test, weekly-summary)
 .github/workflows/weekly-summary.yml  Mondays 08:52 Lisbon time (pg_cron): each account's
                                   summary of the week, kept for the app and
                                   pushed to its devices (bin/weekly_summary.dart);
@@ -254,9 +262,9 @@ parsing uses pure-Dart `html`; the fetcher's time comes from `clock`, with
 `fake_async` for deterministic timing tests and no fetching-policy changes.
 
 Local secrets live in `collector/.env` (gitignored, loaded by the Makefile):
-`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN`,
-`TELEGRAM_CHAT_ID`. GitHub Actions uses repository secrets with the same
-names, plus `SUPABASE_PUBLISHABLE_KEY`, `CLOUDFLARE_API_TOKEN` and
+`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (the collector no longer
+sends to Telegram; only the database does, from the Vault). GitHub
+Actions uses repository secrets with the same names, plus `SUPABASE_PUBLISHABLE_KEY`, `CLOUDFLARE_API_TOKEN` and
 `CLOUDFLARE_ACCOUNT_ID` for the web deploy, `ANDROID_KEYSTORE_BASE64` and
 `ANDROID_KEYSTORE_PASSWORD` for the Android app (PKCS12, alias `upload`;
 the same key forever, or updates won't install), `SUPABASE_DB_URL` (Session
@@ -655,6 +663,12 @@ reads `listings_awaiting_photo_exam` first (`maxExamsPerRun` 3, up to
 `photosPerExam` 30 photos, within the step's 5 minutes, CDN only):
 every photo examined, only the first 3 fingerprinted; then
 `finish_photo_exams` stamps `photos_examined_all_at`.
+P.7: a new request starts photos.yml at once (`dispatch_workflow`, which
+allows `photos.yml`; a repeat starts nothing, the daily cap caps the
+starts; a lost start waits for the step after the next collection); when
+the exams are done, `photo_exam_answers` (service role) lists who asked,
+and `tellPhotoExams` (`notify/photo_exam_push.dart`) pushes each of them
+the bike and how many kinds of hint were found (a tap opens the ad).
 
 - **Read failures**: `importBatch` keeps readable records and returns
   whether the input was clean. `refresh.dart` and `collector.dart` report

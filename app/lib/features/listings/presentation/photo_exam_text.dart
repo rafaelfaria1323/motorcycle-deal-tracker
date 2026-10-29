@@ -14,7 +14,7 @@ enum PhotoExam {
   /// A signed-in account can ask for it.
   available,
 
-  /// Asked for: the next collection's photo step does it.
+  /// Asked for: the photo step started by the request does it.
   requested,
 
   /// Every photo was examined.
