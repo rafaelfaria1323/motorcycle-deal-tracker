@@ -51,9 +51,10 @@ class PhotoClassifier {
 }
 
 /// The signed bytes of a stored embedding (base64) as numbers in [-1, 1],
-/// as the database reads them.
+/// as the database reads them. Postgres's `encode(…, 'base64')` breaks its
+/// output into lines of 76 characters, which `base64Decode` refuses.
 List<double> featuresFromBase64(String encoded) => [
-  for (final byte in base64Decode(encoded))
+  for (final byte in base64Decode(encoded.replaceAll(RegExp(r'\s'), '')))
     (byte > 127 ? byte - 256 : byte) / 127,
 ];
 

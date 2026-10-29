@@ -469,7 +469,7 @@ void main() {
   group('newest first (light runs)', () {
     test('a page tells the oldest publication or bump, promoted aside', () {
       final html = searchPage([
-        node(id: '1')..['createdAt'] = '2026-10-10T10:00:00Z',
+        node()..['createdAt'] = '2026-10-10T10:00:00Z',
         node(id: '2')..['createdAt'] = '2026-10-17T10:00:00Z',
       ], bumpDate: '2026-10-19T10:00:00Z');
       // Both bumped later than they were published.
@@ -478,13 +478,16 @@ void main() {
         DateTime.utc(2026, 10, 19, 10),
       );
 
-      final promoted = jsonDecode(
-        RegExp(r'>(.*)<').firstMatch(searchPage([node()]))!.group(1)!,
-      );
-      final search = jsonDecode(
-        promoted['props']['pageProps']['urqlState']['b']['data'] as String,
-      );
-      search['advertSearch']['edges'] = [
+      final promoted =
+          jsonDecode(
+                RegExp(r'>(.*)<').firstMatch(searchPage([node()]))!.group(1)!,
+              )
+              as Map<String, dynamic>;
+      final state =
+          ((promoted['props'] as Map)['pageProps'] as Map)['urqlState'] as Map;
+      final data = state['b'] as Map;
+      final search = jsonDecode(data['data'] as String) as Map;
+      (search['advertSearch'] as Map)['edges'] = [
         {
           'vas': {'isPromoted': true, 'bumpDate': null},
           'node': node(id: '3')..['createdAt'] = '2025-01-01T10:00:00Z',
@@ -494,9 +497,7 @@ void main() {
           'node': node(id: '4')..['createdAt'] = '2026-10-18T10:00:00Z',
         },
       ];
-      promoted['props']['pageProps']['urqlState']['b']['data'] = jsonEncode(
-        search,
-      );
+      data['data'] = jsonEncode(search);
       expect(
         adapter
             .parseSearchPage(

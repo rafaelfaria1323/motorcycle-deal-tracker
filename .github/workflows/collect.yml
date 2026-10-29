@@ -142,6 +142,7 @@ jobs:
       # requests:"). Never fails the job: listings left over wait for the
       # next run.
       - name: Fingerprint and examine photos
+        id: photos
         if: always() && steps.refresh.outputs.started != ''
         continue-on-error: true
         env:
@@ -173,6 +174,15 @@ jobs:
       # A partial run (a site's passing fetch failure; the rest was read
       # and scored) stays green with a warning: the app shows it, and the
       # admins are told when the same site fails again in the next run.
+      # The photo step never fails the job, so say when it did fail: a step
+      # that stops every run would otherwise go unseen.
+      - name: Warn about a failed photo step
+        if: always() && steps.photos.outcome == 'failure'
+        run: >
+          echo "::warning title=Fotos por verificar::O passo das fotos
+          falhou (ver o seu registo); os anúncios esperam pela próxima
+          recolha."
+
       - name: Warn about a partial run
         if: steps.refresh.outputs.code != '0' && steps.record.outputs.status == 'partial'
         run: >

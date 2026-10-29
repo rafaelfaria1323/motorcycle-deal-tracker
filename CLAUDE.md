@@ -116,7 +116,8 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   the photo fingerprints and damage hints
                                   (`make photos`, P.1/P.2; Python and
                                   the cached CLIP model,
-                                  tool/photo_model.sh; continue-on-error)
+                                  tool/photo_model.sh; continue-on-error,
+                                  a failure warns)
 .github/workflows/weekly-summary.yml  Mondays 08:52 Lisbon time (pg_cron): each account's
                                   summary of the week, kept for the app and
                                   pushed to its devices (bin/weekly_summary.dart);
