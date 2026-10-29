@@ -9,6 +9,10 @@ runs:
     - uses: dart-lang/setup-dart@v1
       with:
         sdk: stable
+        # Its matcher file is looked up in this action's folder when
+        # called from a composite action, which fails the step; these
+        # workflows run no analyzer anyway.
+        problem-matcher: false
 
     - name: Install collector dependencies
       shell: bash
