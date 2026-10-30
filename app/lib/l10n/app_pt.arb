@@ -4792,11 +4792,11 @@
   },
   "start": "Iniciar",
   "@start": {
-    "description": "Interface text in run_now_tiles, _start."
+    "description": "Interface text in admin_tiles, _start."
   },
   "collectionStatusSubtitle": "Últimas recolhas e erros, pedidos de hoje e o token do GitHub",
   "@collectionStatusSubtitle": {
-    "description": "Interface text in run_now_tiles, build."
+    "description": "Interface text in admin_tiles, build."
   },
   "linkCopiedPasteItIntoMessage": "Link copiado. Cole-o numa mensagem.",
   "@linkCopiedPasteItIntoMessage": {
@@ -4804,19 +4804,19 @@
   },
   "shareApp": "Partilhar a app",
   "@shareApp": {
-    "description": "Interface text in share_tiles, build."
+    "description": "Interface text in share_app_tile, build."
   },
   "linkToViewListingsWithoutAccount": "O link para ver os anúncios, sem conta",
   "@linkToViewListingsWithoutAccount": {
-    "description": "Interface text in share_tiles, build."
+    "description": "Interface text in share_app_tile, build."
   },
   "viewLinkHelp": "O link para ver os anúncios. Para ter conta, peça um convite a um administrador",
   "@viewLinkHelp": {
-    "description": "Interface text in share_tiles, build."
+    "description": "Interface text in share_app_tile, build."
   },
   "invitePeopleWithLinkAndSeeWhoHas": "Convide pessoas com um link e veja quem tem conta",
   "@invitePeopleWithLinkAndSeeWhoHas": {
-    "description": "Interface text in share_tiles, build."
+    "description": "Interface text in share_app_tile, build."
   },
   "collectNow": "Recolher agora",
   "@collectNow": {
@@ -5863,5 +5863,42 @@
   "quietHoursHelp": "Vale para todos os seus aparelhos. Só os alertas esperam; os avisos da recolha e os testes chegam logo.",
   "@quietHoursHelp": {
     "description": "Interface text in push_tile / push_text, quiet hours."
+  },
+  "personal": "Pessoal",
+  "@personal": {
+    "description": "Mais: heading over favourites, followed models, summary, home and cards."
+  },
+  "tools": "Ferramentas",
+  "@tools": {
+    "description": "Mais: heading over model comparison, bike value and buying abroad."
+  },
+  "theApp": "A app",
+  "@theApp": {
+    "description": "Mais: heading over sharing the app and the Android app."
+  },
+  "administration": "Administração",
+  "@administration": {
+    "description": "Mais: admin-only heading over accounts, collection status and collecting now."
+  },
+  "dataQualitySummary": "Anúncios por site, dados em falta e preços suspeitos",
+  "@dataQualitySummary": {
+    "description": "Mais: the closed data quality row."
+  },
+  "filterPlaceSection": "Local e distância",
+  "@filterPlaceSection": {
+    "description": "Filters: section with the location and the maximum distance."
+  },
+  "filterScoreSection": "Deal Score e risco",
+  "@filterScoreSection": {
+    "description": "Filters: section with the minimum Deal Score and the maximum risk."
+  },
+  "chosenCount": "{count, plural, =1{1 escolhido} other{{count} escolhidos}}",
+  "@chosenCount": {
+    "description": "Filters: a closed section with three or more choices.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

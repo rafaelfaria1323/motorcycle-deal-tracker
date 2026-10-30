@@ -100,6 +100,7 @@ class InterfaceFixture {
     int total = 6,
     bool emptySearches = false,
     this.signedIn = false,
+    this.admin = false,
     this.language = AppLanguage.portuguese,
     this.userChanges = const Stream.empty(),
   }) : repository = InterfaceListings(total),
@@ -108,6 +109,7 @@ class InterfaceFixture {
   final InterfaceListings repository;
   final InterfaceSearches searchesRepository;
   final bool signedIn;
+  final bool admin;
   final AppLanguage language;
   final Stream<User?> userChanges;
   late final session = SessionCubit(
@@ -170,7 +172,7 @@ class InterfaceFixture {
     getIt.registerSingleton<SourceQualityRepository>(_Quality());
     getIt.registerSingleton<HomeRepository>(_Home());
     getIt.registerSingleton<PushRepository>(_Push());
-    getIt.registerSingleton<AccountsRepository>(_Accounts());
+    getIt.registerSingleton<AccountsRepository>(_Accounts(admin));
     await Future.wait([
       listings.load(),
       searches.load(),
@@ -519,8 +521,12 @@ class _Push implements PushRepository {
 }
 
 class _Accounts implements AccountsRepository {
+  _Accounts(this.admin);
+
+  final bool admin;
+
   @override
-  Future<bool> isAdmin() async => false;
+  Future<bool> isAdmin() async => admin;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

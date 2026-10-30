@@ -6,9 +6,9 @@ import '../domain/collector_run.dart';
 import 'collection_text.dart';
 import '../../../core/localization/localizations.dart';
 
-/// The last run's duration and requests, this month's runs and when the
-/// next one is due. Runs are readable only when signed in; the next run
-/// time is always shown.
+/// The last run's duration and requests and this month's runs (readable
+/// only when signed in). Mais says when the next one is due in the
+/// section's summary.
 class CollectionDetails extends StatefulWidget {
   const CollectionDetails({required this.signedIn, super.key});
 
@@ -47,16 +47,11 @@ class _CollectionDetailsState extends State<CollectionDetails> {
     return FutureBuilder<List<CollectorRun>>(
       future: _monthRuns,
       builder: (context, snapshot) {
-        final lines = <(IconData, String)>[
-          (
-            Icons.event_outlined,
-            nextCollectionText(DateTime.now(), language: context.language),
-          ),
-        ];
+        final lines = <(IconData, String)>[];
         final runs = snapshot.data ?? const <CollectorRun>[];
         if (runs.isNotEmpty) {
           final last = runs.first;
-          lines.insertAll(0, [
+          lines.addAll([
             (
               Icons.update,
               context.strings.lastCollectionTook(

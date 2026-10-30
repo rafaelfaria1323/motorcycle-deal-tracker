@@ -1035,5 +1035,13 @@
   "quietHoursSwitch": "Don't send alerts during these hours",
   "quietHoursFrom": "From",
   "quietHoursTo": "To",
-  "quietHoursHelp": "This applies to all your devices. Only alerts wait; collection warnings and tests arrive at once."
+  "quietHoursHelp": "This applies to all your devices. Only alerts wait; collection warnings and tests arrive at once.",
+  "personal": "Personal",
+  "tools": "Tools",
+  "theApp": "The app",
+  "administration": "Administration",
+  "dataQualitySummary": "Listings per site, missing facts and suspicious prices",
+  "filterPlaceSection": "Place and distance",
+  "filterScoreSection": "Deal Score and risk",
+  "chosenCount": "{count, plural, =1{1 chosen} other{{count} chosen}}"
 }
