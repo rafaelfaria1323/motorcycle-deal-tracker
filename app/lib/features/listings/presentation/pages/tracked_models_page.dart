@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../app/di/injection.dart';
+import '../../../../core/widgets/collapsible_section.dart';
 import '../../../../core/widgets/page_back_button.dart';
 import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
@@ -12,6 +13,7 @@ import '../../domain/repositories/catalog_repository.dart';
 import '../colour_text.dart';
 import '../cubit/favourites_cubit.dart';
 import '../cubit/listings_cubit.dart';
+import '../filter_sections_text.dart';
 import '../tracked_models_text.dart';
 import '../widgets/add_model_sheet.dart';
 import '../../../../core/localization/localizations.dart';
@@ -330,30 +332,41 @@ class _ModelDialogState extends State<_ModelDialog> {
             ),
             Text(context.strings.firstYearHelp),
             const SizedBox(height: 16),
-            Text(
-              context.strings.preferredColours,
-              style: theme.textTheme.titleSmall,
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
+            CollapsibleSection(
+              title: context.strings.preferredColours,
+              summary: chosenSummary(
+                [
+                  for (final MapEntry(key: code, value: label) in colourLabels(
+                    language: context.language,
+                  ).entries)
+                    if (_colours.contains(code)) label,
+                ],
+                none: context.strings.any,
+                language: context.language,
+              ),
+              active: _colours.isNotEmpty,
               children: [
-                for (final MapEntry(key: code, value: label) in colourLabels(
-                  language: context.language,
-                ).entries)
-                  FilterChip(
-                    label: Text(label),
-                    selected: _colours.contains(code),
-                    onSelected: (selected) => setState(
-                      () =>
-                          selected ? _colours.add(code) : _colours.remove(code),
-                    ),
-                  ),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final MapEntry(key: code, value: label)
+                        in colourLabels(language: context.language).entries)
+                      FilterChip(
+                        label: Text(label),
+                        selected: _colours.contains(code),
+                        onSelected: (selected) => setState(
+                          () => selected
+                              ? _colours.add(code)
+                              : _colours.remove(code),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(context.strings.listingsInTheseColoursAreMarkedAndYou),
               ],
             ),
-            const SizedBox(height: 8),
-            Text(context.strings.listingsInTheseColoursAreMarkedAndYou),
             const SizedBox(height: 16),
             TextField(
               controller: _price,

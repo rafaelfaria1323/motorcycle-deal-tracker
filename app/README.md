@@ -140,7 +140,7 @@ Screen names below use the Portuguese labels; English provides the same screens.
   their database history, so the same event cannot be generated again;
   pending notifications are marked handled without a push, and the
   listing's later removal or return no longer alerts because of them.
-- **Mais:** account, "Idioma", "Cartões dos anúncios" (the same card display choices as Ofertas), sharing (the app's link; admins: "Contas e convites"), "Notificações neste aparelho" (with "Horas de silêncio": the hours, Portugal time, when alerts wait for the next collection, 23:00 to 08:00 unless changed, for all the account's devices; "Enviar notificação de teste", an example of any alert or collection message, and "Enviar o resumo da semana"), "Resumo da semana" (your models' last 7 days, made every Monday and sent as a notification that opens it: counts, new listings per model, the best deals and the biggest drops, each opening its listing), "A sua localidade" (your home town: every listing
+- **Mais:** in sections (Conta, Pessoal, Ferramentas, Notificações, A app, Recolha de dados; "Administração" for admins only: "Contas e convites", "Estado da recolha", "Recolher agora"): account, "Idioma", "Cartões dos anúncios" (the same card display choices as Ofertas), "Partilhar a app" (the app's link), "Notificações neste aparelho" (with "Horas de silêncio": the hours, Portugal time, when alerts wait for the next collection, 23:00 to 08:00 unless changed, for all the account's devices; "Enviar notificação de teste", an example of any alert or collection message, and "Enviar o resumo da semana"), "Resumo da semana" (your models' last 7 days, made every Monday and sent as a notification that opens it: counts, new listings per model, the best deals and the biggest drops, each opening its listing), "A sua localidade" (your home town: every listing
   shows its distance from it), "Modelos acompanhados" (your own models: switch on/off, first
   year, favourite colours of each (listings in them are marked "Cor
   preferida", never scored), new-bike price, add models: brand and model picked from the sites'
@@ -190,7 +190,7 @@ its own driver on an automatically allocated port. `check.yml` runs it
 separately from `make check`.
 
 Visitors get an anonymous session. Accounts come from invites: an admin
-(Mais › Partilhar › "Contas e convites") creates a link and shares it, and
+(Mais › Administração › "Contas e convites") creates a link and shares it, and
 whoever opens it (`/#/join?code=…`) chooses an email and password; the
 account is made at once (Supabase Auth's admin API, called by the
 database). Admins also see the accounts, make other admins and remove

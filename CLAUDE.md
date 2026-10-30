@@ -333,7 +333,14 @@ invites; written by the collector on each run).
   `SessionCubit`'s user id itself: a different account or sign-out resets
   the cards at once, ignoring earlier in-flight loads and saves.
 - Routing: go_router `StatefulShellRoute` (Ofertas / Pesquisas / Alertas /
-  Mais). Account, "Modelos acompanhados" and collection status live in Mais.
+  Mais). Account, "Modelos acompanhados" and collection status live in Mais,
+  in sections (Conta, Pessoal, Ferramentas, Notificações, A app, Recolha
+  de dados) plus "Administração" for admins only (`AdminTiles`; `MorePage`
+  asks `isAdmin()` once per account). Long choices (the filters' models,
+  place, scores and equipment; a model's colours; Mais's runs and data
+  quality) fold into `CollapsibleSection` (`core/widgets/`), whose closed
+  line says what is chosen (`chosenSummary`); the filters sheet keeps its
+  title and Limpar/Aplicar fixed while the choices scroll.
   Switching tabs uses `context.go`; full pages outside the shell
   (`/models`, `/market`, `/worth`, `/import`, `/favourites`, `/compare?ids=a,b,c`,
   `/summary`)
@@ -358,7 +365,7 @@ invites; written by the collector on each run).
 - Auth: anonymous session on first visit; accounts sign in with email +
   password. Accounts come from invites (no SMTP, no open sign-up): an
   admin (`app_admins`, `is_admin()`, `require_admin()`; the oldest account
-  was the first) creates one in Mais › "Contas e convites" (`create_invite`,
+  was the first) creates one in Mais › Administração › "Contas e convites" (`create_invite`,
   table `invites`: one account, 14 days) and shares the link
   (`/#/join?code=…`, `core/platform/share.dart`: the phone's share sheet,
   else the link is copied); the invite page calls `redeem_invite`, which
@@ -368,7 +375,7 @@ invites; written by the collector on each run).
   `store_service_access`; never writes `auth.users`), then signs in.
   Admins also list accounts (`admin_accounts`), make or unmake admins
   (`set_admin`, never themselves) and remove accounts (`remove_account`),
-  and start `collect.yml` now from Mais › Recolha de dados
+  and start `collect.yml` now from Mais › Administração
   (`start_workflow`: GitHub's dispatch API through `http` with the Vault
   token, at most once per 15 minutes, `workflow_starts`; the collector's
   caps still apply). Any signed-in account can also start `push-test.yml`

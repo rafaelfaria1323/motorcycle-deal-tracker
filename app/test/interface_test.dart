@@ -26,6 +26,7 @@ import 'package:motorcycle_deal_tracker/features/settings/presentation/listing_c
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../integration_test/support/interface_fixture.dart';
+
 import 'package:motorcycle_deal_tracker/core/localization/localizations.dart';
 
 void _screen(WidgetTester tester, Size size) {
@@ -1217,6 +1218,54 @@ void main() {
       isTrue,
     );
     expect(find.text('As suas pesquisas'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final admin in [false, true]) {
+    testWidgets('Mais shows administration only to admins (admin: $admin)', (
+      tester,
+    ) async {
+      await _open(
+        tester,
+        InterfaceFixture(signedIn: true, admin: admin),
+        location: AppRoutes.more,
+      );
+      await _reveal(tester, find.text('Qualidade dos dados'));
+      // To the end of the list, past the last section.
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, -5000));
+      await tester.pumpAndSettle();
+      expect(find.text('Administração'), admin ? findsOneWidget : findsNothing);
+      expect(
+        find.text('Contas e convites'),
+        admin ? findsOneWidget : findsNothing,
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('filter sections open on a tap and say what is chosen', (
+    tester,
+  ) async {
+    final fixture = InterfaceFixture();
+    await _open(tester, fixture);
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Filtros'));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(FilterChip, 'MT-07'), findsNothing);
+
+    await tester.tap(find.widgetWithText(ExpansionTile, 'Modelos'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilterChip, 'MT-07'));
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: find.byType(ExpansionTile).first,
+        matching: find.text('MT-07'),
+      ),
+      findsWidgets,
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Aplicar'));
+    await tester.pumpAndSettle();
+    expect(fixture.listings.state.filters.motorcycleIds, ['mt07']);
     expect(tester.takeException(), isNull);
   });
 
