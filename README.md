@@ -63,11 +63,21 @@ Tracked models (chosen in the app)
 | [`collector/`](collector/README.md) | Dart command line: fetches, parses and stores listings, then scores and alerts |
 | `supabase/` | Database migrations: tables, scoring, alerts, views, access rules; `tests/`: SQL tests (`make db-test`) |
 | `docs/` | Progress and decisions (see below) |
-| `.github/workflows/` | `collect.yml` (00:00 and every 2 hours from 08:00 to 22:00, Lisbon time, started by Supabase pg_cron), `check.yml` (on every pull request, in parallel: the app's analyze, unused code and tests with coverage; `make app-smoke`; the collector's checks and tests with coverage, `tool/` and the database tests; the collection's shared setup, then the collector started), `deploy-web.yml` (on merge: new migrations, the app's tests and the builds side by side, then the web app and the Android APK published, the APK on the release `android`, which the Android app installs as its update), `android-check.yml` (the APK built on pull requests that touch the Android side), `weekly-summary.yml` (Mondays, each account's week in the app and on its devices; or one account's when asked in the app), `photos.yml` (the photo fingerprints and damage hints: after each collection, and at once when someone asks for every photo of an ad; shared setup in `.github/actions/collector`), `push-test.yml` (a test notification to the devices of whoever asked in the app), `mutation.yml` (mutation testing without AI: after merges the changed files, by hand all of them, held to a minimum score; report on the run's page), `code-quality.yml` and `test-hardening.yml` (Claude works through the backlogs, fixing every 5 merged PRs and finding new items after 10 in `docs/code-quality.md` and `docs/test-hardening.md`; shared steps in `backlog-pass.yml`) |
+| `.github/workflows/` | `collect.yml` (00:00 and every 2 hours from 08:00 to 22:00, Lisbon time, started by Supabase pg_cron), `check.yml` (three parallel jobs: the app's analyze, unused code and tests with coverage; `make app-smoke`; the collector and database, using the collection's shared Dart setup and startup smoke before its checks, coverage, `tool/` and database tests), `deploy-web.yml` (on merge: new migrations, the app's tests and the builds side by side, then the web app and the Android APK published, the APK on the release `android`, which the Android app installs as its update), `android-check.yml` (the APK built on pull requests that touch the Android side), `weekly-summary.yml` (Mondays, each account's week in the app and on its devices; or one account's when asked in the app), `photos.yml` (the photo fingerprints and damage hints: after each collection, and at once when someone asks for every photo of an ad; shared setup in `.github/actions/collector`), `push-test.yml` (a test notification to the devices of whoever asked in the app), `mutation.yml` (mutation testing without AI: after merges the changed files, by hand all of them, held to a minimum score; report on the run's page), `code-quality.yml` and `test-hardening.yml` (Claude works through the backlogs, fixing every 5 merged PRs and finding new items after 10 in `docs/code-quality.md` and `docs/test-hardening.md`; shared steps in `backlog-pass.yml`) |
 
 ## Getting started
 
-Requirements: Flutter (stable), the Supabase CLI and `make`.
+Requirements: **Flutter 3.44.8 with its bundled Dart 3.12.2**, the Supabase
+CLI and `make`. `.fvmrc` pins Flutter for FVM and every Flutter workflow;
+`.dart-version` pins the same Dart for standalone collector jobs and cloud
+sessions. The collector/database PR job needs only Dart, not Flutter, and
+also checks the production collector setup instead of installing it again
+in a separate job.
+
+With FVM, run `fvm use 3.44.8` and put `.fvm/flutter_sdk/bin` first on
+`PATH` before using `make`; otherwise install that Flutter version and use
+its bundled `dart`. Changing `.fvmrc` also triggers previews and Android
+builds, and deployment on merge.
 
 ```sh
 make help                 # every command

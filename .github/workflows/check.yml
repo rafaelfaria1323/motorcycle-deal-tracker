@@ -5,8 +5,8 @@ name: Check
 # `make app-smoke` (offline Chrome flow), and `make db-test`
 # (migrations and SQL tests on Postgres), so a change is
 # proven before it is merged rather than when the deploy runs.
-# Four jobs run side by side (app, smoke, collector and database, the
-# workflows' shared collector setup); each test suite runs once, inside
+# Three jobs run side by side (app, smoke, collector/database); the
+# last uses the workflows' shared collector setup. Each suite runs once, inside
 # its coverage target. The job `check` waits
 # for them and is the one result the PR shows as "check".
 # PRs opened by a workflow (code quality, test hardening) don't trigger
@@ -38,6 +38,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version-file: .fvmrc
           cache: true
 
       - name: Install dependencies
@@ -65,6 +66,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version-file: .fvmrc
           cache: true
 
       - name: make app-smoke
@@ -106,14 +108,18 @@ jobs:
           bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.12/scripts/download-actionlint.bash) 1.7.12 "$RUNNER_TEMP"
           PATH="$RUNNER_TEMP:$PATH" make lint-scripts
 
-      # The same Dart as the app's (the collector is tested with it).
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
+      # The production setup, using Flutter's matching Dart SDK without
+      # downloading Flutter for a job that only runs Dart.
+      - uses: ./.github/actions/collector
 
-      - name: Install dependencies
-        run: cd collector && dart pub get
+      - name: The collector starts
+        run: |
+          cd collector
+          set +e
+          dart run bin/report_run.dart
+          code=$?
+          set -e
+          [ "$code" = 64 ] || { echo "Expected exit 64, got $code"; exit 1; }
 
       - name: make collector-lint
         run: make collector-lint
@@ -157,32 +163,10 @@ jobs:
           pipx install squawk-cli==2.70.0 >/dev/null
           make sql-lint
 
-  # The shared setup the collection, photo, test-notification and weekly
-  # summary workflows start with (.github/actions/collector): it is not
-  # used above, and a break in it showed only when the 12:00 collection
-  # of 2026-10-29 failed. Then one of their commands is started (no
-  # arguments: its usage, exit 64), so the installed collector runs.
-  collector-setup:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: ./.github/actions/collector
-
-      - name: The collector starts
-        run: |
-          cd collector
-          set +e
-          dart run bin/report_run.dart
-          code=$?
-          set -e
-          [ "$code" = 64 ] || { echo "Expected exit 64, got $code"; exit 1; }
-
   # The single result named "check", as before the split: green only when
-  # all four jobs passed (also when one was cancelled or skipped).
+  # all three jobs passed (also when one was cancelled or skipped).
   check:
-    needs: [app, smoke, collector-db, collector-setup]
+    needs: [app, smoke, collector-db]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5

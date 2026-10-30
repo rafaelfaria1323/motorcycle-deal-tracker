@@ -140,6 +140,96 @@ void main() {
     expect(slugOf(Catalog.mvp(), 'Honda', 'cb', 'CB750 Hornet'), isNull);
   });
 
+  test('one resolver reuses rules across brands and rejected ads', () {
+    final resolver = ModelResolver(full);
+
+    for (var pass = 0; pass < 3; pass++) {
+      expect(
+        resolver.resolve(brand: 'hON-da', family: 'CB', text: 'CB650R')?.slug,
+        'honda-cb650r',
+      );
+      expect(
+        resolver.resolve(
+          brand: 'Honda',
+          family: 'CB',
+          text: 'CB650R',
+          engineCc: 125,
+        ),
+        isNull,
+      );
+      expect(
+        resolver.resolve(brand: 'Yamaha', family: '', text: 'Tracer 700')?.slug,
+        'yamaha-tracer-7',
+      );
+      expect(
+        resolver.resolve(brand: 'Honda', family: '', text: 'Tracer 700'),
+        isNull,
+      );
+      expect(
+        resolver.resolve(brand: 'Honda', family: '', text: 'CB650R CBR650R'),
+        isNull,
+      );
+      expect(
+        resolver.resolve(brand: 'Unknown', family: 'CB', text: 'CB650R'),
+        isNull,
+      );
+    }
+  });
+
+  test('a new catalog gets its own aliases and exclusions', () {
+    ModelResolver withRules(List<String> aliases, List<String> excluded) =>
+        ModelResolver(
+          Catalog([
+            CatalogEntry(
+              slug: 'honda-cb750-hornet',
+              brand: 'Honda',
+              model: 'CB750 Hornet',
+              minYear: 2023,
+              aliases: aliases,
+              excludedWords: excluded,
+            ),
+          ]),
+        );
+    final before = withRules(const [], const ['Sport']);
+    final after = withRules(const ['Hornet 750'], const []);
+
+    expect(
+      before.resolve(brand: 'Honda', family: '', text: 'Hornet 750'),
+      isNull,
+    );
+    expect(
+      after.resolve(brand: 'Honda', family: '', text: 'Hornet 750')?.slug,
+      'honda-cb750-hornet',
+    );
+    expect(
+      before.resolve(brand: 'Honda', family: '', text: 'CB750 Hornet Sport'),
+      isNull,
+    );
+    expect(
+      after
+          .resolve(brand: 'Honda', family: '', text: 'CB750 Hornet Sport')
+          ?.slug,
+      'honda-cb750-hornet',
+    );
+    expect(
+      before.resolve(brand: 'Honda', family: '', text: 'Hornet 750'),
+      isNull,
+    );
+  });
+
+  test('an empty catalog has no matches, including engine fallback', () {
+    final resolver = ModelResolver(const Catalog([]));
+    expect(
+      resolver.resolve(
+        brand: 'Honda',
+        family: 'CB',
+        text: 'CB650R',
+        engineCc: 649,
+      ),
+      isNull,
+    );
+  });
+
   test('the engine size picks the model within a family', () {
     final resolver = ModelResolver(full);
 

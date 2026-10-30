@@ -16,6 +16,7 @@ on:
     types: [opened, synchronize, reopened, closed]
     branches: [main]
     paths:
+      - '.fvmrc'
       - 'app/**'
       - '.github/workflows/preview-web.yml'
 
@@ -50,6 +51,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version-file: .fvmrc
           cache: true
 
       - name: Build

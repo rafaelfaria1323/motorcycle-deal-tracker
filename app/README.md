@@ -165,6 +165,11 @@ Screen names below use the Portuguese labels; English provides the same screens.
 
 ## Running it
 
+Use **Flutter 3.44.8 / Dart 3.12.2**. The root `.fvmrc` pins the SDK for
+FVM and all app workflows (checks, smoke, preview, web/Android builds and
+mutation testing). With FVM, run `fvm use 3.44.8` from the repository root
+and put `.fvm/flutter_sdk/bin` first on `PATH` for the `make` commands.
+
 ```sh
 cp env/dev.example.json env/dev.json   # SUPABASE_URL + SUPABASE_PUBLISHABLE_KEY
 make app-run                           # from the repo root: Chrome

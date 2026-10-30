@@ -1,4 +1,4 @@
-# Motorcycle Deal Tracker — Concept & Architecture (status 2026-10-28)
+# Motorcycle Deal Tracker — Concept & Architecture (status 2026-10-30)
 
 **Legend:** ✅ done · 🟡 partly done · ⬜ not started · ➕ added along the way
 
@@ -57,7 +57,11 @@ Unchanged.
 
 ## 7. Stack
 
-- Frontend: Flutter Web, Dart ✅
+- Frontend: Flutter Web, Dart ✅ *Flutter 3.44.8 and its bundled Dart
+  3.12.2 are pinned for local FVM use and CI (`.fvmrc`, `.dart-version`;
+  roadmap N.33), not floating stable releases. The collector/database PR
+  job uses standalone Dart and the production setup/startup smoke, with
+  no full Flutter installation or duplicate setup job.*
 - Backend: Supabase, PostgreSQL ✅, Supabase Auth ✅ *(anonymous + owner email/password)*; scheduled jobs ➕ *on GitHub Actions instead of Edge Functions (a Dart CLI collector, one process per run, 9 times a day at fixed Lisbon hours), started by Supabase pg_cron (GitHub's own scheduler never started them).*
 - Hosting: Cloudflare Pages ✅
 - Repository: GitHub ✅ *(stays public, Rafael 2026-10-21: free Actions minutes for the whole pipeline)*; ➕ automatic code-quality review by Claude after every 5 merged PRs
@@ -70,7 +74,7 @@ Tracked models (catalog) → searches → Collectors / Adapters → Normalizatio
    → Deal Engine · Price History · Status Tracking → Flutter Web/PWA → Alerts (app + Web Push / FCM)
 ```
 
-*Each source has its own adapter + mapper (`manual`, `standvirtual`, `standvirtual-search`, `olx-search`); model matching (`ModelResolver`) and everything after normalization are shared.*
+*Each source has its own adapter + mapper (`manual`, `standvirtual`, `standvirtual-search`, `olx-search`); model matching (`ModelResolver`) and everything after normalization are shared. Matching rules are prepared once per resolver and indexed by normalized brand, not rebuilt for each listing (roadmap N.34); matching and fetching rules are unchanged.*
 
 *The app's shared listings, searches, alerts and favourites follow the
 session's account identity themselves (`AccountScopedCubit`, roadmap N.20),

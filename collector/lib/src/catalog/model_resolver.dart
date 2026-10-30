@@ -4,12 +4,17 @@ import 'catalog.dart';
 /// use. Shared by every source, so a bike is matched the same way wherever
 /// it is listed.
 class ModelResolver {
-  const ModelResolver(this.catalog);
+  ModelResolver(this.catalog) {
+    for (final entry in catalog.entries) {
+      (_byBrand[normalizeKey(entry.brand)] ??= []).add(_ModelRule(entry));
+    }
+  }
 
   final Catalog catalog;
 
-  /// Honda's ABS and E-Clutch codes: CB650RA, CB650RAC are still a CB650R.
-  static const _codeSuffixes = ['', 'a', 'ac'];
+  final _byBrand = <String, List<_ModelRule>>{};
+  static final _wordSeparator = RegExp(r'[^a-z0-9]+');
+  static final _engineToken = RegExp(r'^[0-9]+cc$');
 
   /// The catalog model, or null when it is not clearly one.
   ///
@@ -27,17 +32,15 @@ class ModelResolver {
     final textKey = normalizeKey(text);
     final brandKey = normalizeKey(brand);
     final entries = [
-      for (final e in catalog.entries)
-        if (normalizeKey(e.brand) == brandKey &&
-            !e.excludedWords.any((w) => textKey.contains(normalizeKey(w))))
-          e,
+      for (final e in _byBrand[brandKey] ?? const <_ModelRule>[])
+        if (!e.excludedWords.any(textKey.contains)) e,
     ];
 
     // 1. The text names the model ("CB" + "650 RA", "R" + "YZF-R7").
     final tokens = _tokens(text);
     final named = [
       for (final e in entries)
-        if (_hasModel(tokens, e)) e,
+        if (e.hasModel(tokens)) e,
     ];
     if (named.length > 1) return null; // ambiguous
     var found = named.isEmpty ? null : named.first;
@@ -51,41 +54,66 @@ class ModelResolver {
       final familyKey = normalizeKey(family);
       final byEngine = [
         for (final e in entries)
-          if ((e.engineCcMin != null || e.engineCcMax != null) &&
-              _family(normalizeKey(e.model)) == familyKey &&
-              _fits(e, cc))
+          if ((e.entry.engineCcMin != null || e.entry.engineCcMax != null) &&
+              e.family == familyKey &&
+              e.fits(cc))
             e,
       ];
       if (byEngine.length == 1) found = byEngine.first;
     }
 
     // 3. A stated engine size that does not fit rules the match out.
-    if (found != null && cc != null && !_fits(found, cc)) return null;
-    return found;
+    if (found != null && cc != null && !found.fits(cc)) return null;
+    return found?.entry;
   }
-
-  bool _fits(CatalogEntry entry, int cc) {
-    final min = entry.engineCcMin;
-    final max = entry.engineCcMax;
-    return (min == null || cc >= min) && (max == null || cc <= max);
-  }
-
-  /// `cbr650r` -> `cbr`, `r7` -> `r`: the letters before the first digit.
-  static String _family(String key) =>
-      key.replaceFirst(RegExp(r'[0-9].*$'), '');
 
   /// The words of [text]; an engine size loses its unit ("350cc" -> "350",
   /// so "ADV 350cc" names the ADV 350).
   static List<String> _tokens(String text) => text
       .toLowerCase()
-      .split(RegExp(r'[^a-z0-9]+'))
-      .map(
-        (t) => RegExp(r'^[0-9]+cc$').hasMatch(t)
-            ? t.substring(0, t.length - 2)
-            : t,
-      )
+      .split(_wordSeparator)
+      .map((t) => _engineToken.hasMatch(t) ? t.substring(0, t.length - 2) : t)
       .where((t) => t.isNotEmpty)
       .toList();
+}
+
+/// Catalog-only work, prepared once per resolver rather than once per ad.
+class _ModelRule {
+  _ModelRule(this.entry)
+    : family = normalizeKey(entry.model).replaceFirst(_familySuffix, ''),
+      excludedWords = entry.excludedWords.map(normalizeKey).toList(),
+      accepted = _acceptedNames(entry);
+
+  final CatalogEntry entry;
+  final String family;
+  final List<String> excludedWords;
+  final Set<String> accepted;
+  late final int longest = accepted
+      .map((key) => key.length)
+      .reduce((a, b) => a > b ? a : b);
+
+  /// Honda's ABS and E-Clutch codes: CB650RA, CB650RAC are still a CB650R.
+  static const _codeSuffixes = ['', 'a', 'ac'];
+  static final _familySuffix = RegExp(r'[0-9].*$');
+  static final _closingLetters = RegExp(r'(?<=[0-9])[a-z]+$');
+
+  static Set<String> _acceptedNames(CatalogEntry entry) {
+    final names = <String>{};
+    for (final name in [entry.model, ...entry.aliases]) {
+      final key = normalizeKey(name);
+      names.addAll([
+        for (final suffix in _codeSuffixes) '$key$suffix',
+        key.replaceFirst(_closingLetters, ''),
+      ]);
+    }
+    return names;
+  }
+
+  bool fits(int cc) {
+    final min = entry.engineCcMin;
+    final max = entry.engineCcMax;
+    return (min == null || cc >= min) && (max == null || cc <= max);
+  }
 
   /// True when the model name or an alias ("cbr650r", or with a Honda code
   /// suffix) is spelled by up to four consecutive words starting in the first
@@ -94,17 +122,7 @@ class ModelResolver {
   /// A name without its closing letters counts too: sellers write "CBR 650"
   /// for the CBR650R, the only CBR650 made in the tracked years. Older bikes
   /// with the same digits are left out by excluded words and the year range.
-  static bool _hasModel(List<String> tokens, CatalogEntry entry) {
-    final accepted = {
-      for (final name in [entry.model, ...entry.aliases]) ...{
-        for (final s in _codeSuffixes) '${normalizeKey(name)}$s',
-        normalizeKey(name).replaceFirst(RegExp(r'(?<=[0-9])[a-z]+$'), ''),
-      },
-    };
-    final longest = accepted
-        .map((k) => k.length)
-        .reduce((a, b) => a > b ? a : b);
-
+  bool hasModel(List<String> tokens) {
     for (var start = 0; start < tokens.length && start <= 2; start++) {
       var joined = '';
       for (var end = start; end < tokens.length && end < start + 4; end++) {
