@@ -17,10 +17,49 @@ the database schema, secrets or workflows goes to "Needs Rafael".
 
 ## To do
 
+- Scope on-demand weekly-summary reads before loading listings/history
+  (`collector/bin/weekly_summary.dart`, `ListingStore.followedModels` and
+  `priceHistoryChangedSince`): `SUMMARY_ACCOUNT` currently filters only
+  after every account's models and the whole catalog's summary data have
+  been read. Load that account's follows first, restrict the model set,
+  and avoid the global recent-history scan for an empty listing set.
+  Preserve full history for changed listings so the price at the start
+  of the week remains correct; prove equivalent summaries and fewer
+  queries/rows with repository fakes.
+- Select each card's comparison membership in
+  `dashboard_page.dart` (`BlocSelector` or `buildWhen`), as favourites
+  already do: the current `BlocBuilder<CompareCubit, List<String>>`
+  rebuilds every visible listing card when any comparison pick changes,
+  although each card only reads `compared.contains(listing.id)`. Keep
+  the toolbar's total count and the three-pick limit responsive; verify
+  only affected cards rebuild.
 
 ## Needs Rafael
 
+- Profile `mark_duplicates` and `mark_relists` before reducing their
+  write churn (current definitions:
+  `supabase/migrations/20261028170000_photo_fingerprints.sql`). Each run
+  clears live markings and writes the matches back even when unchanged.
+  If significant, compute final assignments first and write only rows
+  `IS DISTINCT FROM` them, in a new migration with chain-collapse,
+  removal and photo-based matching regressions; compare elapsed time
+  and rows updated on representative data. Do not edit the live migration
+  or trade away duplicate/relist semantics.
+
 ## Done
+
+- 2026-10-30: Model matching prepares each catalog's aliases, exclusions,
+  families and accepted Honda suffixes once per resolver, indexed by
+  normalized brand; immutable regular expressions are reused too.
+  Synthetic CPU-only benchmark: 24,000 resolutions, 13 models, seven-run
+  medians after warmup, same Dart 3.13.7: 565.5 ms to 83.1 ms (6.8x),
+  identical match count. Fetching and matching rules are unchanged
+  (roadmap N.34).
+- 2026-10-30: Flutter 3.44.8 and bundled Dart 3.12.2 are pinned for CI
+  and local setup. The collector/database check uses the production
+  standalone-Dart action and retains its startup smoke, removing a
+  redundant setup runner and the full Flutter download for that job
+  (roadmap N.33).
 
 - 2026-10-27: Counts and their nouns are ICU plurals (`{count, plural, =0{0 anúncios} =1{1 anúncio} other{{count} anúncios}}`): the 16 strings with a `{…Word}` placeholder, the pairs of one/many messages (`text1Listing` / `listingsDataQualityText`, `text1DayLeft` / `daysLeft`, `thereIsAnother…` / `thereAreCheaper…`, "Problema" / "Problemas") and the counts built in code (a run's counts, the weekly summary's, data quality's) now take an `int` and pick the word in the resource; 46 keys of bare words or halves went. Each plural has an explicit `=0`: Intl's rule for `pt` counts 0 as "one". It also fixes the listing page's "1 meses" of seller warranty (tested).
 - 2026-10-27: The ARB resources have names by purpose (148 keys: the 73 named after a 40+ character English sentence, e.g. `githubTokenIsMissingFromSupabaseVaultCollections` → `githubTokenMissing`, and the 77 with `{value}` placeholders, e.g. `at` → `runLine`, `now` → `priceNowChanged`) and placeholders by what they hold (`{ago}`, `{duration}`, `{asked}`, `{listingsWord}`; no `{value}` left). Both ARB files and every caller were renamed by one script that matches the call's own parentheses, then checked: every call's named arguments equal its string's placeholders.

@@ -3,7 +3,7 @@
 # and `make db-test` need. Flutter is deliberately NOT installed (the app is
 # checked by CI's `flutter analyze`/`flutter test`); app logic is tested
 # with plain Dart on copies of the files.
-#   - Dart SDK (latest stable) in ~/.cache/dart-sdk, on PATH
+#   - Dart SDK (.dart-version) in ~/.cache/dart-sdk-<version>, on PATH
 #   - collector dependencies (the lockfile is never changed)
 #   - local Postgres running, with a superuser for the session's user
 set -euo pipefail
@@ -14,14 +14,18 @@ fi
 
 cd "$CLAUDE_PROJECT_DIR"
 
-dart_dir="$HOME/.cache/dart-sdk"
+dart_version=$(cat .dart-version)
+dart_dir="$HOME/.cache/dart-sdk-$dart_version"
 if [ ! -x "$dart_dir/bin/dart" ]; then
+  if [ -e "$dart_dir" ]; then
+    echo "Incomplete Dart SDK cache: $dart_dir. Remove it before retrying." >&2
+    exit 1
+  fi
   tmp=$(mktemp -d)
   curl -fsSL -o "$tmp/dart.zip" \
-    https://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/dartsdk-linux-x64-release.zip
+    "https://storage.googleapis.com/dart-archive/channels/stable/release/$dart_version/sdk/dartsdk-linux-x64-release.zip"
   unzip -q "$tmp/dart.zip" -d "$tmp"
   mkdir -p "$(dirname "$dart_dir")"
-  rm -rf "$dart_dir"
   mv "$tmp/dart-sdk" "$dart_dir"
   rm -rf "$tmp"
 fi
@@ -31,14 +35,10 @@ if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
 fi
 dart --version
 
-# Never commit collector/pubspec.lock changes: resolve from the lockfile, and
-# if this SDK can't, resolve anyway but put the committed lockfile back.
+# A pinned SDK must resolve the committed dependencies without rewriting them.
 (
   cd collector
-  if ! dart pub get --enforce-lockfile >/dev/null 2>&1; then
-    dart pub get >/dev/null
-    git checkout -- pubspec.lock
-  fi
+  dart pub get --enforce-lockfile
 )
 
 # make lint-scripts: actionlint is on the image, shellcheck may not be.

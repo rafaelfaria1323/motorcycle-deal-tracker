@@ -5,6 +5,13 @@ Dart command line that fills the database. GitHub Actions runs it at
 (`.github/workflows/collect.yml`, started by Supabase pg_cron); it uses the
 Supabase service-role key, which the app never sees.
 
+Use **Dart 3.12.2**, the SDK bundled with Flutter 3.44.8. The root
+`.dart-version` pins standalone collector workflows and cloud sessions;
+Flutter workflows read `.fvmrc`. The PR's collector/database job uses the
+same production setup without downloading Flutter, then checks that the
+collector starts. Setup enforces the committed lockfile instead of silently
+resolving different dependencies.
+
 ## One run (`make refresh`, `bin/refresh.dart`)
 
 For each site (Standvirtual, OLX):
@@ -29,7 +36,10 @@ For each site (Standvirtual, OLX):
    shows up; an ad no followed model matched is logged with
    the site's brand and model ("unmatched \"Honda NSS 350 Forza\""; on OLX
    the model is the title, long digit runs masked), so a missed rule can
-   be spotted.
+   be spotted. Each mapper prepares its catalog's normalized aliases,
+   exclusions and model families once, grouped by brand, rather than
+   rebuilding those rules for every listing; ambiguity and engine-size
+   guards are unchanged.
 4. **Details** (Standvirtual only): read the listing page of new listings
    (favourites and alerted ones first, then by Deal Score, so what waits
    for the next run when time runs out matters least).

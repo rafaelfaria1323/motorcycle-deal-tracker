@@ -90,8 +90,12 @@ never asks for search URLs; aliases sit under "Outros nomes do modelo".
   must stay clean: fix a splinter finding, or allow it in
   `supabase/lint_allow.txt` with the reason.
 - Flutter is not installed in the sandbox and must not be downloaded: Rafael
-  tests the app. Pure Dart logic in the app can be tested with plain Dart
-  (`package:test`) on copies of the files. The deploy runs `flutter test`
+  tests the app. The project pins Flutter 3.44.8 (`.fvmrc`, FVM and every
+  Flutter workflow) and its bundled Dart 3.12.2 (`.dart-version`, standalone
+  collector jobs and the cloud session hook). Keep both aligned when
+  upgrading; app and collector SDK minimums match. Pure Dart logic in the
+  app can be tested with plain Dart (`package:test`) on copies of the
+  files. The deploy runs `flutter test`
   and `flutter build web --wasm` (WebAssembly where the browser supports
   it, JavaScript otherwise; no cross-origin isolation headers, which would
   block the listing photos).
@@ -133,18 +137,19 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   devices of whoever asked in the app; input
                                   `kind`: an example of one alert or
                                   collection message (`pushTestKinds`)
-.github/workflows/check.yml       On every pull request to main, four parallel
+.github/workflows/check.yml       On every pull request to main, three parallel
                                   jobs: app (`make app-analyze`, `dead-code`,
                                   `app-coverage`), smoke (`make app-smoke`,
                                   offline Chrome flow) and collector-db
                                   (migrations, `lint-scripts`, `collector-lint`,
                                   `collector-coverage`, `tool-check`,
                                   `duplication`, `sql-lint` with `db-test` on a
-                                  Postgres service) and collector-setup (the
-                                  shared .github/actions/collector, then the
-                                  collector started); each test suite runs once,
+                                  Postgres service); collector-db uses the
+                                  shared .github/actions/collector and checks
+                                  that the collector starts, without Flutter
+                                  or a separate setup job; each suite runs once,
                                   in its coverage target; the job `check` passes
-                                  only when all four did
+                                  only when all three did
 .github/workflows/preview-web.yml Every PR touching app/: the app built and
                                   published to pr-<number>.<project>.pages.dev,
                                   linked in one comment on the PR (real
@@ -742,7 +747,9 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   numbers removed) is stored as `variant`, as Standvirtual's version, for
   the A2 and extras rules.
 - **Model matching** (`ModelResolver`, shared by all sources) reads its rules
-  from the catalog: model name and `aliases` spelled within the first three
+  from the catalog and prepares the normalized names, aliases, exclusions
+  and families once per resolver, grouped by brand: model name and
+  `aliases` spelled within the first three
   words (also without closing letters: "CBR 650" = CBR650R), Honda code
   suffixes (A, AC), per-model `excluded_words` ("tracer" for the MT-07,
   "650f", "125f"), on OLX the title read after the brand (also after sale words: "Vendo mota Honda ..."), `engine_cc_min/max` as tiebreaker and guard (a model

@@ -1,6 +1,8 @@
+final _nonKeyCharacters = RegExp(r'[^a-z0-9]');
+
 /// Lowercase letters and digits only, so "MT-07", "mt 07" and "MT07" match.
 String normalizeKey(String value) =>
-    value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+    value.toLowerCase().replaceAll(_nonKeyCharacters, '');
 
 class CatalogEntry {
   const CatalogEntry({

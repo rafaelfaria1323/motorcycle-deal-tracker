@@ -6,14 +6,19 @@ description: >
 runs:
   using: composite
   steps:
+    - name: Read the pinned Dart version
+      id: dart
+      shell: bash
+      run: echo "version=$(cat .dart-version)" >> "$GITHUB_OUTPUT"
+
     - uses: dart-lang/setup-dart@v1
       with:
-        sdk: stable
+        sdk: ${{ steps.dart.outputs.version }}
         # Its matcher file is looked up in this action's folder when
-        # called from a composite action, which fails the step; these
-        # workflows run no analyzer anyway.
+        # called from a composite action, which fails setup. Disabling
+        # it does not change the analyzer's nonzero exit on diagnostics.
         problem-matcher: false
 
     - name: Install collector dependencies
       shell: bash
-      run: cd collector && dart pub get
+      run: cd collector && dart pub get --enforce-lockfile

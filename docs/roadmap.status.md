@@ -1,4 +1,4 @@
-# Motorcycle Deal Tracker — Small Interaction Roadmap (status 2026-10-28)
+# Motorcycle Deal Tracker — Small Interaction Roadmap (status 2026-10-30)
 
 **Legend:** ✅ done · 🟡 partly done / in progress · ⬜ not started · ➕ added along the way (not in the original plan)
 
@@ -570,6 +570,35 @@ N.23's to sort after main's latest), applied on merge before deployment.*
 
 ## ➕ N.32 The collection's setup checked on every PR ✅
 *The 12:00 collection of 2026-10-29 stopped after 30 s and collected nothing: P.7's shared setup (`.github/actions/collector`) called `dart-lang/setup-dart`, whose problem matcher, run from a composite action, looks for its file in that action's folder (fixed by `problem-matcher: false`, #228). No PR check used that setup, so only the scheduled run found it. `check.yml` now has the job `collector-setup`: the shared action, then `bin/report_run.dart` started without arguments (its usage, exit 64), and `check` needs it. A run that leaves no log (the job stopped before the collector started) is recorded with the problem `noLogProblem`, and the admins' notification says "Parou antes de começar (ao preparar a execução no GitHub): nada foi recolhido" instead of the stale-prices advice (`runProblems`, `runHealthMessage`, tested).*
+
+## ➕ N.33 Pinned SDKs and leaner collector checks ✅
+*2026-10-30: Flutter is pinned to 3.44.8 in `.fvmrc` (FVM and every
+Flutter workflow), and standalone Dart to its bundled 3.12.2 in
+`.dart-version` (verified from that Flutter engine's Dart revision).
+The app and collector require Dart 3.12.2 or newer; the app also requires
+Flutter 3.44.8 or newer. Preview, Android PR builds and deployment include
+the Flutter pin in their path filters. The collector/database check now
+uses the production collector action with standalone Dart, not a full
+Flutter SDK, and runs N.32's command-start smoke there. The separate
+`collector-setup` job is gone; the three jobs remain required by `check`.
+Collector setup and cloud sessions enforce the lockfile, and the cloud
+SDK cache is versioned rather than keeping whichever stable Dart was first
+downloaded. No Flutter SDK is downloaded into the working environment.*
+
+## ➕ N.34 Prepare model-matching rules once ✅
+*2026-10-30: `ModelResolver` indexes catalog entries by normalized brand
+and prepares each model's normalized aliases, Honda suffixes, excluded
+words and family once per resolver. Immutable regular expressions are
+reused, including `normalizeKey`'s. No global catalog cache: a new
+resolver gets that catalog's current rules. First-three-word matching,
+four-word names, ambiguity, exclusions and engine-size boundaries are
+unchanged. A local CPU microbenchmark (13 models, 24,000 resolutions,
+seven measured runs after warmup, same Dart 3.13.7) went from a 565.5 ms
+median to 83.1 ms, about 6.8 times faster, with the same 20,000 matches;
+this is not an end-to-end collection speedup. Network delays, request
+counts and fetching policy are untouched. Remaining opportunities
+(account-scoped summary reads, comparison-card rebuilds, profiling
+duplicate/relist writes) are recorded in `docs/code-quality.md`.*
 
 # Security and privacy ✅
 
