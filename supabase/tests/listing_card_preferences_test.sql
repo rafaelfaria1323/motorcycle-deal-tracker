@@ -14,9 +14,10 @@ declare
   refused boolean;
 begin
   assert (select visible_fields = array[
-    'source', 'deal_score', 'price_change', 'year', 'mileage', 'location',
-    'preferred_colour'
-  ] from public.listing_card_preferences), 'defaults preserve the current card';
+    'source', 'deal_score', 'price_change', 'market_position', 'year',
+    'mileage', 'location', 'preferred_colour'
+  ] from public.listing_card_preferences),
+    'defaults: the earlier card and the market position (F.7)';
 
   insert into public.listing_card_preferences (visible_fields)
   values (array[

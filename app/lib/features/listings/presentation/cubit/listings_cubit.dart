@@ -7,10 +7,22 @@ import '../../domain/repositories/listings_repository.dart';
 import 'listings_state.dart';
 
 class ListingsCubit extends AccountScopedCubit<ListingsState> {
-  ListingsCubit(this._repository, SessionCubit session)
-    : super(session, const ListingsState());
+  ListingsCubit(
+    this._repository,
+    SessionCubit session, {
+    DateTime Function() now = DateTime.now,
+  }) : _now = now,
+       super(session, const ListingsState());
 
   final ListingsRepository _repository;
+  final DateTime Function() _now;
+
+  /// When the list shown was asked for; null before a load succeeded.
+  DateTime? _loadedAt;
+
+  /// How old the list must be before a return to the app counts the ads
+  /// found since ([checkForNew]): the collection runs every 2 hours.
+  static const staleAfter = Duration(minutes: 30);
 
   /// Listings per request; the list asks for more as it scrolls.
   static const pageSize = 40;
@@ -20,6 +32,7 @@ class ListingsCubit extends AccountScopedCubit<ListingsState> {
 
   @override
   void resetForAccount() {
+    _loadedAt = null;
     emit(ListingsState(filters: state.filters, sort: state.sort));
   }
 
@@ -33,7 +46,14 @@ class ListingsCubit extends AccountScopedCubit<ListingsState> {
     final account = accountGeneration;
     if (!isCurrentAccount(account)) return;
     final generation = ++_generation;
-    emit(state.copyWith(status: ListingsStatus.loading, loadingMore: false));
+    final askedAt = _now();
+    emit(
+      state.copyWith(
+        status: ListingsStatus.loading,
+        loadingMore: false,
+        newCount: 0,
+      ),
+    );
     final filters = state.filters;
     final sort = state.sort;
     try {
@@ -58,6 +78,7 @@ class ListingsCubit extends AccountScopedCubit<ListingsState> {
       // Filters changed or a reload started while loading: that newer
       // load wins.
       if (!isCurrentAccount(account) || generation != _generation) return;
+      _loadedAt = askedAt;
       emit(
         state.copyWith(
           status: ListingsStatus.success,
@@ -106,6 +127,35 @@ class ListingsCubit extends AccountScopedCubit<ListingsState> {
       if (isCurrentAccount(account) && generation == _generation) {
         emit(state.copyWith(loadingMore: false));
       }
+    }
+  }
+
+  /// On return to the app: counts the ads first seen since the list
+  /// loaded, with its filters, once it is [staleAfter] old ("3 anúncios
+  /// novos", tapped to reload). Quiet on failure: the list is still there.
+  Future<void> checkForNew() async {
+    final account = accountGeneration;
+    final since = _loadedAt;
+    if (!isCurrentAccount(account) ||
+        state.status != .success ||
+        since == null ||
+        _now().difference(since) < staleAfter) {
+      return;
+    }
+    final generation = _generation;
+    try {
+      final count = await _repository.countNewSince(
+        since,
+        filters: state.filters,
+      );
+      if (!isCurrentAccount(account) ||
+          generation != _generation ||
+          state.status != .success) {
+        return;
+      }
+      emit(state.copyWith(newCount: count));
+    } catch (_) {
+      // Nothing to say: the next return asks again.
     }
   }
 

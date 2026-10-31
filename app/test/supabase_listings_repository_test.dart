@@ -19,6 +19,14 @@ void main() {
       authOptions: const AuthClientOptions(autoRefreshToken: false),
       httpClient: MockClient((request) async {
         requests.add(request);
+        if (request.method == 'HEAD') {
+          return Response(
+            '',
+            200,
+            request: request,
+            headers: {'content-range': '*/4'},
+          );
+        }
         return Response(
           '[]',
           200,
@@ -66,5 +74,22 @@ void main() {
 
   test('the newest first is the order web/index.html prefetches', () async {
     expect((await query())['order'], startsWith('first_seen_at.desc'));
+  });
+
+  test('new ads on return: a count of the same list since it loaded '
+      '(F.7)', () async {
+    final count = await repository.countNewSince(
+      DateTime.utc(2026, 10, 31, 10),
+      filters: const ListingFilters(maxPrice: 8000),
+    );
+    expect(count, 4);
+    final request = requests.single;
+    expect(request.method, 'HEAD');
+    expect(request.headers['Prefer'], contains('count=exact'));
+    final parameters = request.url.queryParameters;
+    expect(parameters['first_seen_at'], 'gt.2026-10-31T10:00:00.000Z');
+    expect(parameters['in_my_models'], 'eq.true');
+    expect(parameters['duplicate_of'], 'is.null');
+    expect(parameters['asking_price'], startsWith('lte.8000'));
   });
 }

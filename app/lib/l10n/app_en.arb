@@ -1061,5 +1061,8 @@
   "alertFilterExcellent": "Excellent",
   "alertFilterRemoved": "Removed",
   "noAlertsOfThisKind": "There are no alerts of this kind.",
-  "showAllAlerts": "Show all"
+  "showAllAlerts": "Show all",
+  "marketPositionField": "Position against the market",
+  "newListingsSinceLoad": "{count, plural, =1{1 new ad} other{{count} new ads}}",
+  "showNewListings": "Show the ads found since the list opened"
 }

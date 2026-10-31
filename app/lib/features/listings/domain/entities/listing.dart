@@ -83,6 +83,12 @@ class const Listing({
   /// field `my_colour`). A plus shown to them, never part of the Deal Score.
   final bool myColour = false,
 
+  /// How far the asking price is below the estimated value, in % (negative:
+  /// above it; the computed field `market_position`, against the damaged
+  /// value for a damaged bike). Null below 3 comparables, for a placeholder
+  /// price, or where not loaded (the detail page reads the breakdown).
+  final double? marketPosition,
+
   /// What the image model may have seen in the first photos, likeliest
   /// first. Only loaded on the detail page; hints, never a score.
   final List<PhotoHint> photoHints = const [],
@@ -149,6 +155,7 @@ class const Listing({
     initialPrice,
     priceBeforeDrop,
     dealScore,
+    marketPosition,
     status,
     lastSeenAt,
   ];

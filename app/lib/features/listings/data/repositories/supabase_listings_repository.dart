@@ -25,11 +25,48 @@ class SupabaseListingsRepository(final SupabaseClient _client)
     // web/index.html asks for the first page with the default filters
     // and order before the app starts: keep it in step
     // (test/first_page_test.dart).
-    var query = _client
-        .from('listings')
-        .select(ListingModel.summaryColumns)
-        .eq('in_my_models', true);
-    query = query.isFilter('duplicate_of', null);
+    final query = _filtered(
+      _client.from('listings').select(ListingModel.summaryColumns),
+      filters,
+    );
+
+    final ordered = switch (sort) {
+      ListingSort.newest => query.order('first_seen_at', ascending: false),
+      ListingSort.priceAsc => query.order(
+        'asking_price',
+        ascending: true,
+        nullsFirst: false,
+      ),
+      ListingSort.priceDesc => query.order(
+        'asking_price',
+        ascending: false,
+        nullsFirst: false,
+      ),
+      ListingSort.dealScoreDesc => query.order(
+        'deal_score',
+        ascending: false,
+        nullsFirst: false,
+      ),
+      ListingSort.nearest => query.order(
+        'distance_km',
+        ascending: true,
+        nullsFirst: false,
+      ),
+    };
+
+    // The id breaks ties, so pages never repeat or skip a listing.
+    final rows = await ordered.order('id').range(offset, offset + limit - 1);
+    return rows.map(ListingModel.fromJson).toList();
+  }
+
+  /// Ofertas' filters on a query of listings: the account's own models,
+  /// no duplicates, then each criterion. Shared by the pages and the count
+  /// of new ones, so both see the same list.
+  PostgrestFilterBuilder<T> _filtered<T>(
+    PostgrestFilterBuilder<T> base,
+    ListingFilters filters,
+  ) {
+    var query = base.eq('in_my_models', true).isFilter('duplicate_of', null);
 
     if (filters.motorcycleIds.isNotEmpty) {
       query = query.inFilter('motorcycle_id', filters.motorcycleIds);
@@ -75,35 +112,17 @@ class SupabaseListingsRepository(final SupabaseClient _client)
     if (filters.activeOnly) {
       query = query.inFilter('status', ['active', 'price_changed']);
     }
-
-    final ordered = switch (sort) {
-      ListingSort.newest => query.order('first_seen_at', ascending: false),
-      ListingSort.priceAsc => query.order(
-        'asking_price',
-        ascending: true,
-        nullsFirst: false,
-      ),
-      ListingSort.priceDesc => query.order(
-        'asking_price',
-        ascending: false,
-        nullsFirst: false,
-      ),
-      ListingSort.dealScoreDesc => query.order(
-        'deal_score',
-        ascending: false,
-        nullsFirst: false,
-      ),
-      ListingSort.nearest => query.order(
-        'distance_km',
-        ascending: true,
-        nullsFirst: false,
-      ),
-    };
-
-    // The id breaks ties, so pages never repeat or skip a listing.
-    final rows = await ordered.order('id').range(offset, offset + limit - 1);
-    return rows.map(ListingModel.fromJson).toList();
+    return query;
   }
+
+  @override
+  Future<int> countNewSince(
+    DateTime since, {
+    ListingFilters filters = ListingFilters.empty,
+  }) => _filtered(
+    _client.from('listings').count(),
+    filters,
+  ).gt('first_seen_at', since.toUtc().toIso8601String());
 
   @override
   Future<Listing?> getListingById(String id) async {

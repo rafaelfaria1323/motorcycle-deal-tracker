@@ -145,210 +145,284 @@ class const DashboardPage({super.key}) extends StatelessWidget {
           const SizedBox(width: 12),
         ],
       ),
-      body: BlocBuilder<ListingsCubit, ListingsState>(
-        builder: (context, state) {
-          final cubit = context.read<ListingsCubit>();
-          final chips = filterChips(
-            state.filters,
-            state.motorcycles,
-            language: context.language,
-          );
-          final loading = state.status == .initial || state.status == .loading;
+      body: _OffersScroll(
+        builder: (context, scroll) => BlocBuilder<ListingsCubit, ListingsState>(
+          builder: (context, state) {
+            final cubit = context.read<ListingsCubit>();
+            final chips = filterChips(
+              state.filters,
+              state.motorcycles,
+              language: context.language,
+            );
+            final loading =
+                state.status == .initial || state.status == .loading;
 
-          return RefreshIndicator(
-            onRefresh: cubit.load,
-            child: NotificationListener<ScrollNotification>(
-              onNotification: (notification) {
-                if (notification.depth == 0 &&
-                    notification.metrics.axis == Axis.vertical &&
-                    notification.metrics.extentAfter < 800) {
-                  Future.microtask(cubit.loadMore);
-                }
-                return false;
-              },
-              child: CustomScrollView(
-                key: ValueKey((state.filters, state.sort)),
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Opened several times a day: the intro only
-                          // welcomes an empty list, the ads start at once.
-                          if (state.status == .success &&
-                              state.listings.isEmpty &&
-                              state.filters.appliedCount == 0) ...[
-                            PageIntro(
-                              eyebrow: context.strings.yourMotorcycleRadar,
-                              title: context.strings.yourNextBikeStartsHere,
-                              description: context.strings.dealsIntro,
+            final list = RefreshIndicator(
+              onRefresh: cubit.load,
+              child: NotificationListener<ScrollNotification>(
+                onNotification: (notification) {
+                  if (notification.depth == 0 &&
+                      notification.metrics.axis == Axis.vertical &&
+                      notification.metrics.extentAfter < 800) {
+                    Future.microtask(cubit.loadMore);
+                  }
+                  return false;
+                },
+                child: CustomScrollView(
+                  key: ValueKey((state.filters, state.sort)),
+                  controller: scroll,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Opened several times a day: the intro only
+                            // welcomes an empty list, the ads start at once.
+                            if (state.status == .success &&
+                                state.listings.isEmpty &&
+                                state.filters.appliedCount == 0) ...[
+                              PageIntro(
+                                eyebrow: context.strings.yourMotorcycleRadar,
+                                title: context.strings.yourNextBikeStartsHere,
+                                description: context.strings.dealsIntro,
+                              ),
+                              const SizedBox(height: 24),
+                            ],
+                            _OffersToolbar(
+                              state: state,
+                              onFilters: () => _openFilters(context),
                             ),
-                            const SizedBox(height: 24),
-                          ],
-                          _OffersToolbar(
-                            state: state,
-                            onFilters: () => _openFilters(context),
-                          ),
-                          if (chips.isNotEmpty) ...[
-                            const SizedBox(height: 12),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 4,
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              children: [
-                                for (final chip in chips)
-                                  InputChip(
-                                    label: Text(chip.label),
-                                    onDeleted: () =>
-                                        cubit.applyFilters(chip.without),
-                                    deleteButtonTooltipMessage:
-                                        context.strings.removeFilter,
-                                  ),
-                                if (chips.length > 1)
-                                  ActionChip(
-                                    label: Text(context.strings.clearAll),
-                                    onPressed: () => cubit.applyFilters(
-                                      ListingFilters.empty,
+                            if (chips.isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 4,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  for (final chip in chips)
+                                    InputChip(
+                                      label: Text(chip.label),
+                                      onDeleted: () =>
+                                          cubit.applyFilters(chip.without),
+                                      deleteButtonTooltipMessage:
+                                          context.strings.removeFilter,
                                     ),
-                                  ),
-                                // Saving belongs to the chosen filters:
-                                // without a criterion there is nothing
-                                // to save.
-                                if (state.filters.hasCriteria)
-                                  BlocBuilder<
-                                    SavedSearchesCubit,
-                                    SavedSearchesState
-                                  >(
-                                    bloc: getIt<SavedSearchesCubit>(),
-                                    builder: (context, searches) =>
-                                        _SaveSearchButton(
-                                          saved: savedSearchLike(
-                                            searches.searches,
-                                            state.filters,
+                                  if (chips.length > 1)
+                                    ActionChip(
+                                      label: Text(context.strings.clearAll),
+                                      onPressed: () => cubit.applyFilters(
+                                        ListingFilters.empty,
+                                      ),
+                                    ),
+                                  // Saving belongs to the chosen filters:
+                                  // without a criterion there is nothing
+                                  // to save.
+                                  if (state.filters.hasCriteria)
+                                    BlocBuilder<
+                                      SavedSearchesCubit,
+                                      SavedSearchesState
+                                    >(
+                                      bloc: getIt<SavedSearchesCubit>(),
+                                      builder: (context, searches) =>
+                                          _SaveSearchButton(
+                                            saved: savedSearchLike(
+                                              searches.searches,
+                                              state.filters,
+                                            ),
+                                            onSave: () => _saveSearch(context),
                                           ),
-                                          onSave: () => _saveSearch(context),
-                                        ),
-                                  ),
-                              ],
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                  if (loading)
-                    SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      sliver: _OffersGrid(
-                        itemCount: 6,
-                        itemBuilder: (_, _) => const ListingCardSkeleton(),
-                      ),
-                    )
-                  else if (state.status == .failure)
-                    SliverFillRemaining(
-                      child: StateMessage(
-                        icon: Icons.cloud_off,
-                        title: context.strings.couldNotLoadDeals,
-                        message: context.strings.checkYourConnectionAndTryAgain,
-                        actionLabel: context.strings.retry,
-                        onAction: cubit.load,
-                      ),
-                    )
-                  else if (state.listings.isEmpty)
-                    SliverFillRemaining(
-                      child: StateMessage(
-                        icon: Icons.search_off,
-                        title: state.filters.appliedCount > 0
-                            ? context.strings.noListingsMatchTheseFilters
-                            : context.strings.noListingsYet,
-                        message: state.filters.appliedCount > 0
-                            ? context.strings.tryWideningYourSearchCriteria
-                            : context.strings.chooseModelsYouWantToFollowOrCome,
-                        actionLabel: state.filters.appliedCount > 0
-                            ? context.strings.clearFilters
-                            : context.strings.chooseModels,
-                        onAction: state.filters.appliedCount > 0
-                            ? () => cubit.applyFilters(ListingFilters.empty)
-                            : () {
-                                unawaited(
-                                  context
-                                      .push<void>(AppRoutes.models)
-                                      .then((_) => cubit.load()),
-                                );
-                              },
-                      ),
-                    )
-                  else
-                    BlocBuilder<
-                      ListingCardPreferencesCubit,
-                      ListingCardPreferencesState
-                    >(
-                      bloc: getIt<ListingCardPreferencesCubit>(),
-                      builder: (context, cards) => SliverPadding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        sliver: _OffersGrid(
-                          preferences: cards.preferences,
-                          itemCount: state.listings.length,
-                          itemBuilder: (context, index) {
-                            final listing = state.listings[index];
-                            return BlocBuilder<
-                              FavouritesCubit,
-                              FavouritesState
-                            >(
-                              bloc: getIt<FavouritesCubit>(),
-                              buildWhen: (previous, current) =>
-                                  previous.isFavourite(listing.id) !=
-                                  current.isFavourite(listing.id),
-                              builder: (context, favourites) =>
-                                  // Only this card's pick: another
-                                  // card's doesn't rebuild it.
-                                  BlocSelector<
-                                    CompareCubit,
-                                    List<String>,
-                                    bool
-                                  >(
-                                    bloc: getIt<CompareCubit>(),
-                                    selector: (compared) =>
-                                        compared.contains(listing.id),
-                                    builder: (context, selected) => ListingCard(
-                                      listing: listing,
-                                      preferences: cards.preferences,
-                                      selected: selected,
-                                      favourite: favourites.isFavourite(
-                                        listing.id,
-                                      ),
-                                      onTap: () => context.push(
-                                        AppRoutes.listingDetail(listing.id),
-                                        extra: AppRoutes.fromList,
-                                      ),
-                                      onLongPress: () =>
-                                          _toggleCompare(context, listing.id),
                                     ),
-                                  ),
-                            );
-                          },
+                                ],
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                     ),
-                  if (state.loadingMore)
-                    const SliverToBoxAdapter(
-                      child: Padding(
-                        padding: EdgeInsets.all(24),
-                        child: Center(child: CircularProgressIndicator()),
+                    if (loading)
+                      SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        sliver: _OffersGrid(
+                          itemCount: 6,
+                          itemBuilder: (_, _) => const ListingCardSkeleton(),
+                        ),
+                      )
+                    else if (state.status == .failure)
+                      SliverFillRemaining(
+                        child: StateMessage(
+                          icon: Icons.cloud_off,
+                          title: context.strings.couldNotLoadDeals,
+                          message:
+                              context.strings.checkYourConnectionAndTryAgain,
+                          actionLabel: context.strings.retry,
+                          onAction: cubit.load,
+                        ),
+                      )
+                    else if (state.listings.isEmpty)
+                      SliverFillRemaining(
+                        child: StateMessage(
+                          icon: Icons.search_off,
+                          title: state.filters.appliedCount > 0
+                              ? context.strings.noListingsMatchTheseFilters
+                              : context.strings.noListingsYet,
+                          message: state.filters.appliedCount > 0
+                              ? context.strings.tryWideningYourSearchCriteria
+                              : context
+                                    .strings
+                                    .chooseModelsYouWantToFollowOrCome,
+                          actionLabel: state.filters.appliedCount > 0
+                              ? context.strings.clearFilters
+                              : context.strings.chooseModels,
+                          onAction: state.filters.appliedCount > 0
+                              ? () => cubit.applyFilters(ListingFilters.empty)
+                              : () {
+                                  unawaited(
+                                    context
+                                        .push<void>(AppRoutes.models)
+                                        .then((_) => cubit.load()),
+                                  );
+                                },
+                        ),
+                      )
+                    else
+                      BlocBuilder<
+                        ListingCardPreferencesCubit,
+                        ListingCardPreferencesState
+                      >(
+                        bloc: getIt<ListingCardPreferencesCubit>(),
+                        builder: (context, cards) => SliverPadding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          sliver: _OffersGrid(
+                            preferences: cards.preferences,
+                            itemCount: state.listings.length,
+                            itemBuilder: (context, index) {
+                              final listing = state.listings[index];
+                              return BlocBuilder<
+                                FavouritesCubit,
+                                FavouritesState
+                              >(
+                                bloc: getIt<FavouritesCubit>(),
+                                buildWhen: (previous, current) =>
+                                    previous.isFavourite(listing.id) !=
+                                    current.isFavourite(listing.id),
+                                builder: (context, favourites) =>
+                                    // Only this card's pick: another
+                                    // card's doesn't rebuild it.
+                                    BlocSelector<
+                                      CompareCubit,
+                                      List<String>,
+                                      bool
+                                    >(
+                                      bloc: getIt<CompareCubit>(),
+                                      selector: (compared) =>
+                                          compared.contains(listing.id),
+                                      builder: (context, selected) =>
+                                          ListingCard(
+                                            listing: listing,
+                                            preferences: cards.preferences,
+                                            selected: selected,
+                                            favourite: favourites.isFavourite(
+                                              listing.id,
+                                            ),
+                                            onTap: () => context.push(
+                                              AppRoutes.listingDetail(
+                                                listing.id,
+                                              ),
+                                              extra: AppRoutes.fromList,
+                                            ),
+                                            onLongPress: () => _toggleCompare(
+                                              context,
+                                              listing.id,
+                                            ),
+                                          ),
+                                    ),
+                              );
+                            },
+                          ),
+                        ),
                       ),
-                    ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 96)),
-                ],
+                    if (state.loadingMore)
+                      const SliverToBoxAdapter(
+                        child: Padding(
+                          padding: EdgeInsets.all(24),
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                      ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 96)),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+            if (state.newCount == 0 || state.status != .success) return list;
+            return Stack(
+              children: [
+                list,
+                Positioned(
+                  top: 8,
+                  left: 16,
+                  right: 16,
+                  child: Center(
+                    child: _NewListingsPill(
+                      count: state.newCount,
+                      onTap: () {
+                        if (scroll.hasClients) scroll.jumpTo(0);
+                        unawaited(cubit.load());
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
+}
+
+/// Keeps Ofertas' scroll position in one controller across the list's
+/// rebuilds, so the new-ads pill can bring it back to the top.
+class const _OffersScroll({
+  required final Widget Function(BuildContext, ScrollController) builder,
+}) extends StatefulWidget {
+  @override
+  State<_OffersScroll> createState() => _OffersScrollState();
+}
+
+class _OffersScrollState extends State<_OffersScroll> {
+  final _controller = ScrollController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.builder(context, _controller);
+}
+
+/// "3 anúncios novos" over the top of Ofertas, on return to the app once
+/// the list is a while old (F.7): a tap shows them.
+class const _NewListingsPill({
+  required final int count,
+  required final VoidCallback onTap,
+}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Tooltip(
+    message: context.strings.showNewListings,
+    child: FilledButton.icon(
+      icon: const Icon(Icons.arrow_upward, size: 18),
+      label: Text(
+        context.strings.newListingsSinceLoad(count: count),
+        overflow: TextOverflow.ellipsis,
+      ),
+      onPressed: onTap,
+    ),
+  );
 }
 
 /// Applies [sort]; "Mais perto" without a home first asks for one, and

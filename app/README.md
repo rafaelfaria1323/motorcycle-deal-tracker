@@ -62,7 +62,11 @@ Screen names below use the Portuguese labels; English provides the same screens.
   "Guardar pesquisa" sits with the filter chips once a criterion is
   chosen, and the intro ("A próxima mota começa aqui.") greets only an
   empty list, so the first ad starts in the top quarter of a phone.
+  Back in the app after 30 minutes or more, "3 anúncios novos" over the
+  list counts the ads found since, with the same filters; a tap brings
+  the list to the top and shows them.
   By default, photo-led cards show the source, Deal Score, price change,
+  the position against the estimated value ("8 % abaixo do mercado"),
   year, mileage, place and distance from your home, and preferred-colour
   indicator, with a visible "Comparar" action. Mais › "Cartões dos anúncios"
   lets each signed-in

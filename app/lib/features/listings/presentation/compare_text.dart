@@ -1,5 +1,6 @@
 import '../../../core/formatting/formatters.dart';
 import '../domain/entities/listing.dart';
+import 'listing_card_text.dart';
 import 'listing_labels.dart';
 import 'score_explanation.dart';
 import '../../../core/localization/localizations.dart';
@@ -36,15 +37,8 @@ Set<int> bestOf(List<num?> values, {required bool higherIsBetter}) {
 double? belowMarketPct(Listing l) =>
     (l.scoreBreakdown?['pct_below_market'] as num?)?.toDouble();
 
-String _marketText(Listing l, {AppLanguage language = .portuguese}) {
-  final pct = belowMarketPct(l);
-  if (pct == null) return '—';
-  final rounded = pct.round();
-  if (rounded == 0) return language.messages.atMarketValue;
-  return rounded > 0
-      ? language.messages.belowMarketValue(rounded: (rounded).toString())
-      : language.messages.aboveMarketValue(percent: (-rounded).toString());
-}
+String _marketText(Listing l, {AppLanguage language = .portuguese}) =>
+    marketPositionText(belowMarketPct(l), language: language) ?? '—';
 
 String _or(Object? value) => value == null ? '—' : '$value';
 
