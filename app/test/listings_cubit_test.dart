@@ -49,7 +49,7 @@ class _PagedListings implements ListingsRepository {
     offsets.add(offset);
     sorts.add(sort);
     if (failLoad) throw StateError('offline');
-    if (result case final response?) return response;
+    if (result case final response?) return await response;
     final end = (offset + limit).clamp(0, total);
     return [for (var i = offset; i < end; i++) _listing(i)];
   }

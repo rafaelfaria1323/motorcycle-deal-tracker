@@ -122,7 +122,7 @@ class const ListingModel({
   /// are left out.
   static List<PhotoHint> photoHintsOf(Object? value) => [
     if (value is List)
-      for (final hint in value)
+      for (final Object? hint in value)
         if (hint case {
           'code': final String code,
           'photo': final num photo,

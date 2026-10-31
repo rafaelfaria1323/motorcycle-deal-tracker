@@ -74,7 +74,8 @@ class _DeferredFavourites extends _FakeFavourites {
   Future<List<Favourite>>? loadResult;
 
   @override
-  Future<List<Favourite>> getAll() async => loadResult ?? super.getAll();
+  Future<List<Favourite>> getAll() async =>
+      await (loadResult ?? super.getAll());
 }
 
 class _FakeFavourites implements FavouritesRepository {

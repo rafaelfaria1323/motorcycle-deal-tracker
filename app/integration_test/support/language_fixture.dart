@@ -27,9 +27,8 @@ class LanguageFixture implements LanguageRepository {
     loads.add(userId);
     if (failLoad) throw StateError('Offline');
     final pending = pendingLoads.remove(userId);
-    return pending == null
-        ? accounts[userId] ?? AppLanguage.portuguese
-        : pending.future;
+    if (pending != null) return await pending.future;
+    return accounts[userId] ?? AppLanguage.portuguese;
   }
 
   @override
