@@ -4698,10 +4698,6 @@
   "@signInToAccessYourSearchesAndAlerts": {
     "description": "Interface text in more_page, build."
   },
-  "listingsYouAreConsideringWithYourNotes": "Os anúncios que está a considerar, com as suas notas",
-  "@listingsYouAreConsideringWithYourNotes": {
-    "description": "Interface text in more_page, build."
-  },
   "newListingsPriceDropsAndBestDealsFrom": "Novos anúncios, baixas de preço e os melhores negócios dos últimos 7 dias",
   "@newListingsPriceDropsAndBestDealsFrom": {
     "description": "Interface text in more_page, build."

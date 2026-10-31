@@ -182,12 +182,13 @@ void main() {
 
   // F.7: back in the app after a while, the ads found since are counted
   // over the list; a tap brings the list to the top and shows them.
-  testWidgets('new ads on return, on a narrow enlarged screen', (
-    tester,
-  ) async {
+  testWidgets('new ads on return, on a narrow enlarged screen', (tester) async {
     final fixture = InterfaceFixture(total: 45);
     await _open(tester, fixture, size: const Size(320, 720), textScale: 2);
-    await tester.drag(find.byType(CustomScrollView).first, const Offset(0, -900));
+    await tester.drag(
+      find.byType(CustomScrollView).first,
+      const Offset(0, -900),
+    );
     await tester.pumpAndSettle();
 
     Future<void> comeBack() async {
@@ -689,7 +690,7 @@ void main() {
           fixture.cardPreferencesRepository.saveDelay = pendingSave.future;
         }
         final router = await _open(tester, fixture, location: AppRoutes.more);
-        unawaited(router.push<void>(AppRoutes.favourites));
+        router.go(AppRoutes.favourites);
         await tester.pumpAndSettle();
         unawaited(
           showListingCardPreferences(
@@ -1395,18 +1396,39 @@ void main() {
   testWidgets('navigation adapts between mobile, tablet and desktop', (
     tester,
   ) async {
-    await _open(tester, InterfaceFixture());
+    final router = await _open(tester, InterfaceFixture());
     expect(find.byType(NavigationBar), findsOneWidget);
     await tester.tap(
       find
           .descendant(
             of: find.byType(NavigationBar),
-            matching: find.text('Pesquisas'),
+            matching: find.text('Favoritos'),
           )
           .last,
     );
     await tester.pumpAndSettle();
+    expect(find.byType(FavouritesPage), findsOneWidget);
+    expect(find.byType(BackButton), findsNothing);
+
+    // Pesquisas is Alertas' second part (F.9).
+    await tester.tap(
+      find
+          .descendant(
+            of: find.byType(NavigationBar),
+            matching: find.text('Alertas'),
+          )
+          .last,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(SegmentedButton<bool>),
+        matching: find.text('Pesquisas'),
+      ),
+    );
+    await tester.pumpAndSettle();
     expect(find.text('As suas pesquisas'), findsOneWidget);
+    expect(router.routeInformationProvider.value.uri.path, AppRoutes.searches);
 
     tester.view.physicalSize = const Size(900, 1000);
     await tester.pumpAndSettle();
