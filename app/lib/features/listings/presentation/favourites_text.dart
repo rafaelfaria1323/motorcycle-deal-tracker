@@ -6,7 +6,7 @@ import '../../../core/localization/localizations.dart';
 String favouriteSinceText(
   Favourite favourite, {
   DateTime? now,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) => language.messages.addedToFavourites(
   daysago: Formatters.daysAgo(
     favourite.createdAt,
@@ -18,7 +18,7 @@ String favouriteSinceText(
 /// The Favoritos page's summary: "3 anúncios, 1 já removido".
 String favouritesCountText(
   List<Favourite> favourites, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final total = favourites.length;
   final removed = favourites.where((f) => f.listing?.isRemoved ?? false).length;

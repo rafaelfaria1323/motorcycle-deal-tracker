@@ -8,10 +8,7 @@ const olxSearchPrefix =
 const standvirtualSearchPrefix = 'https://www.standvirtual.com/motos/';
 
 /// "Desde 2023 · OLX e Standvirtual · Azul, Preto".
-String modelSubtitle(
-  CatalogModel m, {
-  AppLanguage language = AppLanguage.portuguese,
-}) {
+String modelSubtitle(CatalogModel m, {AppLanguage language = .portuguese}) {
   final sites = [
     if (m.olxSearch != null) 'OLX',
     if (m.standvirtualSearch != null) 'Standvirtual',
@@ -26,10 +23,7 @@ String modelSubtitle(
 }
 
 /// "Preço de uma nova: 8 250 € (verificado em 13/10/2026)".
-String newPriceSubtitle(
-  CatalogModel m, {
-  AppLanguage language = AppLanguage.portuguese,
-}) {
+String newPriceSubtitle(CatalogModel m, {AppLanguage language = .portuguese}) {
   final price = m.newPrice;
   if (price == null) return language.messages.noNewBikePrice;
   final checked = m.newPriceCheckedAt;
@@ -45,7 +39,7 @@ String newPriceSubtitle(
 /// clears the price.
 ({double? price, String? error}) parseNewPrice(
   String text, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final cleaned = text.replaceAll(RegExp(r'[\s\u00a0\u202f€]'), '');
   if (cleaned.isEmpty) return (price: null, error: null);
@@ -83,7 +77,7 @@ String newPriceSubtitle(
 /// account). There is no request cap: every page of each search is read.
 String searchesLine(
   List<CatalogModel> models, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final counts = searchCounts(models);
   return language.messages.searchesPerCollection(
@@ -98,7 +92,7 @@ Map<String, String> newModelProblems({
   required String model,
   required String year,
   int? currentYear,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final maxYear = (currentYear ?? DateTime.now().year) + 1;
   final parsedYear = int.tryParse(year.trim());
@@ -118,7 +112,7 @@ Map<String, String> newModelProblems({
 /// code (null when the error was not a database one).
 String catalogSaveErrorText(
   String? postgresCode, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) => switch (postgresCode) {
   '23505' => language.messages.thatModelIsAlreadyInList,
   '42501' => language.messages.couldNotSaveYouNeedToBeSigned,

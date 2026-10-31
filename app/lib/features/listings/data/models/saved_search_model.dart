@@ -70,6 +70,6 @@ class SavedSearchModel {
   // In a saved search, null means "any", so "unknown" is the same as null.
   static SellerType? _sellerType(String? value) {
     final type = ListingModel.sellerTypeOf(value);
-    return type == SellerType.unknown ? null : type;
+    return type == .unknown ? null : type;
   }
 }

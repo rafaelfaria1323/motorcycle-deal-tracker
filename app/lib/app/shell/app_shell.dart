@@ -6,7 +6,6 @@ import '../../core/widgets/app_brand.dart';
 import '../../features/listings/presentation/cubit/alerts_cubit.dart';
 import '../../features/listings/presentation/cubit/alerts_state.dart';
 import '../../features/listings/presentation/cubit/favourites_cubit.dart';
-import '../../features/listings/presentation/cubit/favourites_state.dart';
 import '../di/injection.dart';
 import '../../core/localization/localizations.dart';
 
@@ -34,8 +33,8 @@ class _AppShellState extends State<AppShell> {
   void initState() {
     super.initState();
     _lifecycle = AppLifecycleListener(onResume: _alerts.load);
-    if (_alerts.state.status == AlertsStatus.initial) _alerts.load();
-    if (_favourites.state.status == FavouritesStatus.initial) {
+    if (_alerts.state.status == .initial) _alerts.load();
+    if (_favourites.state.status == .initial) {
       _favourites.load();
     }
   }

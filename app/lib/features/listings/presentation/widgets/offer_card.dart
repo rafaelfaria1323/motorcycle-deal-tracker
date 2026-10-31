@@ -83,7 +83,7 @@ class _OfferCardState extends State<OfferCard> {
     return FutureBuilder<(MarketBehaviour?, List<Listing>)>(
       future: _data,
       builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
+        if (snapshot.connectionState != .done) {
           return const SizedBox.shrink();
         }
         final (market, cheaper) = snapshot.data ?? (null, const <Listing>[]);
@@ -185,7 +185,7 @@ class _OfferCardState extends State<OfferCard> {
           for (final argument in arguments)
             BulletLine(argument, icon: Icons.chat_bubble_outline),
         ],
-        if (listing.sellerType == SellerType.dealer) ...[
+        if (listing.sellerType == .dealer) ...[
           const SizedBox(height: 16),
           Text(
             context.strings.atDealerAlsoAskFor,

@@ -56,10 +56,10 @@ class _PhotoHintsCardState extends State<PhotoHintsCard> {
       builder: (context, session) {
         var exam = _answer ?? photoExamOf(listing);
         // Only accounts can ask; anonymous visitors see the hints alone.
-        if (exam == PhotoExam.available && !session.signedIn) {
+        if (exam == .available && !session.signedIn) {
           exam = PhotoExam.none;
         }
-        if (lines.isEmpty && exam == PhotoExam.none) {
+        if (lines.isEmpty && exam == .none) {
           return const SizedBox.shrink();
         }
         final strings = context.strings;
@@ -84,8 +84,7 @@ class _PhotoHintsCardState extends State<PhotoHintsCard> {
                   ).toExtra(),
                 ),
               ),
-            if (lines.isNotEmpty && exam != PhotoExam.none)
-              const SizedBox(height: 8),
+            if (lines.isNotEmpty && exam != .none) const SizedBox(height: 8),
             switch (exam) {
               PhotoExam.none => const SizedBox.shrink(),
               PhotoExam.available => Column(

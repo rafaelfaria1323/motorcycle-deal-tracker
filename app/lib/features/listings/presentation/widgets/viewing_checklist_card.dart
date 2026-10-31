@@ -172,14 +172,14 @@ class const _ChecklistTile({
         children: [
           IconButton(
             tooltip: context.strings.ok,
-            isSelected: mark == ChecklistMark.ok,
+            isSelected: mark == .ok,
             icon: const Icon(Icons.check_circle_outline),
             selectedIcon: Icon(Icons.check_circle, color: colors.positive),
             onPressed: () => _toggle(context, ChecklistMark.ok),
           ),
           IconButton(
             tooltip: context.strings.problem,
-            isSelected: mark == ChecklistMark.issue,
+            isSelected: mark == .issue,
             icon: const Icon(Icons.report_outlined),
             selectedIcon: Icon(Icons.report, color: colors.negative),
             onPressed: () => _toggle(context, ChecklistMark.issue),

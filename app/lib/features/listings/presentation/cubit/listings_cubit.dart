@@ -77,7 +77,7 @@ class ListingsCubit extends AccountScopedCubit<ListingsState> {
   Future<void> loadMore() async {
     final account = accountGeneration;
     if (!isCurrentAccount(account) ||
-        state.status != ListingsStatus.success ||
+        state.status != .success ||
         !state.hasMore ||
         state.loadingMore) {
       return;

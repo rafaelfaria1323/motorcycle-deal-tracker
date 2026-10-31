@@ -9,7 +9,7 @@ import '../../../core/localization/localizations.dart';
 String sellerMessage(
   Listing listing, {
   double? offer,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final bike = [
     '${listing.brand} ${listing.model}',
@@ -32,7 +32,7 @@ String sellerMessage(
     if (listing.origin == null)
       language.messages.wasItOriginallyRegisteredInPortugal,
     language.messages.hasItEverBeenDroppedOrInvolvedIn,
-    if (listing.sellerType == SellerType.private)
+    if (listing.sellerType == .private)
       language.messages.isItRegisteredInYourName,
     language.messages.whenAndWhereCanISeeIt,
   ];

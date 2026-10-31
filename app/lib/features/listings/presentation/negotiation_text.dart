@@ -23,7 +23,7 @@ class const VisitFindings({
   bool get isEmpty => repairs.isEmpty && blockers.isEmpty;
 
   /// "pneus (~300 €), corrente e cremalheira (~200 €)".
-  String repairsText({AppLanguage language = AppLanguage.portuguese}) => repairs
+  String repairsText({AppLanguage language = .portuguese}) => repairs
       .map(
         (r) =>
             '${r.title.toLowerCase()} (~${Formatters.price(r.cost, language: language)})',
@@ -54,13 +54,13 @@ double? repairCost(String key, RunningCostTable costs) => switch (key) {
 VisitFindings visitFindings(
   Map<String, ChecklistEntry> checklist, {
   int? engineCc,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final costs = runningCostsFor(engineCc);
   final repairs = <VisitRepair>[];
   final blockers = <String>[];
   for (final item in viewingChecklistItems(language: language)) {
-    if (checklist[item.key]?.mark != ChecklistMark.issue) continue;
+    if (checklist[item.key]?.mark != .issue) continue;
     if (visitBlockers.contains(item.key)) {
       blockers.add(item.title);
     } else if (repairCost(item.key, costs) case final cost?) {
@@ -75,7 +75,7 @@ VisitFindings visitFindings(
 OfferSuggestion afterVisit(
   OfferSuggestion offer,
   VisitFindings findings, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   if (findings.repairs.isEmpty) return offer;
   return offer.lowerBy(
@@ -100,7 +100,7 @@ List<String> negotiationArguments(
   List<Listing> cheaper = const [],
   VisitFindings? visit,
   DateTime? today,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final now = today ?? DateTime.now();
   final price = listing.price;
@@ -224,9 +224,7 @@ List<String> negotiationArguments(
   return arguments;
 }
 
-List<(String, String)> _riskArguments({
-  AppLanguage language = AppLanguage.portuguese,
-}) => [
+List<(String, String)> _riskArguments({AppLanguage language = .portuguese}) => [
   ('possible_accident', language.messages.argumentAccidentResale),
   ('needs_repair', language.messages.itNeedsRepairsOrPartsYouWillHave),
   ('cosmetic_damage', language.messages.itHasScratchesOrDentsThatAffectPrice),
@@ -247,30 +245,24 @@ List<(String, String)> _riskArguments({
 
 /// Ready to send when making the offer [amount] (the first or a second
 /// one).
-String offerMessage(
-  double amount, {
-  AppLanguage language = AppLanguage.portuguese,
-}) => language.messages.thankYouForYourReplyIfEverythingIs(
-  price: Formatters.price(amount, language: language),
-);
+String offerMessage(double amount, {AppLanguage language = .portuguese}) =>
+    language.messages.thankYouForYourReplyIfEverythingIs(
+      price: Formatters.price(amount, language: language),
+    );
 
 /// Ready to send with the most you will pay.
-String lastOfferMessage(
-  double amount, {
-  AppLanguage language = AppLanguage.portuguese,
-}) => language.messages.iUnderstandMyFinalOfferIsThatIs(
-  price: Formatters.price(amount, language: language),
-);
+String lastOfferMessage(double amount, {AppLanguage language = .portuguese}) =>
+    language.messages.iUnderstandMyFinalOfferIsThatIs(
+      price: Formatters.price(amount, language: language),
+    );
 
 /// Ready to send when taking the seller's price.
-String acceptMessage(
-  double amount, {
-  AppLanguage language = AppLanguage.portuguese,
-}) => language.messages.agreedWhenAndWhereCanWeCompletePurchase(
-  price: Formatters.price(amount, language: language),
-);
+String acceptMessage(double amount, {AppLanguage language = .portuguese}) =>
+    language.messages.agreedWhenAndWhereCanWeCompletePurchase(
+      price: Formatters.price(amount, language: language),
+    );
 
-String walkAwayMessage({AppLanguage language = AppLanguage.portuguese}) =>
+String walkAwayMessage({AppLanguage language = .portuguese}) =>
     language.messages.thankYouForYourTimeICannotManage;
 
 enum Urgency { low, medium, high }
@@ -279,7 +271,7 @@ enum Urgency { low, medium, high }
 /// the reasons ("à venda há 90 dias", "já baixou o preço").
 class const SellerUrgency(final Urgency level, final List<String> reasons) {
   /// "Pressa do vendedor: alta (à venda há 90 dias, já baixou o preço)".
-  String text({AppLanguage language = AppLanguage.portuguese}) {
+  String text({AppLanguage language = .portuguese}) {
     final label = switch (level) {
       Urgency.high => language.messages.high,
       Urgency.medium => language.messages.medium,
@@ -308,7 +300,7 @@ SellerUrgency sellerUrgency(
   MarketBehaviour? market,
   int? daysListed,
   DateTime? today,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   var points = 0;
   final reasons = <String>[];
@@ -378,7 +370,7 @@ SellerUrgency sellerUrgency(
 List<String> dealerAsks(
   Listing listing, {
   DateTime? today,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final year = listing.year;
   final extras = listing.scoreBreakdown?['extras'] as List? ?? const [];
@@ -399,7 +391,7 @@ String dealerMessage(
   Listing listing,
   double amount, {
   DateTime? today,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final asks = dealerAsks(listing, today: today, language: language);
   return [

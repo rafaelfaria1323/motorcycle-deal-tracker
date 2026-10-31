@@ -10,7 +10,7 @@ List<(ListingCardField, String)> listingCardExtraFacts(
   Listing listing,
   ListingCardPreferences preferences, {
   DateTime? now,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) => [
   if (preferences.shows(ListingCardField.riskScore) &&
       listing.riskScore != null)
@@ -19,7 +19,7 @@ List<(ListingCardField, String)> listingCardExtraFacts(
       language.messages.riskScore100(riskScore: listing.riskScore.toString()),
     ),
   if (preferences.shows(ListingCardField.sellerType) &&
-      listing.sellerType != SellerType.unknown)
+      listing.sellerType != .unknown)
     (ListingCardField.sellerType, listing.sellerType.label(language: language)),
   if (preferences.shows(ListingCardField.firstSeenAt) &&
       listing.firstSeenAt != null)
@@ -77,7 +77,7 @@ List<(ListingCardField, String)> listingCardExtraFacts(
         language.messages.sellerWarrantyMonths(months: months),
       ),
   if (preferences.shows(ListingCardField.sellerName) &&
-      listing.sellerType == SellerType.dealer)
+      listing.sellerType == .dealer)
     if (listing.sellerName?.trim() case final seller?)
       if (seller.isNotEmpty)
         (ListingCardField.sellerName, language.messages.dealer(seller: seller)),
@@ -97,8 +97,7 @@ List<(ListingCardField, String)> listingCardExtraFacts(
           date: dateWithAge(renewed, now: now, language: language),
         ),
       ),
-  if (preferences.shows(ListingCardField.status) &&
-      listing.status != ListingStatus.unknown)
+  if (preferences.shows(ListingCardField.status) && listing.status != .unknown)
     (
       ListingCardField.status,
       language.messages.status(label: listing.status.label(language: language)),

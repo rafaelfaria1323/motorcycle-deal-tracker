@@ -36,7 +36,7 @@ Set<int> bestOf(List<num?> values, {required bool higherIsBetter}) {
 double? belowMarketPct(Listing l) =>
     (l.scoreBreakdown?['pct_below_market'] as num?)?.toDouble();
 
-String _marketText(Listing l, {AppLanguage language = AppLanguage.portuguese}) {
+String _marketText(Listing l, {AppLanguage language = .portuguese}) {
   final pct = belowMarketPct(l);
   if (pct == null) return '—';
   final rounded = pct.round();
@@ -52,7 +52,7 @@ String _or(Object? value) => value == null ? '—' : '$value';
 List<CompareRow> compareRows(
   List<Listing> listings, {
   DateTime? now,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   CompareRow row(
     String label,

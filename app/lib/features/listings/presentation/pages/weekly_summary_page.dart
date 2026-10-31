@@ -102,7 +102,7 @@ class _WeeklySummaryPageState extends State<WeeklySummaryPage> {
               onAction: () => unawaited(_reload()),
             );
           }
-          if (snapshot.connectionState != ConnectionState.done) {
+          if (snapshot.connectionState != .done) {
             return const Center(child: CircularProgressIndicator());
           }
           final summary = snapshot.data;

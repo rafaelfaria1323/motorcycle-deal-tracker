@@ -102,7 +102,7 @@ class ListingCardPreferencesCubit extends Cubit<ListingCardPreferencesState> {
       return false;
     }
     if (state.saving) return false;
-    if (state.status != ListingCardPreferencesStatus.success) {
+    if (state.status != .success) {
       emit(state.copyWith(error: ListingCardPreferencesFailure.notLoaded));
       return false;
     }

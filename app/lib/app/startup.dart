@@ -13,7 +13,6 @@ import '../core/platform/session_storage.dart';
 import '../core/widgets/state_message.dart';
 import '../features/listings/data/models/first_page_model.dart';
 import '../features/listings/presentation/cubit/listings_cubit.dart';
-import '../features/listings/presentation/cubit/listings_state.dart';
 import '../features/settings/data/supabase_language_repository.dart';
 import '../features/settings/presentation/language_cubit.dart';
 import 'app.dart';
@@ -75,7 +74,7 @@ class _StartupState extends State<Startup> {
     // a stored session goes with the request as usual. In the browser
     // index.html may already have asked (while the app downloaded).
     final listings = getIt<ListingsCubit>();
-    if (listings.state.status == ListingsStatus.initial) {
+    if (listings.state.status == .initial) {
       unawaited(listings.load(early: takeFirstPage().then(firstPageFromJson)));
     }
     // Browsing works without a session, so a slow sign-in doesn't hold
@@ -109,8 +108,7 @@ class _StartupState extends State<Startup> {
     return FutureBuilder<void>(
       future: _ready,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done &&
-            !snapshot.hasError) {
+        if (snapshot.connectionState == .done && !snapshot.hasError) {
           return const App();
         }
         return _waiting(

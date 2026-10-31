@@ -6,7 +6,7 @@ import '../../../core/localization/localizations.dart';
 String dateWithAge(
   DateTime date, {
   DateTime? now,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) =>
     '${Formatters.date(date)} (${Formatters.daysAgo(date, now: now, language: language)})';
 
@@ -30,7 +30,7 @@ DateTime? renewalToShow(Listing listing) {
 String? relistText(
   Listing listing, {
   DateTime? now,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final since = listing.relistedSince;
   if (listing.relistedFrom == null || since == null) return null;

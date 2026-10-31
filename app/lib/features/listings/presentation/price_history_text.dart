@@ -5,10 +5,7 @@ import '../../../core/localization/localizations.dart';
 
 /// A line about an earlier price the site reported from before we started
 /// tracking; null when there is none or our own history already covers it.
-String? siteDropLine(
-  Listing listing, {
-  AppLanguage language = AppLanguage.portuguese,
-}) {
+String? siteDropLine(Listing listing, {AppLanguage language = .portuguese}) {
   final before = listing.priceBeforeDrop;
   final current = listing.price;
   if (!listing.referenceIsFromSite || before == null || current == null) {
@@ -32,7 +29,7 @@ String? siteDropLine(
 String? seenLine(
   Listing listing, {
   DateTime? now,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final first = listing.firstSeenAt;
   final last = listing.lastSeenAt;

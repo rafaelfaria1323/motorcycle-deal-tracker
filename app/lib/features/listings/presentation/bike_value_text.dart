@@ -53,12 +53,11 @@ enum ConditionFactor {
 /// The factors [condition] brings, in [ConditionFactor]'s order; what is
 /// not known or usual (two owners, a service book) brings none.
 List<ConditionFactor> conditionFactors(BikeCondition condition) => [
-  if (condition.damage == BikeDamage.accident) ConditionFactor.accident,
-  if (condition.damage == BikeDamage.dropped) ConditionFactor.dropped,
-  if (condition.owners == BikeOwners.one) ConditionFactor.firstOwner,
-  if (condition.owners == BikeOwners.threeOrMore) ConditionFactor.manyOwners,
-  if (condition.serviceBook == BikeServiceBook.no)
-    ConditionFactor.noServiceBook,
+  if (condition.damage == .accident) ConditionFactor.accident,
+  if (condition.damage == .dropped) ConditionFactor.dropped,
+  if (condition.owners == .one) ConditionFactor.firstOwner,
+  if (condition.owners == .threeOrMore) ConditionFactor.manyOwners,
+  if (condition.serviceBook == .no) ConditionFactor.noServiceBook,
   if (condition.warranty) ConditionFactor.warranty,
 ];
 
@@ -85,7 +84,7 @@ List<BikeValueLine> bikeValueLines(
   BikeValue value,
   MarketBehaviour? market, {
   BikeCondition condition = const BikeCondition(),
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final messages = language.messages;
   final estimate = conditionEstimate(value, condition);
@@ -183,7 +182,7 @@ double _roundDown(double value) => (value / offerStep).floor() * offerStep;
 /// recolha" (the mileage left out when not given).
 String bikeValueRequestLine(
   BikeValueRequest request, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final messages = language.messages;
   return [

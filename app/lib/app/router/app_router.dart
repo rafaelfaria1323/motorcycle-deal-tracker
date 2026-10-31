@@ -5,10 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../features/collector_status/presentation/collection_status_page.dart';
 import '../../features/listings/presentation/cubit/alerts_cubit.dart';
 import '../../features/listings/presentation/cubit/favourites_cubit.dart';
-import '../../features/listings/presentation/cubit/favourites_state.dart';
 import '../../features/listings/presentation/cubit/listing_detail_cubit.dart';
 import '../../features/listings/presentation/cubit/listings_cubit.dart';
-import '../../features/listings/presentation/cubit/listings_state.dart';
 import '../../features/listings/presentation/cubit/saved_searches_cubit.dart';
 import '../../features/listings/presentation/compare_text.dart';
 import '../../features/listings/presentation/pages/alerts_page.dart';
@@ -57,7 +55,7 @@ final appRouter = GoRouter(
               path: AppRoutes.deals,
               builder: (context, state) {
                 final cubit = getIt<ListingsCubit>();
-                if (cubit.state.status == ListingsStatus.initial) cubit.load();
+                if (cubit.state.status == .initial) cubit.load();
                 // .value: the cubit is shared, so this route must not close it.
                 return BlocProvider.value(
                   value: cubit,
@@ -156,7 +154,7 @@ final appRouter = GoRouter(
       builder: (context, state) {
         // Opened directly (a reload), the shell has not loaded them yet.
         final cubit = getIt<FavouritesCubit>();
-        if (cubit.state.status == FavouritesStatus.initial) cubit.load();
+        if (cubit.state.status == .initial) cubit.load();
         return const FavouritesPage();
       },
     ),

@@ -28,39 +28,38 @@ class const ScoreExplanation({
 
 final _extraLabels = <AppLanguage, Map<String, String>>{};
 
-Map<String, String> extraLabels({
-  AppLanguage language = AppLanguage.portuguese,
-}) => _extraLabels.putIfAbsent(
-  language,
-  () => Map<String, String>.unmodifiable({
-    'quickshifter': 'quickshifter',
-    'exhaust': language.messages.sportsExhaust,
-    'luggage': language.messages.luggage,
-    'heated_grips': language.messages.heatedGrips,
-    'protection': language.messages.protection,
-    'new_tyres': language.messages.newTyres,
-    'tail_tidy': language.messages.shortPlateHolder,
-    'screen': language.messages.tintedOrSportsScreen,
-    'levers': language.messages.adjustableLevers,
-    'mirrors': language.messages.barEndMirrors,
-    'phone_mount': language.messages.phoneMountOrUSB,
-    'alarm': language.messages.alarmOrTracker,
-    'steering_damper': language.messages.steeringDamper,
-    'centre_stand': language.messages.centreStand,
-    'cruise_control': 'cruise control',
-    'suspension': language.messages.upgradedSuspension,
-    'led_indicators': language.messages.ledIndicators,
-    'passenger_grips': language.messages.passengerGrabHandles,
-    'original_parts': language.messages.originalPartsIncluded,
-  }),
-);
+Map<String, String> extraLabels({AppLanguage language = .portuguese}) =>
+    _extraLabels.putIfAbsent(
+      language,
+      () => Map<String, String>.unmodifiable({
+        'quickshifter': 'quickshifter',
+        'exhaust': language.messages.sportsExhaust,
+        'luggage': language.messages.luggage,
+        'heated_grips': language.messages.heatedGrips,
+        'protection': language.messages.protection,
+        'new_tyres': language.messages.newTyres,
+        'tail_tidy': language.messages.shortPlateHolder,
+        'screen': language.messages.tintedOrSportsScreen,
+        'levers': language.messages.adjustableLevers,
+        'mirrors': language.messages.barEndMirrors,
+        'phone_mount': language.messages.phoneMountOrUSB,
+        'alarm': language.messages.alarmOrTracker,
+        'steering_damper': language.messages.steeringDamper,
+        'centre_stand': language.messages.centreStand,
+        'cruise_control': 'cruise control',
+        'suspension': language.messages.upgradedSuspension,
+        'led_indicators': language.messages.ledIndicators,
+        'passenger_grips': language.messages.passengerGrabHandles,
+        'original_parts': language.messages.originalPartsIncluded,
+      }),
+    );
 
 /// The extras found in the ad ("quickshifter, malas"), or null when none;
 /// [key] `valued_extras` gives only the ones that add points.
 String? extrasText(
   Map<String, dynamic>? breakdown, {
   String key = 'extras',
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final labels = [
     for (final code in (breakdown?[key] as List? ?? const []))
@@ -74,7 +73,7 @@ String? extrasText(
 /// null when it was not scored (private seller, fewer than 5 bikes).
 ExplanationLine? sellerLine(
   Map<String, dynamic>? breakdown, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final score = ((breakdown?['scores'] as Map?)?['seller'] as num?)?.round();
   if (score == null) return null;
@@ -127,7 +126,7 @@ ExplanationLine? mileageForAge(
   int? km,
   int? year,
   num reference, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   if (km == null) return null;
   final kmText = Formatters.mileage(km, language: language);
@@ -184,7 +183,7 @@ abstract final class ScoreExplainer {
       <AppLanguage, Map<String, (ExplanationTone, String)>>{};
 
   static Map<String, (ExplanationTone, String)> _riskLines({
-    AppLanguage language = AppLanguage.portuguese,
+    AppLanguage language = .portuguese,
   }) => _riskLineCache.putIfAbsent(
     language,
     () => Map<String, (ExplanationTone, String)>.unmodifiable({
@@ -287,10 +286,7 @@ abstract final class ScoreExplainer {
   static const _priceNoticePct = 3.0;
   static const _minReliableMarket = 3;
 
-  static String label(
-    int score, {
-    AppLanguage language = AppLanguage.portuguese,
-  }) {
+  static String label(int score, {AppLanguage language = .portuguese}) {
     if (score >= 90) return language.messages.excellent;
     if (score >= 80) return language.messages.veryGood;
     if (score >= 70) return language.messages.interesting;
@@ -298,10 +294,7 @@ abstract final class ScoreExplainer {
     return language.messages.poor;
   }
 
-  static String riskLabel(
-    int risk, {
-    AppLanguage language = AppLanguage.portuguese,
-  }) {
+  static String riskLabel(int risk, {AppLanguage language = .portuguese}) {
     if (risk >= 50) return language.messages.highScoreExplanation;
     if (risk >= 20) return language.messages.mediumScoreExplanation;
     return language.messages.lowScoreExplanation;
@@ -310,7 +303,7 @@ abstract final class ScoreExplainer {
   static ScoreExplanation? explain(
     Listing listing, {
     DateTime? today,
-    AppLanguage language = AppLanguage.portuguese,
+    AppLanguage language = .portuguese,
   }) {
     final score = listing.dealScore;
     if (score == null) return null;

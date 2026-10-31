@@ -18,7 +18,7 @@ List<String> marketLines(
   MarketBehaviour m, {
   int? daysListed,
   bool firstSeenOnly = false,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final lines = <String>[
     language.messages.activeOfModel(liveCount: m.liveCount),
@@ -82,10 +82,7 @@ List<String> marketLines(
 }
 
 /// The yearly and per-10 000 km loss in value, as percentages of the price.
-String depreciationLine(
-  Depreciation d, {
-  AppLanguage language = AppLanguage.portuguese,
-}) {
+String depreciationLine(Depreciation d, {AppLanguage language = .portuguese}) {
   String pct(double rate) => Formatters.percent(
     (1 - exp(-rate)) * 100,
     decimals: 1,

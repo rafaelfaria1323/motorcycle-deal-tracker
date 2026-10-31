@@ -152,15 +152,13 @@ OwnershipCost? ownershipCost({
 }
 
 /// Rounded to 10 € for headlines: these are estimates.
-String roughPrice(
-  double value, {
-  AppLanguage language = AppLanguage.portuguese,
-}) => Formatters.price((value / 10).round() * 10.0, language: language);
+String roughPrice(double value, {AppLanguage language = .portuguese}) =>
+    Formatters.price((value / 10).round() * 10.0, language: language);
 
 /// "Custa cerca de 1 450 € por ano".
 String ownershipHeadline(
   OwnershipCost c, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) => language.messages.costsAboutPerYear(
   price: roughPrice(c.perYear, language: language),
 );
@@ -168,7 +166,7 @@ String ownershipHeadline(
 /// "Em 3 anos: cerca de 4 350 €".
 String ownershipTotalLine(
   OwnershipCost c, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) => language.messages.ownershipTotal(
   years: c.years,
   total: roughPrice(c.total, language: language),
@@ -178,7 +176,7 @@ String ownershipTotalLine(
 List<String> ownershipLines(
   OwnershipCost c, {
   int? year,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final t = c.table;
   String km(int value) => Formatters.mileage(value, language: language);
@@ -222,7 +220,7 @@ List<String> ownershipLines(
 /// What the estimate assumes, under the lines.
 String ownershipFootnote(
   OwnershipCost c, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) => language.messages.atPerYearTypicalWorkshopPricesAndRoad(
   mileage: Formatters.mileage(c.kmPerYear, language: language),
   iucTableYear: (iucTableYear).toString(),

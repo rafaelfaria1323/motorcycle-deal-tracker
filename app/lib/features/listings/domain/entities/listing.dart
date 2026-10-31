@@ -116,11 +116,10 @@ class const Listing({
 
   bool get hasPriceChanged => (priceChange ?? 0).abs() >= 1;
 
-  bool get isRemoved => status == ListingStatus.removed;
+  bool get isRemoved => status == .removed;
 
   /// Still on sale, as the database's live statuses.
-  bool get isLive =>
-      status == ListingStatus.active || status == ListingStatus.priceChanged;
+  bool get isLive => status == .active || status == .priceChanged;
 
   @override
   List<Object?> get props => [

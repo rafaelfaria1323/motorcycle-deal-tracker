@@ -29,10 +29,10 @@ class const FavouritesPage({super.key}) extends StatelessWidget {
         bloc: cubit,
         builder: (context, state) {
           switch (state.status) {
-            case FavouritesStatus.initial:
-            case FavouritesStatus.loading:
+            case .initial:
+            case .loading:
               return const Center(child: CircularProgressIndicator());
-            case FavouritesStatus.failure:
+            case .failure:
               return StateMessage(
                 icon: Icons.cloud_off,
                 title: context.strings.couldNotLoadFavourites,
@@ -40,7 +40,7 @@ class const FavouritesPage({super.key}) extends StatelessWidget {
                 actionLabel: context.strings.retry,
                 onAction: cubit.load,
               );
-            case FavouritesStatus.success:
+            case .success:
               final favourites = [
                 for (final f in state.favourites)
                   if (f.listing != null) f,

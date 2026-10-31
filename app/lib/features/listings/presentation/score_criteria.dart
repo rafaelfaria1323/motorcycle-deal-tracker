@@ -8,16 +8,12 @@ const minDealScoreOptions = [60, 70, 80, 90];
 const maxRiskScoreOptions = [19, 49];
 
 /// "Muito bom (80+)".
-String dealScoreOptionLabel(
-  int min, {
-  AppLanguage language = AppLanguage.portuguese,
-}) => '${ScoreExplainer.label(min, language: language)} ($min+)';
+String dealScoreOptionLabel(int min, {AppLanguage language = .portuguese}) =>
+    '${ScoreExplainer.label(min, language: language)} ($min+)';
 
 /// "Risco baixo" or "Risco até médio".
-String riskCriterionLabel(
-  int max, {
-  AppLanguage language = AppLanguage.portuguese,
-}) => max < 20
+String riskCriterionLabel(int max, {AppLanguage language = .portuguese}) =>
+    max < 20
     ? language.messages.lowRiskCriterion
     : language.messages.riskUpTo(
         risk: ScoreExplainer.riskLabel(max, language: language).toLowerCase(),
