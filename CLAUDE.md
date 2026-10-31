@@ -87,7 +87,10 @@ never asks for search URLs; aliases sit under "Outros nomes do modelo".
   transaction that is rolled back; a test fails by raising (`assert`).
   `set local test.uid` / `test.jwt` act as a user. `now()` is fixed inside
   a transaction, so date rows explicitly when their order matters. Add or
-  extend a test with every migration that changes behaviour. `make sql-lint`
+  extend a test with every migration that changes behaviour. Run `make schema` with
+  every migration and commit `supabase/schema.sql` (today's version of
+  every function, table and grant in one file; `make sql-lint` fails
+  when it differs). `make sql-lint`
   must stay clean: fix a splinter finding, or allow it in
   `supabase/lint_allow.txt` with the reason.
 - Flutter is not installed in the sandbox and must not be downloaded: Rafael
@@ -111,7 +114,8 @@ never asks for search URLs; aliases sit under "Outros nomes do modelo".
 ```
 app/        Flutter Web/PWA (package name: motorcycle_deal_tracker)
 collector/  Pure Dart CLI: fetch, parse, store, score, alert (service-role key)
-supabase/   Migrations (Postgres: scoring, alerts, views, RLS); tests/ SQL tests
+supabase/   Migrations (Postgres: scoring, alerts, views, RLS); tests/ SQL tests;
+            schema.sql: the schema they produce, to read (never applied)
 docs/       sources.md (data-source decisions, keep updated), hosting.md
             (also how to replace each secret),
             roadmap.status.md, concept.status.md, code-quality.md and
@@ -248,9 +252,10 @@ make app-run                   run the app in Chrome (app/env/dev.json)
 make app-smoke                 offline Chrome flow; matching ChromeDriver on PATH
 make db-new NAME=x / db-push   create / apply migrations (merging applies them too)
 make db-test                   migrations + SQL tests on a local Postgres
+make schema                    db-test, then rewrite supabase/schema.sql (tool/schema_snapshot.sh)
 make sql-lint                  db-test, then plpgsql_check, splinter (supabase/lint_allow.txt),
                                squawk on new migrations (.squawk.toml) and safeupdate
-                               (tool/safe_updates.py); also in CI
+                               (tool/safe_updates.py), and supabase/schema.sql up to date; also in CI
 make searches SITE=olx|standvirtual   write the tracked models' searches
 make fetch-dry|fetch SITE=...  download those search pages (polite, capped)
 make collect-dry|collect SOURCE=manual|standvirtual|standvirtual-search|olx-search FILE=... [ARGS=--full]

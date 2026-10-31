@@ -61,7 +61,7 @@ Tracked models (chosen in the app)
 |---|---|
 | [`app/`](app/README.md) | Flutter Web/PWA |
 | [`collector/`](collector/README.md) | Dart command line: fetches, parses and stores listings, then scores and alerts |
-| `supabase/` | Database migrations: tables, scoring, alerts, views, access rules; `tests/`: SQL tests (`make db-test`) |
+| `supabase/` | Database migrations: tables, scoring, alerts, views, access rules; `tests/`: SQL tests (`make db-test`); `schema.sql`: the schema they produce, to read (`make schema`) |
 | `docs/` | Progress and decisions (see below) |
 | `.github/workflows/` | `collect.yml` (00:00 and every 2 hours from 08:00 to 22:00, Lisbon time, started by Supabase pg_cron), `check.yml` (three parallel jobs: the app's analyze, unused code and tests with coverage; `make app-smoke`; the collector and database, using the collection's shared Dart setup and startup smoke before its checks, coverage, `tool/` and database tests), `deploy-web.yml` (on merge: new migrations, the app's tests and the builds side by side, then the web app and the Android APK published, the APK on the release `android`, which the Android app installs as its update), `android-check.yml` (the APK built on pull requests that touch the Android side), `weekly-summary.yml` (Mondays, each account's week in the app and on its devices; or one account's when asked in the app), `photos.yml` (the photo fingerprints and damage hints: after each collection, and at once when someone asks for every photo of an ad; shared setup in `.github/actions/collector`), `push-test.yml` (a test notification to the devices of whoever asked in the app), `mutation.yml` (mutation testing without AI: after merges the changed files, by hand all of them, held to a minimum score; report on the run's page), `code-quality.yml` and `test-hardening.yml` (Claude works through the backlogs, fixing every 5 merged PRs and finding new items after 10 in `docs/code-quality.md` and `docs/test-hardening.md`; shared steps in `backlog-pass.yml`) |
 
@@ -108,7 +108,9 @@ for the code-quality review. Supabase's Vault holds `github_dispatch_token`,
 which the scheduled jobs use to start the workflows (`docs/hosting.md`).
 Database changes: `make db-new
 NAME=...`, a test in `supabase/tests/` (`make db-test` runs them on a local
-Postgres; CI runs them on every pull request). Merging applies new
+Postgres; CI runs them on every pull request), then `make schema` to
+rewrite `supabase/schema.sql`, the current schema in one file (only
+read, never applied; CI fails when it is out of date). Merging applies new
 migrations to Supabase before the app deploys (`deploy-web.yml`);
 `make db-push` does the same by hand.
 
