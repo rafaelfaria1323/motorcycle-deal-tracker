@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/entities/bike_value.dart';
 import '../../domain/entities/bike_value_request.dart';
+import '../../domain/entities/listing.dart' show minRealPrice;
 import '../../domain/entities/market_behaviour.dart';
 import '../../domain/entities/model_market.dart';
 import '../../domain/repositories/market_behaviour_repository.dart';
@@ -80,7 +81,8 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
         .eq('motorcycle_id', motorcycleId)
         .isFilter('duplicate_of', null)
         .inFilter('status', ['active', 'price_changed'])
-        .not('price', 'is', null);
+        // Placeholders ("1 €") are no price to compare with.
+        .gte('price', minRealPrice);
     return {
       for (final r in rows) r['id'] as String: (r['price'] as num).toDouble(),
     };

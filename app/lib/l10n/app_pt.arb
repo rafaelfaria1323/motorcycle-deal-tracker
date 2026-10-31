@@ -1274,6 +1274,10 @@
   "@nearest": {
     "description": "Interface text in listing_labels, label."
   },
+  "priceOnRequest": "Preço por consultar",
+  "@priceOnRequest": {
+    "description": "Interface text in listing_labels, priceLabel: an asking price under 300 euros, a placeholder."
+  },
   "active": "Ativo",
   "@active": {
     "description": "Interface text in listing_labels, label."
@@ -3956,6 +3960,18 @@
   "fromYourHomeLocationInMore": "A partir da sua localidade (em Mais)",
   "@fromYourHomeLocationInMore": {
     "description": "Interface text in filters_sheet, build."
+  },
+  "setHomeToFilterByDistance": "Indique a sua localidade para filtrar por distância",
+  "@setHomeToFilterByDistance": {
+    "description": "Interface text in filters_sheet, build: the distance filter while no home is set."
+  },
+  "setHomePlace": "Indicar a sua localidade",
+  "@setHomePlace": {
+    "description": "Interface text in home_place_tile, the button that opens the town search from the filters and the sort menu."
+  },
+  "nearestNeedsHome": "Indique primeiro a sua localidade",
+  "@nearestNeedsHome": {
+    "description": "Interface text in dashboard_page, under Mais perto in the sort menu while no home is set."
   },
   "any": "Qualquer",
   "@any": {

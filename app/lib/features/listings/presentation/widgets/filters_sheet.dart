@@ -1,6 +1,12 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../../app/di/injection.dart';
 import '../../../../core/widgets/collapsible_section.dart';
+import '../../../settings/presentation/home_place_cubit.dart';
+import '../../../settings/presentation/home_place_tile.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/entities/listing_filters.dart';
 import '../../domain/entities/motorcycle_option.dart';
@@ -240,35 +246,14 @@ class _FiltersSheetState extends State<FiltersSheet> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      DropdownButtonFormField<int?>(
-                        initialValue: _maxDistanceKm,
-                        isExpanded: true,
-                        decoration: InputDecoration(
-                          labelText: context.strings.maximumDistance,
-                          helperText:
-                              context.strings.fromYourHomeLocationInMore,
-                          border: const OutlineInputBorder(),
+                      BlocBuilder<HomePlaceCubit, HomePlaceState>(
+                        bloc: getIt<HomePlaceCubit>(),
+                        builder: (context, home) => _DistanceField(
+                          value: _maxDistanceKm,
+                          noHome: home.noHome,
+                          onChanged: (value) =>
+                              setState(() => _maxDistanceKm = value),
                         ),
-                        items: [
-                          DropdownMenuItem(
-                            value: null,
-                            child: Text(context.strings.any),
-                          ),
-                          // Keeps a saved value that is not one of the
-                          // options.
-                          for (final km in {
-                            ...maxDistanceOptions,
-                            ?_maxDistanceKm,
-                          })
-                            DropdownMenuItem(
-                              value: km,
-                              child: Text(
-                                maxDistanceLabel(km, language: language),
-                              ),
-                            ),
-                        ],
-                        onChanged: (value) =>
-                            setState(() => _maxDistanceKm = value),
                       ),
                     ],
                   ),
@@ -406,6 +391,56 @@ class _FiltersSheetState extends State<FiltersSheet> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// "Distância máxima". Without a home no listing has a distance, so it
+/// would match nothing: it is off (unless a distance is already chosen, so
+/// it can be cleared) and offers to set the home.
+class const _DistanceField({
+  required final int? value,
+  required final bool noHome,
+  required final ValueChanged<int?> onChanged,
+}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final language = context.language;
+    final off = noHome && value == null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DropdownButtonFormField<int?>(
+          // A new key when it turns on, as the field keeps its first value.
+          key: ValueKey(noHome),
+          initialValue: value,
+          isExpanded: true,
+          decoration: InputDecoration(
+            labelText: context.strings.maximumDistance,
+            helperText: noHome
+                ? context.strings.setHomeToFilterByDistance
+                : context.strings.fromYourHomeLocationInMore,
+            helperMaxLines: 2,
+            border: const OutlineInputBorder(),
+          ),
+          items: [
+            DropdownMenuItem(value: null, child: Text(context.strings.any)),
+            // Keeps a saved value that is not one of the options.
+            for (final km in {...maxDistanceOptions, ?value})
+              DropdownMenuItem(
+                value: km,
+                child: Text(maxDistanceLabel(km, language: language)),
+              ),
+          ],
+          onChanged: off ? null : onChanged,
+        ),
+        if (noHome)
+          TextButton.icon(
+            onPressed: () => unawaited(pickHomePlace(context)),
+            icon: const Icon(Icons.home_outlined),
+            label: Text(context.strings.setHomePlace),
+          ),
+      ],
     );
   }
 }

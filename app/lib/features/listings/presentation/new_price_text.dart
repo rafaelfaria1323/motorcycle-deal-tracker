@@ -10,13 +10,13 @@ const newPriceStaleAfterDays = 180;
 const smallDiscountPct = 10;
 
 /// Lines comparing the listing's price with a new bike of the same model;
-/// empty when either price is unknown.
+/// empty when either price is unknown (or a placeholder).
 List<String> newPriceLines(
   Listing listing, {
   DateTime? now,
   AppLanguage language = .portuguese,
 }) {
-  final used = listing.price;
+  final used = listing.askingPrice;
   final fresh = listing.newPrice;
   if (used == null || fresh == null || fresh <= 0) return const [];
 

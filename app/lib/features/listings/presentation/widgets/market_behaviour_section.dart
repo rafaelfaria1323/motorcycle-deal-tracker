@@ -64,7 +64,8 @@ class _MarketBehaviourSectionState extends State<MarketBehaviourSection> {
         // Secondary information: hide it while loading or on any error.
         if (market == null) return const SizedBox.shrink();
 
-        final price = widget.listing.price;
+        // A placeholder price ("1 €") has no place among real ones.
+        final price = widget.listing.askingPrice;
         final position = pricePosition(price, others);
         final priceLine = pricePositionLine(
           price,

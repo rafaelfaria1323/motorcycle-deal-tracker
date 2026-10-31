@@ -231,8 +231,7 @@ void main() {
                             listing: Listing(
                               id: 'long-model',
                               source: 'standvirtual',
-                              url:
-                                  'https://www.standvirtual.com/motos/anuncio/test',
+                              url: 'https://www.standvirtual.com/motos/anuncio/test',
                               brand: 'Harley-Davidson',
                               model: 'Sportster S 1250 Revolution Max',
                               status: ListingStatus.active,
@@ -1254,6 +1253,69 @@ void main() {
     });
   }
 
+  testWidgets('distance without a home asks for the home first', (
+    tester,
+  ) async {
+    final fixture = InterfaceFixture();
+    await _open(tester, fixture);
+    Future<void> chooseNearest() async {
+      await _reveal(tester, find.byTooltip('Ordenar'));
+      await tester.tap(find.byTooltip('Ordenar'));
+      await tester.pumpAndSettle();
+      expect(find.text('Indique primeiro a sua localidade'), findsOneWidget);
+      await tester.tap(
+        find.ancestor(
+          of: find.text('Mais perto'),
+          matching: find.byType(CheckedPopupMenuItem<ListingSort>),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    // Leaving the town search keeps the order.
+    await chooseNearest();
+    await tester.tap(find.widgetWithText(TextButton, 'Cancelar'));
+    await tester.pumpAndSettle();
+    expect(fixture.listings.state.sort, isNot(ListingSort.nearest));
+
+    // The distance filter is off and offers the same search.
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Filtros'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ExpansionTile, 'Local e distância'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Indique a sua localidade para filtrar por distância'),
+      findsOneWidget,
+    );
+    expect(
+      find.widgetWithText(TextButton, 'Indicar a sua localidade'),
+      findsOneWidget,
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Aplicar'));
+    await tester.pumpAndSettle();
+
+    // A town found and picked is saved, then the order applies.
+    await chooseNearest();
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextField),
+      ),
+      'por',
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ListTile, 'Porto'));
+    await tester.pumpAndSettle();
+    expect(fixture.home.place?.name, 'Porto');
+    expect(fixture.repository.lastSort, ListingSort.nearest);
+
+    await tester.tap(find.byTooltip('Ordenar'));
+    await tester.pumpAndSettle();
+    expect(find.text('Indique primeiro a sua localidade'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('filter sections open on a tap and say what is chosen', (
     tester,
   ) async {
@@ -1508,9 +1570,8 @@ void main() {
         supportedLocales: appLocales,
         theme: AppTheme.light,
         builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(
-            context,
-          ).copyWith(textScaler: const TextScaler.linear(2)),
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: const TextScaler.linear(2)),
           child: child!,
         ),
         home: Scaffold(

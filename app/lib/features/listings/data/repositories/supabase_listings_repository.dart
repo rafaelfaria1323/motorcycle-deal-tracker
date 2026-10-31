@@ -37,8 +37,11 @@ class SupabaseListingsRepository(final SupabaseClient _client)
     if (filters.minYear != null) {
       query = query.gte('year', filters.minYear!);
     }
+    // asking_price: the price without placeholders under 300 € (null
+    // then), so a maximum never matches "1 €" and the price sorts put
+    // those last.
     if (filters.maxPrice != null) {
-      query = query.lte('price', filters.maxPrice!);
+      query = query.lte('asking_price', filters.maxPrice!);
     }
     if (filters.maxMileage != null) {
       query = query.lte('mileage', filters.maxMileage!);
@@ -76,12 +79,12 @@ class SupabaseListingsRepository(final SupabaseClient _client)
     final ordered = switch (sort) {
       ListingSort.newest => query.order('first_seen_at', ascending: false),
       ListingSort.priceAsc => query.order(
-        'price',
+        'asking_price',
         ascending: true,
         nullsFirst: false,
       ),
       ListingSort.priceDesc => query.order(
-        'price',
+        'asking_price',
         ascending: false,
         nullsFirst: false,
       ),
@@ -144,7 +147,7 @@ class SupabaseListingsRepository(final SupabaseClient _client)
   @override
   Future<List<Listing>> getCheaperSimilar(Listing listing) async {
     final model = listing.motorcycleId;
-    final price = listing.price;
+    final price = listing.askingPrice;
     if (model == null || price == null) return const [];
     var query = _client
         .from('listings')
@@ -153,6 +156,8 @@ class SupabaseListingsRepository(final SupabaseClient _client)
         .inFilter('status', ['active', 'price_changed'])
         .isFilter('duplicate_of', null)
         .neq('id', listing.id)
+        // Placeholders ("1 €") are not cheaper bikes.
+        .gte('price', minRealPrice)
         .lt('price', price);
     if (listing.year case final year?) {
       query = query.gte('year', year - 1).lte('year', year + 1);

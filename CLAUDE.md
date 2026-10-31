@@ -329,12 +329,15 @@ invites; written by the collector on each run).
 - Text built from data lives in pure functions (`*_text.dart`) with tests.
 - State: flutter_bloc Cubits + Equatable states. DI: get_it. Shared cubits
   (`ListingsCubit`, `SavedSearchesCubit`, `AlertsCubit`, `CollectorStatusCubit`,
-  `FavouritesCubit`, `ListingCardPreferencesCubit`, `LanguageCubit`, and `SessionCubit` for the signed-in state: widgets never
+  `FavouritesCubit`, `ListingCardPreferencesCubit`, `LanguageCubit`,
+  `HomePlaceCubit`, and `SessionCubit` for the signed-in state: widgets never
   read Supabase's auth directly) are lazy singletons, provided in routes with
   `BlocProvider.value`. The shell (`AppShell`) loads `AlertsCubit` at start
-  and on app resume for the unread badge on Alertas, and `FavouritesCubit`
-  at start for the stars on the cards. `ListingsCubit`, `SavedSearchesCubit`,
-  `AlertsCubit` and `FavouritesCubit` inherit `AccountScopedCubit`
+  and on app resume for the unread badge on Alertas, `FavouritesCubit`
+  at start for the stars on the cards, and `HomePlaceCubit` (the account's
+  home) at start for the distance sort and filter. `ListingsCubit`,
+  `SavedSearchesCubit`, `AlertsCubit`, `FavouritesCubit` and
+  `HomePlaceCubit` inherit `AccountScopedCubit`
   (`core/auth/account_scoped_cubit.dart`): they follow `SessionCubit`'s
   account id themselves, clear and reload on account changes or sign-out,
   and ignore earlier in-flight loads and writes, including optimistic
@@ -448,6 +451,14 @@ invites; written by the collector on each run).
   same address (`PHOTO_BOX`, `photo_url_test.dart`).
 - Lists load `ListingModel.summaryColumns`, never `*` (descriptions are big);
   the deals list is paged (40 per page, more on scroll).
+- Placeholder prices: an asking price under 300 € ("1 €", "consultar";
+  `minRealPrice`) is no price. `Listing.askingPrice` is null for it
+  (`hasPlaceholderPrice`), and every comparison, offer, strip and best
+  value uses `askingPrice`; the card, the page and the comparison show
+  "Preço por consultar" (`priceLabel`). The database's computed field
+  `listings.asking_price` is the same: the price sorts order by it (nulls
+  last) and a maximum price filters on it, as `listing_matches_search`
+  does for saved searches (F.2).
 - Interface: shared wordmark (`core/widgets/app_brand.dart`) and editorial
   page heading (`page_intro.dart`); labelled filter, sort, save and comparison
   actions. Listing counts say "carregados" while more pages remain.
@@ -1007,7 +1018,11 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   set in Mais), `place_key()` (= the app's `placeKey`, keep them equal),
   and the computed field `listings.distance_km` (from the caller's home;
   select it explicitly, it is never part of `*`). Saved searches have
-  `max_distance_km`, matched against the search owner's home.
+  `max_distance_km`, matched against the search owner's home. Without a
+  home (`HomePlaceCubit`'s `noHome`, known only once read) "Mais perto"
+  says so and asks for one before it applies, and the filter's distance is
+  off with a button; both open the town search in place (`pickHomePlace`,
+  `home_place_tile.dart`, also Mais's tile).
 - Dealer figures (`dealer_reliability` view, per dealer name trimmed and
   case-folded, both sites; shown as "O stand" on dealer listings): bikes,
   live, relisted, sharp price changes, missing mileage, repeated used

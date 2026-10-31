@@ -45,6 +45,7 @@ import 'package:motorcycle_deal_tracker/features/settings/domain/language_reposi
 import 'package:motorcycle_deal_tracker/features/settings/domain/place.dart';
 import 'package:motorcycle_deal_tracker/features/settings/domain/push_repository.dart';
 import 'package:motorcycle_deal_tracker/features/settings/domain/quiet_hours.dart';
+import 'package:motorcycle_deal_tracker/features/settings/presentation/home_place_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/settings/presentation/more_page.dart';
 import 'package:motorcycle_deal_tracker/features/settings/presentation/language_cubit.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -138,6 +139,7 @@ class InterfaceFixture {
     ..accounts['interface-user'] = language
     ..cache['interface-user'] = language;
   late final languages = LanguageCubit(languageRepository, session);
+  final home = InterfaceHome();
 
   Future<void> initialize() async {
     await getIt.reset();
@@ -170,7 +172,11 @@ class InterfaceFixture {
       dispose: (c) => c.close(),
     );
     getIt.registerSingleton<SourceQualityRepository>(_Quality());
-    getIt.registerSingleton<HomeRepository>(_Home());
+    getIt.registerSingleton<HomeRepository>(home);
+    getIt.registerSingleton<HomePlaceCubit>(
+      HomePlaceCubit(home, session),
+      dispose: (c) => c.close(),
+    );
     getIt.registerSingleton<PushRepository>(_Push());
     getIt.registerSingleton<AccountsRepository>(_Accounts(admin));
     await Future.wait([
@@ -264,9 +270,8 @@ Widget interfaceApp(
     themeMode: dark ? ThemeMode.dark : ThemeMode.light,
     routerConfig: router,
     builder: (context, child) => MediaQuery(
-      data: MediaQuery.of(
-        context,
-      ).copyWith(textScaler: TextScaler.linear(textScale)),
+      data: MediaQuery.of(context)
+          .copyWith(textScaler: TextScaler.linear(textScale)),
       child: child!,
     ),
   );
@@ -501,12 +506,21 @@ class _Quality implements SourceQualityRepository {
   Future<List<SourceQuality>> getAll() async => [];
 }
 
-class _Home implements HomeRepository {
-  @override
-  Future<Place?> getHome() async => null;
+/// No home until one is saved.
+class InterfaceHome implements HomeRepository {
+  Place? place;
 
   @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  Future<Place?> getHome() async => place;
+
+  @override
+  Future<void> saveHome(Place place) async => this.place = place;
+
+  @override
+  Future<List<Place>> search(String text) async => [
+    if ('porto'.startsWith(text.trim().toLowerCase()))
+      const Place(key: 'porto', name: 'Porto'),
+  ];
 }
 
 class _Push implements PushRepository {

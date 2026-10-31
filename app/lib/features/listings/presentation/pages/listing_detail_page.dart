@@ -172,7 +172,7 @@ class _ContentState extends State<_Content> {
         MarketBehaviourSection(listing: listing),
         PriceHistorySection(listing: listing),
         NewPriceCard(listing: listing),
-        if (listing.price case final asking?)
+        if (listing.askingPrice case final asking?)
           ImportCostCard(
             key: ValueKey(listing.id),
             estimate: asking,
@@ -318,10 +318,7 @@ class _ContentState extends State<_Content> {
                           children: [
                             Expanded(
                               child: Text(
-                                Formatters.price(
-                                  listing.price,
-                                  language: context.language,
-                                ),
+                                listing.priceLabel(language: context.language),
                                 style: theme.textTheme.headlineSmall?.copyWith(
                                   fontFeatures: AppTheme.tabularFigures,
                                 ),
@@ -411,7 +408,7 @@ class const _Header({required final Listing listing}) extends StatelessWidget {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Text(
-              Formatters.price(listing.price, language: context.language),
+              listing.priceLabel(language: context.language),
               style: textTheme.displaySmall?.copyWith(
                 fontSize: 42,
                 fontFeatures: AppTheme.tabularFigures,

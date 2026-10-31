@@ -268,7 +268,7 @@ The P1s first, each a small PR with its tests:
 | Step | Items | Where |
 |---|---|---|
 | F.1 ✅ | 3.1 one push per bike, 3.2 summary push for bursts | collector |
-| F.2 | 1.1 placeholder prices, 1.2 sort and distance without a home | app, small migration for the sort |
+| F.2 ✅ | 1.1 placeholder prices, 1.2 sort and distance without a home | app, small migration for the sort |
 | F.3 | 1.3 compact Ofertas header, 1.4 Cartões out of the toolbar, 4.2 rename | app |
 | F.4 | 2.1 title, 2.2 share, 2.3 opening tab, 2.4 import card folded | app |
 | F.5 | 4.1 collection internals to Administração, 4.4 account row | app |

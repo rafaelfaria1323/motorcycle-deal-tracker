@@ -130,6 +130,16 @@ void main() {
     expect(rowOf(rows, 'Baixa de preço').values.first, startsWith('−'));
   });
 
+  test('a placeholder price is not the cheapest', () {
+    final rows = compareRows([
+      listing('a', price: 1),
+      listing('b', price: 6500),
+      listing('c', price: 7000),
+    ]);
+    expect(rowOf(rows, 'Preço').values.first, 'Preço por consultar');
+    expect(rowOf(rows, 'Preço').best, {1});
+  });
+
   test('ids from the address: no repeats, at most three', () {
     expect(parseCompareIds('a,b,a,c,d'), ['a', 'b', 'c']);
     expect(parseCompareIds(' a , ,b'), ['a', 'b']);

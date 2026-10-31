@@ -10,6 +10,8 @@ import '../../../../core/widgets/app_brand.dart';
 import '../../../../core/widgets/page_intro.dart';
 import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
+import '../../../settings/presentation/home_place_cubit.dart';
+import '../../../settings/presentation/home_place_tile.dart';
 import '../../../settings/presentation/listing_card_preferences_tile.dart';
 import '../../domain/entities/listing_card_preferences.dart';
 import '../../domain/entities/listing_filters.dart';
@@ -380,6 +382,18 @@ class const DashboardPage({super.key}) extends StatelessWidget {
   }
 }
 
+/// Applies [sort]; "Mais perto" without a home first asks for one, and
+/// stays unapplied if none was set.
+Future<void> _applySort(BuildContext context, ListingSort sort) async {
+  final listings = context.read<ListingsCubit>();
+  if (sort == .nearest &&
+      getIt<HomePlaceCubit>().state.noHome &&
+      !await pickHomePlace(context)) {
+    return;
+  }
+  await listings.applySort(sort);
+}
+
 class const _OffersToolbar({
   required final ListingsState state,
 
@@ -429,17 +443,35 @@ class const _OffersToolbar({
           PopupMenuButton<ListingSort>(
             tooltip: context.strings.sort,
             initialValue: state.sort,
-            onSelected: context.read<ListingsCubit>().applySort,
-            itemBuilder: (localizationContext) => [
-              for (final sort in ListingSort.values)
-                CheckedPopupMenuItem(
-                  value: sort,
-                  checked: sort == state.sort,
-                  child: Text(
-                    sort.label(language: localizationContext.language),
+            onSelected: (sort) => unawaited(_applySort(context, sort)),
+            itemBuilder: (localizationContext) {
+              // Without a home no listing has a distance: "Mais perto"
+              // says so, and picking it asks for the home first.
+              final noHome = getIt<HomePlaceCubit>().state.noHome;
+              return [
+                for (final sort in ListingSort.values)
+                  CheckedPopupMenuItem(
+                    value: sort,
+                    checked: sort == state.sort,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          sort.label(language: localizationContext.language),
+                        ),
+                        if (sort == .nearest && noHome)
+                          Text(
+                            localizationContext.strings.nearestNeedsHome,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-            ],
+              ];
+            },
             child: Container(
               constraints: BoxConstraints(
                 minHeight: 48,

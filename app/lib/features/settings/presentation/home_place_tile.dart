@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../app/di/injection.dart';
 import '../../../core/widgets/show_message.dart';
@@ -8,7 +9,31 @@ import '../../listings/presentation/cubit/favourites_cubit.dart';
 import '../../listings/presentation/cubit/listings_cubit.dart';
 import '../domain/home_repository.dart';
 import '../domain/place.dart';
+import 'home_place_cubit.dart';
 import '../../../core/localization/localizations.dart';
+
+/// Opens the town search and saves the chosen place as the account's
+/// home. True once a home was saved. Mais, the sort menu and the filters
+/// use it, so the distance can be set where it is missing.
+Future<bool> pickHomePlace(BuildContext context) async {
+  final messageStrings = context.strings;
+  final messenger = ScaffoldMessenger.of(context);
+  final place = await showDialog<Place>(
+    context: context,
+    builder: (_) => const _PlaceSearchDialog(),
+  );
+  if (place == null) return false;
+  try {
+    await getIt<HomePlaceCubit>().save(place);
+  } catch (_) {
+    showMessage(messenger, messageStrings.couldNotSaveTryAgain);
+    return false;
+  }
+  // Distances come with the listings: load them again.
+  unawaited(getIt<ListingsCubit>().load());
+  unawaited(getIt<FavouritesCubit>().load());
+  return true;
+}
 
 /// "A sua localidade" in Mais: the home the distance of each listing is
 /// measured from. Tapping it opens a search of Portugal's towns.
@@ -18,39 +43,23 @@ class const HomePlaceTile({super.key}) extends StatefulWidget {
 }
 
 class _HomePlaceTileState extends State<HomePlaceTile> {
-  late Future<Place?> _home = _load();
+  final _cubit = getIt<HomePlaceCubit>();
 
-  Future<Place?> _load() =>
-      getIt<HomeRepository>().getHome().catchError((Object _) => null);
-
-  Future<void> _pick() async {
-    final messageStrings = context.strings;
-
-    final messenger = ScaffoldMessenger.of(context);
-    final place = await showDialog<Place>(
-      context: context,
-      builder: (_) => const _PlaceSearchDialog(),
-    );
-    if (place == null) return;
-    try {
-      await getIt<HomeRepository>().saveHome(place);
-    } catch (_) {
-      showMessage(messenger, messageStrings.couldNotSaveTryAgain);
-      return;
+  @override
+  void initState() {
+    super.initState();
+    // The shell reads it at start; again here only if that failed.
+    if (_cubit.state.status case .initial || .failure) {
+      unawaited(_cubit.load());
     }
-    if (!mounted) return;
-    setState(() => _home = Future.value(place));
-    // Distances come with the listings: load them again.
-    unawaited(getIt<ListingsCubit>().load());
-    unawaited(getIt<FavouritesCubit>().load());
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Place?>(
-      future: _home,
-      builder: (context, snapshot) {
-        final home = snapshot.data;
+    return BlocBuilder<HomePlaceCubit, HomePlaceState>(
+      bloc: _cubit,
+      builder: (context, state) {
+        final home = state.home;
         return ListTile(
           leading: const Icon(Icons.home_outlined),
           title: Text(
@@ -62,7 +71,9 @@ class _HomePlaceTileState extends State<HomePlaceTile> {
                 : context.strings.homePlaceHelp,
           ),
           trailing: const Icon(Icons.chevron_right),
-          onTap: snapshot.connectionState == .done ? _pick : null,
+          onTap: state.status == .loading
+              ? null
+              : () => unawaited(pickHomePlace(context)),
         );
       },
     );

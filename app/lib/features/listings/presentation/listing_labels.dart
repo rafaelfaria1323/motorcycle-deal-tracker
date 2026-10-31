@@ -1,3 +1,4 @@
+import '../../../core/formatting/formatters.dart';
 import '../domain/entities/listing.dart';
 import '../domain/entities/listing_card_preferences.dart';
 import '../domain/entities/listing_sort.dart';
@@ -12,6 +13,14 @@ extension ListingSortLabel on ListingSort {
     ListingSort.priceDesc => language.messages.highestPrice,
     ListingSort.nearest => language.messages.nearest,
   };
+}
+
+extension ListingPriceLabel on Listing {
+  /// The asking price, or "Preço por consultar" for a placeholder (under
+  /// [minRealPrice]: "1 €" written only to publish the ad).
+  String priceLabel({AppLanguage language = .portuguese}) => hasPlaceholderPrice
+      ? language.messages.priceOnRequest
+      : Formatters.price(price, language: language);
 }
 
 extension ListingStatusLabel on ListingStatus {

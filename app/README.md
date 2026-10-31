@@ -54,7 +54,9 @@ Screen names below use the Portuguese labels; English provides the same screens.
   e.g. quickshifter, escape, malas, proteções, suporte de matrícula curto,
   bolha, and "Só nas suas cores": each model's favourite colours; with
   "Mais barato" that is the best price in your colour) and paged 40 at a
-  time. Labelled filter, sort and save controls sit above the results;
+  time. Without a home set, "Mais perto" and "Distância máxima" ask for
+  one first; ads priced under 300 € read "Preço por consultar" and sort
+  after every real price. Labelled filter, sort and save controls sit above the results;
   while more pages remain, the count explicitly describes loaded ads.
   The count and "Compare até 3 anúncios" share a text baseline, wrapping
   on narrow screens and respecting enlarged text.
