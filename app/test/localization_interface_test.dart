@@ -61,7 +61,7 @@ void main() {
     // Ofertas' toolbar, in English; the intro shows only on an empty list (F.3).
     expect(find.text('Filters'), findsOneWidget);
     expect(find.text('6 listings'), findsOneWidget);
-    expect(find.text('Searches'), findsWidgets);
+    expect(find.text('Favourites'), findsWidgets);
     expect(find.text('Alerts'), findsWidgets);
     expect(find.text('More'), findsWidgets);
     expect(tester.takeException(), isNull);
@@ -82,14 +82,20 @@ void main() {
     tester,
   ) async {
     await _open(tester, signedIn: true);
-    await tester.tap(find.widgetWithText(NavigationDestination, 'Searches'));
-    await tester.pumpAndSettle();
-    expect(find.text('Your searches'), findsOneWidget);
-    expect(find.text('New search'), findsOneWidget);
     await tester.tap(find.widgetWithText(NavigationDestination, 'Alerts'));
     await tester.pumpAndSettle();
     expect(find.text('What changed'), findsOneWidget);
     expect(find.byTooltip('Mark all as read'), findsOneWidget);
+    // Searches is Alerts' second part (F.9).
+    await tester.tap(
+      find.descendant(
+        of: find.byType(SegmentedButton<bool>),
+        matching: find.text('Searches'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Your searches'), findsOneWidget);
+    expect(find.text('New search'), findsOneWidget);
     await tester.tap(find.widgetWithText(NavigationDestination, 'Deals'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Filters'));

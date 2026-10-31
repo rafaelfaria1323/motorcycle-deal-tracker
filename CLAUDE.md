@@ -330,7 +330,8 @@ invites; written by the collector on each run).
 - Clean architecture per feature: `domain/` (entities, repository interfaces),
   `data/` (models with `fromJson`, Supabase repositories), `presentation/`
   (cubits, pages, widgets). Features: `listings`, `collector_status`,
-  `settings` (the "Mais" tab).
+  `settings` (the "Mais" tab), `valuation` (a bike's value, the import
+  calculator, the cost of ownership; F.10).
 - Text built from data lives in pure functions (`*_text.dart`) with tests.
 - State: flutter_bloc Cubits + Equatable states. DI: get_it. Shared cubits
   (`ListingsCubit`, `SavedSearchesCubit`, `AlertsCubit`, `CollectorStatusCubit`,
@@ -353,8 +354,10 @@ invites; written by the collector on each run).
   `ListingCardPreferencesCubit` loads on first use and follows
   `SessionCubit`'s user id itself: a different account or sign-out resets
   the cards at once, ignoring earlier in-flight loads and saves.
-- Routing: go_router `StatefulShellRoute` (Ofertas / Pesquisas / Alertas /
-  Mais). Account, "Modelos acompanhados" and collection status live in Mais,
+- Routing: go_router `StatefulShellRoute` (Ofertas / Favoritos / Alertas /
+  Mais; F.9). Pesquisas (`/searches`) is Alertas' second part, a route of
+  the same branch, switched in place by `AlertsSegments` (no transition);
+  a tap on the Alertas tab always opens the alerts (its badge). Account, "Modelos acompanhados" and collection status live in Mais,
   in sections (Conta, Pessoal, Ferramentas, Notificações, A app, Recolha
   de dados) plus "Administração" for admins only (`AdminTiles`; `MorePage`
   asks `isAdmin()` once per account). Recolha de dados is one line for
@@ -366,7 +369,7 @@ invites; written by the collector on each run).
   line says what is chosen (`chosenSummary`); the filters sheet keeps its
   title and Limpar/Aplicar fixed while the choices scroll.
   Switching tabs uses `context.go`; full pages outside the shell
-  (`/models`, `/market`, `/worth`, `/import`, `/favourites`, `/compare?ids=a,b,c`,
+  (`/models`, `/market`, `/worth`, `/import`, `/compare?ids=a,b,c`,
   `/summary`)
   and an ad (`/deals/<id>`, from anywhere) are pushed, so back returns
   where the person was; pushed pages show their own address
@@ -420,7 +423,7 @@ invites; written by the collector on each run).
   `account`, once per 2 minutes). The app's start calls share
   `start_workflow.dart`. Full pages outside the shell show
   `PageBackButton` (`core/widgets/`, `goBack`): pops, or, opened from a
-  notification with nothing beneath, goes to Mais (Ofertas for Favoritos).
+  notification with nothing beneath, goes to Mais.
   Catalog
   changes go through RPCs that call `require_account()` (signed in, not
   anonymous). Models per account: lists read `listings.in_my_models` and

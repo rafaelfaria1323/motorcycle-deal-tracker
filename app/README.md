@@ -82,8 +82,8 @@ Screen names below use the Portuguese labels; English provides the same screens.
   alerts are unchanged.
   The grid grows to three columns; phone and enlarged-text layouts use
   naturally sized cards.
-- **Favoritos:** the listings you starred (star on a listing's page; star
-  in the Ofertas app bar or Mais opens the list), newest first, each with
+- **Favoritos** (a tab): the listings you starred (star on a listing's
+  page), newest first, each with
   your private note and the problems found on the viewing checklist;
   removed ones stay, marked. A favourite always alerts
   you about price drops and its removal.
@@ -141,7 +141,8 @@ Screen names below use the Portuguese labels; English provides the same screens.
     questions the ad leaves open, optionally with the suggested offer; one
     tap copies it), "Para a visita" for favourites (12 points to check when
     seeing the bike, each "Está bem" or "Problema" with a note).
-- **Pesquisas:** saved searches, each with its criteria, configured alert
+- **Pesquisas** (Alertas' second part, "Alertas | Pesquisas" at the top
+  of the tab: searches exist to make alerts): saved searches, each with its criteria, configured alert
   types and "N anúncios encontrados". Tap the card to apply it; the
   options menu edits or deletes it; swipe right to edit, left to confirm
   deletion. "Nova pesquisa" creates one (Ofertas
@@ -227,7 +228,7 @@ lib/app/        App widget, theme, router (go_router, one shell with 4 tabs; ads
                 photos above it, pushed), DI (get_it)
 lib/core/       Formatting, shared widgets
 lib/l10n/       Portuguese/English ARB catalogs; ignored generated localizations
-lib/features/   listings, collector_status, settings
+lib/features/   listings, collector_status, settings, valuation
   <feature>/domain/        entities, repository interfaces
   <feature>/data/          models (fromJson), Supabase repositories
   <feature>/presentation/  cubits, pages, widgets, *_text.dart (text built from data)

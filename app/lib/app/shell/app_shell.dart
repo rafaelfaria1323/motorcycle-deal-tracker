@@ -68,11 +68,7 @@ class _AppShellState extends State<AppShell> {
       Icons.local_offer_outlined,
       Icons.local_offer,
     ),
-    _Destination(
-      context.strings.searches,
-      Icons.bookmark_border,
-      Icons.bookmark,
-    ),
+    _Destination(context.strings.favourites, Icons.star_border, Icons.star),
     _Destination(
       context.strings.alerts,
       Icons.notifications_outlined,
@@ -102,8 +98,11 @@ class _AppShellState extends State<AppShell> {
   void _onSelect(int index) {
     navigationShell.goBranch(
       index,
-      // Tapping the current tab returns to its first screen.
-      initialLocation: index == navigationShell.currentIndex,
+      // Tapping the current tab returns to its first screen. Alertas
+      // always opens on the alerts, not on Pesquisas where it was left:
+      // its badge counts the alerts (F.9).
+      initialLocation:
+          index == navigationShell.currentIndex || index == _alertsIndex,
     );
   }
 

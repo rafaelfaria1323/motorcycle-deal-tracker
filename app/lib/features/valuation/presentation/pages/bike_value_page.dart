@@ -11,15 +11,15 @@ import '../../../collector_status/presentation/collection_text.dart';
 import '../../domain/entities/bike_condition.dart';
 import '../../domain/entities/bike_value.dart';
 import '../../domain/entities/bike_value_request.dart';
-import '../../domain/entities/market_behaviour.dart';
-import '../../domain/entities/model_market.dart';
-import '../../domain/repositories/catalog_repository.dart';
-import '../../domain/repositories/market_behaviour_repository.dart';
+import '../../../listings/domain/entities/market_behaviour.dart';
+import '../../../listings/domain/entities/model_market.dart';
+import '../../../listings/domain/repositories/catalog_repository.dart';
+import '../../../listings/domain/repositories/market_behaviour_repository.dart';
 import '../bike_value_text.dart';
-import '../widgets/add_model_sheet.dart';
-import '../widgets/icon_line.dart';
+import '../../../listings/presentation/widgets/add_model_sheet.dart';
+import '../../../listings/presentation/widgets/icon_line.dart';
 import '../widgets/import_cost_card.dart';
-import '../widgets/tracked_models_builder.dart';
+import '../../../listings/presentation/widgets/tracked_models_builder.dart';
 
 /// "Quanto vale a minha mota": the market value of a bike, the price to
 /// ask for it and a dealer's trade-in. Anonymous sessions value the

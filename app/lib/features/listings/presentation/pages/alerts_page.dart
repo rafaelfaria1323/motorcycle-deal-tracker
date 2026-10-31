@@ -17,6 +17,7 @@ import '../alerts_text.dart';
 import '../cubit/alerts_cubit.dart';
 import '../cubit/alerts_state.dart';
 import '../cubit/saved_searches_cubit.dart';
+import '../widgets/alerts_segments.dart';
 import '../widgets/edit_saved_search_sheet.dart';
 import '../../../../core/localization/localizations.dart';
 
@@ -140,34 +141,37 @@ class const AlertsPage({super.key}) extends StatelessWidget {
           ),
         ],
       ),
-      body: BlocBuilder<AlertsCubit, AlertsState>(
-        builder: (context, state) {
-          // With a filter chosen the chips stay, to choose another.
-          if (state.filter == AlertFilter.all) {
-            if (state.status == .initial || state.status == .loading) {
-              return const Center(child: CircularProgressIndicator());
+      body: AlertsSegments(
+        searches: false,
+        child: BlocBuilder<AlertsCubit, AlertsState>(
+          builder: (context, state) {
+            // With a filter chosen the chips stay, to choose another.
+            if (state.filter == AlertFilter.all) {
+              if (state.status == .initial || state.status == .loading) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (state.status == .failure) {
+                return StateMessage(
+                  icon: Icons.cloud_off,
+                  title: context.strings.couldNotLoadAlerts,
+                  message: context.strings.checkYourConnectionAndTryAgain,
+                  actionLabel: context.strings.retry,
+                  onAction: () => context.read<AlertsCubit>().load(),
+                );
+              }
+              if (state.alerts.isEmpty) {
+                return StateMessage(
+                  icon: Icons.notifications_none,
+                  title: context.strings.youHaveNoAlertsYet,
+                  message: context.strings.saveSearchAndWeWillLetYouKnow,
+                  actionLabel: context.strings.viewSearches,
+                  onAction: () => context.go(AppRoutes.searches),
+                );
+              }
             }
-            if (state.status == .failure) {
-              return StateMessage(
-                icon: Icons.cloud_off,
-                title: context.strings.couldNotLoadAlerts,
-                message: context.strings.checkYourConnectionAndTryAgain,
-                actionLabel: context.strings.retry,
-                onAction: () => context.read<AlertsCubit>().load(),
-              );
-            }
-            if (state.alerts.isEmpty) {
-              return StateMessage(
-                icon: Icons.notifications_none,
-                title: context.strings.youHaveNoAlertsYet,
-                message: context.strings.saveSearchAndWeWillLetYouKnow,
-                actionLabel: context.strings.viewSearches,
-                onAction: () => context.go(AppRoutes.searches),
-              );
-            }
-          }
-          return _list(context, state);
-        },
+            return _list(context, state);
+          },
+        ),
       ),
     );
   }

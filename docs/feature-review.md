@@ -275,8 +275,8 @@ The P1s first, each a small PR with its tests:
 | F.6 ✅ | 3.3 Alertas filters, bulk delete, paging; 7.5 leftovers | app + migration |
 | F.7 ✅ | 1.5 "N anúncios novos" on resume, 1.8 market position on cards | app + migration |
 | F.8 ✅ | 7.1 schema snapshot | tool + CI |
-| F.9 | 3.4 Favoritos tab, Pesquisas inside Alertas (if Rafael agrees) | app |
-| F.10 | 7.2 split `features/listings`, 7.3 big widgets, 7.4 keys | app, several PRs |
+| F.9 ✅ | 3.4 Favoritos tab, Pesquisas inside Alertas | app |
+| F.10 🟡 | 7.2 split `features/listings` (valuation done), 7.3 big widgets, 7.4 keys | app, several PRs |
 | F.11 | 1.6, 1.7 filters; 5.1 "Saíram do mercado por" | app + SQL |
 
 Item 6.1 (Firebase) is Rafael's and can happen at any time.

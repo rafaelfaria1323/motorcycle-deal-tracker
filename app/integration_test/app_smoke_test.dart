@@ -29,6 +29,18 @@ Future<void> _tab(WidgetTester tester, String label) async {
   await tester.pumpAndSettle();
 }
 
+/// Pesquisas, the second part of the Alertas tab (F.9).
+Future<void> _searches(WidgetTester tester) async {
+  await _tab(tester, 'Alertas');
+  await tester.tap(
+    find.descendant(
+      of: find.byType(SegmentedButton<bool>),
+      matching: find.text('Pesquisas'),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
 Future<void> _backTo(WidgetTester tester, String location) async {
   await tester.tap(find.byType(BackButton));
   // Browser history changes arrive through a platform event, not a frame.
@@ -65,7 +77,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('6 anúncios'), findsOneWidget);
 
-    await _tab(tester, 'Pesquisas');
+    await _searches(tester);
     await tester.tap(
       find.text(savedSearchName(fixture.searchesRepository.values.single)),
     );
@@ -89,7 +101,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(fixture.searchesRepository.values, hasLength(2));
 
-    await _tab(tester, 'Pesquisas');
+    await _searches(tester);
     await tester.tap(find.text('Até sete mil'));
     await tester.pumpAndSettle();
     expect(appRouter.routeInformationProvider.value.uri.path, AppRoutes.deals);

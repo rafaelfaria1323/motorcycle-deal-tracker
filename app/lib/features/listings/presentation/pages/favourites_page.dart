@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
-import '../../../../core/widgets/page_back_button.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../cubit/favourites_cubit.dart';
 import '../cubit/favourites_state.dart';
@@ -21,10 +20,8 @@ class const FavouritesPage({super.key}) extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = getIt<FavouritesCubit>();
     return Scaffold(
-      appBar: AppBar(
-        leading: const PageBackButton(fallback: AppRoutes.deals),
-        title: Text(context.strings.favourites),
-      ),
+      // A tab since F.9: no back arrow.
+      appBar: AppBar(title: Text(context.strings.favourites)),
       body: BlocBuilder<FavouritesCubit, FavouritesState>(
         bloc: cubit,
         builder: (context, state) {

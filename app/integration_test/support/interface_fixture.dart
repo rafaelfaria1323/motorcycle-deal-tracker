@@ -222,11 +222,8 @@ class InterfaceFixture {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: AppRoutes.searches,
-                builder: (_, _) => BlocProvider.value(
-                  value: searches,
-                  child: const SavedSearchesPage(),
-                ),
+                path: AppRoutes.favourites,
+                builder: (_, _) => const FavouritesPage(),
               ),
             ],
           ),
@@ -234,9 +231,22 @@ class InterfaceFixture {
             routes: [
               GoRoute(
                 path: AppRoutes.alerts,
-                builder: (_, _) => BlocProvider.value(
-                  value: alerts,
-                  child: const AlertsPage(),
+                pageBuilder: (_, state) => NoTransitionPage<void>(
+                  key: state.pageKey,
+                  child: BlocProvider.value(
+                    value: alerts,
+                    child: const AlertsPage(),
+                  ),
+                ),
+              ),
+              GoRoute(
+                path: AppRoutes.searches,
+                pageBuilder: (_, state) => NoTransitionPage<void>(
+                  key: state.pageKey,
+                  child: BlocProvider.value(
+                    value: searches,
+                    child: const SavedSearchesPage(),
+                  ),
                 ),
               ),
             ],
@@ -250,10 +260,6 @@ class InterfaceFixture {
             ],
           ),
         ],
-      ),
-      GoRoute(
-        path: AppRoutes.favourites,
-        builder: (_, _) => const FavouritesPage(),
       ),
       GoRoute(
         path: AppRoutes.collectionStatus,

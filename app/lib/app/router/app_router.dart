@@ -10,7 +10,7 @@ import '../../features/listings/presentation/cubit/listings_cubit.dart';
 import '../../features/listings/presentation/cubit/saved_searches_cubit.dart';
 import '../../features/listings/presentation/compare_text.dart';
 import '../../features/listings/presentation/pages/alerts_page.dart';
-import '../../features/listings/presentation/pages/bike_value_page.dart';
+import '../../features/valuation/presentation/pages/bike_value_page.dart';
 import '../../features/listings/presentation/pages/compare_page.dart';
 import '../../features/listings/presentation/pages/dashboard_page.dart';
 import '../../features/listings/presentation/pages/favourites_page.dart';
@@ -105,21 +105,39 @@ final appRouter = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: AppRoutes.searches,
-              builder: (context, state) => BlocProvider.value(
-                value: getIt<SavedSearchesCubit>()..load(),
-                child: const SavedSearchesPage(),
-              ),
+              path: AppRoutes.favourites,
+              builder: (context, state) {
+                // Opened directly (a reload), the shell may not have
+                // loaded them yet.
+                final cubit = getIt<FavouritesCubit>();
+                if (cubit.state.status == .initial) cubit.load();
+                return const FavouritesPage();
+              },
             ),
           ],
         ),
+        // Alertas and its second part, Pesquisas (F.9): two addresses in
+        // one tab, switched in place by AlertsSegments without a slide.
         StatefulShellBranch(
           routes: [
             GoRoute(
               path: AppRoutes.alerts,
-              builder: (context, state) => BlocProvider.value(
-                value: getIt<AlertsCubit>()..load(),
-                child: const AlertsPage(),
+              pageBuilder: (context, state) => NoTransitionPage<void>(
+                key: state.pageKey,
+                child: BlocProvider.value(
+                  value: getIt<AlertsCubit>()..load(),
+                  child: const AlertsPage(),
+                ),
+              ),
+            ),
+            GoRoute(
+              path: AppRoutes.searches,
+              pageBuilder: (context, state) => NoTransitionPage<void>(
+                key: state.pageKey,
+                child: BlocProvider.value(
+                  value: getIt<SavedSearchesCubit>()..load(),
+                  child: const SavedSearchesPage(),
+                ),
               ),
             ),
           ],
@@ -151,15 +169,6 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.importBike,
       builder: (context, state) => const BikeValuePage(importing: true),
-    ),
-    GoRoute(
-      path: AppRoutes.favourites,
-      builder: (context, state) {
-        // Opened directly (a reload), the shell has not loaded them yet.
-        final cubit = getIt<FavouritesCubit>();
-        if (cubit.state.status == .initial) cubit.load();
-        return const FavouritesPage();
-      },
     ),
     GoRoute(
       path: AppRoutes.accounts,

@@ -136,14 +136,6 @@ class const DashboardPage({super.key}) extends StatelessWidget {
                 ),
               )
             : Text(context.strings.deals),
-        actions: [
-          TextButton.icon(
-            icon: const Icon(Icons.star_border),
-            label: Text(context.strings.favourites),
-            onPressed: () => context.push(AppRoutes.favourites),
-          ),
-          const SizedBox(width: 12),
-        ],
       ),
       body: _OffersScroll(
         builder: (context, scroll) => BlocBuilder<ListingsCubit, ListingsState>(

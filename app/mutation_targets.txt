@@ -18,5 +18,5 @@ lib/core/formatting/formatters.dart
 lib/core/auth/account_text.dart
 lib/features/listings/presentation/offer_text.dart
 lib/features/listings/presentation/viewing_checklist.dart
-lib/features/listings/presentation/import_cost.dart
-lib/features/listings/presentation/import_cost_text.dart
+lib/features/valuation/presentation/import_cost.dart
+lib/features/valuation/presentation/import_cost_text.dart

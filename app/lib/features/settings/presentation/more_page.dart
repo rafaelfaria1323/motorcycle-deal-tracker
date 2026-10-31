@@ -113,15 +113,6 @@ class _MoreBodyState extends State<_MoreBody> {
                 _Group(
                   children: [
                     ListTile(
-                      leading: const Icon(Icons.star_border),
-                      title: Text(context.strings.favourites),
-                      subtitle: Text(
-                        context.strings.listingsYouAreConsideringWithYourNotes,
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => context.push(AppRoutes.favourites),
-                    ),
-                    ListTile(
                       leading: const Icon(Icons.two_wheeler),
                       title: Text(context.strings.followedModels),
                       subtitle: Text(

@@ -49,7 +49,7 @@ Tracked models (chosen in the app)
     + damage hints (CLIP, a free image model run on the same photos)
     + a classifier trained on the admins' marks on those photos (no AI service)
   → Supabase / Postgres: price history, duplicates, fair value, scores, alerts
-  → app (Flutter Web on Cloudflare Pages): Ofertas · Pesquisas · Alertas · Mais
+  → app (Flutter Web on Cloudflare Pages): Ofertas · Favoritos · Alertas (with Pesquisas) · Mais
   → phones (Web Push; FCM in the Android app): each account's new alerts after each run (a tap opens the listing), its
     summary of the week every Monday (a tap opens "Resumo da semana"), and the admins' when the
     collection breaks or recovers
