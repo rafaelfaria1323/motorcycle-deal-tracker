@@ -120,21 +120,30 @@
   "@delete": {
     "description": "Interface text in confirm_delete, confirmDelete."
   },
-  "lastCollectionTook": "Última recolha {ago}, demorou {duration}",
-  "@lastCollectionTook": {
-    "description": "Interface text in collection_details, build.",
+  "githubActionsMinutesNote": "Os minutos do GitHub Actions são gratuitos e ilimitados enquanto o repositório for público; num repositório privado contam para os 2000 min/mês gratuitos.",
+  "@githubActionsMinutesNote": {
+    "description": "Interface text in collection_status_page, build."
+  },
+  "lastCollection": "Última recolha {ago}",
+  "@lastCollection": {
+    "description": "Interface text in collection_text, collectionLine.",
     "placeholders": {
       "ago": {
-        "type": "String"
-      },
-      "duration": {
         "type": "String"
       }
     }
   },
-  "githubActionsMinutesNote": "Os minutos do GitHub Actions são gratuitos e ilimitados enquanto o repositório for público; num repositório privado contam para os 2000 min/mês gratuitos.",
-  "@githubActionsMinutesNote": {
-    "description": "Interface text in collection_details, build."
+  "thisMonth": "Este mês",
+  "@thisMonth": {
+    "description": "Interface text in collection_status_page, build."
+  },
+  "readingDataQuality": "A ler a qualidade dos dados…",
+  "@readingDataQuality": {
+    "description": "Interface text in data_quality_details, build."
+  },
+  "couldNotReadDataQuality": "Não foi possível ler a qualidade dos dados.",
+  "@couldNotReadDataQuality": {
+    "description": "Interface text in data_quality_details, build."
   },
   "collectionStatus": "Estado da recolha",
   "@collectionStatus": {
@@ -467,11 +476,11 @@
   },
   "noRecentUpdates": "Sem atualizações recentes",
   "@noRecentUpdates": {
-    "description": "Interface text in collector_status_banner, _status."
+    "description": "Interface text in collection_text, collectionLine."
   },
   "bannerStale": "A última recolha foi {ago}. Os preços podem estar desatualizados.",
   "@bannerStale": {
-    "description": "Interface text in collector_status_banner, _status.",
+    "description": "Interface text in collection_text, collectionLine.",
     "placeholders": {
       "ago": {
         "type": "String"
@@ -480,11 +489,11 @@
   },
   "collectionBlockedBySite": "Recolha bloqueada pelo site",
   "@collectionBlockedBySite": {
-    "description": "Interface text in collector_status_banner, _status."
+    "description": "Interface text in collection_text, collectionLine."
   },
   "bannerSiteBlocked": "Na última recolha ({ago}) um dos sites recusou os pedidos. A recolha fica em pausa durante 24 h e volta a tentar automaticamente.",
   "@bannerSiteBlocked": {
-    "description": "Interface text in collector_status_banner, _status.",
+    "description": "Interface text in collection_text, collectionLine.",
     "placeholders": {
       "ago": {
         "type": "String"
@@ -493,16 +502,7 @@
   },
   "lastCollectionFailed": "A última recolha falhou",
   "@lastCollectionFailed": {
-    "description": "Interface text in collector_status_banner, _status."
-  },
-  "bannerFailed": "{ago}. Veja o registo no GitHub Actions.",
-  "@bannerFailed": {
-    "description": "Interface text in collector_status_banner, _status.",
-    "placeholders": {
-      "ago": {
-        "type": "String"
-      }
-    }
+    "description": "Interface text in collection_text, collectionLine."
   },
   "thereAreNoActiveListingsYet": "Ainda não há anúncios ativos.",
   "@thereAreNoActiveListingsYet": {
@@ -4690,8 +4690,8 @@
   "@notSignedIn": {
     "description": "Interface text in more_page, build."
   },
-  "tapToSignOut": "Toque para terminar a sessão",
-  "@tapToSignOut": {
+  "accountAndSignIn": "Conta e sessão",
+  "@accountAndSignIn": {
     "description": "Interface text in more_page, build."
   },
   "signInToAccessYourSearchesAndAlerts": "Inicie sessão para ter as pesquisas e os alertas em qualquer dispositivo",
@@ -4724,10 +4724,6 @@
   },
   "dataCollection": "Recolha de dados",
   "@dataCollection": {
-    "description": "Interface text in more_page, build."
-  },
-  "collectionStatusNeedsSignIn": "O estado e a duração das recolhas aparecem com sessão iniciada.",
-  "@collectionStatusNeedsSignIn": {
     "description": "Interface text in more_page, build."
   },
   "dataQuality": "Qualidade dos dados",
@@ -4794,7 +4790,7 @@
   "@start": {
     "description": "Interface text in admin_tiles, _start."
   },
-  "collectionStatusSubtitle": "Últimas recolhas e erros, pedidos de hoje e o token do GitHub",
+  "collectionStatusSubtitle": "Recolhas, erros, pedidos, qualidade dos dados e o token do GitHub",
   "@collectionStatusSubtitle": {
     "description": "Interface text in admin_tiles, build."
   },
@@ -5887,10 +5883,6 @@
   "administration": "Administração",
   "@administration": {
     "description": "Mais: admin-only heading over accounts, collection status and collecting now."
-  },
-  "dataQualitySummary": "Anúncios por site, dados em falta e preços suspeitos",
-  "@dataQualitySummary": {
-    "description": "Mais: the closed data quality row."
   },
   "filterPlaceSection": "Local e distância",
   "@filterPlaceSection": {

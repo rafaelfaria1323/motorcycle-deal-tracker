@@ -172,9 +172,7 @@ Screen names below use the Portuguese labels; English provides the same screens.
   and a dealer's trade-in; your last requests below), "Comprar no
   estrangeiro" (the same form for a bike seen in Spain, France or
   Germany: its price there plus vehicle tax (ISV), legalisation and
-  transport, against its value here), the collection status (last run, what it found, requests, next run; admins: "Estado da recolha" with the last runs, their errors and how long the scores took, the last 30 days' failures by site and cause, each site's requests today and pause, each search's pages read and ads found in the last run, the GitHub token's expiry and the database's size against the free plan's 500 MB, "Recolher agora") and data quality
-  per site (live listings, unmatched, duplicates, missing year/km/location,
-  when listings were last seen, sudden price changes).
+  transport, against its value here), the collection in one line (when the last run was and the next is, tinted when the last failed, a site blocked it or it is 12 h old; admins tap it, or Administração's tile, for "Estado da recolha": the last runs with what they found, their requests, errors and how long the scores took, the last 30 days' failures by site and cause, each site's requests today and pause, each search's pages read and ads found in the last run, this month's runs and GitHub minutes, the data quality per site (live listings, unmatched, duplicates, missing year/km/location, when listings were last seen, sudden price changes), the GitHub token's expiry and the database's size against the free plan's 500 MB; "Recolher agora").
 
 ## Running it
 

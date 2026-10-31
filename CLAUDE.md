@@ -352,9 +352,12 @@ invites; written by the collector on each run).
   Mais). Account, "Modelos acompanhados" and collection status live in Mais,
   in sections (Conta, Pessoal, Ferramentas, Notificações, A app, Recolha
   de dados) plus "Administração" for admins only (`AdminTiles`; `MorePage`
-  asks `isAdmin()` once per account). Long choices (the filters' models,
-  place, scores and equipment; a model's colours; Mais's runs and data
-  quality) fold into `CollapsibleSection` (`core/widgets/`), whose closed
+  asks `isAdmin()` once per account). Recolha de dados is one line for
+  everyone (`CollectionLineTile`, `collectionLine`: the last run and the
+  next, tinted when the last failed, was blocked or is 12 h old; only the
+  next for an anonymous session); admins tap it for "Estado da recolha"
+  (F.5). Long choices (the filters' models, place, scores and equipment;
+  a model's colours) fold into `CollapsibleSection` (`core/widgets/`), whose closed
   line says what is chosen (`chosenSummary`); the filters sheet keeps its
   title and Limpar/Aplicar fixed while the choices scroll.
   Switching tabs uses `context.go`; full pages outside the shell
@@ -582,7 +585,7 @@ invites; written by the collector on each run).
   warns above 30 s.
 - The service-role key is only ever used by the collector, never the app.
 - `source_data_quality` (view, readable by everyone) feeds "Qualidade dos
-  dados" in Mais, including `last_seen_at` (stale after 24 h: "verifique a
+  dados" in "Estado da recolha" (admins; F.5), including `last_seen_at` (stale after 24 h: "verifique a
   recolha") and `sharp_price_changes` (live listings whose price moved by
   50 % or more in one step in the last 30 days).
 - `collector_runs` is readable only by non-anonymous users. `requests` holds
@@ -608,7 +611,8 @@ invites; written by the collector on each run).
   `run_url` (`githubRunUrl`), shown to admins in
   Mais › "Estado da recolha" (`collection_status_page.dart`, route
   `/collection-status`, pushed; also the last 30 days' failures by site
-  and cause, `failureHistoryText`), with the database's size against the
+  and cause, `failureHistoryText`, this month's runs and GitHub minutes,
+  and the data quality), with the database's size against the
   free plan's 500 MB and its 5 biggest tables (`database_usage`, admins;
   red from 80 %).
 - Schedules live in Supabase, not in the workflows (GitHub's scheduler never
@@ -844,8 +848,8 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   listing pages share one fetcher). `FetchPolicy` still takes
   `maxRequestsPerRun` / `maxRequestsPerDay` (null = none) to bring caps
   back. Requests are counted per run (`collector_runs.requests`) and per
-  site and day (the state file's `report()`), and shown in Mais (per run
-  and month) and "Estado da recolha" (per day).
+  site and day (the state file's `report()`), and shown to admins in
+  "Estado da recolha" (per run, day and month).
   Reaching the run time (or a cap) is not a failure: what was saved is
   imported. A request that fails (a timeout), a page our rules refuse or
   a block after some pages were saved also imports them, but the run still

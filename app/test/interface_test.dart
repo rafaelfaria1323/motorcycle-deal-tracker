@@ -10,6 +10,7 @@ import 'package:motorcycle_deal_tracker/app/router/app_routes.dart';
 import 'package:motorcycle_deal_tracker/app/theme/app_theme.dart';
 import 'package:motorcycle_deal_tracker/core/widgets/section_card.dart';
 import 'package:motorcycle_deal_tracker/core/widgets/state_message.dart';
+import 'package:motorcycle_deal_tracker/features/collector_status/domain/collector_run.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/favourite.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_card_preferences.dart';
@@ -1292,7 +1293,7 @@ void main() {
         InterfaceFixture(signedIn: true, admin: admin),
         location: AppRoutes.more,
       );
-      await _reveal(tester, find.text('Qualidade dos dados'));
+      await _reveal(tester, find.text('Recolha de dados'));
       // To the end of the list, past the last section.
       await tester.drag(find.byType(Scrollable).first, const Offset(0, -5000));
       await tester.pumpAndSettle();
@@ -1301,9 +1302,88 @@ void main() {
         find.text('Contas e convites'),
         admin ? findsOneWidget : findsNothing,
       );
+      // The data quality is in "Estado da recolha" now (F.5).
+      expect(find.text('Qualidade dos dados'), findsNothing);
       expect(tester.takeException(), isNull);
     });
   }
+
+  CollectorRun runEnded(Duration ago, String status) {
+    final finished = DateTime.now().subtract(ago);
+    return CollectorRun(
+      status: status,
+      startedAt: finished.subtract(const Duration(minutes: 5)),
+      finishedAt: finished,
+    );
+  }
+
+  ListTile collectionTile(WidgetTester tester, String title) =>
+      tester.widget<ListTile>(
+        find.ancestor(of: find.text(title), matching: find.byType(ListTile)),
+      );
+
+  testWidgets('Mais says when the last collection was and the next is', (
+    tester,
+  ) async {
+    await _open(
+      tester,
+      InterfaceFixture(
+        signedIn: true,
+        latestRun: runEnded(const Duration(hours: 2), 'ok'),
+      ),
+      location: AppRoutes.more,
+    );
+    await _reveal(tester, find.text('Última recolha há 2 h'));
+    expect(find.textContaining('Próxima recolha: '), findsOneWidget);
+    final tile = collectionTile(tester, 'Última recolha há 2 h');
+    expect(tile.tileColor, isNull);
+    // Only admins go on to the runs.
+    expect(tile.onTap, isNull);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('an anonymous session hears only the next collection', (
+    tester,
+  ) async {
+    await _open(tester, InterfaceFixture(), location: AppRoutes.more);
+    await _reveal(tester, find.textContaining('Próxima recolha: '));
+    expect(find.textContaining('Última recolha'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'a failed collection is tinted in Mais and opens its status for admins',
+    (tester) async {
+      await _open(
+        tester,
+        InterfaceFixture(
+          signedIn: true,
+          admin: true,
+          latestRun: runEnded(const Duration(hours: 2), 'failed'),
+        ),
+        location: AppRoutes.more,
+      );
+      await _reveal(tester, find.text('A última recolha falhou'));
+      expect(find.textContaining('Há 2 h · Próxima recolha: '), findsOneWidget);
+      final context = tester.element(find.text('A última recolha falhou'));
+      final scheme = Theme.of(context).colorScheme;
+      final tile = collectionTile(tester, 'A última recolha falhou');
+      expect(tile.tileColor, scheme.errorContainer);
+      expect(tile.textColor, scheme.onErrorContainer);
+
+      await tester.tap(find.text('A última recolha falhou'));
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(AppBar, 'Estado da recolha'), findsOneWidget);
+      await _reveal(tester, find.text('Este mês'));
+      expect(
+        find.textContaining('1 recolha este mês, cerca de'),
+        findsOneWidget,
+      );
+      await _reveal(tester, find.text('Qualidade dos dados'));
+      expect(find.text('Ainda não há anúncios ativos.'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('distance without a home asks for the home first', (
     tester,
@@ -1412,7 +1492,7 @@ void main() {
     );
     expect(find.text('Modelos acompanhados'), findsOneWidget);
     await tester.scrollUntilVisible(
-      find.text('Qualidade dos dados'),
+      find.textContaining('Próxima recolha: '),
       200,
       scrollable: find.byType(Scrollable).first,
     );

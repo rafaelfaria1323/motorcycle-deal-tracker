@@ -9,9 +9,14 @@ import 'package:motorcycle_deal_tracker/app/theme/app_theme.dart';
 import 'package:motorcycle_deal_tracker/core/auth/session_cubit.dart';
 import 'package:motorcycle_deal_tracker/core/localization/localizations.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/data/collector_runs_repository.dart';
+import 'package:motorcycle_deal_tracker/features/collector_status/data/database_usage_repository.dart';
+import 'package:motorcycle_deal_tracker/features/collector_status/data/github_token_repository.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/data/source_quality_repository.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/domain/collector_run.dart';
+import 'package:motorcycle_deal_tracker/features/collector_status/domain/database_usage.dart';
+import 'package:motorcycle_deal_tracker/features/collector_status/domain/github_token.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/domain/source_quality.dart';
+import 'package:motorcycle_deal_tracker/features/collector_status/presentation/collection_status_page.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/presentation/collector_status_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/favourite.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
@@ -102,6 +107,7 @@ class InterfaceFixture {
     bool emptySearches = false,
     this.signedIn = false,
     this.admin = false,
+    this.latestRun,
     this.language = AppLanguage.portuguese,
     this.userChanges = const Stream.empty(),
   }) : repository = InterfaceListings(total),
@@ -111,6 +117,10 @@ class InterfaceFixture {
   final InterfaceSearches searchesRepository;
   final bool signedIn;
   final bool admin;
+
+  /// The last collection run, as the session may read it (none for an
+  /// anonymous one).
+  final CollectorRun? latestRun;
   final AppLanguage language;
   final Stream<User?> userChanges;
   late final session = SessionCubit(
@@ -165,13 +175,15 @@ class InterfaceFixture {
       ListingCardPreferencesCubit(cardPreferencesRepository, session),
       dispose: (c) => c.close(),
     );
-    final runs = _Runs();
+    final runs = _Runs(latestRun);
     getIt.registerSingleton<CollectorRunsRepository>(runs);
     getIt.registerSingleton<CollectorStatusCubit>(
       CollectorStatusCubit(runs),
       dispose: (c) => c.close(),
     );
     getIt.registerSingleton<SourceQualityRepository>(_Quality());
+    getIt.registerSingleton<GithubTokenRepository>(_Token());
+    getIt.registerSingleton<DatabaseUsageRepository>(_Usage());
     getIt.registerSingleton<HomeRepository>(home);
     getIt.registerSingleton<HomePlaceCubit>(
       HomePlaceCubit(home, session),
@@ -239,6 +251,10 @@ class InterfaceFixture {
       GoRoute(
         path: AppRoutes.favourites,
         builder: (_, _) => const FavouritesPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.collectionStatus,
+        builder: (_, _) => const CollectionStatusPage(),
       ),
       GoRoute(
         path: '/deals/:id',
@@ -493,20 +509,32 @@ class InterfaceFavourites implements FavouritesRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _Runs implements CollectorRunsRepository {
+class _Runs(final CollectorRun? latest) implements CollectorRunsRepository {
   @override
-  Future<CollectorRun?> getLatest() async => null;
+  Future<CollectorRun?> getLatest() async => latest;
 
   @override
-  Future<List<CollectorRun>> getSince(DateTime since) async => [];
+  Future<List<CollectorRun>> getSince(DateTime since) async => [?latest];
 
   @override
-  Future<List<CollectorRun>> getRecent(int limit) async => [];
+  Future<List<CollectorRun>> getRecent(int limit) async => [?latest];
 }
 
 class _Quality implements SourceQualityRepository {
   @override
   Future<List<SourceQuality>> getAll() async => [];
+}
+
+class _Token implements GithubTokenRepository {
+  @override
+  Future<GithubToken> check() async =>
+      const GithubToken(state: GithubTokenState.ok);
+}
+
+class _Usage implements DatabaseUsageRepository {
+  @override
+  Future<DatabaseUsage> get() async =>
+      const DatabaseUsage(bytes: 120 * 1024 * 1024, tables: []);
 }
 
 /// No home until one is saved.
