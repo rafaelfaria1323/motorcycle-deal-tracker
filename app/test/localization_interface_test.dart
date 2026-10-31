@@ -58,7 +58,8 @@ void main() {
     tester,
   ) async {
     await _open(tester);
-    expect(find.text('Your next bike starts here.'), findsOneWidget);
+    // Ofertas' toolbar, in English; the intro shows only on an empty list (F.3).
+    expect(find.text('Filters'), findsOneWidget);
     expect(find.text('6 listings'), findsOneWidget);
     expect(find.text('Searches'), findsWidgets);
     expect(find.text('Alerts'), findsWidgets);
@@ -71,7 +72,7 @@ void main() {
       tester,
     ) async {
       await _open(tester, width: width, textScale: scale);
-      expect(find.text('Your next bike starts here.'), findsOneWidget);
+      expect(find.text('Filters'), findsOneWidget);
       expect(find.text('6 listings'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
