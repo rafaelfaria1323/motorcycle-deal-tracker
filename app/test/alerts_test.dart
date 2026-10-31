@@ -492,7 +492,8 @@ void main() {
       expect(ids, hasLength(45));
       expect(ids.toSet(), hasLength(45));
       expect(ids.last, 'new_listing-44');
-      expect(cubit.state.unreadCount, 47);
+      // The new ones are counted by the next refresh, not by a page.
+      expect(cubit.state.unreadCount, 45);
     });
 
     test('a deleted alert does not make the next page skip one', () async {

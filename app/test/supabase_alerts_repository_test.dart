@@ -82,7 +82,7 @@ void main() {
       types: {AlertType.listingRemoved},
     );
     final query = requests.single.url.queryParameters;
-    expect(query['type'], 'in.(listing_removed)');
+    expect(query['type'], 'in.("listing_removed")');
     expect(query['offset'], '80');
     expect(query['limit'], '40');
   });
