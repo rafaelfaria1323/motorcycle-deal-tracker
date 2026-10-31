@@ -50,6 +50,46 @@ String nextCollectionText(DateTime now, {AppLanguage language = .portuguese}) {
   return language.messages.nextCollection(day: when, time: time);
 }
 
+/// Mais' one line on the collection (F.5): how the last run went and when
+/// the next is due. Anonymous sessions can't read the runs
+/// (`collector_runs`), so [run] is null for them and only the next run is
+/// said. The runs themselves and the data quality are the admins'
+/// ("Estado da recolha").
+({CollectorHealth health, String title, String? subtitle}) collectionLine(
+  CollectorRun? run,
+  DateTime now, {
+  AppLanguage language = .portuguese,
+}) {
+  final messages = language.messages;
+  final next = nextCollectionText(now, language: language);
+  final health = collectorHealth(run, now);
+  if (run == null) return (health: health, title: next, subtitle: null);
+  final ago = agoText(run.finishedAt, now: now, language: language);
+  return switch (health) {
+    .unknown || .ok => (
+      health: health,
+      title: messages.lastCollection(ago: ago),
+      subtitle: next,
+    ),
+    .stale => (
+      health: health,
+      title: messages.noRecentUpdates,
+      subtitle: '${messages.bannerStale(ago: ago)}\n$next',
+    ),
+    // The site's pause decides when it is read again, not the schedule.
+    .blocked => (
+      health: health,
+      title: messages.collectionBlockedBySite,
+      subtitle: messages.bannerSiteBlocked(ago: ago),
+    ),
+    .failed => (
+      health: health,
+      title: messages.lastCollectionFailed,
+      subtitle: '${capitalize(ago)} · $next',
+    ),
+  };
+}
+
 /// "há 3 h" (or minutes, or days).
 String agoText(
   DateTime time, {

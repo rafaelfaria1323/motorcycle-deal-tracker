@@ -2,9 +2,6 @@ import '../../../core/formatting/formatters.dart';
 import '../domain/accounts_repository.dart';
 import '../../../core/localization/localizations.dart';
 
-/// The app's name where it is shared.
-const appName = 'Motorcycle Deal Tracker';
-
 /// The address of the app at [origin] (`https://….pages.dev`).
 String appLink(String origin) => '$origin/';
 

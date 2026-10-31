@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:motorcycle_deal_tracker/core/localization/app_language.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/domain/collector_run.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/presentation/collection_text.dart';
 
@@ -85,6 +86,89 @@ void main() {
         nextCollectionText(DateTime.now()),
         startsWith('Próxima recolha: '),
       );
+    });
+  });
+
+  group('Mais\' collection line (F.5)', () {
+    final now = DateTime.utc(2026, 12, 1, 11);
+    final next = nextCollectionText(now);
+    CollectorRun ended(Duration ago, {String status = 'ok'}) => CollectorRun(
+      status: status,
+      startedAt: now.subtract(ago).subtract(const Duration(minutes: 5)),
+      finishedAt: now.subtract(ago),
+    );
+
+    test('an anonymous session (no run to read) hears only the next run', () {
+      final line = collectionLine(null, now);
+      expect(line.health, CollectorHealth.unknown);
+      expect(line.title, next);
+      expect(line.title, startsWith('Próxima recolha: '));
+      expect(line.subtitle, isNull);
+    });
+
+    test('a good or partial run: when it was, then the next', () {
+      for (final status in ['ok', 'partial']) {
+        final line = collectionLine(
+          ended(const Duration(minutes: 40), status: status),
+          now,
+        );
+        expect(line.health, CollectorHealth.ok);
+        expect(line.title, 'Última recolha há 40 min');
+        expect(line.subtitle, next);
+      }
+    });
+
+    test('an old run says prices may be out of date', () {
+      final line = collectionLine(ended(const Duration(hours: 13)), now);
+      expect(line.health, CollectorHealth.stale);
+      expect(line.title, 'Sem atualizações recentes');
+      expect(
+        line.subtitle,
+        'A última recolha foi há 13 h. Os preços podem estar '
+        'desatualizados.\n$next',
+      );
+    });
+
+    test('a blocked run says the site paused it, not the schedule', () {
+      final line = collectionLine(
+        ended(const Duration(hours: 2), status: 'blocked'),
+        now,
+      );
+      expect(line.health, CollectorHealth.blocked);
+      expect(line.title, 'Recolha bloqueada pelo site');
+      expect(line.subtitle, contains('(há 2 h)'));
+      expect(line.subtitle, isNot(contains('Próxima recolha')));
+    });
+
+    test('a failed run says when, then the next', () {
+      final line = collectionLine(
+        ended(const Duration(hours: 2), status: 'failed'),
+        now,
+      );
+      expect(line.health, CollectorHealth.failed);
+      expect(line.title, 'A última recolha falhou');
+      expect(line.subtitle, 'Há 2 h · $next');
+    });
+
+    test('in English', () {
+      const english = AppLanguage.english;
+      final nextEn = nextCollectionText(now, language: english);
+      expect(nextEn, startsWith('Next collection: '));
+      expect(collectionLine(null, now, language: english).title, nextEn);
+      final ok = collectionLine(
+        ended(const Duration(minutes: 40)),
+        now,
+        language: english,
+      );
+      expect(ok.title, 'Last collection 40 min ago');
+      expect(ok.subtitle, nextEn);
+      final failed = collectionLine(
+        ended(const Duration(hours: 2), status: 'failed'),
+        now,
+        language: english,
+      );
+      expect(failed.title, 'The last collection failed');
+      expect(failed.subtitle, '2 h ago · $nextEn');
     });
   });
 

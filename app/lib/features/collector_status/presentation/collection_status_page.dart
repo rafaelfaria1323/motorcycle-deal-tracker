@@ -12,18 +12,23 @@ import '../../../core/widgets/state_message.dart';
 import '../data/collector_runs_repository.dart';
 import '../data/database_usage_repository.dart';
 import '../data/github_token_repository.dart';
+import '../data/source_quality_repository.dart';
 import '../domain/collector_run.dart';
 import '../domain/database_usage.dart';
 import '../domain/github_token.dart';
+import '../domain/source_quality.dart';
 import 'collection_status_text.dart';
 import 'collection_text.dart';
+import 'data_quality_details.dart';
 import '../../../core/localization/localizations.dart';
 
 /// "Estado da recolha" (admins, from Mais): whether the GitHub token still
 /// starts the runs, how much database space is used, each site's requests
-/// today and pause, the requests of each of the last 7 days, the last 30
-/// days' failures by site and cause, and the last runs with what went
-/// wrong, how long the scores took and a link to each one on GitHub.
+/// today and pause, the searches read, the requests of each of the last 7
+/// days, this month's runs and GitHub minutes, the last 30 days' failures
+/// by site and cause, each site's data quality, and the last runs with
+/// what went wrong, how long the scores took and a link to each one on
+/// GitHub.
 class const CollectionStatusPage({super.key}) extends StatefulWidget {
   @override
   State<CollectionStatusPage> createState() => _CollectionStatusPageState();
@@ -34,8 +39,10 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
 
   late Future<List<CollectorRun>> _recent;
   late Future<List<CollectorRun>> _month;
+  late Future<List<CollectorRun>> _thisMonth;
   late Future<GithubToken?> _token;
   late Future<DatabaseUsage?> _usage;
+  late Future<List<SourceQuality>?> _quality;
 
   @override
   void initState() {
@@ -49,6 +56,10 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
     _month = repository
         .getSince(DateTime.now().subtract(const Duration(days: 30)))
         .catchError((Object _) => const <CollectorRun>[]);
+    final now = DateTime.now().toUtc();
+    _thisMonth = repository
+        .getSince(DateTime.utc(now.year, now.month))
+        .catchError((Object _) => const <CollectorRun>[]);
     _token = getIt<GithubTokenRepository>().check().then<GithubToken?>(
       (t) => t,
       onError: (Object _) => null,
@@ -57,11 +68,14 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
       (u) => u,
       onError: (Object _) => null,
     );
+    _quality = getIt<SourceQualityRepository>()
+        .getAll()
+        .then<List<SourceQuality>?>((q) => q, onError: (Object _) => null);
   }
 
   Future<void> _reload() async {
     setState(_load);
-    await (_recent, _month, _token, _usage).wait;
+    await (_recent, _month, _thisMonth, _token, _usage, _quality).wait;
   }
 
   @override
@@ -154,9 +168,20 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
                 ),
                 const SizedBox(height: 12),
                 SectionCard(
+                  title: context.strings.thisMonth,
+                  footnote: context.strings.githubActionsMinutesNote,
+                  children: [_MonthLines(runs: _thisMonth)],
+                ),
+                const SizedBox(height: 12),
+                SectionCard(
                   title: context.strings.failuresLast30Days,
                   footnote: context.strings.failuresLast30DaysFootnote,
                   children: [_FailureHistory(runs: _month)],
+                ),
+                const SizedBox(height: 12),
+                SectionCard(
+                  title: context.strings.dataQuality,
+                  children: [DataQualityDetails(quality: _quality)],
                 ),
                 const SizedBox(height: 12),
                 SectionCard(
@@ -226,6 +251,32 @@ class const _DailyRequests({
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [for (final day in days) BulletLine(day)],
+        );
+      },
+    );
+  }
+}
+
+/// This month's runs and their GitHub minutes, and each site's requests.
+class const _MonthLines({required final Future<List<CollectorRun>> runs})
+    extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<CollectorRun>>(
+      future: runs,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != .done) {
+          return BulletLine(context.strings.countingRequests);
+        }
+        final runs = snapshot.data ?? const <CollectorRun>[];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            BulletLine(monthUsageText(runs, language: context.language)),
+            if (monthRequestsText(runs, language: context.language)
+                case final requests?)
+              BulletLine(requests),
+          ],
         );
       },
     );

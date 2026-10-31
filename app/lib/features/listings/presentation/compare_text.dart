@@ -72,8 +72,8 @@ List<CompareRow> compareRows(
   return [
     row(
       language.messages.price,
-      (l) => Formatters.price(l.price, language: language),
-      score: (l) => l.price,
+      (l) => l.priceLabel(language: language),
+      score: (l) => l.askingPrice,
     ),
     row(
       language.messages.score,

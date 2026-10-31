@@ -16,6 +16,12 @@ abstract final class AppRoutes {
 
   static String listingDetail(String id) => '$deals/$id';
 
+  /// The `extra` of an ad opened from a list of ads (a plain string, so
+  /// the browser's history keeps it): it opens on the part last read, to
+  /// go through ads one after another. Opened any other way (a
+  /// notification, an alert, a shared link) it starts on Avaliação.
+  static const fromList = 'list';
+
   static String listingPhotos(String id) => '$deals/$id/photos';
 
   static String compare(List<String> ids) =>

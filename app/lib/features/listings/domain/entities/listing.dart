@@ -6,6 +6,11 @@ enum ListingStatus { active, priceChanged, removed, sold, unknown }
 
 enum SellerType { private, dealer, unknown }
 
+/// Asking prices below this are placeholders ("1 €", "consulte"); the
+/// database leaves them out of the comparables, its price sorts and its
+/// maximum prices too (`asking_price`).
+const minRealPrice = 300.0;
+
 class const Listing({
   required final String id,
   required final String source,
@@ -115,6 +120,22 @@ class const Listing({
   }
 
   bool get hasPriceChanged => (priceChange ?? 0).abs() >= 1;
+
+  /// The price, unless it is a placeholder (under [minRealPrice]): the
+  /// database's computed field `asking_price`.
+  double? get askingPrice => switch (price) {
+    final value? when value >= minRealPrice => value,
+    _ => null,
+  };
+
+  /// A price the seller wrote only to publish the ad ("preço por consultar").
+  bool get hasPlaceholderPrice => price != null && askingPrice == null;
+
+  /// "Yamaha MT-07": how the bike is named on its card and its page.
+  String get name => '$brand $model';
+
+  /// "Yamaha MT-07 · 2021": the bike in a title (alerts, sharing).
+  String get nameAndYear => year == null ? name : '$name · $year';
 
   bool get isRemoved => status == .removed;
 

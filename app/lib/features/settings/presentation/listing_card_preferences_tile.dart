@@ -30,23 +30,39 @@ Future<void> showListingCardPreferences(BuildContext context) async {
   }
 }
 
+/// Mais › "Cartões dos anúncios", the only way in to the card choices: a
+/// preference set once, so it has no slot in Ofertas' toolbar (F.3). When
+/// the choices could not be read, the tile says so; the dialog retries.
 class const ListingCardPreferencesTile({
   required final bool signedIn,
   super.key,
 }) extends StatelessWidget {
   @override
-  Widget build(BuildContext context) => ListTile(
-    leading: const Icon(Icons.view_agenda_outlined),
-    title: Text(context.strings.listingCards),
-    subtitle: Text(
-      signedIn
-          ? context.strings.chooseDetailsShownInDealsAndFavourites
-          : context.strings.availableWhenSignedIn,
-    ),
-    trailing: const Icon(Icons.chevron_right),
-    enabled: signedIn,
-    onTap: () => showListingCardPreferences(context),
-  );
+  Widget build(BuildContext context) =>
+      BlocBuilder<ListingCardPreferencesCubit, ListingCardPreferencesState>(
+        bloc: getIt<ListingCardPreferencesCubit>(),
+        builder: (context, cards) {
+          final failed = signedIn && cards.status == .failure;
+          return ListTile(
+            leading: Icon(
+              failed
+                  ? Icons.warning_amber_outlined
+                  : Icons.view_agenda_outlined,
+            ),
+            title: Text(context.strings.listingCards),
+            subtitle: Text(
+              !signedIn
+                  ? context.strings.availableWhenSignedIn
+                  : failed
+                  ? context.strings.cardPreferencesLoadError
+                  : context.strings.chooseDetailsShownInDealsAndFavourites,
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            enabled: signedIn,
+            onTap: () => showListingCardPreferences(context),
+          );
+        },
+      );
 }
 
 class const _CardPreferencesDialog({

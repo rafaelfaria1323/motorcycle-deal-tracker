@@ -6,12 +6,8 @@ import '../../../app/di/injection.dart';
 import '../../../app/router/app_routes.dart';
 import '../../../core/auth/account_sheet.dart';
 import '../../../core/auth/session_cubit.dart';
-import '../../../core/widgets/collapsible_section.dart';
 import '../../../core/widgets/page_intro.dart';
-import '../../collector_status/presentation/collection_details.dart';
-import '../../collector_status/presentation/collection_text.dart';
-import '../../collector_status/presentation/collector_status_banner.dart';
-import '../../collector_status/presentation/data_quality_details.dart';
+import '../../collector_status/presentation/collection_line_tile.dart';
 import '../domain/accounts_repository.dart';
 import 'admin_tiles.dart';
 import 'android_app_tile.dart';
@@ -23,8 +19,8 @@ import 'share_app_tile.dart';
 import '../../../core/localization/localizations.dart';
 
 /// Everything that is not a list of offers: the account, the person's own
-/// lists and settings, the tools, notifications, the app, how the data
-/// collection is doing and, for admins only, "Administração".
+/// lists and settings, the tools, notifications, the app, one line on the
+/// data collection and, for admins only, "Administração".
 class const MorePage({super.key}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -102,7 +98,7 @@ class _MoreBodyState extends State<_MoreBody> {
                       ),
                       subtitle: Text(
                         signedIn
-                            ? context.strings.tapToSignOut
+                            ? context.strings.accountAndSignIn
                             : context
                                   .strings
                                   .signInToAccessYourSearchesAndAlerts,
@@ -162,7 +158,7 @@ class _MoreBodyState extends State<_MoreBody> {
                   children: [
                     ListTile(
                       leading: const Icon(Icons.leaderboard_outlined),
-                      title: Text(context.strings.compareModels),
+                      title: Text(context.strings.marketByModel),
                       subtitle: Text(context.strings.marketPageSubtitle),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => context.push(AppRoutes.modelMarket),
@@ -193,45 +189,7 @@ class _MoreBodyState extends State<_MoreBody> {
                   ],
                 ),
                 _Header(context.strings.dataCollection),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: CollectorStatusBanner(),
-                ),
-                _Group(
-                  children: [
-                    // Closed until asked for: the runs and the data
-                    // quality are read only when opened.
-                    CollapsibleSection(
-                      tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                      childrenPadding: const EdgeInsets.only(bottom: 8),
-                      leading: const Icon(Icons.event_outlined),
-                      title: context.strings.recentCollections,
-                      summary: nextCollectionText(
-                        DateTime.now(),
-                        language: context.language,
-                      ),
-                      children: [
-                        if (signedIn)
-                          CollectionDetails(signedIn: signedIn)
-                        else
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-                            child: Text(
-                              context.strings.collectionStatusNeedsSignIn,
-                            ),
-                          ),
-                      ],
-                    ),
-                    CollapsibleSection(
-                      tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                      childrenPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.fact_check_outlined),
-                      title: context.strings.dataQuality,
-                      summary: context.strings.dataQualitySummary,
-                      children: const [DataQualityDetails()],
-                    ),
-                  ],
-                ),
+                _Group(children: [CollectionLineTile(admin: admin)]),
                 if (admin) ...[
                   _Header(context.strings.administration),
                   const _Group(children: [AdminTiles()]),

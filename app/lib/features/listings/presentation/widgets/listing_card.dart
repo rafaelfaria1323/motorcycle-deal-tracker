@@ -208,7 +208,7 @@ class const _CardDetails({
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '${listing.brand} ${listing.model}',
+            listing.name,
             style: textTheme.titleLarge?.copyWith(fontSize: 23),
             maxLines: MediaQuery.textScalerOf(context).scale(16) > 20
                 ? null
@@ -222,7 +222,7 @@ class const _CardDetails({
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(
-                Formatters.price(listing.price, language: context.language),
+                listing.priceLabel(language: context.language),
                 style: textTheme.headlineSmall?.copyWith(
                   fontSize: 30,
                   height: 1.1,

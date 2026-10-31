@@ -8,20 +8,40 @@ import '../models/listing_model.dart';
 class SupabaseAlertsRepository(final SupabaseClient _client)
     implements AlertsRepository {
   @override
-  Future<List<ListingAlert>> getAll() async {
+  Future<List<ListingAlert>> getPage({
+    required int limit,
+    Set<AlertType> types = const {},
+    int offset = 0,
+  }) async {
     // Row-level security returns only the current user's alerts.
-    final rows = await _client
+    var query = _client
         .from('alerts')
         .select(
           '*, listings(${ListingModel.summaryColumns}), saved_searches(name)',
         )
-        .isFilter('dismissed_at', null)
+        .isFilter('dismissed_at', null);
+    if (types.isNotEmpty) {
+      query = query.inFilter('type', [
+        for (final type in types) ?ListingAlertModel.code(type),
+      ]);
+    }
+    // One run makes many alerts with the same time: the id keeps the pages
+    // in one order.
+    final rows = await query
         .order('created_at', ascending: false)
-        .limit(100);
+        .order('id', ascending: false)
+        .range(offset, offset + limit - 1);
     return rows.map<ListingAlert>(ListingAlertModel.fromJson).toList();
   }
 
-  // Only `read_at` is directly writable; dismissal uses an owner-checked RPC.
+  @override
+  Future<int> countUnread() => _client
+      .from('alerts')
+      .count()
+      .isFilter('read_at', null)
+      .isFilter('dismissed_at', null);
+
+  // Only `read_at` is directly writable; dismissal uses owner-checked RPCs.
 
   @override
   Future<void> markRead(String id) async {
@@ -42,5 +62,11 @@ class SupabaseAlertsRepository(final SupabaseClient _client)
   @override
   Future<void> dismiss(String id) async {
     await _client.rpc<void>('dismiss_alert', params: {'p_alert': id});
+  }
+
+  @override
+  Future<int> dismissRead() async {
+    final count = await _client.rpc<Object?>('dismiss_read_alerts');
+    return (count as num?)?.toInt() ?? 0;
   }
 }

@@ -9,9 +9,14 @@ import 'package:motorcycle_deal_tracker/app/theme/app_theme.dart';
 import 'package:motorcycle_deal_tracker/core/auth/session_cubit.dart';
 import 'package:motorcycle_deal_tracker/core/localization/localizations.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/data/collector_runs_repository.dart';
+import 'package:motorcycle_deal_tracker/features/collector_status/data/database_usage_repository.dart';
+import 'package:motorcycle_deal_tracker/features/collector_status/data/github_token_repository.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/data/source_quality_repository.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/domain/collector_run.dart';
+import 'package:motorcycle_deal_tracker/features/collector_status/domain/database_usage.dart';
+import 'package:motorcycle_deal_tracker/features/collector_status/domain/github_token.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/domain/source_quality.dart';
+import 'package:motorcycle_deal_tracker/features/collector_status/presentation/collection_status_page.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/presentation/collector_status_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/favourite.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
@@ -45,6 +50,7 @@ import 'package:motorcycle_deal_tracker/features/settings/domain/language_reposi
 import 'package:motorcycle_deal_tracker/features/settings/domain/place.dart';
 import 'package:motorcycle_deal_tracker/features/settings/domain/push_repository.dart';
 import 'package:motorcycle_deal_tracker/features/settings/domain/quiet_hours.dart';
+import 'package:motorcycle_deal_tracker/features/settings/presentation/home_place_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/settings/presentation/more_page.dart';
 import 'package:motorcycle_deal_tracker/features/settings/presentation/language_cubit.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -101,6 +107,7 @@ class InterfaceFixture {
     bool emptySearches = false,
     this.signedIn = false,
     this.admin = false,
+    this.latestRun,
     this.language = AppLanguage.portuguese,
     this.userChanges = const Stream.empty(),
   }) : repository = InterfaceListings(total),
@@ -110,6 +117,10 @@ class InterfaceFixture {
   final InterfaceSearches searchesRepository;
   final bool signedIn;
   final bool admin;
+
+  /// The last collection run, as the session may read it (none for an
+  /// anonymous one).
+  final CollectorRun? latestRun;
   final AppLanguage language;
   final Stream<User?> userChanges;
   late final session = SessionCubit(
@@ -138,6 +149,7 @@ class InterfaceFixture {
     ..accounts['interface-user'] = language
     ..cache['interface-user'] = language;
   late final languages = LanguageCubit(languageRepository, session);
+  final home = InterfaceHome();
 
   Future<void> initialize() async {
     await getIt.reset();
@@ -163,14 +175,20 @@ class InterfaceFixture {
       ListingCardPreferencesCubit(cardPreferencesRepository, session),
       dispose: (c) => c.close(),
     );
-    final runs = _Runs();
+    final runs = _Runs(latestRun);
     getIt.registerSingleton<CollectorRunsRepository>(runs);
     getIt.registerSingleton<CollectorStatusCubit>(
       CollectorStatusCubit(runs),
       dispose: (c) => c.close(),
     );
     getIt.registerSingleton<SourceQualityRepository>(_Quality());
-    getIt.registerSingleton<HomeRepository>(_Home());
+    getIt.registerSingleton<GithubTokenRepository>(_Token());
+    getIt.registerSingleton<DatabaseUsageRepository>(_Usage());
+    getIt.registerSingleton<HomeRepository>(home);
+    getIt.registerSingleton<HomePlaceCubit>(
+      HomePlaceCubit(home, session),
+      dispose: (c) => c.close(),
+    );
     getIt.registerSingleton<PushRepository>(_Push());
     getIt.registerSingleton<AccountsRepository>(_Accounts(admin));
     await Future.wait([
@@ -235,12 +253,19 @@ class InterfaceFixture {
         builder: (_, _) => const FavouritesPage(),
       ),
       GoRoute(
+        path: AppRoutes.collectionStatus,
+        builder: (_, _) => const CollectionStatusPage(),
+      ),
+      GoRoute(
         path: '/deals/:id',
         builder: (_, state) {
           final id = state.pathParameters['id']!;
           return BlocProvider(
             create: (_) => ListingDetailCubit(repository)..load(id),
-            child: ListingDetailPage(listingId: id),
+            child: ListingDetailPage(
+              listingId: id,
+              keepSection: state.extra == AppRoutes.fromList,
+            ),
           );
         },
       ),
@@ -264,9 +289,8 @@ Widget interfaceApp(
     themeMode: dark ? ThemeMode.dark : ThemeMode.light,
     routerConfig: router,
     builder: (context, child) => MediaQuery(
-      data: MediaQuery.of(
-        context,
-      ).copyWith(textScaler: TextScaler.linear(textScale)),
+      data: MediaQuery.of(context)
+          .copyWith(textScaler: TextScaler.linear(textScale)),
       child: child!,
     ),
   );
@@ -403,11 +427,26 @@ class InterfaceAlerts implements AlertsRepository {
   bool failDismiss = false;
   Future<void>? dismissDelay;
 
+  Iterable<ListingAlert> get _shown =>
+      values.where((alert) => !dismissed.contains(alert.id));
+
   @override
-  Future<List<ListingAlert>> getAll() async => [
-    for (final alert in values)
-      if (!dismissed.contains(alert.id)) _withSearch(alert),
+  Future<List<ListingAlert>> getPage({
+    required int limit,
+    Set<AlertType> types = const {},
+    int offset = 0,
+  }) async => [
+    for (final alert
+        in _shown
+            .where((alert) => types.isEmpty || types.contains(alert.type))
+            .skip(offset)
+            .take(limit))
+      _withSearch(alert),
   ];
+
+  @override
+  Future<int> countUnread() async =>
+      _shown.where((alert) => !alert.isRead).length;
 
   ListingAlert _withSearch(ListingAlert alert) {
     final search = searches.values
@@ -451,6 +490,17 @@ class InterfaceAlerts implements AlertsRepository {
     if (failDismiss) throw StateError('Offline');
     dismissed.add(id);
   }
+
+  @override
+  Future<int> dismissRead() async {
+    if (failDismiss) throw StateError('Offline');
+    final read = [
+      for (final alert in _shown)
+        if (alert.isRead) alert.id,
+    ];
+    dismissed.addAll(read);
+    return read.length;
+  }
 }
 
 class InterfaceCardPreferences implements ListingCardPreferencesRepository {
@@ -485,15 +535,15 @@ class InterfaceFavourites implements FavouritesRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _Runs implements CollectorRunsRepository {
+class _Runs(final CollectorRun? latest) implements CollectorRunsRepository {
   @override
-  Future<CollectorRun?> getLatest() async => null;
+  Future<CollectorRun?> getLatest() async => latest;
 
   @override
-  Future<List<CollectorRun>> getSince(DateTime since) async => [];
+  Future<List<CollectorRun>> getSince(DateTime since) async => [?latest];
 
   @override
-  Future<List<CollectorRun>> getRecent(int limit) async => [];
+  Future<List<CollectorRun>> getRecent(int limit) async => [?latest];
 }
 
 class _Quality implements SourceQualityRepository {
@@ -501,12 +551,33 @@ class _Quality implements SourceQualityRepository {
   Future<List<SourceQuality>> getAll() async => [];
 }
 
-class _Home implements HomeRepository {
+class _Token implements GithubTokenRepository {
   @override
-  Future<Place?> getHome() async => null;
+  Future<GithubToken> check() async =>
+      const GithubToken(state: GithubTokenState.ok);
+}
+
+class _Usage implements DatabaseUsageRepository {
+  @override
+  Future<DatabaseUsage> get() async =>
+      const DatabaseUsage(bytes: 120 * 1024 * 1024, tables: []);
+}
+
+/// No home until one is saved.
+class InterfaceHome implements HomeRepository {
+  Place? place;
 
   @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  Future<Place?> getHome() async => place;
+
+  @override
+  Future<void> saveHome(Place place) async => this.place = place;
+
+  @override
+  Future<List<Place>> search(String text) async => [
+    if ('porto'.startsWith(text.trim().toLowerCase()))
+      const Place(key: 'porto', name: 'Porto'),
+  ];
 }
 
 class _Push implements PushRepository {

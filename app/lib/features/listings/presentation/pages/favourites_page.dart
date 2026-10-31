@@ -97,6 +97,7 @@ class const FavouritesPage({super.key}) extends StatelessWidget {
                               preferences: cards.preferences,
                               onTap: () => context.push(
                                 AppRoutes.listingDetail(f.listingId),
+                                extra: AppRoutes.fromList,
                               ),
                             ),
                             Padding(

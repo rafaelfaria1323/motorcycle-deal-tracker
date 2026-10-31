@@ -6,6 +6,7 @@ import '../../core/widgets/app_brand.dart';
 import '../../features/listings/presentation/cubit/alerts_cubit.dart';
 import '../../features/listings/presentation/cubit/alerts_state.dart';
 import '../../features/listings/presentation/cubit/favourites_cubit.dart';
+import '../../features/settings/presentation/home_place_cubit.dart';
 import '../di/injection.dart';
 import '../../core/localization/localizations.dart';
 
@@ -20,11 +21,13 @@ class const AppShell({
 class _AppShellState extends State<AppShell> {
   final _alerts = getIt<AlertsCubit>();
   final _favourites = getIt<FavouritesCubit>();
+  final _home = getIt<HomePlaceCubit>();
 
   // The unread count on the Alertas tab needs the alerts from the start,
   // and again when the app comes back to the screen (new collections run
   // while it is in the background). The stars on the cards need the
-  // favourites from the start too.
+  // favourites from the start too, and the sort menu and the filters the
+  // home (without one, the distance options say how to set it).
   late final AppLifecycleListener _lifecycle;
 
   StatefulNavigationShell get navigationShell => widget.navigationShell;
@@ -37,6 +40,7 @@ class _AppShellState extends State<AppShell> {
     if (_favourites.state.status == .initial) {
       _favourites.load();
     }
+    if (_home.state.status == .initial) _home.load();
   }
 
   @override

@@ -72,7 +72,10 @@ final appRouter = GoRouter(
                     final id = state.pathParameters['id']!;
                     return BlocProvider(
                       create: (_) => getIt<ListingDetailCubit>()..load(id),
-                      child: ListingDetailPage(listingId: id),
+                      child: ListingDetailPage(
+                        listingId: id,
+                        keepSection: state.extra == AppRoutes.fromList,
+                      ),
                     );
                   },
                   routes: [
