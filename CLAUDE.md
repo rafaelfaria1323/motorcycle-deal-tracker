@@ -833,14 +833,19 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   never parallel, at most 5 minutes a run, the same stops and 24 h pause
   (a reply that isn't an image is a block); robots.txt obeyed when there
   is one (`robotsRequired: false`: a 4xx means no rules); as on the
-  sites, the longest matching Allow/Disallow line decides (RFC 9309), and
+  sites, the longest matching Allow/Disallow line decides (RFC 9309,
+  compared percent-decoded: `%5B` is `[`; `$` ends a rule only as its
+  last character; any port but 443 is refused), and
   a photo it refuses stops the step without marking any listing checked
   (`FetchDisallowed`). 3 photos per listing, once. Counted apart ("Photo requests:", never "Requests
   used:"). Only hashes and the image model's scores and embeddings
   are kept, never the photos.
 - Honest user agent. Saved pages, manifests, generated search lists and
   fetch state are never committed (they contain sellers' contact details).
-- Never store private sellers' names or anyone's phone numbers.
+- Never store private sellers' names or anyone's phone numbers. A phone
+  number a seller writes in the description, version or dealer name is
+  removed by the database on the way in (trigger
+  `listings_a_strip_phone_numbers`, `without_phone_numbers()`, N.43).
 
 ## Scoring model
 

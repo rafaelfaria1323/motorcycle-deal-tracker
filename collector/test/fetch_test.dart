@@ -55,6 +55,35 @@ void main() {
       expect(RobotsRules.parse('').decidingRule('/x'), 'no rule');
     });
 
+    test('compares addresses and rules percent-decoded (RFC 9309)', () {
+      final sorted = RobotsRules.parse(
+        'User-agent: *\nDisallow: /*search[order]\n'
+        'Disallow: /a%2Fb\nDisallow: /motos/caf%c3%a9\nDisallow: /x%2A\n',
+      );
+      // Our addresses carry the brackets encoded, as Uri writes them.
+      expect(
+        sorted.isAllowed('/motos/yamaha?search%5Border%5D=created_at:desc'),
+        isFalse,
+      );
+      expect(sorted.isAllowed('/motos/yamaha?search%5Bfilter%5D=1'), isTrue);
+      expect(sorted.isAllowed('/a/b'), isFalse);
+      expect(sorted.isAllowed('/motos/café'), isFalse);
+      expect(sorted.isAllowed('/motos/caf%C3%A9'), isFalse);
+      // An encoded * is a plain character, not "anything".
+      expect(sorted.isAllowed('/x*'), isFalse);
+      expect(sorted.isAllowed('/xy'), isTrue);
+    });
+
+    test(r'$ ends a rule only as its last character', () {
+      final ends = RobotsRules.parse(
+        'User-agent: *\nDisallow: /*.json\$\nDisallow: /price\$list\n',
+      );
+      expect(ends.isAllowed('/motos/a.json'), isFalse);
+      expect(ends.isAllowed('/motos/a.json?x=1'), isTrue);
+      expect(ends.isAllowed('/price\$list'), isFalse);
+      expect(ends.isAllowed('/price'), isTrue);
+    });
+
     test('rules of other bots do not apply to us', () {
       expect(rules.isAllowed('/'), isTrue);
       expect(rules.isAllowed('/x/payment/'), isTrue);
@@ -80,6 +109,8 @@ void main() {
         'https://example.com/motos/yamaha',
         'https://www.standvirtual.com/carros/bmw',
         'https://user:pw@www.standvirtual.com/motos/x',
+        'https://www.standvirtual.com:8443/motos/x',
+        'https://www.standvirtual.com/motos/../api/x',
       ]) {
         expect(urlProblem(Uri.parse(bad), site: site), isNotNull, reason: bad);
       }

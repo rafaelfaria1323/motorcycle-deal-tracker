@@ -67,7 +67,8 @@ Its own fetcher and state (`FetchSite.photos`, `.fetch_state.photos.json`):
 one photo at a time, 2-3 s apart, at most 5 minutes a run, after the run
 is recorded; the same stops and 24 h pause on 403/429/503 or a reply that
 isn't an image, and robots.txt is obeyed when the CDN has one (the
-longest matching Allow/Disallow line decides, RFC 9309; a refused photo
+longest matching Allow/Disallow line decides, RFC 9309, compared
+percent-decoded, N.42; a refused photo
 stops the step and leaves the listings unchecked). The first
 3 photos of each listing, once. Only a 64-bit hash of each photo is kept,
 never the photo. The requests are counted apart ("Photo requests:"), so
@@ -282,7 +283,8 @@ abuse and contact pages, */i2/*; `Allow: /`; no crawl delay.
 **What is stored.** Source id `olx.pt/<ad id>`, url, brand, model, year,
 mileage, price, seller type, business name (business accounts only; private
 sellers' names are never read), city, description and up to 30 photo
-links. Phone numbers are never read. Ads OLX shows as copies of Standvirtual
+links. Phone numbers are never read, and one written in the description
+or title is removed before it is stored (N.43). Ads OLX shows as copies of Standvirtual
 ads (`partner: standvirtual`, 8 of 47 on the first page checked) are
 skipped: the original is collected from Standvirtual.
 
