@@ -1,32 +1,26 @@
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:collector/collector.dart';
 
 const _source = 'standvirtual';
 
 Future<void> main(List<String> args) async {
-  var dryRun = false;
-  var max = 10;
-  var badArgs = false;
-  for (final arg in args) {
-    if (arg == '--dry-run') {
-      dryRun = true;
-    } else if (arg.startsWith('--max=')) {
-      max = int.tryParse(arg.substring('--max='.length)) ?? 0;
-    } else {
-      badArgs = true;
-    }
-  }
-  if (badArgs || max < 1) {
-    stderr.writeln(
-      'Usage: dart run bin/enrich.dart [--dry-run] [--max=<n>] (default 10)\n'
-      '  Reads the listing page of up to <max> live listings that have no\n'
-      '  details yet (favourites, alerted ones, then by Deal Score; pages\n'
-      '  that failed before last) and stores what it adds.',
-    );
-    exitCode = 64;
-    return;
-  }
+  final options = readCommandLine(
+    ArgParser()
+      ..addFlag('dry-run', negatable: false, help: 'Nothing is requested.')
+      ..addOption('max', defaultsTo: '10', help: 'Listing pages to read.'),
+    args,
+    atLeast: {'max': 1},
+    usage:
+        'Usage: dart run bin/enrich.dart [options]\n'
+        '  Reads the listing page of up to <max> live listings that have no\n'
+        '  details yet (favourites, alerted ones, then by Deal Score; pages\n'
+        '  that failed before last) and stores what it adds.',
+  );
+  if (options == null) return;
+  final dryRun = options.flag('dry-run');
+  final max = intOption(options, 'max')!;
 
   await withServiceClient((client) async {
     final store = ListingStore(client);

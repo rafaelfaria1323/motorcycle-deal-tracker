@@ -1,46 +1,47 @@
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:collector/collector.dart';
 
 Future<void> main(List<String> args) async {
-  final flags = args.where((a) => a.startsWith('--')).toList();
-  final positional = args.where((a) => !a.startsWith('--')).toList();
-
-  var dryRun = false;
-  String? outDir;
-  int? maxRequests; // no cap
-  for (final flag in flags) {
-    if (flag == '--dry-run') {
-      dryRun = true;
-    } else if (flag.startsWith('--out=')) {
-      outDir = flag.substring('--out='.length);
-    } else if (flag.startsWith('--max=')) {
-      maxRequests = int.tryParse(flag.substring('--max='.length)) ?? 0;
-      if (maxRequests < 1) positional.add('?');
-    } else {
-      positional.add('?'); // forces the usage message
-    }
-  }
-
-  final site = positional.isEmpty ? null : FetchSite.byName[positional.first];
-  if (positional.length != 2 || site == null) {
+  final options = readCommandLine(
+    ArgParser()
+      ..addFlag(
+        'dry-run',
+        negatable: false,
+        help: 'Check the addresses; nothing is requested.',
+      )
+      ..addOption('out', help: 'Folder for the pages (samples/<site>/search).')
+      ..addOption(
+        'max',
+        help: 'At most <n> requests, robots.txt included (default: no cap).',
+      ),
+    args,
+    positional: 2,
+    atLeast: {'max': 1},
+    usage:
+        'Usage: dart run bin/fetch.dart <${FetchSite.byName.keys.join('|')}> '
+        '<urls-file> [options]\n'
+        '  <urls-file>  one search address per line (# starts a comment)\n'
+        '  Searches span pages; the following pages are fetched too.',
+  );
+  if (options == null) return;
+  final [siteName, urlsFile] = options.rest;
+  final site = FetchSite.byName[siteName];
+  if (site == null) {
     stderr.writeln(
-      'Usage: dart run bin/fetch.dart <${FetchSite.byName.keys.join('|')}> '
-      '<urls-file> [--dry-run] [--out=<dir>] [--max=<n>]\n'
-      '  <urls-file>  one search address per line (# starts a comment)\n'
-      '  --dry-run    check the addresses; nothing is requested\n'
-      '  --max        at most <n> requests, robots.txt included (default: no '
-      'cap)\n'
-      '  OLX searches span pages; the following pages are fetched too.',
+      'Unknown site "$siteName": one of ${FetchSite.byName.keys.join(', ')}.',
     );
     exitCode = 64;
     return;
   }
-  final out = outDir ?? 'samples/${positional.first}/search';
+  final dryRun = options.flag('dry-run');
+  final maxRequests = intOption(options, 'max'); // null: no cap
+  final out = options.option('out') ?? 'samples/$siteName/search';
 
   final urls = <Uri>[];
   try {
-    for (final raw in await File(positional[1]).readAsLines()) {
+    for (final raw in await File(urlsFile).readAsLines()) {
       final line = raw.split('#').first.trim();
       if (line.isEmpty) continue;
       final url = Uri.tryParse(line);
@@ -61,7 +62,7 @@ Future<void> main(List<String> args) async {
   }
 
   if (urls.isEmpty) {
-    stderr.writeln('No addresses in ${positional[1]}.');
+    stderr.writeln('No addresses in $urlsFile.');
     exitCode = 64;
     return;
   }

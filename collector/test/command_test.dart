@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:collector/collector.dart';
 import 'package:supabase/supabase.dart';
 import 'package:test/test.dart';
@@ -140,5 +141,65 @@ void main() {
 
     expect(result.stored, 0);
     expect(result.code, 0, reason: result.log);
+  });
+
+  group('command line', () {
+    ArgParser parser() => ArgParser()
+      ..addFlag('dry-run', negatable: false)
+      ..addOption('max', defaultsTo: '10');
+    final out = StringBuffer();
+    final err = StringBuffer();
+    setUp(() {
+      out.clear();
+      err.clear();
+      exitCode = 0;
+    });
+    tearDown(() => exitCode = 0);
+
+    ArgResults? read(List<String> args, {int positional = 0}) =>
+        readCommandLine(
+          parser(),
+          args,
+          usage: 'Usage: test',
+          positional: positional,
+          atLeast: {'max': 1},
+          out: out,
+          err: err,
+        );
+
+    test('reads flags, numbers and plain arguments', () {
+      final options = read(['site', '--dry-run', '--max=3'], positional: 1)!;
+      expect(options.flag('dry-run'), isTrue);
+      expect(intOption(options, 'max'), 3);
+      expect(options.rest, ['site']);
+      expect(intOption(read([])!, 'max'), 10);
+      expect(read(['--max', '2'])!.option('max'), '2');
+      expect(exitCode, 0);
+      expect(err.toString(), isEmpty);
+    });
+
+    test('a mistake prints the usage and exits 64', () {
+      for (final args in [
+        ['--ful'],
+        ['--max=0'],
+        ['--max=x'],
+        ['--dry-run=yes'],
+        ['extra'],
+      ]) {
+        err.clear();
+        exitCode = 0;
+        expect(read(args), isNull, reason: '$args');
+        expect(exitCode, 64, reason: '$args');
+        expect(err.toString(), contains('Usage: test'), reason: '$args');
+      }
+      expect(read(['a', 'b'], positional: 1), isNull);
+      expect(err.toString(), contains('Expected 1 argument(s), got 2'));
+    });
+
+    test('--help prints the options and stops without an error', () {
+      expect(read(['--help']), isNull);
+      expect(exitCode, 0);
+      expect(out.toString(), allOf(contains('Usage: test'), contains('--max')));
+    });
   });
 }

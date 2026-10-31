@@ -224,8 +224,9 @@ String? urlProblem(Uri url, {required FetchSite site}) {
   if (url.host != site.host) {
     return 'only ${site.host} is allowed (got ${url.host})';
   }
-  if (url.port != 443)
+  if (url.port != 443) {
     return 'only the https port is allowed (got ${url.port})';
+  }
   if (url.userInfo.isNotEmpty) return 'addresses with credentials are refused';
   if (!url.path.startsWith(site.pathPrefix)) {
     return 'only ${site.pathPrefix} pages are allowed (got ${url.path})';

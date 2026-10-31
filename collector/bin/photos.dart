@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:collector/collector.dart';
 
 /// The photo CDN's own pace: images are small and served by a CDN, not the
@@ -15,34 +16,27 @@ const photoPolicy = FetchPolicy(
 const maxExamsPerRun = 3;
 
 Future<void> main(List<String> args) async {
-  var dryRun = false;
-  int? max;
-  var badArgs = false;
-  for (final arg in args) {
-    if (arg == '--dry-run') {
-      dryRun = true;
-    } else if (arg.startsWith('--max=')) {
-      max = int.tryParse(arg.substring('--max='.length)) ?? 0;
-    } else {
-      badArgs = true;
-    }
-  }
-  if (badArgs || (max != null && max < 1)) {
-    stderr.writeln(
-      'Usage: dart run bin/photos.dart [--dry-run] [--max=<n>]\n'
-      '  Fingerprints the first $photosPerListing photos of live listings\n'
-      '  not fingerprinted yet (newest first) for 5 minutes at most, from\n'
-      '  the photo CDN only, and finds the listings sharing them. With\n'
-      '  PHOTO_MODEL_DIR set (tool/photo_model.sh), the same photos are\n'
-      '  also shown to the image model for damage hints (P.2), with\n'
-      '  PHOTO_PYTHON (python3 by default) running tool/photo_examine.py;\n'
-      '  then a classifier is trained on the admins\' photo marks (P.3)\n'
-      '  when they changed, and the ads someone asked to examine in full\n'
-      '  (P.4) have up to $photosPerExam photos examined, first.',
-    );
-    exitCode = 64;
-    return;
-  }
+  final options = readCommandLine(
+    ArgParser()
+      ..addFlag('dry-run', negatable: false, help: 'Nothing is requested.')
+      ..addOption('max', help: 'Listings to read (default: all waiting).'),
+    args,
+    atLeast: {'max': 1},
+    usage:
+        'Usage: dart run bin/photos.dart [options]\n'
+        '  Fingerprints the first $photosPerListing photos of live listings\n'
+        '  not fingerprinted yet (newest first) for 5 minutes at most, from\n'
+        '  the photo CDN only, and finds the listings sharing them. With\n'
+        '  PHOTO_MODEL_DIR set (tool/photo_model.sh), the same photos are\n'
+        '  also shown to the image model for damage hints (P.2), with\n'
+        '  PHOTO_PYTHON (python3 by default) running tool/photo_examine.py;\n'
+        '  then a classifier is trained on the admins\' photo marks (P.3)\n'
+        '  when they changed, and the ads someone asked to examine in full\n'
+        '  (P.4) have up to $photosPerExam photos examined, first.',
+  );
+  if (options == null) return;
+  final dryRun = options.flag('dry-run');
+  final max = intOption(options, 'max');
 
   final modelDir = Platform.environment['PHOTO_MODEL_DIR'] ?? '';
   await withServiceClient((client) async {

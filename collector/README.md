@@ -177,7 +177,8 @@ Secrets go in `collector/.env` (gitignored): `SUPABASE_URL`,
 ## Code layout
 
 ```text
-bin/        entry points (refresh, fetch, collector, enrich, photos, searches, report_run, push_test, weekly_summary)
+bin/        entry points (refresh, fetch, collector, enrich, photos, searches, report_run, push_test, weekly_summary;
+            `--help` lists each one's options, package args)
 lib/        fetcher, site adapters and mappers, model matching, store, run steps
 test/       unit tests
 samples/    small listing files for trying `make collect` by hand
