@@ -30,7 +30,7 @@ class _ModelMarketPageState extends State<ModelMarketPage> {
     return Scaffold(
       appBar: AppBar(
         leading: const PageBackButton(),
-        title: Text(context.strings.compareModels),
+        title: Text(context.strings.marketByModel),
       ),
       body: TrackedModelsBuilder(
         future: _future,

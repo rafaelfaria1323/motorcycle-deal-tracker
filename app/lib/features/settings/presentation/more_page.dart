@@ -162,7 +162,7 @@ class _MoreBodyState extends State<_MoreBody> {
                   children: [
                     ListTile(
                       leading: const Icon(Icons.leaderboard_outlined),
-                      title: Text(context.strings.compareModels),
+                      title: Text(context.strings.marketByModel),
                       subtitle: Text(context.strings.marketPageSubtitle),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => context.push(AppRoutes.modelMarket),

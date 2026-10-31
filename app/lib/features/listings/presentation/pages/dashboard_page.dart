@@ -12,7 +12,6 @@ import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../../settings/presentation/home_place_cubit.dart';
 import '../../../settings/presentation/home_place_tile.dart';
-import '../../../settings/presentation/listing_card_preferences_tile.dart';
 import '../../domain/entities/listing_card_preferences.dart';
 import '../../domain/entities/listing_filters.dart';
 import '../../domain/entities/listing_sort.dart';
@@ -60,10 +59,6 @@ class const DashboardPage({super.key}) extends StatelessWidget {
     final messenger = ScaffoldMessenger.of(context);
     final searches = getIt<SavedSearchesCubit>();
 
-    if (!filters.hasCriteria) {
-      showMessage(messenger, messageStrings.chooseAtLeastOneFilterBeforeSaving);
-      return;
-    }
     // The list loads with the Pesquisas tab: without it the same search
     // could be saved again.
     if (searches.state.status != .success) {
@@ -177,33 +172,32 @@ class const DashboardPage({super.key}) extends StatelessWidget {
                 slivers: [
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          PageIntro(
-                            eyebrow: context.strings.yourMotorcycleRadar,
-                            title: context.strings.yourNextBikeStartsHere,
-                            description: context.strings.dealsIntro,
-                          ),
-                          const SizedBox(height: 24),
-                          BlocBuilder<SavedSearchesCubit, SavedSearchesState>(
-                            bloc: getIt<SavedSearchesCubit>(),
-                            builder: (context, searches) => _OffersToolbar(
-                              state: state,
-                              saved: savedSearchLike(
-                                searches.searches,
-                                state.filters,
-                              ),
-                              onFilters: () => _openFilters(context),
-                              onSave: () => _saveSearch(context),
+                          // Opened several times a day: the intro only
+                          // welcomes an empty list, the ads start at once.
+                          if (state.status == .success &&
+                              state.listings.isEmpty &&
+                              state.filters.appliedCount == 0) ...[
+                            PageIntro(
+                              eyebrow: context.strings.yourMotorcycleRadar,
+                              title: context.strings.yourNextBikeStartsHere,
+                              description: context.strings.dealsIntro,
                             ),
+                            const SizedBox(height: 24),
+                          ],
+                          _OffersToolbar(
+                            state: state,
+                            onFilters: () => _openFilters(context),
                           ),
                           if (chips.isNotEmpty) ...[
                             const SizedBox(height: 12),
                             Wrap(
                               spacing: 8,
                               runSpacing: 4,
+                              crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
                                 for (final chip in chips)
                                   InputChip(
@@ -220,51 +214,25 @@ class const DashboardPage({super.key}) extends StatelessWidget {
                                       ListingFilters.empty,
                                     ),
                                   ),
-                              ],
-                            ),
-                          ],
-                          if (state.status == .success &&
-                              state.listings.isNotEmpty) ...[
-                            const SizedBox(height: 24),
-                            const Divider(),
-                            const SizedBox(height: 16),
-                            // Each child Text already applies text scaling.
-                            Text.rich(
-                              TextSpan(
-                                children: [
-                                  WidgetSpan(
-                                    alignment: PlaceholderAlignment.baseline,
-                                    baseline: TextBaseline.alphabetic,
-                                    child: Text(
-                                      listingsResultsText(
-                                        state.listings.length,
-                                        hasMore: state.hasMore,
-                                        language: context.language,
-                                      ),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium,
-                                    ),
-                                  ),
-                                  const TextSpan(text: '    '),
-                                  WidgetSpan(
-                                    alignment: PlaceholderAlignment.baseline,
-                                    baseline: TextBaseline.alphabetic,
-                                    child: Text(
-                                      context.strings.compareUpTo3Listings,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurfaceVariant,
+                                // Saving belongs to the chosen filters:
+                                // without a criterion there is nothing
+                                // to save.
+                                if (state.filters.hasCriteria)
+                                  BlocBuilder<
+                                    SavedSearchesCubit,
+                                    SavedSearchesState
+                                  >(
+                                    bloc: getIt<SavedSearchesCubit>(),
+                                    builder: (context, searches) =>
+                                        _SaveSearchButton(
+                                          saved: savedSearchLike(
+                                            searches.searches,
+                                            state.filters,
                                           ),
-                                    ),
+                                          onSave: () => _saveSearch(context),
+                                        ),
                                   ),
-                                ],
-                              ),
-                              textScaler: TextScaler.noScaling,
+                              ],
                             ),
                           ],
                         ],
@@ -394,14 +362,11 @@ Future<void> _applySort(BuildContext context, ListingSort sort) async {
   await listings.applySort(sort);
 }
 
+/// Filtros, the sort and the count, on one row where they fit (most
+/// phones: the count then takes a short line of its own).
 class const _OffersToolbar({
   required final ListingsState state,
-
-  /// The saved search these filters already are, if any: then there is
-  /// nothing to save, and the button says so and opens Pesquisas.
-  required final SavedSearch? saved,
   required final VoidCallback onFilters,
-  required final VoidCallback onSave,
 }) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -410,8 +375,8 @@ class const _OffersToolbar({
 
     return LayoutBuilder(
       builder: (context, constraints) => Wrap(
-        spacing: 10,
-        runSpacing: 10,
+        spacing: 8,
+        runSpacing: 8,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           OutlinedButton.icon(
@@ -422,23 +387,6 @@ class const _OffersToolbar({
               child: const Icon(Icons.tune, size: 18),
             ),
             label: Text(context.strings.filters),
-          ),
-          BlocBuilder<ListingCardPreferencesCubit, ListingCardPreferencesState>(
-            bloc: getIt<ListingCardPreferencesCubit>(),
-            builder: (context, cards) => OutlinedButton.icon(
-              onPressed: () => showListingCardPreferences(context),
-              icon: Icon(
-                cards.status == .failure
-                    ? Icons.warning_amber_outlined
-                    : Icons.view_agenda_outlined,
-                size: 18,
-              ),
-              label: Text(
-                cards.status == .failure
-                    ? context.strings.cardsTryAgain
-                    : context.strings.cards,
-              ),
-            ),
           ),
           PopupMenuButton<ListingSort>(
             tooltip: context.strings.sort,
@@ -500,22 +448,44 @@ class const _OffersToolbar({
               ),
             ),
           ),
-          if (saved == null)
-            TextButton.icon(
-              onPressed: onSave,
-              icon: const Icon(Icons.bookmark_add_outlined, size: 18),
-              label: Text(context.strings.saveSearch),
-            )
-          else
-            TextButton.icon(
-              onPressed: () => context.go(AppRoutes.searches),
-              icon: const Icon(Icons.bookmark_added, size: 18),
-              label: Text(context.strings.searchSaved),
+          if (state.status == .success && state.listings.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                listingsResultsText(
+                  state.listings.length,
+                  hasMore: state.hasMore,
+                  language: context.language,
+                ),
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
             ),
         ],
       ),
     );
   }
+}
+
+/// "Guardar pesquisa", or "Pesquisa guardada" (opens Pesquisas) when these
+/// filters already are the saved search [saved].
+class const _SaveSearchButton({
+  required final SavedSearch? saved,
+  required final VoidCallback onSave,
+}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => saved == null
+      ? TextButton.icon(
+          onPressed: onSave,
+          icon: const Icon(Icons.bookmark_add_outlined, size: 18),
+          label: Text(context.strings.saveSearch),
+        )
+      : TextButton.icon(
+          onPressed: () => context.go(AppRoutes.searches),
+          icon: const Icon(Icons.bookmark_added, size: 18),
+          label: Text(context.strings.searchSaved),
+        );
 }
 
 class const _OffersGrid({

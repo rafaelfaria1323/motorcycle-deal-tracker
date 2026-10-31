@@ -460,8 +460,11 @@ invites; written by the collector on each run).
   last) and a maximum price filters on it, as `listing_matches_search`
   does for saved searches (F.2).
 - Interface: shared wordmark (`core/widgets/app_brand.dart`) and editorial
-  page heading (`page_intro.dart`); labelled filter, sort, save and comparison
-  actions. Listing counts say "carregados" while more pages remain.
+  page heading (`page_intro.dart`; Ofertas shows it only on an empty list);
+  labelled filter, sort, save and comparison actions. Ofertas' header is
+  one row (Filtros, the sort, the count; F.3), and "Guardar pesquisa" sits
+  with the filter chips, only once there is a criterion to save. Listing
+  counts say "carregados" while more pages remain.
   `AppShell` uses bottom navigation below 840px, a compact rail above it,
   and an extended sidebar from 1180px (compact with enlarged text).
   Cards size naturally on phones and with enlarged text; otherwise up to
@@ -471,9 +474,10 @@ invites; written by the collector on each run).
   stays fixed below. `interface_test.dart` covers responsive layouts and
   interactions with the real bundled fonts; keep narrow and enlarged-text
   layouts free of overflow.
-  Ofertas › "Cartões" and Mais › "Cartões dos anúncios" choose the card
-  details for Ofertas and Favoritos (`listing_card_preferences`, one
-  owner-only row per non-anonymous account). Defaults are the existing
+  Mais › "Cartões dos anúncios" chooses the card details for Ofertas and
+  Favoritos (`listing_card_preferences`, one owner-only row per
+  non-anonymous account; the tile says when they could not be read; not in
+  Ofertas' toolbar since F.3). Defaults are the existing
   layout; Risk Score, seller type, colour, owners / first owner, service
   book, origin, warranties, stand name, status and publication, renewal
   and first-found dates are opt-in. A known owner count takes precedence

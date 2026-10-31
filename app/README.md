@@ -56,13 +56,16 @@ Screen names below use the Portuguese labels; English provides the same screens.
   "Mais barato" that is the best price in your colour) and paged 40 at a
   time. Without a home set, "Mais perto" and "Distância máxima" ask for
   one first; ads priced under 300 € read "Preço por consultar" and sort
-  after every real price. Labelled filter, sort and save controls sit above the results;
+  after every real price. Filtros, the sort and the count share one row
+  above the results (on most phones the count takes a short line below);
   while more pages remain, the count explicitly describes loaded ads.
-  The count and "Compare até 3 anúncios" share a text baseline, wrapping
-  on narrow screens and respecting enlarged text.
+  "Guardar pesquisa" sits with the filter chips once a criterion is
+  chosen, and the intro ("A próxima mota começa aqui.") greets only an
+  empty list, so the first ad starts in the top quarter of a phone.
   By default, photo-led cards show the source, Deal Score, price change,
   year, mileage, place and distance from your home, and preferred-colour
-  indicator, with a visible "Comparar" action. "Cartões" lets each signed-in
+  indicator, with a visible "Comparar" action. Mais › "Cartões dos anúncios"
+  lets each signed-in
   account show or hide these details, or add Risk Score, seller type,
   colour, owners / first owner, service book, origin, factory and seller
   warranties, the stand's name, status, and publication, renewal and
@@ -149,7 +152,7 @@ Screen names below use the Portuguese labels; English provides the same screens.
   preferida", never scored), new-bike price, add models: brand and model picked from the sites'
   lists or entered by name, with optional engine size; both OLX and
   Standvirtual are searched automatically, without copied URLs; alternative
-  model names are tucked under "Outros nomes do modelo"), "Comparar modelos"
+  model names are tucked under "Outros nomes do modelo"), "Mercado por modelo"
   (your models side by side: typical asking
   price and its spread, the typical bike, time until leaving the market,
   price drops, depreciation, the price trend of the last weeks adjusted for

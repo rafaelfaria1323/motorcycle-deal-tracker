@@ -68,6 +68,28 @@ Future<void> _reveal(WidgetTester tester, Finder finder) async {
   await tester.pumpAndSettle();
 }
 
+/// Mais › "Cartões dos anúncios", the only way in to the card choices.
+final _cardChoices = find.widgetWithText(ListTile, 'Cartões dos anúncios');
+
+Future<GoRouter> _openCardChoices(
+  WidgetTester tester,
+  InterfaceFixture fixture, {
+  Size size = const Size(390, 844),
+  double textScale = 1,
+}) async {
+  final router = await _open(
+    tester,
+    fixture,
+    size: size,
+    textScale: textScale,
+    location: AppRoutes.more,
+  );
+  await _reveal(tester, _cardChoices);
+  await tester.tap(_cardChoices);
+  await tester.pumpAndSettle();
+  return router;
+}
+
 Future<void> _toggleCardField(WidgetTester tester, String label) async {
   final field = find.widgetWithText(CheckboxListTile, label);
   await tester.ensureVisible(field);
@@ -98,8 +120,8 @@ void main() {
   setUpAll(loadInterfaceFonts);
   tearDown(getIt.reset);
 
-  for (final scale in [1.0, 1.25, 2.0]) {
-    testWidgets('offers result labels share a text baseline at ${scale}x', (
+  for (final scale in [1.0, 1.25]) {
+    testWidgets('the count shares the toolbar row at ${scale}x', (
       tester,
     ) async {
       await _open(
@@ -108,28 +130,21 @@ void main() {
         size: const Size(900, 1000),
         textScale: scale,
       );
-      final count = find.text('40 anúncios carregados');
-      final comparison = find.text('Compare até 3 anúncios');
-      final countText = tester.renderObject<RenderParagraph>(count);
-      final comparisonText = tester.renderObject<RenderParagraph>(comparison);
-      final countBaseline =
-          tester.getTopLeft(count).dy +
-          countText.getDryBaseline(
-            countText.constraints,
-            TextBaseline.alphabetic,
-          )!;
-      final comparisonBaseline =
-          tester.getTopLeft(comparison).dy +
-          comparisonText.getDryBaseline(
-            comparisonText.constraints,
-            TextBaseline.alphabetic,
-          )!;
-      expect(comparisonBaseline, closeTo(countBaseline, 0.01));
+      final filters = tester.getRect(
+        find.widgetWithText(OutlinedButton, 'Filtros'),
+      );
+      final count = tester.getRect(find.text('40 anúncios carregados'));
+      expect(count.center.dy, closeTo(filters.center.dy, 1));
+      expect(count.left, greaterThan(filters.right));
+      // Nothing above the toolbar: the ads start at once.
+      expect(find.text('A próxima mota começa aqui.'), findsNothing);
+      expect(find.text('Cartões'), findsNothing);
+      expect(find.text('Guardar pesquisa'), findsNothing);
       expect(tester.takeException(), isNull);
     });
   }
 
-  testWidgets('offers result labels wrap safely on a narrow enlarged screen', (
+  testWidgets('the count wraps safely on a narrow enlarged screen', (
     tester,
   ) async {
     await _open(
@@ -139,10 +154,26 @@ void main() {
       textScale: 2,
     );
     final count = tester.getRect(find.text('40 anúncios carregados'));
-    final comparison = tester.getRect(find.text('Compare até 3 anúncios'));
-    expect(comparison.top, greaterThanOrEqualTo(count.bottom));
-    expect(comparison.left, closeTo(count.left, 0.5));
-    expect(comparison.right, lessThanOrEqualTo(300));
+    final filters = tester.getRect(
+      find.widgetWithText(OutlinedButton, 'Filtros'),
+    );
+    expect(count.top, greaterThanOrEqualTo(filters.bottom));
+    expect(count.right, lessThanOrEqualTo(300));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a phone fits Filtros and the sort on one row', (tester) async {
+    await _open(tester, InterfaceFixture(), size: const Size(360, 800));
+    final filters = tester.getRect(
+      find.widgetWithText(OutlinedButton, 'Filtros'),
+    );
+    final sort = tester.getRect(find.byTooltip('Ordenar'));
+    expect(sort.center.dy, closeTo(filters.center.dy, 1));
+    // The first ad starts in the top quarter of the screen.
+    expect(
+      tester.getTopLeft(find.byType(ListingCard).first).dy,
+      lessThan(800 / 4),
+    );
     expect(tester.takeException(), isNull);
   });
 
@@ -155,7 +186,7 @@ void main() {
           size: Size(width, 1000),
           dark: dark,
         );
-        expect(find.text('A próxima mota começa aqui.'), findsOneWidget);
+        expect(find.text('A próxima mota começa aqui.'), findsNothing);
         expect(find.text('6 anúncios'), findsOneWidget);
         expect(find.byType(ListingCard), findsWidgets);
         expect(tester.takeException(), isNull);
@@ -302,19 +333,17 @@ void main() {
       tester,
     ) async {
       final fixture = InterfaceFixture(signedIn: true);
-      await _open(
+      final router = await _openCardChoices(
         tester,
         fixture,
         size: const Size(320, 720),
         textScale: scale,
       );
-      final customize = find.widgetWithText(OutlinedButton, 'Cartões');
-      await _reveal(tester, customize);
-      await tester.tap(customize);
-      await tester.pumpAndSettle();
       await _toggleCardField(tester, 'Donos / primeiro dono');
       await _toggleCardField(tester, 'Data de publicação');
       await tester.tap(find.widgetWithText(FilledButton, 'Guardar'));
+      await tester.pumpAndSettle();
+      router.go(AppRoutes.deals);
       await tester.pumpAndSettle();
       final card = find.byType(ListingCard).first;
       await _reveal(tester, card);
@@ -351,16 +380,12 @@ void main() {
       tester,
     ) async {
       final fixture = InterfaceFixture(signedIn: true);
-      await _open(
+      final router = await _openCardChoices(
         tester,
         fixture,
         size: const Size(320, 720),
         textScale: scale,
       );
-      final customize = find.widgetWithText(OutlinedButton, 'Cartões');
-      await _reveal(tester, customize);
-      await tester.tap(customize);
-      await tester.pumpAndSettle();
       await _toggleCardField(tester, 'Quilometragem');
       await _toggleCardField(tester, 'Risk Score');
       expect(fixture.cardPreferencesRepository.saves, 0);
@@ -371,7 +396,7 @@ void main() {
         const ListingCardPreferences.defaults(),
       );
 
-      await tester.tap(customize);
+      await tester.tap(_cardChoices);
       await tester.pumpAndSettle();
       await _toggleCardField(tester, 'Quilometragem');
       await _toggleCardField(tester, 'Risk Score');
@@ -382,6 +407,8 @@ void main() {
         fixture.cardPreferencesRepository.value.shows(ListingCardField.mileage),
         isFalse,
       );
+      router.go(AppRoutes.deals);
+      await tester.pumpAndSettle();
       final card = find.byType(ListingCard).first;
       await _reveal(tester, card);
       expect(
@@ -397,14 +424,11 @@ void main() {
         findsOneWidget,
       );
 
-      await tester.scrollUntilVisible(
-        customize,
-        -200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await Scrollable.ensureVisible(tester.element(customize), alignment: 0.5);
+      router.go(AppRoutes.more);
       await tester.pumpAndSettle();
-      await tester.tap(customize);
+      await tester.ensureVisible(_cardChoices);
+      await tester.pumpAndSettle();
+      await tester.tap(_cardChoices);
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('Repor predefinições'));
       await tester.tap(find.text('Repor predefinições'));
@@ -514,18 +538,30 @@ void main() {
     (tester) async {
       final fixture = InterfaceFixture(signedIn: true);
       fixture.cardPreferencesRepository.failReads = true;
-      await _open(tester, fixture);
-      await tester.tap(find.text('Cartões: tentar novamente'));
+      await _open(tester, fixture, location: AppRoutes.more);
+      await _reveal(tester, _cardChoices);
+      const loadError =
+          'Não foi possível carregar as suas escolhas. Tente novamente.';
+      expect(
+        find.descendant(of: _cardChoices, matching: find.text(loadError)),
+        findsOneWidget,
+      );
+      await tester.tap(_cardChoices);
       await tester.pumpAndSettle();
       expect(
-        find.text(
-          'Não foi possível carregar as suas escolhas. Tente novamente.',
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text(loadError),
         ),
         findsOneWidget,
       );
       fixture.cardPreferencesRepository.failReads = false;
-      await tester.ensureVisible(find.text('Tentar novamente'));
-      await tester.tap(find.text('Tentar novamente'));
+      final retry = find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Tentar novamente'),
+      );
+      await tester.ensureVisible(retry);
+      await tester.tap(retry);
       await tester.pumpAndSettle();
       await _toggleCardField(tester, 'Quilometragem');
       fixture.cardPreferencesRepository.failWrites = true;
@@ -555,8 +591,17 @@ void main() {
     'anonymous visitors keep default cards and are asked to sign in',
     (tester) async {
       final fixture = InterfaceFixture();
-      await _open(tester, fixture);
-      await tester.tap(find.text('Cartões'));
+      await _open(tester, fixture, location: AppRoutes.more);
+      await _reveal(tester, _cardChoices);
+      expect(tester.widget<ListTile>(_cardChoices).enabled, isFalse);
+      expect(
+        find.descendant(
+          of: _cardChoices,
+          matching: find.text('Disponível com sessão iniciada'),
+        ),
+        findsOneWidget,
+      );
+      unawaited(showListingCardPreferences(tester.element(_cardChoices)));
       await tester.pumpAndSettle();
       expect(
         find.text('Inicie sessão para personalizar os cartões dos anúncios.'),
@@ -573,9 +618,7 @@ void main() {
     final users = StreamController<User?>();
     addTearDown(users.close);
     final fixture = InterfaceFixture(signedIn: true, userChanges: users.stream);
-    await _open(tester, fixture);
-    await tester.tap(find.text('Cartões'));
-    await tester.pumpAndSettle();
+    await _openCardChoices(tester, fixture);
     await _toggleCardField(tester, 'Risk Score');
     users.add(null);
     await tester.pumpAndSettle();
@@ -685,6 +728,13 @@ void main() {
   ) async {
     final fixture = InterfaceFixture(emptySearches: true);
     await _open(tester, fixture);
+    // Nothing chosen, nothing to save.
+    expect(find.widgetWithText(TextButton, 'Guardar pesquisa'), findsNothing);
+    await fixture.listings.applyFilters(
+      const ListingFilters(activeOnly: false),
+    );
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(TextButton, 'Guardar pesquisa'), findsNothing);
     await fixture.listings.applyFilters(const ListingFilters(maxPrice: 7000));
     await tester.pumpAndSettle();
     final save = find.widgetWithText(TextButton, 'Guardar pesquisa');
@@ -797,6 +847,7 @@ void main() {
 
   testWidgets('empty offers retain model onboarding', (tester) async {
     await _open(tester, InterfaceFixture(total: 0));
+    expect(find.text('A próxima mota começa aqui.'), findsOneWidget);
     expect(find.text('Ainda não há ofertas'), findsOneWidget);
     expect(find.text('Escolher modelos'), findsOneWidget);
     expect(tester.takeException(), isNull);

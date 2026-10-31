@@ -2352,10 +2352,6 @@
   "@removeFromComparison": {
     "description": "Interface text in compare_page, build."
   },
-  "chooseAtLeastOneFilterBeforeSaving": "Escolha pelo menos um filtro antes de guardar.",
-  "@chooseAtLeastOneFilterBeforeSaving": {
-    "description": "Interface text in dashboard_page, _saveSearch."
-  },
   "searchSaved": "Pesquisa guardada",
   "@searchSaved": {
     "description": "Interface text in dashboard_page, _saveSearch."
@@ -2410,10 +2406,6 @@
   "@clearAll": {
     "description": "Interface text in dashboard_page, build."
   },
-  "compareUpTo3Listings": "Compare até 3 anúncios",
-  "@compareUpTo3Listings": {
-    "description": "Interface text in dashboard_page, build."
-  },
   "couldNotLoadDeals": "Não foi possível carregar as ofertas",
   "@couldNotLoadDeals": {
     "description": "Interface text in dashboard_page, build."
@@ -2444,14 +2436,6 @@
   },
   "filters": "Filtros",
   "@filters": {
-    "description": "Interface text in dashboard_page, build."
-  },
-  "cardsTryAgain": "Cartões: tentar novamente",
-  "@cardsTryAgain": {
-    "description": "Interface text in dashboard_page, build."
-  },
-  "cards": "Cartões",
-  "@cards": {
     "description": "Interface text in dashboard_page, build."
   },
   "sort": "Ordenar",
@@ -2596,9 +2580,9 @@
       }
     }
   },
-  "compareModels": "Comparar modelos",
-  "@compareModels": {
-    "description": "Interface text in model_market_page, build."
+  "marketByModel": "Mercado por modelo",
+  "@marketByModel": {
+    "description": "Interface text in more_page (Ferramentas) and model_market_page: the market of each followed model, not the comparison of listings."
   },
   "couldNotLoadModels": "Não foi possível carregar os modelos",
   "@couldNotLoadModels": {
