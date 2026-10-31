@@ -6,11 +6,8 @@ import '../../domain/entities/listing.dart';
 import '../score_explanation.dart';
 import '../../../../core/localization/localizations.dart';
 
-class ScoreExplanationCard extends StatelessWidget {
-  const ScoreExplanationCard({required this.listing, super.key});
-
-  final Listing listing;
-
+class const ScoreExplanationCard({required final Listing listing, super.key})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final explanation = ScoreExplainer.explain(
@@ -43,11 +40,7 @@ class ScoreExplanationCard extends StatelessWidget {
 }
 
 /// "Risco · Baixo   12/100" over a bar filled in the risk's colour.
-class _RiskMeter extends StatelessWidget {
-  const _RiskMeter({required this.risk});
-
-  final int risk;
-
+class const _RiskMeter({required final int risk}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -105,11 +98,8 @@ class _RiskMeter extends StatelessWidget {
   }
 }
 
-class _LineRow extends StatelessWidget {
-  const _LineRow({required this.line});
-
-  final ExplanationLine line;
-
+class const _LineRow({required final ExplanationLine line})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;

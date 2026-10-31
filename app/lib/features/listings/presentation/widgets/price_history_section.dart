@@ -14,11 +14,8 @@ import '../../domain/repositories/listings_repository.dart';
 import '../price_chart.dart';
 import '../price_history_text.dart';
 
-class PriceHistorySection extends StatefulWidget {
-  const PriceHistorySection({super.key, required this.listing});
-
-  final Listing listing;
-
+class const PriceHistorySection({super.key, required final Listing listing})
+    extends StatefulWidget {
   @override
   State<PriceHistorySection> createState() => _PriceHistorySectionState();
 }
@@ -113,12 +110,10 @@ class _PriceHistorySectionState extends State<PriceHistorySection> {
   }
 }
 
-class _ChangeRow extends StatelessWidget {
-  const _ChangeRow({required this.point, required this.previous});
-
-  final PricePoint point;
-  final PricePoint? previous;
-
+class const _ChangeRow({
+  required final PricePoint point,
+  required final PricePoint? previous,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final delta = previous == null ? null : point.price - previous!.price;
@@ -150,21 +145,13 @@ class _ChangeRow extends StatelessWidget {
 /// Draws a [PriceChart]: the step line over real time, a dot per recorded
 /// price, hairlines with the highest and lowest prices, and the site's
 /// earlier price as a dashed line.
-class _PriceChartPainter extends CustomPainter {
-  _PriceChartPainter({
-    required this.language,
-    required this.chart,
-    required this.lineColor,
-    required this.gridColor,
-    required this.labelStyle,
-  });
-
-  final AppLanguage language;
-  final PriceChart chart;
-  final Color lineColor;
-  final Color gridColor;
-  final TextStyle labelStyle;
-
+class _PriceChartPainter({
+  required final AppLanguage language,
+  required final PriceChart chart,
+  required final Color lineColor,
+  required final Color gridColor,
+  required final TextStyle labelStyle,
+}) extends CustomPainter {
   /// Space above the top label and below the bottom line.
   static const _pad = 6.0;
 

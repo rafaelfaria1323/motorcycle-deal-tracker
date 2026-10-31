@@ -7,18 +7,12 @@ import '../../../../core/localization/localizations.dart';
 /// The Deal Score in its band colour (90+ excellent, 80+ very good,
 /// 70+ interesting, 60+ normal, below 60 poor). [large] is the square
 /// shown at the top of the score explanation.
-class DealScoreBadge extends StatelessWidget {
-  const DealScoreBadge({
-    required this.score,
-    this.large = false,
-    this.showLabel = false,
-    super.key,
-  });
-
-  final int score;
-  final bool large;
-  final bool showLabel;
-
+class const DealScoreBadge({
+  required final int score,
+  final bool large = false,
+  final bool showLabel = false,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = AppColors.of(context).score(score);

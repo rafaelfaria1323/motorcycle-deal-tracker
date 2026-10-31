@@ -18,31 +18,19 @@ enum AlertType {
 }
 
 /// A notification for the current user about one listing.
-class ListingAlert extends Equatable {
-  const ListingAlert({
-    required this.id,
-    required this.type,
-    required this.listing,
-    required this.createdAt,
-    this.searchId,
-    this.searchName,
-    this.oldPrice,
-    this.newPrice,
-    this.readAt,
-  });
-
-  final String id;
-  final AlertType type;
-  final Listing listing;
-  final DateTime createdAt;
+class const ListingAlert({
+  required final String id,
+  required final AlertType type,
+  required final Listing listing,
+  required final DateTime createdAt,
 
   /// The originating search; null for favourites or a deleted search.
-  final String? searchId;
-  final String? searchName;
-  final double? oldPrice;
-  final double? newPrice;
-  final DateTime? readAt;
-
+  final String? searchId,
+  final String? searchName,
+  final double? oldPrice,
+  final double? newPrice,
+  final DateTime? readAt,
+}) extends Equatable {
   bool get isRead => readAt != null;
 
   ListingAlert copyWith({DateTime? readAt, bool clearReadAt = false}) {

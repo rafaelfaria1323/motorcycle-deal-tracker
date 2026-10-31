@@ -2,21 +2,15 @@ import 'package:flutter/material.dart';
 
 import '../photo_url.dart';
 
-class ListingPhoto extends StatelessWidget {
-  const ListingPhoto({
-    this.url,
-    this.fit = BoxFit.cover,
-    this.fullSize = false,
-    super.key,
-  });
-
-  final String? url;
-  final BoxFit fit;
+class const ListingPhoto({
+  final String? url,
+  final BoxFit fit = BoxFit.cover,
 
   /// The photo as the site has it, for zoom; otherwise at most [photoBox]
   /// pixels on its longest side.
-  final bool fullSize;
-
+  final bool fullSize = false,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final placeholder = ColoredBox(

@@ -10,24 +10,16 @@ import '../import_cost_text.dart';
 /// here against [estimate]: the value of the bike here (null with too few
 /// listings) or, [against] a listing, its asking price. Worked out as the
 /// person types; nothing is saved.
-class ImportCostCard extends StatefulWidget {
-  const ImportCostCard({
-    required this.estimate,
-    required this.year,
-    required this.mileage,
-    this.against = ImportComparison.value,
-    this.engineCc,
-    super.key,
-  });
-
-  final double? estimate;
-  final int? year;
-  final int? mileage;
-  final ImportComparison against;
+class const ImportCostCard({
+  required final double? estimate,
+  required final int? year,
+  required final int? mileage,
+  final ImportComparison against = ImportComparison.value,
 
   /// The model's engine size, filled in for the person (it can be changed).
-  final int? engineCc;
-
+  final int? engineCc,
+  super.key,
+}) extends StatefulWidget {
   @override
   State<ImportCostCard> createState() => _ImportCostCardState();
 }

@@ -11,21 +11,15 @@ enum ListingCardPreferencesStatus { loading, success, failure }
 
 enum ListingCardPreferencesFailure { load, accountRequired, notLoaded, save }
 
-class ListingCardPreferencesState extends Equatable {
-  const ListingCardPreferencesState({
-    this.userId,
-    this.preferences = const ListingCardPreferences.defaults(),
-    this.status = ListingCardPreferencesStatus.loading,
-    this.saving = false,
-    this.error,
-  });
-
-  final String? userId;
-  final ListingCardPreferences preferences;
-  final ListingCardPreferencesStatus status;
-  final bool saving;
-  final ListingCardPreferencesFailure? error;
-
+class const ListingCardPreferencesState({
+  final String? userId,
+  final ListingCardPreferences preferences =
+      const ListingCardPreferences.defaults(),
+  final ListingCardPreferencesStatus status =
+      ListingCardPreferencesStatus.loading,
+  final bool saving = false,
+  final ListingCardPreferencesFailure? error,
+}) extends Equatable {
   ListingCardPreferencesState copyWith({
     ListingCardPreferences? preferences,
     ListingCardPreferencesStatus? status,

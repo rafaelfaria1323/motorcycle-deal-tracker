@@ -5,23 +5,16 @@ import '../../domain/entities/saved_search.dart';
 
 enum SavedSearchesStatus { initial, loading, success, failure }
 
-class SavedSearchesState extends Equatable {
-  const SavedSearchesState({
-    this.status = SavedSearchesStatus.initial,
-    this.searches = const [],
-    this.motorcycles = const [],
-    this.matchCounts = const {},
-  });
-
-  final SavedSearchesStatus status;
-  final List<SavedSearch> searches;
+class const SavedSearchesState({
+  final SavedSearchesStatus status = SavedSearchesStatus.initial,
+  final List<SavedSearch> searches = const [],
 
   /// Catalog models, to show a search's model by name.
-  final List<MotorcycleOption> motorcycles;
+  final List<MotorcycleOption> motorcycles = const [],
 
   /// Live listings matching each search, by search id (missing means none).
-  final Map<String, int> matchCounts;
-
+  final Map<String, int> matchCounts = const {},
+}) extends Equatable {
   SavedSearchesState copyWith({
     SavedSearchesStatus? status,
     List<SavedSearch>? searches,

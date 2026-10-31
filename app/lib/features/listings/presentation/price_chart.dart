@@ -8,38 +8,26 @@ typedef ChartPoint = ({double x, double y});
 
 /// What the price chart draws, worked out without Flutter so it can be
 /// tested. The painter only scales it to its size.
-class PriceChart {
-  const PriceChart({
-    required this.line,
-    required this.changes,
-    required this.highest,
-    required this.lowest,
-    required this.highestY,
-    required this.lowestY,
-    required this.start,
-    this.reference,
-    this.referenceY,
-  });
-
+class const PriceChart({
   /// The step line: each price holds until the next one, the last until now.
-  final List<ChartPoint> line;
+  required final List<ChartPoint> line,
 
   /// One dot per recorded price.
-  final List<ChartPoint> changes;
+  required final List<ChartPoint> changes,
 
   /// Our highest and lowest recorded prices, labelled on the chart.
-  final double highest;
-  final double lowest;
-  final double highestY;
-  final double lowestY;
+  required final double highest,
+  required final double lowest,
+  required final double highestY,
+  required final double lowestY,
 
   /// When the first price was seen (the left edge).
-  final DateTime start;
+  required final DateTime start,
 
   /// The site's earlier price, from before we tracked the listing (dashed).
-  final double? reference;
-  final double? referenceY;
-}
+  final double? reference,
+  final double? referenceY,
+});
 
 /// Null with fewer than two prices: there is no change to draw.
 PriceChart? priceChart(

@@ -7,12 +7,11 @@ import 'listing_photo.dart';
 /// or back out. [onZoomChanged] says when the photo leaves or returns to
 /// 1x, so the gallery stops swiping between photos while one is zoomed
 /// and a drag moves the photo instead.
-class ZoomablePhoto extends StatefulWidget {
-  const ZoomablePhoto({required this.url, this.onZoomChanged, super.key});
-
-  final String url;
-  final ValueChanged<bool>? onZoomChanged;
-
+class const ZoomablePhoto({
+  required final String url,
+  final ValueChanged<bool>? onZoomChanged,
+  super.key,
+}) extends StatefulWidget {
   static const maxScale = 4.0;
   static const doubleTapScale = 2.5;
 

@@ -36,12 +36,10 @@ Future<NewModel?> showAddModelSheet(
   );
 }
 
-class _AddModelSheet extends StatefulWidget {
-  const _AddModelSheet(this.repository, {required this.forValue});
-
-  final CatalogRepository repository;
-  final bool forValue;
-
+class const _AddModelSheet(
+  final CatalogRepository repository, {
+  required final bool forValue,
+}) extends StatefulWidget {
   @override
   State<_AddModelSheet> createState() => _AddModelSheetState();
 }

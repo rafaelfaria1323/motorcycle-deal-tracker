@@ -10,21 +10,14 @@ import 'viewing_checklist.dart';
 import '../../../core/localization/localizations.dart';
 
 /// A problem marked at the visit and what fixing it typically costs.
-class VisitRepair {
-  const VisitRepair(this.title, this.cost);
-
-  final String title;
-  final double cost;
-}
+class const VisitRepair(final String title, final double cost);
 
 /// What the viewing checklist found: problems with a repair cost, and
 /// problems that stop the deal until they are cleared up.
-class VisitFindings {
-  const VisitFindings({this.repairs = const [], this.blockers = const []});
-
-  final List<VisitRepair> repairs;
-  final List<String> blockers;
-
+class const VisitFindings({
+  final List<VisitRepair> repairs = const [],
+  final List<String> blockers = const [],
+}) {
   double get total => repairs.fold(0, (sum, r) => sum + r.cost);
 
   bool get isEmpty => repairs.isEmpty && blockers.isEmpty;
@@ -284,12 +277,7 @@ enum Urgency { low, medium, high }
 
 /// How keen the seller seems to be to sell, from what the ads show, with
 /// the reasons ("à venda há 90 dias", "já baixou o preço").
-class SellerUrgency {
-  const SellerUrgency(this.level, this.reasons);
-
-  final Urgency level;
-  final List<String> reasons;
-
+class const SellerUrgency(final Urgency level, final List<String> reasons) {
   /// "Pressa do vendedor: alta (à venda há 90 dias, já baixou o preço)".
   String text({AppLanguage language = AppLanguage.portuguese}) {
     final label = switch (level) {

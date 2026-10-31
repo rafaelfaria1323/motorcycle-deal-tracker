@@ -3,11 +3,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/repositories/photo_exams_repository.dart';
 import '../models/listing_model.dart';
 
-class SupabasePhotoExamsRepository implements PhotoExamsRepository {
-  SupabasePhotoExamsRepository(this._client);
-
-  final SupabaseClient _client;
-
+class SupabasePhotoExamsRepository(final SupabaseClient _client)
+    implements PhotoExamsRepository {
   @override
   Future<DateTime?> request(String listingId) async {
     try {

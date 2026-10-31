@@ -3,20 +3,16 @@ import '../../../core/localization/localizations.dart';
 
 /// One thing to look at when seeing a bike. [key] is what the database
 /// stores (never change it; a new item gets a new key).
-class ChecklistItem {
-  const ChecklistItem(this.key, this.title, this.hint);
+class const ChecklistItem(
+  final String key,
+  final String title,
+  final String hint,
+);
 
-  final String key;
-  final String title;
-  final String hint;
-}
-
-class ChecklistSection {
-  const ChecklistSection(this.title, this.items);
-
-  final String title;
-  final List<ChecklistItem> items;
-}
+class const ChecklistSection(
+  final String title,
+  final List<ChecklistItem> items,
+);
 
 final _checklists = <AppLanguage, List<ChecklistSection>>{};
 final _checklistItems = <AppLanguage, List<ChecklistItem>>{};

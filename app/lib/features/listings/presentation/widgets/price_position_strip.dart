@@ -7,11 +7,10 @@ import '../../../../core/localization/localizations.dart';
 
 /// The model's live asking prices on a line, lowest to highest: one dot per
 /// listing, this one larger and in the primary colour.
-class PricePositionStrip extends StatelessWidget {
-  const PricePositionStrip({required this.position, super.key});
-
-  final PricePosition position;
-
+class const PricePositionStrip({
+  required final PricePosition position,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -51,19 +50,12 @@ class PricePositionStrip extends StatelessWidget {
   }
 }
 
-class _StripPainter extends CustomPainter {
-  _StripPainter({
-    required this.position,
-    required this.thisColor,
-    required this.otherColor,
-    required this.lineColor,
-  });
-
-  final PricePosition position;
-  final Color thisColor;
-  final Color otherColor;
-  final Color lineColor;
-
+class _StripPainter({
+  required final PricePosition position,
+  required final Color thisColor,
+  required final Color otherColor,
+  required final Color lineColor,
+}) extends CustomPainter {
   static const _thisRadius = 6.0;
 
   @override

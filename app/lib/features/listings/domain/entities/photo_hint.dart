@@ -5,17 +5,11 @@ import 'package:equatable/equatable.dart';
 /// photo it is likeliest in ([photo], the listing's images from 0) and how
 /// much of that photo went to it ([share], 0.5-1). A hint, never part of a
 /// score.
-class PhotoHint extends Equatable {
-  const PhotoHint({
-    required this.code,
-    required this.photo,
-    required this.share,
-  });
-
-  final String code;
-  final int photo;
-  final double share;
-
+class const PhotoHint({
+  required final String code,
+  required final int photo,
+  required final double share,
+}) extends Equatable {
   @override
   List<Object?> get props => [code, photo, share];
 }

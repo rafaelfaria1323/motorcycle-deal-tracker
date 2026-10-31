@@ -4,15 +4,10 @@ import '../../domain/entities/listing_alert.dart';
 
 enum AlertsStatus { initial, loading, success, failure }
 
-class AlertsState extends Equatable {
-  const AlertsState({
-    this.status = AlertsStatus.initial,
-    this.alerts = const [],
-  });
-
-  final AlertsStatus status;
-  final List<ListingAlert> alerts;
-
+class const AlertsState({
+  final AlertsStatus status = AlertsStatus.initial,
+  final List<ListingAlert> alerts = const [],
+}) extends Equatable {
   int get unreadCount => alerts.where((a) => !a.isRead).length;
 
   AlertsState copyWith({AlertsStatus? status, List<ListingAlert>? alerts}) {

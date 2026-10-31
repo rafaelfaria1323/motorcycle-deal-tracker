@@ -9,31 +9,19 @@ import '../../../core/localization/localizations.dart';
 
 enum ExplanationTone { positive, negative, neutral }
 
-class ExplanationLine extends Equatable {
-  const ExplanationLine(this.tone, this.text);
-
-  final ExplanationTone tone;
-  final String text;
-
+class const ExplanationLine(final ExplanationTone tone, final String text)
+    extends Equatable {
   @override
   List<Object?> get props => [tone, text];
 }
 
-class ScoreExplanation extends Equatable {
-  const ScoreExplanation({
-    required this.score,
-    required this.label,
-    required this.lines,
-    this.slicesUsed,
-    this.slicesTotal,
-  });
-
-  final int score;
-  final String label;
-  final List<ExplanationLine> lines;
-  final int? slicesUsed;
-  final int? slicesTotal;
-
+class const ScoreExplanation({
+  required final int score,
+  required final String label,
+  required final List<ExplanationLine> lines,
+  final int? slicesUsed,
+  final int? slicesTotal,
+}) extends Equatable {
   @override
   List<Object?> get props => [score, label, lines, slicesUsed, slicesTotal];
 }

@@ -1,11 +1,9 @@
 import 'package:equatable/equatable.dart';
 
-class PricePoint extends Equatable {
-  const PricePoint({required this.price, required this.observedAt});
-
-  final double price;
-  final DateTime observedAt;
-
+class const PricePoint({
+  required final double price,
+  required final DateTime observedAt,
+}) extends Equatable {
   @override
   List<Object?> get props => [price, observedAt];
 }

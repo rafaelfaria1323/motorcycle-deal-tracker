@@ -9,11 +9,8 @@ import '../../domain/repositories/listings_repository.dart';
 import '../listing_labels.dart';
 import '../../../../core/localization/localizations.dart';
 
-class AlsoListedSection extends StatefulWidget {
-  const AlsoListedSection({super.key, required this.listing});
-
-  final Listing listing;
-
+class const AlsoListedSection({super.key, required final Listing listing})
+    extends StatefulWidget {
   @override
   State<AlsoListedSection> createState() => _AlsoListedSectionState();
 }

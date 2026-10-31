@@ -21,9 +21,7 @@ import '../../../../core/localization/localizations.dart';
 /// Lets the account choose which catalog models it follows, from which
 /// year, and add new ones. The collector runs the searches of the models
 /// any account follows.
-class TrackedModelsPage extends StatefulWidget {
-  const TrackedModelsPage({super.key});
-
+class const TrackedModelsPage({super.key}) extends StatefulWidget {
   @override
   State<TrackedModelsPage> createState() => _TrackedModelsPageState();
 }
@@ -260,11 +258,8 @@ typedef _ModelEdit = ({int year, double? price, List<String> colours});
 
 /// Edits a model's first year, favourite colours and new-bike price;
 /// returns null if cancelled.
-class _ModelDialog extends StatefulWidget {
-  const _ModelDialog({required this.model});
-
-  final CatalogModel model;
-
+class const _ModelDialog({required final CatalogModel model})
+    extends StatefulWidget {
   @override
   State<_ModelDialog> createState() => _ModelDialogState();
 }

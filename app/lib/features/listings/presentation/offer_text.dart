@@ -9,17 +9,11 @@ import '../../../core/localization/localizations.dart';
 
 /// What to offer for a listing: where to start and the most to pay, with
 /// the reasons in words. Built from asking prices, never from sales.
-class OfferSuggestion {
-  const OfferSuggestion({
-    required this.opening,
-    required this.ceiling,
-    required this.reasons,
-  });
-
-  final double opening;
-  final double ceiling;
-  final List<String> reasons;
-
+class const OfferSuggestion({
+  required final double opening,
+  required final double ceiling,
+  required final List<String> reasons,
+}) {
   /// "Comece por 6300 € e não passe de 6700 €."
   String headline({AppLanguage language = AppLanguage.portuguese}) =>
       language.messages.startAtAndDoNotGoAbove(
@@ -127,12 +121,7 @@ class OfferSuggestion {
 }
 
 /// What to do about the seller's counter-offer, and the message to send.
-class OfferReply {
-  const OfferReply(this.advice, this.message);
-
-  final String advice;
-  final String message;
-}
+class const OfferReply(final String advice, final String message);
 
 /// The seller's counter-offer as typed: "8500", "8.500", "8 500 €". Null
 /// for anything that is not a price.
@@ -145,15 +134,13 @@ double? parseCounterOffer(
 }
 
 /// One offer of the plan.
-class OfferStep {
-  const OfferStep(this.label, this.price, this.message);
-
-  final String label;
-  final double price;
+class const OfferStep(
+  final String label,
+  final double price,
 
   /// Ready to send to the seller with this offer.
-  final String message;
-}
+  final String message,
+);
 
 /// Where the opening offer starts below the ceiling before anything else is
 /// known: a rule of thumb, not measured (dealers negotiate less).

@@ -4,9 +4,7 @@ import 'listing_card.dart';
 
 /// The shape of a [ListingCard] while the offers load, so the page doesn't
 /// jump from a spinner to a grid.
-class ListingCardSkeleton extends StatelessWidget {
-  const ListingCardSkeleton({super.key});
-
+class const ListingCardSkeleton({super.key}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fill = Theme.of(context).colorScheme.surfaceContainerHigh;

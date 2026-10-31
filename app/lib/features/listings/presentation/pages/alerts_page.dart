@@ -20,9 +20,7 @@ import '../cubit/saved_searches_state.dart';
 import '../widgets/edit_saved_search_sheet.dart';
 import '../../../../core/localization/localizations.dart';
 
-class AlertsPage extends StatelessWidget {
-  const AlertsPage({super.key});
-
+class const AlertsPage({super.key}) extends StatelessWidget {
   static IconData _icon(AlertType type) => switch (type) {
     AlertType.newListing => Icons.fiber_new_outlined,
     AlertType.priceReduction => Icons.trending_down,
@@ -210,24 +208,15 @@ class AlertsPage extends StatelessWidget {
 
 enum _AlertAction { edit, delete }
 
-class _AlertTile extends StatelessWidget {
-  const _AlertTile({
-    required this.alert,
-    required this.title,
-    required this.icon,
-    required this.onTap,
-    required this.onDelete,
-    this.onEdit,
-    super.key,
-  });
-
-  final ListingAlert alert;
-  final String title;
-  final IconData icon;
-  final VoidCallback onTap;
-  final Future<void> Function() onDelete;
-  final Future<void> Function()? onEdit;
-
+class const _AlertTile({
+  required final ListingAlert alert,
+  required final String title,
+  required final IconData icon,
+  required final VoidCallback onTap,
+  required final Future<void> Function() onDelete,
+  final Future<void> Function()? onEdit,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

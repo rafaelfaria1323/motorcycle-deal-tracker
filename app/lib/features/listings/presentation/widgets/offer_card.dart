@@ -21,11 +21,8 @@ import '../../../../core/localization/localizations.dart';
 /// counter-offer, and, for a favourite, the price to be alerted at. After
 /// the visit, the problems marked in the checklist come off the offer.
 /// Hidden when the listing has no estimated value.
-class OfferCard extends StatefulWidget {
-  const OfferCard({required this.listing, super.key});
-
-  final Listing listing;
-
+class const OfferCard({required final Listing listing, super.key})
+    extends StatefulWidget {
   @override
   State<OfferCard> createState() => _OfferCardState();
 }
@@ -298,17 +295,11 @@ class _OfferCardState extends State<OfferCard> {
 }
 
 /// "1  Primeira proposta ........ 7 950 €  [copiar]": one offer of the plan.
-class _StepRow extends StatelessWidget {
-  const _StepRow({
-    required this.number,
-    required this.step,
-    required this.onCopy,
-  });
-
-  final int number;
-  final OfferStep step;
-  final VoidCallback onCopy;
-
+class const _StepRow({
+  required final int number,
+  required final OfferStep step,
+  required final VoidCallback onCopy,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -337,12 +328,10 @@ class _StepRow extends StatelessWidget {
 }
 
 /// The message to send, with a button to copy it.
-class _MessageBox extends StatelessWidget {
-  const _MessageBox({required this.text, required this.onCopy});
-
-  final String text;
-  final VoidCallback onCopy;
-
+class const _MessageBox({
+  required final String text,
+  required final VoidCallback onCopy,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -368,18 +357,12 @@ class _MessageBox extends StatelessWidget {
 }
 
 /// The dialog's answer: a price, or null to clear it.
-class _TargetResult {
-  const _TargetResult(this.price);
+class const _TargetResult(final double? price);
 
-  final double? price;
-}
-
-class _TargetDialog extends StatefulWidget {
-  const _TargetDialog({required this.initial, required this.canClear});
-
-  final double initial;
-  final bool canClear;
-
+class const _TargetDialog({
+  required final double initial,
+  required final bool canClear,
+}) extends StatefulWidget {
   @override
   State<_TargetDialog> createState() => _TargetDialogState();
 }

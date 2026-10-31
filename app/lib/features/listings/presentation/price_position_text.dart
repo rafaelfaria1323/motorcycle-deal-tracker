@@ -4,34 +4,23 @@ import '../../../core/localization/localizations.dart';
 
 /// Where a listing's asking price sits among the other live listings of
 /// its model, worked out without Flutter so it can be tested.
-class PricePosition {
-  const PricePosition({
-    required this.cheaper,
-    required this.same,
-    required this.dearer,
-    required this.median,
-    required this.lowest,
-    required this.highest,
-    required this.othersX,
-    required this.thisX,
-  });
-
+class const PricePosition({
   /// Other live listings below, at and above this listing's price.
-  final int cheaper;
-  final int same;
-  final int dearer;
+  required final int cheaper,
+  required final int same,
+  required final int dearer,
 
   /// Of the other listings' prices.
-  final double median;
+  required final double median,
 
   /// Ends of the strip: all prices, this listing's included.
-  final double lowest;
-  final double highest;
+  required final double lowest,
+  required final double highest,
 
   /// Positions on the strip, from 0 (lowest) to 1 (highest).
-  final List<double> othersX;
-  final double thisX;
-
+  required final List<double> othersX,
+  required final double thisX,
+}) {
   int get others => cheaper + same + dearer;
 }
 

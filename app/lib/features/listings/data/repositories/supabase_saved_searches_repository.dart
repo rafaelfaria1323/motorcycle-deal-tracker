@@ -5,11 +5,8 @@ import '../../domain/entities/saved_search.dart';
 import '../../domain/repositories/saved_searches_repository.dart';
 import '../models/saved_search_model.dart';
 
-class SupabaseSavedSearchesRepository implements SavedSearchesRepository {
-  SupabaseSavedSearchesRepository(this._client);
-
-  final SupabaseClient _client;
-
+class SupabaseSavedSearchesRepository(final SupabaseClient _client)
+    implements SavedSearchesRepository {
   @override
   Future<SavedSearch> create({
     required String name,

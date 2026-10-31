@@ -5,11 +5,8 @@ import '../../domain/repositories/alerts_repository.dart';
 import '../models/listing_alert_model.dart';
 import '../models/listing_model.dart';
 
-class SupabaseAlertsRepository implements AlertsRepository {
-  SupabaseAlertsRepository(this._client);
-
-  final SupabaseClient _client;
-
+class SupabaseAlertsRepository(final SupabaseClient _client)
+    implements AlertsRepository {
   @override
   Future<List<ListingAlert>> getAll() async {
     // Row-level security returns only the current user's alerts.

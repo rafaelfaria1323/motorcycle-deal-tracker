@@ -37,23 +37,14 @@ double? iucPerYear({int? engineCc, int? year}) {
 }
 
 /// Typical workshop prices (parts and labour, 2026) by engine size.
-class RunningCostTable {
-  const RunningCostTable({
-    required this.tyreSet,
-    required this.tyreLifeKm,
-    required this.service,
-    required this.serviceIntervalKm,
-    required this.chainKit,
-    required this.chainLifeKm,
-  });
-
-  final double tyreSet;
-  final int tyreLifeKm;
-  final double service;
-  final int serviceIntervalKm;
-  final double chainKit;
-  final int chainLifeKm;
-}
+class const RunningCostTable({
+  required final double tyreSet,
+  required final int tyreLifeKm,
+  required final double service,
+  required final int serviceIntervalKm,
+  required final double chainKit,
+  required final int chainLifeKm,
+});
 
 /// Up to 400 cc (CB125R, R3, CB300R).
 const smallBikeCosts = RunningCostTable(
@@ -107,32 +98,20 @@ const generalDepreciation = Depreciation(
 
 /// What a bike costs per year, in euros. Running costs are the same every
 /// year; depreciation is the average over the years kept.
-class OwnershipCost {
-  const OwnershipCost({
-    required this.iuc,
-    required this.insurance,
-    required this.tyres,
-    required this.services,
-    required this.chain,
-    required this.depreciation,
-    required this.years,
-    required this.kmPerYear,
-    required this.table,
-  });
-
+class const OwnershipCost({
   /// Null when it can't be worked out (unknown engine size, old bike).
-  final double? iuc;
+  required final double? iuc,
 
   /// Null until the owner enters their quote.
-  final double? insurance;
-  final double tyres;
-  final double services;
-  final double chain;
-  final double depreciation;
-  final int years;
-  final int kmPerYear;
-  final RunningCostTable table;
-
+  required final double? insurance,
+  required final double tyres,
+  required final double services,
+  required final double chain,
+  required final double depreciation,
+  required final int years,
+  required final int kmPerYear,
+  required final RunningCostTable table,
+}) {
   double get perYear =>
       (iuc ?? 0) + (insurance ?? 0) + tyres + services + chain + depreciation;
 

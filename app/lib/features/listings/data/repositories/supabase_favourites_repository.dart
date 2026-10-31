@@ -4,11 +4,8 @@ import '../../domain/entities/favourite.dart';
 import '../../domain/repositories/favourites_repository.dart';
 import '../models/favourite_model.dart';
 
-class SupabaseFavouritesRepository implements FavouritesRepository {
-  SupabaseFavouritesRepository(this._client);
-
-  final SupabaseClient _client;
-
+class SupabaseFavouritesRepository(final SupabaseClient _client)
+    implements FavouritesRepository {
   static const _table = 'listing_favourites';
 
   @override

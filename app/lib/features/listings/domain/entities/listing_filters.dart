@@ -2,46 +2,31 @@ import 'package:equatable/equatable.dart';
 
 import 'listing.dart';
 
-class ListingFilters extends Equatable {
-  const ListingFilters({
-    this.motorcycleIds = const [],
-    this.minYear,
-    this.maxPrice,
-    this.maxMileage,
-    this.location,
-    this.sellerType,
-    this.minDealScore,
-    this.maxRiskScore,
-    this.maxDistanceKm,
-    this.extras = const [],
-    this.onlyMyColours = false,
-    this.activeOnly = true,
-  });
-
-  static const empty = ListingFilters();
-
+class const ListingFilters({
   /// The models asked for (catalog ids); empty: any model.
-  final List<String> motorcycleIds;
-  final int? minYear;
-  final double? maxPrice;
-  final int? maxMileage;
-  final String? location;
-  final SellerType? sellerType;
+  final List<String> motorcycleIds = const [],
+  final int? minYear,
+  final double? maxPrice,
+  final int? maxMileage,
+  final String? location,
+  final SellerType? sellerType,
 
   /// Listings without a score never match a set score criterion.
-  final int? minDealScore;
-  final int? maxRiskScore;
+  final int? minDealScore,
+  final int? maxRiskScore,
 
   /// Km from the person's home; listings whose place is unknown never match.
-  final int? maxDistanceKm;
+  final int? maxDistanceKm,
 
   /// Equipment codes the ad must all mention (`listing_extras`); empty: any.
-  final List<String> extras;
+  final List<String> extras = const [],
 
   /// Only listings in the person's favourite colours for their model
   /// (`listings.my_colour`); listings of unknown colour never match.
-  final bool onlyMyColours;
-  final bool activeOnly;
+  final bool onlyMyColours = false,
+  final bool activeOnly = true,
+}) extends Equatable {
+  static const empty = ListingFilters();
 
   /// How many filters differ from the defaults (shown on the filter button).
   int get appliedCount => [

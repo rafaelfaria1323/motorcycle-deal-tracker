@@ -6,11 +6,8 @@ import '../../domain/entities/listing.dart';
 import '../../../../core/localization/localizations.dart';
 
 /// "↓ 300 €" in green when the price dropped, "↑ 150 €" in red when it rose.
-class PriceChangeTag extends StatelessWidget {
-  const PriceChangeTag({super.key, required this.listing});
-
-  final Listing listing;
-
+class const PriceChangeTag({super.key, required final Listing listing})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final change = listing.priceChange;

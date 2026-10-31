@@ -2,18 +2,16 @@ import 'package:equatable/equatable.dart';
 
 import 'listing_filters.dart';
 
-class SavedSearch extends Equatable {
-  const SavedSearch({
-    required this.id,
-    required this.filters,
-    required this.createdAt,
-    this.name,
-    this.notifyNewListing = true,
-    this.notifyPriceReduction = true,
-    this.notifyExcellentDeal = false,
-    this.notifyListingRemoved = false,
-  });
-
+class const SavedSearch({
+  required final String id,
+  required final ListingFilters filters,
+  required final DateTime createdAt,
+  final String? name,
+  final bool notifyNewListing = true,
+  final bool notifyPriceReduction = true,
+  final bool notifyExcellentDeal = false,
+  final bool notifyListingRemoved = false,
+}) extends Equatable {
   /// A search not saved yet, for the "Nova pesquisa" sheet.
   factory SavedSearch.draft() => SavedSearch(
     id: '',
@@ -21,16 +19,7 @@ class SavedSearch extends Equatable {
     createdAt: DateTime.now(),
   );
 
-  final String id;
-  final String? name;
-  final ListingFilters filters;
-  final DateTime createdAt;
-
   // Used by alerts in Sprint 8.
-  final bool notifyNewListing;
-  final bool notifyPriceReduction;
-  final bool notifyExcellentDeal;
-  final bool notifyListingRemoved;
 
   bool get isDraft => id.isEmpty;
 

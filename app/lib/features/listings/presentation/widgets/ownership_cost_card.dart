@@ -15,11 +15,8 @@ import '../../../../core/localization/localizations.dart';
 /// "Custo de ter esta mota": the yearly cost (depreciation, IUC, the
 /// owner's insurance, tyres, services, chain) and the total for the years
 /// the owner plans to keep it. "Alterar" edits the owner's figures.
-class OwnershipCostCard extends StatefulWidget {
-  const OwnershipCostCard({required this.listing, super.key});
-
-  final Listing listing;
-
+class const OwnershipCostCard({required final Listing listing, super.key})
+    extends StatefulWidget {
   @override
   State<OwnershipCostCard> createState() => _OwnershipCostCardState();
 }
@@ -116,11 +113,8 @@ class _OwnershipCostCardState extends State<OwnershipCostCard> {
   }
 }
 
-class _SettingsDialog extends StatefulWidget {
-  const _SettingsDialog({required this.initial});
-
-  final OwnershipSettings initial;
-
+class const _SettingsDialog({required final OwnershipSettings initial})
+    extends StatefulWidget {
   @override
   State<_SettingsDialog> createState() => _SettingsDialogState();
 }
