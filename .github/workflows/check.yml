@@ -42,7 +42,7 @@ jobs:
           cache: true
 
       - name: Install dependencies
-        run: cd app && flutter pub get
+        run: cd app && flutter pub get --enforce-lockfile
 
       - name: make app-analyze
         run: make app-analyze

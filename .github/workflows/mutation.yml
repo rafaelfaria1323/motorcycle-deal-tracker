@@ -92,7 +92,7 @@ jobs:
 
       - name: Install dependencies and mutation_test
         run: |
-          (cd "${{ matrix.package }}" && flutter pub get)
+          (cd "${{ matrix.package }}" && flutter pub get --enforce-lockfile)
           dart pub global activate mutation_test 1.8.1
           echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
 

@@ -1,4 +1,4 @@
-# Motorcycle Deal Tracker — Small Interaction Roadmap (status 2026-10-30)
+# Motorcycle Deal Tracker — Small Interaction Roadmap (status 2026-10-31)
 
 **Legend:** ✅ done · 🟡 partly done / in progress · ⬜ not started · ➕ added along the way (not in the original plan)
 
@@ -660,6 +660,9 @@ only).*
 ## ➕ N.40 Dart 3.11-3.13 lints ✅
 *Both `analysis_options.yaml` add the analyzer rules that came with Dart 3.11-3.13: `use_declaring_parameters` and `prefer_initializing_formals` (fields set from a parameter are declared in the constructor), `simplify_variable_pattern`, `async_return_with_no_await` (an `async` function returning a future without `await` lets its error escape a surrounding `try`), `no_dynamic_casts`, `no_raw_types`, `simple_directive_paths` and `unnecessary_primary_constructor_body`. The collector had 7 findings, none a bug (no such return sat inside a `try`): the returns now `await`, and the JSON read by patterns is typed `Object?` first. The app's findings are fixed in the same PR, from CI's analyzer (Flutter is not installed in the sandbox).*
 
+## ➕ N.41 The app's lockfile enforced too ✅
+*The collector's setup and cloud sessions already installed exactly `collector/pubspec.lock` (N.33); every Flutter install in CI still ran a plain `flutter pub get`, which resolves again whenever the lockfile no longer fits the pubspec, so a deploy could build other versions than the ones reviewed. Every install in the workflows (check, preview, deploy, mutation, backlog passes) and `tool/android_build.sh` now runs `pub get --enforce-lockfile`: a pubspec changed without its lockfile fails at once, in the PR's check, instead of shipping. Dependabot updates both files together; `make` keeps the plain `pub get` for local work.*
+
 ## S.1 Database writes and web headers ✅
 *The review of what each table exposes found the row level security right (listings, catalog, places and dealer figures public; notes, checklists, homes, settings, searches and devices owner-only; invites admins only; runs signed-in accounts only), but Supabase grants anon and authenticated every privilege, so a policy too loose or a new table without RLS would be writable with the publishable key. `20261024170000_tighten_api_grants.sql` takes every write away from both roles and gives back only the app's own: saved searches, favourites, home and ownership figures (insert, update, delete), deleting invites and devices, and marking alerts read (`read_at` only; no more deleting or rewriting alerts). Later tables start without writes (default privileges); one the app writes needs its own grant. `api_grants_test.sql` checks every table and view. `app/web/_headers` (Cloudflare Pages): HSTS, `nosniff`, no framing (`X-Frame-Options`, `frame-ancestors`), referrer policy, no camera, microphone, location or payment. No full Content-Security-Policy (the WebAssembly build, fonts and photo CDNs would each need an exception).*
 ## S.2 Old anonymous users pruned ✅
@@ -793,9 +796,9 @@ only).*
 
 # Next
 
-1. Deal Score: the market-behaviour slice (time on market, price drops) once there is enough history; price trends per model (10.3, 15.8).
-2. Saved ads from other sites: update the price or mark sold from their page (after #43).
-3. Fewer requests: R.3 and R.6 once a week of light runs (R.2) shows what is left.
+1. Waiting on Rafael (top of this file): the weekly encrypted backup (first, once he says yes and adds the passphrase secret) and "Avaliar um anúncio".
+2. Fewer requests: R.6 once a week of light runs (R.2) shows how many searches stay quiet (R.3 closed: Standvirtual's filter takes one model).
+3. More sources (15.9), after Rafael has read their terms.
 
 **Open items for Rafael:** read the Standvirtual/OLX terms and record the clauses in `docs/sources.md`; check the new-bike reference prices; check the IUC and ISV tables each January (`ownership_cost.dart`, `import_cost.dart`; confirm there whether the used-vehicle ISV reduction applies to motorcycles) and enter your insurance quote in "Custo de ter esta mota" → Alterar. Paid plans: on hold until the sites offer an API or a data licence (16.0); the business and legal decisions in `docs/paid-plans.md` §1.2–1.4 only then.
 
