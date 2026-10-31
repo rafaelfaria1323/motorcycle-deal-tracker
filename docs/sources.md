@@ -283,7 +283,8 @@ abuse and contact pages, */i2/*; `Allow: /`; no crawl delay.
 **What is stored.** Source id `olx.pt/<ad id>`, url, brand, model, year,
 mileage, price, seller type, business name (business accounts only; private
 sellers' names are never read), city, description and up to 30 photo
-links. Phone numbers are never read. Ads OLX shows as copies of Standvirtual
+links. Phone numbers are never read, and one written in the description
+or title is removed before it is stored (N.43). Ads OLX shows as copies of Standvirtual
 ads (`partner: standvirtual`, 8 of 47 on the first page checked) are
 skipped: the original is collected from Standvirtual.
 

@@ -842,7 +842,10 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   are kept, never the photos.
 - Honest user agent. Saved pages, manifests, generated search lists and
   fetch state are never committed (they contain sellers' contact details).
-- Never store private sellers' names or anyone's phone numbers.
+- Never store private sellers' names or anyone's phone numbers. A phone
+  number a seller writes in the description, version or dealer name is
+  removed by the database on the way in (trigger
+  `listings_a_strip_phone_numbers`, `without_phone_numbers()`, N.43).
 
 ## Scoring model
 
