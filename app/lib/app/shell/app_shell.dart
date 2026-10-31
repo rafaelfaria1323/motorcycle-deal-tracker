@@ -6,7 +6,6 @@ import '../../core/widgets/app_brand.dart';
 import '../../features/listings/presentation/cubit/alerts_cubit.dart';
 import '../../features/listings/presentation/cubit/alerts_state.dart';
 import '../../features/listings/presentation/cubit/favourites_cubit.dart';
-import '../../features/listings/presentation/cubit/favourites_state.dart';
 import '../di/injection.dart';
 import '../../core/localization/localizations.dart';
 

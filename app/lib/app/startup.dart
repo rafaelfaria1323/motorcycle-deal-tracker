@@ -13,7 +13,6 @@ import '../core/platform/session_storage.dart';
 import '../core/widgets/state_message.dart';
 import '../features/listings/data/models/first_page_model.dart';
 import '../features/listings/presentation/cubit/listings_cubit.dart';
-import '../features/listings/presentation/cubit/listings_state.dart';
 import '../features/settings/data/supabase_language_repository.dart';
 import '../features/settings/presentation/language_cubit.dart';
 import 'app.dart';

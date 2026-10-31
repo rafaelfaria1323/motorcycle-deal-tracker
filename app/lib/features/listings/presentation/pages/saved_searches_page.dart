@@ -13,7 +13,6 @@ import '../../../../core/widgets/swipe_actions.dart';
 import '../../domain/entities/motorcycle_option.dart';
 import '../../domain/entities/saved_search.dart';
 import '../cubit/listings_cubit.dart';
-import '../cubit/listings_state.dart';
 import '../cubit/saved_searches_cubit.dart';
 import '../cubit/saved_searches_state.dart';
 import '../saved_search_summary.dart';

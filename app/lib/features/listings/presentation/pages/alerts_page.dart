@@ -16,7 +16,6 @@ import '../alerts_text.dart';
 import '../cubit/alerts_cubit.dart';
 import '../cubit/alerts_state.dart';
 import '../cubit/saved_searches_cubit.dart';
-import '../cubit/saved_searches_state.dart';
 import '../widgets/edit_saved_search_sheet.dart';
 import '../../../../core/localization/localizations.dart';
 
