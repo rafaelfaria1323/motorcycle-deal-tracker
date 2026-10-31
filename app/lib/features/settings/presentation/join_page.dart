@@ -14,11 +14,8 @@ import '../../../core/localization/localizations.dart';
 
 /// The page an invite link opens (`/join?code=…`): the visitor chooses an
 /// email and a password, the account is made and signed in.
-class JoinPage extends StatefulWidget {
-  const JoinPage({required this.code, super.key});
-
-  final String code;
-
+class const JoinPage({required final String code, super.key})
+    extends StatefulWidget {
   @override
   State<JoinPage> createState() => _JoinPageState();
 }

@@ -24,9 +24,7 @@ import '../../../core/localization/localizations.dart';
 /// today and pause, the requests of each of the last 7 days, the last 30
 /// days' failures by site and cause, and the last runs with what went
 /// wrong, how long the scores took and a link to each one on GitHub.
-class CollectionStatusPage extends StatefulWidget {
-  const CollectionStatusPage({super.key});
-
+class const CollectionStatusPage({super.key}) extends StatefulWidget {
   @override
   State<CollectionStatusPage> createState() => _CollectionStatusPageState();
 }
@@ -179,12 +177,10 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
   }
 }
 
-class _TokenLine extends StatelessWidget {
-  const _TokenLine({required this.token, required this.now});
-
-  final Future<GithubToken?> token;
-  final DateTime now;
-
+class const _TokenLine({
+  required final Future<GithubToken?> token,
+  required final DateTime now,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<GithubToken?>(
@@ -203,12 +199,10 @@ class _TokenLine extends StatelessWidget {
   }
 }
 
-class _DailyRequests extends StatelessWidget {
-  const _DailyRequests({required this.runs, required this.now});
-
-  final Future<List<CollectorRun>> runs;
-  final DateTime now;
-
+class const _DailyRequests({
+  required final Future<List<CollectorRun>> runs,
+  required final DateTime now,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<CollectorRun>>(
@@ -238,11 +232,8 @@ class _DailyRequests extends StatelessWidget {
   }
 }
 
-class _FailureHistory extends StatelessWidget {
-  const _FailureHistory({required this.runs});
-
-  final Future<List<CollectorRun>> runs;
-
+class const _FailureHistory({required final Future<List<CollectorRun>> runs})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<CollectorRun>>(
@@ -271,11 +262,8 @@ class _FailureHistory extends StatelessWidget {
   }
 }
 
-class _UsageLines extends StatelessWidget {
-  const _UsageLines({required this.usage});
-
-  final Future<DatabaseUsage?> usage;
-
+class const _UsageLines({required final Future<DatabaseUsage?> usage})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<DatabaseUsage?>(
@@ -302,11 +290,8 @@ class _UsageLines extends StatelessWidget {
 }
 
 /// A line that turns red with a warning icon when it needs Rafael.
-class _WarningLine extends StatelessWidget {
-  const _WarningLine(this.line);
-
-  final ({String text, bool warning}) line;
-
+class const _WarningLine(final ({String text, bool warning}) line)
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!line.warning) {
@@ -329,11 +314,8 @@ class _WarningLine extends StatelessWidget {
   }
 }
 
-class _RunTile extends StatelessWidget {
-  const _RunTile({required this.run});
-
-  final CollectorRun run;
-
+class const _RunTile({required final CollectorRun run})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

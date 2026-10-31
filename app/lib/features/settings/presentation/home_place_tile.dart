@@ -12,9 +12,7 @@ import '../../../core/localization/localizations.dart';
 
 /// "A sua localidade" in Mais: the home the distance of each listing is
 /// measured from. Tapping it opens a search of Portugal's towns.
-class HomePlaceTile extends StatefulWidget {
-  const HomePlaceTile({super.key});
-
+class const HomePlaceTile({super.key}) extends StatefulWidget {
   @override
   State<HomePlaceTile> createState() => _HomePlaceTileState();
 }
@@ -73,9 +71,7 @@ class _HomePlaceTileState extends State<HomePlaceTile> {
   }
 }
 
-class _PlaceSearchDialog extends StatefulWidget {
-  const _PlaceSearchDialog();
-
+class const _PlaceSearchDialog() extends StatefulWidget {
   @override
   State<_PlaceSearchDialog> createState() => _PlaceSearchDialogState();
 }

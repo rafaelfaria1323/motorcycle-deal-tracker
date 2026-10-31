@@ -2,11 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme/app_theme.dart';
 
-class AppBrand extends StatelessWidget {
-  const AppBrand({this.compact = false, super.key});
-
-  final bool compact;
-
+class const AppBrand({final bool compact = false, super.key})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;

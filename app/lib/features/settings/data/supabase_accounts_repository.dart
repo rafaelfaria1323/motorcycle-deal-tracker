@@ -2,11 +2,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../domain/accounts_repository.dart';
 
-class SupabaseAccountsRepository implements AccountsRepository {
-  SupabaseAccountsRepository(this._client);
-
-  final SupabaseClient _client;
-
+class SupabaseAccountsRepository(final SupabaseClient _client)
+    implements AccountsRepository {
   @override
   Future<bool> isAdmin() async =>
       await _client.rpc<Object?>('is_admin') == true;

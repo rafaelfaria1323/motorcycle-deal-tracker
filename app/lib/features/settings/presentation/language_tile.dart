@@ -11,9 +11,7 @@ String _languageName(AppLanguage language, AppLocalizations strings) =>
       AppLanguage.english => strings.languageNameEnglish,
     };
 
-class LanguageTile extends StatelessWidget {
-  const LanguageTile({super.key});
-
+class const LanguageTile({super.key}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) =>
       BlocBuilder<LanguageCubit, LanguageState>(
@@ -51,9 +49,7 @@ class LanguageTile extends StatelessWidget {
       );
 }
 
-class _LanguageDialog extends StatelessWidget {
-  const _LanguageDialog();
-
+class const _LanguageDialog() extends StatelessWidget {
   @override
   Widget build(BuildContext context) =>
       BlocBuilder<LanguageCubit, LanguageState>(

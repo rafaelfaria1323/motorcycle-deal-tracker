@@ -4,12 +4,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/localization/app_language.dart';
 import '../domain/language_repository.dart';
 
-class SupabaseLanguageRepository implements LanguageRepository {
-  SupabaseLanguageRepository(this._client, this._preferences);
-
-  final SupabaseClient _client;
-  final SharedPreferences _preferences;
-
+class SupabaseLanguageRepository(
+  final SupabaseClient _client,
+  final SharedPreferences _preferences,
+) implements LanguageRepository {
   static const _deviceKey = 'app_language';
 
   static String _key(String? userId) =>

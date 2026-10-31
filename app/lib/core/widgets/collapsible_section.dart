@@ -5,31 +5,20 @@ import 'package:flutter/material.dart';
 /// [summary] says what is chosen inside while it is closed; [active]
 /// shows it in the accent colour, so a closed section with a choice
 /// stands out.
-class CollapsibleSection extends StatelessWidget {
-  const CollapsibleSection({
-    required this.title,
-    required this.summary,
-    required this.children,
-    this.active = false,
-    this.initiallyExpanded = false,
-    this.leading,
-    this.tilePadding = EdgeInsets.zero,
-    this.childrenPadding = const EdgeInsets.only(bottom: 12),
-    super.key,
-  });
-
-  final String title;
-  final String summary;
-  final List<Widget> children;
-  final bool active;
-  final bool initiallyExpanded;
-  final Widget? leading;
+class const CollapsibleSection({
+  required final String title,
+  required final String summary,
+  required final List<Widget> children,
+  final bool active = false,
+  final bool initiallyExpanded = false,
+  final Widget? leading,
 
   /// Zero in a sheet, whose content has its own margins; a card's rows
   /// line up with its other tiles.
-  final EdgeInsetsGeometry tilePadding;
-  final EdgeInsetsGeometry childrenPadding;
-
+  final EdgeInsetsGeometry tilePadding = EdgeInsets.zero,
+  final EdgeInsetsGeometry childrenPadding = const EdgeInsets.only(bottom: 12),
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

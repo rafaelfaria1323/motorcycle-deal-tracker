@@ -10,9 +10,7 @@ import '../../../core/localization/localizations.dart';
 
 /// "Administração" in Mais, shown to admins only: the accounts and
 /// invites, the "Estado da recolha" page and starting the collection now.
-class AdminTiles extends StatefulWidget {
-  const AdminTiles({super.key});
-
+class const AdminTiles({super.key}) extends StatefulWidget {
   @override
   State<AdminTiles> createState() => _AdminTilesState();
 }

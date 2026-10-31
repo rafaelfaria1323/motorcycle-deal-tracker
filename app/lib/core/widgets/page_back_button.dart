@@ -8,12 +8,11 @@ import '../platform/browser_back.dart';
 /// `/collection-status`, ...). Pushed from a tab it pops; opened from a
 /// notification or a typed address there is nothing beneath it, so it goes
 /// to [fallback] instead (an AppBar shows no arrow at all then).
-class PageBackButton extends StatelessWidget {
-  const PageBackButton({this.fallback = AppRoutes.more, super.key});
-
+class const PageBackButton({
   /// Where to go when there is nothing to pop.
-  final String fallback;
-
+  final String fallback = AppRoutes.more,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) =>
       BackButton(onPressed: () => goBack(context, fallback: fallback));

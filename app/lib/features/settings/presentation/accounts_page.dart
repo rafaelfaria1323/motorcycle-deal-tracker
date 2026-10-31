@@ -13,9 +13,7 @@ import '../../../core/localization/localizations.dart';
 
 /// "Contas e convites" (admins): invite someone with a link, see the
 /// accounts, make other admins, remove an account.
-class AccountsPage extends StatefulWidget {
-  const AccountsPage({super.key});
-
+class const AccountsPage({super.key}) extends StatefulWidget {
   @override
   State<AccountsPage> createState() => _AccountsPageState();
 }
@@ -288,11 +286,7 @@ class _AccountsPageState extends State<AccountsPage> {
   }
 }
 
-class _Header extends StatelessWidget {
-  const _Header(this.text);
-
-  final String text;
-
+class const _Header(final String text) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -303,9 +297,7 @@ class _Header extends StatelessWidget {
 }
 
 /// Who the invite is for (optional, only for the list).
-class _NoteDialog extends StatefulWidget {
-  const _NoteDialog();
-
+class const _NoteDialog() extends StatefulWidget {
   @override
   State<_NoteDialog> createState() => _NoteDialogState();
 }

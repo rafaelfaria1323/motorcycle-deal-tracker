@@ -5,11 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/collector_runs_repository.dart';
 import '../domain/collector_run.dart';
 
-class CollectorStatusState extends Equatable {
-  const CollectorStatusState({this.run});
-
-  final CollectorRun? run;
-
+class const CollectorStatusState({final CollectorRun? run}) extends Equatable {
   @override
   List<Object?> get props => [run];
 }

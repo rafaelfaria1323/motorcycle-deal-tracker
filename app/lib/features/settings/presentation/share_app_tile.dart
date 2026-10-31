@@ -8,11 +8,8 @@ import '../../../core/localization/localizations.dart';
 /// "Partilhar a app" in Mais: the app's link, for anyone. Admins invite
 /// people from "Administração" instead, so their line doesn't send them
 /// to an admin.
-class ShareAppTile extends StatelessWidget {
-  const ShareAppTile({required this.admin, super.key});
-
-  final bool admin;
-
+class const ShareAppTile({required final bool admin, super.key})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(

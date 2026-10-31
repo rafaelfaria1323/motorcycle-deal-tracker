@@ -3,29 +3,19 @@ import 'package:flutter/material.dart';
 /// Colours with a meaning (good/bad, score bands) that Material's colour
 /// scheme has no slot for. Read with `AppColors.of(context)`.
 @immutable
-class AppColors extends ThemeExtension<AppColors> {
-  const AppColors({
-    required this.positive,
-    required this.negative,
-    required this.scoreExcellent,
-    required this.scoreVeryGood,
-    required this.scoreInteresting,
-    required this.scoreNormal,
-    required this.scorePoor,
-  });
-
+class const AppColors({
   /// Good news: a price drop, a reassuring fact.
-  final Color positive;
+  required final Color positive,
 
   /// Bad news: a price rise, a risk.
-  final Color negative;
-
+  required final Color negative,
+  required final Color scoreExcellent,
+  required final Color scoreVeryGood,
+  required final Color scoreInteresting,
+  required final Color scoreNormal,
+  required final Color scorePoor,
+}) extends ThemeExtension<AppColors> {
   // Deal Score bands, solid behind white text (also on top of photos).
-  final Color scoreExcellent;
-  final Color scoreVeryGood;
-  final Color scoreInteresting;
-  final Color scoreNormal;
-  final Color scorePoor;
 
   // Overlays on photos and score badges: the same in light and dark mode.
   static const onPhoto = Color(0xFFFFFFFF);

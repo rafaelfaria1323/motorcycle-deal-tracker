@@ -19,9 +19,7 @@ Future<void> showAccountSheet(BuildContext context) {
   );
 }
 
-class _AccountSheet extends StatefulWidget {
-  const _AccountSheet();
-
+class const _AccountSheet() extends StatefulWidget {
   @override
   State<_AccountSheet> createState() => _AccountSheetState();
 }

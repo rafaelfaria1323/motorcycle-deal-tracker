@@ -20,13 +20,11 @@ class AccountFailure extends Equatable {
   List<Object?> get props => [code, message];
 }
 
-class AccountState extends Equatable {
-  const AccountState({this.busy = false, this.done = false, this.error});
-
-  final bool busy;
-  final bool done;
-  final AccountFailure? error;
-
+class const AccountState({
+  final bool busy = false,
+  final bool done = false,
+  final AccountFailure? error,
+}) extends Equatable {
   @override
   List<Object?> get props => [busy, done, error];
 }

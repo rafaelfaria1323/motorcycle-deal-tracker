@@ -34,9 +34,7 @@ const _startTimeout = Duration(seconds: 20);
 /// so a start that waited for the network, or failed before `runApp`,
 /// stayed on the splash forever; now it shows a spinner, and a failure
 /// says what went wrong with a button to try again.
-class Startup extends StatefulWidget {
-  const Startup({super.key});
-
+class const Startup({super.key}) extends StatefulWidget {
   @override
   State<Startup> createState() => _StartupState();
 }
@@ -82,9 +80,8 @@ class _StartupState extends State<Startup> {
     }
     // Browsing works without a session, so a slow sign-in doesn't hold
     // the app (it is tried again on the next start).
-    await ensureSession(
-      Supabase.instance.client,
-    ).timeout(_startTimeout, onTimeout: () {});
+    await ensureSession(Supabase.instance.client)
+        .timeout(_startTimeout, onTimeout: () {});
     // The Android app: a tapped notification opens its page, once the
     // app's router is on screen.
     WidgetsBinding.instance.addPostFrameCallback(
@@ -122,10 +119,9 @@ class _StartupState extends State<Startup> {
               ? StateMessage(
                   icon: Icons.cloud_off,
                   title: _startupLanguage.messages.couldNotOpenApp,
-                  message: _startupLanguage.messages
-                      .startupConnectionError(
-                        error: _describe(snapshot.error),
-                      ),
+                  message: _startupLanguage.messages.startupConnectionError(
+                    error: _describe(snapshot.error),
+                  ),
                   actionLabel: _startupLanguage.messages.retry,
                   onAction: () => setState(() => _ready = _start()),
                 )

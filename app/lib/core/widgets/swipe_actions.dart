@@ -1,19 +1,12 @@
 import 'package:flutter/material.dart';
 
-class SwipeActions extends StatelessWidget {
-  const SwipeActions({
-    required this.id,
-    required this.onDelete,
-    required this.child,
-    this.onEdit,
-    super.key,
-  });
-
-  final String id;
-  final Future<void> Function() onDelete;
-  final Future<void> Function()? onEdit;
-  final Widget child;
-
+class const SwipeActions({
+  required final String id,
+  required final Future<void> Function() onDelete,
+  required final Widget child,
+  final Future<void> Function()? onEdit,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;

@@ -1,16 +1,16 @@
 import 'package:equatable/equatable.dart';
 
 /// A real (not anonymous) account, as admins see it.
-class Account extends Equatable {
-  const Account({
-    required this.id,
-    required this.email,
-    required this.createdAt,
-    required this.isAdmin,
-    this.isMe = false,
-    this.lastSignInAt,
-  });
+class const Account({
+  required final String id,
+  required final String email,
+  required final DateTime createdAt,
+  required final bool isAdmin,
 
+  /// The signed-in account itself.
+  final bool isMe = false,
+  final DateTime? lastSignInAt,
+}) extends Equatable {
   factory Account.fromJson(Map<String, dynamic> json) => Account(
     id: json['user_id'] as String,
     email: json['email'] as String? ?? '',
@@ -21,15 +21,6 @@ class Account extends Equatable {
     isAdmin: json['is_admin'] as bool? ?? false,
     isMe: json['is_me'] as bool? ?? false,
   );
-
-  final String id;
-  final String email;
-  final DateTime createdAt;
-  final DateTime? lastSignInAt;
-  final bool isAdmin;
-
-  /// The signed-in account itself.
-  final bool isMe;
 
   @override
   List<Object?> get props => [
@@ -43,16 +34,14 @@ class Account extends Equatable {
 }
 
 /// A link that makes one account.
-class Invite extends Equatable {
-  const Invite({
-    required this.code,
-    required this.createdAt,
-    required this.expiresAt,
-    this.note,
-    this.usedAt,
-    this.usedBy,
-  });
-
+class const Invite({
+  required final String code,
+  required final DateTime createdAt,
+  required final DateTime expiresAt,
+  final String? note,
+  final DateTime? usedAt,
+  final String? usedBy,
+}) extends Equatable {
   factory Invite.fromJson(Map<String, dynamic> json) => Invite(
     code: json['code'] as String,
     note: json['note'] as String?,
@@ -63,13 +52,6 @@ class Invite extends Equatable {
         : DateTime.parse(json['used_at'] as String),
     usedBy: json['used_by'] as String?,
   );
-
-  final String code;
-  final String? note;
-  final DateTime createdAt;
-  final DateTime expiresAt;
-  final DateTime? usedAt;
-  final String? usedBy;
 
   @override
   List<Object?> get props => [code, note, createdAt, expiresAt, usedAt, usedBy];

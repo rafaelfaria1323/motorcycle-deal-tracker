@@ -4,11 +4,8 @@ import '../../../core/platform/push.dart';
 import '../domain/push_repository.dart';
 import '../domain/quiet_hours.dart';
 
-class SupabasePushRepository implements PushRepository {
-  SupabasePushRepository(this._client);
-
-  final SupabaseClient _client;
-
+class SupabasePushRepository(final SupabaseClient _client)
+    implements PushRepository {
   @override
   Future<String?> publicKey() async {
     final row = await _client

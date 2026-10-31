@@ -7,11 +7,8 @@ abstract interface class DatabaseUsageRepository {
   Future<DatabaseUsage> get();
 }
 
-class SupabaseDatabaseUsageRepository implements DatabaseUsageRepository {
-  SupabaseDatabaseUsageRepository(this._client);
-
-  final SupabaseClient _client;
-
+class SupabaseDatabaseUsageRepository(final SupabaseClient _client)
+    implements DatabaseUsageRepository {
   @override
   Future<DatabaseUsage> get() async {
     final json = await _client.rpc<Object?>('database_usage');

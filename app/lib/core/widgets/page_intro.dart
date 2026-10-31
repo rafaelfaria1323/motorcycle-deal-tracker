@@ -2,18 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme/app_theme.dart';
 
-class PageIntro extends StatelessWidget {
-  const PageIntro({
-    required this.eyebrow,
-    required this.title,
-    required this.description,
-    super.key,
-  });
-
-  final String eyebrow;
-  final String title;
-  final String description;
-
+class const PageIntro({
+  required final String eyebrow,
+  required final String title,
+  required final String description,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

@@ -10,11 +10,10 @@ import '../../features/listings/presentation/cubit/favourites_state.dart';
 import '../di/injection.dart';
 import '../../core/localization/localizations.dart';
 
-class AppShell extends StatefulWidget {
-  const AppShell({required this.navigationShell, super.key});
-
-  final StatefulNavigationShell navigationShell;
-
+class const AppShell({
+  required final StatefulNavigationShell navigationShell,
+  super.key,
+}) extends StatefulWidget {
   @override
   State<AppShell> createState() => _AppShellState();
 }
@@ -190,10 +189,8 @@ class _AppShellState extends State<AppShell> {
   }
 }
 
-class _Destination {
-  const _Destination(this.label, this.icon, this.selectedIcon);
-
-  final String label;
-  final IconData icon;
-  final IconData selectedIcon;
-}
+class const _Destination(
+  final String label,
+  final IconData icon,
+  final IconData selectedIcon,
+);

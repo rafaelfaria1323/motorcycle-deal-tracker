@@ -4,9 +4,13 @@ import 'package:equatable/equatable.dart';
 /// `github_dispatch_token`), and when it expires.
 enum GithubTokenState { ok, missing, refused }
 
-class GithubToken extends Equatable {
-  const GithubToken({required this.state, this.httpStatus, this.expiresAt});
+class const GithubToken({
+  required final GithubTokenState state,
+  final int? httpStatus,
 
+  /// Null when the token never expires.
+  final DateTime? expiresAt,
+}) extends Equatable {
   factory GithubToken.fromJson(Map<String, dynamic> json) => GithubToken(
     state: GithubTokenState.values.firstWhere(
       (s) => s.name == json['state'],
@@ -17,12 +21,6 @@ class GithubToken extends Equatable {
         ? null
         : DateTime.parse(json['expires_at'] as String),
   );
-
-  final GithubTokenState state;
-  final int? httpStatus;
-
-  /// Null when the token never expires.
-  final DateTime? expiresAt;
 
   @override
   List<Object?> get props => [state, httpStatus, expiresAt];
