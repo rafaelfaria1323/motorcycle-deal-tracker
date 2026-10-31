@@ -82,7 +82,11 @@ class _ZoomablePhotoState extends State<ZoomablePhoto>
         transformationController: _transform,
         onInteractionStart: (_) => _animation.stop(),
         maxScale: ZoomablePhoto.maxScale,
-        child: ListingPhoto(url: widget.url, fit: BoxFit.contain),
+        child: ListingPhoto(
+          url: widget.url,
+          fit: BoxFit.contain,
+          fullSize: true,
+        ),
       ),
     );
   }

@@ -433,6 +433,11 @@ invites; written by the collector on each run).
   `android:allowBackup="false"` (`tool/android_manifest.py`).
 - Photos: `Image.network` with `WebHtmlElementStrategy.prefer` (the photo
   CDNs don't send CORS headers, so an `<img>` element is the only way).
+  Cards, gallery and comparison ask the CDN for at most 1280 px on the
+  longest side (`photoAtSize`, `photo_url.dart`: its `;s=WxH`,
+  proportions kept); only the full-screen viewer loads the original
+  (`ListingPhoto.fullSize`). `web/index.html`'s early photos use the
+  same address (`PHOTO_BOX`, `photo_url_test.dart`).
 - Lists load `ListingModel.summaryColumns`, never `*` (descriptions are big);
   the deals list is paged (40 per page, more on scroll).
 - Interface: shared wordmark (`core/widgets/app_brand.dart`) and editorial

@@ -205,6 +205,9 @@
     var MODELS = 'motorcycles?select=id,brand,model&tracked_by_me=eq.true' +
       '&order=brand.desc.nullslast,model.desc.nullslast';
     var PHOTOS = 3;
+    // The cards' photo size (photoAtSize, lib/features/listings/
+    // presentation/photo_url.dart; test/photo_url_test.dart).
+    var PHOTO_BOX = 1280;
 
     var meta = document.querySelector('meta[name="database"]');
     if (!meta || !window.fetch || !window.Promise) return;
@@ -226,6 +229,31 @@
           return response.text();
         });
     }
+    // The photo CDN's address at the cards' size, as photoAtSize.
+    function sized(url) {
+      var match = /^(https:\/\/ireland\.apollo\.olxcdn\.com(?::443)?\/v1\/files\/[^\/?#;]+\/image)((?:;[^\/?#]*)?)$/
+        .exec(url);
+      if (!match) return url;
+      var width = PHOTO_BOX;
+      var height = Math.floor(PHOTO_BOX * 3 / 4);
+      var kept = [match[1]];
+      var params = match[2].split(';');
+      for (var i = 0; i < params.length; i++) {
+        var size = /^s=(\d+)x(\d+)$/.exec(params[i]);
+        if (size) {
+          var w = +size[1];
+          var h = +size[2];
+          if (w <= PHOTO_BOX && h <= PHOTO_BOX) return url;
+          var longest = Math.max(w, h);
+          width = Math.round(w * PHOTO_BOX / longest);
+          height = Math.round(h * PHOTO_BOX / longest);
+        } else if (params[i] && params[i].indexOf('s=') !== 0) {
+          kept.push(params[i]);
+        }
+      }
+      kept.push('s=' + width + 'x' + height);
+      return kept.join(';');
+    }
     // Kept, so a photo isn't dropped before it arrives.
     var photos = [];
     window.dealTrackerFirstPage = Promise.all([get(LISTINGS), get(MODELS)])
@@ -236,7 +264,7 @@
           // browser's cache; low priority, the app's files go first.
           var photo = new Image();
           photo.fetchPriority = 'low';
-          photo.src = listing.images[0];
+          photo.src = sized(listing.images[0]);
           photos.push(photo);
         });
         return '{"listings":' + texts[0] + ',"motorcycles":' + texts[1] + '}';

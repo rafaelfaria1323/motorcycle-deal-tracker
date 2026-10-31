@@ -261,4 +261,6 @@ listing filters and sort are preserved.
 
 Photos use
 `Image.network` with `WebHtmlElementStrategy.prefer`, because the photo
-sites send no CORS headers.
+sites send no CORS headers. Cards, the gallery and the comparison ask the
+photo CDN for at most 1280 px on the longest side (`photoAtSize`); the
+full-screen viewer loads the original, for zoom.
