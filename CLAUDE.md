@@ -833,7 +833,9 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   never parallel, at most 5 minutes a run, the same stops and 24 h pause
   (a reply that isn't an image is a block); robots.txt obeyed when there
   is one (`robotsRequired: false`: a 4xx means no rules); as on the
-  sites, the longest matching Allow/Disallow line decides (RFC 9309), and
+  sites, the longest matching Allow/Disallow line decides (RFC 9309,
+  compared percent-decoded: `%5B` is `[`; `$` ends a rule only as its
+  last character; any port but 443 is refused), and
   a photo it refuses stops the step without marking any listing checked
   (`FetchDisallowed`). 3 photos per listing, once. Counted apart ("Photo requests:", never "Requests
   used:"). Only hashes and the image model's scores and embeddings

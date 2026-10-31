@@ -1,7 +1,12 @@
+import 'dart:convert';
+
 /// The part of robots.txt we need: the Allow and Disallow rules of the `*`
 /// group. As RFC 9309 says, the longest matching rule decides and an Allow
 /// wins a tie (a CDN's `Disallow: /` with `Allow: /v1/files/` allows the
-/// files).
+/// files). Addresses and rules are compared percent-decoded where the octet
+/// is ASCII (`%5B` is `[`), and encoded where it isn't, so a rule written
+/// either way matches the address we ask for. `*` is any text and `$` the
+/// end, only as the rule's last character.
 class RobotsRules._(final List<_Rule> _rules) {
   factory RobotsRules.parse(String text) {
     final rules = <_Rule>[];
@@ -44,9 +49,10 @@ class RobotsRules._(final List<_Rule> _rules) {
   }
 
   _Rule? _decisive(String pathAndQuery) {
+    final target = _canonical(pathAndQuery);
     _Rule? decisive;
     for (final rule in _rules) {
-      if (!rule.pattern.hasMatch(pathAndQuery)) continue;
+      if (!rule.pattern.hasMatch(target)) continue;
       if (decisive == null ||
           rule.text.length > decisive.text.length ||
           (rule.text.length == decisive.text.length && rule.allow)) {
@@ -58,17 +64,36 @@ class RobotsRules._(final List<_Rule> _rules) {
 
   static RegExp _toRegExp(String rule) {
     final out = StringBuffer('^');
-    for (final rune in rule.runes) {
-      final c = String.fromCharCode(rune);
-      if (c == '*') {
-        out.write('.*');
-      } else if (c == r'$') {
-        out.write(r'$');
+    final anchored = rule.endsWith(r'$');
+    final body = anchored ? rule.substring(0, rule.length - 1) : rule;
+    // `*` is a wildcard only as written; an encoded one (%2A) is literal.
+    final parts = body.split('*');
+    out.write(parts.map((p) => RegExp.escape(_canonical(p))).join('.*'));
+    if (anchored) out.write(r'$');
+    return RegExp(out.toString());
+  }
+
+  static final _escape = RegExp('%([0-9A-Fa-f]{2})');
+
+  /// [text] with ASCII octets percent-decoded and every other one
+  /// percent-encoded in capitals, the form both sides are compared in.
+  static String _canonical(String text) {
+    final out = StringBuffer();
+    for (final rune in text.runes) {
+      if (rune < 0x80) {
+        out.writeCharCode(rune);
       } else {
-        out.write(RegExp.escape(c));
+        for (final byte in utf8.encode(String.fromCharCode(rune))) {
+          out.write('%${byte.toRadixString(16).toUpperCase().padLeft(2, '0')}');
+        }
       }
     }
-    return RegExp(out.toString());
+    return out.toString().replaceAllMapped(_escape, (m) {
+      final code = int.parse(m[1]!, radix: 16);
+      return code < 0x80
+          ? String.fromCharCode(code)
+          : '%${m[1]!.toUpperCase()}';
+    });
   }
 }
 
