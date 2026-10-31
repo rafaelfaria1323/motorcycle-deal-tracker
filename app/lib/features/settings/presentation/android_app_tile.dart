@@ -15,7 +15,7 @@ import '../../../core/localization/localizations.dart';
 /// version is out, and a tap downloads it and opens Android's installer
 /// (no browser). Nothing outside Android.
 class const AndroidAppTile({super.key}) extends StatefulWidget {
-  static final _android = defaultTargetPlatform == TargetPlatform.android;
+  static final _android = defaultTargetPlatform == .android;
 
   /// Whether there is anything to show here.
   static bool get shown => _android && AppBuild.apkUrl.isNotEmpty;
@@ -92,10 +92,7 @@ class _AndroidAppTileState extends State<AndroidAppTile> {
           ? null
           : kIsWeb
           ? () => unawaited(
-              launchUrl(
-                Uri.parse(AppBuild.apkUrl),
-                mode: LaunchMode.externalApplication,
-              ),
+              launchUrl(Uri.parse(AppBuild.apkUrl), mode: .externalApplication),
             )
           : () => unawaited(_update()),
     );

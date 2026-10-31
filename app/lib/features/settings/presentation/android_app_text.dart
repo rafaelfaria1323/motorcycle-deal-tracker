@@ -12,7 +12,7 @@ import '../../../core/localization/localizations.dart';
   required String build,
   int? latest,
   bool downloading = false,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   if (!android || apkUrl.isEmpty) return null;
   if (web) {

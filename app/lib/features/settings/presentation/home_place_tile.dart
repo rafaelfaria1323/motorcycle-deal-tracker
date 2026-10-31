@@ -62,9 +62,7 @@ class _HomePlaceTileState extends State<HomePlaceTile> {
                 : context.strings.homePlaceHelp,
           ),
           trailing: const Icon(Icons.chevron_right),
-          onTap: snapshot.connectionState == ConnectionState.done
-              ? _pick
-              : null,
+          onTap: snapshot.connectionState == .done ? _pick : null,
         );
       },
     );

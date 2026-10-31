@@ -81,7 +81,7 @@ class _PushTileState extends State<PushTile> {
     // The browser's subscription is what the switch shows: store it again
     // for this account, in case the database lost it (a failed save, a
     // device the collector forgot, another account signed in here).
-    if (state == PushState.on && key != null && widget.signedIn) {
+    if (state == .on && key != null && widget.signedIn) {
       try {
         await _repository.save(await DevicePush.enable(key));
       } on Object catch (_) {
@@ -136,7 +136,7 @@ class _PushTileState extends State<PushTile> {
 
     final messenger = ScaffoldMessenger.of(context);
     PushTestKind? kind;
-    if (workflow == AppWorkflow.pushTest) {
+    if (workflow == .pushTest) {
       kind = await _pickKind();
       if (kind == null || !mounted) return;
     }
@@ -200,7 +200,7 @@ class _PushTileState extends State<PushTile> {
                   ),
           ),
           trailing: Switch(
-            value: state == PushState.on,
+            value: state == .on,
             onChanged: enabled ? _set : null,
           ),
         ),
@@ -225,7 +225,7 @@ class _PushTileState extends State<PushTile> {
             },
           ),
         ],
-        if (widget.signedIn && state == PushState.on)
+        if (widget.signedIn && state == .on)
           for (final (workflow, icon) in const [
             (AppWorkflow.pushTest, Icons.send_outlined),
             (AppWorkflow.weeklySummary, Icons.summarize_outlined),

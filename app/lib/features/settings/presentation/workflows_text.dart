@@ -4,7 +4,7 @@ import '../../../core/localization/localizations.dart';
 /// What a run-now tile says, and asks before starting.
 ({String title, String subtitle, String started}) workflowText(
   AppWorkflow workflow, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) => switch (workflow) {
   AppWorkflow.collect => (
     title: language.messages.collectNow,
@@ -26,7 +26,7 @@ import '../../../core/localization/localizations.dart';
 /// How the test notification picker names each example.
 String pushTestKindText(
   PushTestKind kind, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) => switch (kind) {
   PushTestKind.test => language.messages.simpleTestNotification,
   PushTestKind.newListing => language.messages.newListingWorkflowsText,
@@ -46,13 +46,11 @@ String pushTestKindText(
 };
 
 /// Why `start_workflow` refused, from its error code.
-String startErrorText(
-  String? code, {
-  AppLanguage language = AppLanguage.portuguese,
-}) => switch (code) {
-  '55006' => language.messages.startWorkflowTooSoon,
-  '55000' => language.messages.githubTokenIsMissingFromSupabaseVault,
-  '58000' => language.messages.startWorkflowRejected,
-  '42501' => language.messages.onlyAdministratorCanDoThis,
-  _ => language.messages.couldNotStartTryAgain,
-};
+String startErrorText(String? code, {AppLanguage language = .portuguese}) =>
+    switch (code) {
+      '55006' => language.messages.startWorkflowTooSoon,
+      '55000' => language.messages.githubTokenIsMissingFromSupabaseVault,
+      '58000' => language.messages.startWorkflowRejected,
+      '42501' => language.messages.onlyAdministratorCanDoThis,
+      _ => language.messages.couldNotStartTryAgain,
+    };

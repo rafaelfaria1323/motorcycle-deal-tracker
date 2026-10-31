@@ -22,7 +22,7 @@ class const LanguageTile({super.key}) extends StatelessWidget {
             leading: const Icon(Icons.language),
             title: Text(strings.languageTitle),
             subtitle: Text(
-              state.failure == LanguageFailure.load
+              state.failure == .load
                   ? strings.languageLoadFailed
                   : _languageName(state.language, strings),
             ),
@@ -32,7 +32,7 @@ class const LanguageTile({super.key}) extends StatelessWidget {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : state.failure == LanguageFailure.load
+                : state.failure == .load
                 ? IconButton(
                     tooltip: strings.retry,
                     icon: const Icon(Icons.refresh),
@@ -84,7 +84,7 @@ class const _LanguageDialog() extends StatelessWidget {
                 ),
               ),
               if (busy) const Center(child: CircularProgressIndicator()),
-              if (state.failure == LanguageFailure.save)
+              if (state.failure == .save)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Text(

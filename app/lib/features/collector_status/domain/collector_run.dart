@@ -113,11 +113,11 @@ CollectorHealth collectorHealth(
   DateTime now, {
   Duration maxAge = const Duration(hours: 12),
 }) {
-  if (run == null) return CollectorHealth.unknown;
-  if (run.status == 'blocked') return CollectorHealth.blocked;
+  if (run == null) return .unknown;
+  if (run.status == 'blocked') return .blocked;
   if (run.status != 'ok' && run.status != 'partial') {
-    return CollectorHealth.failed;
+    return .failed;
   }
-  if (now.difference(run.finishedAt) > maxAge) return CollectorHealth.stale;
-  return CollectorHealth.ok;
+  if (now.difference(run.finishedAt) > maxAge) return .stale;
+  return .ok;
 }

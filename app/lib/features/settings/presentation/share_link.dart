@@ -11,10 +11,10 @@ Future<void> shareOrCopy(
   required String title,
   required String text,
   required String url,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) async {
   final outcome = await shareLink(title: title, text: text, url: url);
-  if (outcome == ShareOutcome.shared) return;
+  if (outcome == .shared) return;
   await Clipboard.setData(ClipboardData(text: '$text $url'));
   showMessage(messenger, language.messages.linkCopiedPasteItIntoMessage);
 }
