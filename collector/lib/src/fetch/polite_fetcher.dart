@@ -390,7 +390,7 @@ class PoliteFetcher({
   /// retry is a request like any other (counted, never in parallel).
   Future<_Response> _requestOnceMore(Uri url) async {
     final delay = policy.retryDelay;
-    if (delay == null) return _request(url);
+    if (delay == null) return await _request(url);
     FetchFailed first;
     try {
       final response = await _request(url);

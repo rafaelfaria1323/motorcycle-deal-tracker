@@ -59,11 +59,11 @@ class _FakeAlerts implements AlertsRepository {
   @override
   Future<List<ListingAlert>> getAll() async {
     if (failLoad) throw StateError('offline');
-    return loadResult ??
-        [
-          for (final alert in items)
-            if (!dismissed.contains(alert.id)) alert,
-        ];
+    if (loadResult case final result?) return await result;
+    return [
+      for (final alert in items)
+        if (!dismissed.contains(alert.id)) alert,
+    ];
   }
 
   @override

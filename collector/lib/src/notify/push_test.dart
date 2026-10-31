@@ -150,7 +150,7 @@ Future<({int devices, int sent})> sendTestPush(
   final users = requester == null ? await store.adminIds() : [requester];
   final isAlert = !kind.startsWith('run_') && kind != 'test';
   final listing = isAlert ? await store.sampleListing(requester) : null;
-  return pushToUsers(
+  return await pushToUsers(
     store,
     push,
     users,

@@ -40,14 +40,16 @@ class _FakeSearches implements SavedSearchesRepository {
   @override
   Future<List<SavedSearch>> getAll() async {
     if (failLoad) throw StateError('offline');
-    return loadResult ?? List.of(items);
+    if (loadResult case final result?) return await result;
+    return List.of(items);
   }
 
   @override
   Future<Map<String, int>> getMatchCounts() async {
     countsCalls++;
     if (failCounts) throw StateError('counts failed');
-    return countsResult ?? counts;
+    if (countsResult case final result?) return await result;
+    return counts;
   }
 
   @override
@@ -66,7 +68,7 @@ class _FakeSearches implements SavedSearchesRepository {
     required String name,
     required ListingFilters filters,
   }) async {
-    if (createResult case final response?) return response;
+    if (createResult case final response?) return await response;
     final created = SavedSearch(
       id: 'new',
       name: name,
@@ -81,7 +83,7 @@ class _FakeSearches implements SavedSearchesRepository {
 
   @override
   Future<SavedSearch> update(SavedSearch search) async {
-    if (updateResult case final response?) return response;
+    if (updateResult case final response?) return await response;
     updates.add(search);
     items = [for (final s in items) s.id == search.id ? search : s];
     return search;

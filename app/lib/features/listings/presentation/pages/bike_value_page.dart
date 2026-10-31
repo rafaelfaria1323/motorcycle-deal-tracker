@@ -209,7 +209,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
     required int? mileage,
   }) async {
     if (!_signedIn) {
-      return _valueOf(motorcycleId, name, year: year, mileage: mileage);
+      return await _valueOf(motorcycleId, name, year: year, mileage: mileage);
     }
     final asked = await _repository.requestBikeValue(
       motorcycleId,
@@ -217,7 +217,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
       mileage: mileage,
     );
     await _loadRequests();
-    return _valueOf(
+    return await _valueOf(
       motorcycleId,
       name,
       year: year,

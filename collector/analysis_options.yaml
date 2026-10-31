@@ -32,3 +32,12 @@ linter:
     - prefer_final_locals
     - prefer_final_fields
     - prefer_const_declarations
+    # Dart 3.11-3.13 (N.40)
+    - use_declaring_parameters
+    - prefer_initializing_formals
+    - simplify_variable_pattern
+    - async_return_with_no_await
+    - no_dynamic_casts
+    - no_raw_types
+    - simple_directive_paths
+    - unnecessary_primary_constructor_body

@@ -55,7 +55,8 @@ class _Preferences implements ListingCardPreferencesRepository {
     reads.add(userId);
     if (failReads) throw StateError('Offline');
     final pending = pendingReads.remove(userId);
-    return pending == null ? values[userId] ?? _defaults : pending.future;
+    if (pending != null) return await pending.future;
+    return values[userId] ?? _defaults;
   }
 
   @override

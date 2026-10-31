@@ -274,14 +274,15 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
     per1000Km: (row['per_1000km'] as num).toDouble(),
   );
 
-  Future<Map<String, dynamic>?> _behaviour(String motorcycleId) async => _client
-      .from('model_market_behaviour')
-      .select()
-      .eq('motorcycle_id', motorcycleId)
-      .maybeSingle();
+  Future<Map<String, dynamic>?> _behaviour(String motorcycleId) async =>
+      await _client
+          .from('model_market_behaviour')
+          .select()
+          .eq('motorcycle_id', motorcycleId)
+          .maybeSingle();
 
   Future<Map<String, dynamic>?> _depreciation(String motorcycleId) async =>
-      _client
+      await _client
           .from('model_depreciation')
           .select()
           .eq('motorcycle_id', motorcycleId)

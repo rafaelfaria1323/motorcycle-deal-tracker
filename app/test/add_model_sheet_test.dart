@@ -19,7 +19,8 @@ class _Catalog extends Fake implements CatalogRepository {
   @override
   Future<List<SiteMake>> getSiteMakes() async {
     if (failMakes) throw StateError('unavailable');
-    return pendingMakes?.future ?? Future.value(makes);
+    if (pendingMakes case final pending?) return await pending.future;
+    return makes;
   }
 
   @override
