@@ -1,18 +1,15 @@
 import 'dart:io';
 
-class ConfigException implements Exception {
-  ConfigException(this.message);
-
-  final String message;
-
+class ConfigException(final String message) implements Exception {
   @override
   String toString() => message;
 }
 
 /// Connection settings, read from environment variables only.
-class SupabaseConfig {
-  const SupabaseConfig({required this.url, required this.serviceKey});
-
+class const SupabaseConfig({
+  required final String url,
+  required final String serviceKey,
+}) {
   factory SupabaseConfig.fromEnvironment([Map<String, String>? environment]) {
     final env = environment ?? Platform.environment;
     final url = env['SUPABASE_URL']?.trim() ?? '';
@@ -31,9 +28,6 @@ class SupabaseConfig {
     }
     return SupabaseConfig(url: url, serviceKey: key);
   }
-
-  final String url;
-  final String serviceKey;
 
   // The key is deliberately left out so it can never end up in a log.
   @override

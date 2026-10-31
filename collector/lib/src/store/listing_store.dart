@@ -2,17 +2,11 @@ import 'package:supabase/supabase.dart';
 
 import '../../collector.dart';
 
-class StoreResult {
-  const StoreResult({
-    required this.inserted,
-    required this.alreadyStored,
-    required this.duplicatesInInput,
-  });
-
-  final int inserted;
-  final int alreadyStored;
-  final int duplicatesInInput;
-}
+class const StoreResult({
+  required final int inserted,
+  required final int alreadyStored,
+  required final int duplicatesInInput,
+});
 
 /// Keeps the first listing for each (source, source id).
 List<NormalizedListing> uniqueBySourceId(List<NormalizedListing> listings) {
@@ -78,11 +72,7 @@ String? motorcycleIdFor(NormalizedListing l, Map<String, String> idBySlug) {
 /// The row count a counting RPC returns.
 int _count(Object? rpcResult) => (rpcResult as num).toInt();
 
-class ListingStore {
-  ListingStore(this._client);
-
-  final SupabaseClient _client;
-
+class ListingStore(final SupabaseClient _client) {
   /// Live listings of [source] whose listing page has not been read yet,
   /// then those read before the page's photos were kept (`photos_read_at`),
   /// pages that failed before last. Within each, what matters first:

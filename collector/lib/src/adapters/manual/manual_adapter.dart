@@ -5,12 +5,9 @@ import '../source_adapter.dart';
 import 'manual_raw_listing.dart';
 
 /// Reads listings from a JSON file filled in by hand.
-class ManualAdapter implements SourceAdapter<ManualRawListing> {
-  ManualAdapter(this.path);
-
+class ManualAdapter(final String path)
+    implements SourceAdapter<ManualRawListing> {
   static const sourceId = 'manual';
-
-  final String path;
 
   @override
   String get source => sourceId;

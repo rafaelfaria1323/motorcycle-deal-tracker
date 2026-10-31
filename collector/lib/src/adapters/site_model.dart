@@ -3,23 +3,15 @@ import 'json_values.dart';
 /// One brand and model a site offers in its search filters ("Honda",
 /// "Forza"), with the site's own ids, which go into search addresses.
 /// Stored in `site_models` for the app's model picker.
-class SiteModel {
-  const SiteModel({
-    required this.makeId,
-    required this.makeName,
-    required this.modelId,
-    required this.modelName,
-    this.ads,
-  });
-
-  final String makeId;
-  final String makeName;
-  final String modelId;
-  final String modelName;
+class const SiteModel({
+  required final String makeId,
+  required final String makeName,
+  required final String modelId,
+  required final String modelName,
 
   /// How many ads the site has for the model, when it says (OLX doesn't).
-  final int? ads;
-
+  final int? ads,
+}) {
   Map<String, Object?> toRow(String source) => {
     'source': source,
     'make_id': makeId,

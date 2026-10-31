@@ -49,7 +49,7 @@ Future<void> main(List<String> args) async {
     exitCode = 64;
     return;
   }
-  if (sites.isEmpty) sites.addAll([FetchSite.standvirtual, FetchSite.olx]);
+  if (sites.isEmpty) sites.addAll([.standvirtual, .olx]);
 
   final watch = Stopwatch()..start();
   // Before the catalog is read: a valuation's model collected from before
@@ -154,7 +154,7 @@ Future<int> _refreshSite(
     // Stopped by a failure after some pages: imported, still a failed run.
     if (outcome.failure case final failure?) throw failure;
 
-    if (site == FetchSite.standvirtual && enrichMax != 0) {
+    if (site == .standvirtual && enrichMax != 0) {
       // New listings may be duplicates; those are never read.
       await store.markDuplicates();
       final pending = await store.listingsMissingDetails(name, enrichMax);

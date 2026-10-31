@@ -631,6 +631,20 @@ done in `AccountScopedCubit` and a collector test fake. The
 come later, area by area. Rafael to install the new APK and check it
 starts, signs in and gets a notification.*
 
+## ➕ N.36 Collector on Dart 3.13's primary constructors ✅
+*Rafael, 2026-10-31: "go for it". 57 collector classes whose
+constructors only filled fields now declare them in the class header
+(`class const PlannedSearch(final Uri url, final List<String> models);`),
+field comments moved onto the parameters; constructors with work became
+field initializers or a `this { ... }` body (`ModelResolver`, the
+mappers, `FetchState`), `RobotsRules` a private `RobotsRules._`. Enum
+values whose type is known are dot shorthands (`site == .olx`, `case
+.sent:`, `language = .portuguese`). No behaviour change: same tests,
+coverage and analysis. `tool/mutation.py` also reads `class const X(`
+and `extension type` names (`test_mutation.py`). The app keeps the
+classic forms until it is converted feature by feature (checked by CI
+only).*
+
 # Security and privacy ✅
 
 *Started 2026-10-22, before anyone else uses the app. Not done: Cloudflare Access in front of the site (Rafael, 2026-10-22: not wanted for now; `docs/hosting.md`, Privacy). Decided against: making the repository private (Rafael, 2026-10-21: the free Actions minutes are worth more; old saved pages with phone numbers stay in its git history unless it is rewritten) and encrypting notes, checklists and the home place in the app (Supabase already encrypts its disks; app-side keys would break `distance_km` and need key handling on every device).*

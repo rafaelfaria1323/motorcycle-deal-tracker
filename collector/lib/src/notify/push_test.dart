@@ -10,7 +10,7 @@ const pushTestWorkflow = 'push-test.yml';
 
 /// The test notification: says the device receives them; a tap opens Mais.
 Map<String, Object?> testPushMessage({
-  NotificationLanguage language = NotificationLanguage.portuguese,
+  NotificationLanguage language = .portuguese,
 }) => {
   'title': language.testTitle,
   'body': language.testBody,
@@ -43,7 +43,7 @@ const pushTestKinds = {
 Map<String, Object?> samplePushMessage(
   String kind,
   Map<String, dynamic>? listing, {
-  NotificationLanguage language = NotificationLanguage.portuguese,
+  NotificationLanguage language = .portuguese,
 }) {
   final note = language.testNote;
   Map<String, Object?> withNote(Map<String, Object?> m) => {
@@ -180,11 +180,11 @@ Future<({int devices, int sent})> pushToUsers(
     for (final device in byUser[user] ?? const <PushTarget>[]) {
       devices++;
       switch (await push.send(device, message)) {
-        case PushResult.sent:
+        case .sent:
           reached.add(device.endpoint);
-        case PushResult.gone:
+        case .gone:
           gone.add(device.endpoint);
-        case PushResult.failed:
+        case .failed:
           break;
       }
     }

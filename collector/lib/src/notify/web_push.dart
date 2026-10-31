@@ -18,9 +18,7 @@ final _curve = ECCurve_secp256r1();
 
 /// Our VAPID key pair (P-256). The public key (65 bytes, uncompressed) is
 /// what the app subscribes with; the private one signs every request.
-class VapidKeys {
-  VapidKeys(this.privateKey, this.publicKey);
-
+class VapidKeys(final BigInt privateKey, final Uint8List publicKey) {
   /// Both keys from their base64url text, as stored.
   factory VapidKeys.fromBase64(String private, String public) => VapidKeys(
     _bigInt(base64UrlDecodeLoose(private)),
@@ -36,31 +34,22 @@ class VapidKeys {
     );
   }
 
-  final BigInt privateKey;
-  final Uint8List publicKey;
-
   String get privateBase64 => base64UrlNoPad(_bytes(privateKey, 32));
   String get publicBase64 => base64UrlNoPad(publicKey);
 }
 
 /// Where and how one browser receives pushes (its PushSubscription).
-class PushTarget {
-  const PushTarget({
-    required this.endpoint,
-    required this.p256dh,
-    required this.auth,
-  });
-
-  final String endpoint;
-
-  /// The Android app's device (FCM), not a browser's.
-  bool get isAndroid => endpoint.startsWith(fcmPrefix);
+class const PushTarget({
+  required final String endpoint,
 
   /// The browser's public key (base64url, 65 bytes).
-  final String p256dh;
+  required final String p256dh,
 
   /// The browser's auth secret (base64url, 16 bytes).
-  final String auth;
+  required final String auth,
+}) {
+  /// The Android app's device (FCM), not a browser's.
+  bool get isAndroid => endpoint.startsWith(fcmPrefix);
 }
 
 /// What a push service answered.
@@ -195,12 +184,11 @@ Map<String, Object?> declarativePush(
 
 /// Sends pushes signed with one key pair; the Android app's devices go
 /// through [fcm] (none without it: those pushes fail).
-class WebPushSender {
-  WebPushSender(this.keys, {this.subject = appOrigin, this.fcm});
-
-  final VapidKeys keys;
-  final String subject;
-  final FcmSender? fcm;
+class WebPushSender(
+  final VapidKeys keys, {
+  final String subject = appOrigin,
+  final FcmSender? fcm,
+}) {
   bool _toldNoFcm = false;
 
   Future<PushResult> send(
@@ -217,7 +205,7 @@ class WebPushSender {
         'Android device not reached: FIREBASE_SERVICE_ACCOUNT not set',
       );
     }
-    return PushResult.failed;
+    return .failed;
   }
 }
 
@@ -240,7 +228,7 @@ Future<PushResult> sendWebPush(
     );
   } on Object {
     // A subscription with unusable keys can never receive anything.
-    return PushResult.gone;
+    return .gone;
   }
 
   final client = HttpClient()..connectionTimeout = const Duration(seconds: 15);
@@ -265,13 +253,13 @@ Future<PushResult> sendWebPush(
         .join()
         .timeout(const Duration(seconds: 15));
     final status = response.statusCode;
-    if (status >= 200 && status < 300) return PushResult.sent;
-    if (status == 404 || status == 410) return PushResult.gone;
+    if (status >= 200 && status < 300) return .sent;
+    if (status == 404 || status == 410) return .gone;
     stderr.writeln('Push to ${endpoint.host}: HTTP $status $text');
-    return PushResult.failed;
+    return .failed;
   } on Object catch (e) {
     stderr.writeln('Push to ${endpoint.host} not sent: ${e.runtimeType}');
-    return PushResult.failed;
+    return .failed;
   } finally {
     client.close(force: true);
   }

@@ -93,7 +93,11 @@ never asks for search URLs; aliases sit under "Outros nomes do modelo".
   tests the app. The project pins Flutter 3.47.8 (`.fvmrc`, FVM and every
   Flutter workflow) and its bundled Dart 3.13.7 (`.dart-version`, standalone
   collector jobs and the cloud session hook). Keep both aligned when
-  upgrading; app and collector SDK minimums match. Pure Dart logic in the
+  upgrading; app and collector SDK minimums match. The collector uses
+  Dart 3.13's primary constructors (`class const X({required final T a})`,
+  work in field initializers or `this { ... }`) and dot shorthands
+  (`site == .olx`); the app keeps the classic forms until converted
+  feature by feature. Pure Dart logic in the
   app can be tested with plain Dart (`package:test`) on copies of the
   files. The deploy runs `flutter test`
   and `flutter build web --wasm` (WebAssembly where the browser supports

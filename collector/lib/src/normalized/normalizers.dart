@@ -45,8 +45,8 @@ const _dealerWords = {
 /// Null when the text is not a known seller type.
 SellerType? parseSellerType(String value) {
   final v = value.trim().toLowerCase();
-  if (_privateWords.contains(v)) return SellerType.private;
-  if (_dealerWords.contains(v)) return SellerType.dealer;
+  if (_privateWords.contains(v)) return .private;
+  if (_dealerWords.contains(v)) return .dealer;
   return null;
 }
 

@@ -66,6 +66,8 @@ final class Fetcher {
   final RegExp pattern = RegExp('a');
 }
 sealed class Outcome {}
+class const PlannedSearch(final String url);
+extension type const Cents(int value) {}
 enum Site { olx }
 typedef Rows = List<int>;
 List<String> cleanImages(List<String> raw) => raw;
@@ -79,8 +81,8 @@ class TestsUsingTest(unittest.TestCase):
     def test_top_level_public_names_only(self):
         self.assertEqual(
             declared_names(DART),
-            {'maxItems', 'Fetcher', 'Outcome', 'Site', 'Rows', 'cleanImages',
-             'counts', 'first'},
+            {'maxItems', 'Fetcher', 'Outcome', 'PlannedSearch', 'Cents', 'Site',
+             'Rows', 'cleanImages', 'counts', 'first'},
         )
 
     def test_the_test_files_naming_them(self):

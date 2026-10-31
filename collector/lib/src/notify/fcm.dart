@@ -23,14 +23,12 @@ const _googleTokenUri = 'https://oauth2.googleapis.com/token';
 
 /// The Firebase project's service account: the JSON Google gives as its
 /// private key (GitHub secret `FIREBASE_SERVICE_ACCOUNT`).
-class FcmAccount {
-  FcmAccount({
-    required this.projectId,
-    required this.clientEmail,
-    required this.privateKey,
-    this.tokenUri = _googleTokenUri,
-  });
-
+class FcmAccount({
+  required final String projectId,
+  required final String clientEmail,
+  required final RSAPrivateKey privateKey,
+  final String tokenUri = _googleTokenUri,
+}) {
   /// From the service account JSON; throws [FormatException] when a field
   /// is missing or the key can't be read.
   factory FcmAccount.fromJson(String text) {
@@ -49,11 +47,6 @@ class FcmAccount {
       },
     );
   }
-
-  final String projectId;
-  final String clientEmail;
-  final RSAPrivateKey privateKey;
-  final String tokenUri;
 }
 
 /// The RSA key of a PKCS#8 PEM ("BEGIN PRIVATE KEY", as Google gives it).
@@ -102,9 +95,10 @@ Map<String, Object?> fcmMessage(String token, Map<String, Object?> message) => {
 };
 
 /// Sends to Android devices through FCM, with one access token per run.
-class FcmSender {
-  FcmSender(this.account, {this.apiBase = 'https://fcm.googleapis.com'});
-
+class FcmSender(
+  final FcmAccount account, {
+  final String apiBase = 'https://fcm.googleapis.com',
+}) {
   /// From env `FIREBASE_SERVICE_ACCOUNT`, or null when it isn't set or
   /// can't be read (said on stderr; Android devices then aren't reached).
   static FcmSender? fromEnvironment([Map<String, String>? environment]) {
@@ -119,8 +113,6 @@ class FcmSender {
     }
   }
 
-  final FcmAccount account;
-  final String apiBase;
   Future<String?>? _token;
 
   /// Sends [message] to the device whose endpoint is `fcm:<token>`.
@@ -130,7 +122,7 @@ class FcmSender {
     Map<String, Object?> message,
   ) async {
     final access = await (_token ??= _accessToken());
-    if (access == null) return PushResult.failed;
+    if (access == null) return .failed;
     final token = target.endpoint.substring(fcmPrefix.length);
     final (status, text) = await _post(
       Uri.parse('$apiBase/v1/projects/${account.projectId}/messages:send'),
@@ -138,17 +130,17 @@ class FcmSender {
       contentType: ContentType.json,
       authorization: 'Bearer $access',
     );
-    if (status >= 200 && status < 300) return PushResult.sent;
+    if (status >= 200 && status < 300) return .sent;
     // UNREGISTERED: the app was removed or its token replaced. A token FCM
     // calls invalid can never receive anything either.
     if (status == 404 ||
         (status == 400 &&
             text.contains('INVALID_ARGUMENT') &&
             text.contains('registration token'))) {
-      return PushResult.gone;
+      return .gone;
     }
     stderr.writeln('Push to FCM: HTTP $status $text');
-    return PushResult.failed;
+    return .failed;
   }
 
   Future<String?> _accessToken() async {

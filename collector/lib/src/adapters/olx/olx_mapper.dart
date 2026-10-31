@@ -5,14 +5,9 @@ import '../manual/manual_mapper.dart';
 import '../manual/manual_raw_listing.dart';
 import 'olx_raw_listing.dart';
 
-class OlxMapper {
-  OlxMapper(this.catalog, {int? currentYear})
-    : _base = ManualMapper(catalog, currentYear: currentYear),
-      _models = ModelResolver(catalog);
-
-  final Catalog catalog;
-  final ManualMapper _base;
-  final ModelResolver _models;
+class OlxMapper(final Catalog catalog, {int? currentYear}) {
+  final ManualMapper _base = ManualMapper(catalog, currentYear: currentYear);
+  final ModelResolver _models = ModelResolver(catalog);
 
   /// The id an OLX ad is stored under.
   static String listingId(String adId) => 'olx.pt/$adId';

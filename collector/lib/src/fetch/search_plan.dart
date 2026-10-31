@@ -2,12 +2,7 @@ import '../catalog/catalog.dart';
 import 'polite_fetcher.dart';
 
 /// One search to fetch, and the tracked models it is run for.
-class PlannedSearch {
-  const PlannedSearch(this.url, this.models);
-
-  final Uri url;
-  final List<String> models;
-}
+class const PlannedSearch(final Uri url, final List<String> models);
 
 /// OLX's "year from" filter. The collector sets it from the models' first
 /// tracked year, whatever the stored address says.
@@ -66,9 +61,9 @@ String? olxEngineBand(Iterable<CatalogEntry> entries) {
   final problems = <String>[];
 
   for (final entry in catalog.entries) {
-    final raw = site == FetchSite.olx
+    final raw = site == .olx
         ? entry.olxSearch
-        : site == FetchSite.standvirtual
+        : site == .standvirtual
         ? entry.standvirtualSearch
         : null;
     if (raw == null || raw.trim().isEmpty) continue;
@@ -92,9 +87,9 @@ String? olxEngineBand(Iterable<CatalogEntry> entries) {
           base.replace(
             queryParameters: {
               ...base.queryParameters,
-              site == FetchSite.olx ? olxYearFrom : standvirtualYearFrom:
+              site == .olx ? olxYearFrom : standvirtualYearFrom:
                   '${entries.map((e) => e.minYear).reduce(_min)}',
-              if (site == FetchSite.olx) olxEngineSize: ?olxEngineBand(entries),
+              if (site == .olx) olxEngineSize: ?olxEngineBand(entries),
             },
           ),
           [for (final e in entries) '${e.brand} ${e.model}'],

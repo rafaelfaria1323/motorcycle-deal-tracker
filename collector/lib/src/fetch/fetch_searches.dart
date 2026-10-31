@@ -29,22 +29,20 @@ DateTime? lightRunCutoff(DateTime? lastFullRead, DateTime now) {
 }
 
 /// How a fetch of searches ended.
-class FetchOutcome {
-  const FetchOutcome({required this.saved, this.stoppedBy, this.failure});
-
+class const FetchOutcome({
   /// Pages saved.
-  final int saved;
+  required final int saved,
 
   /// Why it stopped early (the request budget ran out, a request failed or
   /// the site pushed back); null when every search was read.
-  final String? stoppedBy;
+  final String? stoppedBy,
 
   /// The failure, refusal or block that stopped it after some pages were
   /// saved ([FetchFailed], [FetchRefused] or [FetchBlocked]): the pages are imported all the
   /// same, and then the caller throws it, so the run still counts as
   /// failed.
-  final Exception? failure;
-}
+  final Exception? failure,
+});
 
 /// Saves every page of [searches] into [directory] with [fetcher], which
 /// must be prepared, and writes the [SearchManifest]. A search spanning

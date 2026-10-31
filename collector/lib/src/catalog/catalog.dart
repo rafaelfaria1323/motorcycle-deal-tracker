@@ -4,46 +4,30 @@ final _nonKeyCharacters = RegExp(r'[^a-z0-9]');
 String normalizeKey(String value) =>
     value.toLowerCase().replaceAll(_nonKeyCharacters, '');
 
-class CatalogEntry {
-  const CatalogEntry({
-    required this.slug,
-    required this.brand,
-    required this.model,
-    required this.minYear,
-    this.id,
-    this.aliases = const [],
-    this.excludedWords = const [],
-    this.engineCcMin,
-    this.engineCcMax,
-    this.olxSearch,
-    this.standvirtualSearch,
-  });
-
-  final String slug;
-  final String brand;
-  final String model;
-  final int minYear;
-  final String? id;
+class const CatalogEntry({
+  required final String slug,
+  required final String brand,
+  required final String model,
+  required final int minYear,
+  final String? id,
 
   /// Other ways sellers name the model ("Hornet 750" for the CB750 Hornet).
-  final List<String> aliases;
+  final List<String> aliases = const [],
 
   /// Text that makes a listing another bike, even though it names this model
   /// ("Tracer" in an MT-07 Tracer, "650F" for a CB650F).
-  final List<String> excludedWords;
+  final List<String> excludedWords = const [],
 
   /// The engine sizes (cc) sellers state for the model; null when unknown.
-  final int? engineCcMin;
-  final int? engineCcMax;
+  final int? engineCcMin,
+  final int? engineCcMax,
 
   /// The search address that lists the model on each site, if any.
-  final String? olxSearch;
-  final String? standvirtualSearch;
-}
+  final String? olxSearch,
+  final String? standvirtualSearch,
+});
 
-class Catalog {
-  const Catalog(this.entries);
-
+class const Catalog(final List<CatalogEntry> entries) {
   /// The four MVP models with their matching rules. The collector loads the
   /// catalog from the `motorcycles` table; this one is for tests and dry runs.
   factory Catalog.mvp() => const Catalog([
@@ -83,8 +67,6 @@ class Catalog {
       engineCcMax: 660,
     ),
   ]);
-
-  final List<CatalogEntry> entries;
 
   /// Exact match on brand and model, ignoring case and punctuation.
   CatalogEntry? find(String brand, String model) {

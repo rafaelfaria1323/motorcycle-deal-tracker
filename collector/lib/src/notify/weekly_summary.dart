@@ -2,22 +2,26 @@ import 'pending_alert.dart';
 import 'notification_text.dart';
 
 /// A listing of a tracked model as the weekly summary sees it.
-class SummaryListing {
-  const SummaryListing({
-    required this.id,
-    required this.bike,
-    required this.url,
-    required this.status,
-    required this.firstSeenAt,
-    required this.lastCheckedAt,
-    this.motorcycleId,
-    this.year,
-    this.mileage,
-    this.price,
-    this.dealScore,
-    this.riskScore,
-  });
+class const SummaryListing({
+  required final String id,
 
+  /// Catalog brand and model, e.g. "Yamaha MT-07".
+  required final String bike,
+  required final String url,
+  required final String status,
+  required final DateTime firstSeenAt,
+
+  /// For a removed listing, when it was found missing.
+  required final DateTime lastCheckedAt,
+
+  /// The catalog model, to pick each account's own models.
+  final String? motorcycleId,
+  final int? year,
+  final int? mileage,
+  final double? price,
+  final int? dealScore,
+  final int? riskScore,
+}) {
   factory SummaryListing.fromRow(
     Map<String, dynamic> row,
     Map<String, String> bikeNames,
@@ -36,77 +40,44 @@ class SummaryListing {
     riskScore: (row['risk_score'] as num?)?.toInt(),
   );
 
-  final String id;
-
-  /// Catalog brand and model, e.g. "Yamaha MT-07".
-  final String bike;
-  final String url;
-  final String status;
-  final DateTime firstSeenAt;
-
-  /// For a removed listing, when it was found missing.
-  final DateTime lastCheckedAt;
-
-  /// The catalog model, to pick each account's own models.
-  final String? motorcycleId;
-  final int? year;
-  final int? mileage;
-  final double? price;
-  final int? dealScore;
-  final int? riskScore;
-
   bool get isLive => status == 'active' || status == 'price_changed';
   bool get isGone => status == 'removed' || status == 'sold';
 }
 
 /// One `listing_price_history` row.
-class PricePoint {
-  const PricePoint(this.listingId, this.price, this.observedAt);
-
+class const PricePoint(
+  final String listingId,
+  final double price,
+  final DateTime observedAt,
+) {
   factory PricePoint.fromRow(Map<String, dynamic> row) => PricePoint(
     row['listing_id'] as String,
     (row['price'] as num).toDouble(),
     DateTime.parse(row['observed_at'] as String),
   );
-
-  final String listingId;
-  final double price;
-  final DateTime observedAt;
 }
 
-class PriceDrop {
-  const PriceDrop(this.listing, this.oldPrice, this.newPrice);
-
-  final SummaryListing listing;
-  final double oldPrice;
-  final double newPrice;
-
+class const PriceDrop(
+  final SummaryListing listing,
+  final double oldPrice,
+  final double newPrice,
+) {
   double get fraction => (oldPrice - newPrice) / oldPrice;
 }
 
-class WeeklySummary {
-  const WeeklySummary({
-    required this.since,
-    required this.until,
-    required this.liveCount,
-    required this.newListings,
-    required this.goneCount,
-    required this.drops,
-    required this.bestDeals,
-  });
-
-  final DateTime since;
-  final DateTime until;
-  final int liveCount;
-  final List<SummaryListing> newListings;
-  final int goneCount;
+class const WeeklySummary({
+  required final DateTime since,
+  required final DateTime until,
+  required final int liveCount,
+  required final List<SummaryListing> newListings,
+  required final int goneCount,
 
   /// Live listings whose price fell this week, biggest drop first.
-  final List<PriceDrop> drops;
+  required final List<PriceDrop> drops,
 
   /// Live listings by Deal Score, best first (risk below 50 only).
-  final List<SummaryListing> bestDeals;
-}
+  required final List<SummaryListing> bestDeals,
+});
 
 /// The same 1 % threshold as price-reduction alerts.
 const _minDrop = 0.01;
@@ -243,7 +214,7 @@ Map<String, Object?> weeklySummaryJson(WeeklySummary s, {int dropCount = 5}) {
 /// opens the summary in the app.
 Map<String, Object?> weeklySummaryPush(
   WeeklySummary s, {
-  NotificationLanguage language = NotificationLanguage.portuguese,
+  NotificationLanguage language = .portuguese,
 }) {
   final lastDay = s.until.subtract(const Duration(days: 1));
   final best = s.bestDeals.firstOrNull;
