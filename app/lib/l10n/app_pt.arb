@@ -5926,5 +5926,58 @@
   "importCostFolded": "Some o ISV, a legalização e o transporte a um preço de Espanha, França ou Alemanha.",
   "@importCostFolded": {
     "description": "Interface text in import_cost_card: the closed line of the calculator on a listing (F.4)."
+  },
+  "deleteReadAlerts": "Eliminar os lidos",
+  "@deleteReadAlerts": {
+    "description": "Alertas: tooltip of the action that deletes every read alert (F.6)."
+  },
+  "deleteReadAlertsQuestion": "Eliminar os alertas lidos?",
+  "@deleteReadAlertsQuestion": {
+    "description": "Alertas: title of the confirmation before deleting every read alert."
+  },
+  "deleteReadAlertsMessage": "Os alertas que já leu saem da sua lista, também os que ainda não carregou. Os por ler, as pesquisas e os favoritos não mudam.",
+  "@deleteReadAlertsMessage": {
+    "description": "Alertas: body of the confirmation before deleting every read alert."
+  },
+  "readAlertsDeleted": "{count, plural, =1{1 alerta eliminado} other{{count} alertas eliminados}}",
+  "@readAlertsDeleted": {
+    "description": "Alertas: how many read alerts were deleted.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noReadAlertsToDelete": "Não há alertas lidos para eliminar",
+  "@noReadAlertsToDelete": {
+    "description": "Alertas: deleting the read alerts found none."
+  },
+  "couldNotDeleteReadAlerts": "Não foi possível eliminar os alertas lidos",
+  "@couldNotDeleteReadAlerts": {
+    "description": "Alertas: deleting the read alerts failed."
+  },
+  "alertFilterNew": "Novos",
+  "@alertFilterNew": {
+    "description": "Alertas: chip showing new listings and bikes back on sale."
+  },
+  "alertFilterPriceDrops": "Baixas de preço",
+  "@alertFilterPriceDrops": {
+    "description": "Alertas: chip showing price drops and target prices reached."
+  },
+  "alertFilterExcellent": "Excelentes",
+  "@alertFilterExcellent": {
+    "description": "Alertas: chip showing excellent opportunities."
+  },
+  "alertFilterRemoved": "Removidos",
+  "@alertFilterRemoved": {
+    "description": "Alertas: chip showing listings removed from the sites."
+  },
+  "noAlertsOfThisKind": "Não há alertas deste tipo.",
+  "@noAlertsOfThisKind": {
+    "description": "Alertas: the chosen chip has no alerts."
+  },
+  "showAllAlerts": "Ver todos",
+  "@showAllAlerts": {
+    "description": "Alertas: button that clears the chip filter."
   }
 }

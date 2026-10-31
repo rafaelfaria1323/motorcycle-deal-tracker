@@ -187,7 +187,7 @@ begin
               where slug = 'testbrand-only-b');
 end $$;
 
--- Telegram gets only admins' alerts.
+-- Every real account's alerts wait for its devices, admin or not.
 reset test.uid;
 reset test.jwt;
 do $$
@@ -202,6 +202,8 @@ begin
   insert into auth.users (id) values ('00000000-0000-0000-0000-0000000000d1');
   insert into public.alerts (user_id, listing_id, type) values
     ('00000000-0000-0000-0000-0000000000d1', v_listing, 'new_listing');
-  assert (select array_agg(to_telegram order by to_telegram desc)
-          from public.pending_notifications(20)) = array[true, false];
+  assert (select array_agg(user_id order by user_id)
+          from public.pending_notifications(20))
+         = array['00000000-0000-0000-0000-0000000000a1',
+                 '00000000-0000-0000-0000-0000000000d1']::uuid[];
 end $$;

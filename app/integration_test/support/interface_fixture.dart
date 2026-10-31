@@ -427,11 +427,26 @@ class InterfaceAlerts implements AlertsRepository {
   bool failDismiss = false;
   Future<void>? dismissDelay;
 
+  Iterable<ListingAlert> get _shown =>
+      values.where((alert) => !dismissed.contains(alert.id));
+
   @override
-  Future<List<ListingAlert>> getAll() async => [
-    for (final alert in values)
-      if (!dismissed.contains(alert.id)) _withSearch(alert),
+  Future<List<ListingAlert>> getPage({
+    required int limit,
+    Set<AlertType> types = const {},
+    int offset = 0,
+  }) async => [
+    for (final alert
+        in _shown
+            .where((alert) => types.isEmpty || types.contains(alert.type))
+            .skip(offset)
+            .take(limit))
+      _withSearch(alert),
   ];
+
+  @override
+  Future<int> countUnread() async =>
+      _shown.where((alert) => !alert.isRead).length;
 
   ListingAlert _withSearch(ListingAlert alert) {
     final search = searches.values
@@ -474,6 +489,17 @@ class InterfaceAlerts implements AlertsRepository {
     if (dismissDelay case final delay?) await delay;
     if (failDismiss) throw StateError('Offline');
     dismissed.add(id);
+  }
+
+  @override
+  Future<int> dismissRead() async {
+    if (failDismiss) throw StateError('Offline');
+    final read = [
+      for (final alert in _shown)
+        if (alert.isRead) alert.id,
+    ];
+    dismissed.addAll(read);
+    return read.length;
   }
 }
 

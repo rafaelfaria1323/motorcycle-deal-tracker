@@ -1049,5 +1049,17 @@
   "originalAdAddress": "Original ad: {url}",
   "onApp": "On {app}:",
   "shareListing": "Share the listing",
-  "importCostFolded": "Add the ISV, legalisation and transport to a price from Spain, France or Germany."
+  "importCostFolded": "Add the ISV, legalisation and transport to a price from Spain, France or Germany.",
+  "deleteReadAlerts": "Delete read alerts",
+  "deleteReadAlertsQuestion": "Delete the read alerts?",
+  "deleteReadAlertsMessage": "The alerts you have read leave your list, also those not loaded yet. Unread alerts, searches and favourites stay as they are.",
+  "readAlertsDeleted": "{count, plural, =1{1 alert deleted} other{{count} alerts deleted}}",
+  "noReadAlertsToDelete": "There are no read alerts to delete",
+  "couldNotDeleteReadAlerts": "Could not delete the read alerts",
+  "alertFilterNew": "New",
+  "alertFilterPriceDrops": "Price drops",
+  "alertFilterExcellent": "Excellent",
+  "alertFilterRemoved": "Removed",
+  "noAlertsOfThisKind": "There are no alerts of this kind.",
+  "showAllAlerts": "Show all"
 }

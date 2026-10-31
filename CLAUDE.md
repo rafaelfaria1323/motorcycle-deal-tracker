@@ -1077,11 +1077,21 @@ Deleting an alert hides it, never removes its event history:
 `dismiss_alert` requires a real account and its own alert, sets
 `dismissed_at`, `read_at` and `notified_at` only where absent, and leaves
 deduplication intact. The app loads only `dismissed_at is null`; direct
-alert deletion and writes beyond `read_at` remain forbidden. The collector's
+alert deletion and writes beyond `read_at` remain forbidden (no delete
+policy either). The collector's
 pending query already excludes handled notifications. Alert refreshes and
 failed read writes must not bring dismissed rows back. A deleted alert
 brings no later `listing_removed` or `back_on_market` for its listing:
-those follow only alerts still shown (and favourites).
+those follow only alerts still shown (and favourites). "Eliminar os lidos"
+(F.6, Alertas' bar) hides every read alert of the account at once, loaded
+or not (`dismiss_read_alerts`, the same rules; unread ones stay).
+Alertas loads 40 at a time (`AlertsCubit.pageSize`, newest first, then
+by id), more as the list scrolls (offset = alerts shown; a refresh
+reloads as many as are shown); chips show one kind (`AlertFilter`: Novos
+= new and back on the market, Baixas de preço = drops and target price,
+Excelentes, Removidos). The unread count is the server's
+(`countUnread`, every kind), so the tab's badge stays right with a kind
+chosen or pages not loaded; "Marcar todos como lidos" also covers them.
 
 Types: `target_price_reached` (a favourite's `target_price`, set from
 "Quanto oferecer": the listing is live at that price or less, at a price
@@ -1120,8 +1130,7 @@ every alert covered is marked): to the account's devices by Web Push, or FCM
 for the Android app (`push_subscriptions`, saved from Mais ›
 "Notificações neste aparelho", saved again on each visit, removed on
 sign-out; on the iPhone only in the home-screen app;
-no longer to Telegram since 2026-10-21, `pending_notifications.to_telegram`
-is unused). The collector sends them itself
+no longer to Telegram since 2026-10-21). The collector sends them itself
 (`notify/web_push.dart`: RFC 8291 encryption and RFC 8292 VAPID with
 pointycastle, no third party; every push is Declarative Web Push,
 `declarativePush`: `{web_push: 8030, notification: {title, body, navigate,

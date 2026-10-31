@@ -24,8 +24,8 @@ begin
   select array_agg(alert_id order by ord) into ids
   from public.pending_notifications() with ordinality p(alert_id, user_id, listing_id, type, old_price,
                                                        new_price, brand, model, year, mileage, price,
-                                                       deal_score, location, url, to_telegram,
-                                                       created_at, my_colour, ord);
+                                                       deal_score, location, url, created_at,
+                                                       my_colour, ord);
   assert cardinality(ids) = 2, 'the anonymous session''s alert is not sent';
   assert (select type from public.alerts where id = ids[1]) = 'new_listing', 'oldest first';
   assert (select p.old_price = 7000 and p.new_price = 6500 and p.brand = 'Yamaha' and p.mileage = 12000

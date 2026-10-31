@@ -13,6 +13,7 @@ import 'package:motorcycle_deal_tracker/core/widgets/state_message.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/domain/collector_run.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/favourite.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_alert.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_card_preferences.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_filters.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_sort.dart';
@@ -1250,6 +1251,105 @@ void main() {
           .listingId,
       interfaceListing(0).id,
     );
+  });
+
+  testWidgets('alert kinds filter the list and keep the badge (F.6)', (
+    tester,
+  ) async {
+    final fixture = InterfaceFixture();
+    await _open(
+      tester,
+      fixture,
+      location: AppRoutes.alerts,
+      size: const Size(320, 720),
+      textScale: 2,
+    );
+    Future<void> choose(String kind) async {
+      final chip = find.widgetWithText(ChoiceChip, kind);
+      await _reveal(tester, chip);
+      await tester.tap(chip);
+      await tester.pumpAndSettle();
+    }
+
+    await choose('Baixas de preço');
+    expect(fixture.alerts.state.alerts.map((alert) => alert.id), ['alert-1']);
+    await _reveal(tester, find.byKey(const ValueKey('alert-1')));
+    expect(find.byKey(const ValueKey('alert-1')), findsOneWidget);
+
+    await choose('Removidos');
+    expect(find.text('Não há alertas deste tipo.'), findsOneWidget);
+    await tester.tap(find.text('Ver todos'));
+    await tester.pumpAndSettle();
+    expect(fixture.alerts.state.alerts, hasLength(3));
+    await _reveal(tester, find.text('3 alertas por ler'));
+    expect(find.text('3 alertas por ler'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('deleting the read alerts keeps the unread ones (F.6)', (
+    tester,
+  ) async {
+    final fixture = InterfaceFixture();
+    final values = fixture.alertsRepository.values;
+    values[0] = values[0].copyWith(readAt: DateTime(2026, 10, 23, 12));
+    await _open(tester, fixture, location: AppRoutes.alerts);
+    final deleteRead = find.widgetWithIcon(
+      IconButton,
+      Icons.delete_sweep_outlined,
+    );
+    expect(find.text('2 alertas por ler'), findsOneWidget);
+
+    fixture.alertsRepository.failDismiss = true;
+    await tester.tap(find.byTooltip('Eliminar os lidos'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Eliminar'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Não foi possível eliminar os alertas lidos'),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey('alert-0')), findsOneWidget);
+    // Snack bars queue: let this one go before the next.
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+
+    fixture.alertsRepository.failDismiss = false;
+    await tester.tap(find.byTooltip('Eliminar os lidos'));
+    await tester.pumpAndSettle();
+    expect(find.text('Eliminar os alertas lidos?'), findsOneWidget);
+    await tester.tap(find.text('Eliminar'));
+    await tester.pumpAndSettle();
+    expect(find.text('1 alerta eliminado'), findsOneWidget);
+    expect(fixture.alertsRepository.dismissed, {'alert-0'});
+    expect(find.byKey(const ValueKey('alert-0')), findsNothing);
+    expect(fixture.alerts.state.alerts, hasLength(2));
+    expect(find.text('2 alertas por ler'), findsOneWidget);
+    // Nothing read is left to delete.
+    expect(tester.widget<IconButton>(deleteRead).onPressed, isNull);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('more alerts load as the list scrolls (F.6)', (tester) async {
+    final fixture = InterfaceFixture();
+    fixture.alertsRepository.values.addAll([
+      for (var i = 0; i < 50; i++)
+        ListingAlert(
+          id: 'older-$i',
+          type: AlertType.newListing,
+          listing: interfaceListing(i % 6),
+          createdAt: DateTime(2026, 10, 22, 20).subtract(Duration(minutes: i)),
+        ),
+    ]);
+    await _open(tester, fixture, location: AppRoutes.alerts);
+    expect(fixture.alerts.state.alerts, hasLength(40));
+    expect(fixture.alerts.state.hasMore, isTrue);
+    expect(find.text('53 alertas por ler'), findsOneWidget);
+
+    await _reveal(tester, find.byKey(const ValueKey('older-49')));
+    expect(fixture.alerts.state.alerts, hasLength(53));
+    expect(fixture.alerts.state.hasMore, isFalse);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('navigation adapts between mobile, tablet and desktop', (
