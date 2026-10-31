@@ -10,9 +10,8 @@ class ListingsCubit extends AccountScopedCubit<ListingsState> {
   ListingsCubit(
     this._repository,
     SessionCubit session, {
-    DateTime Function() now = DateTime.now,
-  }) : _now = now,
-       super(session, const ListingsState());
+    this._now = DateTime.now,
+  }) : super(session, const ListingsState());
 
   final ListingsRepository _repository;
   final DateTime Function() _now;
