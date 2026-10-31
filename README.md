@@ -147,6 +147,7 @@ treated as complete searches for removal.
 - [`docs/paid-plans.md`](docs/paid-plans.md): the plan for paid subscriptions and other income: what to decide first, free and paid features, prices to test. Not started (roadmap Sprint 16).
 - [`docs/code-quality.md`](docs/code-quality.md): code improvements to do and done (worked through automatically).
 - [`docs/test-hardening.md`](docs/test-hardening.md): bugs, missing and redundant tests found by the automatic mutation-style pass, to do and done.
+- [`docs/feature-review.md`](docs/feature-review.md): the review of every feature (2026-10-31): what to improve in each, what doesn't make sense, code and UI/UX changes, and their order (steps F.1-F.11).
 - [`CLAUDE.md`](CLAUDE.md): conventions and the detailed pipeline, scoring and alert rules.
 
 ## Credits

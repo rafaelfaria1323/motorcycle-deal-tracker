@@ -1,6 +1,6 @@
-# Motorcycle Deal Tracker — Concept & Architecture (status 2026-10-30)
+# Motorcycle Deal Tracker — Concept & Architecture (status 2026-10-31)
 
-**Legend:** ✅ done · 🟡 partly done · ⬜ not started · ➕ added along the way
+**Legend:** ✅ done · 🟡 partly done · ⬜ not started · ➕ added along the way · ➖ left out on purpose
 
 Notes in *italics* describe what was actually built. Keep this file up to
 date in the same PR as the work.
@@ -143,7 +143,7 @@ Initial price, current price, every change with date, percentage, and time onlin
 | Year / mileage | 20% | ✅ both counted in days (15.18, 15.33: nothing jumps on 1 January) |
 | Version / equipment | 15% | 🔄 a bonus instead (15.18): +1 point per extra worth money named in the ad (quickshifter, exhaust, luggage, heated grips, suspension, cruise control, steering damper, new tyres), at most +3 (15.21; as a weighted slice it lowered good scores, at +2 each up to +10 five small extras outweighed a year newer); the version itself is not scored |
 | Seller / confidence | 10% | ✅ dealers with 5+ bikes, from their ads' warning signs (15.7); private sellers and small dealers skip the slice |
-| Market / listing behaviour | 10% | ⬜ data being collected |
+| Market / listing behaviour | 10% | ➖ left out on purpose (roadmap 4.7, 2026-10-28): a long time on sale, drops and relists already set the price to offer and "Pressa do vendedor", and relists are a risk reason; as a slice it would score a fresh ad below the same bike at the same price listed for months. Shown in "Mercado deste modelo" (time to sale, drops, trends) |
 | Risk indicators | 10% | ✅ |
 
 Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are parameters of one SQL function ✅. *All live listings are scored again after each collection in one call (about 3 s for 1 500 listings since N.22: the description's signals are worked out once per text, not every run).*
@@ -159,14 +159,14 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 - ✅ Price significantly below market.
 - ✅ Suspicious mileage. *Under 100 km on a bike three or more years old (a placeholder), or more than 25 000 km a year.*
 - ➕ ✅ The text contradicts the ad (15.6). *The year, mileage, origin or service book written in the description against the ad's fields; only clear cases (two or more years apart, more km in the text, "importada" on a national ad, "sem livro" with a service book).*
-- 🟡 Inconsistent description. *Only "possible accident" keywords; contradictions between text and fields planned (15.6).*
+- ✅ Inconsistent description. *Accident, repair and scratch wording, and the text contradicting the ad's fields (15.6, above).*
 - ✅ Missing information.
 - ✅ Possible accident. *Accident, fall and knock wording (15.24: "teve um toque", "caiu", "foi ao chão"), with denials left out; repairs and missing or broken parts (`needs_repair`, 20) and scratches (`cosmetic_damage`, 5) too. An accident or repair in the text: the price is judged against the estimate less a repair allowance (15.34: accident 15 %, repair 10 %, both 20 %) and the Deal Score is at most 79.*
 - 🟡 Duplicate listing. *Detected (across sources too) and excluded from scoring, not a risk signal.*
 - ✅ Suspicious seller behaviour. *Relisted ads are detected (the same bike taken down and listed again), shown with the first date on sale and the earlier price, and count as risk (15.5): 5 points, 10 when relisted twice or on sale for over 90 days counting the earlier ads. Each dealer's figures (relisted, sharp price changes, missing mileage, repeated ads, price drops) are shown on its listings (15.7) and score the Deal Score's seller slice. Photo fingerprints (P.1, no AI) find the same photos across ads: a duplicate or relist whatever the text, and a risk reason when an earlier ad of another model or a dealer's has them. A free local image model (P.2, CLIP) points out photos that may show a crash, a fall, scratches, broken or missing parts or rust: "O que as fotos podem mostrar" on the listing page, hints only, never a score. Admins' marks on those photos ("Problema" / "Bem", P.3) train a small classifier in plain Dart on the model's stored embeddings, which adds "Parecida com fotos marcadas como problema". Any account can ask for every photo of an ad to be examined, not only the first 3 ("Examinar todas as fotos", P.4; 5 a day): the request starts the photo step at once and the account is told on its devices when it is done (P.7). The photo step warns on the run's page when it fails (P.6).*
 - ✅ Unclear ownership/history. *3+ owners, no service book, imported.*
 - ➕ ✅ A2 version (15.22). *An A2 (35 kW) bike still held back (15 points: the full power needs the kit off and the papers changed) or unlocked (10: check the papers show the full power); read from the variant (Standvirtual's version, OLX's title) and description, ads that only say it can be held back count nothing. Also an argument in "Quanto oferecer".*
-- ⬜ Excessively edited or reused images.
+- 🟡 Excessively edited or reused images. *Reused ✅: photo fingerprints (P.1) find the same photos in an earlier ad of another model or a dealer's (`photos_reused`, 10). Edited ⬜.*
 
 ➕ Reassuring facts lower risk: first owner (the ad's field, or the text when the field is empty: "primeiro / único dono", "1ª mão", "first owner"), service book, factory warranty.
 
