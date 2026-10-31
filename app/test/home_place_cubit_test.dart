@@ -14,7 +14,7 @@ class _Homes implements HomeRepository {
   /// Each getHome waits for the next completer, in order.
   final reads = <Completer<Place?>>[];
   Place? saved;
-  Object? saveError;
+  Error? saveError;
 
   @override
   Future<Place?> getHome() {
