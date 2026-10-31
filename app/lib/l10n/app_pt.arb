@@ -5660,6 +5660,14 @@
   "@photoExamRequested": {
     "description": "Interface text in photo_hints_card (examine every photo, P.4)."
   },
+  "photoExamWaiting": "Pedido: as fotos estão a ser examinadas, o que demora poucos minutos.",
+  "@photoExamWaiting": {
+    "description": "Interface text in photo_hints_card (examine every photo, P.4)."
+  },
+  "photoExamNotifyMe": "Avisar-me quando terminar",
+  "@photoExamNotifyMe": {
+    "description": "Interface text in photo_hints_card (examine every photo, P.4)."
+  },
   "photoExamDone": "Todas as fotos foram examinadas.",
   "@photoExamDone": {
     "description": "Interface text in photo_hints_card (examine every photo, P.4)."

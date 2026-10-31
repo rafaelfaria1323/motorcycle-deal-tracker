@@ -6,6 +6,7 @@ update public.motorcycles set is_active = true where slug = 'yamaha-mt-07';
 
 insert into auth.users (id, email, created_at, is_anonymous) values
   ('00000000-0000-0000-0000-0000000000a1', 'owner@example.com', now() - interval '2 days', false),
+  ('00000000-0000-0000-0000-0000000000a2', 'other@example.com', now() - interval '2 days', false),
   ('00000000-0000-0000-0000-0000000000a9', null, now(), true);
 
 insert into public.listings (source, source_listing_id, url, motorcycle_id, brand, model,
@@ -83,6 +84,31 @@ begin
   assert (select count(*) from net.calls) = 5, 'one start per new request';
 end $$;
 
+-- Another account asking for a waiting ad joins it (20261031090000): it is
+-- told too, nothing new starts, and the cap isn't checked for a join.
+set local test.uid = '00000000-0000-0000-0000-0000000000a2';
+do $$
+declare
+  v_e1 uuid := (select id from public.listings where source_listing_id = 'e1');
+begin
+  insert into public.photo_exam_requests (user_id, listing_id, requested_at)
+  select '00000000-0000-0000-0000-0000000000a2', l.id, now()
+  from public.listings l where l.source_listing_id in ('e3', 'e4', 'e5', 'e6', 'few');
+  assert public.request_photo_exam(v_e1) = (select photo_exam_requested_at
+                                            from public.listings where id = v_e1),
+    'joins the waiting request';
+  assert exists (select 1 from public.photo_exam_requests
+                 where user_id = '00000000-0000-0000-0000-0000000000a2'
+                   and listing_id = v_e1), 'the joiner is stored';
+  assert (select count(*) from net.calls) = 5, 'a join starts nothing';
+  perform public.request_photo_exam(v_e1);
+  assert (select count(*) from public.photo_exam_requests where listing_id = v_e1) = 2,
+    'joining again adds nothing';
+  delete from public.photo_exam_requests
+  where user_id = '00000000-0000-0000-0000-0000000000a2' and listing_id <> v_e1;
+end $$;
+set local test.uid = '00000000-0000-0000-0000-0000000000a1';
+
 -- The app can't reach the requests or the collector's functions.
 do $$
 begin
@@ -122,11 +148,12 @@ begin
                       {"code": "scratches", "photo": 1, "p": 0.5}]'
   where id = v_e1;
   assert public.finish_photo_exams(array[v_e1]) = 1, 'finished';
-  assert (select count(*) from public.photo_exam_answers(array[v_e1, v_e2])) = 1,
-    'only finished listings, each asker';
+  assert (select count(*) from public.photo_exam_answers(array[v_e1, v_e2])) = 2,
+    'only finished listings, each asker (the one who joined too)';
   assert (select (user_id, brand, model, year, hints)
                  = ('00000000-0000-0000-0000-0000000000a1'::uuid, 'Yamaha', 'MT-07', 2020, 2)
-          from public.photo_exam_answers(array[v_e1])), 'the asker, the bike, kinds of hint';
+          from public.photo_exam_answers(array[v_e1]) limit 1),
+    'the first asker first, the bike, kinds of hint';
   assert public.finish_photo_exams(array[v_e1]) = 0, 'finished once';
   assert not exists (select 1 from public.listings_awaiting_photo_exam(10, 30)
                      where id = v_e1), 'left the queue';

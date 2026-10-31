@@ -85,7 +85,8 @@ Screen names below use the Portuguese labels; English provides the same screens.
   mouse wheel or a double tap zooms; admins also mark each of the first 3
   photos "Problema" or "Bem", which the collector learns from, P.3); in
   Avaliação, what the photos may show and "Examinar todas as fotos" (every
-  photo at the next collection, P.4; 5 a day); model, price and facts with the Deal
+  photo examined at once, P.4/P.7; 5 a day; "Avisar-me quando terminar"
+  joins a request already waiting, to be told too); model, price and facts with the Deal
   Score and its verdict beside them; removed / duplicate / relisted notices;
   your note when it is a favourite. Photos and summary sit side by side
   on wide screens and stack on phones, with a visible fullscreen control.

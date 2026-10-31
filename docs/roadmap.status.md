@@ -742,6 +742,8 @@ only).*
 # Sprint 16 — Paid plans ⬜
 
 *Rafael, 2026-10-22: "plan the paid features if in the future we want to start having paid subscriptions, and other ways to make money". The plan: `docs/paid-plans.md` (decisions, free vs paid features, new features, other income, prices to test). Not started, and on hold: Rafael decided the same day to charge only if Standvirtual and OLX give us an API or a data licence (16.0).*
+
+*Bug hunt (2026-10-31): an account asking for an ad someone else had already asked for got the waiting request back but no row in `photo_exam_requests`, so it was never told, and the app, which showed the waiting request as "Pedido" to everyone, promised it would be. `request_photo_exam` now stores the joining account (nothing new started, no cap: a join costs no photo step; `20261031090000_photo_exam_joiners.sql`, `photo_exams_test.sql`), and an ad already waiting shows "Avisar-me quando terminar", which joins it; the promise to tell shows only after one's own request.*
 ## 16.0 Decisions before charging 🟡
 *Rafael's, with a lawyer and an accountant (`docs/paid-plans.md` §1):*
 - *Data rights: decided (Rafael, 2026-10-22). The collection's basis is personal, non-commercial use (`docs/sources.md`), and the EU database right applies (CJEU Innoweb v Wegener, CV-Online v Melons). Paid plans only if the sites make their data available to us: an API, or a licence for the listings. Until then the app stays free for invited accounts, and no page offers plans (no public page for them either). The rest of Sprint 16 waits for that permission.*

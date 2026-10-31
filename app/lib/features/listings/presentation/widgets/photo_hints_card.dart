@@ -15,7 +15,8 @@ import '../photo_viewer_args.dart';
 
 /// What the image model may have seen in the listing's photos (P.2): each
 /// hint opens its photo, so the person judges it. A signed-in account can
-/// ask for every photo to be examined, not only the first ones (P.4).
+/// ask for every photo to be examined, not only the first ones (P.4), or
+/// join a request already waiting, to be told too when it is done.
 /// Nothing when there is neither; never part of a score.
 class const PhotoHintsCard({super.key, required final Listing listing})
     extends StatefulWidget {
@@ -99,7 +100,26 @@ class _PhotoHintsCardState extends State<PhotoHintsCard> {
                   ),
                 ],
               ),
-              PhotoExam.requested => Text(strings.photoExamRequested),
+              // Asked on this page: this account is told when it is done.
+              PhotoExam.requested when _answer != null => Text(
+                strings.photoExamRequested,
+              ),
+              // Asked before, maybe by another account: asking again joins
+              // the request, so this account is told too.
+              PhotoExam.requested => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(strings.photoExamWaiting),
+                  if (session.signedIn) ...[
+                    const SizedBox(height: 8),
+                    TextButton.icon(
+                      onPressed: _busy ? null : _request,
+                      icon: const Icon(Icons.notifications_outlined),
+                      label: Text(strings.photoExamNotifyMe),
+                    ),
+                  ],
+                ],
+              ),
               PhotoExam.done => Text(strings.photoExamDone),
             },
           ],
