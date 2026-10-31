@@ -40,3 +40,4 @@ linter:
     - no_dynamic_casts
     - no_raw_types
     - simple_directive_paths
+    - unnecessary_primary_constructor_body
