@@ -137,7 +137,7 @@ sale, and neither is a place in the list.
 | Negotiation arguments, Pressa do vendedor, what to ask a dealer | ⬜ | ✅ |
 | Para a visita: checklist with repair costs off the offer | checklist only | ✅ |
 | Target-price and "back on the market" alerts | ⬜ | ✅ |
-| Mercado deste modelo, Comparar modelos (depreciation, time on sale) | ⬜ | ✅ |
+| Mercado deste modelo, Mercado por modelo (depreciation, time on sale) | ⬜ | ✅ |
 | "O stand": dealer figures | score only | ✅ |
 
 **Possible subscription benefit (Rafael, 2026-10-25): card customization.**

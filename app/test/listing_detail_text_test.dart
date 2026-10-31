@@ -4,10 +4,16 @@ import 'package:motorcycle_deal_tracker/core/localization/app_language.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/listing_detail_text.dart';
 
-Listing listing({int? year, int? mileage, String? location}) => Listing(
+Listing listing({
+  int? year,
+  int? mileage,
+  String? location,
+  double? price,
+  String url = 'https://www.olx.pt/d/anuncio/x.html',
+}) => Listing(
   id: 'l1',
   source: 'olx',
-  url: 'https://www.olx.pt/d/anuncio/x.html',
+  url: url,
   brand: 'Yamaha',
   model: 'MT-07',
   status: ListingStatus.active,
@@ -16,6 +22,7 @@ Listing listing({int? year, int? mileage, String? location}) => Listing(
   year: year,
   mileage: mileage,
   location: location,
+  price: price,
 );
 
 void main() {
@@ -141,5 +148,74 @@ void main() {
       adFacts(published, now: DateTime(2026, 10, 19)),
       contains(('Publicado', '09/10/2026 (há 10 dias)')),
     );
+  });
+
+  group('the bike named on its own (F.4)', () {
+    test('name, and the year after it when known', () {
+      expect(listing().name, 'Yamaha MT-07');
+      expect(listing().nameAndYear, 'Yamaha MT-07');
+      expect(listing(year: 2021).nameAndYear, 'Yamaha MT-07 · 2021');
+    });
+
+    test('the title bar\'s second line: year and price', () {
+      expect(
+        compactTitleLine(listing(year: 2021, price: 6400)),
+        '2021 · ${Formatters.price(6400)}',
+      );
+      expect(compactTitleLine(listing(price: 6400)), Formatters.price(6400));
+      expect(compactTitleLine(listing(year: 2021)), '2021');
+      expect(
+        compactTitleLine(listing(year: 2021, price: 1)),
+        '2021 · Preço por consultar',
+      );
+      expect(
+        compactTitleLine(listing(price: 1), language: .english),
+        'Price on request',
+      );
+    });
+
+    test('only a web address is the original ad', () {
+      expect(adAddress(listing())?.host, 'www.olx.pt');
+      expect(adAddress(listing(url: 'http://example.pt/a'))?.scheme, 'http');
+      expect(adAddress(listing(url: 'javascript:alert(1)')), isNull);
+      expect(adAddress(listing(url: 'manual')), isNull);
+      expect(adAddress(listing(url: '')), isNull);
+    });
+
+    test('the shared link opens the ad in the app', () {
+      expect(listingLink('https://x.dev', 'abc'), 'https://x.dev/#/deals/abc');
+    });
+
+    test('sharing: the bike, its km and price, the original ad', () {
+      final bike = listing(year: 2021, mileage: 12000, price: 6400);
+      expect(
+        listingShareText(bike),
+        'Yamaha MT-07 · 2021 · ${Formatters.mileage(12000)} · '
+        '${Formatters.price(6400)}\n'
+        'Anúncio original: https://www.olx.pt/d/anuncio/x.html\n'
+        'No Motorcycle Deal Tracker:',
+      );
+      expect(
+        listingShareText(bike, language: .english),
+        'Yamaha MT-07 · 2021 · '
+        '${Formatters.mileage(12000, language: .english)} · '
+        '${Formatters.price(6400, language: .english)}\n'
+        'Original ad: https://www.olx.pt/d/anuncio/x.html\n'
+        'On Motorcycle Deal Tracker:',
+      );
+    });
+
+    test('sharing leaves out what is unknown or not a web address', () {
+      expect(
+        listingShareText(listing(price: 1, url: 'manual')),
+        'Yamaha MT-07 · Preço por consultar\nNo Motorcycle Deal Tracker:',
+      );
+      expect(
+        listingShareText(listing(year: 2021)),
+        'Yamaha MT-07 · 2021\n'
+        'Anúncio original: https://www.olx.pt/d/anuncio/x.html\n'
+        'No Motorcycle Deal Tracker:',
+      );
+    });
   });
 }

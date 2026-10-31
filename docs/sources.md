@@ -174,7 +174,7 @@ for the next run. At 6-10 s that is at most about 225 requests per site
 and run (7 runs a day, 9.6d).
 
 **Watched.** Requests per run, per day and per month are shown in the app
-(Mais › Recolha de dados, "Estado da recolha"). To set caps again:
+(Mais › "Estado da recolha", admins). To set caps again:
 `FetchPolicy(maxRequestsPerRun: …, maxRequestsPerDay: …)` in
 `collector/lib/src/fetch/polite_fetcher.dart` (see `docs/hosting.md`).
 The limits recorded below are those of their time.

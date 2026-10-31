@@ -27,6 +27,8 @@ void main() {
     expect(newPriceLines(listing(newPrice: 8250)), isEmpty);
     expect(newPriceLines(listing(price: 7000, newPrice: 0)), isEmpty);
     expect(newPriceLines(listing(price: 7000, newPrice: -1)), isEmpty);
+    // "1 €" is a placeholder, not 8 249 € below a new one.
+    expect(newPriceLines(listing(price: 1, newPrice: 8250)), isEmpty);
   });
 
   test('shows how much cheaper than a new one', () {

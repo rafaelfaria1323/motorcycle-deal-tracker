@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:motorcycle_deal_tracker/app/di/injection.dart';
@@ -9,8 +10,10 @@ import 'package:motorcycle_deal_tracker/app/router/app_routes.dart';
 import 'package:motorcycle_deal_tracker/app/theme/app_theme.dart';
 import 'package:motorcycle_deal_tracker/core/widgets/section_card.dart';
 import 'package:motorcycle_deal_tracker/core/widgets/state_message.dart';
+import 'package:motorcycle_deal_tracker/features/collector_status/domain/collector_run.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/favourite.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_alert.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_card_preferences.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_filters.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_sort.dart';
@@ -68,6 +71,28 @@ Future<void> _reveal(WidgetTester tester, Finder finder) async {
   await tester.pumpAndSettle();
 }
 
+/// Mais › "Cartões dos anúncios", the only way in to the card choices.
+final _cardChoices = find.widgetWithText(ListTile, 'Cartões dos anúncios');
+
+Future<GoRouter> _openCardChoices(
+  WidgetTester tester,
+  InterfaceFixture fixture, {
+  Size size = const Size(390, 844),
+  double textScale = 1,
+}) async {
+  final router = await _open(
+    tester,
+    fixture,
+    size: size,
+    textScale: textScale,
+    location: AppRoutes.more,
+  );
+  await _reveal(tester, _cardChoices);
+  await tester.tap(_cardChoices);
+  await tester.pumpAndSettle();
+  return router;
+}
+
 Future<void> _toggleCardField(WidgetTester tester, String label) async {
   final field = find.widgetWithText(CheckboxListTile, label);
   await tester.ensureVisible(field);
@@ -98,8 +123,8 @@ void main() {
   setUpAll(loadInterfaceFonts);
   tearDown(getIt.reset);
 
-  for (final scale in [1.0, 1.25, 2.0]) {
-    testWidgets('offers result labels share a text baseline at ${scale}x', (
+  for (final scale in [1.0, 1.25]) {
+    testWidgets('the count shares the toolbar row at ${scale}x', (
       tester,
     ) async {
       await _open(
@@ -108,28 +133,21 @@ void main() {
         size: const Size(900, 1000),
         textScale: scale,
       );
-      final count = find.text('40 anúncios carregados');
-      final comparison = find.text('Compare até 3 anúncios');
-      final countText = tester.renderObject<RenderParagraph>(count);
-      final comparisonText = tester.renderObject<RenderParagraph>(comparison);
-      final countBaseline =
-          tester.getTopLeft(count).dy +
-          countText.getDryBaseline(
-            countText.constraints,
-            TextBaseline.alphabetic,
-          )!;
-      final comparisonBaseline =
-          tester.getTopLeft(comparison).dy +
-          comparisonText.getDryBaseline(
-            comparisonText.constraints,
-            TextBaseline.alphabetic,
-          )!;
-      expect(comparisonBaseline, closeTo(countBaseline, 0.01));
+      final filters = tester.getRect(
+        find.widgetWithText(OutlinedButton, 'Filtros'),
+      );
+      final count = tester.getRect(find.text('40 anúncios carregados'));
+      expect(count.center.dy, closeTo(filters.center.dy, 1));
+      expect(count.left, greaterThan(filters.right));
+      // Nothing above the toolbar: the ads start at once.
+      expect(find.text('A próxima mota começa aqui.'), findsNothing);
+      expect(find.text('Cartões'), findsNothing);
+      expect(find.text('Guardar pesquisa'), findsNothing);
       expect(tester.takeException(), isNull);
     });
   }
 
-  testWidgets('offers result labels wrap safely on a narrow enlarged screen', (
+  testWidgets('the count wraps safely on a narrow enlarged screen', (
     tester,
   ) async {
     await _open(
@@ -139,10 +157,26 @@ void main() {
       textScale: 2,
     );
     final count = tester.getRect(find.text('40 anúncios carregados'));
-    final comparison = tester.getRect(find.text('Compare até 3 anúncios'));
-    expect(comparison.top, greaterThanOrEqualTo(count.bottom));
-    expect(comparison.left, closeTo(count.left, 0.5));
-    expect(comparison.right, lessThanOrEqualTo(300));
+    final filters = tester.getRect(
+      find.widgetWithText(OutlinedButton, 'Filtros'),
+    );
+    expect(count.top, greaterThanOrEqualTo(filters.bottom));
+    expect(count.right, lessThanOrEqualTo(300));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a phone fits Filtros and the sort on one row', (tester) async {
+    await _open(tester, InterfaceFixture(), size: const Size(360, 800));
+    final filters = tester.getRect(
+      find.widgetWithText(OutlinedButton, 'Filtros'),
+    );
+    final sort = tester.getRect(find.byTooltip('Ordenar'));
+    expect(sort.center.dy, closeTo(filters.center.dy, 1));
+    // The first ad starts in the top quarter of the screen.
+    expect(
+      tester.getTopLeft(find.byType(ListingCard).first).dy,
+      lessThan(800 / 4),
+    );
     expect(tester.takeException(), isNull);
   });
 
@@ -155,7 +189,7 @@ void main() {
           size: Size(width, 1000),
           dark: dark,
         );
-        expect(find.text('A próxima mota começa aqui.'), findsOneWidget);
+        expect(find.text('A próxima mota começa aqui.'), findsNothing);
         expect(find.text('6 anúncios'), findsOneWidget);
         expect(find.byType(ListingCard), findsWidgets);
         expect(tester.takeException(), isNull);
@@ -231,8 +265,7 @@ void main() {
                             listing: Listing(
                               id: 'long-model',
                               source: 'standvirtual',
-                              url:
-                                  'https://www.standvirtual.com/motos/anuncio/test',
+                              url: 'https://www.standvirtual.com/motos/anuncio/test',
                               brand: 'Harley-Davidson',
                               model: 'Sportster S 1250 Revolution Max',
                               status: ListingStatus.active,
@@ -303,19 +336,17 @@ void main() {
       tester,
     ) async {
       final fixture = InterfaceFixture(signedIn: true);
-      await _open(
+      final router = await _openCardChoices(
         tester,
         fixture,
         size: const Size(320, 720),
         textScale: scale,
       );
-      final customize = find.widgetWithText(OutlinedButton, 'Cartões');
-      await _reveal(tester, customize);
-      await tester.tap(customize);
-      await tester.pumpAndSettle();
       await _toggleCardField(tester, 'Donos / primeiro dono');
       await _toggleCardField(tester, 'Data de publicação');
       await tester.tap(find.widgetWithText(FilledButton, 'Guardar'));
+      await tester.pumpAndSettle();
+      router.go(AppRoutes.deals);
       await tester.pumpAndSettle();
       final card = find.byType(ListingCard).first;
       await _reveal(tester, card);
@@ -352,16 +383,12 @@ void main() {
       tester,
     ) async {
       final fixture = InterfaceFixture(signedIn: true);
-      await _open(
+      final router = await _openCardChoices(
         tester,
         fixture,
         size: const Size(320, 720),
         textScale: scale,
       );
-      final customize = find.widgetWithText(OutlinedButton, 'Cartões');
-      await _reveal(tester, customize);
-      await tester.tap(customize);
-      await tester.pumpAndSettle();
       await _toggleCardField(tester, 'Quilometragem');
       await _toggleCardField(tester, 'Risk Score');
       expect(fixture.cardPreferencesRepository.saves, 0);
@@ -372,7 +399,7 @@ void main() {
         const ListingCardPreferences.defaults(),
       );
 
-      await tester.tap(customize);
+      await tester.tap(_cardChoices);
       await tester.pumpAndSettle();
       await _toggleCardField(tester, 'Quilometragem');
       await _toggleCardField(tester, 'Risk Score');
@@ -383,6 +410,8 @@ void main() {
         fixture.cardPreferencesRepository.value.shows(ListingCardField.mileage),
         isFalse,
       );
+      router.go(AppRoutes.deals);
+      await tester.pumpAndSettle();
       final card = find.byType(ListingCard).first;
       await _reveal(tester, card);
       expect(
@@ -398,14 +427,11 @@ void main() {
         findsOneWidget,
       );
 
-      await tester.scrollUntilVisible(
-        customize,
-        -200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await Scrollable.ensureVisible(tester.element(customize), alignment: 0.5);
+      router.go(AppRoutes.more);
       await tester.pumpAndSettle();
-      await tester.tap(customize);
+      await tester.ensureVisible(_cardChoices);
+      await tester.pumpAndSettle();
+      await tester.tap(_cardChoices);
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('Repor predefinições'));
       await tester.tap(find.text('Repor predefinições'));
@@ -515,18 +541,30 @@ void main() {
     (tester) async {
       final fixture = InterfaceFixture(signedIn: true);
       fixture.cardPreferencesRepository.failReads = true;
-      await _open(tester, fixture);
-      await tester.tap(find.text('Cartões: tentar novamente'));
+      await _open(tester, fixture, location: AppRoutes.more);
+      await _reveal(tester, _cardChoices);
+      const loadError =
+          'Não foi possível carregar as suas escolhas. Tente novamente.';
+      expect(
+        find.descendant(of: _cardChoices, matching: find.text(loadError)),
+        findsOneWidget,
+      );
+      await tester.tap(_cardChoices);
       await tester.pumpAndSettle();
       expect(
-        find.text(
-          'Não foi possível carregar as suas escolhas. Tente novamente.',
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text(loadError),
         ),
         findsOneWidget,
       );
       fixture.cardPreferencesRepository.failReads = false;
-      await tester.ensureVisible(find.text('Tentar novamente'));
-      await tester.tap(find.text('Tentar novamente'));
+      final retry = find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Tentar novamente'),
+      );
+      await tester.ensureVisible(retry);
+      await tester.tap(retry);
       await tester.pumpAndSettle();
       await _toggleCardField(tester, 'Quilometragem');
       fixture.cardPreferencesRepository.failWrites = true;
@@ -556,8 +594,17 @@ void main() {
     'anonymous visitors keep default cards and are asked to sign in',
     (tester) async {
       final fixture = InterfaceFixture();
-      await _open(tester, fixture);
-      await tester.tap(find.text('Cartões'));
+      await _open(tester, fixture, location: AppRoutes.more);
+      await _reveal(tester, _cardChoices);
+      expect(tester.widget<ListTile>(_cardChoices).enabled, isFalse);
+      expect(
+        find.descendant(
+          of: _cardChoices,
+          matching: find.text('Disponível com sessão iniciada'),
+        ),
+        findsOneWidget,
+      );
+      unawaited(showListingCardPreferences(tester.element(_cardChoices)));
       await tester.pumpAndSettle();
       expect(
         find.text('Inicie sessão para personalizar os cartões dos anúncios.'),
@@ -574,9 +621,7 @@ void main() {
     final users = StreamController<User?>();
     addTearDown(users.close);
     final fixture = InterfaceFixture(signedIn: true, userChanges: users.stream);
-    await _open(tester, fixture);
-    await tester.tap(find.text('Cartões'));
-    await tester.pumpAndSettle();
+    await _openCardChoices(tester, fixture);
     await _toggleCardField(tester, 'Risk Score');
     users.add(null);
     await tester.pumpAndSettle();
@@ -686,6 +731,13 @@ void main() {
   ) async {
     final fixture = InterfaceFixture(emptySearches: true);
     await _open(tester, fixture);
+    // Nothing chosen, nothing to save.
+    expect(find.widgetWithText(TextButton, 'Guardar pesquisa'), findsNothing);
+    await fixture.listings.applyFilters(
+      const ListingFilters(activeOnly: false),
+    );
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(TextButton, 'Guardar pesquisa'), findsNothing);
     await fixture.listings.applyFilters(const ListingFilters(maxPrice: 7000));
     await tester.pumpAndSettle();
     final save = find.widgetWithText(TextButton, 'Guardar pesquisa');
@@ -798,6 +850,7 @@ void main() {
 
   testWidgets('empty offers retain model onboarding', (tester) async {
     await _open(tester, InterfaceFixture(total: 0));
+    expect(find.text('A próxima mota começa aqui.'), findsOneWidget);
     expect(find.text('Ainda não há ofertas'), findsOneWidget);
     expect(find.text('Escolher modelos'), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -1200,6 +1253,105 @@ void main() {
     );
   });
 
+  testWidgets('alert kinds filter the list and keep the badge (F.6)', (
+    tester,
+  ) async {
+    final fixture = InterfaceFixture();
+    await _open(
+      tester,
+      fixture,
+      location: AppRoutes.alerts,
+      size: const Size(320, 720),
+      textScale: 2,
+    );
+    Future<void> choose(String kind) async {
+      final chip = find.widgetWithText(ChoiceChip, kind);
+      await _reveal(tester, chip);
+      await tester.tap(chip);
+      await tester.pumpAndSettle();
+    }
+
+    await choose('Baixas de preço');
+    expect(fixture.alerts.state.alerts.map((alert) => alert.id), ['alert-1']);
+    await _reveal(tester, find.byKey(const ValueKey('alert-1')));
+    expect(find.byKey(const ValueKey('alert-1')), findsOneWidget);
+
+    await choose('Removidos');
+    expect(find.text('Não há alertas deste tipo.'), findsOneWidget);
+    await tester.tap(find.text('Ver todos'));
+    await tester.pumpAndSettle();
+    expect(fixture.alerts.state.alerts, hasLength(3));
+    await _reveal(tester, find.text('3 alertas por ler'));
+    expect(find.text('3 alertas por ler'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('deleting the read alerts keeps the unread ones (F.6)', (
+    tester,
+  ) async {
+    final fixture = InterfaceFixture();
+    final values = fixture.alertsRepository.values;
+    values[0] = values[0].copyWith(readAt: DateTime(2026, 10, 23, 12));
+    await _open(tester, fixture, location: AppRoutes.alerts);
+    final deleteRead = find.widgetWithIcon(
+      IconButton,
+      Icons.delete_sweep_outlined,
+    );
+    expect(find.text('2 alertas por ler'), findsOneWidget);
+
+    fixture.alertsRepository.failDismiss = true;
+    await tester.tap(find.byTooltip('Eliminar os lidos'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Eliminar'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Não foi possível eliminar os alertas lidos'),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey('alert-0')), findsOneWidget);
+    // Snack bars queue: let this one go before the next.
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+
+    fixture.alertsRepository.failDismiss = false;
+    await tester.tap(find.byTooltip('Eliminar os lidos'));
+    await tester.pumpAndSettle();
+    expect(find.text('Eliminar os alertas lidos?'), findsOneWidget);
+    await tester.tap(find.text('Eliminar'));
+    await tester.pumpAndSettle();
+    expect(find.text('1 alerta eliminado'), findsOneWidget);
+    expect(fixture.alertsRepository.dismissed, {'alert-0'});
+    expect(find.byKey(const ValueKey('alert-0')), findsNothing);
+    expect(fixture.alerts.state.alerts, hasLength(2));
+    expect(find.text('2 alertas por ler'), findsOneWidget);
+    // Nothing read is left to delete.
+    expect(tester.widget<IconButton>(deleteRead).onPressed, isNull);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('more alerts load as the list scrolls (F.6)', (tester) async {
+    final fixture = InterfaceFixture();
+    fixture.alertsRepository.values.addAll([
+      for (var i = 0; i < 50; i++)
+        ListingAlert(
+          id: 'older-$i',
+          type: AlertType.newListing,
+          listing: interfaceListing(i % 6),
+          createdAt: DateTime(2026, 10, 22, 20).subtract(Duration(minutes: i)),
+        ),
+    ]);
+    await _open(tester, fixture, location: AppRoutes.alerts);
+    expect(fixture.alerts.state.alerts, hasLength(40));
+    expect(fixture.alerts.state.hasMore, isTrue);
+    expect(find.text('53 alertas por ler'), findsOneWidget);
+
+    await _reveal(tester, find.byKey(const ValueKey('older-49')));
+    expect(fixture.alerts.state.alerts, hasLength(53));
+    expect(fixture.alerts.state.hasMore, isFalse);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('navigation adapts between mobile, tablet and desktop', (
     tester,
   ) async {
@@ -1241,7 +1393,7 @@ void main() {
         InterfaceFixture(signedIn: true, admin: admin),
         location: AppRoutes.more,
       );
-      await _reveal(tester, find.text('Qualidade dos dados'));
+      await _reveal(tester, find.text('Recolha de dados'));
       // To the end of the list, past the last section.
       await tester.drag(find.byType(Scrollable).first, const Offset(0, -5000));
       await tester.pumpAndSettle();
@@ -1250,9 +1402,151 @@ void main() {
         find.text('Contas e convites'),
         admin ? findsOneWidget : findsNothing,
       );
+      // The data quality is in "Estado da recolha" now (F.5).
+      expect(find.text('Qualidade dos dados'), findsNothing);
       expect(tester.takeException(), isNull);
     });
   }
+
+  CollectorRun runEnded(Duration ago, String status) {
+    final finished = DateTime.now().subtract(ago);
+    return CollectorRun(
+      status: status,
+      startedAt: finished.subtract(const Duration(minutes: 5)),
+      finishedAt: finished,
+    );
+  }
+
+  ListTile collectionTile(WidgetTester tester, String title) =>
+      tester.widget<ListTile>(
+        find.ancestor(of: find.text(title), matching: find.byType(ListTile)),
+      );
+
+  testWidgets('Mais says when the last collection was and the next is', (
+    tester,
+  ) async {
+    await _open(
+      tester,
+      InterfaceFixture(
+        signedIn: true,
+        latestRun: runEnded(const Duration(hours: 2), 'ok'),
+      ),
+      location: AppRoutes.more,
+    );
+    await _reveal(tester, find.text('Última recolha há 2 h'));
+    expect(find.textContaining('Próxima recolha: '), findsOneWidget);
+    final tile = collectionTile(tester, 'Última recolha há 2 h');
+    expect(tile.tileColor, isNull);
+    // Only admins go on to the runs.
+    expect(tile.onTap, isNull);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('an anonymous session hears only the next collection', (
+    tester,
+  ) async {
+    await _open(tester, InterfaceFixture(), location: AppRoutes.more);
+    await _reveal(tester, find.textContaining('Próxima recolha: '));
+    expect(find.textContaining('Última recolha'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'a failed collection is tinted in Mais and opens its status for admins',
+    (tester) async {
+      await _open(
+        tester,
+        InterfaceFixture(
+          signedIn: true,
+          admin: true,
+          latestRun: runEnded(const Duration(hours: 2), 'failed'),
+        ),
+        location: AppRoutes.more,
+      );
+      await _reveal(tester, find.text('A última recolha falhou'));
+      expect(find.textContaining('Há 2 h · Próxima recolha: '), findsOneWidget);
+      final context = tester.element(find.text('A última recolha falhou'));
+      final scheme = Theme.of(context).colorScheme;
+      final tile = collectionTile(tester, 'A última recolha falhou');
+      expect(tile.tileColor, scheme.errorContainer);
+      expect(tile.textColor, scheme.onErrorContainer);
+
+      await tester.tap(find.text('A última recolha falhou'));
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(AppBar, 'Estado da recolha'), findsOneWidget);
+      await _reveal(tester, find.text('Este mês'));
+      expect(
+        find.textContaining('1 recolha este mês, cerca de'),
+        findsOneWidget,
+      );
+      await _reveal(tester, find.text('Qualidade dos dados'));
+      expect(find.text('Ainda não há anúncios ativos.'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('distance without a home asks for the home first', (
+    tester,
+  ) async {
+    final fixture = InterfaceFixture();
+    await _open(tester, fixture);
+    Future<void> chooseNearest() async {
+      await _reveal(tester, find.byTooltip('Ordenar'));
+      await tester.tap(find.byTooltip('Ordenar'));
+      await tester.pumpAndSettle();
+      expect(find.text('Indique primeiro a sua localidade'), findsOneWidget);
+      await tester.tap(
+        find.ancestor(
+          of: find.text('Mais perto'),
+          matching: find.byType(CheckedPopupMenuItem<ListingSort>),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    // Leaving the town search keeps the order.
+    await chooseNearest();
+    await tester.tap(find.widgetWithText(TextButton, 'Cancelar'));
+    await tester.pumpAndSettle();
+    expect(fixture.listings.state.sort, isNot(ListingSort.nearest));
+
+    // The distance filter is off and offers the same search.
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Filtros'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ExpansionTile, 'Local e distância'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Indique a sua localidade para filtrar por distância'),
+      findsOneWidget,
+    );
+    expect(
+      find.widgetWithText(TextButton, 'Indicar a sua localidade'),
+      findsOneWidget,
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Aplicar'));
+    await tester.pumpAndSettle();
+
+    // A town found and picked is saved, then the order applies.
+    await chooseNearest();
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextField),
+      ),
+      'por',
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ListTile, 'Porto'));
+    await tester.pumpAndSettle();
+    expect(fixture.home.place?.name, 'Porto');
+    expect(fixture.repository.lastSort, ListingSort.nearest);
+
+    await tester.tap(find.byTooltip('Ordenar'));
+    await tester.pumpAndSettle();
+    expect(find.text('Indique primeiro a sua localidade'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('filter sections open on a tap and say what is chosen', (
     tester,
@@ -1298,7 +1592,7 @@ void main() {
     );
     expect(find.text('Modelos acompanhados'), findsOneWidget);
     await tester.scrollUntilVisible(
-      find.text('Qualidade dos dados'),
+      find.textContaining('Próxima recolha: '),
       200,
       scrollable: find.byType(Scrollable).first,
     );
@@ -1384,6 +1678,167 @@ void main() {
     await tester.tap(find.text('Detalhes'));
     await tester.pumpAndSettle();
     expect(find.text('Mostrar menos'), findsOneWidget);
+    await tester.tap(find.text('Avaliação'));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('the bar names the bike once its heading scrolls away (F.4)', (
+    tester,
+  ) async {
+    await _open(
+      tester,
+      InterfaceFixture(),
+      location: AppRoutes.listingDetail(interfaceListing(0).id),
+    );
+    final bar = find.descendant(
+      of: find.byType(ListingDetailPage),
+      matching: find.byType(AppBar),
+    );
+    final plain = find.descendant(of: bar, matching: find.text('O anúncio'));
+    final compact = find.descendant(
+      of: bar,
+      matching: find.textContaining('Yamaha MT-07\n2023 · '),
+    );
+    final list = find.byType(Scrollable).first;
+    // Negociar is long enough to scroll the heading well away.
+    await _reveal(tester, find.byType(TabBar));
+    await tester.tap(find.text('Negociar'));
+    await tester.pumpAndSettle();
+    await tester.drag(list, const Offset(0, 2000));
+    await tester.pumpAndSettle();
+    expect(plain, findsOneWidget);
+    expect(compact, findsNothing);
+
+    final page = find.byType(ListView).first;
+    final heading = find
+        .descendant(of: page, matching: find.text('Yamaha MT-07'))
+        .first;
+    final past = tester.getBottomLeft(heading).dy - tester.getTopLeft(page).dy;
+    final position = tester.state<ScrollableState>(list).position;
+    expect(
+      position.maxScrollExtent,
+      greaterThan(past + 40),
+      reason: 'the page must scroll past its heading',
+    );
+
+    // Just past the heading (the drag loses its touch slop first).
+    await tester.drag(list, Offset(0, -(past + 40)));
+    await tester.pumpAndSettle();
+    expect(compact, findsOneWidget);
+    expect(plain, findsNothing);
+
+    // A long jump lets go of the heading's item: still named.
+    position.jumpTo(position.maxScrollExtent);
+    await tester.pumpAndSettle();
+    expect(compact, findsOneWidget);
+
+    await tester.drag(list, const Offset(0, 2000));
+    await tester.pumpAndSettle();
+    expect(plain, findsOneWidget);
+    expect(compact, findsNothing);
+
+    // The page remembers the part: leave it on Avaliação.
+    await _reveal(tester, find.byType(TabBar));
+    await tester.tap(find.text('Avaliação'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('sharing an ad copies its link where there is no share sheet', (
+    tester,
+  ) async {
+    String? copied;
+    final messenger = tester.binding.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+      if (call.method == 'Clipboard.setData') {
+        copied = (call.arguments as Map)['text'] as String?;
+      }
+      return null;
+    });
+    addTearDown(
+      () => messenger.setMockMethodCallHandler(SystemChannels.platform, null),
+    );
+    final listing = interfaceListing(0);
+    await _open(
+      tester,
+      InterfaceFixture(),
+      size: const Size(320, 720),
+      textScale: 2,
+      location: AppRoutes.listingDetail(listing.id),
+    );
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.byTooltip('Partilhar o anúncio'));
+    await tester.pumpAndSettle();
+    expect(copied, startsWith('Yamaha MT-07 · 2023 · '));
+    expect(copied, contains('Anúncio original: ${listing.url}'));
+    expect(copied, endsWith('/#${AppRoutes.listingDetail(listing.id)}'));
+    expect(find.text('Link copiado. Cole-o numa mensagem.'), findsOneWidget);
+  });
+
+  testWidgets('an ad opened from a list opens on the part last read (F.4)', (
+    tester,
+  ) async {
+    final router = await _open(
+      tester,
+      InterfaceFixture(),
+      location: AppRoutes.listingDetail(interfaceListing(0).id),
+    );
+    int section() =>
+        DefaultTabController.of(tester.element(find.byType(TabBar))).index;
+    await _reveal(tester, find.byType(TabBar));
+    expect(section(), 0);
+    await tester.tap(find.text('Negociar'));
+    await tester.pumpAndSettle();
+    expect(section(), 3);
+
+    router.go(AppRoutes.deals);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(ListingCard).first);
+    await tester.pumpAndSettle();
+    await _reveal(tester, find.byType(TabBar));
+    expect(section(), 3, reason: 'went on from Ofertas');
+
+    // A notification, an alert or a shared link: the ad from the start.
+    router.go(AppRoutes.listingDetail(interfaceListing(2).id));
+    await tester.pumpAndSettle();
+    await _reveal(tester, find.byType(TabBar));
+    expect(section(), 0);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('buying abroad stays one closed line on a listing (F.4)', (
+    tester,
+  ) async {
+    await _open(
+      tester,
+      InterfaceFixture(),
+      location: AppRoutes.listingDetail(interfaceListing(0).id),
+    );
+    await _reveal(tester, find.byType(TabBar));
+    await tester.tap(find.text('Mercado'));
+    await tester.pumpAndSettle();
+    final title = find.text('E se a comprar no estrangeiro?');
+    await _reveal(tester, title);
+    expect(
+      find.text(
+        'Some o ISV, a legalização e o transporte a um preço de Espanha, '
+        'França ou Alemanha.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Preço lá'), findsNothing);
+    await tester.tap(title);
+    await tester.pumpAndSettle();
+    await _reveal(tester, find.text('Preço lá'));
+    expect(find.text('Preço lá'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    // The part last read outlives the page: leave Avaliação for the tests
+    // that open ads from Ofertas.
+    await tester.scrollUntilVisible(
+      find.byType(TabBar),
+      -200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.text('Avaliação'));
     await tester.pumpAndSettle();
   });
@@ -1508,9 +1963,8 @@ void main() {
         supportedLocales: appLocales,
         theme: AppTheme.light,
         builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(
-            context,
-          ).copyWith(textScaler: const TextScaler.linear(2)),
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: const TextScaler.linear(2)),
           child: child!,
         ),
         home: Scaffold(

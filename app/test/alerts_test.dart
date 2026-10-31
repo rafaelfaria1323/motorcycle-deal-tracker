@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/features/listings/data/models/listing_alert_model.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/entities/alert_filter.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_alert.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/repositories/alerts_repository.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/alerts_cubit.dart';
@@ -56,14 +57,31 @@ class _FakeAlerts implements AlertsRepository {
   Future<List<ListingAlert>>? loadResult;
   bool failLoad = false;
 
+  final pages = <({Set<AlertType> types, int offset, int limit})>[];
+
+  Iterable<ListingAlert> get _visible =>
+      items.where((alert) => !dismissed.contains(alert.id));
+
   @override
-  Future<List<ListingAlert>> getAll() async {
+  Future<List<ListingAlert>> getPage({
+    required int limit,
+    Set<AlertType> types = const {},
+    int offset = 0,
+  }) async {
+    pages.add((types: types, offset: offset, limit: limit));
     if (failLoad) throw StateError('offline');
     if (loadResult case final result?) return await result;
-    return [
-      for (final alert in items)
-        if (!dismissed.contains(alert.id)) alert,
-    ];
+    return _visible
+        .where((alert) => types.isEmpty || types.contains(alert.type))
+        .skip(offset)
+        .take(limit)
+        .toList();
+  }
+
+  @override
+  Future<int> countUnread() async {
+    if (failLoad) throw StateError('offline');
+    return _visible.where((alert) => !alert.isRead).length;
   }
 
   @override
@@ -85,7 +103,32 @@ class _FakeAlerts implements AlertsRepository {
     if (failDismiss) throw StateError('failed');
     dismissed.add(id);
   }
+
+  @override
+  Future<int> dismissRead() async {
+    if (dismissDelay case final delay?) await delay;
+    if (failDismiss) throw StateError('failed');
+    final read = [
+      for (final alert in _visible)
+        if (alert.isRead) alert.id,
+    ];
+    dismissed.addAll(read);
+    return read.length;
+  }
 }
+
+/// [count] alerts, newest first; the first [read] already read.
+List<ListingAlert> _many(
+  int count, {
+  int read = 0,
+  String type = 'new_listing',
+}) => [
+  for (var i = 0; i < count; i++)
+    ListingAlertModel.fromJson(
+      _row('$type-$i', readAt: i < read ? '2026-10-18T21:00:00Z' : null)
+        ..['type'] = type,
+    ),
+];
 
 void main() {
   setUp(() => _session = SessionFixture());
@@ -401,5 +444,230 @@ void main() {
     final alert = ListingAlertModel.fromJson(row);
 
     expect(alert.type, AlertType.listingRemoved);
+  });
+
+  group('pages, kinds and deleting the read ones (F.6)', () {
+    test(
+      'the first page, then the next on scroll; the badge counts all',
+      () async {
+        final repo = _FakeAlerts(_many(45));
+        final cubit = _cubit(repo);
+        await cubit.load();
+        expect(cubit.state.alerts, hasLength(AlertsCubit.pageSize));
+        expect(cubit.state.hasMore, isTrue);
+        expect(cubit.state.unreadCount, 45);
+        expect(repo.pages.single.types, isEmpty);
+
+        await cubit.loadMore();
+        expect(cubit.state.alerts, hasLength(45));
+        expect(cubit.state.hasMore, isFalse);
+        expect(cubit.state.loadingMore, isFalse);
+        expect(cubit.state.unreadCount, 45);
+        expect(repo.pages.last.offset, 40);
+        expect(repo.pages.last.limit, AlertsCubit.pageSize);
+
+        await cubit.loadMore();
+        expect(repo.pages, hasLength(2), reason: 'there is nothing more');
+      },
+    );
+
+    test('a page asked for while one loads is not asked twice', () async {
+      final repo = _FakeAlerts(_many(85));
+      final cubit = _cubit(repo);
+      await cubit.load();
+      await Future.wait([cubit.loadMore(), cubit.loadMore()]);
+      expect(repo.pages, hasLength(2));
+      expect(cubit.state.alerts, hasLength(80));
+    });
+
+    test('alerts made since the first page are not shown twice', () async {
+      final repo = _FakeAlerts(_many(45));
+      final cubit = _cubit(repo);
+      await cubit.load();
+      repo.items.insertAll(0, _many(2, type: 'price_reduction'));
+
+      await cubit.loadMore();
+
+      final ids = cubit.state.alerts.map((alert) => alert.id).toList();
+      expect(ids, hasLength(45));
+      expect(ids.toSet(), hasLength(45));
+      expect(ids.last, 'new_listing-44');
+      // The new ones are counted by the next refresh, not by a page.
+      expect(cubit.state.unreadCount, 45);
+    });
+
+    test('a deleted alert does not make the next page skip one', () async {
+      final repo = _FakeAlerts(_many(45));
+      final cubit = _cubit(repo);
+      await cubit.load();
+      expect(await cubit.dismiss('new_listing-0'), isTrue);
+
+      await cubit.loadMore();
+
+      expect(repo.pages.last.offset, 39);
+      expect(cubit.state.alerts, hasLength(44));
+      expect(cubit.state.alerts.last.id, 'new_listing-44');
+      expect(cubit.state.unreadCount, 44);
+    });
+
+    test('a failed page keeps the list and can be asked again', () async {
+      final repo = _FakeAlerts(_many(45));
+      final cubit = _cubit(repo);
+      await cubit.load();
+      repo.failLoad = true;
+      await cubit.loadMore();
+      expect(cubit.state.alerts, hasLength(40));
+      expect(cubit.state.loadingMore, isFalse);
+      expect(cubit.state.status, AlertsStatus.success);
+
+      repo.failLoad = false;
+      await cubit.loadMore();
+      expect(cubit.state.alerts, hasLength(45));
+    });
+
+    test('a refresh keeps as many alerts as were shown', () async {
+      final repo = _FakeAlerts(_many(45));
+      final cubit = _cubit(repo);
+      await cubit.load();
+      await cubit.loadMore();
+
+      await cubit.load();
+
+      expect(repo.pages.last.offset, 0);
+      expect(repo.pages.last.limit, 2 * AlertsCubit.pageSize);
+      expect(cubit.state.alerts, hasLength(45));
+      expect(cubit.state.hasMore, isFalse);
+    });
+
+    test('a kind shows only its alerts; the badge still counts all', () async {
+      final repo = _FakeAlerts([
+        ..._many(2),
+        ..._many(3, read: 2, type: 'listing_removed'),
+        ..._many(1, type: 'back_on_market'),
+      ]);
+      final cubit = _cubit(repo);
+      await cubit.load();
+      expect(cubit.state.unreadCount, 4);
+
+      final choosing = cubit.applyFilter(AlertFilter.removed);
+      expect(cubit.state.status, AlertsStatus.loading);
+      expect(cubit.state.alerts, isEmpty);
+      expect(cubit.state.unreadCount, 4, reason: 'the badge stays');
+      await choosing;
+
+      expect(repo.pages.last.types, {AlertType.listingRemoved});
+      expect(cubit.state.alerts.map((alert) => alert.type).toSet(), {
+        AlertType.listingRemoved,
+      });
+      expect(cubit.state.unreadCount, 4);
+
+      await cubit.applyFilter(AlertFilter.newListings);
+      expect(cubit.state.alerts, hasLength(3), reason: 'back on sale is new');
+
+      await cubit.applyFilter(AlertFilter.newListings);
+      expect(repo.pages, hasLength(3), reason: 'the same kind loads nothing');
+    });
+
+    test('a kind that cannot load says so and keeps the kind', () async {
+      final repo = _FakeAlerts(_many(2));
+      final cubit = _cubit(repo);
+      await cubit.load();
+      repo.failLoad = true;
+
+      await cubit.applyFilter(AlertFilter.excellent);
+
+      expect(cubit.state.status, AlertsStatus.failure);
+      expect(cubit.state.filter, AlertFilter.excellent);
+      expect(cubit.state.unreadCount, 2);
+    });
+
+    test('marking all read also clears the alerts not loaded', () async {
+      final cubit = _cubit(_FakeAlerts(_many(45)));
+      await cubit.load();
+
+      await cubit.markAllRead();
+
+      expect(cubit.state.unreadCount, 0);
+      expect(cubit.state.unreadElsewhere, 0);
+    });
+
+    test('a failed mark-all puts every count back', () async {
+      final cubit = _cubit(_FakeAlerts(_many(45), failMarkRead: true));
+      await cubit.load();
+
+      await cubit.markAllRead();
+
+      expect(cubit.state.unreadCount, 45);
+    });
+
+    test('deleting the read ones hides them and loads again', () async {
+      final repo = _FakeAlerts([..._many(5, read: 3)]);
+      final cubit = _cubit(repo);
+      await cubit.load();
+      expect(cubit.state.mayHaveRead, isTrue);
+
+      expect(await cubit.dismissRead(), 3);
+
+      expect(cubit.state.alerts.map((alert) => alert.id), [
+        'new_listing-3',
+        'new_listing-4',
+      ]);
+      expect(cubit.state.unreadCount, 2);
+      expect(cubit.state.mayHaveRead, isFalse);
+      expect(repo.pages, hasLength(2));
+      expect(repo.items, hasLength(5), reason: 'the history stays');
+    });
+
+    test('a failed delete of the read ones keeps the list', () async {
+      final repo = _FakeAlerts(_many(3, read: 2), failDismiss: true);
+      final cubit = _cubit(repo);
+      await cubit.load();
+
+      expect(await cubit.dismissRead(), isNull);
+
+      expect(cubit.state.alerts, hasLength(3));
+      expect(repo.pages, hasLength(1));
+    });
+
+    test('deleting the read ones stays with its account', () async {
+      final saved = Completer<void>();
+      final repo = _FakeAlerts(_many(3, read: 2))..dismissDelay = saved.future;
+      final cubit = _cubit(repo);
+      await cubit.load();
+      final deleting = cubit.dismissRead();
+      await _session.changeAccount('other');
+      final current = cubit.state;
+
+      saved.complete();
+
+      expect(await deleting, isNull);
+      expect(cubit.state, current);
+    });
+
+    test('unloaded alerts or another kind may hold read ones', () {
+      final unread = ListingAlertModel.fromJson(_row('a1'));
+      expect(AlertsState(alerts: [unread]).mayHaveRead, isFalse);
+      expect(AlertsState(alerts: [unread], hasMore: true).mayHaveRead, isTrue);
+      expect(
+        AlertsState(alerts: [unread], filter: AlertFilter.removed).mayHaveRead,
+        isTrue,
+      );
+    });
+
+    test('each type reads and writes the database code', () {
+      for (final type in AlertType.values) {
+        final code = ListingAlertModel.code(type);
+        if (type == AlertType.unknown) {
+          expect(code, isNull);
+          continue;
+        }
+        final row = _row('t')..['type'] = code;
+        expect(ListingAlertModel.fromJson(row).type, type);
+      }
+      expect(
+        ListingAlertModel.fromJson(_row('t')..['type'] = 'something_new').type,
+        AlertType.unknown,
+      );
+    });
   });
 }

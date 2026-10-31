@@ -13,6 +13,7 @@ lib/src/pipeline/import_steps.dart
 lib/src/normalized/normalizers.dart
 lib/src/pipeline/source_batch.dart
 lib/src/notify/pending_alert.dart
+lib/src/notify/notify_pending.dart
 lib/src/catalog/catalog.dart
 lib/src/fetch/robots.dart
 lib/src/catalog/model_resolver.dart

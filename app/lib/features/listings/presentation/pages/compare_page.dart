@@ -187,7 +187,10 @@ class const _Header({
         Stack(
           children: [
             InkWell(
-              onTap: () => context.push(AppRoutes.listingDetail(listing.id)),
+              onTap: () => context.push(
+                AppRoutes.listingDetail(listing.id),
+                extra: AppRoutes.fromList,
+              ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: AspectRatio(

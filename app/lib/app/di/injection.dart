@@ -50,6 +50,7 @@ import '../../features/settings/domain/home_repository.dart';
 import '../../features/settings/domain/language_repository.dart';
 import '../../features/settings/domain/push_repository.dart';
 import '../../features/settings/domain/workflows_repository.dart';
+import '../../features/settings/presentation/home_place_cubit.dart';
 import '../../features/settings/presentation/language_cubit.dart';
 
 final getIt = GetIt.instance;
@@ -139,6 +140,10 @@ void configureDependencies(SharedPreferences preferences) {
     )
     ..registerLazySingleton<HomeRepository>(
       () => SupabaseHomeRepository(getIt<SupabaseClient>()),
+    )
+    ..registerLazySingleton(
+      () => HomePlaceCubit(getIt<HomeRepository>(), getIt<SessionCubit>()),
+      dispose: (cubit) => cubit.close(),
     )
     ..registerLazySingleton<AccountsRepository>(
       () => SupabaseAccountsRepository(getIt<SupabaseClient>()),

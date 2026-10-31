@@ -1,5 +1,8 @@
 import 'package:flutter/foundation.dart';
 
+/// The app's name where it is shared.
+const appName = 'Motorcycle Deal Tracker';
+
 /// What the deploy passes to the build (`--dart-define`); empty when run
 /// by hand.
 abstract final class AppBuild {

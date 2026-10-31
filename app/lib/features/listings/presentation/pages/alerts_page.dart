@@ -11,6 +11,7 @@ import '../../../../core/widgets/page_intro.dart';
 import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../../../core/widgets/swipe_actions.dart';
+import '../../domain/entities/alert_filter.dart';
 import '../../domain/entities/listing_alert.dart';
 import '../alerts_text.dart';
 import '../cubit/alerts_cubit.dart';
@@ -82,10 +83,30 @@ class const AlertsPage({super.key}) extends StatelessWidget {
     }
   }
 
+  Future<void> _deleteRead(BuildContext context) async {
+    final messageStrings = context.strings;
+
+    final cubit = context.read<AlertsCubit>();
+    final messenger = ScaffoldMessenger.of(context);
+    if (!await confirmDelete(
+      context,
+      title: messageStrings.deleteReadAlertsQuestion,
+      message: messageStrings.deleteReadAlertsMessage,
+    )) {
+      return;
+    }
+    final deleted = await cubit.dismissRead();
+    if (messenger.mounted) {
+      showMessage(messenger, switch (deleted) {
+        null => messageStrings.couldNotDeleteReadAlerts,
+        0 => messageStrings.noReadAlertsToDelete,
+        final int count => messageStrings.readAlertsDeleted(count: count),
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       appBar: AppBar(
         title: Text(context.strings.alerts),
@@ -101,6 +122,17 @@ class const AlertsPage({super.key}) extends StatelessWidget {
                   : () => context.read<AlertsCubit>().markAllRead(),
             ),
           ),
+          BlocBuilder<AlertsCubit, AlertsState>(
+            buildWhen: (previous, current) =>
+                _canDeleteRead(previous) != _canDeleteRead(current),
+            builder: (context, state) => IconButton(
+              tooltip: context.strings.deleteReadAlerts,
+              icon: const Icon(Icons.delete_sweep_outlined),
+              onPressed: _canDeleteRead(state)
+                  ? () => _deleteRead(context)
+                  : null,
+            ),
+          ),
           IconButton(
             tooltip: context.strings.refresh,
             icon: const Icon(Icons.refresh),
@@ -110,11 +142,12 @@ class const AlertsPage({super.key}) extends StatelessWidget {
       ),
       body: BlocBuilder<AlertsCubit, AlertsState>(
         builder: (context, state) {
-          switch (state.status) {
-            case .initial:
-            case .loading:
+          // With a filter chosen the chips stay, to choose another.
+          if (state.filter == AlertFilter.all) {
+            if (state.status == .initial || state.status == .loading) {
               return const Center(child: CircularProgressIndicator());
-            case .failure:
+            }
+            if (state.status == .failure) {
               return StateMessage(
                 icon: Icons.cloud_off,
                 title: context.strings.couldNotLoadAlerts,
@@ -122,84 +155,193 @@ class const AlertsPage({super.key}) extends StatelessWidget {
                 actionLabel: context.strings.retry,
                 onAction: () => context.read<AlertsCubit>().load(),
               );
-            case .success:
-              if (state.alerts.isEmpty) {
-                return StateMessage(
-                  icon: Icons.notifications_none,
-                  title: context.strings.youHaveNoAlertsYet,
-                  message: context.strings.saveSearchAndWeWillLetYouKnow,
-                  actionLabel: context.strings.viewSearches,
-                  onAction: () => context.go(AppRoutes.searches),
-                );
-              }
-              return RefreshIndicator(
-                onRefresh: () => context.read<AlertsCubit>().load(),
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 800),
-                    child: ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                      children: [
-                        PageIntro(
-                          eyebrow: context.strings.alerts,
-                          title: context.strings.whatChanged,
-                          description: context.strings.alertsIntro,
-                        ),
-                        const SizedBox(height: 20),
-                        Text(
-                          unreadAlertsText(
-                            state.unreadCount,
-                            language: context.language,
-                          ),
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            color: state.unreadCount > 0
-                                ? theme.colorScheme.primary
-                                : theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        for (final day in groupAlertsByDay(
-                          state.alerts,
-                          language: context.language,
-                        )) ...[
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
-                            child: Row(
-                              children: [
-                                Text(
-                                  day.label.toUpperCase(),
-                                  style: AppTheme.groupLabel(context),
-                                ),
-                                const SizedBox(width: 12),
-                                const Expanded(child: Divider()),
-                              ],
-                            ),
-                          ),
-                          for (final alert in day.alerts)
-                            _AlertTile(
-                              key: ValueKey(alert.id),
-                              alert: alert,
-                              title: alertTitle(
-                                alert,
-                                language: context.language,
-                              ),
-                              icon: _icon(alert.type),
-                              onTap: () => _open(context, alert),
-                              onEdit: alert.searchId == null
-                                  ? null
-                                  : () => _edit(context, alert),
-                              onDelete: () => _delete(context, alert),
-                            ),
-                        ],
-                      ],
-                    ),
+            }
+            if (state.alerts.isEmpty) {
+              return StateMessage(
+                icon: Icons.notifications_none,
+                title: context.strings.youHaveNoAlertsYet,
+                message: context.strings.saveSearchAndWeWillLetYouKnow,
+                actionLabel: context.strings.viewSearches,
+                onAction: () => context.go(AppRoutes.searches),
+              );
+            }
+          }
+          return _list(context, state);
+        },
+      ),
+    );
+  }
+
+  static bool _canDeleteRead(AlertsState state) =>
+      state.status == .success && state.mayHaveRead;
+
+  Widget _list(BuildContext context, AlertsState state) {
+    final theme = Theme.of(context);
+    final cubit = context.read<AlertsCubit>();
+
+    return RefreshIndicator(
+      onRefresh: cubit.load,
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          if (notification.depth == 0 &&
+              notification.metrics.axis == Axis.vertical &&
+              notification.metrics.extentAfter < 800) {
+            Future.microtask(cubit.loadMore);
+          }
+          return false;
+        },
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              children: [
+                PageIntro(
+                  eyebrow: context.strings.alerts,
+                  title: context.strings.whatChanged,
+                  description: context.strings.alertsIntro,
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  unreadAlertsText(
+                    state.unreadCount,
+                    language: context.language,
+                  ),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: state.unreadCount > 0
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
-              );
-          }
-        },
+                const SizedBox(height: 12),
+                _FilterChips(
+                  selected: state.filter,
+                  onSelected: cubit.applyFilter,
+                ),
+                ...switch (state.status) {
+                  .initial || .loading => [
+                    const Padding(
+                      padding: EdgeInsets.all(32),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  ],
+                  .failure => [
+                    _FilterNote(
+                      text: context.strings.couldNotLoadAlerts,
+                      actionLabel: context.strings.retry,
+                      onAction: cubit.load,
+                    ),
+                  ],
+                  .success when state.alerts.isEmpty => [
+                    _FilterNote(
+                      text: context.strings.noAlertsOfThisKind,
+                      actionLabel: context.strings.showAllAlerts,
+                      onAction: () => cubit.applyFilter(AlertFilter.all),
+                    ),
+                  ],
+                  .success => [
+                    for (final day in groupAlertsByDay(
+                      state.alerts,
+                      language: context.language,
+                    )) ...[
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
+                        child: Row(
+                          children: [
+                            Text(
+                              day.label.toUpperCase(),
+                              style: AppTheme.groupLabel(context),
+                            ),
+                            const SizedBox(width: 12),
+                            const Expanded(child: Divider()),
+                          ],
+                        ),
+                      ),
+                      for (final alert in day.alerts)
+                        _AlertTile(
+                          key: ValueKey(alert.id),
+                          alert: alert,
+                          title: alertTitle(alert, language: context.language),
+                          icon: _icon(alert.type),
+                          onTap: () => _open(context, alert),
+                          onEdit: alert.searchId == null
+                              ? null
+                              : () => _edit(context, alert),
+                          onDelete: () => _delete(context, alert),
+                        ),
+                    ],
+                  ],
+                },
+                if (state.loadingMore)
+                  const Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Alertas' kinds (F.6), one chosen at a time; they wrap on a narrow phone.
+class const _FilterChips({
+  required final AlertFilter selected,
+  required final ValueChanged<AlertFilter> onSelected,
+}) extends StatelessWidget {
+  static String _label(BuildContext context, AlertFilter filter) =>
+      switch (filter) {
+        .all => context.strings.all,
+        .newListings => context.strings.alertFilterNew,
+        .priceDrops => context.strings.alertFilterPriceDrops,
+        .excellent => context.strings.alertFilterExcellent,
+        .removed => context.strings.alertFilterRemoved,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (final filter in AlertFilter.values)
+          ChoiceChip(
+            label: Text(_label(context, filter)),
+            selected: filter == selected,
+            onSelected: (_) => onSelected(filter),
+          ),
+      ],
+    );
+  }
+}
+
+/// Under the chips: no alerts of the chosen kind, or they could not load.
+class const _FilterNote({
+  required final String text,
+  required final String actionLabel,
+  required final VoidCallback onAction,
+}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(top: 32),
+      child: Column(
+        children: [
+          Text(
+            text,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextButton(onPressed: onAction, child: Text(actionLabel)),
+        ],
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/localizations.dart';
+import '../../../../core/widgets/collapsible_section.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../import_cost.dart';
 import '../import_cost_text.dart';
@@ -18,6 +19,10 @@ class const ImportCostCard({
 
   /// The model's engine size, filled in for the person (it can be changed).
   final int? engineCc,
+
+  /// One closed line until asked for: on a listing it is a question about
+  /// buying elsewhere, not about the ad (F.4).
+  final bool folded = false,
   super.key,
 }) extends StatefulWidget {
   @override
@@ -79,62 +84,87 @@ class _ImportCostCardState extends State<ImportCostCard> {
   Widget build(BuildContext context) {
     final strings = context.strings;
     final cost = _cost();
-    return SectionCard(
-      title: strings.importCostTitle,
-      footnote: importCostNote(language: context.language),
-      children: [
-        Text(switch (widget.against) {
-          ImportComparison.value => strings.importCostIntro,
-          ImportComparison.listing => strings.importCostIntroAd,
-        }),
-        const SizedBox(height: 16),
-        Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: DropdownButtonFormField<ImportCountry>(
-            initialValue: _country,
-            isExpanded: true,
-            decoration: InputDecoration(
-              labelText: strings.importCostCountry,
-              border: const OutlineInputBorder(),
+    final note = importCostNote(language: context.language);
+    final children = <Widget>[
+      Text(switch (widget.against) {
+        ImportComparison.value => strings.importCostIntro,
+        ImportComparison.listing => strings.importCostIntroAd,
+      }),
+      const SizedBox(height: 16),
+      Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: DropdownButtonFormField<ImportCountry>(
+          initialValue: _country,
+          isExpanded: true,
+          decoration: InputDecoration(
+            labelText: strings.importCostCountry,
+            border: const OutlineInputBorder(),
+          ),
+          items: [
+            for (final country in ImportCountry.values)
+              DropdownMenuItem(
+                value: country,
+                child: Text(switch (country) {
+                  ImportCountry.spain => strings.importCountrySpain,
+                  ImportCountry.france => strings.importCountryFrance,
+                  ImportCountry.germany => strings.importCountryGermany,
+                }),
+              ),
+          ],
+          onChanged: (country) {
+            if (country != null) setState(() => _country = country);
+          },
+        ),
+      ),
+      _field(_price, strings.importCostPrice, suffix: '€'),
+      _field(_engineCc, strings.importCostEngineCc, suffix: 'cc'),
+      _field(
+        _transport,
+        strings.importCostTransport,
+        suffix: '€',
+        helper: strings.importCostTransportHint(
+          amount: _country.transport.round().toString(),
+        ),
+      ),
+      if (cost != null)
+        for (final line in importCostLines(
+          cost,
+          estimate: widget.estimate,
+          year: widget.year,
+          mileage: widget.mileage,
+          now: DateTime.now(),
+          against: widget.against,
+          language: context.language,
+        ))
+          BulletLine(line.text, icon: _icons[line.kind]),
+    ];
+    if (!widget.folded) {
+      return SectionCard(
+        title: strings.importCostTitle,
+        footnote: note,
+        children: children,
+      );
+    }
+    final theme = Theme.of(context);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        child: CollapsibleSection(
+          title: strings.importCostTitle,
+          summary: strings.importCostFolded,
+          childrenPadding: const EdgeInsets.only(bottom: 16),
+          children: [
+            ...children,
+            const SizedBox(height: 12),
+            Text(
+              note,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
-            items: [
-              for (final country in ImportCountry.values)
-                DropdownMenuItem(
-                  value: country,
-                  child: Text(switch (country) {
-                    ImportCountry.spain => strings.importCountrySpain,
-                    ImportCountry.france => strings.importCountryFrance,
-                    ImportCountry.germany => strings.importCountryGermany,
-                  }),
-                ),
-            ],
-            onChanged: (country) {
-              if (country != null) setState(() => _country = country);
-            },
-          ),
+          ],
         ),
-        _field(_price, strings.importCostPrice, suffix: '€'),
-        _field(_engineCc, strings.importCostEngineCc, suffix: 'cc'),
-        _field(
-          _transport,
-          strings.importCostTransport,
-          suffix: '€',
-          helper: strings.importCostTransportHint(
-            amount: _country.transport.round().toString(),
-          ),
-        ),
-        if (cost != null)
-          for (final line in importCostLines(
-            cost,
-            estimate: widget.estimate,
-            year: widget.year,
-            mileage: widget.mileage,
-            now: DateTime.now(),
-            against: widget.against,
-            language: context.language,
-          ))
-            BulletLine(line.text, icon: _icons[line.kind]),
-      ],
+      ),
     );
   }
 }

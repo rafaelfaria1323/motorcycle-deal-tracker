@@ -140,9 +140,9 @@ searches and every Standvirtual listing page still to read, 6-10 s apart,
 for at most 30 minutes per site (except light runs, R.2: at 10, 12, 16,
 18 and 22 h Lisbon time a search read in full in the last 12 h is read
 newest first, only down to the ads already seen; `collect.yml`'s input
-`read` forces full or light). The app shows the numbers: Mais ›
-Recolha de dados (last run, this month with the average per run) and
-"Estado da recolha" (per day for the last week, today per site). To limit
+`read` forces full or light). The app shows the numbers to admins in
+Mais › "Estado da recolha" (per run, per day for the last week, this
+month with the average per run, today per site). To limit
 them again, set the caps in `FetchPolicy`
 (`collector/lib/src/fetch/polite_fetcher.dart`): `maxRequestsPerRun`,
 `maxRequestsPerDay` (null = none) and `maxRunTime`; keep `collect.yml`'s

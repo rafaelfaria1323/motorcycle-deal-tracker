@@ -27,7 +27,7 @@ price and score hierarchy, and photo-led listing cards. It adapts from a
 phone's bottom navigation to a desktop sidebar and three-column listings;
 filters, sorting, saving searches and comparing ads have visible controls.
 Each account can choose the details shown on its cards in Ofertas and
-Favoritos ("Cartões" in Ofertas, or Mais › "Cartões dos anúncios"); the
+Favoritos (Mais › "Cartões dos anúncios"); the
 current layout remains the default. Options include first owner / number
 of owners, service book, origin, warranties, colour and the ad's publication
 and renewal dates, distinct from when it was first found.

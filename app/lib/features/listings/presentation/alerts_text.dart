@@ -60,11 +60,7 @@ DateTime _day(DateTime local) =>
 
 /// "Preço reduzido: Yamaha MT-07 · 2021".
 String alertTitle(ListingAlert alert, {AppLanguage language = .portuguese}) {
-  final listing = alert.listing;
-  final bike = [
-    '${listing.brand} ${listing.model}',
-    if (listing.year != null) '${listing.year}',
-  ].join(' · ');
+  final bike = alert.listing.nameAndYear;
   return switch (alert.type) {
     AlertType.newListing => language.messages.newListingAlertsText(bike: bike),
     AlertType.priceReduction => language.messages.priceReduced(bike: bike),

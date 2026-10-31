@@ -1,4 +1,6 @@
+import '../../../app/router/app_routes.dart';
 import '../../../core/formatting/formatters.dart';
+import '../../../core/platform/app_build.dart';
 import '../domain/entities/listing.dart';
 import 'colour_text.dart';
 import 'listing_dates_text.dart';
@@ -42,6 +44,46 @@ String originalLinkLabel(String source, {AppLanguage language = .portuguese}) =>
       ),
       _ => language.messages.viewOriginalListing,
     };
+
+/// The ad's own address when it is a web one; null otherwise. It comes
+/// from the site, so nothing else is opened or shared.
+Uri? adAddress(Listing listing) {
+  final uri = Uri.tryParse(listing.url);
+  return uri != null && (uri.scheme == 'http' || uri.scheme == 'https')
+      ? uri
+      : null;
+}
+
+/// The second line of the page's bar once its own heading has scrolled
+/// away, under the bike's name: "2023 · 6 400 €".
+String compactTitleLine(
+  Listing listing, {
+  AppLanguage language = .portuguese,
+}) => [
+  if (listing.year != null) '${listing.year}',
+  if (listing.price != null) listing.priceLabel(language: language),
+].join(' · ');
+
+/// The app's page of the listing [id] at [origin], as notifications open it.
+String listingLink(String origin, String id) =>
+    '$origin/#${AppRoutes.listingDetail(id)}';
+
+/// What sharing an ad sends before the app's link: the bike, its mileage
+/// and price, and the seller's ad when it has a web address.
+String listingShareText(
+  Listing listing, {
+  AppLanguage language = .portuguese,
+}) => [
+  [
+    listing.nameAndYear,
+    if (listing.mileage != null)
+      Formatters.mileage(listing.mileage, language: language),
+    if (listing.price != null) listing.priceLabel(language: language),
+  ].join(' · '),
+  if (adAddress(listing) case final ad?)
+    language.messages.originalAdAddress(url: '$ad'),
+  language.messages.onApp(app: appName),
+].join('\n');
 
 /// One row of a facts card: a label and its value.
 typedef Fact = (String label, String value);

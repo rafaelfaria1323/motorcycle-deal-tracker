@@ -329,12 +329,15 @@ invites; written by the collector on each run).
 - Text built from data lives in pure functions (`*_text.dart`) with tests.
 - State: flutter_bloc Cubits + Equatable states. DI: get_it. Shared cubits
   (`ListingsCubit`, `SavedSearchesCubit`, `AlertsCubit`, `CollectorStatusCubit`,
-  `FavouritesCubit`, `ListingCardPreferencesCubit`, `LanguageCubit`, and `SessionCubit` for the signed-in state: widgets never
+  `FavouritesCubit`, `ListingCardPreferencesCubit`, `LanguageCubit`,
+  `HomePlaceCubit`, and `SessionCubit` for the signed-in state: widgets never
   read Supabase's auth directly) are lazy singletons, provided in routes with
   `BlocProvider.value`. The shell (`AppShell`) loads `AlertsCubit` at start
-  and on app resume for the unread badge on Alertas, and `FavouritesCubit`
-  at start for the stars on the cards. `ListingsCubit`, `SavedSearchesCubit`,
-  `AlertsCubit` and `FavouritesCubit` inherit `AccountScopedCubit`
+  and on app resume for the unread badge on Alertas, `FavouritesCubit`
+  at start for the stars on the cards, and `HomePlaceCubit` (the account's
+  home) at start for the distance sort and filter. `ListingsCubit`,
+  `SavedSearchesCubit`, `AlertsCubit`, `FavouritesCubit` and
+  `HomePlaceCubit` inherit `AccountScopedCubit`
   (`core/auth/account_scoped_cubit.dart`): they follow `SessionCubit`'s
   account id themselves, clear and reload on account changes or sign-out,
   and ignore earlier in-flight loads and writes, including optimistic
@@ -349,9 +352,12 @@ invites; written by the collector on each run).
   Mais). Account, "Modelos acompanhados" and collection status live in Mais,
   in sections (Conta, Pessoal, Ferramentas, Notificações, A app, Recolha
   de dados) plus "Administração" for admins only (`AdminTiles`; `MorePage`
-  asks `isAdmin()` once per account). Long choices (the filters' models,
-  place, scores and equipment; a model's colours; Mais's runs and data
-  quality) fold into `CollapsibleSection` (`core/widgets/`), whose closed
+  asks `isAdmin()` once per account). Recolha de dados is one line for
+  everyone (`CollectionLineTile`, `collectionLine`: the last run and the
+  next, tinted when the last failed, was blocked or is 12 h old; only the
+  next for an anonymous session); admins tap it for "Estado da recolha"
+  (F.5). Long choices (the filters' models, place, scores and equipment;
+  a model's colours) fold into `CollapsibleSection` (`core/widgets/`), whose closed
   line says what is chosen (`chosenSummary`); the filters sheet keeps its
   title and Limpar/Aplicar fixed while the choices scroll.
   Switching tabs uses `context.go`; full pages outside the shell
@@ -362,7 +368,14 @@ invites; written by the collector on each run).
   (`GoRouter.optionURLReflectsImperativeAPIs`, set in `main.dart`). The
   ad and its photos (`/deals/<id>/photos`, `extra` = `PhotoViewerArgs`,
   JSON so the browser's history keeps it) open on the root navigator
-  (`parentNavigatorKey`), above the tab bar. Android's back on a tab
+  (`parentNavigatorKey`), above the tab bar. An ad opened from a list
+  (Ofertas, Favoritos, the comparison, another ad) is pushed with
+  `extra: AppRoutes.fromList` and opens on the part last read; any other
+  way in (a notification, an alert, a shared link) opens on Avaliação
+  (F.4). Its bar names the bike once the heading scrolls away, and its
+  share button (`shareOrCopy`, `core/widgets/share_or_copy.dart`, also
+  the invites' and "Partilhar a app") sends `listingLink` with
+  `listingShareText`. Android's back on a tab
   other than Ofertas goes to Ofertas (`AppShell`'s `PopScope`). Every
   in-app back arrow calls `goBack` (`core/widgets/page_back_button.dart`):
   in the browser `history.back()` while the entry before is the app's
@@ -448,9 +461,20 @@ invites; written by the collector on each run).
   same address (`PHOTO_BOX`, `photo_url_test.dart`).
 - Lists load `ListingModel.summaryColumns`, never `*` (descriptions are big);
   the deals list is paged (40 per page, more on scroll).
+- Placeholder prices: an asking price under 300 € ("1 €", "consultar";
+  `minRealPrice`) is no price. `Listing.askingPrice` is null for it
+  (`hasPlaceholderPrice`), and every comparison, offer, strip and best
+  value uses `askingPrice`; the card, the page and the comparison show
+  "Preço por consultar" (`priceLabel`). The database's computed field
+  `listings.asking_price` is the same: the price sorts order by it (nulls
+  last) and a maximum price filters on it, as `listing_matches_search`
+  does for saved searches (F.2).
 - Interface: shared wordmark (`core/widgets/app_brand.dart`) and editorial
-  page heading (`page_intro.dart`); labelled filter, sort, save and comparison
-  actions. Listing counts say "carregados" while more pages remain.
+  page heading (`page_intro.dart`; Ofertas shows it only on an empty list);
+  labelled filter, sort, save and comparison actions. Ofertas' header is
+  one row (Filtros, the sort, the count; F.3), and "Guardar pesquisa" sits
+  with the filter chips, only once there is a criterion to save. Listing
+  counts say "carregados" while more pages remain.
   `AppShell` uses bottom navigation below 840px, a compact rail above it,
   and an extended sidebar from 1180px (compact with enlarged text).
   Cards size naturally on phones and with enlarged text; otherwise up to
@@ -460,9 +484,10 @@ invites; written by the collector on each run).
   stays fixed below. `interface_test.dart` covers responsive layouts and
   interactions with the real bundled fonts; keep narrow and enlarged-text
   layouts free of overflow.
-  Ofertas › "Cartões" and Mais › "Cartões dos anúncios" choose the card
-  details for Ofertas and Favoritos (`listing_card_preferences`, one
-  owner-only row per non-anonymous account). Defaults are the existing
+  Mais › "Cartões dos anúncios" chooses the card details for Ofertas and
+  Favoritos (`listing_card_preferences`, one owner-only row per
+  non-anonymous account; the tile says when they could not be read; not in
+  Ofertas' toolbar since F.3). Defaults are the existing
   layout; Risk Score, seller type, colour, owners / first owner, service
   book, origin, warranties, stand name, status and publication, renewal
   and first-found dates are opt-in. A known owner count takes precedence
@@ -560,7 +585,7 @@ invites; written by the collector on each run).
   warns above 30 s.
 - The service-role key is only ever used by the collector, never the app.
 - `source_data_quality` (view, readable by everyone) feeds "Qualidade dos
-  dados" in Mais, including `last_seen_at` (stale after 24 h: "verifique a
+  dados" in "Estado da recolha" (admins; F.5), including `last_seen_at` (stale after 24 h: "verifique a
   recolha") and `sharp_price_changes` (live listings whose price moved by
   50 % or more in one step in the last 30 days).
 - `collector_runs` is readable only by non-anonymous users. `requests` holds
@@ -586,7 +611,8 @@ invites; written by the collector on each run).
   `run_url` (`githubRunUrl`), shown to admins in
   Mais › "Estado da recolha" (`collection_status_page.dart`, route
   `/collection-status`, pushed; also the last 30 days' failures by site
-  and cause, `failureHistoryText`), with the database's size against the
+  and cause, `failureHistoryText`, this month's runs and GitHub minutes,
+  and the data quality), with the database's size against the
   free plan's 500 MB and its 5 biggest tables (`database_usage`, admins;
   red from 80 %).
 - Schedules live in Supabase, not in the workflows (GitHub's scheduler never
@@ -822,8 +848,8 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   listing pages share one fetcher). `FetchPolicy` still takes
   `maxRequestsPerRun` / `maxRequestsPerDay` (null = none) to bring caps
   back. Requests are counted per run (`collector_runs.requests`) and per
-  site and day (the state file's `report()`), and shown in Mais (per run
-  and month) and "Estado da recolha" (per day).
+  site and day (the state file's `report()`), and shown to admins in
+  "Estado da recolha" (per run, day and month).
   Reaching the run time (or a cap) is not a failure: what was saved is
   imported. A request that fails (a timeout), a page our rules refuse or
   a block after some pages were saved also imports them, but the run still
@@ -1007,7 +1033,11 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   set in Mais), `place_key()` (= the app's `placeKey`, keep them equal),
   and the computed field `listings.distance_km` (from the caller's home;
   select it explicitly, it is never part of `*`). Saved searches have
-  `max_distance_km`, matched against the search owner's home.
+  `max_distance_km`, matched against the search owner's home. Without a
+  home (`HomePlaceCubit`'s `noHome`, known only once read) "Mais perto"
+  says so and asks for one before it applies, and the filter's distance is
+  off with a button; both open the town search in place (`pickHomePlace`,
+  `home_place_tile.dart`, also Mais's tile).
 - Dealer figures (`dealer_reliability` view, per dealer name trimmed and
   case-folded, both sites; shown as "O stand" on dealer listings): bikes,
   live, relisted, sharp price changes, missing mileage, repeated used
@@ -1047,11 +1077,21 @@ Deleting an alert hides it, never removes its event history:
 `dismiss_alert` requires a real account and its own alert, sets
 `dismissed_at`, `read_at` and `notified_at` only where absent, and leaves
 deduplication intact. The app loads only `dismissed_at is null`; direct
-alert deletion and writes beyond `read_at` remain forbidden. The collector's
+alert deletion and writes beyond `read_at` remain forbidden (no delete
+policy either). The collector's
 pending query already excludes handled notifications. Alert refreshes and
 failed read writes must not bring dismissed rows back. A deleted alert
 brings no later `listing_removed` or `back_on_market` for its listing:
-those follow only alerts still shown (and favourites).
+those follow only alerts still shown (and favourites). "Eliminar os lidos"
+(F.6, Alertas' bar) hides every read alert of the account at once, loaded
+or not (`dismiss_read_alerts`, the same rules; unread ones stay).
+Alertas loads 40 at a time (`AlertsCubit.pageSize`, newest first, then
+by id), more as the list scrolls (offset = alerts shown; a refresh
+reloads as many as are shown); chips show one kind (`AlertFilter`: Novos
+= new and back on the market, Baixas de preço = drops and target price,
+Excelentes, Removidos). The unread count is the server's
+(`countUnread`, every kind), so the tab's badge stays right with a kind
+chosen or pages not loaded; "Marcar todos como lidos" also covers them.
 
 Types: `target_price_reached` (a favourite's `target_price`, set from
 "Quanto oferecer": the listing is live at that price or less, at a price
@@ -1080,12 +1120,17 @@ the first run after; only alerts wait, never the other pushes.
 a run, oldest first; kept for the next run when the push keys can't be
 read, and while no device took a push that failed, for 24 h; older ones
 are marked without a push; a device whose push failed isn't tried again
-in the same run): to the account's devices by Web Push, or FCM
+in the same run; one notification per account and listing a run, the
+strongest type's (`planAlertPushes`, `alertTypeOrder`: a new ad that is
+also excellent, or matches two searches, arrives once; an excellent
+opportunity brought by a drop shows the drop), and past 4 listings the
+best 3 plus one summary, "Mais N alertas", that opens Alertas
+(`alertsSummaryMessage`, `pushesPerAccount`; the best sent last, on top);
+every alert covered is marked): to the account's devices by Web Push, or FCM
 for the Android app (`push_subscriptions`, saved from Mais ›
 "Notificações neste aparelho", saved again on each visit, removed on
 sign-out; on the iPhone only in the home-screen app;
-no longer to Telegram since 2026-10-21, `pending_notifications.to_telegram`
-is unused). The collector sends them itself
+no longer to Telegram since 2026-10-21). The collector sends them itself
 (`notify/web_push.dart`: RFC 8291 encryption and RFC 8292 VAPID with
 pointycastle, no third party; every push is Declarative Web Push,
 `declarativePush`: `{web_push: 8030, notification: {title, body, navigate,

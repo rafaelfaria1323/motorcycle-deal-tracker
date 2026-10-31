@@ -7,8 +7,10 @@ import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/formatting/formatters.dart';
+import '../../../../core/platform/app_build.dart';
 import '../../../../core/widgets/page_back_button.dart';
 import '../../../../core/widgets/section_card.dart';
+import '../../../../core/widgets/share_or_copy.dart';
 import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/listing.dart';
@@ -40,16 +42,57 @@ import '../widgets/seller_message_card.dart';
 import '../widgets/viewing_checklist_card.dart';
 import '../../../../core/localization/localizations.dart';
 
-class const ListingDetailPage({required final String listingId, super.key})
-    extends StatelessWidget {
+class const ListingDetailPage({
+  required final String listingId,
+
+  /// Opened from a list of ads ([AppRoutes.fromList]): it starts on the
+  /// part last read. Otherwise (a notification, an alert, a shared link)
+  /// on Avaliação, about this bike.
+  final bool keepSection = false,
+  super.key,
+}) extends StatefulWidget {
+  @override
+  State<ListingDetailPage> createState() => _ListingDetailPageState();
+}
+
+class _ListingDetailPageState extends State<ListingDetailPage> {
+  /// Whether the bike's name has scrolled out of view: the bar then
+  /// names it (F.4).
+  final _nameHidden = ValueNotifier(false);
+
+  @override
+  void dispose() {
+    _nameHidden.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final listingId = widget.listingId;
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(
           onPressed: () => goBack(context, fallback: AppRoutes.deals),
         ),
-        title: Text(context.strings.listingListingDetailPage),
+        title: BlocBuilder<ListingDetailCubit, ListingDetailState>(
+          builder: (context, state) => ValueListenableBuilder(
+            valueListenable: _nameHidden,
+            builder: (context, hidden, _) => AnimatedSwitcher(
+              duration: const Duration(milliseconds: 150),
+              layoutBuilder: (current, previous) => Stack(
+                alignment: AlignmentDirectional.centerStart,
+                children: [...previous, ?current],
+              ),
+              child: switch (state.listing) {
+                final listing? when hidden => _CompactTitle(
+                  key: const ValueKey('compact'),
+                  listing: listing,
+                ),
+                _ => Text(context.strings.listingListingDetailPage),
+              },
+            ),
+          ),
+        ),
         actions: [
           // The star needs the listing (the favourites page shows it).
           BlocBuilder<ListingDetailCubit, ListingDetailState>(
@@ -83,7 +126,11 @@ class const ListingDetailPage({required final String listingId, super.key})
                     context.read<ListingDetailCubit>().load(listingId),
               );
             case .success:
-              return _Content(listing: state.listing!);
+              return _Content(
+                listing: state.listing!,
+                keepSection: widget.keepSection,
+                nameHidden: _nameHidden,
+              );
           }
         },
       ),
@@ -107,22 +154,100 @@ enum _Section {
   };
 }
 
-class const _Content({required final Listing listing}) extends StatefulWidget {
+/// The bar's title once the page's own heading has scrolled away: the
+/// bike, then its year and price (F.4).
+class const _CompactTitle({required final Listing listing, super.key})
+    extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(text: listing.name, style: theme.textTheme.titleLarge),
+          TextSpan(
+            text: '\n${compactTitleLine(listing, language: context.language)}',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontFeatures: AppTheme.tabularFigures,
+            ),
+          ),
+        ],
+      ),
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+}
+
+class const _Content({
+  required final Listing listing,
+  required final bool keepSection,
+  required final ValueNotifier<bool> nameHidden,
+}) extends StatefulWidget {
   @override
   State<_Content> createState() => _ContentState();
 }
 
 class _ContentState extends State<_Content> {
-  // Kept while the app runs, so going from one listing to the next opens
-  // the part that was being compared.
+  // Kept while the app runs, so going from one listing of a list to the
+  // next opens the part that was being compared.
   static var _lastSection = _Section.verdict;
 
-  var _section = _lastSection;
+  late var _section = widget.keepSection ? _lastSection : _Section.verdict;
   // Parts are built when first opened and then kept (offstage), so a
   // counter-offer being typed or a loaded chart survives switching.
-  final _opened = {_lastSection};
+  late final _opened = {_section};
+
+  final _scroll = ScrollController();
+  final _nameKey = GlobalKey();
+  final _listKey = GlobalKey();
 
   Listing get listing => widget.listing;
+
+  @override
+  void initState() {
+    super.initState();
+    _lastSection = _section;
+    _scroll.addListener(_scheduleCheck);
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  var _checkPending = false;
+
+  /// Measured once the frame is laid out: during a scroll the positions
+  /// are still the last frame's.
+  void _scheduleCheck() {
+    if (_checkPending) return;
+    _checkPending = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkPending = false;
+      if (mounted) _checkName();
+    });
+  }
+
+  /// Tells the bar whether the bike's name is above the top of the list.
+  void _checkName() {
+    final list = _listKey.currentContext?.findRenderObject();
+    if (list is! RenderBox) return;
+    final name = _nameKey.currentContext?.findRenderObject();
+    // The heading is in the list's first item, which the list lets go
+    // once it is far above the screen (a long jump or a fast fling).
+    if (name is! RenderBox) {
+      widget.nameHidden.value = true;
+      return;
+    }
+    final bottom = name.localToGlobal(
+      Offset(0, name.size.height),
+      ancestor: list,
+    );
+    widget.nameHidden.value = bottom.dy < 0;
+  }
 
   void _select(_Section section) => setState(() {
     _section = section;
@@ -133,12 +258,10 @@ class _ContentState extends State<_Content> {
   Future<void> _openOriginal(BuildContext context) async {
     final messageStrings = context.strings;
 
-    final uri = Uri.tryParse(listing.url);
-    // Only open web links, since the URL comes from an external source.
-    final canOpen =
-        uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
+    final uri = adAddress(listing);
     final opened =
-        canOpen && await launchUrl(uri, mode: LaunchMode.externalApplication);
+        uri != null &&
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
 
     if (!opened && context.mounted) {
       showMessage(
@@ -172,7 +295,7 @@ class _ContentState extends State<_Content> {
         MarketBehaviourSection(listing: listing),
         PriceHistorySection(listing: listing),
         NewPriceCard(listing: listing),
-        if (listing.price case final asking?)
+        if (listing.askingPrice case final asking?)
           ImportCostCard(
             key: ValueKey(listing.id),
             estimate: asking,
@@ -180,6 +303,7 @@ class _ContentState extends State<_Content> {
             year: listing.year,
             mileage: listing.mileage,
             engineCc: listing.engineCc,
+            folded: true,
           ),
         OwnershipCostCard(listing: listing),
       ],
@@ -210,6 +334,8 @@ class _ContentState extends State<_Content> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1040),
               child: ListView(
+                key: _listKey,
+                controller: _scroll,
                 padding: const EdgeInsets.all(20),
                 children: [
                   LayoutBuilder(
@@ -221,7 +347,7 @@ class _ContentState extends State<_Content> {
                       final summary = Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _Header(listing: listing),
+                          _Header(listing: listing, nameKey: _nameKey),
                           const SizedBox(height: 16),
                           ..._statusCards(context),
                           FavouriteNoteCard(listingId: listing.id),
@@ -308,25 +434,28 @@ class _ContentState extends State<_Content> {
                             ),
                           ),
                         );
+                        final share = _ShareButton(listing: listing);
                         if (constraints.maxWidth < 600) {
-                          return SizedBox(
-                            width: double.infinity,
-                            child: button,
+                          return Row(
+                            children: [
+                              share,
+                              const SizedBox(width: 12),
+                              Expanded(child: button),
+                            ],
                           );
                         }
                         return Row(
                           children: [
                             Expanded(
                               child: Text(
-                                Formatters.price(
-                                  listing.price,
-                                  language: context.language,
-                                ),
+                                listing.priceLabel(language: context.language),
                                 style: theme.textTheme.headlineSmall?.copyWith(
                                   fontFeatures: AppTheme.tabularFigures,
                                 ),
                               ),
                             ),
+                            share,
+                            const SizedBox(width: 12),
                             button,
                           ],
                         );
@@ -370,7 +499,10 @@ class _ContentState extends State<_Content> {
           title: context.strings.duplicateListing,
           text: context.strings.itAppearsToBeSameBikeAsAnother,
           actionLabel: context.strings.viewOriginal,
-          onAction: () => context.push(AppRoutes.listingDetail(duplicateOf)),
+          onAction: () => context.push(
+            AppRoutes.listingDetail(duplicateOf),
+            extra: AppRoutes.fromList,
+          ),
         ),
       if (relistText(listing, language: context.language) case final relist?)
         _StatusCard(
@@ -379,14 +511,21 @@ class _ContentState extends State<_Content> {
           title: context.strings.relisted,
           text: relist,
           actionLabel: context.strings.viewEarlierListing,
-          onAction: () =>
-              context.push(AppRoutes.listingDetail(listing.relistedFrom!)),
+          onAction: () => context.push(
+            AppRoutes.listingDetail(listing.relistedFrom!),
+            extra: AppRoutes.fromList,
+          ),
         ),
     ];
   }
 }
 
-class const _Header({required final Listing listing}) extends StatelessWidget {
+class const _Header({
+  required final Listing listing,
+
+  /// On the bike's name, so the page knows when it has scrolled away.
+  required final Key nameKey,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -402,7 +541,8 @@ class const _Header({required final Listing listing}) extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          '${listing.brand} ${listing.model}',
+          listing.name,
+          key: nameKey,
           style: textTheme.headlineLarge?.copyWith(height: 1.05),
         ),
         const SizedBox(height: 14),
@@ -411,7 +551,7 @@ class const _Header({required final Listing listing}) extends StatelessWidget {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Text(
-              Formatters.price(listing.price, language: context.language),
+              listing.priceLabel(language: context.language),
               style: textTheme.displaySmall?.copyWith(
                 fontSize: 42,
                 fontFeatures: AppTheme.tabularFigures,
@@ -547,6 +687,26 @@ class _DescriptionCardState extends State<_DescriptionCard> {
       ],
     );
   }
+}
+
+/// Sends the ad to someone: the app's page of it, with the bike, its price
+/// and the seller's ad (F.4). Where there is no share sheet, it is copied.
+class const _ShareButton({required final Listing listing})
+    extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Tooltip(
+    message: context.strings.shareListing,
+    child: OutlinedButton(
+      onPressed: () => shareOrCopy(
+        ScaffoldMessenger.of(context),
+        title: listing.nameAndYear,
+        text: listingShareText(listing, language: context.language),
+        url: listingLink(webOrigin, listing.id),
+        language: context.language,
+      ),
+      child: const Icon(Icons.ios_share),
+    ),
+  );
 }
 
 /// Adds the listing to the comparison or takes it out; offers to open the

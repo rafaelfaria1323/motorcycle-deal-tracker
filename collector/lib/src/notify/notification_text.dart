@@ -108,6 +108,39 @@ extension NotificationText on NotificationLanguage {
     _count(count, 'saiu do mercado', 'saíram do mercado'),
     '$count left the market',
   );
+
+  /// The title of a run's summary of [count] more alerts.
+  String moreAlerts(int count) => _text(
+    '🔔 Mais ${_count(count, 'alerta', 'alertas')}',
+    '🔔 ${_count(count, 'more alert', 'more alerts')}',
+  );
+
+  /// "[count] alerts of [type]", one part of that summary.
+  String alertCount(String type, int count) => switch (type) {
+    'new_listing' => newListings(count),
+    'price_reduction' => priceDrops(count),
+    'excellent_opportunity' => _text(
+      _count(count, 'excelente oportunidade', 'excelentes oportunidades'),
+      _count(count, 'excellent opportunity', 'excellent opportunities'),
+    ),
+    'listing_removed' => _text(
+      _count(count, 'anúncio removido', 'anúncios removidos'),
+      _count(count, 'listing removed', 'listings removed'),
+    ),
+    'back_on_market' => _text(
+      _count(count, 'voltou ao mercado', 'voltaram ao mercado'),
+      '$count back on the market',
+    ),
+    'target_price_reached' => _text(
+      _count(count, 'chegou ao seu preço', 'chegaram ao seu preço'),
+      '$count at your target price',
+    ),
+    _ => _text(
+      _count(count, 'alerta', 'alertas'),
+      _count(count, 'alert', 'alerts'),
+    ),
+  };
+
   String weekTitle(String from, String to) => _text(
     '📊 Resumo da semana · $from a $to',
     '📊 Weekly summary · $from to $to',

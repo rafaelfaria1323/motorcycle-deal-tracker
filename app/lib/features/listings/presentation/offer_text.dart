@@ -175,10 +175,6 @@ const minComparables = 3;
 /// Prices are rounded to this many euros.
 const offerStep = 50.0;
 
-/// Asking prices below this are placeholders ("1 €", "consulte"); the
-/// database leaves them out of the comparables too.
-const minRealPrice = 300.0;
-
 /// Null without an asking price (or a placeholder one, under
 /// [minRealPrice]) or an estimated value, when the estimate
 /// rests on fewer than 3 comparable listings (as the price score), for a
@@ -194,15 +190,10 @@ OfferSuggestion? suggestOffer(
   int? daysListed,
   AppLanguage language = .portuguese,
 }) {
-  final price = listing.price;
+  final price = listing.askingPrice;
   final undamaged = (listing.scoreBreakdown?['market_price'] as num?)
       ?.toDouble();
-  if (price == null ||
-      price < minRealPrice ||
-      undamaged == null ||
-      undamaged <= 0) {
-    return null;
-  }
+  if (price == null || undamaged == null || undamaged <= 0) return null;
   if (listing.isRemoved || listing.duplicateOf != null) return null;
   final comparables = (listing.scoreBreakdown?['market_listing_count'] as num?)
       ?.toInt();

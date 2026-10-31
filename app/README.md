@@ -54,13 +54,18 @@ Screen names below use the Portuguese labels; English provides the same screens.
   e.g. quickshifter, escape, malas, proteções, suporte de matrícula curto,
   bolha, and "Só nas suas cores": each model's favourite colours; with
   "Mais barato" that is the best price in your colour) and paged 40 at a
-  time. Labelled filter, sort and save controls sit above the results;
+  time. Without a home set, "Mais perto" and "Distância máxima" ask for
+  one first; ads priced under 300 € read "Preço por consultar" and sort
+  after every real price. Filtros, the sort and the count share one row
+  above the results (on most phones the count takes a short line below);
   while more pages remain, the count explicitly describes loaded ads.
-  The count and "Compare até 3 anúncios" share a text baseline, wrapping
-  on narrow screens and respecting enlarged text.
+  "Guardar pesquisa" sits with the filter chips once a criterion is
+  chosen, and the intro ("A próxima mota começa aqui.") greets only an
+  empty list, so the first ad starts in the top quarter of a phone.
   By default, photo-led cards show the source, Deal Score, price change,
   year, mileage, place and distance from your home, and preferred-colour
-  indicator, with a visible "Comparar" action. "Cartões" lets each signed-in
+  indicator, with a visible "Comparar" action. Mais › "Cartões dos anúncios"
+  lets each signed-in
   account show or hide these details, or add Risk Score, seller type,
   colour, owners / first owner, service book, origin, factory and seller
   warranties, the stand's name, status, and publication, renewal and
@@ -90,9 +95,15 @@ Screen names below use the Portuguese labels; English provides the same screens.
   Score and its verdict beside them; removed / duplicate / relisted notices;
   your note when it is a favourite. Photos and summary sit side by side
   on wide screens and stack on phones, with a visible fullscreen control.
-  The original-listing button stays at the bottom, with the price beside
-  it on wide screens. Below, four parts picked using scrollable tabs
-  (the last one picked stays open for the next listing):
+  Once the model's name scrolls away, the title bar names the bike, with
+  its year and price below. The original-listing button stays at the
+  bottom, beside a share button (the app's link to the ad, with the
+  bike, its km, its price and the seller's ad; copied where the device
+  has no share sheet), with the price beside them on wide screens.
+  Below, four parts picked using scrollable tabs (an ad opened from
+  Ofertas, Favoritos, the comparison or another ad opens on the part
+  last read; from a notification, an alert or a shared link, on
+  Avaliação):
   - **Avaliação:** why this score (the reasons and the risk), the same bike
     on the other site, "O stand" for dealers (what we have seen of its ads
     on both sites: relists, sharp price changes, missing mileage, repeated
@@ -107,7 +118,8 @@ Screen names below use the Portuguese labels; English provides the same screens.
     price sits among the model's live listings, and about how many days
     this ad has left on the market, from the model's ads at a similar
     price), the price history, the
-    comparison with a new one, "E se a comprar no estrangeiro?" (the
+    comparison with a new one, "E se a comprar no estrangeiro?" (one
+    closed line until tapped: the
     same bike's price in Spain, France or Germany, the engine size
     filled in, plus ISV, legalisation and transport, against this ad's
     price), "Custo de ter esta mota" (yearly cost:
@@ -141,13 +153,17 @@ Screen names below use the Portuguese labels; English provides the same screens.
   their database history, so the same event cannot be generated again;
   pending notifications are marked handled without a push, and the
   listing's later removal or return no longer alerts because of them.
+  Chips show one kind (Todos, Novos, Baixas de preço, Excelentes,
+  Removidos); "Eliminar os lidos" in the bar deletes every read alert,
+  also those not loaded yet. The list loads 40 alerts at a time and more
+  as it scrolls; the unread count always covers every alert.
 - **Mais:** in sections (Conta, Pessoal, Ferramentas, Notificações, A app, Recolha de dados; "Administração" for admins only: "Contas e convites", "Estado da recolha", "Recolher agora"): account, "Idioma", "Cartões dos anúncios" (the same card display choices as Ofertas), "Partilhar a app" (the app's link), "Notificações neste aparelho" (with "Horas de silêncio": the hours, Portugal time, when alerts wait for the next collection, 23:00 to 08:00 unless changed, for all the account's devices; "Enviar notificação de teste", an example of any alert or collection message, and "Enviar o resumo da semana"), "Resumo da semana" (your models' last 7 days, made every Monday and sent as a notification that opens it: counts, new listings per model, the best deals and the biggest drops, each opening its listing), "A sua localidade" (your home town: every listing
   shows its distance from it), "Modelos acompanhados" (your own models: switch on/off, first
   year, favourite colours of each (listings in them are marked "Cor
   preferida", never scored), new-bike price, add models: brand and model picked from the sites'
   lists or entered by name, with optional engine size; both OLX and
   Standvirtual are searched automatically, without copied URLs; alternative
-  model names are tucked under "Outros nomes do modelo"), "Comparar modelos"
+  model names are tucked under "Outros nomes do modelo"), "Mercado por modelo"
   (your models side by side: typical asking
   price and its spread, the typical bike, time until leaving the market,
   price drops, depreciation, the price trend of the last weeks adjusted for
@@ -160,9 +176,7 @@ Screen names below use the Portuguese labels; English provides the same screens.
   and a dealer's trade-in; your last requests below), "Comprar no
   estrangeiro" (the same form for a bike seen in Spain, France or
   Germany: its price there plus vehicle tax (ISV), legalisation and
-  transport, against its value here), the collection status (last run, what it found, requests, next run; admins: "Estado da recolha" with the last runs, their errors and how long the scores took, the last 30 days' failures by site and cause, each site's requests today and pause, each search's pages read and ads found in the last run, the GitHub token's expiry and the database's size against the free plan's 500 MB, "Recolher agora") and data quality
-  per site (live listings, unmatched, duplicates, missing year/km/location,
-  when listings were last seen, sudden price changes).
+  transport, against its value here), the collection in one line (when the last run was and the next is, tinted when the last failed, a site blocked it or it is 12 h old; admins tap it, or Administração's tile, for "Estado da recolha": the last runs with what they found, their requests, errors and how long the scores took, the last 30 days' failures by site and cause, each site's requests today and pause, each search's pages read and ads found in the last run, this month's runs and GitHub minutes, the data quality per site (live listings, unmatched, duplicates, missing year/km/location, when listings were last seen, sudden price changes), the GitHub token's expiry and the database's size against the free plan's 500 MB; "Recolher agora").
 
 ## Running it
 
