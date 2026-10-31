@@ -19,6 +19,8 @@
 #      functions they call, and no local Postgres has it; so every function
 #      in public must give each UPDATE and DELETE a WHERE (`where id` for
 #      the one-row tables, `where true` when every row is meant).
+#   5. supabase/schema.sql, the schema to read, is what the migrations
+#      produce (tool/schema_snapshot.sh; `make schema` rewrites it).
 #
 # Uses the usual libpq variables, like db_test.sh. Needs the
 # postgresql-16-plpgsql-check package and squawk (pip install squawk-cli).
@@ -116,4 +118,6 @@ if [ -n "$unsafe" ]; then
 else
   echo "ok   safeupdate"
 fi
+# 5. The schema snapshot.
+"$root/tool/schema_snapshot.sh" --check || failed=1
 exit $failed

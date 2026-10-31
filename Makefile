@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 .PHONY: help app-get app-run app-analyze app-check app-smoke app-build app-serve \
         collector-get collector-lint collector-check collect-dry collect \
-        db-push db-new db-test sql-lint check tool-check lint-scripts format clean mutation \
+        db-push db-new db-test sql-lint schema check tool-check lint-scripts format clean mutation \
         coverage app-coverage collector-coverage duplication dead-code \
         require-collector-env require-file
 
@@ -123,8 +123,11 @@ db-new: ## Create a migration: make db-new NAME=add_something
 db-test: ## Apply every migration to a fresh local Postgres and run supabase/tests (PGHOST, PGUSER, ...)
 	tool/db_test.sh
 
-sql-lint: db-test ## Static checks of the database: plpgsql_check, splinter, squawk on new migrations, safeupdate
+sql-lint: db-test ## Static checks of the database: plpgsql_check, splinter, squawk on new migrations, safeupdate, schema.sql
 	tool/sql_lint.sh
+
+schema: db-test ## Rewrite supabase/schema.sql, the schema the migrations produce (read only, never applied)
+	tool/schema_snapshot.sh
 
 # ---- Everything ------------------------------------------------------------
 
