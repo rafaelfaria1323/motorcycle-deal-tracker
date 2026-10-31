@@ -18,6 +18,7 @@ import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listin
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_filters.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_sort.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/listing_card_preferences_cubit.dart';
+import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/alerts_page.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/favourites_page.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/listing_detail_page.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/photo_viewer_args.dart';
@@ -523,7 +524,11 @@ void main() {
       expect(find.byType(PriceChangeTag), findsNothing);
       expect(find.byIcon(Icons.speed), findsNothing);
       expect(find.byIcon(Icons.place_outlined), findsNothing);
-      expect(find.byIcon(Icons.star), findsOneWidget);
+      // The card's star, not the Favoritos tab's (F.9).
+      expect(
+        find.descendant(of: card, matching: find.byIcon(Icons.star)),
+        findsOneWidget,
+      );
       expect(find.text('Ver no sábado'), findsOneWidget);
 
       await getIt<ListingCardPreferencesCubit>().save(
@@ -720,7 +725,11 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.byType(AlertDialog), findsNothing);
         expect(find.byType(FavouritesPage), findsOneWidget);
-        expect(router.canPop(), isTrue);
+        // Favoritos is a tab since F.9: the page stays where it was.
+        expect(
+          router.routeInformationProvider.value.uri.path,
+          AppRoutes.favourites,
+        );
         expect(tester.takeException(), isNull);
       },
     );
@@ -1305,16 +1314,28 @@ void main() {
       size: const Size(320, 720),
       textScale: 2,
     );
+    // The alerts' own list, below the Alertas / Pesquisas segments (F.9).
+    final list = find
+        .descendant(
+          of: find.byType(AlertsPage),
+          matching: find.byType(Scrollable),
+        )
+        .first;
     Future<void> choose(String kind) async {
       final chip = find.widgetWithText(ChoiceChip, kind);
-      await _reveal(tester, chip);
+      await tester.scrollUntilVisible(chip, 200, scrollable: list);
+      await tester.pumpAndSettle();
       await tester.tap(chip);
       await tester.pumpAndSettle();
     }
 
     await choose('Baixas de preço');
     expect(fixture.alerts.state.alerts.map((alert) => alert.id), ['alert-1']);
-    await _reveal(tester, find.byKey(const ValueKey('alert-1')));
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('alert-1')),
+      200,
+      scrollable: list,
+    );
     expect(find.byKey(const ValueKey('alert-1')), findsOneWidget);
 
     await choose('Removidos');
@@ -1322,7 +1343,11 @@ void main() {
     await tester.tap(find.text('Ver todos'));
     await tester.pumpAndSettle();
     expect(fixture.alerts.state.alerts, hasLength(3));
-    await _reveal(tester, find.text('3 alertas por ler'));
+    await tester.scrollUntilVisible(
+      find.text('3 alertas por ler'),
+      -200,
+      scrollable: list,
+    );
     expect(find.text('3 alertas por ler'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

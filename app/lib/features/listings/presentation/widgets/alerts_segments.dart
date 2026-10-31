@@ -7,7 +7,9 @@ import '../../../../core/localization/localizations.dart';
 /// The Alertas tab's two parts above its page: the alerts, and the saved
 /// searches that make them (F.9). Each part is its own address in the
 /// same tab (`/alerts`, `/searches`), so links and the browser's history
-/// keep working; [child] is the part's own content.
+/// keep working; [child] is the part's own content. Labels only: the tab
+/// already shows the bell, and with large text on a phone the icons left
+/// the words too little room.
 class const AlertsSegments({
   required final bool searches,
   required final Widget child,
@@ -28,12 +30,10 @@ class const AlertsSegments({
                 segments: [
                   ButtonSegment(
                     value: false,
-                    icon: const Icon(Icons.notifications_outlined),
                     label: Text(context.strings.alerts),
                   ),
                   ButtonSegment(
                     value: true,
-                    icon: const Icon(Icons.bookmark_border),
                     label: Text(context.strings.searches),
                   ),
                 ],
