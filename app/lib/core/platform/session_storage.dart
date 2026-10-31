@@ -17,10 +17,7 @@ LocalStorage? sessionStorage(String supabaseUrl) => kIsWeb
         'sb-${Uri.parse(supabaseUrl).host.split('.').first}-auth-token',
       );
 
-class _EncryptedSessionStorage extends LocalStorage {
-  _EncryptedSessionStorage(this._key);
-
-  final String _key;
+class _EncryptedSessionStorage(final String _key) extends LocalStorage {
   final _secure = _SecureStore();
 
   /// Read once at the start; this class is the only writer afterwards.
@@ -77,11 +74,8 @@ class _SecureStore implements KeyValueStore {
   Future<void> delete(String key) => _storage.delete(key: key);
 }
 
-class _PlainStore implements KeyValueStore {
-  _PlainStore(this._preferences);
-
-  final SharedPreferences _preferences;
-
+class _PlainStore(final SharedPreferences _preferences)
+    implements KeyValueStore {
   @override
   Future<String?> read(String key) async => _preferences.getString(key);
 

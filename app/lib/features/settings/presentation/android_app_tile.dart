@@ -14,9 +14,7 @@ import '../../../core/localization/localizations.dart';
 /// opened in the browser, which downloads it. In the app: whether a newer
 /// version is out, and a tap downloads it and opens Android's installer
 /// (no browser). Nothing outside Android.
-class AndroidAppTile extends StatefulWidget {
-  const AndroidAppTile({super.key});
-
+class const AndroidAppTile({super.key}) extends StatefulWidget {
   static final _android = defaultTargetPlatform == TargetPlatform.android;
 
   /// Whether there is anything to show here.

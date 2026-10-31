@@ -16,11 +16,8 @@ import '../../../core/localization/localizations.dart';
 /// a test notification or the weekly summary can be asked for now (sent by
 /// the collector, so it checks the whole path to the device). Signed-in
 /// accounts also set their quiet hours here (all their devices).
-class PushTile extends StatefulWidget {
-  const PushTile({required this.signedIn, super.key});
-
-  final bool signedIn;
-
+class const PushTile({required final bool signedIn, super.key})
+    extends StatefulWidget {
   @override
   State<PushTile> createState() => _PushTileState();
 }
@@ -258,11 +255,7 @@ class _PushTileState extends State<PushTile> {
 }
 
 /// Quiet hours: on or off, and from which hour to which (Portugal time).
-class _QuietHoursDialog extends StatefulWidget {
-  const _QuietHoursDialog(this.initial);
-
-  final QuietHours initial;
-
+class const _QuietHoursDialog(final QuietHours initial) extends StatefulWidget {
   @override
   State<_QuietHoursDialog> createState() => _QuietHoursDialogState();
 }

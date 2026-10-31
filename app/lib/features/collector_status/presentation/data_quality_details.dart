@@ -9,9 +9,7 @@ import '../../../core/localization/localizations.dart';
 /// Per site: live listings, how many are tracked models, unmatched or
 /// duplicates, the facts the scored ones miss, when its listings were last
 /// seen and prices that jumped suspiciously.
-class DataQualityDetails extends StatefulWidget {
-  const DataQualityDetails({super.key});
-
+class const DataQualityDetails({super.key}) extends StatefulWidget {
   @override
   State<DataQualityDetails> createState() => _DataQualityDetailsState();
 }

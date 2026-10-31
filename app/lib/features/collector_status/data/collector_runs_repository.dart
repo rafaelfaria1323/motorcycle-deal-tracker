@@ -15,11 +15,8 @@ abstract interface class CollectorRunsRepository {
   Future<List<CollectorRun>> getRecent(int limit);
 }
 
-class SupabaseCollectorRunsRepository implements CollectorRunsRepository {
-  SupabaseCollectorRunsRepository(this._client);
-
-  final SupabaseClient _client;
-
+class SupabaseCollectorRunsRepository(final SupabaseClient _client)
+    implements CollectorRunsRepository {
   static const _columns =
       'status, started_at, finished_at, requests, counts, scoring_ms';
 

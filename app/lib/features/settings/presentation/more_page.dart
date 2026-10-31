@@ -25,9 +25,7 @@ import '../../../core/localization/localizations.dart';
 /// Everything that is not a list of offers: the account, the person's own
 /// lists and settings, the tools, notifications, the app, how the data
 /// collection is doing and, for admins only, "Administração".
-class MorePage extends StatelessWidget {
-  const MorePage({super.key});
-
+class const MorePage({super.key}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,11 +43,8 @@ class MorePage extends StatelessWidget {
   }
 }
 
-class _MoreBody extends StatefulWidget {
-  const _MoreBody({required this.session, super.key});
-
-  final SessionState session;
-
+class const _MoreBody({required final SessionState session, super.key})
+    extends StatefulWidget {
   @override
   State<_MoreBody> createState() => _MoreBodyState();
 }
@@ -92,12 +87,12 @@ class _MoreBodyState extends State<_MoreBody> {
                         vertical: 12,
                       ),
                       leading: CircleAvatar(
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.primaryContainer,
-                        foregroundColor: Theme.of(
-                          context,
-                        ).colorScheme.onPrimaryContainer,
+                        backgroundColor: Theme.of(context)
+                            .colorScheme
+                            .primaryContainer,
+                        foregroundColor: Theme.of(context)
+                            .colorScheme
+                            .onPrimaryContainer,
                         child: const Icon(Icons.person_outline),
                       ),
                       title: Text(
@@ -251,11 +246,7 @@ class _MoreBodyState extends State<_MoreBody> {
   }
 }
 
-class _Header extends StatelessWidget {
-  const _Header(this.text);
-
-  final String text;
-
+class const _Header(final String text) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -268,11 +259,8 @@ class _Header extends StatelessWidget {
 
 /// One rounded card per section, as in the iPhone's settings, with a
 /// hairline between its rows.
-class _Group extends StatelessWidget {
-  const _Group({required this.children});
-
-  final List<Widget> children;
-
+class const _Group({required final List<Widget> children})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(

@@ -7,11 +7,8 @@ abstract interface class GithubTokenRepository {
   Future<GithubToken> check();
 }
 
-class SupabaseGithubTokenRepository implements GithubTokenRepository {
-  SupabaseGithubTokenRepository(this._client);
-
-  final SupabaseClient _client;
-
+class SupabaseGithubTokenRepository(final SupabaseClient _client)
+    implements GithubTokenRepository {
   @override
   Future<GithubToken> check() async {
     final rows =

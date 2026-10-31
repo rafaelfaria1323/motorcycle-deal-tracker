@@ -7,11 +7,8 @@ abstract interface class SourceQualityRepository {
   Future<List<SourceQuality>> getAll();
 }
 
-class SupabaseSourceQualityRepository implements SourceQualityRepository {
-  SupabaseSourceQualityRepository(this._client);
-
-  final SupabaseClient _client;
-
+class SupabaseSourceQualityRepository(final SupabaseClient _client)
+    implements SourceQualityRepository {
   @override
   Future<List<SourceQuality>> getAll() async {
     final rows = await _client

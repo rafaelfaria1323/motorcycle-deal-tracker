@@ -3,20 +3,13 @@ import 'package:flutter/material.dart';
 /// The one card layout of the detail page: a title (with an optional action
 /// on the right), the content, and an optional muted footnote. Every card
 /// uses it so they all line up.
-class SectionCard extends StatelessWidget {
-  const SectionCard({
-    required this.title,
-    required this.children,
-    this.action,
-    this.footnote,
-    super.key,
-  });
-
-  final String title;
-  final List<Widget> children;
-  final Widget? action;
-  final String? footnote;
-
+class const SectionCard({
+  required final String title,
+  required final List<Widget> children,
+  final Widget? action,
+  final String? footnote,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -63,12 +56,8 @@ class SectionCard extends StatelessWidget {
 
 /// One line of a list inside a [SectionCard]: a small muted icon (a dot by
 /// default) and the text.
-class BulletLine extends StatelessWidget {
-  const BulletLine(this.text, {this.icon, super.key});
-
-  final String text;
-  final IconData? icon;
-
+class const BulletLine(final String text, {final IconData? icon, super.key})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final muted = Theme.of(context).colorScheme.onSurfaceVariant;

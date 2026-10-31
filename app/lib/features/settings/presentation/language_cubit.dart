@@ -9,19 +9,12 @@ import '../domain/language_repository.dart';
 
 enum LanguageFailure { load, save }
 
-class LanguageState extends Equatable {
-  const LanguageState({
-    this.language = AppLanguage.portuguese,
-    this.loading = false,
-    this.saving = false,
-    this.failure,
-  });
-
-  final AppLanguage language;
-  final bool loading;
-  final bool saving;
-  final LanguageFailure? failure;
-
+class const LanguageState({
+  final AppLanguage language = AppLanguage.portuguese,
+  final bool loading = false,
+  final bool saving = false,
+  final LanguageFailure? failure,
+}) extends Equatable {
   @override
   List<Object?> get props => [language, loading, saving, failure];
 }

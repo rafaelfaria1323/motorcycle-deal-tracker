@@ -2,22 +2,14 @@ import 'package:flutter/material.dart';
 
 /// Centered icon + title (+ message and action) for empty, error and
 /// not-found states.
-class StateMessage extends StatelessWidget {
-  const StateMessage({
-    required this.icon,
-    required this.title,
-    this.message,
-    this.actionLabel,
-    this.onAction,
-    super.key,
-  });
-
-  final IconData icon;
-  final String title;
-  final String? message;
-  final String? actionLabel;
-  final VoidCallback? onAction;
-
+class const StateMessage({
+  required final IconData icon,
+  required final String title,
+  final String? message,
+  final String? actionLabel,
+  final VoidCallback? onAction,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

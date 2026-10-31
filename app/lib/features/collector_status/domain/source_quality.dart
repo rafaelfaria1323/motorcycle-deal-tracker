@@ -3,21 +3,29 @@ import 'package:equatable/equatable.dart';
 /// One site's live listings and the facts they miss (view
 /// `source_data_quality`). "Scored" listings are the tracked models'
 /// listings that are not duplicates: the ones the scores are built from.
-class SourceQuality extends Equatable {
-  const SourceQuality({
-    required this.source,
-    required this.liveCount,
-    required this.unmatchedCount,
-    required this.duplicateCount,
-    required this.scoredCount,
-    required this.missingYear,
-    required this.missingMileage,
-    required this.missingLocation,
-    required this.detailsPending,
-    this.lastSeenAt,
-    this.sharpPriceChanges = 0,
-  });
+class const SourceQuality({
+  required final String source,
+  required final int liveCount,
 
+  /// Not one of the catalog's models (or of a model switched off).
+  required final int unmatchedCount,
+  required final int duplicateCount,
+  required final int scoredCount,
+  required final int missingYear,
+  required final int missingMileage,
+  required final int missingLocation,
+
+  /// Standvirtual listing pages not read yet.
+  required final int detailsPending,
+
+  /// The latest time any live listing was seen on the site: stale when the
+  /// site stops answering (its listings stay live).
+  final DateTime? lastSeenAt,
+
+  /// Live listings whose price halved or rose by half or more in one step
+  /// in the last 30 days: likely misreads.
+  final int sharpPriceChanges = 0,
+}) extends Equatable {
   factory SourceQuality.fromJson(Map<String, dynamic> json) {
     int n(String key) => (json[key] as num?)?.toInt() ?? 0;
     return SourceQuality(
@@ -34,28 +42,6 @@ class SourceQuality extends Equatable {
       sharpPriceChanges: n('sharp_price_changes'),
     );
   }
-
-  final String source;
-  final int liveCount;
-
-  /// Not one of the catalog's models (or of a model switched off).
-  final int unmatchedCount;
-  final int duplicateCount;
-  final int scoredCount;
-  final int missingYear;
-  final int missingMileage;
-  final int missingLocation;
-
-  /// Standvirtual listing pages not read yet.
-  final int detailsPending;
-
-  /// The latest time any live listing was seen on the site: stale when the
-  /// site stops answering (its listings stay live).
-  final DateTime? lastSeenAt;
-
-  /// Live listings whose price halved or rose by half or more in one step
-  /// in the last 30 days: likely misreads.
-  final int sharpPriceChanges;
 
   @override
   List<Object?> get props => [

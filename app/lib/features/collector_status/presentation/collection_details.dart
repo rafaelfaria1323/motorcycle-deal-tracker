@@ -9,11 +9,8 @@ import '../../../core/localization/localizations.dart';
 /// The last run's duration and requests and this month's runs (readable
 /// only when signed in). Mais says when the next one is due in the
 /// section's summary.
-class CollectionDetails extends StatefulWidget {
-  const CollectionDetails({required this.signedIn, super.key});
-
-  final bool signedIn;
-
+class const CollectionDetails({required final bool signedIn, super.key})
+    extends StatefulWidget {
   @override
   State<CollectionDetails> createState() => _CollectionDetailsState();
 }
@@ -90,9 +87,8 @@ class _CollectionDetailsState extends State<CollectionDetails> {
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                 child: Text(
                   context.strings.githubActionsMinutesNote,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: muted),
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.copyWith(color: muted),
                 ),
               ),
           ],

@@ -30,11 +30,10 @@ Future<void> showListingCardPreferences(BuildContext context) async {
   }
 }
 
-class ListingCardPreferencesTile extends StatelessWidget {
-  const ListingCardPreferencesTile({required this.signedIn, super.key});
-
-  final bool signedIn;
-
+class const ListingCardPreferencesTile({
+  required final bool signedIn,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ListTile(
     leading: const Icon(Icons.view_agenda_outlined),
@@ -50,11 +49,9 @@ class ListingCardPreferencesTile extends StatelessWidget {
   );
 }
 
-class _CardPreferencesDialog extends StatefulWidget {
-  const _CardPreferencesDialog({required this.cubit});
-
-  final ListingCardPreferencesCubit cubit;
-
+class const _CardPreferencesDialog({
+  required final ListingCardPreferencesCubit cubit,
+}) extends StatefulWidget {
   @override
   State<_CardPreferencesDialog> createState() => _CardPreferencesDialogState();
 }

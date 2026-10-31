@@ -4,11 +4,8 @@ import '../domain/home_repository.dart';
 import '../domain/place.dart';
 import '../presentation/place_text.dart';
 
-class SupabaseHomeRepository implements HomeRepository {
-  SupabaseHomeRepository(this._client);
-
-  final SupabaseClient _client;
-
+class SupabaseHomeRepository(final SupabaseClient _client)
+    implements HomeRepository {
   @override
   Future<Place?> getHome() async {
     // Row-level security returns only the current user's home.

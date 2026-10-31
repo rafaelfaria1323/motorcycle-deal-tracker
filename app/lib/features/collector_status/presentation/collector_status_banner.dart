@@ -8,9 +8,7 @@ import 'collection_text.dart';
 import 'collector_status_cubit.dart';
 import '../../../core/localization/localizations.dart';
 
-class CollectorStatusBanner extends StatefulWidget {
-  const CollectorStatusBanner({super.key});
-
+class const CollectorStatusBanner({super.key}) extends StatefulWidget {
   @override
   State<CollectorStatusBanner> createState() => _CollectorStatusBannerState();
 }
