@@ -147,8 +147,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd app && flutter pub get
-          cd ../collector && dart pub get
+          cd app && flutter pub get --enforce-lockfile
+          cd ../collector && dart pub get --enforce-lockfile
 
       - name: Prepare the branch
         run: |

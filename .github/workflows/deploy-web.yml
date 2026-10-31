@@ -120,7 +120,7 @@ jobs:
           cache: true
 
       - name: Install app dependencies
-        run: cd app && flutter pub get
+        run: cd app && flutter pub get --enforce-lockfile
 
       - name: Test
         run: cd app && flutter test
@@ -139,7 +139,7 @@ jobs:
           cache: true
 
       - name: Install app dependencies
-        run: cd app && flutter pub get
+        run: cd app && flutter pub get --enforce-lockfile
 
       # The publishable key is meant for browsers (row-level security protects
       # the data); it is a secret only to keep it out of the repository.

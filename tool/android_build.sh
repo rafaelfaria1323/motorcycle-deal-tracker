@@ -37,7 +37,7 @@ if [[ -n "${FIREBASE_ANDROID_CONFIG:-}" ]]; then
 else
   echo "FIREBASE_ANDROID_CONFIG not set: the app is built without notifications" >&2
 fi
-flutter pub get
+flutter pub get --enforce-lockfile
 dart run flutter_launcher_icons
 
 flutter build apk --release --target-platform android-arm64 \
