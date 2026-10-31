@@ -1,12 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:motorcycle_deal_tracker/features/listings/data/models/listing_alert_model.dart';
-import 'package:motorcycle_deal_tracker/features/listings/domain/entities/alert_filter.dart';
-import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_alert.dart';
-import 'package:motorcycle_deal_tracker/features/listings/domain/repositories/alerts_repository.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/alerts_cubit.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/alerts_state.dart';
+import 'package:motorcycle_deal_tracker/features/alerts/data/models/listing_alert_model.dart';
+import 'package:motorcycle_deal_tracker/features/alerts/domain/entities/alert_filter.dart';
+import 'package:motorcycle_deal_tracker/features/alerts/domain/entities/listing_alert.dart';
+import 'package:motorcycle_deal_tracker/features/alerts/domain/repositories/alerts_repository.dart';
+import 'package:motorcycle_deal_tracker/features/alerts/presentation/cubit/alerts_cubit.dart';
+import 'package:motorcycle_deal_tracker/features/alerts/presentation/cubit/alerts_state.dart';
 
 import 'helpers/session_fixture.dart';
 

@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
-import 'package:motorcycle_deal_tracker/features/listings/data/models/weekly_summary_model.dart';
-import 'package:motorcycle_deal_tracker/features/listings/domain/entities/weekly_summary.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/weekly_summary_text.dart';
+import 'package:motorcycle_deal_tracker/features/alerts/data/models/weekly_summary_model.dart';
+import 'package:motorcycle_deal_tracker/features/alerts/domain/entities/weekly_summary.dart';
+import 'package:motorcycle_deal_tracker/features/alerts/presentation/weekly_summary_text.dart';
 
 /// A row as the collector writes it (weeklySummaryJson).
 final row = {

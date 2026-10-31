@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../app/di/injection.dart';
 import '../../../core/widgets/show_message.dart';
-import '../../listings/presentation/cubit/favourites_cubit.dart';
+import '../../favourites/presentation/cubit/favourites_cubit.dart';
 import '../../listings/presentation/cubit/listings_cubit.dart';
 import '../domain/home_repository.dart';
 import '../domain/place.dart';

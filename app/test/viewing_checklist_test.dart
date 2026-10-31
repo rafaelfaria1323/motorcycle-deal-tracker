@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:motorcycle_deal_tracker/features/listings/domain/entities/favourite.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/viewing_checklist.dart';
+import 'package:motorcycle_deal_tracker/features/favourites/domain/entities/favourite.dart';
+import 'package:motorcycle_deal_tracker/features/favourites/presentation/viewing_checklist.dart';
 
 const _ok = ChecklistEntry(mark: ChecklistMark.ok);
 const _issue = ChecklistEntry(mark: ChecklistMark.issue);

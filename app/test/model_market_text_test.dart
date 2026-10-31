@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
 import 'package:motorcycle_deal_tracker/core/localization/localizations.dart';
-import 'package:motorcycle_deal_tracker/features/listings/domain/entities/model_market.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/model_market_text.dart';
+import 'package:motorcycle_deal_tracker/features/market/domain/entities/model_market.dart';
+import 'package:motorcycle_deal_tracker/features/market/presentation/model_market_text.dart';
 
 PriceSpread spread({
   int count = 12,

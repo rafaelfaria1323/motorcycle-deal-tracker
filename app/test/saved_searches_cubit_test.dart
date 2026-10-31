@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_filters.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/motorcycle_option.dart';
-import 'package:motorcycle_deal_tracker/features/listings/domain/entities/saved_search.dart';
+import 'package:motorcycle_deal_tracker/features/saved_searches/domain/entities/saved_search.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/repositories/listings_repository.dart';
-import 'package:motorcycle_deal_tracker/features/listings/domain/repositories/saved_searches_repository.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/saved_searches_cubit.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/saved_searches_state.dart';
+import 'package:motorcycle_deal_tracker/features/saved_searches/domain/repositories/saved_searches_repository.dart';
+import 'package:motorcycle_deal_tracker/features/saved_searches/presentation/cubit/saved_searches_cubit.dart';
+import 'package:motorcycle_deal_tracker/features/saved_searches/presentation/cubit/saved_searches_state.dart';
 
 import 'helpers/session_fixture.dart';
 

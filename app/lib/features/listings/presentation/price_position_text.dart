@@ -1,5 +1,5 @@
 import '../../../core/formatting/formatters.dart';
-import 'market_behaviour_text.dart';
+import '../../market/presentation/market_behaviour_text.dart';
 import '../../../core/localization/localizations.dart';
 
 /// Where a listing's asking price sits among the other live listings of

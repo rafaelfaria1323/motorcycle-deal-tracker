@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:motorcycle_deal_tracker/features/listings/data/models/listing_alert_model.dart';
-import 'package:motorcycle_deal_tracker/features/listings/data/models/saved_search_model.dart';
+import 'package:motorcycle_deal_tracker/features/alerts/data/models/listing_alert_model.dart';
+import 'package:motorcycle_deal_tracker/features/saved_searches/data/models/saved_search_model.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
-import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_alert.dart';
+import 'package:motorcycle_deal_tracker/features/alerts/domain/entities/listing_alert.dart';
 
 Map<String, dynamic> _listing() => {
   'id': 'l1',

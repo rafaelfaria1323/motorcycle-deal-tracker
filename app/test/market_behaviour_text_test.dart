@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:motorcycle_deal_tracker/features/listings/domain/entities/market_behaviour.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/market_behaviour_text.dart';
+import 'package:motorcycle_deal_tracker/features/market/domain/entities/market_behaviour.dart';
+import 'package:motorcycle_deal_tracker/features/market/presentation/market_behaviour_text.dart';
 
 MarketBehaviour market({
   int gone = 0,

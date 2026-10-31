@@ -5,7 +5,7 @@ import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listin
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_sort.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/motorcycle_option.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/listing_labels.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/saved_search_summary.dart';
+import 'package:motorcycle_deal_tracker/features/saved_searches/presentation/saved_search_summary.dart';
 
 const mt07 = MotorcycleOption(id: 'mt', brand: 'Yamaha', model: 'MT-07');
 

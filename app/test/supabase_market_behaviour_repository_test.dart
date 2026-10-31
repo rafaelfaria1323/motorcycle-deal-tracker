@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart';
 import 'package:http/testing.dart';
-import 'package:motorcycle_deal_tracker/features/listings/data/repositories/supabase_market_behaviour_repository.dart';
+import 'package:motorcycle_deal_tracker/features/market/data/repositories/supabase_market_behaviour_repository.dart';
 import 'package:motorcycle_deal_tracker/features/valuation/domain/entities/bike_value_request.dart';
-import 'package:motorcycle_deal_tracker/features/listings/domain/entities/market_behaviour.dart';
+import 'package:motorcycle_deal_tracker/features/market/domain/entities/market_behaviour.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {

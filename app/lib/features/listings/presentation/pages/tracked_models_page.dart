@@ -11,7 +11,7 @@ import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/catalog_model.dart';
 import '../../domain/repositories/catalog_repository.dart';
 import '../colour_text.dart';
-import '../cubit/favourites_cubit.dart';
+import '../../../favourites/presentation/cubit/favourites_cubit.dart';
 import '../cubit/listings_cubit.dart';
 import '../filter_sections_text.dart';
 import '../tracked_models_text.dart';

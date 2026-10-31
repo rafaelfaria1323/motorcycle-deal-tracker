@@ -329,9 +329,13 @@ invites; written by the collector on each run).
   `theme-color`).
 - Clean architecture per feature: `domain/` (entities, repository interfaces),
   `data/` (models with `fromJson`, Supabase repositories), `presentation/`
-  (cubits, pages, widgets). Features: `listings`, `collector_status`,
-  `settings` (the "Mais" tab), `valuation` (a bike's value, the import
-  calculator, the cost of ownership; F.10).
+  (cubits, pages, widgets). Features (F.10): `listings` (Ofertas, the
+  ad, the catalog and "Modelos acompanhados"), `alerts` (Alertas and the
+  weekly summary), `saved_searches`, `favourites` (with the viewing
+  checklist), `compare`, `market` (market behaviour, the model's market
+  page, time to sale), `valuation` (a bike's value, the import
+  calculator, the cost of ownership), `collector_status`, `settings`
+  (the "Mais" tab).
 - Text built from data lives in pure functions (`*_text.dart`) with tests.
 - State: flutter_bloc Cubits + Equatable states. DI: get_it. Shared cubits
   (`ListingsCubit`, `SavedSearchesCubit`, `AlertsCubit`, `CollectorStatusCubit`,

@@ -3,9 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/widgets/app_brand.dart';
-import '../../features/listings/presentation/cubit/alerts_cubit.dart';
-import '../../features/listings/presentation/cubit/alerts_state.dart';
-import '../../features/listings/presentation/cubit/favourites_cubit.dart';
+import '../../features/alerts/presentation/cubit/alerts_cubit.dart';
+import '../../features/alerts/presentation/cubit/alerts_state.dart';
+import '../../features/favourites/presentation/cubit/favourites_cubit.dart';
 import '../../features/listings/presentation/cubit/listings_cubit.dart';
 import '../../features/settings/presentation/home_place_cubit.dart';
 import '../di/injection.dart';

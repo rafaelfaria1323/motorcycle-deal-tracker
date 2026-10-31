@@ -228,7 +228,8 @@ lib/app/        App widget, theme, router (go_router, one shell with 4 tabs; ads
                 photos above it, pushed), DI (get_it)
 lib/core/       Formatting, shared widgets
 lib/l10n/       Portuguese/English ARB catalogs; ignored generated localizations
-lib/features/   listings, collector_status, settings, valuation
+lib/features/   listings, alerts, saved_searches, favourites, compare, market,
+                valuation, collector_status, settings
   <feature>/domain/        entities, repository interfaces
   <feature>/data/          models (fromJson), Supabase repositories
   <feature>/presentation/  cubits, pages, widgets, *_text.dart (text built from data)

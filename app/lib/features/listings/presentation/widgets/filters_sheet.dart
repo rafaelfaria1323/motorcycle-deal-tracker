@@ -12,7 +12,7 @@ import '../../domain/entities/listing_filters.dart';
 import '../../domain/entities/motorcycle_option.dart';
 import '../filter_fields_text.dart';
 import '../filter_sections_text.dart';
-import '../saved_search_summary.dart';
+import '../../../saved_searches/presentation/saved_search_summary.dart';
 import '../score_criteria.dart';
 import '../score_explanation.dart';
 import '../../../../core/localization/localizations.dart';

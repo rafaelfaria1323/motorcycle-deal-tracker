@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_filters.dart';
-import 'package:motorcycle_deal_tracker/features/listings/domain/entities/saved_search.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/saved_search_summary.dart';
+import 'package:motorcycle_deal_tracker/features/saved_searches/domain/entities/saved_search.dart';
+import 'package:motorcycle_deal_tracker/features/saved_searches/presentation/saved_search_summary.dart';
 
 SavedSearch search(String id, ListingFilters filters, {String? name}) =>
     SavedSearch(

@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
-import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_alert.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/alerts_text.dart';
+import 'package:motorcycle_deal_tracker/features/alerts/domain/entities/listing_alert.dart';
+import 'package:motorcycle_deal_tracker/features/alerts/presentation/alerts_text.dart';
 
 ListingAlert alert(String id, DateTime createdAt) => ListingAlert(
   id: id,
