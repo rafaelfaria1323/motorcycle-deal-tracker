@@ -5,12 +5,12 @@ import '../../domain/entities/model_market.dart';
 /// A small line of a model's weekly adjusted median asking price, oldest on
 /// the left. Its text is the trend line beside it, so it is left out of
 /// the semantics.
-class PriceTrendSparkline extends StatelessWidget {
-  const PriceTrendSparkline({super.key, required this.weeks});
+class const PriceTrendSparkline({
+  super.key,
 
   /// Weeks with enough ads, oldest first; at least two.
-  final List<PriceTrendWeek> weeks;
-
+  required final List<PriceTrendWeek> weeks,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -30,17 +30,11 @@ class PriceTrendSparkline extends StatelessWidget {
   }
 }
 
-class _SparklinePainter extends CustomPainter {
-  _SparklinePainter({
-    required this.values,
-    required this.line,
-    required this.baseline,
-  });
-
-  final List<double> values;
-  final Color line;
-  final Color baseline;
-
+class _SparklinePainter({
+  required final List<double> values,
+  required final Color line,
+  required final Color baseline,
+}) extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     if (values.length < 2) return;

@@ -2,12 +2,10 @@
 /// `extra`: the photos and the one to show first. A plain map of strings
 /// and an int, so the browser's history keeps it (go_router stores `extra`
 /// as JSON) and back/forward open the same photo again.
-class PhotoViewerArgs {
-  const PhotoViewerArgs({required this.images, required this.index});
-
-  final List<String> images;
-  final int index;
-
+class const PhotoViewerArgs({
+  required final List<String> images,
+  required final int index,
+}) {
   Map<String, Object> toExtra() => {'images': images, 'index': index};
 
   /// Null when [extra] isn't one of these (a typed or reloaded address

@@ -13,27 +13,18 @@ import 'listing_photo.dart';
 import 'price_change_tag.dart';
 import '../../../../core/localization/localizations.dart';
 
-class ListingCard extends StatelessWidget {
-  const ListingCard({
-    required this.listing,
-    this.onTap,
-    this.onLongPress,
-    this.selected = false,
-    this.favourite = false,
-    this.preferences = const ListingCardPreferences.defaults(),
-    super.key,
-  });
-
-  final Listing listing;
-  final VoidCallback? onTap;
+class const ListingCard({
+  required final Listing listing,
+  final VoidCallback? onTap,
 
   /// Picks the listing for the comparison.
-  final VoidCallback? onLongPress;
-
-  final bool selected;
-  final bool favourite;
-  final ListingCardPreferences preferences;
-
+  final VoidCallback? onLongPress,
+  final bool selected = false,
+  final bool favourite = false,
+  final ListingCardPreferences preferences =
+      const ListingCardPreferences.defaults(),
+  super.key,
+}) extends StatelessWidget {
   static const photoHeight = 180.0;
   static const _gridFactLines = 2;
 
@@ -115,17 +106,11 @@ class ListingCard extends StatelessWidget {
   }
 }
 
-class _CardPhoto extends StatelessWidget {
-  const _CardPhoto({
-    required this.listing,
-    required this.favourite,
-    required this.preferences,
-  });
-
-  final Listing listing;
-  final bool favourite;
-  final ListingCardPreferences preferences;
-
+class const _CardPhoto({
+  required final Listing listing,
+  required final bool favourite,
+  required final ListingCardPreferences preferences,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final score = preferences.shows(ListingCardField.dealScore)
@@ -198,17 +183,11 @@ class _CardPhoto extends StatelessWidget {
   }
 }
 
-class _CardDetails extends StatelessWidget {
-  const _CardDetails({
-    required this.listing,
-    required this.preferences,
-    this.maxFactLines,
-  });
-
-  final Listing listing;
-  final ListingCardPreferences preferences;
-  final int? maxFactLines;
-
+class const _CardDetails({
+  required final Listing listing,
+  required final ListingCardPreferences preferences,
+  final int? maxFactLines,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -340,19 +319,12 @@ class _CardDetails extends StatelessWidget {
   }
 }
 
-class _CardFooter extends StatelessWidget {
-  const _CardFooter({
-    required this.listing,
-    required this.selected,
-    required this.onCompare,
-    required this.showLocation,
-  });
-
-  final Listing listing;
-  final bool selected;
-  final VoidCallback? onCompare;
-  final bool showLocation;
-
+class const _CardFooter({
+  required final Listing listing,
+  required final bool selected,
+  required final VoidCallback? onCompare,
+  required final bool showLocation,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -405,12 +377,8 @@ class _CardFooter extends StatelessWidget {
   }
 }
 
-class _PhotoPill extends StatelessWidget {
-  const _PhotoPill(this.text, {this.icon});
-
-  final String text;
-  final IconData? icon;
-
+class const _PhotoPill(final String text, {final IconData? icon})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(

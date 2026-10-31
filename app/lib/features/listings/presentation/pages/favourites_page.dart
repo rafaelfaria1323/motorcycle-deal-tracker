@@ -16,9 +16,7 @@ import '../../../../core/localization/localizations.dart';
 
 /// The shortlist: the listings the user starred, newest first, each with
 /// their note. Removed ones stay, marked "Removido".
-class FavouritesPage extends StatelessWidget {
-  const FavouritesPage({super.key});
-
+class const FavouritesPage({super.key}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = getIt<FavouritesCubit>();

@@ -29,15 +29,14 @@ import '../widgets/tracked_models_builder.dart';
 /// With [importing] ("Comprar no estrangeiro", `/import`) the same value
 /// is what a bike seen abroad is weighed against ([ImportCostCard], shown
 /// first).
-class BikeValuePage extends StatefulWidget {
-  const BikeValuePage({this.requestId, this.importing = false, super.key});
-
+class const BikeValuePage({
   /// The request to show (`/worth?request=<id>`, from the notification).
-  final String? requestId;
+  final String? requestId,
 
   /// Whether the page is "Comprar no estrangeiro".
-  final bool importing;
-
+  final bool importing = false,
+  super.key,
+}) extends StatefulWidget {
   /// The oldest year the form takes (as request_bike_value).
   static const firstYear = 1990;
 
@@ -566,19 +565,12 @@ class _BikeValuePageState extends State<BikeValuePage> {
 }
 
 /// One of the condition's answers, as a dropdown.
-class _ConditionChoice<T> extends StatelessWidget {
-  const _ConditionChoice({
-    required this.label,
-    required this.value,
-    required this.options,
-    required this.onChanged,
-  });
-
-  final String label;
-  final T value;
-  final Map<T, String> options;
-  final ValueChanged<T> onChanged;
-
+class const _ConditionChoice<T>({
+  required final String label,
+  required final T value,
+  required final Map<T, String> options,
+  required final ValueChanged<T> onChanged,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) => DropdownButtonFormField<T>(
     initialValue: value,

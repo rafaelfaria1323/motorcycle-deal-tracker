@@ -16,11 +16,8 @@ import '../../../../core/localization/localizations.dart';
 /// Up to three listings side by side, one column each, the best value of
 /// each row highlighted. The ids live in the address, so the page survives
 /// a reload and can be shared.
-class ComparePage extends StatefulWidget {
-  const ComparePage({required this.ids, super.key});
-
-  final List<String> ids;
-
+class const ComparePage({required final List<String> ids, super.key})
+    extends StatefulWidget {
   @override
   State<ComparePage> createState() => _ComparePageState();
 }
@@ -98,12 +95,10 @@ class _ComparePageState extends State<ComparePage> {
   }
 }
 
-class _Table extends StatelessWidget {
-  const _Table({required this.listings, required this.onRemove});
-
-  final List<Listing> listings;
-  final ValueChanged<String> onRemove;
-
+class const _Table({
+  required final List<Listing> listings,
+  required final ValueChanged<String> onRemove,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -173,12 +168,10 @@ class _Table extends StatelessWidget {
   }
 }
 
-class _Header extends StatelessWidget {
-  const _Header({required this.listing, required this.onRemove});
-
-  final Listing listing;
-  final VoidCallback onRemove;
-
+class const _Header({
+  required final Listing listing,
+  required final VoidCallback onRemove,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

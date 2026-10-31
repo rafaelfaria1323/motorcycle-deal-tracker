@@ -13,11 +13,8 @@ import '../../../../core/localization/localizations.dart';
 
 /// "Para a visita" on the listing page, shown while it is a favourite: how
 /// much of the viewing checklist is done; opens the list.
-class ViewingChecklistCard extends StatelessWidget {
-  const ViewingChecklistCard({required this.listingId, super.key});
-
-  final String listingId;
-
+class const ViewingChecklistCard({required final String listingId, super.key})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<FavouritesCubit, FavouritesState>(
@@ -50,11 +47,8 @@ class ViewingChecklistCard extends StatelessWidget {
   }
 }
 
-class _ChecklistSheet extends StatelessWidget {
-  const _ChecklistSheet({required this.listingId});
-
-  final String listingId;
-
+class const _ChecklistSheet({required final String listingId})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -109,17 +103,11 @@ class _ChecklistSheet extends StatelessWidget {
   }
 }
 
-class _ChecklistTile extends StatelessWidget {
-  const _ChecklistTile({
-    required this.listingId,
-    required this.item,
-    required this.entry,
-  });
-
-  final String listingId;
-  final ChecklistItem item;
-  final ChecklistEntry? entry;
-
+class const _ChecklistTile({
+  required final String listingId,
+  required final ChecklistItem item,
+  required final ChecklistEntry? entry,
+}) extends StatelessWidget {
   Future<void> _save(
     BuildContext context, {
     required ChecklistMark? mark,

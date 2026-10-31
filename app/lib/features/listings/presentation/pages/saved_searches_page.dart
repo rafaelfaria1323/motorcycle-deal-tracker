@@ -21,9 +21,7 @@ import '../widgets/delete_saved_search_dialog.dart';
 import '../widgets/edit_saved_search_sheet.dart';
 import '../../../../core/localization/localizations.dart';
 
-class SavedSearchesPage extends StatelessWidget {
-  const SavedSearchesPage({super.key});
-
+class const SavedSearchesPage({super.key}) extends StatelessWidget {
   Future<void> _apply(BuildContext context, SavedSearch search) async {
     final listings = getIt<ListingsCubit>();
     // Only matters when the app was opened directly on this tab.
@@ -170,24 +168,15 @@ class SavedSearchesPage extends StatelessWidget {
 
 enum _SearchAction { edit, delete }
 
-class _SearchCard extends StatelessWidget {
-  const _SearchCard({
-    required this.search,
-    required this.summary,
-    required this.matches,
-    required this.onTap,
-    required this.onEdit,
-    required this.onDelete,
-    super.key,
-  });
-
-  final SavedSearch search;
-  final String summary;
-  final int matches;
-  final VoidCallback onTap;
-  final Future<void> Function() onEdit;
-  final Future<void> Function() onDelete;
-
+class const _SearchCard({
+  required final SavedSearch search,
+  required final String summary,
+  required final int matches,
+  required final VoidCallback onTap,
+  required final Future<void> Function() onEdit,
+  required final Future<void> Function() onDelete,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

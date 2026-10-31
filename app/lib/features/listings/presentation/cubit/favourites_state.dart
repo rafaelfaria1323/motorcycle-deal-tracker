@@ -4,17 +4,12 @@ import '../../domain/entities/favourite.dart';
 
 enum FavouritesStatus { initial, loading, success, failure }
 
-class FavouritesState extends Equatable {
-  const FavouritesState({
-    this.status = FavouritesStatus.initial,
-    this.favourites = const [],
-  });
-
-  final FavouritesStatus status;
+class const FavouritesState({
+  final FavouritesStatus status = FavouritesStatus.initial,
 
   /// Newest first.
-  final List<Favourite> favourites;
-
+  final List<Favourite> favourites = const [],
+}) extends Equatable {
   Favourite? favouriteOf(String listingId) =>
       favourites.where((f) => f.listingId == listingId).firstOrNull;
 

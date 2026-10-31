@@ -14,11 +14,8 @@ import '../../../../core/localization/localizations.dart';
 /// "Mensagem para o vendedor": a first message with the questions the ad
 /// leaves open, optionally with the suggested opening offer, copied with
 /// one tap. Hidden for removed listings.
-class SellerMessageCard extends StatefulWidget {
-  const SellerMessageCard({required this.listing, super.key});
-
-  final Listing listing;
-
+class const SellerMessageCard({required final Listing listing, super.key})
+    extends StatefulWidget {
   @override
   State<SellerMessageCard> createState() => _SellerMessageCardState();
 }

@@ -4,33 +4,24 @@ import 'listing.dart';
 
 /// A listing the user is considering, with their own note about it and
 /// what they checked when they saw the bike.
-class Favourite extends Equatable {
-  const Favourite({
-    required this.listingId,
-    required this.createdAt,
-    this.note,
-    this.checklist = const {},
-    this.targetPrice,
-    this.listing,
-  });
-
-  final String listingId;
-  final DateTime createdAt;
+class const Favourite({
+  required final String listingId,
+  required final DateTime createdAt,
 
   /// Private to the user ("Liguei, ainda disponível"); null when empty.
-  final String? note;
+  final String? note,
 
   /// The viewing checklist's marks by item key (`viewing_checklist.dart`);
   /// items not looked at yet are missing.
-  final Map<String, ChecklistEntry> checklist;
+  final Map<String, ChecklistEntry> checklist = const {},
 
   /// The price the user would pay: when the listing drops to it or below,
   /// an alert says so ("Chegou ao seu preço"). Null when not set.
-  final double? targetPrice;
+  final double? targetPrice,
 
   /// The listing itself, when it was loaded with the favourite.
-  final Listing? listing;
-
+  final Listing? listing,
+}) extends Equatable {
   Favourite withNote(String? note) => Favourite(
     listingId: listingId,
     createdAt: createdAt,
@@ -73,12 +64,8 @@ enum ChecklistMark { ok, issue }
 
 /// One item of the viewing checklist: looked at and fine, or a problem,
 /// with an optional note ("DOT 2017").
-class ChecklistEntry extends Equatable {
-  const ChecklistEntry({this.mark, this.note});
-
-  final ChecklistMark? mark;
-  final String? note;
-
+class const ChecklistEntry({final ChecklistMark? mark, final String? note})
+    extends Equatable {
   /// Neither marked nor noted: the same as not there.
   bool get isEmpty => mark == null && note == null;
 

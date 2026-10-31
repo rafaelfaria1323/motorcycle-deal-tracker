@@ -11,11 +11,8 @@ import '../../domain/repositories/listings_repository.dart';
 import '../models/first_page_model.dart';
 import '../models/listing_model.dart';
 
-class SupabaseListingsRepository implements ListingsRepository {
-  SupabaseListingsRepository(this._client);
-
-  final SupabaseClient _client;
-
+class SupabaseListingsRepository(final SupabaseClient _client)
+    implements ListingsRepository {
   @override
   Future<List<Listing>> getListings({
     ListingFilters filters = ListingFilters.empty,

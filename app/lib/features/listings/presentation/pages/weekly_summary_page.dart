@@ -21,9 +21,7 @@ import '../../../../core/localization/localizations.dart';
 /// "Resumo da semana" (from Mais, or a tap on the Monday notification):
 /// the account's latest weekly summary, each listing opening its page, and
 /// asking for a new one now.
-class WeeklySummaryPage extends StatefulWidget {
-  const WeeklySummaryPage({super.key});
-
+class const WeeklySummaryPage({super.key}) extends StatefulWidget {
   @override
   State<WeeklySummaryPage> createState() => _WeeklySummaryPageState();
 }
@@ -127,11 +125,8 @@ class _WeeklySummaryPageState extends State<WeeklySummaryPage> {
   }
 }
 
-class _SummaryView extends StatelessWidget {
-  const _SummaryView({required this.summary});
-
-  final WeeklySummary summary;
-
+class const _SummaryView({required final WeeklySummary summary})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final byModel = newByModelText(summary);
@@ -183,12 +178,10 @@ class _SummaryView extends StatelessWidget {
   }
 }
 
-class _DealTile extends StatelessWidget {
-  const _DealTile({required this.deal, required this.subtitle});
-
-  final SummaryDeal deal;
-  final String subtitle;
-
+class const _DealTile({
+  required final SummaryDeal deal,
+  required final String subtitle,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(

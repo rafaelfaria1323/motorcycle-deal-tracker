@@ -64,16 +64,11 @@ Future<SavedSearch?> showEditSavedSearchSheet(
   );
 }
 
-class EditSavedSearchSheet extends StatefulWidget {
-  const EditSavedSearchSheet({
-    required this.search,
-    required this.motorcycles,
-    super.key,
-  });
-
-  final SavedSearch search;
-  final List<MotorcycleOption> motorcycles;
-
+class const EditSavedSearchSheet({
+  required final SavedSearch search,
+  required final List<MotorcycleOption> motorcycles,
+  super.key,
+}) extends StatefulWidget {
   @override
   State<EditSavedSearchSheet> createState() => _EditSavedSearchSheetState();
 }

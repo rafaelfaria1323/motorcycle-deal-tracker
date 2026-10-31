@@ -1,49 +1,35 @@
 import 'package:equatable/equatable.dart';
 
 /// A model in the catalog, tracked or not.
-class CatalogModel extends Equatable {
-  const CatalogModel({
-    required this.id,
-    required this.brand,
-    required this.model,
-    required this.minYear,
-    required this.isTracked,
-    this.isCollected = false,
-    this.colours = const [],
-    this.olxSearch,
-    this.standvirtualSearch,
-    this.newPrice,
-    this.newPriceCheckedAt,
-  });
-
-  final String id;
-  final String brand;
-  final String model;
+class const CatalogModel({
+  required final String id,
+  required final String brand,
+  required final String model,
 
   /// The account's own first year (the catalog's when it never chose one).
-  final int minYear;
+  required final int minYear,
 
   /// Followed by this account: its listings are in Ofertas, the alerts and
   /// the market figures.
-  final bool isTracked;
+  required final bool isTracked,
 
   /// Followed by some account (this one or another): the collector runs
   /// its searches, matches and scores its listings.
-  final bool isCollected;
+  final bool isCollected = false,
 
   /// The account's favourite colours for this model (codes, as
   /// `listings.colour`): a plus and a filter, never Deal Score points.
-  final List<String> colours;
+  final List<String> colours = const [],
 
   /// The search address that lists the model on each site, if any.
-  final String? olxSearch;
-  final String? standvirtualSearch;
+  final String? olxSearch,
+  final String? standvirtualSearch,
 
   /// Official new-bike list price, and when it was checked; null when not
   /// set.
-  final double? newPrice;
-  final DateTime? newPriceCheckedAt;
-
+  final double? newPrice,
+  final DateTime? newPriceCheckedAt,
+}) extends Equatable {
   CatalogModel copyWith({
     bool? isTracked,
     int? minYear,

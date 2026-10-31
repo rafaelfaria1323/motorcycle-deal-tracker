@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/localization/localizations.dart';
 
 /// Asks for a name; returns null if cancelled.
@@ -12,11 +13,8 @@ Future<String?> showSaveSearchDialog(
   );
 }
 
-class _SaveSearchDialog extends StatefulWidget {
-  const _SaveSearchDialog({required this.suggestion});
-
-  final String suggestion;
-
+class const _SaveSearchDialog({required final String suggestion})
+    extends StatefulWidget {
   @override
   State<_SaveSearchDialog> createState() => _SaveSearchDialogState();
 }

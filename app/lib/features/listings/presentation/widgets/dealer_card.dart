@@ -11,11 +11,8 @@ import '../../../../core/localization/localizations.dart';
 /// "O stand": what we have seen of the dealer's ads on both sites. Only for
 /// dealers (private sellers' names are never stored); hidden while loading
 /// or on any error.
-class DealerCard extends StatefulWidget {
-  const DealerCard({required this.listing, super.key});
-
-  final Listing listing;
-
+class const DealerCard({required final Listing listing, super.key})
+    extends StatefulWidget {
   @override
   State<DealerCard> createState() => _DealerCardState();
 }

@@ -4,11 +4,8 @@ import '../../domain/entities/catalog_model.dart';
 import '../../domain/entities/site_model.dart';
 import '../../domain/repositories/catalog_repository.dart';
 
-class SupabaseCatalogRepository implements CatalogRepository {
-  SupabaseCatalogRepository(this._client);
-
-  final SupabaseClient _client;
-
+class SupabaseCatalogRepository(final SupabaseClient _client)
+    implements CatalogRepository {
   @override
   Future<List<CatalogModel>> getModels() async {
     final rows = await _client

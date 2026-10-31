@@ -5,11 +5,8 @@ import '../../domain/entities/listing.dart';
 import '../new_price_text.dart';
 import '../../../../core/localization/localizations.dart';
 
-class NewPriceCard extends StatelessWidget {
-  const NewPriceCard({required this.listing, super.key});
-
-  final Listing listing;
-
+class const NewPriceCard({required final Listing listing, super.key})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final lines = newPriceLines(listing, language: context.language);

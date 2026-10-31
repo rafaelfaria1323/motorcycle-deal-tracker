@@ -9,16 +9,14 @@ const maxCompared = 3;
 
 /// One row of the comparison: a label, one text per listing ("—" when
 /// unknown) and the columns with the best value, if the row has one.
-class CompareRow {
-  const CompareRow(this.label, this.values, {this.best = const {}});
-
-  final String label;
-  final List<String> values;
+class const CompareRow(
+  final String label,
+  final List<String> values, {
 
   /// Indexes of the best values; empty when the row is not a contest, fewer
   /// than two listings have a value, or they are all equal.
-  final Set<int> best;
-}
+  final Set<int> best = const {},
+});
 
 /// The indexes holding the best of [values] ([higherIsBetter] or lower).
 Set<int> bestOf(List<num?> values, {required bool higherIsBetter}) {

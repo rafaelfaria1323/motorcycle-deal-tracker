@@ -7,29 +7,19 @@ import '../../domain/entities/motorcycle_option.dart';
 
 enum ListingsStatus { initial, loading, success, failure }
 
-class ListingsState extends Equatable {
-  const ListingsState({
-    this.status = ListingsStatus.initial,
-    this.listings = const [],
-    this.motorcycles = const [],
-    this.filters = ListingFilters.empty,
-    this.sort = ListingSort.dealScoreDesc,
-    this.hasMore = false,
-    this.loadingMore = false,
-  });
-
-  final ListingsStatus status;
-  final List<Listing> listings;
-  final List<MotorcycleOption> motorcycles;
-  final ListingFilters filters;
-  final ListingSort sort;
+class const ListingsState({
+  final ListingsStatus status = ListingsStatus.initial,
+  final List<Listing> listings = const [],
+  final List<MotorcycleOption> motorcycles = const [],
+  final ListingFilters filters = ListingFilters.empty,
+  final ListingSort sort = ListingSort.dealScoreDesc,
 
   /// More pages exist after [listings].
-  final bool hasMore;
+  final bool hasMore = false,
 
   /// A next page is on its way.
-  final bool loadingMore;
-
+  final bool loadingMore = false,
+}) extends Equatable {
   ListingsState copyWith({
     ListingsStatus? status,
     List<Listing>? listings,

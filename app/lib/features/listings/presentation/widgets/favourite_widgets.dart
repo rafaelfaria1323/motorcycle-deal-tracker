@@ -10,11 +10,8 @@ import '../../../../core/localization/localizations.dart';
 
 /// The star in the listing page's app bar: adds the listing to the
 /// favourites or takes it out (asking first when that deletes a note).
-class FavouriteButton extends StatelessWidget {
-  const FavouriteButton({required this.listing, super.key});
-
-  final Listing listing;
-
+class const FavouriteButton({required final Listing listing, super.key})
+    extends StatelessWidget {
   Future<void> _toggle(BuildContext context, FavouritesCubit cubit) async {
     final messageStrings = context.strings;
 
@@ -77,11 +74,8 @@ class FavouriteButton extends StatelessWidget {
 }
 
 /// "As suas notas" on the listing page, shown while it is a favourite.
-class FavouriteNoteCard extends StatelessWidget {
-  const FavouriteNoteCard({required this.listingId, super.key});
-
-  final String listingId;
-
+class const FavouriteNoteCard({required final String listingId, super.key})
+    extends StatelessWidget {
   Future<void> _edit(BuildContext context, String? note) async {
     final messageStrings = context.strings;
 
@@ -155,22 +149,14 @@ class FavouriteNoteCard extends StatelessWidget {
 }
 
 /// Edits a note; returns the text, or null if cancelled.
-class NoteDialog extends StatefulWidget {
-  const NoteDialog({
-    required this.title,
-    required this.initial,
-    required this.hintText,
-    required this.maxLength,
-    this.minLines = 3,
-    super.key,
-  });
-
-  final String title;
-  final String initial;
-  final String hintText;
-  final int maxLength;
-  final int minLines;
-
+class const NoteDialog({
+  required final String title,
+  required final String initial,
+  required final String hintText,
+  required final int maxLength,
+  final int minLines = 3,
+  super.key,
+}) extends StatefulWidget {
   @override
   State<NoteDialog> createState() => _NoteDialogState();
 }

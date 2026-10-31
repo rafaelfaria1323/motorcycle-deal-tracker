@@ -12,21 +12,14 @@ enum BikeServiceBook { unknown, yes, no }
 /// What the owner says about the bike in "Quanto vale a minha mota": not
 /// part of the request (the collection needs only the model and year),
 /// it adjusts the value the comparables give.
-class BikeCondition extends Equatable {
-  const BikeCondition({
-    this.damage = BikeDamage.none,
-    this.owners = BikeOwners.unknown,
-    this.serviceBook = BikeServiceBook.unknown,
-    this.warranty = false,
-  });
-
-  final BikeDamage damage;
-  final BikeOwners owners;
-  final BikeServiceBook serviceBook;
+class const BikeCondition({
+  final BikeDamage damage = BikeDamage.none,
+  final BikeOwners owners = BikeOwners.unknown,
+  final BikeServiceBook serviceBook = BikeServiceBook.unknown,
 
   /// Still under the factory's warranty.
-  final bool warranty;
-
+  final bool warranty = false,
+}) extends Equatable {
   BikeCondition copyWith({
     BikeDamage? damage,
     BikeOwners? owners,

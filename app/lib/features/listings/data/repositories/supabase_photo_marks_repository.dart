@@ -2,11 +2,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/repositories/photo_marks_repository.dart';
 
-class SupabasePhotoMarksRepository implements PhotoMarksRepository {
-  SupabasePhotoMarksRepository(this._client);
-
-  final SupabaseClient _client;
-
+class SupabasePhotoMarksRepository(final SupabaseClient _client)
+    implements PhotoMarksRepository {
   @override
   Future<Map<int, bool>> marks(String listingId) async {
     final rows = await _client.rpc<List<dynamic>>(

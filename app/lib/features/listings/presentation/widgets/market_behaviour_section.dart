@@ -11,11 +11,8 @@ import '../time_to_sale_text.dart';
 import 'price_position_strip.dart';
 import '../../../../core/localization/localizations.dart';
 
-class MarketBehaviourSection extends StatefulWidget {
-  const MarketBehaviourSection({required this.listing, super.key});
-
-  final Listing listing;
-
+class const MarketBehaviourSection({required final Listing listing, super.key})
+    extends StatefulWidget {
   @override
   State<MarketBehaviourSection> createState() => _MarketBehaviourSectionState();
 }
@@ -112,11 +109,7 @@ class _MarketBehaviourSectionState extends State<MarketBehaviourSection> {
   }
 }
 
-class _Line extends StatelessWidget {
-  const _Line(this.text);
-
-  final String text;
-
+class const _Line(final String text) extends StatelessWidget {
   @override
   Widget build(BuildContext context) =>
       BulletLine(text, icon: Icons.insights_outlined);

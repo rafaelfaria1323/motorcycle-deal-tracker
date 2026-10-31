@@ -8,6 +8,4 @@ abstract interface class PhotoExamsRepository {
 }
 
 /// At most 5 new photo examinations per account a day.
-class PhotoExamLimit implements Exception {
-  const PhotoExamLimit();
-}
+class const PhotoExamLimit() implements Exception;

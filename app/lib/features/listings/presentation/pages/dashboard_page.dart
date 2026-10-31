@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/widgets/app_brand.dart';
@@ -32,9 +33,7 @@ import '../widgets/listing_card_skeleton.dart';
 import '../widgets/save_search_dialog.dart';
 import '../../../../core/localization/localizations.dart';
 
-class DashboardPage extends StatelessWidget {
-  const DashboardPage({super.key});
-
+class const DashboardPage({super.key}) extends StatelessWidget {
   Future<void> _openFilters(BuildContext context) async {
     final cubit = context.read<ListingsCubit>();
     final result = await showModalBottomSheet<ListingFilters>(
@@ -96,9 +95,7 @@ class DashboardPage extends StatelessWidget {
       final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
       showMessage(
         messenger,
-        context.strings.compareFull(
-          maxCompared: (maxCompared).toString(),
-        ),
+        context.strings.compareFull(maxCompared: (maxCompared).toString()),
       );
     }
   }
@@ -187,9 +184,7 @@ class DashboardPage extends StatelessWidget {
                           PageIntro(
                             eyebrow: context.strings.yourMotorcycleRadar,
                             title: context.strings.yourNextBikeStartsHere,
-                            description: context
-                                .strings
-                                .dealsIntro,
+                            description: context.strings.dealsIntro,
                           ),
                           const SizedBox(height: 24),
                           BlocBuilder<SavedSearchesCubit, SavedSearchesState>(
@@ -246,9 +241,9 @@ class DashboardPage extends StatelessWidget {
                                         hasMore: state.hasMore,
                                         language: context.language,
                                       ),
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.titleMedium,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium,
                                     ),
                                   ),
                                   const TextSpan(text: '    '),
@@ -261,9 +256,9 @@ class DashboardPage extends StatelessWidget {
                                           .textTheme
                                           .bodySmall
                                           ?.copyWith(
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.onSurfaceVariant,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurfaceVariant,
                                           ),
                                     ),
                                   ),
@@ -387,22 +382,15 @@ class DashboardPage extends StatelessWidget {
   }
 }
 
-class _OffersToolbar extends StatelessWidget {
-  const _OffersToolbar({
-    required this.state,
-    required this.saved,
-    required this.onFilters,
-    required this.onSave,
-  });
-
-  final ListingsState state;
+class const _OffersToolbar({
+  required final ListingsState state,
 
   /// The saved search these filters already are, if any: then there is
   /// nothing to save, and the button says so and opens Pesquisas.
-  final SavedSearch? saved;
-  final VoidCallback onFilters;
-  final VoidCallback onSave;
-
+  required final SavedSearch? saved,
+  required final VoidCallback onFilters,
+  required final VoidCallback onSave,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -500,17 +488,12 @@ class _OffersToolbar extends StatelessWidget {
   }
 }
 
-class _OffersGrid extends StatelessWidget {
-  const _OffersGrid({
-    required this.itemCount,
-    required this.itemBuilder,
-    this.preferences = const ListingCardPreferences.defaults(),
-  });
-
-  final int itemCount;
-  final IndexedWidgetBuilder itemBuilder;
-  final ListingCardPreferences preferences;
-
+class const _OffersGrid({
+  required final int itemCount,
+  required final IndexedWidgetBuilder itemBuilder,
+  final ListingCardPreferences preferences =
+      const ListingCardPreferences.defaults(),
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) => SliverLayoutBuilder(
     builder: (context, constraints) {

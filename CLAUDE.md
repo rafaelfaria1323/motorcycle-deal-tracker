@@ -96,8 +96,7 @@ never asks for search URLs; aliases sit under "Outros nomes do modelo".
   upgrading; app and collector SDK minimums match. The collector uses
   Dart 3.13's primary constructors (`class const X({required final T a})`,
   work in field initializers or `this { ... }`) and dot shorthands
-  (`site == .olx`); in the app, `core/`, `app/`, `collector_status`
-  and `settings` use primary constructors too (`listings` next), dot
+  (`site == .olx`); the app uses primary constructors too, dot
   shorthands not yet. Pure Dart logic in the
   app can be tested with plain Dart (`package:test`) on copies of the
   files. The deploy runs `flutter test`

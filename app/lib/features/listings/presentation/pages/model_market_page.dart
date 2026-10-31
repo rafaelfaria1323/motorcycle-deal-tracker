@@ -13,9 +13,7 @@ import '../../../../core/localization/localizations.dart';
 
 /// The tracked models side by side: asking prices, how fast listings leave
 /// the market, price drops and depreciation. Cheapest typical price first.
-class ModelMarketPage extends StatefulWidget {
-  const ModelMarketPage({super.key});
-
+class const ModelMarketPage({super.key}) extends StatefulWidget {
   @override
   State<ModelMarketPage> createState() => _ModelMarketPageState();
 }
@@ -59,11 +57,8 @@ class _ModelMarketPageState extends State<ModelMarketPage> {
   }
 }
 
-class _ModelCard extends StatelessWidget {
-  const _ModelCard({required this.model});
-
-  final ModelMarket model;
-
+class const _ModelCard({required final ModelMarket model})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

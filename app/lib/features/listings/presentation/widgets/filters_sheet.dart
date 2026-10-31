@@ -11,16 +11,11 @@ import '../score_criteria.dart';
 import '../score_explanation.dart';
 import '../../../../core/localization/localizations.dart';
 
-class FiltersSheet extends StatefulWidget {
-  const FiltersSheet({
-    required this.initial,
-    required this.motorcycles,
-    super.key,
-  });
-
-  final ListingFilters initial;
-  final List<MotorcycleOption> motorcycles;
-
+class const FiltersSheet({
+  required final ListingFilters initial,
+  required final List<MotorcycleOption> motorcycles,
+  super.key,
+}) extends StatefulWidget {
   @override
   State<FiltersSheet> createState() => _FiltersSheetState();
 }
@@ -415,12 +410,10 @@ class _FiltersSheetState extends State<FiltersSheet> {
   }
 }
 
-class _NumberField extends StatelessWidget {
-  const _NumberField({required this.controller, required this.label});
-
-  final TextEditingController controller;
-  final String label;
-
+class const _NumberField({
+  required final TextEditingController controller,
+  required final String label,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextField(

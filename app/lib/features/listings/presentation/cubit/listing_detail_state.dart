@@ -4,15 +4,10 @@ import '../../domain/entities/listing.dart';
 
 enum ListingDetailStatus { loading, success, notFound, failure }
 
-class ListingDetailState extends Equatable {
-  const ListingDetailState({
-    this.status = ListingDetailStatus.loading,
-    this.listing,
-  });
-
-  final ListingDetailStatus status;
-  final Listing? listing;
-
+class const ListingDetailState({
+  final ListingDetailStatus status = ListingDetailStatus.loading,
+  final Listing? listing,
+}) extends Equatable {
   @override
   List<Object?> get props => [status, listing];
 }

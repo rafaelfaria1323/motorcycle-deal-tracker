@@ -40,11 +40,8 @@ import '../widgets/seller_message_card.dart';
 import '../widgets/viewing_checklist_card.dart';
 import '../../../../core/localization/localizations.dart';
 
-class ListingDetailPage extends StatelessWidget {
-  const ListingDetailPage({required this.listingId, super.key});
-
-  final String listingId;
-
+class const ListingDetailPage({required final String listingId, super.key})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -111,11 +108,7 @@ enum _Section {
       };
 }
 
-class _Content extends StatefulWidget {
-  const _Content({required this.listing});
-
-  final Listing listing;
-
+class const _Content({required final Listing listing}) extends StatefulWidget {
   @override
   State<_Content> createState() => _ContentState();
 }
@@ -394,11 +387,7 @@ class _ContentState extends State<_Content> {
   }
 }
 
-class _Header extends StatelessWidget {
-  const _Header({required this.listing});
-
-  final Listing listing;
-
+class const _Header({required final Listing listing}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -479,23 +468,14 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _StatusCard extends StatelessWidget {
-  const _StatusCard({
-    required this.color,
-    required this.icon,
-    required this.title,
-    required this.text,
-    this.actionLabel,
-    this.onAction,
-  });
-
-  final Color color;
-  final IconData icon;
-  final String title;
-  final String text;
-  final String? actionLabel;
-  final VoidCallback? onAction;
-
+class const _StatusCard({
+  required final Color color,
+  required final IconData icon,
+  required final String title,
+  required final String text,
+  final String? actionLabel,
+  final VoidCallback? onAction,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final actionLabel = this.actionLabel;
@@ -514,11 +494,8 @@ class _StatusCard extends StatelessWidget {
 }
 
 /// The seller's text, folded after a few lines: it is often long.
-class _DescriptionCard extends StatefulWidget {
-  const _DescriptionCard({required this.description});
-
-  final String description;
-
+class const _DescriptionCard({required final String description})
+    extends StatefulWidget {
   @override
   State<_DescriptionCard> createState() => _DescriptionCardState();
 }
@@ -575,11 +552,8 @@ class _DescriptionCardState extends State<_DescriptionCard> {
 
 /// Adds the listing to the comparison or takes it out; offers to open the
 /// comparison once there are two or more.
-class _CompareButton extends StatelessWidget {
-  const _CompareButton({required this.listingId});
-
-  final String listingId;
-
+class const _CompareButton({required final String listingId})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = getIt<CompareCubit>();

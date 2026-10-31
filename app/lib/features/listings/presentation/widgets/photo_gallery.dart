@@ -18,16 +18,11 @@ import '../../../../core/localization/localizations.dart';
 
 /// All the listing's photos: swipe or use the arrows, tap to see them
 /// full screen.
-class PhotoGallery extends StatefulWidget {
-  const PhotoGallery({
-    required this.listingId,
-    required this.images,
-    super.key,
-  });
-
-  final String listingId;
-  final List<String> images;
-
+class const PhotoGallery({
+  required final String listingId,
+  required final List<String> images,
+  super.key,
+}) extends StatefulWidget {
   @override
   State<PhotoGallery> createState() => _PhotoGalleryState();
 }
@@ -97,17 +92,11 @@ class _PhotoGalleryState extends State<PhotoGallery> {
 
 /// Arrows on the sides and the "3 / 12" counter. The arrows matter on a
 /// computer, where a mouse can't swipe.
-class _GalleryControls extends StatelessWidget {
-  const _GalleryControls({
-    required this.index,
-    required this.count,
-    required this.controller,
-  });
-
-  final int index;
-  final int count;
-  final PageController controller;
-
+class const _GalleryControls({
+  required final int index,
+  required final int count,
+  required final PageController controller,
+}) extends StatelessWidget {
   void _go(int page) => controller.animateToPage(
     page,
     duration: const Duration(milliseconds: 250),
@@ -158,17 +147,11 @@ class _GalleryControls extends StatelessWidget {
   }
 }
 
-class _RoundButton extends StatelessWidget {
-  const _RoundButton({
-    required this.icon,
-    required this.tooltip,
-    required this.onPressed,
-  });
-
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onPressed;
-
+class const _RoundButton({
+  required final IconData icon,
+  required final String tooltip,
+  required final VoidCallback onPressed,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -190,16 +173,11 @@ class _RoundButton extends StatelessWidget {
 /// (pinch, mouse wheel or double tap). Admins can also mark each of the
 /// first [markablePhotos] as a problem or fine, for the image model to
 /// learn from (P.3).
-class FullScreenGallery extends StatefulWidget {
-  const FullScreenGallery({
-    required this.listingId,
-    required this.args,
-    super.key,
-  });
-
-  final String listingId;
-  final PhotoViewerArgs args;
-
+class const FullScreenGallery({
+  required final String listingId,
+  required final PhotoViewerArgs args,
+  super.key,
+}) extends StatefulWidget {
   @override
   State<FullScreenGallery> createState() => _FullScreenGalleryState();
 }
@@ -326,12 +304,10 @@ class _FullScreenGalleryState extends State<FullScreenGallery> {
 
 /// An admin's mark on the photo shown: a problem or fine; tapping the one
 /// chosen clears it.
-class _PhotoMarkBar extends StatelessWidget {
-  const _PhotoMarkBar({required this.mark, required this.onChanged});
-
-  final bool? mark;
-  final ValueChanged<bool?> onChanged;
-
+class const _PhotoMarkBar({
+  required final bool? mark,
+  required final ValueChanged<bool?> onChanged,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final strings = context.strings;

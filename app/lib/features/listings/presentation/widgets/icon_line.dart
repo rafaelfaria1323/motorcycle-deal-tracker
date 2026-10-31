@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 
 /// One line of figures with a small icon before it, as the market cards
 /// list them.
-class IconLine extends StatelessWidget {
-  const IconLine({required this.icon, required this.text, super.key});
-
-  final IconData icon;
-  final String text;
-
+class const IconLine({
+  required final IconData icon,
+  required final String text,
+  super.key,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(

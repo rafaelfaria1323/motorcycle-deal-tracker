@@ -17,11 +17,8 @@ import '../photo_viewer_args.dart';
 /// hint opens its photo, so the person judges it. A signed-in account can
 /// ask for every photo to be examined, not only the first ones (P.4).
 /// Nothing when there is neither; never part of a score.
-class PhotoHintsCard extends StatefulWidget {
-  const PhotoHintsCard({super.key, required this.listing});
-
-  final Listing listing;
-
+class const PhotoHintsCard({super.key, required final Listing listing})
+    extends StatefulWidget {
   @override
   State<PhotoHintsCard> createState() => _PhotoHintsCardState();
 }
