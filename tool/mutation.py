@@ -50,7 +50,8 @@ def own_test(target):
 # extension or typedef, or a function, getter, variable or constant.
 _DECLARATION = re.compile(
     r'^(?:(?:abstract|base|final|interface|sealed|mixin)\s+)*'
-    r'(?:class|enum|mixin|extension|typedef)\s+([A-Za-z]\w*)'
+    r'(?:class|enum|mixin|extension(?:\s+type)?|typedef)\s+(?:const\s+)?'
+    r'([A-Za-z]\w*)'
     r'|^(?=[A-Za-z])(?!(?:import|export|part|library)\b)'
     r'(?:[\w<>?,.]+\s+)*?(?:get\s+)?([A-Za-z]\w*)\s*(?:[(=;]|<[^>]*>\s*\()',
     re.M,

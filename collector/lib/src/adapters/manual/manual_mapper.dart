@@ -5,12 +5,8 @@ import 'manual_adapter.dart';
 import 'manual_raw_listing.dart';
 
 /// Maps manual import records to the normalized listing.
-class ManualMapper {
-  ManualMapper(this.catalog, {int? currentYear})
-    : currentYear = currentYear ?? DateTime.now().year;
-
-  final Catalog catalog;
-  final int currentYear;
+class ManualMapper(final Catalog catalog, {int? currentYear}) {
+  final int currentYear = currentYear ?? DateTime.now().year;
 
   static const _oldestYear = 1980;
   static const _maxMileageKm = 500000;
@@ -62,7 +58,7 @@ class ManualMapper {
     }
 
     // Data minimization: only business names are kept, never private sellers'.
-    final sellerName = sellerType == SellerType.dealer ? raw.sellerName : null;
+    final sellerName = sellerType == .dealer ? raw.sellerName : null;
     if (raw.sellerName != null && sellerName == null) {
       warnings.add('seller_name dropped (kept only for dealers)');
     }

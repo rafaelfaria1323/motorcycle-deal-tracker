@@ -1,20 +1,18 @@
 /// A listing exactly as written in a manual import file.
-class ManualRawListing {
-  const ManualRawListing({
-    required this.url,
-    required this.brand,
-    required this.model,
-    required this.priceEur,
-    this.variant,
-    this.year,
-    this.mileageKm,
-    this.sellerType,
-    this.sellerName,
-    this.location,
-    this.description,
-    this.images = const [],
-  });
-
+class const ManualRawListing({
+  required final String url,
+  required final String brand,
+  required final String model,
+  required final num priceEur,
+  final String? variant,
+  final int? year,
+  final int? mileageKm,
+  final String? sellerType,
+  final String? sellerName,
+  final String? location,
+  final String? description,
+  final List<String> images = const [],
+}) {
   /// Throws [FormatException] when the record is malformed.
   factory ManualRawListing.fromJson(Map<String, dynamic> json) {
     final url = _requiredString(json, 'url');
@@ -40,19 +38,6 @@ class ManualRawListing {
       images: _stringList(json, 'images'),
     );
   }
-
-  final String url;
-  final String brand;
-  final String model;
-  final num priceEur;
-  final String? variant;
-  final int? year;
-  final int? mileageKm;
-  final String? sellerType;
-  final String? sellerName;
-  final String? location;
-  final String? description;
-  final List<String> images;
 }
 
 String _requiredString(Map<String, dynamic> json, String key) {

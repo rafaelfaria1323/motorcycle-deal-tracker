@@ -6,18 +6,16 @@ import 'web_push.dart';
 /// A valuation the collector answered ("Quanto vale a minha mota" for a
 /// model or year the collection didn't reach yet): the request and the
 /// value worked out once the run read the model.
-class BikeValueAnswer {
-  const BikeValueAnswer({
-    required this.id,
-    required this.userId,
-    required this.brand,
-    required this.model,
-    required this.year,
-    this.mileage,
-    required this.comparableCount,
-    this.fairPrice,
-  });
-
+class const BikeValueAnswer({
+  required final String id,
+  required final String userId,
+  required final String brand,
+  required final String model,
+  required final int year,
+  final int? mileage,
+  required final int comparableCount,
+  final double? fairPrice,
+}) {
   /// A row of `answer_bike_value_requests`.
   factory BikeValueAnswer.fromRow(Map<String, dynamic> row) => BikeValueAnswer(
     id: row['id'] as String,
@@ -29,22 +27,13 @@ class BikeValueAnswer {
     comparableCount: (row['comparable_count'] as num?)?.toInt() ?? 0,
     fairPrice: (row['fair_price'] as num?)?.toDouble(),
   );
-
-  final String id;
-  final String userId;
-  final String brand;
-  final String model;
-  final int year;
-  final int? mileage;
-  final int comparableCount;
-  final double? fairPrice;
 }
 
 /// The notification of an answered valuation: the bike and its value (or
 /// that there are too few listings yet); a tap opens the request in the app.
 Map<String, Object?> bikeValuePush(
   BikeValueAnswer answer, {
-  NotificationLanguage language = NotificationLanguage.portuguese,
+  NotificationLanguage language = .portuguese,
 }) {
   final bike = [
     answer.brand,

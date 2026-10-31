@@ -8,53 +8,40 @@ import '../source_adapter.dart';
 import 'olx_raw_listing.dart';
 
 /// One parsed OLX search results page.
-class OlxSearchPage {
-  const OlxSearchPage({
-    required this.search,
-    required this.pageNumber,
-    required this.totalPages,
-    required this.total,
-    required this.records,
-    required this.problems,
-    this.models = const [],
-    this.oldestOrganic,
-  });
-
+class const OlxSearchPage({
   /// What was searched (category and filters, without the page), so the
   /// pages of one search can be put together.
-  final String search;
-  final int pageNumber;
-  final int totalPages;
+  required final String search,
+  required final int pageNumber,
+  required final int totalPages,
 
   /// How many listings the whole search has, according to the site.
-  final int total;
-  final List<OlxRawListing> records;
+  required final int total,
+  required final List<OlxRawListing> records,
 
   /// Results on the page that could not be read.
-  final List<String> problems;
+  required final List<String> problems,
 
   /// The models OLX offers for the page's brand.
-  final List<SiteModel> models;
+  final List<SiteModel> models = const [],
 
   /// The oldest date among the page's ads that aren't top ads of when each
   /// was published or last renewed (the later of the two): sorted newest
   /// first ([newestFirst]), the pages after it hold only older ones.
-  final DateTime? oldestOrganic;
-}
+  final DateTime? oldestOrganic,
+});
 
 /// Reads OLX search results pages (saved by `make fetch` or by hand) out of
 /// a folder. Results carry the full description, so no listing pages are
 /// needed. A search spans several pages; it counts as complete only when
 /// all of them are in the folder.
-class OlxSearchAdapter implements SourceAdapter<OlxRawListing> {
-  OlxSearchAdapter(this.directory, {this.maxAge = const Duration(hours: 48)});
-
-  static const sourceId = 'olx';
-
-  final String directory;
+class OlxSearchAdapter(
+  final String directory, {
 
   /// Older pages are reported, so a removal run is never based on them.
-  final Duration maxAge;
+  final Duration maxAge = const Duration(hours: 48),
+}) implements SourceAdapter<OlxRawListing> {
+  static const sourceId = 'olx';
 
   @override
   String get source => sourceId;

@@ -61,13 +61,13 @@ Future<({int alerts, int pushes})> notifyPending(
         continue;
       }
       switch (await push.send(device, message)) {
-        case PushResult.sent:
+        case .sent:
           pushes++;
           delivered = true;
           reached.add(device.endpoint);
-        case PushResult.gone:
+        case .gone:
           gone.add(device.endpoint);
-        case PushResult.failed:
+        case .failed:
           failed = true;
           down.add(device.endpoint);
       }

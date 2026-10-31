@@ -8,45 +8,34 @@ import '../source_adapter.dart';
 import 'standvirtual_raw_listing.dart';
 
 /// One parsed search results page.
-class StandvirtualSearchPage {
-  const StandvirtualSearchPage({
-    required this.records,
-    required this.problems,
-    required this.total,
-    required this.offset,
-    required this.shown,
-    this.pageSize = 32,
-    this.models = const [],
-    this.oldestOrganic,
-  });
-
-  final List<StandvirtualRawListing> records;
+class const StandvirtualSearchPage({
+  required final List<StandvirtualRawListing> records,
 
   /// Results on the page that could not be read.
-  final List<String> problems;
+  required final List<String> problems,
 
   /// How many listings the whole search has, according to the site.
-  final int total;
-  final int offset;
+  required final int total,
+  required final int offset,
 
   /// How many results this page holds (promoted ads, shown above them and
   /// also among a search's results, don't count: with them a search cut
   /// short could look read in full).
-  final int shown;
+  required final int shown,
 
   /// How many results a page of this search holds.
-  final int pageSize;
+  final int pageSize = 32,
 
   /// The brands and models in the page's filters.
-  final List<SiteModel> models;
+  final List<SiteModel> models = const [],
 
   /// The oldest date among the page's ads that aren't promoted of when
   /// each was published or last renewed (bumped; the later of the two).
   /// The site's own order ("Destacado") is newest first by that date (top
   /// ads sit apart, in `topads`), so the pages after it hold only older
   /// ones.
-  final DateTime? oldestOrganic;
-
+  final DateTime? oldestOrganic,
+}) {
   bool get isComplete => offset + shown >= total;
 
   /// How many pages the whole search spans.

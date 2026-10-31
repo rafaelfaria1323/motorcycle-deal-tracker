@@ -89,10 +89,7 @@ Future<void> main(List<String> args) async {
         return;
       }
 
-      final fetcher = PoliteFetcher(
-        site: FetchSite.photos,
-        policy: photoPolicy,
-      );
+      final fetcher = PoliteFetcher(site: .photos, policy: photoPolicy);
       try {
         await fetcher.prepare();
         await fingerprintPhotos(

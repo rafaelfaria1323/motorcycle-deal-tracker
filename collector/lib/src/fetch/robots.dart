@@ -2,9 +2,7 @@
 /// group. As RFC 9309 says, the longest matching rule decides and an Allow
 /// wins a tie (a CDN's `Disallow: /` with `Allow: /v1/files/` allows the
 /// files).
-class RobotsRules {
-  RobotsRules(this._rules);
-
+class RobotsRules._(final List<_Rule> _rules) {
   factory RobotsRules.parse(String text) {
     final rules = <_Rule>[];
     var inStarGroup = false;
@@ -32,10 +30,8 @@ class RobotsRules {
         }
       }
     }
-    return RobotsRules(rules);
+    return RobotsRules._(rules);
   }
-
-  final List<_Rule> _rules;
 
   /// [pathAndQuery] is the path plus `?query`, e.g. `/motos/x?page=2`.
   bool isAllowed(String pathAndQuery) => _decisive(pathAndQuery)?.allow ?? true;

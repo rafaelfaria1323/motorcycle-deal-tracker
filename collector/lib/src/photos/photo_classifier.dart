@@ -25,26 +25,18 @@ typedef PhotoTrainingSet = ({
 /// probability that a photo is like the ones marked as a problem is
 /// sigmoid(bias + weights · features). The database applies it as the hint
 /// `learned` (`photo_learned_share`).
-class PhotoClassifier {
-  const PhotoClassifier({
-    required this.weights,
-    required this.bias,
-    required this.samples,
-    required this.problems,
-    required this.accuracy,
-  });
-
-  final List<double> weights;
-  final double bias;
+class const PhotoClassifier({
+  required final List<double> weights,
+  required final double bias,
 
   /// What it learned from: marked photos, of which problems.
-  final int samples;
-  final int problems;
+  required final int samples,
+  required final int problems,
 
   /// Balanced accuracy on photos it did not learn from (k-fold), null when
   /// there are too few for that.
-  final double? accuracy;
-
+  required final double? accuracy,
+}) {
   /// The share for one photo, as `photo_learned_share`.
   double share(List<double> features) =>
       _sigmoid(_logit(weights, bias, features));

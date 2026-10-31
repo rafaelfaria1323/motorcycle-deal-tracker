@@ -1,26 +1,31 @@
 import 'notification_text.dart';
 
 /// An alert waiting to be pushed, with what the message shows.
-class PendingAlert {
-  const PendingAlert({
-    required this.alertId,
-    required this.type,
-    required this.brand,
-    required this.model,
-    required this.url,
-    this.userId,
-    this.listingId,
-    this.oldPrice,
-    this.newPrice,
-    this.year,
-    this.mileage,
-    this.price,
-    this.dealScore,
-    this.location,
-    this.createdAt,
-    this.myColour = false,
-  });
+class const PendingAlert({
+  required final String alertId,
+  required final String type,
+  required final String brand,
+  required final String model,
+  required final String url,
 
+  /// Whose alert it is, and the listing it opens in the app.
+  final String? userId,
+  final String? listingId,
+  final double? oldPrice,
+  final double? newPrice,
+  final int? year,
+  final int? mileage,
+  final double? price,
+  final int? dealScore,
+  final String? location,
+
+  /// When the alert was made (null from older databases).
+  final DateTime? createdAt,
+
+  /// The bike is in one of the person's colours for its model (a plus, not
+  /// part of the score).
+  final bool myColour = false,
+}) {
   factory PendingAlert.fromRow(Map<String, dynamic> row) => PendingAlert(
     alertId: row['alert_id'] as String,
     type: row['type'] as String,
@@ -42,37 +47,11 @@ class PendingAlert {
     },
     myColour: row['my_colour'] as bool? ?? false,
   );
-
-  final String alertId;
-  final String type;
-  final String brand;
-  final String model;
-  final String url;
-
-  /// Whose alert it is, and the listing it opens in the app.
-  final String? userId;
-  final String? listingId;
-  final double? oldPrice;
-  final double? newPrice;
-  final int? year;
-  final int? mileage;
-  final double? price;
-  final int? dealScore;
-  final String? location;
-
-  /// When the alert was made (null from older databases).
-  final DateTime? createdAt;
-
-  /// The bike is in one of the person's colours for its model (a plus, not
-  /// part of the score).
-  final bool myColour;
 }
 
 /// `7650` -> `7 650 €`
-String euros(
-  num value, {
-  NotificationLanguage language = NotificationLanguage.portuguese,
-}) => language.currency(value);
+String euros(num value, {NotificationLanguage language = .portuguese}) =>
+    language.currency(value);
 
 /// The three lines of an alert message: what happened to which bike, the
 /// price, and the facts.
@@ -114,7 +93,7 @@ String euros(
 /// (`web/push_sw.js`): a tap opens the listing in the app.
 Map<String, Object?> pushMessage(
   PendingAlert a, {
-  NotificationLanguage language = NotificationLanguage.portuguese,
+  NotificationLanguage language = .portuguese,
 }) {
   final lines = _alertLines(a, language);
   return {

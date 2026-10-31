@@ -11,11 +11,8 @@ import 'standvirtual_raw_listing.dart';
 
 /// Reads listing pages saved from the browser (File > Save, "HTML only") out of
 /// a folder, and parses listing pages fetched for their details.
-class StandvirtualPageAdapter implements SourceAdapter<StandvirtualRawListing> {
-  StandvirtualPageAdapter(this.directory);
-
-  final String directory;
-
+class StandvirtualPageAdapter(final String directory)
+    implements SourceAdapter<StandvirtualRawListing> {
   @override
   String get source => 'standvirtual';
 

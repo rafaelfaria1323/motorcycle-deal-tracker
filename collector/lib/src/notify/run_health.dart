@@ -14,7 +14,7 @@ typedef RunOutcome = ({String status, List<String> problems});
 /// by the next run. A tap opens "Estado da recolha".
 Map<String, Object?>? runHealthMessage(
   List<RunOutcome> runs, {
-  NotificationLanguage language = NotificationLanguage.portuguese,
+  NotificationLanguage language = .portuguese,
 }) {
   final current = _seenAs(runs, 0);
   final previous = runs.length > 1 ? _seenAs(runs, 1) : null;

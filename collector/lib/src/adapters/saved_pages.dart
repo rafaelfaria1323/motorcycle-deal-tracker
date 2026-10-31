@@ -39,19 +39,13 @@ ParseIssue? staleIssue(
 
 /// What the sites' search pages have in common, read by
 /// [readSavedSearchPages].
-class SearchPageParts<R> {
-  const SearchPageParts({
-    required this.records,
-    required this.problems,
-    required this.models,
-  });
-
-  final List<R> records;
+class const SearchPageParts<R>({
+  required final List<R> records,
 
   /// Results on the page that could not be read.
-  final List<String> problems;
-  final List<SiteModel> models;
-}
+  required final List<String> problems,
+  required final List<SiteModel> models,
+});
 
 /// Reads the saved search pages of [directory] with [parse] (which throws
 /// [FormatException] for a page it cannot use): records, models, the pages'

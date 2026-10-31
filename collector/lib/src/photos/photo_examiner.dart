@@ -10,11 +10,7 @@ typedef PhotoExamination = ({Map<String, double> scores, String features});
 
 /// The examiner stopped answering (it died, or took too long): no more
 /// photos are given to it this run.
-class PhotoExaminerFailed implements Exception {
-  const PhotoExaminerFailed(this.message);
-
-  final String message;
-
+class const PhotoExaminerFailed(final String message) implements Exception {
   @override
   String toString() => message;
 }

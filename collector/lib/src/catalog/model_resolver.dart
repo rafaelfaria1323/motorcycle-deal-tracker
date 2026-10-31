@@ -3,14 +3,12 @@ import 'catalog.dart';
 /// Decides which catalog model a listing is from the words sellers and sites
 /// use. Shared by every source, so a bike is matched the same way wherever
 /// it is listed.
-class ModelResolver {
-  ModelResolver(this.catalog) {
+class ModelResolver(final Catalog catalog) {
+  this {
     for (final entry in catalog.entries) {
       (_byBrand[normalizeKey(entry.brand)] ??= []).add(_ModelRule(entry));
     }
   }
-
-  final Catalog catalog;
 
   final _byBrand = <String, List<_ModelRule>>{};
   static final _wordSeparator = RegExp(r'[^a-z0-9]+');
@@ -78,16 +76,13 @@ class ModelResolver {
 }
 
 /// Catalog-only work, prepared once per resolver rather than once per ad.
-class _ModelRule {
-  _ModelRule(this.entry)
-    : family = normalizeKey(entry.model).replaceFirst(_familySuffix, ''),
-      excludedWords = entry.excludedWords.map(normalizeKey).toList(),
-      accepted = _acceptedNames(entry);
-
-  final CatalogEntry entry;
-  final String family;
-  final List<String> excludedWords;
-  final Set<String> accepted;
+class _ModelRule(final CatalogEntry entry) {
+  final String family = normalizeKey(entry.model)
+      .replaceFirst(_familySuffix, '');
+  final List<String> excludedWords = entry.excludedWords
+      .map(normalizeKey)
+      .toList();
+  final Set<String> accepted = _acceptedNames(entry);
   late final int longest = accepted
       .map((key) => key.length)
       .reduce((a, b) => a > b ? a : b);

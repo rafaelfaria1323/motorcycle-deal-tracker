@@ -5,14 +5,9 @@ import '../manual/manual_mapper.dart';
 import '../manual/manual_raw_listing.dart';
 import 'standvirtual_raw_listing.dart';
 
-class StandvirtualMapper {
-  StandvirtualMapper(this.catalog, {int? currentYear})
-    : _base = ManualMapper(catalog, currentYear: currentYear),
-      _models = ModelResolver(catalog);
-
-  final Catalog catalog;
-  final ManualMapper _base;
-  final ModelResolver _models;
+class StandvirtualMapper(final Catalog catalog, {int? currentYear}) {
+  final ManualMapper _base = ManualMapper(catalog, currentYear: currentYear);
+  final ModelResolver _models = ModelResolver(catalog);
 
   /// The id a Standvirtual ad is stored under.
   static String listingId(String adId) => 'standvirtual.com/$adId';

@@ -17,8 +17,8 @@ enum NotificationLanguage {
 /// Bundled notification copy. Seller content and diagnostics never pass here.
 extension NotificationText on NotificationLanguage {
   String _text(String portuguese, String english) => switch (this) {
-    NotificationLanguage.portuguese => portuguese,
-    NotificationLanguage.english => english,
+    .portuguese => portuguese,
+    .english => english,
   };
 
   String alertHeading(String type, {required bool myColour}) => switch (type) {

@@ -13,20 +13,18 @@ import '../normalized/normalized_listing.dart';
 import '../normalized/normalizers.dart';
 
 /// One record after mapping, with something to name it by in the output.
-class MappedRecord {
-  const MappedRecord(this.ref, this.outcome, {this.liveId, this.search});
-
-  final String ref;
-  final MapOutcome outcome;
+class const MappedRecord(
+  final String ref,
+  final MapOutcome outcome, {
 
   /// The listing's source id when the source shows it as live, whatever we
   /// made of it: a bike we reject (too old, say) is still on the site, so it
   /// was seen. Null when the record says the listing is gone.
-  final String? liveId;
+  final String? liveId,
 
   /// The search that found it, when the input has a [SearchManifest].
-  final String? search;
-}
+  final String? search,
+});
 
 /// Source ids of every listing the input shows as live, rejected or not.
 /// Null when a rejected record can't be placed, so the input can't be
@@ -47,25 +45,17 @@ List<String>? liveIds(SourceBatch batch) {
 }
 
 /// Everything one run read from one source, already mapped.
-class SourceBatch {
-  const SourceBatch(
-    this.source,
-    this.issues,
-    this.records, {
-    this.manifest,
-    this.siteModels = const [],
-  });
-
-  final String source;
-  final List<ParseIssue> issues;
-  final List<MappedRecord> records;
+class const SourceBatch(
+  final String source,
+  final List<ParseIssue> issues,
+  final List<MappedRecord> records, {
 
   /// What the fetch run planned and saved; null for inputs without one.
-  final SearchManifest? manifest;
+  final SearchManifest? manifest,
 
   /// The brands and models the site offers (search pages only).
-  final List<SiteModel> siteModels;
-}
+  final List<SiteModel> siteModels = const [],
+});
 
 /// What a complete import may mark as removed.
 class RemovalPlan {

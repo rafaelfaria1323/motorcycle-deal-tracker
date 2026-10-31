@@ -5,16 +5,14 @@ import 'web_push.dart';
 
 /// An examination of every photo (P.4) someone asked for, now done: who
 /// asked, the bike and how many kinds of hint its photos show.
-class PhotoExamAnswer {
-  const PhotoExamAnswer({
-    required this.userId,
-    required this.listingId,
-    required this.brand,
-    required this.model,
-    this.year,
-    required this.hints,
-  });
-
+class const PhotoExamAnswer({
+  required final String userId,
+  required final String listingId,
+  required final String brand,
+  required final String model,
+  final int? year,
+  required final int hints,
+}) {
   /// A row of `photo_exam_answers`.
   factory PhotoExamAnswer.fromRow(Map<String, dynamic> row) => PhotoExamAnswer(
     userId: row['user_id'] as String,
@@ -24,19 +22,12 @@ class PhotoExamAnswer {
     year: (row['year'] as num?)?.toInt(),
     hints: (row['hints'] as num?)?.toInt() ?? 0,
   );
-
-  final String userId;
-  final String listingId;
-  final String brand;
-  final String model;
-  final int? year;
-  final int hints;
 }
 
 /// The notification of a finished examination; a tap opens the listing.
 Map<String, Object?> photoExamPush(
   PhotoExamAnswer answer, {
-  NotificationLanguage language = NotificationLanguage.portuguese,
+  NotificationLanguage language = .portuguese,
 }) {
   final bike = [
     answer.brand,

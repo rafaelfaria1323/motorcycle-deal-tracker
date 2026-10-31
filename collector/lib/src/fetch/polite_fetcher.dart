@@ -9,11 +9,7 @@ import 'package:clock/clock.dart';
 import 'robots.dart';
 
 /// We decided not to fetch this (our own rules said no). Nothing was sent.
-class FetchRefused implements Exception {
-  const FetchRefused(this.reason);
-
-  final String reason;
-
+class const FetchRefused(final String reason) implements Exception {
   @override
   String toString() => reason;
 }
@@ -21,100 +17,73 @@ class FetchRefused implements Exception {
 /// The run reached a limit it was given (its time, or a request cap asked
 /// for by hand). What was fetched so far is fine to use; the rest waits for
 /// a later run.
-class FetchLimitReached extends FetchRefused {
-  const FetchLimitReached(super.reason);
-}
+class const FetchLimitReached(super.reason) extends FetchRefused;
 
 /// The site's robots.txt does not allow this address.
-class FetchDisallowed extends FetchRefused {
-  const FetchDisallowed(super.reason);
-}
+class const FetchDisallowed(super.reason) extends FetchRefused;
 
 /// The site pushed back. Stop, and do not try again soon.
-class FetchBlocked implements Exception {
-  const FetchBlocked(this.reason);
-
-  final String reason;
-
+class const FetchBlocked(final String reason) implements Exception {
   @override
   String toString() => reason;
 }
 
 /// A network or HTTP problem that is not a block.
-class FetchFailed implements Exception {
-  const FetchFailed(this.reason, {this.statusCode});
-
-  final String reason;
-  final int? statusCode;
-
+class const FetchFailed(final String reason, {final int? statusCode})
+    implements Exception {
   @override
   String toString() => reason;
 }
 
-class FetchPolicy {
-  const FetchPolicy({
-    this.minDelay = const Duration(seconds: 6),
-    this.jitter = const Duration(seconds: 4),
-    this.maxRequestsPerRun,
-    this.maxRequestsPerDay,
-    this.maxRunTime = const Duration(minutes: 30),
-    this.timeout = const Duration(seconds: 45),
-    this.readTimeout = const Duration(seconds: 60),
-    this.retryDelay = const Duration(seconds: 60),
-    this.cooldownAfterBlock = const Duration(hours: 24),
-    this.robotsMaxAge = const Duration(hours: 24),
-  });
-
-  final Duration minDelay;
-  final Duration jitter;
+class const FetchPolicy({
+  final Duration minDelay = const Duration(seconds: 6),
+  final Duration jitter = const Duration(seconds: 4),
 
   /// Request caps; none by default (Rafael, 2026-10-22: the counts are
   /// recorded and shown in the app instead). Set for tests and by hand
   /// (`fetch.dart --max`).
-  final int? maxRequestsPerRun;
-  final int? maxRequestsPerDay;
+  final int? maxRequestsPerRun,
+  final int? maxRequestsPerDay,
 
   /// How long one run may keep sending requests to the site, from
   /// [PoliteFetcher.prepare]: keeps a long backlog (e.g. listing pages
   /// still to read) inside the job's time; the rest waits for the next run.
-  final Duration? maxRunTime;
+  final Duration? maxRunTime = const Duration(minutes: 30),
 
   /// For connecting and the response's headers. OLX answers in 1-2 s, but
   /// three runs (2026-10-24 to 26) lost a search when it sent no headers
   /// within 20 s; a longer wait costs nothing when it answers.
-  final Duration timeout;
+  final Duration timeout = const Duration(seconds: 45),
 
   /// For reading the page once it is coming in: OLX's pages are 2 MB, and
   /// one took longer than [timeout] on a slow runner (it adds no request).
-  final Duration readTimeout;
+  final Duration readTimeout = const Duration(seconds: 60),
 
   /// The wait before a page's one retry, after a timeout, a dropped
   /// connection or HTTP 500/502/504 (Rafael, 2026-10-27: passing errors
   /// lost whole searches). Blocks (403/429/503) and pages that aren't
   /// normal are never retried; a second failure stops the run as before.
   /// Null: no retry (tests, by hand).
-  final Duration? retryDelay;
-  final Duration cooldownAfterBlock;
+  final Duration? retryDelay = const Duration(seconds: 60),
+  final Duration cooldownAfterBlock = const Duration(hours: 24),
 
   /// How long a robots.txt read is kept (in the state file, across runs)
   /// before it is read again. RFC 9309 asks crawlers not to keep one
   /// longer than 24 hours; Rafael, 2026-10-22: once a day, not every run.
-  final Duration robotsMaxAge;
-}
+  final Duration robotsMaxAge = const Duration(hours: 24),
+});
 
 /// What survives between runs: today's request count, the last block, the
 /// site's robots.txt as last read and when each search was last read in
 /// full.
-class FetchState {
-  FetchState({
-    required this.day,
-    this.requests = 0,
-    this.blockedAt,
-    this.robots,
-    this.robotsReadAt,
-    Map<String, DateTime>? fullReads,
-  }) : fullReads = fullReads ?? {};
-
+class FetchState({
+  required var String day,
+  var int requests = 0,
+  var DateTime? blockedAt,
+  var String? robots,
+  var DateTime? robotsReadAt,
+  Map<String, DateTime>? fullReads,
+}) {
   factory FetchState.fromJson(Map<String, dynamic> json) => FetchState(
     day: json['day'] as String,
     requests: json['requests'] as int,
@@ -131,15 +100,9 @@ class FetchState {
   static DateTime? _time(Object? value) =>
       value == null ? null : DateTime.parse(value as String);
 
-  String day;
-  int requests;
-  DateTime? blockedAt;
-  String? robots;
-  DateTime? robotsReadAt;
-
   /// Search address -> when every page of it was last saved (R.2: a light
   /// run reads only what is newer).
-  final Map<String, DateTime> fullReads;
+  final Map<String, DateTime> fullReads = fullReads ?? {};
 
   Map<String, dynamic> toJson() => {
     'day': day,
@@ -208,16 +171,24 @@ Future<FetchState?> readFetchState(String path) async {
 
 /// One website we fetch from: where we may go, how a normal page looks, and
 /// where its request count is kept. Each site has its own budget.
-class FetchSite {
-  const FetchSite({
-    required this.host,
-    required this.pathPrefix,
-    required this.pageMarker,
-    required this.statePath,
-    this.accept = 'text/html,application/xhtml+xml',
-    this.robotsRequired = true,
-  });
+class const FetchSite({
+  required final String host,
 
+  /// Only pages under this path are fetched (motorcycles only).
+  required final String pathPrefix,
+
+  /// Text every normal page holds; without it the page is treated as a
+  /// block or verification page.
+  required final String pageMarker,
+  required final String statePath,
+
+  /// The Accept header of every request.
+  final String accept = 'text/html,application/xhtml+xml',
+
+  /// False: robots.txt answered with 4xx means no rules (RFC 9309); the
+  /// sites' pages are never fetched without one.
+  final bool robotsRequired = true,
+}) {
   static const standvirtual = FetchSite(
     host: 'www.standvirtual.com',
     pathPrefix: '/motos/',
@@ -245,23 +216,6 @@ class FetchSite {
   );
 
   static const byName = {'standvirtual': standvirtual, 'olx': olx};
-
-  final String host;
-
-  /// Only pages under this path are fetched (motorcycles only).
-  final String pathPrefix;
-
-  /// Text every normal page holds; without it the page is treated as a
-  /// block or verification page.
-  final String pageMarker;
-  final String statePath;
-
-  /// The Accept header of every request.
-  final String accept;
-
-  /// False: robots.txt answered with 4xx means no rules (RFC 9309); the
-  /// sites' pages are never fetched without one.
-  final bool robotsRequired;
 }
 
 /// Null when the address may be fetched, otherwise why not.
@@ -285,17 +239,12 @@ typedef _Response = ({
 });
 
 /// A deliberately slow, one-at-a-time, honest downloader for one website.
-class PoliteFetcher {
-  PoliteFetcher({
-    required this.site,
-    this.userAgent = 'MotorcycleDealTracker/0.1 (personal project, low volume)',
-    this.policy = const FetchPolicy(),
-  });
-
-  final FetchSite site;
-  final String userAgent;
-  final FetchPolicy policy;
-
+class PoliteFetcher({
+  required final FetchSite site,
+  final String userAgent =
+      'MotorcycleDealTracker/0.1 (personal project, low volume)',
+  final FetchPolicy policy = const FetchPolicy(),
+}) {
   final _random = Random();
   late final HttpClient _client = HttpClient()
     ..userAgent = userAgent
