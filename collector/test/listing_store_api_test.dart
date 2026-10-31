@@ -306,14 +306,15 @@ void main() {
     expect(calls.last.query['endpoint'], 'in.("e")');
     final functions = _functionsInMigrations();
     // Every table read is a real table (or view) of the migrations.
-    final migrations = Directory(
-      '../supabase/migrations',
-    ).listSync().whereType<File>().map((f) => f.readAsStringSync()).join('\n');
+    final migrations = Directory('../supabase/migrations')
+        .listSync()
+        .whereType<File>()
+        .map((f) => f.readAsStringSync())
+        .join('\n');
     for (final table in byTable.keys) {
       expect(
-        RegExp(
-          '(table|view)\\s+(if not exists\\s+)?public\\.$table\\b',
-        ).hasMatch(migrations),
+        RegExp('(table|view)\\s+(if not exists\\s+)?public\\.$table\\b')
+            .hasMatch(migrations),
         isTrue,
         reason: 'no table $table',
       );

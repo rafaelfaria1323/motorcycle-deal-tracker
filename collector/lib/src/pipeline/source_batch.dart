@@ -125,9 +125,8 @@ List<SearchReport> searchReports(SourceBatch batch) {
     final search = record.search;
     if (search == null) continue;
     ads[search] = (ads[search] ?? 0) + 1;
-    if (record.outcome case Mapped(
-      :final listing,
-    ) when listing.motorcycleSlug != null) {
+    if (record.outcome case Mapped(:final listing)
+        when listing.motorcycleSlug != null) {
       matched[search] = (matched[search] ?? 0) + 1;
     }
   }

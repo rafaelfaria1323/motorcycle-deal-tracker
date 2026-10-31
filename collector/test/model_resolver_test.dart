@@ -88,9 +88,9 @@ final full = Catalog([
 /// What the OLX mapper passes: the site's family, then the title without
 /// the brand.
 String? slugOf(Catalog catalog, String brand, String family, String title) =>
-    ModelResolver(
-      catalog,
-    ).resolve(brand: brand, family: family, text: '$family $title')?.slug;
+    ModelResolver(catalog)
+        .resolve(brand: brand, family: family, text: '$family $title')
+        ?.slug;
 
 void main() {
   group('titles from the OLX run of 2026-10-19', () {

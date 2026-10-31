@@ -82,9 +82,9 @@ String fcmAssertion(FcmAccount account, {DateTime? now}) {
       '${part({'iss': account.clientEmail, 'scope': 'https://www.googleapis.com/auth/firebase.messaging', 'aud': account.tokenUri, 'iat': issued, 'exp': issued + 3600})}';
   final signer = Signer('SHA-256/RSA')
     ..init(true, PrivateKeyParameter<RSAPrivateKey>(account.privateKey));
-  final signature =
-      signer.generateSignature(Uint8List.fromList(utf8.encode(unsigned)))
-          as RSASignature;
+  final signature = signer.generateSignature(
+    Uint8List.fromList(utf8.encode(unsigned)),
+  ) as RSASignature;
   return '$unsigned.${base64UrlNoPad(signature.bytes)}';
 }
 

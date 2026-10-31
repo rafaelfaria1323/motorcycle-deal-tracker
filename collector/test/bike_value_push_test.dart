@@ -187,9 +187,8 @@ void main() {
       await server.close(force: true);
     });
 
-    final answers = await ListingStore(
-      client,
-    ).answerBikeValues(DateTime.utc(2026, 10, 28, 8));
+    final answers = await ListingStore(client)
+        .answerBikeValues(DateTime.utc(2026, 10, 28, 8));
 
     expect(body, {'p_started_at': '2026-10-28T08:00:00.000Z'});
     final a = answers.single;

@@ -5,6 +5,20 @@
 Notes in *italics* say how a step was actually done when it differed from the plan.
 Keep this file up to date in the same PR as the work.
 
+## Waiting on Rafael's decision
+
+- **Weekly database backup** (proposed 2026-10-28): Supabase's free plan
+  keeps no backups, so a bad migration or a lost project would wipe the
+  history (price changes, time on sale, relists, dealer figures). Plan: a
+  weekly `pg_dump`, encrypted (it holds sellers' data), kept as a GitHub
+  Actions artifact for 90 days; free. Needs a yes and one passphrase
+  secret created by Rafael.
+- **"Avaliar um anúncio"** (asked 2026-10-30): paste an OLX or
+  Standvirtual link of a bike nobody follows and get its Deal Score.
+  Needs a yes to build it, and a yes to loosening the fetching rules:
+  reading single OLX ad pages (`/d/anuncio/...`), which the rules don't
+  allow today.
+
 ## Development Rule
 
 One interaction = one small, functional, verifiable change.
@@ -601,6 +615,21 @@ this is not an end-to-end collection speedup. Network delays, request
 counts and fetching policy are untouched. Remaining opportunities
 (account-scoped summary reads, comparison-card rebuilds, profiling
 duplicate/relist writes) are recorded in `docs/code-quality.md`.*
+
+## ➕ N.35 Flutter 3.47.8 / Dart 3.13.7 ✅
+*Rafael, 2026-10-31: "continue with the update to 3.47.8". `.fvmrc` is
+3.47.8 and `.dart-version` its bundled Dart 3.13.7 (Flutter's release
+list); the app and collector require them (pubspecs and lockfiles). Dart
+3.13's formatter restyled 15 collector files (its `dart format` check is
+in CI); the app has no format check and keeps its files as they were.
+The lint `unnecessary_await_in_return` is deprecated in 3.13 and left
+both analysis options; `prefer_initializing_formals` now also asks for
+private initializing formals (`this._x`, also named ones),
+done in `AccountScopedCubit` and a collector test fake. The
+`shared_preferences_android` / `path_provider_android` holds stay
+(their JNI releases are untried on a phone). Primary constructors (3.13)
+come later, area by area. Rafael to install the new APK and check it
+starts, signs in and gets a notification.*
 
 # Security and privacy ✅
 

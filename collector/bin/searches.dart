@@ -28,9 +28,8 @@ Future<void> main(List<String> args) async {
       stderr.writeln('Skipped: $problem');
     }
     await File(out).writeAsString(
-      [
-        for (final s in plan.searches) '${s.url}  # ${s.models.join(', ')}\n',
-      ].join(),
+      [for (final s in plan.searches) '${s.url}  # ${s.models.join(', ')}\n']
+          .join(),
     );
 
     stdout.writeln('${plan.searches.length} ${args.first} search(es):');

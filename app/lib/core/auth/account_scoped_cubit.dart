@@ -7,12 +7,10 @@ import 'session_cubit.dart';
 /// Clears shared state when its account changes, regardless of which
 /// screen initiated the change. Anonymous sessions share the public scope.
 abstract class AccountScopedCubit<State> extends Cubit<State> {
-  AccountScopedCubit(SessionCubit session, State initialState)
-    : _session = session,
-      _initialState = initialState,
-      _accountId = _accountOf(session.state),
-      super(initialState) {
-    _subscription = session.stream.listen((session) {
+  AccountScopedCubit(this._session, this._initialState)
+    : _accountId = _accountOf(_session.state),
+      super(_initialState) {
+    _subscription = _session.stream.listen((session) {
       final accountId = _accountOf(session);
       if (isClosed || accountId == _accountId) return;
       _accountId = accountId;

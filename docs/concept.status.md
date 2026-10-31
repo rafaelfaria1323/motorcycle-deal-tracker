@@ -57,9 +57,9 @@ Unchanged.
 
 ## 7. Stack
 
-- Frontend: Flutter Web, Dart ✅ *Flutter 3.44.8 and its bundled Dart
-  3.12.2 are pinned for local FVM use and CI (`.fvmrc`, `.dart-version`;
-  roadmap N.33), not floating stable releases. The collector/database PR
+- Frontend: Flutter Web, Dart ✅ *Flutter 3.47.8 and its bundled Dart
+  3.13.7 are pinned for local FVM use and CI (`.fvmrc`, `.dart-version`;
+  roadmap N.33, N.35), not floating stable releases. The collector/database PR
   job uses standalone Dart and the production setup/startup smoke, with
   no full Flutter installation or duplicate setup job.*
 - Backend: Supabase, PostgreSQL ✅, Supabase Auth ✅ *(anonymous + owner email/password)*; scheduled jobs ➕ *on GitHub Actions instead of Edge Functions (a Dart CLI collector, one process per run, 9 times a day at fixed Lisbon hours), started by Supabase pg_cron (GitHub's own scheduler never started them).*

@@ -48,9 +48,8 @@ void main() {
         now: DateTime.utc(2026, 10, 21, 8),
       );
 
-      final match = RegExp(
-        r'^vapid t=([^.]+)\.([^.]+)\.([^,]+), k=(.+)$',
-      ).firstMatch(header)!;
+      final match = RegExp(r'^vapid t=([^.]+)\.([^.]+)\.([^,]+), k=(.+)$')
+          .firstMatch(header)!;
       final claims =
           jsonDecode(utf8.decode(base64UrlDecodeLoose(match[2]!))) as Map;
       expect(claims, {

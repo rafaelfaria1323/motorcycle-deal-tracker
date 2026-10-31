@@ -59,9 +59,8 @@ Future<void> main(List<String> args) async {
 
     stdout.writeln('Run recorded: $status');
     if (Platform.environment['GITHUB_OUTPUT'] case final output?) {
-      await File(
-        output,
-      ).writeAsString('status=$status\n', mode: FileMode.append);
+      await File(output)
+          .writeAsString('status=$status\n', mode: FileMode.append);
     }
 
     final runs = [

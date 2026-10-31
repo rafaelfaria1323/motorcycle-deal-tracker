@@ -90,8 +90,8 @@ never asks for search URLs; aliases sit under "Outros nomes do modelo".
   must stay clean: fix a splinter finding, or allow it in
   `supabase/lint_allow.txt` with the reason.
 - Flutter is not installed in the sandbox and must not be downloaded: Rafael
-  tests the app. The project pins Flutter 3.44.8 (`.fvmrc`, FVM and every
-  Flutter workflow) and its bundled Dart 3.12.2 (`.dart-version`, standalone
+  tests the app. The project pins Flutter 3.47.8 (`.fvmrc`, FVM and every
+  Flutter workflow) and its bundled Dart 3.13.7 (`.dart-version`, standalone
   collector jobs and the cloud session hook). Keep both aligned when
   upgrading; app and collector SDK minimums match. Pure Dart logic in the
   app can be tested with plain Dart (`package:test`) on copies of the

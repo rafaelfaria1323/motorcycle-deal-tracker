@@ -592,11 +592,10 @@ void main() {
     final at = DateTime.utc(2026, 10, 28, 8);
     final state = FetchState.fromJson(
       jsonDecode(
-            jsonEncode(
-              FetchState(day: '2026-10-28', fullReads: {'a': at}).toJson(),
-            ),
-          )
-          as Map<String, dynamic>,
+        jsonEncode(
+          FetchState(day: '2026-10-28', fullReads: {'a': at}).toJson(),
+        ),
+      ) as Map<String, dynamic>,
     );
     expect(state.fullReads, {'a': at});
     expect(state.rolledTo('2026-10-29').fullReads, {'a': at});

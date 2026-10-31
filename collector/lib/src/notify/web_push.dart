@@ -154,9 +154,9 @@ String vapidAuthorization(
       true,
       PrivateKeyParameter<ECPrivateKey>(ECPrivateKey(keys.privateKey, _curve)),
     );
-  final signature =
-      signer.generateSignature(Uint8List.fromList(utf8.encode(unsigned)))
-          as ECSignature;
+  final signature = signer.generateSignature(
+    Uint8List.fromList(utf8.encode(unsigned)),
+  ) as ECSignature;
   // JOSE wants r and s side by side, 32 bytes each.
   final raw = Uint8List(64)
     ..setAll(0, _bytes(signature.r, 32))
@@ -185,9 +185,9 @@ Map<String, Object?> declarativePush(
       _ => 'Deal Tracker',
     },
     if (message['body'] case final String body) 'body': body,
-    'navigate': Uri.parse(
-      origin,
-    ).resolve(message['url'] as String? ?? '/').toString(),
+    'navigate': Uri.parse(origin)
+        .resolve(message['url'] as String? ?? '/')
+        .toString(),
     if (message['tag'] case final String tag) 'tag': tag,
     if (message['language'] case final String language) 'lang': language,
   },
