@@ -196,9 +196,9 @@ class WebPushSender(
     Map<String, Object?> message,
   ) async {
     if (!target.isAndroid) {
-      return sendWebPush(target, message, keys, subject: subject);
+      return await sendWebPush(target, message, keys, subject: subject);
     }
-    if (fcm case final fcm?) return fcm.send(target, message);
+    if (fcm case final fcm?) return await fcm.send(target, message);
     if (!_toldNoFcm) {
       _toldNoFcm = true;
       stderr.writeln(

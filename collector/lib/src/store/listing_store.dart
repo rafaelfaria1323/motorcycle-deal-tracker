@@ -253,7 +253,7 @@ class ListingStore(final SupabaseClient _client) {
     final rows = (await _client.rpc<List<dynamic>>(
       'photo_training_set',
       params: {'p_model': model},
-    )).cast<Map<String, dynamic>>();
+    )).cast<Map<String, Object?>>();
     return (
       samples: [
         for (final r in rows)

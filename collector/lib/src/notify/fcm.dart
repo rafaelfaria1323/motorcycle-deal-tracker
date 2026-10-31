@@ -152,7 +152,8 @@ class FcmSender(
     );
     if (status == 200) {
       try {
-        if (jsonDecode(text) case {'access_token': final String token}) {
+        final Object? reply = jsonDecode(text);
+        if (reply case {'access_token': final String token}) {
           return token;
         }
       } on FormatException {

@@ -79,7 +79,7 @@ class ProcessPhotoExaminer implements PhotoExaminer {
     );
     try {
       if (await lines.moveNext().timeout(startTimeout)) {
-        final ready = jsonDecode(lines.current);
+        final ready = jsonDecode(lines.current) as Object?;
         if (ready case {'ready': final String model}) {
           log.writeln('Photo hints on: $model.');
           return ProcessPhotoExaminer._(process, lines, model, photoTimeout);

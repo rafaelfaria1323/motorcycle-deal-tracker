@@ -45,7 +45,8 @@ never asks for search URLs; aliases sit under "Outros nomes do modelo".
 - **Prefer tools without AI.** AI is fine only where it is free, and a
   fixed, free tool wins whenever it can do the same job. The app and the
   collector use no AI (scores, estimates and alerts are rules and
-  statistics). Checks: analyzer rules (`*/analysis_options.yaml`),
+  statistics). Checks: analyzer rules (`*/analysis_options.yaml`, with Dart
+  3.11-3.13's lints, N.40),
   `make duplication` (jscpd), `make coverage` (floors in the Makefile),
   `make lint-scripts` (actionlint, shellcheck), `make dead-code`
   (dart_code_linter, app only), `make sql-lint`
