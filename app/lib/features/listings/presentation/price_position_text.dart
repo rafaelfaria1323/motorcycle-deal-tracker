@@ -55,7 +55,7 @@ PricePosition? pricePosition(double? price, List<double> others) {
 String? pricePositionLine(
   double? price,
   List<double> others, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   if (price == null) return null;
   final position = pricePosition(price, others);

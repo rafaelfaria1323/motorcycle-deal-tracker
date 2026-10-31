@@ -23,7 +23,7 @@ List<SiteModel> pickerModels(List<SiteModel> models) =>
 /// size.
 ({int? cc, String? error}) parseEngineCc(
   String text, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final cleaned = text.toLowerCase().replaceAll(RegExp(r'\s|cc'), '');
   if (cleaned.isEmpty) return (cc: null, error: null);

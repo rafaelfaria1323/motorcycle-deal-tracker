@@ -5,7 +5,7 @@ import '../localization/localizations.dart';
 String authErrorText(
   String? code,
   String message, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) => switch (code) {
   'missing_credentials' => language.messages.enterYourEmailAndPassword,
   'invalid_credentials' => language.messages.incorrectEmailOrPassword,

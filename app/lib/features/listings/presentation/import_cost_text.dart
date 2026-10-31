@@ -22,7 +22,7 @@ List<ImportLine> importCostLines(
   required int? mileage,
   required DateTime now,
   ImportComparison against = ImportComparison.value,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final messages = language.messages;
   String price(double amount) => Formatters.price(amount, language: language);
@@ -100,7 +100,7 @@ String _dearer(
 };
 
 /// The card's footnote: where the amounts come from.
-String importCostNote({AppLanguage language = AppLanguage.portuguese}) =>
+String importCostNote({AppLanguage language = .portuguese}) =>
     language.messages.importCostNote(
       legalisation: Formatters.price(
         importInspection + importRegistration + importPlates,

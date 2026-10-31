@@ -64,7 +64,7 @@ class const DashboardPage({super.key}) extends StatelessWidget {
     }
     // The list loads with the Pesquisas tab: without it the same search
     // could be saved again.
-    if (searches.state.status != SavedSearchesStatus.success) {
+    if (searches.state.status != .success) {
       await searches.load();
     }
     if (savedSearchLike(searches.state.searches, filters) case final same?) {
@@ -156,9 +156,7 @@ class const DashboardPage({super.key}) extends StatelessWidget {
             state.motorcycles,
             language: context.language,
           );
-          final loading =
-              state.status == ListingsStatus.initial ||
-              state.status == ListingsStatus.loading;
+          final loading = state.status == .initial || state.status == .loading;
 
           return RefreshIndicator(
             onRefresh: cubit.load,
@@ -223,7 +221,7 @@ class const DashboardPage({super.key}) extends StatelessWidget {
                               ],
                             ),
                           ],
-                          if (state.status == ListingsStatus.success &&
+                          if (state.status == .success &&
                               state.listings.isNotEmpty) ...[
                             const SizedBox(height: 24),
                             const Divider(),
@@ -279,7 +277,7 @@ class const DashboardPage({super.key}) extends StatelessWidget {
                         itemBuilder: (_, _) => const ListingCardSkeleton(),
                       ),
                     )
-                  else if (state.status == ListingsStatus.failure)
+                  else if (state.status == .failure)
                     SliverFillRemaining(
                       child: StateMessage(
                         icon: Icons.cloud_off,
@@ -416,13 +414,13 @@ class const _OffersToolbar({
             builder: (context, cards) => OutlinedButton.icon(
               onPressed: () => showListingCardPreferences(context),
               icon: Icon(
-                cards.status == ListingCardPreferencesStatus.failure
+                cards.status == .failure
                     ? Icons.warning_amber_outlined
                     : Icons.view_agenda_outlined,
                 size: 18,
               ),
               label: Text(
-                cards.status == ListingCardPreferencesStatus.failure
+                cards.status == .failure
                     ? context.strings.cardsTryAgain
                     : context.strings.cards,
               ),

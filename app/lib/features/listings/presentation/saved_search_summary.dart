@@ -7,14 +7,12 @@ import 'score_criteria.dart';
 import 'score_explanation.dart';
 import '../../../core/localization/localizations.dart';
 
-String searchMatchesText(
-  int count, {
-  AppLanguage language = AppLanguage.portuguese,
-}) => language.messages.matchingListingCount(count: count);
+String searchMatchesText(int count, {AppLanguage language = .portuguese}) =>
+    language.messages.matchingListingCount(count: count);
 
 String searchNotificationText(
   SavedSearch search, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final kinds = [
     if (search.notifyNewListing)
@@ -32,7 +30,7 @@ String searchNotificationText(
 String summarizeFilters(
   ListingFilters filters,
   List<MotorcycleOption> motorcycles, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final parts = <String>[];
 
@@ -91,7 +89,7 @@ String summarizeFilters(
 String modelsText(
   List<String> ids,
   List<MotorcycleOption> motorcycles, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) => [
   for (final MapEntry(key: brand, value: models) in modelsByBrand(
     motorcycles.where((m) => ids.contains(m.id)),
@@ -114,7 +112,7 @@ Map<String, List<MotorcycleOption>> modelsByBrand(
 String modelLabel(
   String id,
   List<MotorcycleOption> motorcycles, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final m = motorcycles.where((m) => m.id == id).firstOrNull;
   return m == null ? language.messages.model : '${m.brand} ${m.model}';
@@ -124,23 +122,19 @@ String modelLabel(
 const maxDistanceOptions = [25, 50, 100, 200, 300];
 
 /// "até 50 km de casa".
-String maxDistanceLabel(
-  int km, {
-  AppLanguage language = AppLanguage.portuguese,
-}) => language.messages.withinOfHome(
-  mileage: Formatters.mileage(km, language: language),
-);
+String maxDistanceLabel(int km, {AppLanguage language = .portuguese}) =>
+    language.messages.withinOfHome(
+      mileage: Formatters.mileage(km, language: language),
+    );
 
-String onlyMyColoursLabel({AppLanguage language = AppLanguage.portuguese}) =>
+String onlyMyColoursLabel({AppLanguage language = .portuguese}) =>
     language.messages.inYourColours;
 
 /// "com quickshifter".
-String extraFilterLabel(
-  String code, {
-  AppLanguage language = AppLanguage.portuguese,
-}) => language.messages.withExtra(
-  extra: extraLabels(language: language)[code] ?? code,
-);
+String extraFilterLabel(String code, {AppLanguage language = .portuguese}) =>
+    language.messages.withExtra(
+      extra: extraLabels(language: language)[code] ?? code,
+    );
 
 /// One applied filter as a removable chip: its label and the filters
 /// without it.
@@ -151,7 +145,7 @@ typedef FilterChipData = ({String label, ListingFilters without});
 List<FilterChipData> filterChips(
   ListingFilters f,
   List<MotorcycleOption> motorcycles, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   ListingFilters copy({
     String? withoutModel,
@@ -261,7 +255,7 @@ List<FilterChipData> filterChips(
 /// Localizes only the fallback, never the owner's name.
 String savedSearchName(
   SavedSearch search, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final name = search.name;
   return name == null || name.trim().isEmpty
@@ -272,7 +266,7 @@ String savedSearchName(
 /// Said when a search would repeat [existing].
 String alreadySavedText(
   SavedSearch existing, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) => language.messages.thisSearchIsAlreadySavedAs(
   displayName: savedSearchName(existing, language: language),
 );

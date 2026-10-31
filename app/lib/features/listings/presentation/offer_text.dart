@@ -15,7 +15,7 @@ class const OfferSuggestion({
   required final List<String> reasons,
 }) {
   /// "Comece por 6300 € e não passe de 6700 €."
-  String headline({AppLanguage language = AppLanguage.portuguese}) =>
+  String headline({AppLanguage language = .portuguese}) =>
       language.messages.startAtAndDoNotGoAbove(
         price: Formatters.price(opening, language: language),
         price2: Formatters.price(ceiling, language: language),
@@ -24,7 +24,7 @@ class const OfferSuggestion({
   /// The offers to make in turn: the opening, one halfway to the most to
   /// pay when there is room for it, and the most to pay as the last; each
   /// with the message to send.
-  List<OfferStep> steps({AppLanguage language = AppLanguage.portuguese}) {
+  List<OfferStep> steps({AppLanguage language = .portuguese}) {
     final middle = _roundDown((opening + ceiling) / 2);
     return [
       OfferStep(
@@ -62,17 +62,12 @@ class const OfferSuggestion({
   }
 
   /// What to answer when the seller asks [counter] instead.
-  String replyTo(
-    double counter, {
-    AppLanguage language = AppLanguage.portuguese,
-  }) => reply(counter, language: language).advice;
+  String replyTo(double counter, {AppLanguage language = .portuguese}) =>
+      reply(counter, language: language).advice;
 
   /// What to do when the seller asks [counter] instead, and the message to
   /// send for it.
-  OfferReply reply(
-    double counter, {
-    AppLanguage language = AppLanguage.portuguese,
-  }) {
+  OfferReply reply(double counter, {AppLanguage language = .portuguese}) {
     final steps = this.steps(language: language);
     // The offer before the last: below it, the seller is already close.
     final second = steps[steps.length - 2].price;
@@ -125,10 +120,7 @@ class const OfferReply(final String advice, final String message);
 
 /// The seller's counter-offer as typed: "8500", "8.500", "8 500 €". Null
 /// for anything that is not a price.
-double? parseCounterOffer(
-  String text, {
-  AppLanguage language = AppLanguage.portuguese,
-}) {
+double? parseCounterOffer(String text, {AppLanguage language = .portuguese}) {
   final value = Formatters.parsePrice(text, language: language);
   return value != null && value >= offerStep ? value : null;
 }
@@ -200,7 +192,7 @@ OfferSuggestion? suggestOffer(
   Listing listing, {
   MarketBehaviour? market,
   int? daysListed,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final price = listing.price;
   final undamaged = (listing.scoreBreakdown?['market_price'] as num?)
@@ -267,7 +259,7 @@ OfferSuggestion? suggestOffer(
     }
   }
 
-  final dealer = listing.sellerType == SellerType.dealer;
+  final dealer = listing.sellerType == .dealer;
   var margin = dealer ? dealerMargin : privateMargin;
   reasons.add(
     dealer

@@ -25,7 +25,7 @@ class const SavedSearchesPage({super.key}) extends StatelessWidget {
   Future<void> _apply(BuildContext context, SavedSearch search) async {
     final listings = getIt<ListingsCubit>();
     // Only matters when the app was opened directly on this tab.
-    if (listings.state.status == ListingsStatus.initial) {
+    if (listings.state.status == .initial) {
       await listings.load();
     }
     unawaited(listings.applyFilters(search.filters));
@@ -90,8 +90,7 @@ class const SavedSearchesPage({super.key}) extends StatelessWidget {
             previous.motorcycles != current.motorcycles,
         // With no searches yet the empty screen has its own button.
         builder: (context, state) =>
-            state.status == SavedSearchesStatus.success &&
-                state.searches.isNotEmpty
+            state.status == .success && state.searches.isNotEmpty
             ? FloatingActionButton.extended(
                 onPressed: () => _create(context, state.motorcycles),
                 icon: const Icon(Icons.add),
@@ -102,10 +101,10 @@ class const SavedSearchesPage({super.key}) extends StatelessWidget {
       body: BlocBuilder<SavedSearchesCubit, SavedSearchesState>(
         builder: (context, state) {
           switch (state.status) {
-            case SavedSearchesStatus.initial:
-            case SavedSearchesStatus.loading:
+            case .initial:
+            case .loading:
               return const Center(child: CircularProgressIndicator());
-            case SavedSearchesStatus.failure:
+            case .failure:
               return StateMessage(
                 icon: Icons.cloud_off,
                 title: context.strings.couldNotLoadSearches,
@@ -113,7 +112,7 @@ class const SavedSearchesPage({super.key}) extends StatelessWidget {
                 actionLabel: context.strings.retry,
                 onAction: () => context.read<SavedSearchesCubit>().load(),
               );
-            case SavedSearchesStatus.success:
+            case .success:
               if (state.searches.isEmpty) {
                 return StateMessage(
                   icon: Icons.bookmark_border,

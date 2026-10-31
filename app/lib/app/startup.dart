@@ -75,7 +75,7 @@ class _StartupState extends State<Startup> {
     // a stored session goes with the request as usual. In the browser
     // index.html may already have asked (while the app downloaded).
     final listings = getIt<ListingsCubit>();
-    if (listings.state.status == ListingsStatus.initial) {
+    if (listings.state.status == .initial) {
       unawaited(listings.load(early: takeFirstPage().then(firstPageFromJson)));
     }
     // Browsing works without a session, so a slow sign-in doesn't hold
@@ -109,8 +109,7 @@ class _StartupState extends State<Startup> {
     return FutureBuilder<void>(
       future: _ready,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done &&
-            !snapshot.hasError) {
+        if (snapshot.connectionState == .done && !snapshot.hasError) {
           return const App();
         }
         return _waiting(

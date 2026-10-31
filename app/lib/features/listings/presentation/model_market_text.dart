@@ -22,7 +22,7 @@ List<ModelMarket> byMedianPrice(List<ModelMarket> models) {
 /// The asking-price lines of a model in the comparison.
 List<String> priceSpreadLines(
   PriceSpread? p, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   if (p == null) return [language.messages.noActiveListingsWithPrice];
   if (p.count < minMarketData) {
@@ -70,7 +70,7 @@ List<PriceTrendWeek> trendWeeksWithData(List<PriceTrendWeek> weeks) => [
 /// with enough ads since then. A change under 1 % reads as steady.
 String priceTrendLine(
   List<PriceTrendWeek> weeks, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final enough = trendWeeksWithData(weeks);
   if (enough.length < 2) return language.messages.priceTrendFewData;

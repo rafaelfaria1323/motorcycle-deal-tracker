@@ -7,28 +7,22 @@ import '../../../core/localization/localizations.dart';
 
 /// The line under the price: "2022 · 12 300 km · Lisboa · Profissional".
 /// Missing facts are left out rather than shown as dashes.
-String keyFactsLine(
-  Listing listing, {
-  AppLanguage language = AppLanguage.portuguese,
-}) => [
+String keyFactsLine(Listing listing, {AppLanguage language = .portuguese}) => [
   if (listing.year != null) '${listing.year}',
   if (listing.mileage != null)
     Formatters.mileage(listing.mileage, language: language),
   ?placeText(listing, language: language),
-  if (listing.sellerType != SellerType.unknown)
+  if (listing.sellerType != .unknown)
     listing.sellerType.label(language: language),
 ].join(' · ');
 
 /// "a 45 km" from the person's home.
-String distanceText(int km, {AppLanguage language = AppLanguage.portuguese}) =>
+String distanceText(int km, {AppLanguage language = .portuguese}) =>
     language.messages.away(mileage: Formatters.mileage(km, language: language));
 
 /// "Matosinhos, a 8 km"; the place alone without a distance; null without
 /// a place.
-String? placeText(
-  Listing listing, {
-  AppLanguage language = AppLanguage.portuguese,
-}) {
+String? placeText(Listing listing, {AppLanguage language = .portuguese}) {
   final location = listing.location?.trim();
   if (location == null || location.isEmpty) return null;
   final km = listing.distanceKm;
@@ -41,15 +35,13 @@ String? placeText(
 String photoCounterText(int index, int count) => '${index + 1} / $count';
 
 /// The button to the seller's ad: "Ver no OLX".
-String originalLinkLabel(
-  String source, {
-  AppLanguage language = AppLanguage.portuguese,
-}) => switch (source) {
-  'standvirtual' || 'olx' => language.messages.viewOnSite(
-    site: sourceLabel(source, language: language),
-  ),
-  _ => language.messages.viewOriginalListing,
-};
+String originalLinkLabel(String source, {AppLanguage language = .portuguese}) =>
+    switch (source) {
+      'standvirtual' || 'olx' => language.messages.viewOnSite(
+        site: sourceLabel(source, language: language),
+      ),
+      _ => language.messages.viewOriginalListing,
+    };
 
 /// One row of a facts card: a label and its value.
 typedef Fact = (String label, String value);
@@ -57,10 +49,7 @@ typedef Fact = (String label, String value);
 /// "A mota": year and mileage always (a dash when unknown), the rest only
 /// when the ad says. A mileage read from the description says so, and a
 /// colour among the person's favourites.
-List<Fact> bikeFacts(
-  Listing listing, {
-  AppLanguage language = AppLanguage.portuguese,
-}) => [
+List<Fact> bikeFacts(Listing listing, {AppLanguage language = .portuguese}) => [
   (language.messages.yearCompareText, listing.year?.toString() ?? '—'),
   (
     language.messages.mileage,
@@ -107,7 +96,7 @@ List<Fact> bikeFacts(
 List<Fact> adFacts(
   Listing listing, {
   DateTime? now,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) => [
   (
     language.messages.locationCompareText,

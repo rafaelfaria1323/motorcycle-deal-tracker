@@ -2,16 +2,14 @@ import '../../../core/formatting/formatters.dart';
 import '../domain/entities/listing_alert.dart';
 import '../../../core/localization/localizations.dart';
 
-String unreadAlertsText(
-  int count, {
-  AppLanguage language = AppLanguage.portuguese,
-}) => language.messages.unreadAlertCount(count: count);
+String unreadAlertsText(int count, {AppLanguage language = .portuguese}) =>
+    language.messages.unreadAlertCount(count: count);
 
 /// One day's alerts under its heading ("Hoje", "Ontem", "Segunda-feira",
 /// "03/10/2026").
 typedef AlertDay = ({String label, List<ListingAlert> alerts});
 
-List<String> _weekdays({AppLanguage language = AppLanguage.portuguese}) => [
+List<String> _weekdays({AppLanguage language = .portuguese}) => [
   language.messages.monday,
   language.messages.tuesday,
   language.messages.wednesday,
@@ -25,7 +23,7 @@ List<String> _weekdays({AppLanguage language = AppLanguage.portuguese}) => [
 String alertDayLabel(
   DateTime time, {
   DateTime? now,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final today = _day((now ?? DateTime.now()).toLocal());
   final day = _day(time.toLocal());
@@ -41,7 +39,7 @@ String alertDayLabel(
 List<AlertDay> groupAlertsByDay(
   List<ListingAlert> alerts, {
   DateTime? now,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final days = <AlertDay>[];
   for (final alert in alerts) {
@@ -61,10 +59,7 @@ DateTime _day(DateTime local) =>
     DateTime.utc(local.year, local.month, local.day);
 
 /// "Preço reduzido: Yamaha MT-07 · 2021".
-String alertTitle(
-  ListingAlert alert, {
-  AppLanguage language = AppLanguage.portuguese,
-}) {
+String alertTitle(ListingAlert alert, {AppLanguage language = .portuguese}) {
   final listing = alert.listing;
   final bike = [
     '${listing.brand} ${listing.model}',
@@ -91,7 +86,7 @@ String alertTitle(
 /// otherwise the price, then the place.
 String alertDetailsLine(
   ListingAlert alert, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final oldPrice = alert.oldPrice;
   final newPrice = alert.newPrice;

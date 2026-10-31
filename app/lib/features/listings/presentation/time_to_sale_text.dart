@@ -7,7 +7,7 @@ import '../domain/entities/market_behaviour.dart';
 String? timeToSaleLine(
   TimeToSale t, {
   required bool live,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   if (!live || t.typicalDays == null) return null;
   final remaining = t.remainingDays;

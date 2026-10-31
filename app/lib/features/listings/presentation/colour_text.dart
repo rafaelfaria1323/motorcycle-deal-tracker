@@ -4,39 +4,36 @@ import '../../../core/localization/localizations.dart';
 
 final _colourLabels = <AppLanguage, Map<String, String>>{};
 
-Map<String, String> colourLabels({
-  AppLanguage language = AppLanguage.portuguese,
-}) => _colourLabels.putIfAbsent(
-  language,
-  () => Map<String, String>.unmodifiable({
-    'black': language.messages.black,
-    'white': language.messages.white,
-    'grey': language.messages.grey,
-    'silver': language.messages.silver,
-    'blue': language.messages.blue,
-    'red': language.messages.red,
-    'green': language.messages.green,
-    'yellow': language.messages.yellow,
-    'orange': language.messages.orange,
-    'brown': language.messages.brown,
-    'beige': language.messages.beige,
-    'gold': language.messages.gold,
-    'purple': language.messages.purple,
-    'pink': language.messages.pink,
-  }),
-);
+Map<String, String> colourLabels({AppLanguage language = .portuguese}) =>
+    _colourLabels.putIfAbsent(
+      language,
+      () => Map<String, String>.unmodifiable({
+        'black': language.messages.black,
+        'white': language.messages.white,
+        'grey': language.messages.grey,
+        'silver': language.messages.silver,
+        'blue': language.messages.blue,
+        'red': language.messages.red,
+        'green': language.messages.green,
+        'yellow': language.messages.yellow,
+        'orange': language.messages.orange,
+        'brown': language.messages.brown,
+        'beige': language.messages.beige,
+        'gold': language.messages.gold,
+        'purple': language.messages.purple,
+        'pink': language.messages.pink,
+      }),
+    );
 
 /// "Azul" for a known code; null otherwise.
-String? colourLabel(
-  String? code, {
-  AppLanguage language = AppLanguage.portuguese,
-}) => colourLabels(language: language)[code];
+String? colourLabel(String? code, {AppLanguage language = .portuguese}) =>
+    colourLabels(language: language)[code];
 
 /// The person's colours for a model ("Preto, Azul", in the offered order),
 /// or null when none is chosen.
 String? favouriteColoursText(
   Iterable<String> codes, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final chosen = codes.toSet();
   final labels = [
@@ -53,7 +50,7 @@ String? favouriteColoursText(
 /// must not win on colour).
 ExplanationLine? favouriteColourLine(
   Listing listing, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   if (!listing.myColour) return null;
   final label = colourLabel(listing.colour, language: language)?.toLowerCase();

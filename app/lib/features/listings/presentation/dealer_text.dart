@@ -9,7 +9,7 @@ const minDealerBikes = 5;
 /// The name to look the listing's dealer up by, trimmed; null for private
 /// or unknown sellers (their names are never stored) and empty names.
 String? dealerLookupName(Listing listing) {
-  if (listing.sellerType != SellerType.dealer) return null;
+  if (listing.sellerType != .dealer) return null;
   final name = listing.sellerName?.trim();
   return name == null || name.isEmpty ? null : name;
 }
@@ -17,7 +17,7 @@ String? dealerLookupName(Listing listing) {
 /// "Motos Lda: 12 motas vistas desde 21/08/2026 (5 à venda)".
 String dealerHeadline(
   DealerReliability d, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final since = d.firstSeenAt;
   return language.messages.dealerBikesLine(
@@ -34,7 +34,7 @@ String dealerHeadline(
 /// lowered its prices; a reassuring line when there are no warning signs.
 List<String> dealerLines(
   DealerReliability d, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   String share(int n) => language.messages.ofTextDealerText(
     n: (n).toString(),

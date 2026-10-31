@@ -25,7 +25,7 @@ class AlertsCubit extends AccountScopedCubit<AlertsState> {
     final account = accountGeneration;
     if (!isCurrentAccount(account)) return;
     final generation = ++_loadGeneration;
-    if (state.status != AlertsStatus.success) {
+    if (state.status != .success) {
       emit(state.copyWith(status: AlertsStatus.loading));
     }
     try {
@@ -42,7 +42,7 @@ class AlertsCubit extends AccountScopedCubit<AlertsState> {
       );
     } catch (_) {
       if (!isCurrentAccount(account) || generation != _loadGeneration) return;
-      if (state.status != AlertsStatus.success) {
+      if (state.status != .success) {
         emit(state.copyWith(status: AlertsStatus.failure));
       }
     }

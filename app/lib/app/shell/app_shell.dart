@@ -34,8 +34,8 @@ class _AppShellState extends State<AppShell> {
   void initState() {
     super.initState();
     _lifecycle = AppLifecycleListener(onResume: _alerts.load);
-    if (_alerts.state.status == AlertsStatus.initial) _alerts.load();
-    if (_favourites.state.status == FavouritesStatus.initial) {
+    if (_alerts.state.status == .initial) _alerts.load();
+    if (_favourites.state.status == .initial) {
       _favourites.load();
     }
   }

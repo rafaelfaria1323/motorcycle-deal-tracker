@@ -44,7 +44,7 @@ class const AlertsPage({super.key}) extends StatelessWidget {
     final messenger = ScaffoldMessenger.of(context);
     await searches.load();
     if (!context.mounted) return;
-    if (searches.state.status != SavedSearchesStatus.success) {
+    if (searches.state.status != .success) {
       showMessage(messenger, messageStrings.couldNotLoadThisAlertSSearch);
       return;
     }
@@ -112,10 +112,10 @@ class const AlertsPage({super.key}) extends StatelessWidget {
       body: BlocBuilder<AlertsCubit, AlertsState>(
         builder: (context, state) {
           switch (state.status) {
-            case AlertsStatus.initial:
-            case AlertsStatus.loading:
+            case .initial:
+            case .loading:
               return const Center(child: CircularProgressIndicator());
-            case AlertsStatus.failure:
+            case .failure:
               return StateMessage(
                 icon: Icons.cloud_off,
                 title: context.strings.couldNotLoadAlerts,
@@ -123,7 +123,7 @@ class const AlertsPage({super.key}) extends StatelessWidget {
                 actionLabel: context.strings.retry,
                 onAction: () => context.read<AlertsCubit>().load(),
               );
-            case AlertsStatus.success:
+            case .success:
               if (state.alerts.isEmpty) {
                 return StateMessage(
                   icon: Icons.notifications_none,

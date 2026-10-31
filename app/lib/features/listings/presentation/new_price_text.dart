@@ -14,7 +14,7 @@ const smallDiscountPct = 10;
 List<String> newPriceLines(
   Listing listing, {
   DateTime? now,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final used = listing.price;
   final fresh = listing.newPrice;

@@ -35,7 +35,7 @@ class FavouritesCubit extends AccountScopedCubit<FavouritesState> {
     final account = accountGeneration;
     if (!isCurrentAccount(account)) return;
     final generation = ++_loadGeneration;
-    if (state.status != FavouritesStatus.success) {
+    if (state.status != .success) {
       emit(state.copyWith(status: FavouritesStatus.loading));
     }
     try {
@@ -49,7 +49,7 @@ class FavouritesCubit extends AccountScopedCubit<FavouritesState> {
       );
     } catch (_) {
       if (!isCurrentAccount(account) || generation != _loadGeneration) return;
-      if (state.status != FavouritesStatus.success) {
+      if (state.status != .success) {
         emit(state.copyWith(status: FavouritesStatus.failure));
       }
     }

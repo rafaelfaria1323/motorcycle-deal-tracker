@@ -57,7 +57,7 @@ final appRouter = GoRouter(
               path: AppRoutes.deals,
               builder: (context, state) {
                 final cubit = getIt<ListingsCubit>();
-                if (cubit.state.status == ListingsStatus.initial) cubit.load();
+                if (cubit.state.status == .initial) cubit.load();
                 // .value: the cubit is shared, so this route must not close it.
                 return BlocProvider.value(
                   value: cubit,
@@ -156,7 +156,7 @@ final appRouter = GoRouter(
       builder: (context, state) {
         // Opened directly (a reload), the shell has not loaded them yet.
         final cubit = getIt<FavouritesCubit>();
-        if (cubit.state.status == FavouritesStatus.initial) cubit.load();
+        if (cubit.state.status == .initial) cubit.load();
         return const FavouritesPage();
       },
     ),

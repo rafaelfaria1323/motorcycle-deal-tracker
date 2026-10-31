@@ -8,7 +8,7 @@ String _day(DateTime t) =>
 /// "De 12/10 a 18/10": the 7 days, the last one included.
 String summaryPeriodText(
   WeeklySummary s, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) => language.messages.fromTo(
   from: _day(s.since),
   to: _day(s.until.subtract(const Duration(days: 1))),
@@ -17,7 +17,7 @@ String summaryPeriodText(
 /// The week's counts, one line each.
 List<String> summaryCountLines(
   WeeklySummary s, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) => [
   language.messages.newListingCount(count: s.newCount),
   language.messages.priceDropCount(count: s.dropCount),
@@ -35,10 +35,7 @@ String summaryDealTitle(SummaryDeal d) =>
     [d.bike, if (d.year != null) '${d.year}'].join(' ');
 
 /// A best deal: price, mileage and Deal Score.
-String bestDealText(
-  SummaryDeal d, {
-  AppLanguage language = AppLanguage.portuguese,
-}) => [
+String bestDealText(SummaryDeal d, {AppLanguage language = .portuguese}) => [
   if (d.price != null) Formatters.price(d.price, language: language),
   if (d.mileage != null) Formatters.mileage(d.mileage, language: language),
   if (d.dealScore != null)
@@ -46,10 +43,7 @@ String bestDealText(
 ].join(' · ');
 
 /// A price drop: "7 500 € → 7 200 € (−4 %)".
-String priceDropText(
-  SummaryDeal d, {
-  AppLanguage language = AppLanguage.portuguese,
-}) {
+String priceDropText(SummaryDeal d, {AppLanguage language = .portuguese}) {
   final old = d.oldPrice;
   final now = d.price;
   if (old == null || now == null || old <= 0) {
@@ -63,10 +57,8 @@ String priceDropText(
 }
 
 /// When the summary was made, for the page's footnote.
-String summaryMadeText(
-  WeeklySummary s, {
-  AppLanguage language = AppLanguage.portuguese,
-}) => language.messages.weeklySummaryCreated(
-  date: Formatters.date(s.madeAt),
-  time: Formatters.time(s.madeAt),
-);
+String summaryMadeText(WeeklySummary s, {AppLanguage language = .portuguese}) =>
+    language.messages.weeklySummaryCreated(
+      date: Formatters.date(s.madeAt),
+      time: Formatters.time(s.madeAt),
+    );

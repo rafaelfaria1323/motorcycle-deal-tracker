@@ -6,7 +6,7 @@ import '../../../core/localization/localizations.dart';
 String chosenSummary(
   List<String> labels, {
   required String none,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) => switch (labels.length) {
   0 => none,
   1 || 2 => labels.join(' · '),

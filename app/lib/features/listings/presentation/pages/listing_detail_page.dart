@@ -63,9 +63,9 @@ class const ListingDetailPage({required final String listingId, super.key})
       body: BlocBuilder<ListingDetailCubit, ListingDetailState>(
         builder: (context, state) {
           switch (state.status) {
-            case ListingDetailStatus.loading:
+            case .loading:
               return const Center(child: CircularProgressIndicator());
-            case ListingDetailStatus.notFound:
+            case .notFound:
               return StateMessage(
                 icon: Icons.search_off,
                 title: context.strings.listingNotFound,
@@ -73,7 +73,7 @@ class const ListingDetailPage({required final String listingId, super.key})
                 actionLabel: context.strings.viewDeals,
                 onAction: () => context.go(AppRoutes.deals),
               );
-            case ListingDetailStatus.failure:
+            case .failure:
               return StateMessage(
                 icon: Icons.cloud_off,
                 title: context.strings.couldNotLoadListing,
@@ -82,7 +82,7 @@ class const ListingDetailPage({required final String listingId, super.key})
                 onAction: () =>
                     context.read<ListingDetailCubit>().load(listingId),
               );
-            case ListingDetailStatus.success:
+            case .success:
               return _Content(listing: state.listing!);
           }
         },
@@ -99,13 +99,12 @@ enum _Section {
   market,
   negotiate;
 
-  String label({AppLanguage language = AppLanguage.portuguese}) =>
-      switch (this) {
-        verdict => language.messages.assessment,
-        details => language.messages.details,
-        market => language.messages.market,
-        negotiate => language.messages.negotiate,
-      };
+  String label({AppLanguage language = .portuguese}) => switch (this) {
+    verdict => language.messages.assessment,
+    details => language.messages.details,
+    market => language.messages.market,
+    negotiate => language.messages.negotiate,
+  };
 }
 
 class const _Content({required final Listing listing}) extends StatefulWidget {
