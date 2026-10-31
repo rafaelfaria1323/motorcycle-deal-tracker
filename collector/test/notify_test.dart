@@ -112,16 +112,28 @@ PendingAlert _withId(
   String id, {
   String user = 'u1',
   Duration age = Duration.zero,
+  String? listing,
+  String type = 'new_listing',
+  int? score,
+  double? oldPrice,
+  double? newPrice,
 }) => PendingAlert(
   alertId: id,
   createdAt: _now.subtract(age),
   userId: user,
-  listingId: 'l-$id',
-  type: 'new_listing',
+  listingId: listing ?? 'l-$id',
+  type: type,
   brand: 'Yamaha',
   model: 'R7',
   url: 'https://www.olx.pt/d/anuncio/$id.html',
+  dealScore: score,
+  oldPrice: oldPrice,
+  newPrice: newPrice,
 );
+
+List<String> _titles(_Push push) => [
+  for (final (_, message) in push.sent) message['title']! as String,
+];
 
 void main() {
   test('every pending alert is marked, with or without devices', () async {
@@ -192,7 +204,7 @@ void main() {
     );
     // The other device got a, b and c; d and e reached no device and wait.
     expect(result, (alerts: 3, pushes: 3));
-    expect(store.notified, ['a', 'b', 'c']);
+    expect(store.notified, unorderedEquals(['a', 'b', 'c']));
   });
 
   test('one device failing does not repeat it on the others', () async {
@@ -254,8 +266,8 @@ void main() {
     expect(push.sent.first.$2['language'], 'pt');
     expect(push.sent[1].$2['title'], '🆕 New listing: Yamaha R7');
     expect(push.sent[1].$2['language'], 'en');
-    expect(push.sent[1].$2['url'], '/#/deals/l-b');
-    expect(push.sent[1].$2['tag'], 'b');
+    expect(push.sent.last.$2['url'], '/#/deals/l-b');
+    expect(push.sent.last.$2['tag'], 'b');
     expect(store.languageLookups, [
       ['u1', 'u2'],
     ]);
@@ -300,6 +312,232 @@ void main() {
       pushes: 0,
     ));
     expect(store.notified, isNull);
+  });
+
+  test('one bike gets one notification a run, the strongest', () async {
+    final store =
+        _Store([
+            _withId('new', listing: 'l1', score: 84),
+            _withId('second search', listing: 'l1', score: 84),
+            _withId('excellent', listing: 'l1', type: 'excellent_opportunity'),
+          ])
+          ..devices = {
+            'u1': [_device('https://p/1')],
+          };
+    final push = _Push();
+
+    expect(await notifyPending(store, push: push, now: _now), (
+      alerts: 3,
+      pushes: 1,
+    ));
+    expect(_titles(push), ['🔥 Excelente oportunidade: Yamaha R7']);
+    expect(push.sent.single.$2['url'], '/#/deals/l1');
+    expect(push.sent.single.$2['tag'], 'excellent');
+    expect(
+      store.notified,
+      unorderedEquals(['new', 'second search', 'excellent']),
+    );
+  });
+
+  test('an excellent opportunity brought by a drop shows the drop', () {
+    final pushes = planAlertPushes([
+      _withId(
+        'drop',
+        listing: 'l1',
+        type: 'price_reduction',
+        oldPrice: 7200,
+        newPrice: 6800,
+      ),
+      _withId(
+        'excellent',
+        listing: 'l1',
+        type: 'excellent_opportunity',
+        newPrice: 6800,
+      ),
+    ], (_) => .portuguese);
+
+    expect(pushes, hasLength(1));
+    expect(pushes.single.alertIds, ['drop', 'excellent']);
+    expect(
+      pushes.single.message['title'],
+      '🔥 Excelente oportunidade: Yamaha R7',
+    );
+    expect(pushes.single.message['body'], '7 200 € → 6 800 €');
+  });
+
+  test('only a drop shows as one on an excellent opportunity', () {
+    final pushes = planAlertPushes([
+      _withId(
+        'back',
+        listing: 'l1',
+        type: 'back_on_market',
+        oldPrice: 7200,
+        newPrice: 6800,
+      ),
+      _withId(
+        'excellent',
+        listing: 'l1',
+        type: 'excellent_opportunity',
+        newPrice: 6800,
+      ),
+    ], (_) => .portuguese);
+
+    expect(
+      pushes.single.message['title'],
+      '🔥 Excelente oportunidade: Yamaha R7',
+    );
+    expect(pushes.single.message['body'], '6 800 €');
+  });
+
+  test('a target price reached outranks a drop of the same bike', () {
+    final pushes = planAlertPushes([
+      _withId(
+        'drop',
+        listing: 'l1',
+        type: 'price_reduction',
+        oldPrice: 7200,
+        newPrice: 6500,
+      ),
+      _withId(
+        'target',
+        listing: 'l1',
+        type: 'target_price_reached',
+        oldPrice: 6600,
+        newPrice: 6500,
+      ),
+    ], (_) => .portuguese);
+
+    expect(pushes.single.message['title'], '🎯 Chegou ao seu preço: Yamaha R7');
+    expect(pushes.single.message['body'], '6 500 € (o seu preço: 6 600 €)');
+  });
+
+  test('up to four bikes each get their own, the best sent last', () async {
+    final store =
+        _Store([
+            _withId('a', score: 60),
+            _withId(
+              'b',
+              type: 'price_reduction',
+              oldPrice: 7000,
+              newPrice: 6500,
+            ),
+            _withId('c', score: 75),
+            _withId('d', type: 'listing_removed'),
+          ])
+          ..devices = {
+            'u1': [_device('https://p/1')],
+          };
+    final push = _Push();
+
+    expect(await notifyPending(store, push: push, now: _now), (
+      alerts: 4,
+      pushes: 4,
+    ));
+    expect([for (final (_, m) in push.sent) m['tag']], ['d', 'a', 'c', 'b']);
+  });
+
+  test('past four bikes, the best three and one summary', () async {
+    final store =
+        _Store([
+            _withId('new 1', score: 50),
+            _withId('new 2', score: 90),
+            _withId(
+              'drop 1',
+              type: 'price_reduction',
+              oldPrice: 7000,
+              newPrice: 6500,
+            ),
+            _withId('new 3', score: 70),
+            _withId('gone', type: 'listing_removed'),
+            _withId(
+              'drop 2',
+              type: 'price_reduction',
+              oldPrice: 8000,
+              newPrice: 7500,
+            ),
+            _withId('new 3 again', listing: 'l-new 3', score: 70),
+            _withId('other account', user: 'u2'),
+          ])
+          ..devices = {
+            'u1': [_device('https://p/1')],
+            'u2': [_device('https://p/2')],
+          };
+    final push = _Push();
+
+    expect(await notifyPending(store, push: push, now: _now), (
+      alerts: 8,
+      pushes: 5,
+    ));
+    final summary = push.sent.first.$2;
+    expect(summary, {
+      'title': '🔔 Mais 3 alertas',
+      'body': '2 anúncios novos · 1 anúncio removido',
+      'url': '/#/alerts',
+      'tag': 'alerts-summary',
+      'language': 'pt',
+    });
+    // Drops outrank new listings; among new listings, the higher score.
+    expect(
+      [for (final (_, m) in push.sent.skip(1)) m['tag']],
+      ['new 2', 'drop 2', 'drop 1', 'other account'],
+    );
+    expect(store.notified, hasLength(8));
+  });
+
+  test('a summary no device took leaves its alerts pending', () async {
+    final store =
+        _Store([
+            for (final id in ['a', 'b', 'c', 'd', 'e']) _withId(id),
+          ])
+          ..devices = {
+            'u1': [_device('https://p/down')],
+          };
+    final push = _Push({'https://p/down': PushResult.failed});
+
+    expect(await notifyPending(store, push: push, now: _now), (
+      alerts: 0,
+      pushes: 0,
+    ));
+    expect(push.sent.single.$2['tag'], 'alerts-summary');
+    expect(store.notified, isEmpty);
+  });
+
+  test('the summary speaks the account language and names every kind', () {
+    final message = alertsSummaryMessage([
+      'new_listing',
+      'listing_removed',
+      'back_on_market',
+      'excellent_opportunity',
+      'target_price_reached',
+      'price_reduction',
+      'new_listing',
+      'other',
+    ], language: .english);
+    expect(message['title'], '🔔 8 more alerts');
+    expect(
+      message['body'],
+      '1 at your target price · 1 excellent opportunity · '
+      '1 back on the market · 1 price drop · 2 new listings · '
+      '1 listing removed · 1 alert',
+    );
+    expect(message['language'], 'en');
+    expect(
+      alertsSummaryMessage([
+        'back_on_market',
+        'back_on_market',
+        'target_price_reached',
+      ])['body'],
+      '1 chegou ao seu preço · 2 voltaram ao mercado',
+    );
+    expect(
+      alertsSummaryMessage([
+        'excellent_opportunity',
+        'excellent_opportunity',
+        'other',
+        'other',
+      ])['body'],
+      '2 excelentes oportunidades · 2 alertas',
+    );
   });
 
   test('euros groups thousands', () {

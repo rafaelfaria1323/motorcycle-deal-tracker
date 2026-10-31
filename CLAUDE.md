@@ -1080,7 +1080,13 @@ the first run after; only alerts wait, never the other pushes.
 a run, oldest first; kept for the next run when the push keys can't be
 read, and while no device took a push that failed, for 24 h; older ones
 are marked without a push; a device whose push failed isn't tried again
-in the same run): to the account's devices by Web Push, or FCM
+in the same run; one notification per account and listing a run, the
+strongest type's (`planAlertPushes`, `alertTypeOrder`: a new ad that is
+also excellent, or matches two searches, arrives once; an excellent
+opportunity brought by a drop shows the drop), and past 4 listings the
+best 3 plus one summary, "Mais N alertas", that opens Alertas
+(`alertsSummaryMessage`, `pushesPerAccount`; the best sent last, on top);
+every alert covered is marked): to the account's devices by Web Push, or FCM
 for the Android app (`push_subscriptions`, saved from Mais ›
 "Notificações neste aparelho", saved again on each visit, removed on
 sign-out; on the iPhone only in the home-screen app;
