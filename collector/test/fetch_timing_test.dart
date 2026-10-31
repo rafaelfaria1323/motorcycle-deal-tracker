@@ -628,8 +628,7 @@ class _Request implements HttpClientRequest {
 }
 
 class _Response extends Stream<List<int>> implements HttpClientResponse {
-  _Response(this.body, {this.statusCode = 200, Stream<List<int>>? stream})
-    : _stream = stream;
+  _Response(this.body, {this.statusCode = 200, this._stream});
 
   @override
   final int statusCode;

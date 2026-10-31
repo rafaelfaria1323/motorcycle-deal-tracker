@@ -67,14 +67,14 @@ Tracked models (chosen in the app)
 
 ## Getting started
 
-Requirements: **Flutter 3.44.8 with its bundled Dart 3.12.2**, the Supabase
+Requirements: **Flutter 3.47.8 with its bundled Dart 3.13.7**, the Supabase
 CLI and `make`. `.fvmrc` pins Flutter for FVM and every Flutter workflow;
 `.dart-version` pins the same Dart for standalone collector jobs and cloud
 sessions. The collector/database PR job needs only Dart, not Flutter, and
 also checks the production collector setup instead of installing it again
 in a separate job.
 
-With FVM, run `fvm use 3.44.8` and put `.fvm/flutter_sdk/bin` first on
+With FVM, run `fvm use 3.47.8` and put `.fvm/flutter_sdk/bin` first on
 `PATH` before using `make`; otherwise install that Flutter version and use
 its bundled `dart`. Changing `.fvmrc` also triggers previews and Android
 builds, and deployment on merge.

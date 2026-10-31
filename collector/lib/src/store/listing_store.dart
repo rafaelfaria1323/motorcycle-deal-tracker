@@ -517,15 +517,13 @@ class ListingStore {
     int limit = 20,
     DateTime? at,
   }) async {
-    final rows =
-        await _client.rpc<Object?>(
-              'pending_notifications',
-              params: {
-                'p_limit': limit,
-                if (at != null) 'p_at': at.toUtc().toIso8601String(),
-              },
-            )
-            as List<dynamic>;
+    final rows = await _client.rpc<Object?>(
+      'pending_notifications',
+      params: {
+        'p_limit': limit,
+        if (at != null) 'p_at': at.toUtc().toIso8601String(),
+      },
+    ) as List<dynamic>;
     return [
       for (final row in rows) PendingAlert.fromRow(row as Map<String, dynamic>),
     ];

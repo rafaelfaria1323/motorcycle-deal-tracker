@@ -254,9 +254,8 @@ void main() {
     });
 
     test('is incomplete until every page is saved', () async {
-      File(
-        '${dir.path}/p1.html',
-      ).writeAsStringSync(searchPage(first, total: 33));
+      File('${dir.path}/p1.html')
+          .writeAsStringSync(searchPage(first, total: 33));
       await const SearchManifest(
         planned: [url],
         files: {'p1.html': url},
@@ -282,9 +281,8 @@ void main() {
         'duplicate offsets cannot make a $total-listing search removable',
         () async {
           for (final name in ['p1.html', 'p2.html']) {
-            File(
-              '${dir.path}/$name',
-            ).writeAsStringSync(searchPage(first, total: total));
+            File('${dir.path}/$name')
+                .writeAsStringSync(searchPage(first, total: total));
           }
           await const SearchManifest(
             planned: [url],
@@ -354,9 +352,8 @@ void main() {
 
     test('every page saved is read in full, whatever the count', () async {
       // The site's count may include listings shown on no page.
-      File(
-        '${dir.path}/p1.html',
-      ).writeAsStringSync(searchPage(first, total: 34));
+      File('${dir.path}/p1.html')
+          .writeAsStringSync(searchPage(first, total: 34));
       File(
         '${dir.path}/p2.html',
       ).writeAsStringSync(searchPage([node(id: '33')], total: 34, offset: 32));
@@ -478,11 +475,9 @@ void main() {
         DateTime.utc(2026, 10, 19, 10),
       );
 
-      final promoted =
-          jsonDecode(
-                RegExp(r'>(.*)<').firstMatch(searchPage([node()]))!.group(1)!,
-              )
-              as Map<String, dynamic>;
+      final promoted = jsonDecode(
+        RegExp(r'>(.*)<').firstMatch(searchPage([node()]))!.group(1)!,
+      ) as Map<String, dynamic>;
       final state =
           ((promoted['props'] as Map)['pageProps'] as Map)['urqlState'] as Map;
       final data = state['b'] as Map;

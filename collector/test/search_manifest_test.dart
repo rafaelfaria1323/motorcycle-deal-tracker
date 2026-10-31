@@ -23,9 +23,8 @@ void main() {
   });
 
   test('a manifest without page counts reads with none', () async {
-    File(
-      '${dir.path}/${SearchManifest.fileName}',
-    ).writeAsStringSync('{"planned": ["a"], "files": {"p1.html": "a"}}');
+    File('${dir.path}/${SearchManifest.fileName}')
+        .writeAsStringSync('{"planned": ["a"], "files": {"p1.html": "a"}}');
     expect((await SearchManifest.readFrom(dir.path))!.pages, isEmpty);
   });
 
@@ -54,9 +53,8 @@ void main() {
     expect((await SearchManifest.readFrom(dir.path))!.newestOnly, {'b'});
 
     // Manifests written before light runs have none.
-    File(
-      '${dir.path}/${SearchManifest.fileName}',
-    ).writeAsStringSync('{"planned": ["a"], "files": {"p1.html": "a"}}');
+    File('${dir.path}/${SearchManifest.fileName}')
+        .writeAsStringSync('{"planned": ["a"], "files": {"p1.html": "a"}}');
     expect((await SearchManifest.readFrom(dir.path))!.newestOnly, isEmpty);
   });
 }

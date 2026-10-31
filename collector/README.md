@@ -5,7 +5,7 @@ Dart command line that fills the database. GitHub Actions runs it at
 (`.github/workflows/collect.yml`, started by Supabase pg_cron); it uses the
 Supabase service-role key, which the app never sees.
 
-Use **Dart 3.12.2**, the SDK bundled with Flutter 3.44.8. The root
+Use **Dart 3.13.7**, the SDK bundled with Flutter 3.47.8. The root
 `.dart-version` pins standalone collector workflows and cloud sessions;
 Flutter workflows read `.fvmrc`. The PR's collector/database job uses the
 same production setup without downloading Flutter, then checks that the

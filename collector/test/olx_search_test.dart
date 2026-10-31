@@ -224,22 +224,19 @@ void main() {
       String title, {
       String? category = 'yamaha',
       String model = 'MT-07',
-    }) =>
-        (mapper.map(
-                  OlxRawListing(
-                    id: '1',
-                    url: 'https://www.olx.pt/d/anuncio/x.html',
-                    status: 'active',
-                    title: title,
-                    price: 7000,
-                    currency: 'EUR',
-                    categoryBrand: category,
-                    model: model,
-                    year: 2025,
-                  ),
-                )
-                as Mapped)
-            .listing;
+    }) => (mapper.map(
+      OlxRawListing(
+        id: '1',
+        url: 'https://www.olx.pt/d/anuncio/x.html',
+        status: 'active',
+        title: title,
+        price: 7000,
+        currency: 'EUR',
+        categoryBrand: category,
+        model: model,
+        year: 2025,
+      ),
+    ) as Mapped).listing;
 
     test('without a category, the catalog brand the title names', () {
       expect(map('Moto Honda CB650R', category: null).brand, 'Honda');
@@ -332,15 +329,13 @@ void main() {
     tearDown(() => dir.deleteSync(recursive: true));
 
     test('is incomplete until every page is saved', () async {
-      File(
-        '${dir.path}/p1.html',
-      ).writeAsStringSync(searchPage([ad()], totalPages: 2));
+      File('${dir.path}/p1.html')
+          .writeAsStringSync(searchPage([ad()], totalPages: 2));
       final partial = await OlxSearchAdapter(dir.path).read();
       expect(partial.issues.single.message, contains('1 of 2 page(s)'));
 
-      File(
-        '${dir.path}/p2.html',
-      ).writeAsStringSync(searchPage([ad(id: 2)], page: 2, totalPages: 2));
+      File('${dir.path}/p2.html')
+          .writeAsStringSync(searchPage([ad(id: 2)], page: 2, totalPages: 2));
       final full = await OlxSearchAdapter(dir.path).read();
       expect(full.issues, isEmpty);
       expect(full.records.map((r) => r.id), ['1', '2']);
@@ -348,9 +343,8 @@ void main() {
 
     test('a manifest ties records and problems to their search', () async {
       const url = 'https://www.olx.pt/carros-motos-e-barcos/x/';
-      File(
-        '${dir.path}/p1.html',
-      ).writeAsStringSync(searchPage([ad()], totalPages: 2));
+      File('${dir.path}/p1.html')
+          .writeAsStringSync(searchPage([ad()], totalPages: 2));
       await const SearchManifest(
         planned: [url],
         files: {'p1.html': url},
@@ -366,9 +360,8 @@ void main() {
     test('pages are grouped by the search asked for', () async {
       // OLX describes page 2 with another address than page 1.
       const url = 'https://www.olx.pt/carros-motos-e-barcos/x/';
-      File(
-        '${dir.path}/p1.html',
-      ).writeAsStringSync(searchPage([ad()], totalPages: 2));
+      File('${dir.path}/p1.html')
+          .writeAsStringSync(searchPage([ad()], totalPages: 2));
       File('${dir.path}/p2.html').writeAsStringSync(
         searchPage([ad(id: 2)], page: 2, totalPages: 2, brand: 'motos'),
       );
@@ -385,9 +378,8 @@ void main() {
     group('only active ads count as seen', () {
       const url = 'https://www.olx.pt/carros-motos-e-barcos/x/';
       Future<RemovalPlan> planFor(Map<String, dynamic> other) async {
-        File(
-          '${dir.path}/p1.html',
-        ).writeAsStringSync(searchPage([ad(), other]));
+        File('${dir.path}/p1.html')
+            .writeAsStringSync(searchPage([ad(), other]));
         await const SearchManifest(
           planned: [url],
           files: {'p1.html': url},
@@ -536,9 +528,8 @@ void main() {
         final dir = Directory.systemTemp.createTempSync('olx');
         addTearDown(() => dir.deleteSync(recursive: true));
         const url = 'https://www.olx.pt/carros-motos-e-barcos/x/';
-        File(
-          '${dir.path}/p1.html',
-        ).writeAsStringSync(searchPage([ad()], totalPages: 3));
+        File('${dir.path}/p1.html')
+            .writeAsStringSync(searchPage([ad()], totalPages: 3));
         await const SearchManifest(
           planned: [url],
           files: {'p1.html': url},

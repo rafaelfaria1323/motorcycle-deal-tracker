@@ -14,7 +14,6 @@ linter:
     # Async mistakes
     - unawaited_futures
     - avoid_void_async
-    - unnecessary_await_in_return
     - cancel_subscriptions
     - close_sinks
     # Type safety

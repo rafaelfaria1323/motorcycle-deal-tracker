@@ -96,10 +96,8 @@ List<SiteModel> olxSiteModels(Map<String, dynamic> listing, String? makeId) {
   if (modelo == null) return const [];
   return [
     for (final v in asList(modelo['values']).map(asMap).nonNulls)
-      if ((v['value'], v['label']) case (
-        final String id,
-        final String label,
-      ) when id.trim().isNotEmpty && label.trim().isNotEmpty)
+      if ((v['value'], v['label']) case (final String id, final String label)
+          when id.trim().isNotEmpty && label.trim().isNotEmpty)
         SiteModel(
           makeId: makeId,
           makeName: makeId,
