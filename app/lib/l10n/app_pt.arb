@@ -5979,5 +5979,22 @@
   "showAllAlerts": "Ver todos",
   "@showAllAlerts": {
     "description": "Alertas: button that clears the chip filter."
+  },
+  "marketPositionField": "Posição face ao mercado",
+  "@marketPositionField": {
+    "description": "Card field label in listing_labels: how far the price is below or above the estimated value (F.7)."
+  },
+  "newListingsSinceLoad": "{count, plural, =1{1 anúncio novo} other{{count} anúncios novos}}",
+  "showNewListings": "Mostrar os anúncios encontrados desde que a lista abriu",
+  "@newListingsSinceLoad": {
+    "description": "Ofertas' pill on return to the app: ads found since the list loaded (F.7).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@showNewListings": {
+    "description": "Tooltip of Ofertas' new-ads pill (F.7)."
   }
 }

@@ -90,42 +90,47 @@ class _Recorder extends http.BaseClient {
 }
 
 void main() {
-  test('defaults match the existing card, with new details opt-in', () {
-    expect(_defaults.fields.map((field) => field.code), [
-      'source',
-      'deal_score',
-      'price_change',
-      'year',
-      'mileage',
-      'location',
-      'preferred_colour',
-    ]);
-    for (final field in ListingCardPreferences.additionalFields) {
-      expect(_defaults.shows(field), isFalse);
-    }
-    expect(ListingCardField.values.map((field) => field.label()), [
-      'Site de origem',
-      'Deal Score',
-      'Variação do preço',
-      'Ano',
-      'Quilometragem',
-      'Localização e distância',
-      'Indicação de cor preferida',
-      'Risk Score',
-      'Tipo de vendedor',
-      'Quando foi encontrado',
-      'Cor',
-      'Donos / primeiro dono',
-      'Livro de revisões',
-      'Origem',
-      'Garantia de fábrica',
-      'Garantia do vendedor',
-      'Nome do stand',
-      'Data de publicação',
-      'Renovação no site',
-      'Estado do anúncio',
-    ]);
-  });
+  test(
+    'defaults: the earlier card and the market position, new details opt-in',
+    () {
+      expect(_defaults.fields.map((field) => field.code), [
+        'source',
+        'deal_score',
+        'price_change',
+        'market_position',
+        'year',
+        'mileage',
+        'location',
+        'preferred_colour',
+      ]);
+      for (final field in ListingCardPreferences.additionalFields) {
+        expect(_defaults.shows(field), isFalse);
+      }
+      expect(ListingCardField.values.map((field) => field.label()), [
+        'Site de origem',
+        'Deal Score',
+        'Variação do preço',
+        'Posição face ao mercado',
+        'Ano',
+        'Quilometragem',
+        'Localização e distância',
+        'Indicação de cor preferida',
+        'Risk Score',
+        'Tipo de vendedor',
+        'Quando foi encontrado',
+        'Cor',
+        'Donos / primeiro dono',
+        'Livro de revisões',
+        'Origem',
+        'Garantia de fábrica',
+        'Garantia do vendedor',
+        'Nome do stand',
+        'Data de publicação',
+        'Renovação no site',
+        'Estado do anúncio',
+      ]);
+    },
+  );
 
   test('choices are immutable sets and every optional field may be hidden', () {
     final input = <ListingCardField>[ListingCardField.year];
@@ -186,6 +191,21 @@ void main() {
       ),
       isEmpty,
     );
+  });
+
+  test('the market position reads in whole percent, both ways (F.7)', () {
+    expect(marketPositionText(8.04), '8 % abaixo do mercado');
+    expect(marketPositionText(-5.4), '5 % acima do mercado');
+    expect(marketPositionText(0.4), 'No valor de mercado');
+    expect(marketPositionText(-0.4), 'No valor de mercado');
+    expect(marketPositionText(null), isNull);
+    expect(
+      marketPositionText(12.3, language: .english),
+      '12% below market value',
+    );
+    expect(_cardListing({'market_position': 12.3}).marketPosition, 12.3);
+    expect(_cardListing({'market_position': -4}).marketPosition, -4.0);
+    expect(_cardListing({}).marketPosition, isNull);
   });
 
   test('cards offer the structured bike and ad facts from the detail page', () {

@@ -460,7 +460,12 @@ invites; written by the collector on each run).
   (`ListingPhoto.fullSize`). `web/index.html`'s early photos use the
   same address (`PHOTO_BOX`, `photo_url_test.dart`).
 - Lists load `ListingModel.summaryColumns`, never `*` (descriptions are big);
-  the deals list is paged (40 per page, more on scroll).
+  the deals list is paged (40 per page, more on scroll). Back in the app
+  with a list 30 minutes old or more (`AppShell`'s resume,
+  `ListingsCubit.checkForNew`), Ofertas counts the ads first seen since
+  it was asked for, with its filters (`countNewSince`, a count without
+  rows), and shows "N anúncios novos" over the list; a tap goes to the
+  top and reloads (F.7).
 - Placeholder prices: an asking price under 300 € ("1 €", "consultar";
   `minRealPrice`) is no price. `Listing.askingPrice` is null for it
   (`hasPlaceholderPrice`), and every comparison, offer, strip and best
@@ -488,13 +493,17 @@ invites; written by the collector on each run).
   Favoritos (`listing_card_preferences`, one owner-only row per
   non-anonymous account; the tile says when they could not be read; not in
   Ofertas' toolbar since F.3). Defaults are the existing
-  layout; Risk Score, seller type, colour, owners / first owner, service
+  layout plus the market position (F.7: the computed field
+  `listings.market_position`, the breakdown's `pct_below_market`, or
+  `pct_below_damaged_value` for a damaged bike; null below 3 comparables
+  or for a placeholder price; "8 % abaixo do mercado",
+  `marketPositionText`, as the comparison's row); Risk Score, seller type, colour, owners / first owner, service
   book, origin, warranties, stand name, status and publication, renewal
   and first-found dates are opt-in. A known owner count takes precedence
   over the existing `first_owner` risk signal; the signal is used only
   when the count is unknown. Dates stay distinct and absent facts are
   omitted. `ListingModel.summaryColumns` and the matching startup prefetch
-  in `web/index.html` include these facts and only
+  in `web/index.html` include these facts, `market_position` and only
   `score_breakdown->risk_reasons`, never descriptions or the full score breakdown.
   Photo, model, price, removal notices and actions stay visible. Cancel
   discards the draft; "Repor predefinições" still needs "Guardar".

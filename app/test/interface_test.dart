@@ -180,6 +180,46 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  // F.7: back in the app after a while, the ads found since are counted
+  // over the list; a tap brings the list to the top and shows them.
+  testWidgets('new ads on return, on a narrow enlarged screen', (
+    tester,
+  ) async {
+    final fixture = InterfaceFixture(total: 45);
+    await _open(tester, fixture, size: const Size(320, 720), textScale: 2);
+    await tester.drag(find.byType(CustomScrollView).first, const Offset(0, -900));
+    await tester.pumpAndSettle();
+
+    Future<void> comeBack() async {
+      tester.binding
+        ..handleAppLifecycleStateChanged(AppLifecycleState.inactive)
+        ..handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+    }
+
+    fixture.repository.newSince = 3;
+    fixture.now = fixture.now.add(const Duration(minutes: 10));
+    await comeBack();
+    expect(find.text('3 anúncios novos'), findsNothing);
+
+    fixture.now = fixture.now.add(const Duration(minutes: 30));
+    await comeBack();
+    final pill = find.text('3 anúncios novos');
+    expect(pill, findsOneWidget);
+    expect(tester.getRect(pill).right, lessThanOrEqualTo(320));
+    expect(tester.takeException(), isNull);
+
+    fixture.repository.offsets.clear();
+    await tester.tap(pill);
+    await tester.pumpAndSettle();
+    expect(pill, findsNothing);
+    expect(fixture.repository.offsets, [0]);
+    expect(
+      find.widgetWithText(OutlinedButton, 'Filtros').hitTestable(),
+      findsOneWidget,
+    );
+  });
+
   for (final dark in [false, true]) {
     for (final width in [320.0, 390.0, 900.0, 1440.0]) {
       testWidgets('offers fit ${width.toInt()}px, dark=$dark', (tester) async {

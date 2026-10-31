@@ -46,6 +46,7 @@ extension ListingCardFieldLabel on ListingCardField {
     ListingCardField.source => language.messages.sourceSite,
     ListingCardField.dealScore => language.messages.dealScore,
     ListingCardField.priceChange => language.messages.priceChange,
+    ListingCardField.marketPosition => language.messages.marketPositionField,
     ListingCardField.year => language.messages.yearCompareText,
     ListingCardField.mileage => language.messages.mileage,
     ListingCardField.location => language.messages.locationAndDistance,

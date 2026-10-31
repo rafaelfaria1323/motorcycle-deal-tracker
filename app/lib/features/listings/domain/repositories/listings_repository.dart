@@ -14,6 +14,13 @@ abstract interface class ListingsRepository {
     int limit = 40,
   });
 
+  /// How many listings [filters] would show that were first seen after
+  /// [since] (Ofertas' "N anúncios novos", F.7).
+  Future<int> countNewSince(
+    DateTime since, {
+    ListingFilters filters = ListingFilters.empty,
+  });
+
   /// Returns null when no listing has this id.
   Future<Listing?> getListingById(String id);
 

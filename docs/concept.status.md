@@ -188,6 +188,8 @@ All four types, each at most once per event, only for events after the search wa
 
 *F.3: a compact Ofertas header: the intro only on an empty list; Filtros, the sort and the count on one row (two buttons fit a 360 px phone); "Guardar pesquisa" with the filter chips, only once there is a criterion; the "Compare até 3 anúncios" hint dropped (the card's "Comparar" says it, and a fourth pick says the limit). The first ad now starts in a phone's top quarter.*
 
+*F.7: back in the app after 30 minutes or more, Ofertas counts the ads found since ("3 anúncios novos", a tap shows them), and the cards say where the price sits against the estimated value ("8 % abaixo do mercado"), on by default.*
+
 ➕ Card details per account ✅ (15.31): Mais › "Cartões dos anúncios" (also in Ofertas' toolbar until F.3) selects the details shown in Ofertas and Favoritos, saved to the account across devices. The current layout is the default; additional choices cover Risk Score, seller type, colour, owners / first owner, service book, origin, factory and seller warranties, stand name, status, and publication, renewal and first-found dates. A first-owner statement can come from the existing ad-text signal when no owner count is known; publication, renewal and discovery stay distinct, and missing facts are omitted. Photo, model, price, removal notices and actions stay visible. Cancel and reset-to-defaults are available; anonymous visitors retain the default layout.
 
 ## 18. Listing Detail Page ✅

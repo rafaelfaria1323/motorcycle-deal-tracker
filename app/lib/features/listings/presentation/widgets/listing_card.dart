@@ -233,6 +233,23 @@ class const _CardDetails({
                 PriceChangeTag(listing: listing),
             ],
           ),
+          if (preferences.shows(ListingCardField.marketPosition))
+            if (marketPositionText(
+                  listing.marketPosition,
+                  language: context.language,
+                )
+                case final position?) ...[
+              const SizedBox(height: 4),
+              Text(
+                position,
+                style: textTheme.labelLarge?.copyWith(
+                  color: _marketPositionColour(
+                    context,
+                    listing.marketPosition!,
+                  ),
+                ),
+              ),
+            ],
           if (showYear || showMileage || extraFacts.isNotEmpty) ...[
             const SizedBox(height: 12),
             DefaultTextStyle.merge(
@@ -406,4 +423,13 @@ class const _PhotoPill(final String text, {final IconData? icon})
       ),
     );
   }
+}
+
+/// Green from 3 % below the estimate, red from 3 % above, muted between
+/// (the listing page's price notice starts at 3 % too).
+Color _marketPositionColour(BuildContext context, double pct) {
+  final colors = AppColors.of(context);
+  if (pct >= 3) return colors.positive;
+  if (pct <= -3) return colors.negative;
+  return Theme.of(context).colorScheme.onSurfaceVariant;
 }

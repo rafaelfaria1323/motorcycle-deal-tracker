@@ -19,6 +19,10 @@ class const ListingsState({
 
   /// A next page is on its way.
   final bool loadingMore = false,
+
+  /// Ads first seen since [listings] loaded, matching the same filters
+  /// (counted on return to the app after a while; 0 until then).
+  final int newCount = 0,
 }) extends Equatable {
   ListingsState copyWith({
     ListingsStatus? status,
@@ -28,6 +32,7 @@ class const ListingsState({
     ListingSort? sort,
     bool? hasMore,
     bool? loadingMore,
+    int? newCount,
   }) {
     return ListingsState(
       status: status ?? this.status,
@@ -37,6 +42,7 @@ class const ListingsState({
       sort: sort ?? this.sort,
       hasMore: hasMore ?? this.hasMore,
       loadingMore: loadingMore ?? this.loadingMore,
+      newCount: newCount ?? this.newCount,
     );
   }
 
@@ -49,5 +55,6 @@ class const ListingsState({
     sort,
     hasMore,
     loadingMore,
+    newCount,
   ];
 }

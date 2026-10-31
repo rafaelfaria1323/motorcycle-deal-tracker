@@ -135,7 +135,10 @@ class InterfaceFixture {
   );
   final cardPreferencesRepository = InterfaceCardPreferences();
   late final alertsRepository = InterfaceAlerts(searchesRepository);
-  late final listings = ListingsCubit(repository, session);
+
+  /// The listings' clock: tests move it to make the list old (F.7).
+  DateTime now = DateTime.utc(2026, 10, 23, 12);
+  late final listings = ListingsCubit(repository, session, now: () => now);
   late final searches = SavedSearchesCubit(
     searchesRepository,
     repository,
@@ -309,6 +312,15 @@ class InterfaceListings implements ListingsRepository {
   bool fail = false;
   final offsets = <int>[];
   ListingSort? lastSort;
+
+  /// What [countNewSince] answers: ads found since the list loaded.
+  int newSince = 0;
+
+  @override
+  Future<int> countNewSince(
+    DateTime since, {
+    ListingFilters filters = ListingFilters.empty,
+  }) async => newSince;
 
   @override
   Future<List<Listing>> getListings({

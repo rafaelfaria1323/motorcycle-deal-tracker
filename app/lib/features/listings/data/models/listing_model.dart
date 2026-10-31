@@ -43,14 +43,15 @@ class const ListingModel({
   super.distanceKm,
   super.colour,
   super.myColour,
+  super.marketPosition,
   super.photoHints,
   super.photoExamRequestedAt,
   super.photosExaminedAllAt,
 }) extends Listing {
   /// The columns lists need (cards, alerts, other sources of a bike); the
-  /// detail page loads the whole row. `distance_km` and `my_colour` are
-  /// computed fields (from the caller's home and colours), never part of
-  /// `*`. Includes the optional card facts and risk-reason codes, not the
+  /// detail page loads the whole row. `distance_km`, `my_colour` and
+  /// `market_position` are computed fields (from the caller's home and
+  /// colours; the score breakdown), never part of `*`. Includes the optional card facts and risk-reason codes, not the
   /// description or full score breakdown, the bulk of a row.
   static const summaryColumns =
       'id, source, url, brand, model, motorcycle_id, duplicate_of, year, '
@@ -58,7 +59,7 @@ class const ListingModel({
       'risk_score, seller_type, location, images, status, first_seen_at, '
       'last_seen_at, distance_km, colour, my_colour, registrations, '
       'service_book, origin, warranty_until, dealer_warranty_months, '
-      'seller_name, published_at, site_refreshed_at, '
+      'seller_name, published_at, site_refreshed_at, market_position, '
       'card_risk_reasons:score_breakdown->risk_reasons';
 
   factory ListingModel.fromJson(Map<String, dynamic> json) {
@@ -112,6 +113,7 @@ class const ListingModel({
       distanceKm: (json['distance_km'] as num?)?.toInt(),
       colour: json['colour'] as String?,
       myColour: json['my_colour'] as bool? ?? false,
+      marketPosition: (json['market_position'] as num?)?.toDouble(),
       photoHints: photoHintsOf(json['photo_hints']),
       photoExamRequestedAt: dateOf(json['photo_exam_requested_at']),
       photosExaminedAllAt: dateOf(json['photos_examined_all_at']),

@@ -6,6 +6,19 @@ import 'listing_dates_text.dart';
 import 'listing_labels.dart';
 import '../../../core/localization/localizations.dart';
 
+/// Where the price sits against the estimated value, whole percent:
+/// "8 % abaixo do mercado", "5 % acima do mercado", "No valor de mercado";
+/// null when unknown. [pct] is below (+) or above (−) the estimate, as
+/// `Listing.marketPosition` (cards) and the comparison read it.
+String? marketPositionText(double? pct, {AppLanguage language = .portuguese}) {
+  if (pct == null) return null;
+  final rounded = pct.round();
+  if (rounded == 0) return language.messages.atMarketValue;
+  return rounded > 0
+      ? language.messages.belowMarketValue(rounded: '$rounded')
+      : language.messages.aboveMarketValue(percent: '${-rounded}');
+}
+
 List<(ListingCardField, String)> listingCardExtraFacts(
   Listing listing,
   ListingCardPreferences preferences, {

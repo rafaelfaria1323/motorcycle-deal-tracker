@@ -14,8 +14,10 @@ import 'helpers/session_fixture.dart';
 
 late SessionFixture _session;
 
-ListingsCubit _cubit(ListingsRepository repository) =>
-    _session.track(ListingsCubit(repository, _session.cubit));
+ListingsCubit _cubit(
+  ListingsRepository repository, {
+  DateTime Function() now = DateTime.now,
+}) => _session.track(ListingsCubit(repository, _session.cubit, now: now));
 
 Listing _listing(int n) => Listing(
   id: 'l$n',
@@ -38,6 +40,19 @@ class _PagedListings implements ListingsRepository {
   var optionCalls = 0;
   Future<List<Listing>>? result;
   bool failLoad = false;
+
+  /// [countNewSince]'s answer, or a failure when null; its calls.
+  int? newSince = 0;
+  final countedSince = <(DateTime, ListingFilters)>[];
+
+  @override
+  Future<int> countNewSince(
+    DateTime since, {
+    ListingFilters filters = ListingFilters.empty,
+  }) async {
+    countedSince.add((since, filters));
+    return newSince ?? (throw StateError('offline'));
+  }
 
   @override
   Future<List<Listing>> getListings({
@@ -316,4 +331,86 @@ void main() {
       expect(cubit.state.motorcycles.single.id, 'm');
     });
   });
+
+  group('new ads on return (F.7)', () {
+    test('counts only once the list is half an hour old, with its '
+        'filters, and a reload clears it', () async {
+      var clock = DateTime.utc(2026, 10, 31, 10);
+      final repository = _PagedListings(5)..newSince = 3;
+      final cubit = _cubit(repository, now: () => clock);
+      const filters = ListingFilters(maxPrice: 7000);
+
+      await cubit.applyFilters(filters);
+      clock = clock.add(const Duration(minutes: 29));
+      await cubit.checkForNew();
+      expect(repository.countedSince, isEmpty);
+      expect(cubit.state.newCount, 0);
+
+      clock = clock.add(const Duration(minutes: 1));
+      await cubit.checkForNew();
+      expect(repository.countedSince, [
+        (DateTime.utc(2026, 10, 31, 10), filters),
+      ]);
+      expect(cubit.state.newCount, 3);
+
+      await cubit.load();
+      expect(cubit.state.newCount, 0);
+      // Counted from the new load now.
+      await cubit.checkForNew();
+      expect(repository.countedSince, hasLength(1));
+    });
+
+    test('asks nothing before a list loaded or after it failed', () async {
+      var clock = DateTime.utc(2026, 10, 31, 10);
+      final repository = _PagedListings(5);
+      final cubit = _cubit(repository, now: () => clock);
+
+      await cubit.checkForNew();
+      repository.failLoad = true;
+      await cubit.load();
+      clock = clock.add(const Duration(hours: 2));
+      await cubit.checkForNew();
+      expect(repository.countedSince, isEmpty);
+    });
+
+    test('a failed count says nothing and keeps the list', () async {
+      var clock = DateTime.utc(2026, 10, 31, 10);
+      final repository = _PagedListings(5)..newSince = null;
+      final cubit = _cubit(repository, now: () => clock);
+
+      await cubit.load();
+      clock = clock.add(const Duration(hours: 1));
+      await cubit.checkForNew();
+      expect(cubit.state.status, ListingsStatus.success);
+      expect(cubit.state.newCount, 0);
+      expect(cubit.state.listings, hasLength(5));
+    });
+
+    test('a count answered after a reload started is dropped', () async {
+      var clock = DateTime.utc(2026, 10, 31, 10);
+      final repository = _SlowCount();
+      final cubit = _cubit(repository, now: () => clock);
+
+      await cubit.load();
+      clock = clock.add(const Duration(hours: 1));
+      final counting = cubit.checkForNew();
+      final reloading = cubit.load();
+      repository.count.complete(4);
+      await (counting, reloading).wait;
+      expect(cubit.state.newCount, 0);
+    });
+  });
+}
+
+/// [countNewSince] waits for [count].
+class _SlowCount extends _PagedListings {
+  _SlowCount() : super(5);
+
+  final count = Completer<int>();
+
+  @override
+  Future<int> countNewSince(
+    DateTime since, {
+    ListingFilters filters = ListingFilters.empty,
+  }) => count.future;
 }
