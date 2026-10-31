@@ -3,9 +3,9 @@ import '../../../core/localization/localizations.dart';
 import '../domain/entities/bike_condition.dart';
 import '../domain/entities/bike_value.dart';
 import '../domain/entities/bike_value_request.dart';
-import '../domain/entities/market_behaviour.dart';
-import 'market_behaviour_text.dart';
-import 'offer_text.dart';
+import '../../listings/domain/entities/market_behaviour.dart';
+import '../../listings/presentation/market_behaviour_text.dart';
+import '../../listings/presentation/offer_text.dart';
 
 /// Room left above the value for the buyer to bargain, when the model's
 /// own price drops don't say (a typical first offer of 3-6 % below).

@@ -10,7 +10,7 @@ import '../../features/listings/presentation/cubit/listings_cubit.dart';
 import '../../features/listings/presentation/cubit/saved_searches_cubit.dart';
 import '../../features/listings/presentation/compare_text.dart';
 import '../../features/listings/presentation/pages/alerts_page.dart';
-import '../../features/listings/presentation/pages/bike_value_page.dart';
+import '../../features/valuation/presentation/pages/bike_value_page.dart';
 import '../../features/listings/presentation/pages/compare_page.dart';
 import '../../features/listings/presentation/pages/dashboard_page.dart';
 import '../../features/listings/presentation/pages/favourites_page.dart';

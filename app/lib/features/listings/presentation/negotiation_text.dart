@@ -4,7 +4,7 @@ import '../domain/entities/listing.dart';
 import '../domain/entities/market_behaviour.dart';
 import 'market_behaviour_text.dart';
 import 'offer_text.dart';
-import 'ownership_cost.dart';
+import '../../valuation/presentation/ownership_cost.dart';
 import 'score_explanation.dart';
 import 'viewing_checklist.dart';
 import '../../../core/localization/localizations.dart';

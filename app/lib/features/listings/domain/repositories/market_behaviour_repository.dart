@@ -1,5 +1,5 @@
-import '../entities/bike_value.dart';
-import '../entities/bike_value_request.dart';
+import '../../../valuation/domain/entities/bike_value.dart';
+import '../../../valuation/domain/entities/bike_value_request.dart';
 import '../entities/market_behaviour.dart';
 import '../entities/model_market.dart';
 

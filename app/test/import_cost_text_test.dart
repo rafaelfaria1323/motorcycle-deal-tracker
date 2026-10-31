@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
 import 'package:motorcycle_deal_tracker/core/localization/localizations.dart';
-import 'package:motorcycle_deal_tracker/features/listings/domain/entities/bike_condition.dart';
-import 'package:motorcycle_deal_tracker/features/listings/domain/entities/bike_value.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/bike_value_text.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/import_cost.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/import_cost_text.dart';
+import 'package:motorcycle_deal_tracker/features/valuation/domain/entities/bike_condition.dart';
+import 'package:motorcycle_deal_tracker/features/valuation/domain/entities/bike_value.dart';
+import 'package:motorcycle_deal_tracker/features/valuation/presentation/bike_value_text.dart';
+import 'package:motorcycle_deal_tracker/features/valuation/presentation/import_cost.dart';
+import 'package:motorcycle_deal_tracker/features/valuation/presentation/import_cost_text.dart';
 
 String price(double amount) => Formatters.price(amount);
 

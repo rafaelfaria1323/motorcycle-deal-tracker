@@ -330,7 +330,8 @@ invites; written by the collector on each run).
 - Clean architecture per feature: `domain/` (entities, repository interfaces),
   `data/` (models with `fromJson`, Supabase repositories), `presentation/`
   (cubits, pages, widgets). Features: `listings`, `collector_status`,
-  `settings` (the "Mais" tab).
+  `settings` (the "Mais" tab), `valuation` (a bike's value, the import
+  calculator, the cost of ownership; F.10).
 - Text built from data lives in pure functions (`*_text.dart`) with tests.
 - State: flutter_bloc Cubits + Equatable states. DI: get_it. Shared cubits
   (`ListingsCubit`, `SavedSearchesCubit`, `AlertsCubit`, `CollectorStatusCubit`,

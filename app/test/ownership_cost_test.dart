@@ -2,8 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
 import 'package:motorcycle_deal_tracker/features/listings/data/models/listing_model.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/market_behaviour.dart';
-import 'package:motorcycle_deal_tracker/features/listings/domain/entities/ownership_settings.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/ownership_cost.dart';
+import 'package:motorcycle_deal_tracker/features/valuation/domain/entities/ownership_settings.dart';
+import 'package:motorcycle_deal_tracker/features/valuation/presentation/ownership_cost.dart';
 
 void main() {
   group('iucPerYear', () {

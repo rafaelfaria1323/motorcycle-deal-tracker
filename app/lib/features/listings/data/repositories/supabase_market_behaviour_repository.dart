@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../domain/entities/bike_value.dart';
-import '../../domain/entities/bike_value_request.dart';
+import '../../../valuation/domain/entities/bike_value.dart';
+import '../../../valuation/domain/entities/bike_value_request.dart';
 import '../../domain/entities/listing.dart' show minRealPrice;
 import '../../domain/entities/market_behaviour.dart';
 import '../../domain/entities/model_market.dart';
