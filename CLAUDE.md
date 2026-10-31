@@ -690,7 +690,8 @@ every photo examined, only the first 3 fingerprinted; then
 `finish_photo_exams` stamps `photos_examined_all_at`.
 P.7: a new request starts photos.yml at once (`dispatch_workflow`, which
 allows `photos.yml`; a repeat starts nothing, the daily cap caps the
-starts; a lost start waits for the step after the next collection); when
+starts; another account asking for a waiting ad joins it, "Avisar-me
+quando terminar": told too, no cap; a lost start waits for the step after the next collection); when
 the exams are done, `photo_exam_answers` (service role) lists who asked,
 and `tellPhotoExams` (`notify/photo_exam_push.dart`) pushes each of them
 the bike and how many kinds of hint were found (a tap opens the ad).
