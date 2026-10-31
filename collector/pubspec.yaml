@@ -8,8 +8,11 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
+  args: ^2.7.0
   clock: ^1.1.3
+  googleapis_auth: ^2.3.5
   html: ^0.15.7
+  http: ^1.6.0
   image: ^4.12.0
   pointycastle: ^4.0.0
   supabase: ^2.16.5

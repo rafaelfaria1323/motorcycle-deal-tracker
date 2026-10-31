@@ -117,7 +117,9 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
             roadmap.status.md, concept.status.md, code-quality.md and
             test-hardening.md (backlogs of the automatic passes),
             paid-plans.md (paid plans and other income: a plan, not
-            started; roadmap Sprint 16)
+            started; roadmap Sprint 16), feature-review.md (the review
+            of every feature, 2026-10-31: findings and their order,
+            steps F.1-F.11; tick them there as they are done)
 .github/workflows/collect.yml     Collection at 00:00 and every 2 h
                                   from 08:00 to 22:00 (Lisbon time),
                                   started by Supabase pg_cron (see below);
@@ -640,7 +642,9 @@ listing waiting for them (`enrichDetails`) with the same fetcher. Then once for 
 notifications (Web Push) → bike values answered (`answer_bike_value_requests`,
 pushed to the asker's devices). The single-step commands (`fetch.dart`,
 `collector.dart`, `enrich.dart`, `searches.dart`) reuse the same library
-functions for manual work.
+functions for manual work. Every command reads its options with package
+`args` (`readCommandLine`, `cli/command.dart`): `--help` lists them, an
+unknown or malformed one stops with exit code 64.
 
 After the run is recorded, `collect.yml` runs `bin/photos.dart` (P.1,
 `continue-on-error`): `listings_missing_photo_checks` (live, followed
@@ -1097,9 +1101,9 @@ registered in its own scope `/push/`: Flutter's worker at `/` unregisters
 itself on each start and would take the subscription with it) are plain JS called from `core/platform/push.dart`; gone devices (404/410)
 are deleted. The Android app's device is a row with endpoint
 `fcm:<registration token>` and empty keys (`save_push_subscription`);
-`WebPushSender` hands those to `notify/fcm.dart` (FCM HTTP v1: a JWT
-signed RS256 with the service account's key from env
-`FIREBASE_SERVICE_ACCOUNT`, exchanged for one access token per run; the
+`WebPushSender` hands those to `notify/fcm.dart` (FCM HTTP v1: Google's
+`googleapis_auth` signs in with the service account from env
+`FIREBASE_SERVICE_ACCOUNT`, one access token per run; the
 same {title, body, url, tag} as a data message; UNREGISTERED is gone;
 without the secret they fail and the alert waits as for any failed push).
 Weekly summary (Mondays, `weekly_summary.dart`, pure logic in

@@ -46,7 +46,6 @@ dependencies:
   get_it: ^9.3.0
   intl: ^0.20.2
   url_launcher: ^6.3.3
-  flutter_launcher_icons: ^0.14.4
   # The Android app's own updater (Android only, no Dart code).
   apk_installer:
     path: packages/apk_installer
@@ -61,6 +60,8 @@ dev_dependencies:
     sdk: flutter
   # A recording client for the Supabase queries' addresses (first_page_test).
   http: ^1.6.0
+  # Makes the Android icon at build time (tool/android_build.sh).
+  flutter_launcher_icons: ^0.14.4
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

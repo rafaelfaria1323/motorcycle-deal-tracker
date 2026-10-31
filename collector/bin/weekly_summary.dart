@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:collector/collector.dart';
 
 /// Makes each account's summary of its own models' last 7 days (new
@@ -9,7 +10,17 @@ import 'package:collector/collector.dart';
 /// only that account's; empty, every account's. `--dry-run` prints them
 /// instead.
 Future<void> main(List<String> args) async {
-  final dryRun = args.contains('--dry-run');
+  final options = readCommandLine(
+    ArgParser()..addFlag(
+      'dry-run',
+      negatable: false,
+      help: 'Print the summaries; nothing is kept or sent.',
+    ),
+    args,
+    usage: 'Usage: dart run bin/weekly_summary.dart [options]',
+  );
+  if (options == null) return;
+  final dryRun = options.flag('dry-run');
   final account = Platform.environment['SUMMARY_ACCOUNT']?.trim();
 
   await withServiceClient((client) async {

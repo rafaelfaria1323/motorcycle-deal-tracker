@@ -1,25 +1,31 @@
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:collector/collector.dart';
 
 /// Writes the search addresses of the tracked models for one site, one per
 /// line, for `fetch.dart`. An empty file means no tracked model has a search
 /// on that site.
 Future<void> main(List<String> args) async {
-  final site = args.isEmpty ? null : FetchSite.byName[args.first];
-  final out = args
-      .skip(1)
-      .where((a) => a.startsWith('--out='))
-      .map((a) => a.substring('--out='.length))
-      .firstOrNull;
-  if (site == null || out == null || args.length != 2) {
+  final options = readCommandLine(
+    ArgParser()..addOption('out', mandatory: true, help: 'The file to write.'),
+    args,
+    positional: 1,
+    usage:
+        'Usage: dart run bin/searches.dart '
+        '<${FetchSite.byName.keys.join('|')}> --out=<file>',
+  );
+  if (options == null) return;
+  final siteName = options.rest.single;
+  final site = FetchSite.byName[siteName];
+  if (site == null) {
     stderr.writeln(
-      'Usage: dart run bin/searches.dart '
-      '<${FetchSite.byName.keys.join('|')}> --out=<file>',
+      'Unknown site "$siteName": one of ${FetchSite.byName.keys.join(', ')}.',
     );
     exitCode = 64;
     return;
   }
+  final out = options.option('out')!;
 
   await withServiceClient((client) async {
     final plan = planSearches(await loadCatalog(client), site);
@@ -32,7 +38,7 @@ Future<void> main(List<String> args) async {
           .join(),
     );
 
-    stdout.writeln('${plan.searches.length} ${args.first} search(es):');
+    stdout.writeln('${plan.searches.length} $siteName search(es):');
     for (final s in plan.searches) {
       stdout.writeln('  ${s.models.join(', ')}');
     }

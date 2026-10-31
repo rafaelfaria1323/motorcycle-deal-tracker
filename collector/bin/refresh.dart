@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:collector/collector.dart';
 import 'package:supabase/supabase.dart';
 
@@ -10,47 +11,48 @@ import 'package:supabase/supabase.dart';
 /// scores, alerts and notifications run once. A site that fails does not
 /// stop the other; the exit code still reports it.
 Future<void> main(List<String> args) async {
-  final sites = <FetchSite>[];
-  var full = false;
-  var light = false;
-  var force = false;
-  int? enrichMax; // every listing waiting
-  var badArgs = false;
-  for (final arg in args) {
-    if (arg == '--full') {
-      full = true;
-    } else if (arg == '--light') {
-      light = true;
-    } else if (arg == '--force') {
-      force = true;
-    } else if (arg.startsWith('--site=')) {
-      final site = FetchSite.byName[arg.substring('--site='.length)];
-      site == null ? badArgs = true : sites.add(site);
-    } else if (arg.startsWith('--enrich-max=')) {
-      enrichMax = int.tryParse(arg.substring('--enrich-max='.length)) ?? -1;
-      if (enrichMax < 0) badArgs = true;
-    } else {
-      badArgs = true;
-    }
-  }
-  if (badArgs) {
-    stderr.writeln(
-      'Usage: dart run bin/refresh.dart [--full] [--light] [--force] '
-      '[--site=${FetchSite.byName.keys.join('|')}]... [--enrich-max=<n>]\n'
-      '  --full   remove listings missing from searches read in full\n'
-      '  --light  read searches read in full in the last '
-      '${lightRunWindow.inHours} h newest\n'
-      '           first, only up to the ads published or renewed before\n'
-      '  --site   only this site (repeatable; default: all)\n'
-      '  --enrich-max  Standvirtual listing pages to read (default: all '
-      'waiting,\n'
-      '                within the run time)',
-    );
-    exitCode = 64;
-    return;
-  }
-  if (sites.isEmpty) sites.addAll([.standvirtual, .olx]);
-
+  final options = readCommandLine(
+    ArgParser()
+      ..addFlag(
+        'full',
+        negatable: false,
+        help: 'Remove listings missing from searches read in full.',
+      )
+      ..addFlag(
+        'light',
+        negatable: false,
+        help:
+            'Read searches read in full in the last ${lightRunWindow.inHours} '
+            'h newest first, only up to the ads published or renewed before.',
+      )
+      ..addFlag(
+        'force',
+        negatable: false,
+        help: 'Skip the safety limit on removals.',
+      )
+      ..addMultiOption(
+        'site',
+        allowed: FetchSite.byName.keys,
+        help: 'Only this site (repeatable; default: all).',
+      )
+      ..addOption(
+        'enrich-max',
+        help:
+            'Standvirtual listing pages to read (default: all waiting, '
+            'within the run time).',
+      ),
+    args,
+    atLeast: {'enrich-max': 0},
+    usage: 'Usage: dart run bin/refresh.dart [options]',
+  );
+  if (options == null) return;
+  final full = options.flag('full');
+  final light = options.flag('light');
+  final force = options.flag('force');
+  final enrichMax = intOption(options, 'enrich-max'); // null: all waiting
+  final sites = [
+    for (final name in options.multiOption('site')) FetchSite.byName[name]!,
+  ];
   final watch = Stopwatch()..start();
   // Before the catalog is read: a valuation's model collected from before
   // now is in this run's searches.

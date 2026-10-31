@@ -5,6 +5,8 @@ import 'dart:typed_data';
 
 import 'package:collector/src/notify/fcm.dart';
 import 'package:collector/src/notify/web_push.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:pointycastle/asn1.dart';
 import 'package:pointycastle/export.dart';
 import 'package:test/test.dart';
@@ -62,14 +64,14 @@ String _pem(RSAPrivateKey key) {
   return '-----BEGIN PRIVATE KEY-----\n${lines.join('\n')}\n-----END PRIVATE KEY-----\n';
 }
 
-String _account({String tokenUri = 'https://oauth2.googleapis.com/token'}) =>
-    jsonEncode({
-      'type': 'service_account',
-      'project_id': 'deal-tracker',
-      'client_email': 'push@deal-tracker.iam.gserviceaccount.com',
-      'private_key': _pem(_pair.privateKey),
-      'token_uri': tokenUri,
-    });
+String _account() => jsonEncode({
+  'type': 'service_account',
+  'project_id': 'deal-tracker',
+  'client_id': '1234',
+  'client_email': 'push@deal-tracker.iam.gserviceaccount.com',
+  'private_key': _pem(_pair.privateKey),
+  'token_uri': 'https://oauth2.googleapis.com/token',
+});
 
 bool _verifies(String jwt) {
   final parts = jwt.split('.');
@@ -89,7 +91,10 @@ void main() {
   test('reads the service account and its key', () {
     final account = FcmAccount.fromJson(_account());
     expect(account.projectId, 'deal-tracker');
-    expect(account.privateKey.modulus, _pair.privateKey.modulus);
+    expect(
+      account.credentials.email,
+      'push@deal-tracker.iam.gserviceaccount.com',
+    );
     expect(
       () => FcmAccount.fromJson('{"project_id": "x"}'),
       throwsFormatException,
@@ -97,28 +102,16 @@ void main() {
     expect(
       () => FcmAccount.fromJson(
         jsonEncode({
+          'type': 'service_account',
           'project_id': 'x',
+          'client_id': '1',
           'client_email': 'e',
           'private_key': 'junk',
         }),
       ),
       throwsFormatException,
     );
-  });
-
-  test('signs the token request with the account key (RS256)', () {
-    final jwt = fcmAssertion(
-      FcmAccount.fromJson(_account()),
-      now: DateTime.utc(2026, 10, 21),
-    );
-    expect(_verifies(jwt), isTrue);
-    expect(_claims(jwt), {
-      'iss': 'push@deal-tracker.iam.gserviceaccount.com',
-      'scope': 'https://www.googleapis.com/auth/firebase.messaging',
-      'aud': 'https://oauth2.googleapis.com/token',
-      'iat': 1792540800,
-      'exp': 1792544400,
-    });
+    expect(() => FcmAccount.fromJson('not json'), throwsFormatException);
   });
 
   test('the message is data the app shows itself', () {
@@ -158,7 +151,6 @@ void main() {
   });
 
   group('sending', () {
-    late HttpServer server;
     var tokenStatus = 200;
     var sendStatus = 200;
     var sendText = '{}';
@@ -166,42 +158,49 @@ void main() {
     final sent = <Map<String, Object?>>[];
     String? authorization;
 
-    setUp(() async {
+    setUp(() {
       tokenRequests = 0;
       sent.clear();
-      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
-      server.listen((request) async {
-        final body = await utf8.decoder.bind(request).join();
-        if (request.uri.path == '/token') {
-          tokenRequests++;
-          final form = Uri.splitQueryString(body);
-          expect(
-            form['grant_type'],
-            'urn:ietf:params:oauth:grant-type:jwt-bearer',
-          );
-          expect(_verifies(form['assertion']!), isTrue);
-          request.response
-            ..statusCode = tokenStatus
-            ..write(jsonEncode({'access_token': 'ya29.test'}));
-        } else {
-          expect(request.uri.path, '/v1/projects/deal-tracker/messages:send');
-          authorization = request.headers.value('authorization');
-          sent.add(jsonDecode(body) as Map<String, Object?>);
-          request.response
-            ..statusCode = sendStatus
-            ..write(sendText);
-        }
-        await request.response.close();
-      });
     });
-    tearDown(() => server.close(force: true));
 
-    FcmSender sender() => FcmSender(
-      FcmAccount.fromJson(
-        _account(tokenUri: 'http://127.0.0.1:${server.port}/token'),
-      ),
-      apiBase: 'http://127.0.0.1:${server.port}',
-    );
+    final google = MockClient((request) async {
+      if (request.url.toString() == 'https://oauth2.googleapis.com/token') {
+        tokenRequests++;
+        final form = request.bodyFields;
+        expect(
+          form['grant_type'],
+          'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        );
+        final jwt = form['assertion']!;
+        expect(_verifies(jwt), isTrue);
+        expect(_claims(jwt), {
+          'iss': 'push@deal-tracker.iam.gserviceaccount.com',
+          'scope': 'https://www.googleapis.com/auth/firebase.messaging',
+          'aud': 'https://oauth2.googleapis.com/token',
+          'iat': isA<int>(),
+          'exp': isA<int>(),
+        });
+        return http.Response(
+          jsonEncode({
+            'access_token': 'ya29.test',
+            'token_type': 'Bearer',
+            'expires_in': 3600,
+          }),
+          tokenStatus,
+          headers: {'content-type': 'application/json'},
+        );
+      }
+      expect(
+        request.url.toString(),
+        'https://fcm.googleapis.com/v1/projects/deal-tracker/messages:send',
+      );
+      authorization = request.headers['authorization'];
+      sent.add(jsonDecode(request.body) as Map<String, Object?>);
+      return http.Response(sendText, sendStatus);
+    });
+
+    FcmSender sender({http.Client? client}) =>
+        FcmSender(FcmAccount.fromJson(_account()), client: client ?? google);
     const phone = PushTarget(endpoint: 'fcm:abc:DEF_123', p256dh: '', auth: '');
 
     test('signs in once and sends each message to the token', () async {
@@ -241,6 +240,13 @@ void main() {
       expect(await fcm.send(phone, {}), PushResult.failed);
       expect(sent, isEmpty);
       expect(tokenRequests, 1);
+    });
+
+    test('a network problem fails the push', () async {
+      final down = MockClient(
+        (_) async => throw const SocketException('unreachable'),
+      );
+      expect(await sender(client: down).send(phone, {}), PushResult.failed);
     });
 
     test('the Web Push sender hands Android devices to FCM', () async {

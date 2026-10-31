@@ -1,84 +1,58 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
-import 'package:pointycastle/asn1.dart';
-import 'package:pointycastle/export.dart';
+import 'package:googleapis_auth/auth_io.dart';
+import 'package:http/http.dart' as http;
 
 import 'web_push.dart';
 
 /// Notifications in the Android app: Web Push is the browser's, so the app
 /// registers with Firebase Cloud Messaging and its device is stored as
 /// `fcm:<registration token>`. The collector sends to it through FCM's
-/// HTTP v1 API, signing in as the Firebase project's service account (a
-/// JWT signed RS256 with its key, exchanged for an access token); no
-/// Google library. The app shows the message itself (a data message), so
-/// a tap opens the page in the app.
+/// HTTP v1 API, signing in as the Firebase project's service account
+/// (Google's `googleapis_auth`: the signed JWT exchanged for an access
+/// token). The app shows the message itself (a data message), so a tap
+/// opens the page in the app.
 
 /// The prefix of an Android device's endpoint.
 const fcmPrefix = 'fcm:';
 
-const _googleTokenUri = 'https://oauth2.googleapis.com/token';
+/// The scope FCM's HTTP v1 API asks for.
+const fcmScope = 'https://www.googleapis.com/auth/firebase.messaging';
+
+const _timeout = Duration(seconds: 15);
 
 /// The Firebase project's service account: the JSON Google gives as its
 /// private key (GitHub secret `FIREBASE_SERVICE_ACCOUNT`).
 class FcmAccount({
   required final String projectId,
-  required final String clientEmail,
-  required final RSAPrivateKey privateKey,
-  final String tokenUri = _googleTokenUri,
+  required final ServiceAccountCredentials credentials,
 }) {
   /// From the service account JSON; throws [FormatException] when a field
   /// is missing or the key can't be read.
   factory FcmAccount.fromJson(String text) {
-    final json = jsonDecode(text);
-    String field(String name) => switch (json is Map ? json[name] : null) {
-      final String value when value.isNotEmpty => value,
-      _ => throw FormatException('Service account without $name'),
+    final Object? json;
+    try {
+      json = jsonDecode(text);
+    } on FormatException {
+      throw const FormatException('Service account is not JSON');
+    }
+    final projectId = switch (json) {
+      {'project_id': final String id} when id.isNotEmpty => id,
+      _ => throw const FormatException('Service account without project_id'),
     };
-    return FcmAccount(
-      projectId: field('project_id'),
-      clientEmail: field('client_email'),
-      privateKey: rsaKeyFromPem(field('private_key')),
-      tokenUri: switch (json) {
-        {'token_uri': final String uri} when uri.isNotEmpty => uri,
-        _ => _googleTokenUri,
-      },
-    );
+    try {
+      return FcmAccount(
+        projectId: projectId,
+        credentials: ServiceAccountCredentials.fromJson(json),
+      );
+    } on ArgumentError catch (e) {
+      throw FormatException('Service account not usable: ${e.message}');
+    } on FormatException catch (e) {
+      throw FormatException('Unreadable private key: ${e.message}');
+    }
   }
-}
-
-/// The RSA key of a PKCS#8 PEM ("BEGIN PRIVATE KEY", as Google gives it).
-RSAPrivateKey rsaKeyFromPem(String pem) {
-  final base64Text = pem
-      .replaceAll(RegExp('-----[A-Z ]+-----'), '')
-      .replaceAll(RegExp(r'\s'), '');
-  try {
-    final info = ASN1Parser(base64.decode(base64Text)).nextObject();
-    final key = (info as ASN1Sequence).elements![2] as ASN1OctetString;
-    final rsa = ASN1Parser(key.octets).nextObject() as ASN1Sequence;
-    BigInt at(int i) => (rsa.elements![i] as ASN1Integer).integer!;
-    return RSAPrivateKey(at(1), at(3), at(4), at(5));
-  } on Object catch (e) {
-    throw FormatException('Unreadable private key: ${e.runtimeType}');
-  }
-}
-
-/// The signed JWT that asks Google for an FCM access token (valid 1 hour).
-String fcmAssertion(FcmAccount account, {DateTime? now}) {
-  final issued = (now ?? DateTime.now()).toUtc().millisecondsSinceEpoch ~/ 1000;
-  String part(Map<String, Object> json) =>
-      base64UrlNoPad(utf8.encode(jsonEncode(json)));
-  final unsigned =
-      '${part({'alg': 'RS256', 'typ': 'JWT'})}.'
-      '${part({'iss': account.clientEmail, 'scope': 'https://www.googleapis.com/auth/firebase.messaging', 'aud': account.tokenUri, 'iat': issued, 'exp': issued + 3600})}';
-  final signer = Signer('SHA-256/RSA')
-    ..init(true, PrivateKeyParameter<RSAPrivateKey>(account.privateKey));
-  final signature = signer.generateSignature(
-    Uint8List.fromList(utf8.encode(unsigned)),
-  ) as RSASignature;
-  return '$unsigned.${base64UrlNoPad(signature.bytes)}';
 }
 
 /// FCM's request body for [message] ({title, body, url, tag}): a data
@@ -98,7 +72,10 @@ Map<String, Object?> fcmMessage(String token, Map<String, Object?> message) => {
 class FcmSender(
   final FcmAccount account, {
   final String apiBase = 'https://fcm.googleapis.com',
+  http.Client? client,
 }) {
+  final http.Client _client = client ?? http.Client();
+
   /// From env `FIREBASE_SERVICE_ACCOUNT`, or null when it isn't set or
   /// can't be read (said on stderr; Android devices then aren't reached).
   static FcmSender? fromEnvironment([Map<String, String>? environment]) {
@@ -124,15 +101,30 @@ class FcmSender(
     final access = await (_token ??= _accessToken());
     if (access == null) return .failed;
     final token = target.endpoint.substring(fcmPrefix.length);
-    final (status, text) = await _post(
-      Uri.parse('$apiBase/v1/projects/${account.projectId}/messages:send'),
-      jsonEncode(fcmMessage(token, message)),
-      contentType: ContentType.json,
-      authorization: 'Bearer $access',
+    final url = Uri.parse(
+      '$apiBase/v1/projects/${account.projectId}/messages:send',
     );
+    final http.Response response;
+    try {
+      response = await _client
+          .post(
+            url,
+            headers: {
+              'content-type': 'application/json',
+              'authorization': 'Bearer $access',
+            },
+            body: jsonEncode(fcmMessage(token, message)),
+          )
+          .timeout(_timeout);
+    } on Object catch (e) {
+      stderr.writeln('Push to FCM: ${url.host} not reached: ${e.runtimeType}');
+      return .failed;
+    }
+    final status = response.statusCode;
     if (status >= 200 && status < 300) return .sent;
     // UNREGISTERED: the app was removed or its token replaced. A token FCM
     // calls invalid can never receive anything either.
+    final text = response.body;
     if (status == 404 ||
         (status == 400 &&
             text.contains('INVALID_ARGUMENT') &&
@@ -144,56 +136,16 @@ class FcmSender(
   }
 
   Future<String?> _accessToken() async {
-    final (status, text) = await _post(
-      Uri.parse(account.tokenUri),
-      'grant_type=${Uri.encodeQueryComponent('urn:ietf:params:oauth:grant-type:jwt-bearer')}'
-      '&assertion=${fcmAssertion(account)}',
-      contentType: ContentType('application', 'x-www-form-urlencoded'),
-    );
-    if (status == 200) {
-      try {
-        final Object? reply = jsonDecode(text);
-        if (reply case {'access_token': final String token}) {
-          return token;
-        }
-      } on FormatException {
-        // Reported below.
-      }
+    try {
+      final credentials = await obtainAccessCredentialsViaServiceAccount(
+        account.credentials,
+        const [fcmScope],
+        _client,
+      ).timeout(_timeout);
+      return credentials.accessToken.data;
+    } on Object catch (e) {
+      stderr.writeln('FCM sign-in refused: $e');
+      return null;
     }
-    stderr.writeln('FCM sign-in refused: HTTP $status $text');
-    return null;
-  }
-}
-
-/// POSTs [body]; a network problem is status 0.
-Future<(int, String)> _post(
-  Uri url,
-  String body, {
-  required ContentType contentType,
-  String? authorization,
-}) async {
-  final client = HttpClient()..connectionTimeout = const Duration(seconds: 15);
-  try {
-    final request = await client
-        .postUrl(url)
-        .timeout(const Duration(seconds: 15));
-    final bytes = utf8.encode(body);
-    request.headers
-      ..contentType = contentType
-      ..contentLength = bytes.length;
-    if (authorization != null) {
-      request.headers.set('Authorization', authorization);
-    }
-    request.add(bytes);
-    final response = await request.close().timeout(const Duration(seconds: 15));
-    final text = await response
-        .transform(utf8.decoder)
-        .join()
-        .timeout(const Duration(seconds: 15));
-    return (response.statusCode, text);
-  } on Object catch (e) {
-    return (0, '${url.host} not reached: ${e.runtimeType}');
-  } finally {
-    client.close(force: true);
   }
 }
