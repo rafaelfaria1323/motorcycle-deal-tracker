@@ -647,9 +647,20 @@ void main() {
     final router = await _open(tester, fixture);
     final compare = find.byTooltip('Comparar').first;
     await _reveal(tester, compare);
+    List<ListingCard> cards() =>
+        tester.widgetList<ListingCard>(find.byType(ListingCard)).toList();
+    final before = cards();
+    expect(before.length, greaterThan(1));
     await tester.tap(compare);
     await tester.pumpAndSettle();
     expect(fixture.compare.state, [interfaceListing(0).id]);
+    // Only the picked card is rebuilt; the others keep their widgets.
+    final after = cards();
+    expect(after.first.selected, isTrue);
+    expect(identical(after.first, before.first), isFalse);
+    for (var i = 1; i < before.length && i < after.length; i++) {
+      expect(identical(after[i], before[i]), isTrue, reason: 'card $i');
+    }
     expect(router.routeInformationProvider.value.uri.path, AppRoutes.deals);
     expect(find.text('Comparar (1)'), findsOneWidget);
 

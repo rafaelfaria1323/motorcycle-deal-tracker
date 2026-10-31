@@ -69,7 +69,8 @@ void main() {
   late SupabaseClient client;
   late ListingStore store;
   late List<_Call> calls;
-  // What each RPC answers; the others answer a count.
+  // What each RPC answers (by name; tables as 'table:<name>'); other RPCs
+  // answer a count, other tables nothing.
   late Map<String, Object?> replies;
 
   setUp(() async {
@@ -89,7 +90,11 @@ void main() {
       ));
       request.response
         ..headers.contentType = ContentType.json
-        ..write(jsonEncode(rpc ? replies[name] ?? 1 : const []));
+        ..write(
+          jsonEncode(
+            replies[rpc ? name : 'table:$name'] ?? (rpc ? 1 : const []),
+          ),
+        );
       await request.response.close();
     });
     client = SupabaseClient(
@@ -281,6 +286,64 @@ void main() {
     await store.markPushTargetsUsed(const []);
     expect(await store.summaryListings(const {}, DateTime.utc(2026)), isEmpty);
     expect(calls, isEmpty);
+  });
+
+  test("one account's weekly summary reads only that account's data", () async {
+    final summaries = await loadWeeklySummaries(
+      store,
+      {'mt07': 'Yamaha MT-07'},
+      until: DateTime.utc(2026, 10, 19),
+      account: 'u3',
+    );
+
+    // It follows nothing: no listing or price history is read.
+    expect(summaries.keys, ['u3']);
+    expect(summaries['u3']!.liveCount, 0);
+    expect(calls.map((c) => c.name), ['user_models']);
+    expect(calls.single.query['user_id'], 'eq.u3');
+    await store.followedModels();
+    expect(calls.last.query.containsKey('user_id'), isFalse);
+  });
+
+  test('price history is read only for the listings asked about', () async {
+    expect(
+      await store.priceHistoryChangedSince(const {}, DateTime.utc(2026)),
+      isEmpty,
+    );
+    expect(calls, isEmpty);
+
+    final ids = {
+      for (var i = 0; i < 150; i++) 'l${i.toString().padLeft(3, '0')}',
+    };
+    await store.priceHistoryChangedSince(ids, DateTime.utc(2026, 10, 12));
+    // Two requests of at most 100 ids, each limited to the week.
+    expect(calls.map((c) => c.name), [
+      'listing_price_history',
+      'listing_price_history',
+    ]);
+    expect(calls.first.query['listing_id'], startsWith('in.("l000","l001",'));
+    expect(calls.last.query['listing_id'], startsWith('in.("l100",'));
+    for (final c in calls) {
+      expect(c.query['observed_at'], startsWith('gte.2026-10-12'));
+    }
+
+    // A listing changed this week: its whole history, not just the week.
+    calls.clear();
+    replies['table:listing_price_history'] = [
+      {
+        'listing_id': 'l001',
+        'price': 7000,
+        'observed_at': '2026-10-14T00:00:00Z',
+      },
+    ];
+    final points = await store.priceHistoryChangedSince(
+      ids,
+      DateTime.utc(2026, 10, 12),
+    );
+    expect(points.map((p) => p.price), [7000]);
+    expect(calls, hasLength(3));
+    expect(calls.last.query['listing_id'], 'in.("l001")');
+    expect(calls.last.query.containsKey('observed_at'), isFalse);
   });
 
   test('table reads ask for the rows they parse', () async {

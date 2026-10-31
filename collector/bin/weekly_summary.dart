@@ -19,19 +19,10 @@ Future<void> main(List<String> args) async {
     final bikeNames = {
       for (final e in catalog.entries) ?e.id: '${e.brand} ${e.model}',
     };
-    final until = DateTime.now().toUtc();
-    final since = until.subtract(const Duration(days: 7));
-    final listings = await store.summaryListings(bikeNames, since);
-    final history = await store.priceHistoryChangedSince({
-      for (final l in listings)
-        if (l.isLive) l.id,
-    }, since);
-
-    final summaries = summariesByAccount(
-      follows: await store.followedModels(),
-      listings: listings,
-      history: history,
-      until: until,
+    final summaries = await loadWeeklySummaries(
+      store,
+      bikeNames,
+      until: DateTime.now().toUtc(),
       account: account == null || account.isEmpty ? null : account,
     );
     if (dryRun) {

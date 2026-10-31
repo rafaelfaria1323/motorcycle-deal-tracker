@@ -340,12 +340,20 @@ class DashboardPage extends StatelessWidget {
                                   previous.isFavourite(listing.id) !=
                                   current.isFavourite(listing.id),
                               builder: (context, favourites) =>
-                                  BlocBuilder<CompareCubit, List<String>>(
+                                  // Only this card's pick: another
+                                  // card's doesn't rebuild it.
+                                  BlocSelector<
+                                    CompareCubit,
+                                    List<String>,
+                                    bool
+                                  >(
                                     bloc: getIt<CompareCubit>(),
-                                    builder: (context, compared) => ListingCard(
+                                    selector: (compared) =>
+                                        compared.contains(listing.id),
+                                    builder: (context, selected) => ListingCard(
                                       listing: listing,
                                       preferences: cards.preferences,
-                                      selected: compared.contains(listing.id),
+                                      selected: selected,
                                       favourite: favourites.isFavourite(
                                         listing.id,
                                       ),
