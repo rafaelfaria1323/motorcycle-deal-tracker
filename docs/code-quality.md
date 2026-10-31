@@ -17,22 +17,6 @@ the database schema, secrets or workflows goes to "Needs Rafael".
 
 ## To do
 
-- Scope on-demand weekly-summary reads before loading listings/history
-  (`collector/bin/weekly_summary.dart`, `ListingStore.followedModels` and
-  `priceHistoryChangedSince`): `SUMMARY_ACCOUNT` currently filters only
-  after every account's models and the whole catalog's summary data have
-  been read. Load that account's follows first, restrict the model set,
-  and avoid the global recent-history scan for an empty listing set.
-  Preserve full history for changed listings so the price at the start
-  of the week remains correct; prove equivalent summaries and fewer
-  queries/rows with repository fakes.
-- Select each card's comparison membership in
-  `dashboard_page.dart` (`BlocSelector` or `buildWhen`), as favourites
-  already do: the current `BlocBuilder<CompareCubit, List<String>>`
-  rebuilds every visible listing card when any comparison pick changes,
-  although each card only reads `compared.contains(listing.id)`. Keep
-  the toolbar's total count and the three-pick limit responsive; verify
-  only affected cards rebuild.
 
 ## Needs Rafael
 
@@ -48,6 +32,19 @@ the database schema, secrets or workflows goes to "Needs Rafael".
 
 ## Done
 
+- 2026-10-31: The weekly summary reads only what its accounts need
+  (`loadWeeklySummaries`, `send_weekly_summaries.dart`): the follows first
+  (`followedModels(account:)` filters on the account that asked), then
+  listings of followed models only, then the price history only of those
+  listings (by id, 100 a request; the whole history of the ones changed
+  this week, so the week's starting price is kept), never the whole
+  table's week. One account that follows nothing reads one table.
+  Summaries are unchanged (`summariesByAccount` already kept each
+  account's models). Tests: `listing_store_api_test.dart` (roadmap N.37).
+- 2026-10-31: Each Ofertas card selects its own comparison pick
+  (`BlocSelector`), so a pick rebuilds that card, not every card on
+  screen; the toolbar's count still follows every pick
+  (`interface_test.dart` checks the other cards' widgets are kept).
 - 2026-10-30: Model matching prepares each catalog's aliases, exclusions,
   families and accepted Honda suffixes once per resolver, indexed by
   normalized brand; immutable regular expressions are reused too.

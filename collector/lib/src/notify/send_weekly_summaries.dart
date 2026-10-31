@@ -26,6 +26,36 @@ Map<String, WeeklySummary> summariesByAccount({
   };
 }
 
+/// Reads what the summaries need and makes them: every account's, or with
+/// [account] only that one's. Only the followed models' listings are read
+/// (of [bikeNames], catalog id to name), and the price history only of
+/// those still live, so one account's summary reads one account's data.
+Future<Map<String, WeeklySummary>> loadWeeklySummaries(
+  ListingStore store,
+  Map<String, String> bikeNames, {
+  required DateTime until,
+  String? account,
+}) async {
+  final since = until.subtract(const Duration(days: 7));
+  final follows = await store.followedModels(account: account);
+  final followed = {for (final models in follows.values) ...models.keys};
+  final listings = await store.summaryListings({
+    for (final MapEntry(:key, :value) in bikeNames.entries)
+      if (followed.contains(key)) key: value,
+  }, since);
+  final history = await store.priceHistoryChangedSince({
+    for (final l in listings)
+      if (l.isLive) l.id,
+  }, since);
+  return summariesByAccount(
+    follows: follows,
+    listings: listings,
+    history: history,
+    until: until,
+    account: account,
+  );
+}
+
 /// Keeps each summary for the app and sends it to the account's devices.
 Future<({int accounts, int devices, int sent})> sendWeeklySummaries(
   ListingStore store,
