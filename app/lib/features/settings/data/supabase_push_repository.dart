@@ -40,7 +40,7 @@ class SupabasePushRepository(final SupabaseClient _client)
         .from('quiet_hours')
         .select('enabled, start_hour, end_hour')
         .maybeSingle();
-    if (row == null) return QuietHours.standard;
+    if (row == null) return .standard;
     return QuietHours(
       enabled: row['enabled'] as bool,
       startHour: row['start_hour'] as int,

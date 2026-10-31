@@ -10,7 +10,7 @@ import '../../../core/localization/localizations.dart';
 Future<String> startWorkflow(
   AppWorkflow workflow, {
   PushTestKind? kind,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) async {
   try {
     await getIt<WorkflowsRepository>().start(workflow, kind: kind);

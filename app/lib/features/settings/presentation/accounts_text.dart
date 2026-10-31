@@ -12,16 +12,16 @@ String appLink(String origin) => '$origin/';
 String inviteLink(String origin, String code) =>
     '$origin/#/join?code=${Uri.encodeQueryComponent(code)}';
 
-String appShareText({AppLanguage language = AppLanguage.portuguese}) =>
+String appShareText({AppLanguage language = .portuguese}) =>
     language.messages.seeUsedMotorcyclesForSaleInPortugalWith;
 
-String inviteShareText({AppLanguage language = AppLanguage.portuguese}) =>
+String inviteShareText({AppLanguage language = .portuguese}) =>
     language.messages.hereIsInviteToMotorcycleDealTrackerOpen;
 
 /// What an invite page says when its code can't be used; null when it can.
 String? inviteStatusText(
   InviteStatus status, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) => switch (status) {
   InviteStatus.ok => null,
   InviteStatus.used => language.messages.thisInviteHasAlreadyBeenUsedAskSender,
@@ -35,7 +35,7 @@ String? joinFormProblem(
   String email,
   String password,
   String confirmation, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final e = email.trim();
   if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(e)) {
@@ -49,23 +49,21 @@ String? joinFormProblem(
 }
 
 /// The message for a failed redeem, from the database's error code.
-String redeemErrorText(
-  String? code, {
-  AppLanguage language = AppLanguage.portuguese,
-}) => switch (code) {
-  'P0002' => inviteStatusText(InviteStatus.unknown, language: language)!,
-  '23505' => language.messages.thisEmailAlreadyHasAccountSignInThrough,
-  '22023' => language.messages.checkYourEmailAndPasswordAtLeast8,
-  '55000' => language.messages.inviteServiceNotReady,
-  _ => language.messages.couldNotCreateAccountTryAgain,
-};
+String redeemErrorText(String? code, {AppLanguage language = .portuguese}) =>
+    switch (code) {
+      'P0002' => inviteStatusText(InviteStatus.unknown, language: language)!,
+      '23505' => language.messages.thisEmailAlreadyHasAccountSignInThrough,
+      '22023' => language.messages.checkYourEmailAndPasswordAtLeast8,
+      '55000' => language.messages.inviteServiceNotReady,
+      _ => language.messages.couldNotCreateAccountTryAgain,
+    };
 
 /// The second line of an invite in the admin list.
 String inviteSubtitle(
   Invite invite, {
   required DateTime now,
   Map<String, String> emails = const {},
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   if (invite.usedAt != null) {
     final who = emails[invite.usedBy];
@@ -90,10 +88,7 @@ bool invitePending(Invite invite, DateTime now) =>
     invite.usedAt == null && invite.expiresAt.isAfter(now);
 
 /// The second line of an account in the admin list.
-String accountSubtitle(
-  Account account, {
-  AppLanguage language = AppLanguage.portuguese,
-}) {
+String accountSubtitle(Account account, {AppLanguage language = .portuguese}) {
   final parts = [
     if (account.isAdmin) language.messages.administrator,
     language.messages.createdOn(date: Formatters.date(account.createdAt)),

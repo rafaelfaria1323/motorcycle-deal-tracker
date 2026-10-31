@@ -4,18 +4,12 @@ import 'collection_text.dart';
 import '../../../core/localization/localizations.dart';
 
 /// "OLX · 120 anúncios ativos"
-String qualityTitle(
-  SourceQuality q, {
-  AppLanguage language = AppLanguage.portuguese,
-}) =>
+String qualityTitle(SourceQuality q, {AppLanguage language = .portuguese}) =>
     '${sourceLabel(q.source, language: language)} · '
     '${language.messages.activeListingCount(count: q.liveCount)}';
 
 /// What the site's live listings are: tracked, other models, duplicates.
-String qualityMixLine(
-  SourceQuality q, {
-  AppLanguage language = AppLanguage.portuguese,
-}) {
+String qualityMixLine(SourceQuality q, {AppLanguage language = .portuguese}) {
   final parts = [
     language.messages.forTrackedModelsDataQualityText(
       scoredCount: q.scoredCount.toString(),
@@ -35,7 +29,7 @@ String qualityMixLine(
 /// The facts the scored listings miss; null when none is missing.
 String? qualityMissingLine(
   SourceQuality q, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final parts = [
     if (q.missingYear > 0)
@@ -56,7 +50,7 @@ String? qualityMissingLine(
 /// Null when every listing page has been read.
 String? qualityDetailsLine(
   SourceQuality q, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   if (q.detailsPending == 0) return null;
   return language.messages.listingPagesUnread(detailsPending: q.detailsPending);
@@ -70,7 +64,7 @@ const staleAfter = Duration(hours: 24);
 String? qualitySeenLine(
   SourceQuality q,
   DateTime now, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final seen = q.lastSeenAt;
   if (seen == null) return null;
@@ -84,7 +78,7 @@ String? qualitySeenLine(
 /// Null when no price moved by half or more at once.
 String? qualitySharpPricesLine(
   SourceQuality q, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final n = q.sharpPriceChanges;
   if (n == 0) return null;
@@ -94,11 +88,7 @@ String? qualitySharpPricesLine(
 }
 
 /// "12 %", rounded; "<1 %" for a small non-zero share.
-String percent(
-  int part,
-  int whole, {
-  AppLanguage language = AppLanguage.portuguese,
-}) {
+String percent(int part, int whole, {AppLanguage language = .portuguese}) {
   if (whole <= 0 || part <= 0) return language.messages.zeroPercent;
   final value = part * 100 / whole;
   if (value < 1) return language.messages.lessThanOnePercent;

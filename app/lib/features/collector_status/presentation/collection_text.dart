@@ -37,10 +37,7 @@ Duration lisbonOffset(DateTime utc) {
 
 /// "Próxima recolha: hoje às 20:00" (local time). The run itself waits for
 /// a free GitHub runner, hence the note.
-String nextCollectionText(
-  DateTime now, {
-  AppLanguage language = AppLanguage.portuguese,
-}) {
+String nextCollectionText(DateTime now, {AppLanguage language = .portuguese}) {
   final next = nextCollection(now).toLocal();
   final when = switch (Formatters.calendarDays(now, next)) {
     0 => language.messages.today,
@@ -57,7 +54,7 @@ String nextCollectionText(
 String agoText(
   DateTime time, {
   DateTime? now,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final diff = (now ?? DateTime.now()).difference(time);
   // A time slightly ahead (clock skew between phone and server) reads as now.
@@ -87,7 +84,7 @@ String durationText(Duration d) {
 /// these are the figures to watch); null when the run didn't say.
 String? requestsText(
   Map<String, int> requests, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) => requests.isEmpty
     ? null
     : language.messages.requestsPerSite(sites: _perSite(requests));
@@ -102,7 +99,7 @@ String _perSite(Map<String, int> requests) => [
 /// that counted it; null when none did (older runs).
 String? monthRequestsText(
   List<CollectorRun> runs, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final totals = <String, int>{};
   final counted = <String, int>{};
@@ -131,7 +128,7 @@ String? monthRequestsText(
 List<String> dailyRequestsText(
   List<CollectorRun> runs,
   DateTime now, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final days = <DateTime, Map<String, int>>{};
   for (final run in runs) {
@@ -161,7 +158,7 @@ List<String> dailyRequestsText(
 /// didn't say (older runs, or one that stopped before importing).
 String? runCountsText(
   Map<String, int> counts, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   if (counts.isEmpty) return null;
   final messages = language.messages;
@@ -187,7 +184,7 @@ int estimatedMinutes(CollectorRun run) =>
 /// "18 recolhas este mês, cerca de 54 min de GitHub Actions".
 String monthUsageText(
   List<CollectorRun> runs, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final minutes = runs.fold<int>(0, (sum, r) => sum + estimatedMinutes(r));
   return language.messages.runsThisMonth(

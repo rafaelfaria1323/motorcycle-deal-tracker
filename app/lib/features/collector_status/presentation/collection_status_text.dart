@@ -13,19 +13,19 @@ const tokenWarningDays = 14;
 ({String text, bool warning}) tokenText(
   GithubToken token,
   DateTime now, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   switch (token.state) {
-    case GithubTokenState.missing:
+    case .missing:
       return (text: language.messages.githubTokenMissing, warning: true);
-    case GithubTokenState.refused:
+    case .refused:
       return (
         text: language.messages.githubTokenRejected(
           status: (token.httpStatus ?? '?').toString(),
         ),
         warning: true,
       );
-    case GithubTokenState.ok:
+    case .ok:
       final expires = token.expiresAt;
       if (expires == null) {
         return (
@@ -59,13 +59,13 @@ const databaseWarningShare = 0.8;
 const _megabyte = 1024 * 1024;
 
 /// "42,3 MB".
-String megabytes(int bytes, {AppLanguage language = AppLanguage.portuguese}) =>
+String megabytes(int bytes, {AppLanguage language = .portuguese}) =>
     '${Formatters.decimal(bytes / _megabyte, language: language)} MB';
 
 /// "A base de dados ocupa 42,3 MB de 500 MB (8 %)", red from 80 %.
 ({String text, bool warning}) databaseUsageText(
   DatabaseUsage usage, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final share = usage.bytes / databaseLimitBytes;
   final warning = share >= databaseWarningShare;
@@ -86,7 +86,7 @@ String megabytes(int bytes, {AppLanguage language = AppLanguage.portuguese}) =>
 /// null when there are none.
 String? biggestTablesText(
   DatabaseUsage usage, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   if (usage.tables.isEmpty) return null;
   final tables = [
@@ -107,7 +107,7 @@ const siteNames = {'standvirtual': 'Standvirtual', 'olx': 'OLX'};
   SiteBudget budget, {
   required DateTime reportedAt,
   required DateTime now,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final name = siteNames[site] ?? site;
   final paused = budget.pausedUntil;
@@ -134,10 +134,7 @@ const siteNames = {'standvirtual': 'Standvirtual', 'olx': 'OLX'};
 /// "OLX · yamaha-mt-07: 2 de 3 páginas, 80 anúncios (9 dos modelos
 /// acompanhados) · não lida toda": a search not read in full keeps its gone
 /// ads until a run reads it all.
-String searchReadText(
-  SearchRead s, {
-  AppLanguage language = AppLanguage.portuguese,
-}) {
+String searchReadText(SearchRead s, {AppLanguage language = .portuguese}) {
   final name = '${siteNames[s.site] ?? s.site} · ${s.search}';
   final spans = s.spans;
   if (spans == null) {
@@ -158,15 +155,13 @@ String searchReadText(
 }
 
 /// "Correu bem", "Incompleta", "Bloqueada" or "Falhou".
-String runStatusLabel(
-  String status, {
-  AppLanguage language = AppLanguage.portuguese,
-}) => switch (status) {
-  'ok' => language.messages.successful,
-  'partial' => language.messages.partialRun,
-  'blocked' => language.messages.blocked,
-  _ => language.messages.failed,
-};
+String runStatusLabel(String status, {AppLanguage language = .portuguese}) =>
+    switch (status) {
+      'ok' => language.messages.successful,
+      'partial' => language.messages.partialRun,
+      'blocked' => language.messages.blocked,
+      _ => language.messages.failed,
+    };
 
 /// The database stops the collector's statements after this long
 /// (service_role's statement_timeout); the scoring is the longest one.
@@ -176,7 +171,7 @@ const scoringLimit = Duration(seconds: 60);
 /// a growing catalogue makes the scoring fail.
 ({String text, bool warning}) scoringText(
   Duration time, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final seconds = Formatters.decimal(
     time.inMilliseconds / 1000,
@@ -196,10 +191,7 @@ const scoringLimit = Duration(seconds: 60);
 
 /// What made a run fail, from one of its problem lines (refresh.dart's
 /// wording, after the site).
-String failureCause(
-  String problem, {
-  AppLanguage language = AppLanguage.portuguese,
-}) {
+String failureCause(String problem, {AppLanguage language = .portuguese}) {
   final line = _withoutSite(problem).line;
   final messages = language.messages;
   return switch (line) {
@@ -234,7 +226,7 @@ String failureCause(
 /// cause; one without problem lines is "Outro erro".
 List<String> failureHistoryText(
   List<CollectorRun> runs, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final groups = <String, ({int runs, DateTime last})>{};
   for (final run in runs.where((r) => r.status != 'ok')) {
@@ -276,7 +268,7 @@ List<String> failureHistoryText(
 /// "4 de 180 recolhas não correram bem", over [runs] (at least one).
 String failureShareText(
   List<CollectorRun> runs, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   final failed = runs.where((r) => r.status != 'ok').length;
   return failed == 0

@@ -40,11 +40,11 @@ class _CollectorStatusBannerState extends State<CollectorStatusBanner> {
         final scheme = Theme.of(context).colorScheme;
 
         switch (collectorHealth(run, DateTime.now())) {
-          case CollectorHealth.unknown:
-          case CollectorHealth.ok:
+          case .unknown:
+          case .ok:
             // All is well: the time of the last run is in the details.
             return const SizedBox.shrink();
-          case CollectorHealth.stale:
+          case .stale:
             return _card(
               color: scheme.tertiaryContainer,
               icon: Icons.schedule,
@@ -53,7 +53,7 @@ class _CollectorStatusBannerState extends State<CollectorStatusBanner> {
                 ago: agoText(run!.finishedAt, language: context.language),
               ),
             );
-          case CollectorHealth.blocked:
+          case .blocked:
             return _card(
               color: scheme.errorContainer,
               icon: Icons.block,
@@ -62,7 +62,7 @@ class _CollectorStatusBannerState extends State<CollectorStatusBanner> {
                 ago: agoText(run!.finishedAt, language: context.language),
               ),
             );
-          case CollectorHealth.failed:
+          case .failed:
             return _card(
               color: scheme.errorContainer,
               icon: Icons.error_outline,

@@ -10,7 +10,7 @@ import '../domain/language_repository.dart';
 enum LanguageFailure { load, save }
 
 class const LanguageState({
-  final AppLanguage language = AppLanguage.portuguese,
+  final AppLanguage language = .portuguese,
   final bool loading = false,
   final bool saving = false,
   final LanguageFailure? failure,

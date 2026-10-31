@@ -88,7 +88,7 @@ class _CardPreferencesDialogState extends State<_CardPreferencesDialog> {
     },
     builder: (context, state) {
       final preferences = _draft ?? state.preferences;
-      final ready = state.status == ListingCardPreferencesStatus.success;
+      final ready = state.status == .success;
       return AlertDialog(
         scrollable: true,
         title: Text(context.strings.listingCards),
@@ -102,7 +102,7 @@ class _CardPreferencesDialogState extends State<_CardPreferencesDialog> {
               const SizedBox(height: 12),
               Text(context.strings.cardAlwaysShown),
               const SizedBox(height: 12),
-              if (state.status == ListingCardPreferencesStatus.loading)
+              if (state.status == .loading)
                 const Center(child: CircularProgressIndicator())
               else if (ready) ...[
                 for (final field in ListingCardField.values)
@@ -134,7 +134,7 @@ class _CardPreferencesDialogState extends State<_CardPreferencesDialog> {
                   cardPreferencesErrorText(error, language: context.language),
                   style: AppTheme.errorText(context),
                 ),
-                if (state.status == ListingCardPreferencesStatus.failure)
+                if (state.status == .failure)
                   TextButton(
                     onPressed: widget.cubit.load,
                     child: Text(context.strings.retry),

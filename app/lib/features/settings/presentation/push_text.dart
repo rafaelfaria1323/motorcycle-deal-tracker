@@ -6,7 +6,7 @@ import '../../../core/localization/localizations.dart';
 String pushSubtitle(
   PushState state, {
   required bool signedIn,
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) {
   if (!signedIn) return language.messages.signInToReceiveAlertsOnThisDevice;
   return switch (state) {
@@ -23,12 +23,12 @@ String pushSubtitle(
 
 /// Whether the switch can be used.
 bool pushSwitchEnabled(PushState state, {required bool signedIn}) =>
-    signedIn && (state == PushState.on || state == PushState.off);
+    signedIn && (state == .on || state == .off);
 
 /// The subtitle of "Horas de silêncio" in Mais.
 String quietHoursSubtitle(
   QuietHours hours, {
-  AppLanguage language = AppLanguage.portuguese,
+  AppLanguage language = .portuguese,
 }) => hours.enabled
     ? language.messages.quietHoursOn(
         start: quietHourText(hours.startHour),

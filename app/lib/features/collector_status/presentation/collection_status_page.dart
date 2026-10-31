@@ -186,7 +186,7 @@ class const _TokenLine({
     return FutureBuilder<GithubToken?>(
       future: token,
       builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
+        if (snapshot.connectionState != .done) {
           return BulletLine(context.strings.checkingGitHubToken);
         }
         final token = snapshot.data;
@@ -208,7 +208,7 @@ class const _DailyRequests({
     return FutureBuilder<List<CollectorRun>>(
       future: runs,
       builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
+        if (snapshot.connectionState != .done) {
           return BulletLine(context.strings.countingRequests);
         }
         final week = now.subtract(const Duration(days: 7));
@@ -239,7 +239,7 @@ class const _FailureHistory({required final Future<List<CollectorRun>> runs})
     return FutureBuilder<List<CollectorRun>>(
       future: runs,
       builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
+        if (snapshot.connectionState != .done) {
           return BulletLine(context.strings.countingFailures);
         }
         final runs = snapshot.data ?? const <CollectorRun>[];
@@ -269,7 +269,7 @@ class const _UsageLines({required final Future<DatabaseUsage?> usage})
     return FutureBuilder<DatabaseUsage?>(
       future: usage,
       builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
+        if (snapshot.connectionState != .done) {
           return BulletLine(context.strings.measuringDatabase);
         }
         final usage = snapshot.data;
@@ -370,7 +370,7 @@ class const _RunTile({required final CollectorRun run})
       onTap: url == null
           ? null
           : () => unawaited(
-              launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
+              launchUrl(Uri.parse(url), mode: .externalApplication),
             ),
     );
   }
