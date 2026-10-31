@@ -233,9 +233,15 @@ class _ContentState extends State<_Content> {
 
   /// Tells the bar whether the bike's name is above the top of the list.
   void _checkName() {
-    final name = _nameKey.currentContext?.findRenderObject();
     final list = _listKey.currentContext?.findRenderObject();
-    if (name is! RenderBox || list is! RenderBox) return;
+    if (list is! RenderBox) return;
+    final name = _nameKey.currentContext?.findRenderObject();
+    // The heading is in the list's first item, which the list lets go
+    // once it is far above the screen (a long jump or a fast fling).
+    if (name is! RenderBox) {
+      widget.nameHidden.value = true;
+      return;
+    }
     final bottom = name.localToGlobal(
       Offset(0, name.size.height),
       ancestor: list,

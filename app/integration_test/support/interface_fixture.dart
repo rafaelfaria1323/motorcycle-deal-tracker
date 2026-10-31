@@ -246,7 +246,10 @@ class InterfaceFixture {
           final id = state.pathParameters['id']!;
           return BlocProvider(
             create: (_) => ListingDetailCubit(repository)..load(id),
-            child: ListingDetailPage(listingId: id),
+            child: ListingDetailPage(
+              listingId: id,
+              keepSection: state.extra == AppRoutes.fromList,
+            ),
           );
         },
       ),

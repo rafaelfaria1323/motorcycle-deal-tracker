@@ -1514,31 +1514,53 @@ void main() {
       of: find.byType(ListingDetailPage),
       matching: find.byType(AppBar),
     );
+    final plain = find.descendant(of: bar, matching: find.text('O anúncio'));
     final compact = find.descendant(
       of: bar,
       matching: find.textContaining('Yamaha MT-07\n2023 · '),
     );
-    expect(
-      find.descendant(of: bar, matching: find.text('O anúncio')),
-      findsOneWidget,
-    );
+    final list = find.byType(Scrollable).first;
+    // Negociar is long enough to scroll the heading well away.
+    await _reveal(tester, find.byType(TabBar));
+    await tester.tap(find.text('Negociar'));
+    await tester.pumpAndSettle();
+    await tester.drag(list, const Offset(0, 2000));
+    await tester.pumpAndSettle();
+    expect(plain, findsOneWidget);
     expect(compact, findsNothing);
 
-    await tester.drag(find.byType(Scrollable).first, const Offset(0, -700));
+    final page = find.byType(ListView).first;
+    final heading = find
+        .descendant(of: page, matching: find.text('Yamaha MT-07'))
+        .first;
+    final past = tester.getBottomLeft(heading).dy - tester.getTopLeft(page).dy;
+    final position = tester.state<ScrollableState>(list).position;
+    expect(
+      position.maxScrollExtent,
+      greaterThan(past + 40),
+      reason: 'the page must scroll past its heading',
+    );
+
+    // Just past the heading (the drag loses its touch slop first).
+    await tester.drag(list, Offset(0, -(past + 40)));
     await tester.pumpAndSettle();
     expect(compact, findsOneWidget);
-    expect(
-      find.descendant(of: bar, matching: find.text('O anúncio')),
-      findsNothing,
-    );
+    expect(plain, findsNothing);
 
-    await tester.drag(find.byType(Scrollable).first, const Offset(0, 2000));
+    // A long jump lets go of the heading's item: still named.
+    position.jumpTo(position.maxScrollExtent);
     await tester.pumpAndSettle();
-    expect(
-      find.descendant(of: bar, matching: find.text('O anúncio')),
-      findsOneWidget,
-    );
+    expect(compact, findsOneWidget);
+
+    await tester.drag(list, const Offset(0, 2000));
+    await tester.pumpAndSettle();
+    expect(plain, findsOneWidget);
     expect(compact, findsNothing);
+
+    // The page remembers the part: leave it on Avaliação.
+    await _reveal(tester, find.byType(TabBar));
+    await tester.tap(find.text('Avaliação'));
+    await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
 
