@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:motorcycle_deal_tracker/app/di/injection.dart';
@@ -1497,6 +1498,145 @@ void main() {
     await tester.tap(find.text('Detalhes'));
     await tester.pumpAndSettle();
     expect(find.text('Mostrar menos'), findsOneWidget);
+    await tester.tap(find.text('Avaliação'));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('the bar names the bike once its heading scrolls away (F.4)', (
+    tester,
+  ) async {
+    await _open(
+      tester,
+      InterfaceFixture(),
+      location: AppRoutes.listingDetail(interfaceListing(0).id),
+    );
+    final bar = find.descendant(
+      of: find.byType(ListingDetailPage),
+      matching: find.byType(AppBar),
+    );
+    final compact = find.descendant(
+      of: bar,
+      matching: find.textContaining('Yamaha MT-07\n2023 · '),
+    );
+    expect(
+      find.descendant(of: bar, matching: find.text('O anúncio')),
+      findsOneWidget,
+    );
+    expect(compact, findsNothing);
+
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -700));
+    await tester.pumpAndSettle();
+    expect(compact, findsOneWidget);
+    expect(
+      find.descendant(of: bar, matching: find.text('O anúncio')),
+      findsNothing,
+    );
+
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, 2000));
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(of: bar, matching: find.text('O anúncio')),
+      findsOneWidget,
+    );
+    expect(compact, findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('sharing an ad copies its link where there is no share sheet', (
+    tester,
+  ) async {
+    String? copied;
+    final messenger = tester.binding.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+      if (call.method == 'Clipboard.setData') {
+        copied = (call.arguments as Map)['text'] as String?;
+      }
+      return null;
+    });
+    addTearDown(
+      () => messenger.setMockMethodCallHandler(SystemChannels.platform, null),
+    );
+    final listing = interfaceListing(0);
+    await _open(
+      tester,
+      InterfaceFixture(),
+      size: const Size(320, 720),
+      textScale: 2,
+      location: AppRoutes.listingDetail(listing.id),
+    );
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.byTooltip('Partilhar o anúncio'));
+    await tester.pumpAndSettle();
+    expect(copied, startsWith('Yamaha MT-07 · 2023 · '));
+    expect(copied, contains('Anúncio original: ${listing.url}'));
+    expect(copied, endsWith('/#${AppRoutes.listingDetail(listing.id)}'));
+    expect(find.text('Link copiado. Cole-o numa mensagem.'), findsOneWidget);
+  });
+
+  testWidgets('an ad opened from a list opens on the part last read (F.4)', (
+    tester,
+  ) async {
+    final router = await _open(
+      tester,
+      InterfaceFixture(),
+      location: AppRoutes.listingDetail(interfaceListing(0).id),
+    );
+    int section() =>
+        DefaultTabController.of(tester.element(find.byType(TabBar))).index;
+    await _reveal(tester, find.byType(TabBar));
+    expect(section(), 0);
+    await tester.tap(find.text('Negociar'));
+    await tester.pumpAndSettle();
+    expect(section(), 3);
+
+    router.go(AppRoutes.deals);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(ListingCard).first);
+    await tester.pumpAndSettle();
+    await _reveal(tester, find.byType(TabBar));
+    expect(section(), 3, reason: 'went on from Ofertas');
+
+    // A notification, an alert or a shared link: the ad from the start.
+    router.go(AppRoutes.listingDetail(interfaceListing(2).id));
+    await tester.pumpAndSettle();
+    await _reveal(tester, find.byType(TabBar));
+    expect(section(), 0);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('buying abroad stays one closed line on a listing (F.4)', (
+    tester,
+  ) async {
+    await _open(
+      tester,
+      InterfaceFixture(),
+      location: AppRoutes.listingDetail(interfaceListing(0).id),
+    );
+    await _reveal(tester, find.byType(TabBar));
+    await tester.tap(find.text('Mercado'));
+    await tester.pumpAndSettle();
+    final title = find.text('E se a comprar no estrangeiro?');
+    await _reveal(tester, title);
+    expect(
+      find.text(
+        'Some o ISV, a legalização e o transporte a um preço de Espanha, '
+        'França ou Alemanha.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Preço lá'), findsNothing);
+    await tester.tap(title);
+    await tester.pumpAndSettle();
+    await _reveal(tester, find.text('Preço lá'));
+    expect(find.text('Preço lá'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    // The part last read outlives the page: leave Avaliação for the tests
+    // that open ads from Ofertas.
+    await tester.scrollUntilVisible(
+      find.byType(TabBar),
+      -200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.text('Avaliação'));
     await tester.pumpAndSettle();
   });

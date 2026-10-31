@@ -95,9 +95,15 @@ Screen names below use the Portuguese labels; English provides the same screens.
   Score and its verdict beside them; removed / duplicate / relisted notices;
   your note when it is a favourite. Photos and summary sit side by side
   on wide screens and stack on phones, with a visible fullscreen control.
-  The original-listing button stays at the bottom, with the price beside
-  it on wide screens. Below, four parts picked using scrollable tabs
-  (the last one picked stays open for the next listing):
+  Once the model's name scrolls away, the title bar names the bike, with
+  its year and price below. The original-listing button stays at the
+  bottom, beside a share button (the app's link to the ad, with the
+  bike, its km, its price and the seller's ad; copied where the device
+  has no share sheet), with the price beside them on wide screens.
+  Below, four parts picked using scrollable tabs (an ad opened from
+  Ofertas, Favoritos, the comparison or another ad opens on the part
+  last read; from a notification, an alert or a shared link, on
+  Avaliação):
   - **Avaliação:** why this score (the reasons and the risk), the same bike
     on the other site, "O stand" for dealers (what we have seen of its ads
     on both sites: relists, sharp price changes, missing mileage, repeated
@@ -112,7 +118,8 @@ Screen names below use the Portuguese labels; English provides the same screens.
     price sits among the model's live listings, and about how many days
     this ad has left on the market, from the model's ads at a similar
     price), the price history, the
-    comparison with a new one, "E se a comprar no estrangeiro?" (the
+    comparison with a new one, "E se a comprar no estrangeiro?" (one
+    closed line until tapped: the
     same bike's price in Spain, France or Germany, the engine size
     filled in, plus ISV, legalisation and transport, against this ad's
     price), "Custo de ter esta mota" (yearly cost:

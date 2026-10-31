@@ -365,7 +365,14 @@ invites; written by the collector on each run).
   (`GoRouter.optionURLReflectsImperativeAPIs`, set in `main.dart`). The
   ad and its photos (`/deals/<id>/photos`, `extra` = `PhotoViewerArgs`,
   JSON so the browser's history keeps it) open on the root navigator
-  (`parentNavigatorKey`), above the tab bar. Android's back on a tab
+  (`parentNavigatorKey`), above the tab bar. An ad opened from a list
+  (Ofertas, Favoritos, the comparison, another ad) is pushed with
+  `extra: AppRoutes.fromList` and opens on the part last read; any other
+  way in (a notification, an alert, a shared link) opens on Avaliação
+  (F.4). Its bar names the bike once the heading scrolls away, and its
+  share button (`shareOrCopy`, `core/widgets/share_or_copy.dart`, also
+  the invites' and "Partilhar a app") sends `listingLink` with
+  `listingShareText`. Android's back on a tab
   other than Ofertas goes to Ofertas (`AppShell`'s `PopScope`). Every
   in-app back arrow calls `goBack` (`core/widgets/page_back_button.dart`):
   in the browser `history.back()` while the entry before is the app's

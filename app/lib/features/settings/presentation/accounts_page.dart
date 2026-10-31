@@ -4,11 +4,11 @@ import '../../../app/di/injection.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../../core/platform/app_build.dart';
 import '../../../core/widgets/page_back_button.dart';
+import '../../../core/widgets/share_or_copy.dart';
 import '../../../core/widgets/show_message.dart';
 import '../../../core/widgets/state_message.dart';
 import '../domain/accounts_repository.dart';
 import 'accounts_text.dart';
-import 'share_link.dart';
 import '../../../core/localization/localizations.dart';
 
 /// "Contas e convites" (admins): invite someone with a link, see the

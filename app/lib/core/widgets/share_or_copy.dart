@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../core/platform/share.dart';
-import '../../../core/widgets/show_message.dart';
-import '../../../core/localization/localizations.dart';
+import '../localization/localizations.dart';
+import '../platform/share.dart';
+import 'show_message.dart';
 
 /// Opens the share sheet with [url]; where there is none, copies it.
 Future<void> shareOrCopy(

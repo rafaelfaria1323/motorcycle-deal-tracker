@@ -322,6 +322,7 @@ class const DashboardPage({super.key}) extends StatelessWidget {
                                       ),
                                       onTap: () => context.push(
                                         AppRoutes.listingDetail(listing.id),
+                                        extra: AppRoutes.fromList,
                                       ),
                                       onLongPress: () =>
                                           _toggleCompare(context, listing.id),

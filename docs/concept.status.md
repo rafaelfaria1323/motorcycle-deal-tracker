@@ -196,6 +196,8 @@ All four types, each at most once per event, only for events after the search wa
 
 *13.7: photo and summary side by side on wide screens, stacked on phones; explicit fullscreen photo control; scrollable section tabs retaining opened content; fixed original-listing action with the price beside it on wide screens.*
 
+*F.4: once the heading scrolls away the title bar names the bike, with its year and price; a share button beside "Ver no …" sends the app's link to the ad with the bike, its km, its price and the seller's ad (copied where there is no share sheet); an ad opened from a list keeps the part last read, any other way in (a notification, an alert, a shared link) opens on Avaliação; in Mercado, "E se a comprar no estrangeiro?" is one closed line until tapped.*
+
 ## 19. New Motorcycle Comparison 🟡
 
 Shown on the detail page. Reference prices are edited in the app; set for the original 4 models (need checking), not set for the newer models.

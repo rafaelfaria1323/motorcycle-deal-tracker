@@ -1045,5 +1045,9 @@
   "dataQualitySummary": "Listings per site, missing facts and suspicious prices",
   "filterPlaceSection": "Place and distance",
   "filterScoreSection": "Deal Score and risk",
-  "chosenCount": "{count, plural, =1{1 chosen} other{{count} chosen}}"
+  "chosenCount": "{count, plural, =1{1 chosen} other{{count} chosen}}",
+  "originalAdAddress": "Original ad: {url}",
+  "onApp": "On {app}:",
+  "shareListing": "Share the listing",
+  "importCostFolded": "Add the ISV, legalisation and transport to a price from Spain, France or Germany."
 }

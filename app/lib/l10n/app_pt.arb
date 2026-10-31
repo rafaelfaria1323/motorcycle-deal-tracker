@@ -5908,5 +5908,31 @@
         "type": "int"
       }
     }
+  },
+  "originalAdAddress": "Anúncio original: {url}",
+  "@originalAdAddress": {
+    "description": "Interface text in listing_detail_text, listingShareText: the seller's ad in a shared ad (F.4).",
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "onApp": "No {app}:",
+  "@onApp": {
+    "description": "Interface text in listing_detail_text, listingShareText: the last line of a shared ad, followed by the app's link (F.4).",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "shareListing": "Partilhar o anúncio",
+  "@shareListing": {
+    "description": "Interface text in listing_detail_page: the share action's tooltip (F.4)."
+  },
+  "importCostFolded": "Some o ISV, a legalização e o transporte a um preço de Espanha, França ou Alemanha.",
+  "@importCostFolded": {
+    "description": "Interface text in import_cost_card: the closed line of the calculator on a listing (F.4)."
   }
 }

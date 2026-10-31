@@ -12,7 +12,7 @@ String sellerMessage(
   AppLanguage language = .portuguese,
 }) {
   final bike = [
-    '${listing.brand} ${listing.model}',
+    listing.name,
     if (listing.year != null)
       language.messages.fromSellerMessageText(year: listing.year.toString()),
   ].join(' ');

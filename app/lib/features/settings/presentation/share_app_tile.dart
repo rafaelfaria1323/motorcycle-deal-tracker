@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/platform/app_build.dart';
+import '../../../core/widgets/share_or_copy.dart';
 import 'accounts_text.dart';
-import 'share_link.dart';
 import '../../../core/localization/localizations.dart';
 
 /// "Partilhar a app" in Mais: the app's link, for anyone. Admins invite
