@@ -94,7 +94,7 @@ class _SellerMessageCardState extends State<SellerMessageCard> {
             FilledButton.tonalIcon(
               onPressed: () => copyMessage(context, message),
               icon: const Icon(Icons.copy),
-              label: Text(context.strings.copyMessageSellerMessageCard),
+              label: Text(context.strings.copyMessage),
             ),
           ],
         );

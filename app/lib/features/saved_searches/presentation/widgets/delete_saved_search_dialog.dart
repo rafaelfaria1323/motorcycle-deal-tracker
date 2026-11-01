@@ -12,7 +12,7 @@ Future<bool> confirmDeleteSavedSearch(
 ) {
   return confirmDelete(
     context,
-    title: context.strings.deleteSearchDeleteSavedSearchDialog,
+    title: context.strings.deleteSearchQuestion,
     message: context.strings.searchWillBeDeletedThisCannotBeUndone(
       displayName: savedSearchName(search, language: context.language),
     ),

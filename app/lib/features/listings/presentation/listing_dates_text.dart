@@ -46,7 +46,7 @@ String? relistText(
       : language.messages.priceNowChanged(
           direction: change < 0
               ? language.messages.less
-              : language.messages.moreListingDatesText,
+              : language.messages.moreWord,
           price: Formatters.price(change.abs(), language: language),
         );
   return language.messages.lastPricedAt(

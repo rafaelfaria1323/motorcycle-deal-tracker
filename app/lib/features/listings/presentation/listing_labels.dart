@@ -47,7 +47,7 @@ extension ListingCardFieldLabel on ListingCardField {
     ListingCardField.dealScore => language.messages.dealScore,
     ListingCardField.priceChange => language.messages.priceChange,
     ListingCardField.marketPosition => language.messages.marketPositionField,
-    ListingCardField.year => language.messages.yearCompareText,
+    ListingCardField.year => language.messages.yearLabel,
     ListingCardField.mileage => language.messages.mileage,
     ListingCardField.location => language.messages.locationAndDistance,
     ListingCardField.preferredColour =>
@@ -55,7 +55,7 @@ extension ListingCardFieldLabel on ListingCardField {
     ListingCardField.riskScore => language.messages.riskScore,
     ListingCardField.sellerType => language.messages.sellerType,
     ListingCardField.firstSeenAt => language.messages.whenItWasFound,
-    ListingCardField.colour => language.messages.colourListingDetailText,
+    ListingCardField.colour => language.messages.colourLabel,
     ListingCardField.registrations => language.messages.ownersFirstOwner,
     ListingCardField.serviceBook => language.messages.serviceBook,
     ListingCardField.origin => language.messages.origin,

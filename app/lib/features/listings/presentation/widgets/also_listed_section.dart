@@ -38,8 +38,7 @@ class _AlsoListedSectionState extends State<AlsoListedSection> {
                   sourceLabel(other.source, language: context.language),
                 ),
                 subtitle: Text(
-                  other.location ??
-                      context.strings.locationNotStatedAlsoListedSection,
+                  other.location ?? context.strings.locationNotStated,
                 ),
                 trailing: Text(
                   Formatters.price(other.price, language: context.language),

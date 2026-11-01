@@ -42,7 +42,7 @@ class _DealerCardState extends State<DealerCard> {
         if (dealer == null) return const SizedBox.shrink();
 
         return SectionCard(
-          title: context.strings.dealerDealerCard,
+          title: context.strings.theDealer,
           footnote: context.strings.fromThisDealerSListingsThatWeTrack,
           children: [
             Text(dealerHeadline(dealer, language: context.language)),

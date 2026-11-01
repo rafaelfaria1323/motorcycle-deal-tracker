@@ -87,7 +87,7 @@ List<CompareRow> compareRows(
       higherIsBetter: true,
     ),
     row(
-      language.messages.yearCompareText,
+      language.messages.yearLabel,
       (l) => _or(l.year),
       score: (l) => l.year,
       higherIsBetter: true,
@@ -128,7 +128,7 @@ List<CompareRow> compareRows(
       score: (l) => (l.scoreBreakdown?['extras'] as List?)?.length,
       higherIsBetter: true,
     ),
-    row(language.messages.locationCompareText, (l) => l.location ?? '—'),
+    row(language.messages.locationLabel, (l) => l.location ?? '—'),
     row(
       language.messages.seller,
       (l) => l.sellerType.label(language: language),

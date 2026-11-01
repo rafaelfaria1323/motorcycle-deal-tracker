@@ -329,7 +329,7 @@ class const _PhotoMarkBar({
               segments: [
                 ButtonSegment(
                   value: true,
-                  label: Text(strings.photoMarkProblem),
+                  label: Text(strings.problem),
                   icon: const Icon(Icons.report_outlined),
                 ),
                 ButtonSegment(

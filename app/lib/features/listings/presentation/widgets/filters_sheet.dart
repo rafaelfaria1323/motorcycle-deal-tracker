@@ -241,7 +241,7 @@ class _FiltersSheetState extends State<FiltersSheet> {
                         // The summary above follows what is typed.
                         onChanged: (_) => setState(() {}),
                         decoration: InputDecoration(
-                          labelText: context.strings.locationCompareText,
+                          labelText: context.strings.locationLabel,
                           border: const OutlineInputBorder(),
                         ),
                       ),

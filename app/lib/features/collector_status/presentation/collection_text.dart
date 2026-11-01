@@ -186,8 +186,8 @@ List<String> dailyRequestsText(
   return [
     for (final day in sorted)
       '${switch (Formatters.calendarDays(day, now)) {
-        0 => language.messages.todayCollectionText,
-        1 => language.messages.yesterdayCollectionText,
+        0 => language.messages.todayHeading,
+        1 => language.messages.yesterdayHeading,
         _ => Formatters.date(day).substring(0, 5),
       }}: ${_perSite(days[day]!)}',
   ];

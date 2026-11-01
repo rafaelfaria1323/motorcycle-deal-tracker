@@ -88,10 +88,7 @@ class _PriceHistorySectionState extends State<PriceHistorySection> {
                     children: [
                       Text(Formatters.date(chart.start), style: labelStyle),
                       const Spacer(),
-                      Text(
-                        context.strings.todayCollectionText,
-                        style: labelStyle,
-                      ),
+                      Text(context.strings.todayHeading, style: labelStyle),
                     ],
                   ),
                 ],
@@ -214,7 +211,7 @@ class _PriceChartPainter({
     if (chart.reference case final reference?) {
       hairline(
         chart.referenceY!,
-        language.messages.previouslyPriceHistorySection(
+        language.messages.previouslyAt(
           price: Formatters.price(reference, language: language),
         ),
         left: true,

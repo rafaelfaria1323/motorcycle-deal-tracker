@@ -196,7 +196,7 @@ class _EditSavedSearchSheetState extends State<EditSavedSearchSheet> {
               ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: Text(context.strings.priceDropsEditSavedSearchSheet),
+                title: Text(context.strings.notifyWhenPriceDrops),
                 value: _notifyPriceReduction,
                 onChanged: (v) => setState(() => _notifyPriceReduction = v),
               ),

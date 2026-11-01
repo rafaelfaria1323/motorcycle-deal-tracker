@@ -42,7 +42,7 @@ import '../../../core/localization/localizations.dart';
     return (
       title: language.messages.newVersionIsAvailable,
       subtitle: current == null
-          ? language.messages.versionAndroidAppText(
+          ? language.messages.androidVersionLine(
               latest: (latest).toString(),
               keeps: keeps,
             )

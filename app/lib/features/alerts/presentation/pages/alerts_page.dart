@@ -301,7 +301,7 @@ class const _FilterChips({
       switch (filter) {
         .all => context.strings.all,
         .newListings => context.strings.alertFilterNew,
-        .priceDrops => context.strings.alertFilterPriceDrops,
+        .priceDrops => context.strings.priceDrops,
         .excellent => context.strings.alertFilterExcellent,
         .removed => context.strings.alertFilterRemoved,
       };
@@ -461,9 +461,7 @@ class const _AlertTile({
                               PopupMenuItem(
                                 value: _AlertAction.delete,
                                 child: Text(
-                                  localizationContext
-                                      .strings
-                                      .deleteAlertAlertsPage,
+                                  localizationContext.strings.deleteAlertAction,
                                 ),
                               ),
                             ],

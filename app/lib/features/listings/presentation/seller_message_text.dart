@@ -14,7 +14,7 @@ String sellerMessage(
   final bike = [
     listing.name,
     if (listing.year != null)
-      language.messages.fromSellerMessageText(year: listing.year.toString()),
+      language.messages.fromYearPhrase(year: listing.year.toString()),
   ].join(' ');
   final site = switch (listing.source) {
     'olx' || 'standvirtual' => language.messages.onSite(

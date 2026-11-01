@@ -143,7 +143,7 @@ class const _SummaryView({required final WeeklySummary summary})
             ))
               BulletLine(line),
             if (byModel != null)
-              BulletLine(context.strings.newText(byModel: byModel)),
+              BulletLine(context.strings.newByModel(byModel: byModel)),
           ],
         ),
         if (summary.bestDeals.isNotEmpty) ...[

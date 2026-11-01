@@ -29,8 +29,8 @@ String alertDayLabel(
   final day = _day(time.toLocal());
   final daysAgo = today.difference(day).inDays;
 
-  if (daysAgo <= 0) return language.messages.todayCollectionText;
-  if (daysAgo == 1) return language.messages.yesterdayCollectionText;
+  if (daysAgo <= 0) return language.messages.todayHeading;
+  if (daysAgo == 1) return language.messages.yesterdayHeading;
   if (daysAgo < 7) return _weekdays(language: language)[day.weekday - 1];
   return Formatters.date(time);
 }
@@ -62,14 +62,12 @@ DateTime _day(DateTime local) =>
 String alertTitle(ListingAlert alert, {AppLanguage language = .portuguese}) {
   final bike = alert.listing.nameAndYear;
   return switch (alert.type) {
-    AlertType.newListing => language.messages.newListingAlertsText(bike: bike),
+    AlertType.newListing => language.messages.newListingOf(bike: bike),
     AlertType.priceReduction => language.messages.priceReduced(bike: bike),
     AlertType.excellentOpportunity => language.messages.excellentOpportunity(
       bike: bike,
     ),
-    AlertType.listingRemoved => language.messages.listingRemovedAlertsText(
-      bike: bike,
-    ),
+    AlertType.listingRemoved => language.messages.listingRemovedOf(bike: bike),
     AlertType.backOnMarket => language.messages.backOnMarket(bike: bike),
     AlertType.targetPriceReached => language.messages.targetPriceReached(
       bike: bike,

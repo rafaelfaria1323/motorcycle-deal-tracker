@@ -36,7 +36,7 @@ List<String> dealerLines(
   DealerReliability d, {
   AppLanguage language = .portuguese,
 }) {
-  String share(int n) => language.messages.ofTextDealerText(
+  String share(int n) => language.messages.countOfTotal(
     n: (n).toString(),
     bikes: d.bikes.toString(),
   );
