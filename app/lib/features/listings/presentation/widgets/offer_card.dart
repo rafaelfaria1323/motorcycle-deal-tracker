@@ -12,8 +12,10 @@ import '../../domain/repositories/listings_repository.dart';
 import '../../../market/domain/repositories/market_behaviour_repository.dart';
 import '../../../favourites/presentation/cubit/favourites_cubit.dart';
 import '../../../favourites/presentation/cubit/favourites_state.dart';
+import '../../../favourites/presentation/widgets/target_price_tile.dart';
 import '../negotiation_text.dart';
 import '../offer_text.dart';
+import 'counter_offer_reply.dart';
 import '../../../../core/localization/localizations.dart';
 
 /// "Quanto oferecer": the offers to make in turn (each with its message),
@@ -51,25 +53,6 @@ class _OfferCardState extends State<OfferCard> {
         .getCheaperSimilar(listing)
         .then((l) => l, onError: (Object _) => const <Listing>[]);
     return (await market, await cheaper);
-  }
-
-  Future<void> _editTarget(Favourite favourite, double suggested) async {
-    final messageStrings = context.strings;
-
-    final messenger = ScaffoldMessenger.of(context);
-    final result = await showDialog<_TargetResult>(
-      context: context,
-      builder: (_) => _TargetDialog(
-        initial: favourite.targetPrice ?? suggested,
-        canClear: favourite.targetPrice != null,
-      ),
-    );
-    if (result == null) return;
-    final saved = await getIt<FavouritesCubit>().saveTargetPrice(
-      favourite.listingId,
-      result.price,
-    );
-    if (!saved) showMessage(messenger, messageStrings.couldNotSavePrice);
   }
 
   @override
@@ -145,15 +128,6 @@ class _OfferCardState extends State<OfferCard> {
     final muted = theme.textTheme.bodySmall?.copyWith(
       color: scheme.onSurfaceVariant,
     );
-    final counter = parseCounterOffer(
-      _counter.text,
-      language: context.language,
-    );
-    final reply = counter == null
-        ? null
-        : offer.reply(counter, language: context.language);
-    final target = favourite?.targetPrice;
-
     return SectionCard(
       title: context.strings.howMuchToOffer,
       footnote: context.strings.estimateBasedOnAskingPricesNotSalesSee,
@@ -211,71 +185,12 @@ class _OfferCardState extends State<OfferCard> {
           ),
         ],
         const SizedBox(height: 16),
-        TextField(
-          controller: _counter,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            labelText: context.strings.sellerAskedFor,
-            suffixText: '€',
-            border: const OutlineInputBorder(),
-            isDense: true,
-          ),
-          onChanged: (_) => setState(() {}),
-        ),
-        if (reply != null) ...[
-          const SizedBox(height: 8),
-          Text(
-            reply.advice,
-            style: theme.textTheme.bodyMedium?.copyWith(color: scheme.primary),
-          ),
-          const SizedBox(height: 8),
-          _MessageBox(
-            text: reply.message,
-            onCopy: () => copyMessage(context, reply.message),
-          ),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton(
-              onPressed: () => copyMessage(
-                context,
-                walkAwayMessage(language: context.language),
-              ),
-              child: Text(context.strings.copyMessageToWalkAway),
-            ),
-          ),
-        ],
+        CounterOfferReply(offer: offer, controller: _counter),
         const SizedBox(height: 8),
         if (favourite == null)
           Text(context.strings.addItToFavouritesStarToSetYour, style: muted)
         else
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            dense: true,
-            leading: const Icon(Icons.flag_outlined),
-            title: Text(
-              target == null
-                  ? context.strings.yourTargetPrice
-                  : context.strings.yourTargetPriceOfferCard(
-                      price: Formatters.price(
-                        target,
-                        language: context.language,
-                      ),
-                    ),
-            ),
-            subtitle: Text(
-              target == null
-                  ? context.strings.weWillAlertYouWhenPriceDropsTo
-                  : context.strings.weWillAlertYouWhenListingCostsThis,
-            ),
-            trailing: TextButton(
-              onPressed: () => _editTarget(favourite, offer.opening),
-              child: Text(
-                target == null
-                    ? context.strings.setText
-                    : context.strings.change,
-              ),
-            ),
-          ),
+          TargetPriceTile(favourite: favourite, suggested: offer.opening),
         Align(
           alignment: Alignment.centerLeft,
           child: TextButton(
@@ -321,97 +236,6 @@ class const _StepRow({
           visualDensity: VisualDensity.compact,
           icon: const Icon(Icons.copy, size: 18),
           onPressed: onCopy,
-        ),
-      ],
-    );
-  }
-}
-
-/// The message to send, with a button to copy it.
-class const _MessageBox({
-  required final String text,
-  required final VoidCallback onCopy,
-}) extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Expanded(child: SelectableText(text)),
-          IconButton(
-            tooltip: context.strings.copyMessage,
-            icon: const Icon(Icons.copy, size: 18),
-            onPressed: onCopy,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// The dialog's answer: a price, or null to clear it.
-class const _TargetResult(final double? price);
-
-class const _TargetDialog({
-  required final double initial,
-  required final bool canClear,
-}) extends StatefulWidget {
-  @override
-  State<_TargetDialog> createState() => _TargetDialogState();
-}
-
-class _TargetDialogState extends State<_TargetDialog> {
-  late final _controller = TextEditingController(
-    text: widget.initial.round().toString(),
-  );
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final price = parseCounterOffer(
-      _controller.text,
-      language: context.language,
-    );
-    return AlertDialog(
-      title: Text(context.strings.yourTargetPrice),
-      content: TextField(
-        controller: _controller,
-        autofocus: true,
-        keyboardType: TextInputType.number,
-        decoration: InputDecoration(
-          labelText: context.strings.notifyMeWhenItCostsUpTo,
-          suffixText: '€',
-        ),
-        onChanged: (_) => setState(() {}),
-      ),
-      actions: [
-        if (widget.canClear)
-          TextButton(
-            onPressed: () =>
-                Navigator.of(context).pop(const _TargetResult(null)),
-            child: Text(context.strings.removeOfferCard),
-          ),
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(context.strings.cancel),
-        ),
-        FilledButton(
-          onPressed: price == null
-              ? null
-              : () => Navigator.of(context).pop(_TargetResult(price)),
-          child: Text(context.strings.save),
         ),
       ],
     );

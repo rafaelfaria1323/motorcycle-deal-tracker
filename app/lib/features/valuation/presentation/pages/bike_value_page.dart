@@ -7,7 +7,6 @@ import '../../../../core/auth/session_cubit.dart';
 import '../../../../core/localization/localizations.dart';
 import '../../../../core/widgets/page_back_button.dart';
 import '../../../../core/widgets/state_message.dart';
-import '../../../collector_status/presentation/collection_text.dart';
 import '../../domain/entities/bike_condition.dart';
 import '../../domain/entities/bike_value.dart';
 import '../../domain/entities/bike_value_request.dart';
@@ -17,7 +16,9 @@ import '../../../listings/domain/repositories/catalog_repository.dart';
 import '../../../market/domain/repositories/market_behaviour_repository.dart';
 import '../bike_value_text.dart';
 import '../../../listings/presentation/widgets/add_model_sheet.dart';
-import '../../../listings/presentation/widgets/icon_line.dart';
+import '../widgets/bike_condition_fields.dart';
+import '../widgets/bike_value_card.dart';
+import '../widgets/bike_value_requests.dart';
 import '../widgets/import_cost_card.dart';
 import '../../../listings/presentation/widgets/tracked_models_builder.dart';
 
@@ -304,7 +305,8 @@ class _BikeValuePageState extends State<BikeValuePage> {
               _formFields(context, choices),
               const SizedBox(height: 16),
               if (_outcome != null) _result(context, choices),
-              if (_requests.isNotEmpty) ..._requestList(context, _requests),
+              if (_requests.isNotEmpty)
+                BikeValueRequests(requests: _requests, onTap: _show),
             ],
           );
         },
@@ -382,7 +384,10 @@ class _BikeValuePageState extends State<BikeValuePage> {
                 : strings.bikeValueMileageInvalid,
           ),
           const SizedBox(height: 20),
-          ..._conditionFields(context),
+          BikeConditionFields(
+            condition: _condition,
+            onChanged: (condition) => setState(() => _condition = condition),
+          ),
           const SizedBox(height: 12),
           FilledButton.icon(
             onPressed: () => _calculate(choices),
@@ -392,64 +397,6 @@ class _BikeValuePageState extends State<BikeValuePage> {
         ],
       ),
     );
-  }
-
-  List<Widget> _conditionFields(BuildContext context) {
-    final strings = context.strings;
-    final theme = Theme.of(context);
-    void update(BikeCondition condition) =>
-        setState(() => _condition = condition);
-    return [
-      Text(strings.bikeValueCondition, style: theme.textTheme.titleSmall),
-      const SizedBox(height: 4),
-      Text(
-        strings.bikeValueConditionHint,
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-      ),
-      const SizedBox(height: 12),
-      _ConditionChoice(
-        label: strings.bikeValueDamage,
-        value: _condition.damage,
-        options: {
-          BikeDamage.none: strings.bikeValueDamageNone,
-          BikeDamage.dropped: strings.bikeValueDamageDropped,
-          BikeDamage.accident: strings.bikeValueDamageAccident,
-        },
-        onChanged: (damage) => update(_condition.copyWith(damage: damage)),
-      ),
-      const SizedBox(height: 12),
-      _ConditionChoice(
-        label: strings.bikeValueOwners,
-        value: _condition.owners,
-        options: {
-          BikeOwners.unknown: strings.bikeValueUnknown,
-          BikeOwners.one: strings.bikeValueOwnersOne,
-          BikeOwners.two: strings.bikeValueOwnersTwo,
-          BikeOwners.threeOrMore: strings.bikeValueOwnersMore,
-        },
-        onChanged: (owners) => update(_condition.copyWith(owners: owners)),
-      ),
-      const SizedBox(height: 12),
-      _ConditionChoice(
-        label: strings.bikeValueServiceBook,
-        value: _condition.serviceBook,
-        options: {
-          BikeServiceBook.unknown: strings.bikeValueUnknown,
-          BikeServiceBook.yes: strings.bikeValueServiceBookYes,
-          BikeServiceBook.no: strings.bikeValueServiceBookNo,
-        },
-        onChanged: (book) => update(_condition.copyWith(serviceBook: book)),
-      ),
-      SwitchListTile(
-        contentPadding: EdgeInsets.zero,
-        title: Text(strings.bikeValueWarranty),
-        value: _condition.warranty,
-        onChanged: (warranty) =>
-            update(_condition.copyWith(warranty: warranty)),
-      ),
-    ];
   }
 
   Widget _result(BuildContext context, Map<String, String> choices) {
@@ -475,49 +422,13 @@ class _BikeValuePageState extends State<BikeValuePage> {
         if (outcome == null) {
           return const Center(child: CircularProgressIndicator());
         }
-        final theme = Theme.of(context);
-        final muted = theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        );
         final value = outcome.value;
-        final card = Card(
-          margin: EdgeInsets.zero,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${outcome.name} ${outcome.year}',
-                  style: theme.textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                if (value == null) ...[
-                  IconLine(
-                    icon: Icons.travel_explore,
-                    text: strings.bikeValueWaiting,
-                  ),
-                  IconLine(
-                    icon: Icons.schedule,
-                    text: nextCollectionText(
-                      DateTime.now(),
-                      language: context.language,
-                    ),
-                  ),
-                ] else ...[
-                  for (final line in bikeValueLines(
-                    value,
-                    outcome.market,
-                    condition: _condition,
-                    language: context.language,
-                  ))
-                    IconLine(icon: _icons[line.kind]!, text: line.text),
-                  const SizedBox(height: 8),
-                  Text(strings.bikeValueNote, style: muted),
-                ],
-              ],
-            ),
-          ),
+        final card = BikeValueCard(
+          name: outcome.name,
+          year: outcome.year,
+          value: value,
+          market: outcome.market,
+          condition: _condition,
         );
         if (value == null || !widget.importing) return card;
         return Column(
@@ -535,64 +446,4 @@ class _BikeValuePageState extends State<BikeValuePage> {
       },
     );
   }
-
-  List<Widget> _requestList(
-    BuildContext context,
-    List<BikeValueRequest> requests,
-  ) {
-    final theme = Theme.of(context);
-    return [
-      const SizedBox(height: 24),
-      Text(
-        context.strings.bikeValueRequests,
-        style: theme.textTheme.titleSmall,
-      ),
-      for (final request in requests)
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: Icon(
-            request.waiting ? Icons.hourglass_top : Icons.euro,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-          title: Text(request.name),
-          subtitle: Text(
-            bikeValueRequestLine(request, language: context.language),
-          ),
-          onTap: () => _show(request),
-        ),
-    ];
-  }
 }
-
-/// One of the condition's answers, as a dropdown.
-class const _ConditionChoice<T>({
-  required final String label,
-  required final T value,
-  required final Map<T, String> options,
-  required final ValueChanged<T> onChanged,
-}) extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => DropdownButtonFormField<T>(
-    initialValue: value,
-    isExpanded: true,
-    decoration: InputDecoration(
-      labelText: label,
-      border: const OutlineInputBorder(),
-    ),
-    items: [
-      for (final MapEntry(:key, value: text) in options.entries)
-        DropdownMenuItem(value: key, child: Text(text)),
-    ],
-    onChanged: (picked) {
-      if (picked != null) onChanged(picked);
-    },
-  );
-}
-
-const _icons = {
-  BikeValueLineKind.estimate: Icons.euro,
-  BikeValueLineKind.condition: Icons.tune,
-  BikeValueLineKind.asking: Icons.sell_outlined,
-  BikeValueLineKind.time: Icons.schedule,
-  BikeValueLineKind.tradeIn: Icons.store_outlined,
-};
