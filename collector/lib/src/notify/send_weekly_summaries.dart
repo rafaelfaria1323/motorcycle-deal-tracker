@@ -1,4 +1,5 @@
-import '../store/listing_store.dart';
+import '../store/push_store.dart';
+import '../store/summary_store.dart';
 import 'push_test.dart';
 import 'web_push.dart';
 import 'weekly_summary.dart';
@@ -31,7 +32,7 @@ Map<String, WeeklySummary> summariesByAccount({
 /// (of [bikeNames], catalog id to name), and the price history only of
 /// those still live, so one account's summary reads one account's data.
 Future<Map<String, WeeklySummary>> loadWeeklySummaries(
-  ListingStore store,
+  SummaryStore store,
   Map<String, String> bikeNames, {
   required DateTime until,
   String? account,
@@ -58,7 +59,8 @@ Future<Map<String, WeeklySummary>> loadWeeklySummaries(
 
 /// Keeps each summary for the app and sends it to the account's devices.
 Future<({int accounts, int devices, int sent})> sendWeeklySummaries(
-  ListingStore store,
+  SummaryStore store,
+  PushStore pushes,
   WebPushSender push,
   Map<String, WeeklySummary> summaries,
 ) async {
@@ -66,7 +68,7 @@ Future<({int accounts, int devices, int sent})> sendWeeklySummaries(
     await store.saveWeeklySummary(user, summary, weeklySummaryJson(summary));
   }
   final result = await pushToUsers(
-    store,
+    pushes,
     push,
     summaries.keys.toList(),
     (user, language) => weeklySummaryPush(summaries[user]!, language: language),

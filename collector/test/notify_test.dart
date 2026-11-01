@@ -17,7 +17,7 @@ PendingAlert alert(String type, {double? oldPrice, double? newPrice}) =>
       location: 'Viseu',
     );
 
-class _Store implements ListingStore {
+class _Store implements PushStore, SummaryStore {
   _Store(this.pending);
 
   final List<PendingAlert> pending;
@@ -642,7 +642,7 @@ void main() {
       until: until,
     );
 
-    final result = await sendWeeklySummaries(store, push, {
+    final result = await sendWeeklySummaries(store, store, push, {
       'u1': week,
       'u3': week,
     });
@@ -672,11 +672,10 @@ void main() {
         history: const [],
         until: DateTime.utc(2026, 10, 19, 8),
       );
-      expect(await sendWeeklySummaries(store, push, {'u1': week, 'u2': week}), (
-        accounts: 2,
-        devices: 2,
-        sent: 2,
-      ));
+      expect(
+        await sendWeeklySummaries(store, store, push, {'u1': week, 'u2': week}),
+        (accounts: 2, devices: 2, sent: 2),
+      );
       expect(store.summaries['u1'], store.summaries['u2']);
       expect(push.sent.first.$2['title'], startsWith('📊 Resumo da semana'));
       expect(push.sent.last.$2['title'], startsWith('📊 Weekly summary'));
@@ -701,7 +700,7 @@ void main() {
         until: DateTime.utc(2026, 10, 19, 8),
       );
       await expectLater(
-        sendWeeklySummaries(store, push, {'u1': week, 'u2': week}),
+        sendWeeklySummaries(store, store, push, {'u1': week, 'u2': week}),
         throwsStateError,
       );
       expect(store.summaries.keys, ['u1', 'u2']);

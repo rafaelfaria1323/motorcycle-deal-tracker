@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import '../fetch/polite_fetcher.dart';
-import '../store/listing_store.dart';
+import '../store/photo_store.dart';
 import 'photo_examiner.dart';
 import 'photo_hash.dart';
 
@@ -35,7 +35,7 @@ typedef PhotoFeatures = ({int photo, PhotoExamination examination});
 /// fingerprinted; once stored, their examination is marked done. Without
 /// an examiner only their first photos are read.
 Future<int> fingerprintPhotos(
-  ListingStore store,
+  PhotoStore store,
   PoliteFetcher fetcher,
   List<({String id, List<String> images})> pending, {
   PhotoExaminer? examiner,

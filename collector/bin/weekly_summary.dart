@@ -24,7 +24,8 @@ Future<void> main(List<String> args) async {
   final account = Platform.environment['SUMMARY_ACCOUNT']?.trim();
 
   await withServiceClient((client) async {
-    final store = ListingStore(client);
+    final store = SummaryStore(client);
+    final pushes = PushStore(client);
 
     final catalog = await loadCatalog(client);
     final bikeNames = {
@@ -46,10 +47,10 @@ Future<void> main(List<String> args) async {
       return;
     }
     final push = WebPushSender(
-      await store.pushKeys(),
+      await pushes.pushKeys(),
       fcm: FcmSender.fromEnvironment(),
     );
-    final result = await sendWeeklySummaries(store, push, summaries);
+    final result = await sendWeeklySummaries(store, pushes, push, summaries);
     stdout.writeln(
       'Weekly summary made for ${result.accounts} account(s), sent to '
       '${result.sent} of ${result.devices} device(s).',

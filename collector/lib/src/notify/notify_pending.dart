@@ -1,4 +1,4 @@
-import '../store/listing_store.dart';
+import '../store/push_store.dart';
 import 'notification_text.dart';
 import 'pending_alert.dart';
 import 'web_push.dart';
@@ -122,7 +122,7 @@ double? _dropBehind(PendingAlert lead, List<PendingAlert> group) {
 /// Alerts of accounts in their quiet hours at [now] are not read: they go
 /// with the first run after.
 Future<({int alerts, int pushes})> notifyPending(
-  ListingStore store, {
+  PushStore store, {
   WebPushSender? push,
   DateTime? now,
 }) async {

@@ -54,6 +54,6 @@ Future<void> main(List<String> args) async {
       force: force,
     );
     if (!cleanInput) exitCode = 65;
-    if (store != null) await finishRun(store);
+    if (store != null) await finishRun(store, PushStore(client));
   });
 }

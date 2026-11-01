@@ -7,6 +7,7 @@ import '../notify/notify_pending.dart';
 import '../notify/fcm.dart';
 import '../notify/web_push.dart';
 import '../store/listing_store.dart';
+import '../store/push_store.dart';
 import 'source_batch.dart';
 
 /// How an ad no followed model matched shows in the log: its brand and
@@ -171,7 +172,8 @@ Future<bool> importBatch(
 /// the phone notifications and (with the run's [startedAt]) the valuations
 /// waiting for the models it read.
 Future<void> finishRun(
-  ListingStore store, {
+  ListingStore store,
+  PushStore pushes, {
   DateTime? startedAt,
   StringSink? out,
 }) async {
@@ -198,13 +200,13 @@ Future<void> finishRun(
   WebPushSender? push;
   try {
     push = WebPushSender(
-      await store.pushKeys(),
+      await pushes.pushKeys(),
       fcm: FcmSender.fromEnvironment(),
     );
   } on Object catch (e) {
     log.writeln('Web Push not available, alerts kept for the next run: $e');
   }
-  final notified = await notifyPending(store, push: push);
+  final notified = await notifyPending(pushes, push: push);
   log.writeln(
     'Notifications sent: ${notified.alerts} '
     '(${notified.pushes} to devices)',
@@ -212,7 +214,7 @@ Future<void> finishRun(
 
   // 8. "Quanto vale a minha mota" requests that waited for this run.
   if (startedAt != null) {
-    final valued = await answerBikeValues(store, push, startedAt);
+    final valued = await answerBikeValues(pushes, push, startedAt);
     if (valued.answered > 0) {
       log.writeln(
         'Bike values answered: ${valued.answered} (${valued.sent} to devices)',

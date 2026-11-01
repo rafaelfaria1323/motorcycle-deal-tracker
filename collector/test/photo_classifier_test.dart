@@ -22,7 +22,7 @@ List<PhotoSample> _samples(int problems, int fine, {int seed = 1}) {
   ]..shuffle(random);
 }
 
-class _Store implements ListingStore {
+class _Store implements PhotoStore {
   _Store(this.set);
 
   final PhotoTrainingSet set;

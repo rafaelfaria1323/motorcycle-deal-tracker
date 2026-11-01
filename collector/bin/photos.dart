@@ -40,7 +40,7 @@ Future<void> main(List<String> args) async {
 
   final modelDir = Platform.environment['PHOTO_MODEL_DIR'] ?? '';
   await withServiceClient((client) async {
-    final store = ListingStore(client);
+    final store = PhotoStore(client);
     // Started before asking which listings wait: without a model, listings
     // already fingerprinted are not asked for again.
     final examiner = modelDir.isEmpty || dryRun
@@ -98,7 +98,7 @@ Future<void> main(List<String> args) async {
         stdout.writeln('Photo requests: ${fetcher.requestsThisRun}');
         fetcher.close();
         // Also after a stop: the examinations stored before it are done.
-        await _tellAskers(store, asked.toList());
+        await _tellAskers(PushStore(client), asked.toList());
       }
     } finally {
       await examiner?.close();
@@ -109,7 +109,7 @@ Future<void> main(List<String> args) async {
 /// Tells whoever asked for the examinations of [asked] that finished on
 /// their devices. A push that can't go out loses nothing: the hints show
 /// in the app.
-Future<void> _tellAskers(ListingStore store, List<String> asked) async {
+Future<void> _tellAskers(PushStore store, List<String> asked) async {
   if (asked.isEmpty) return;
   try {
     final push = WebPushSender(
