@@ -16,7 +16,7 @@ Future<void> showListingCardPreferences(BuildContext context) async {
   if (!getIt<SessionCubit>().state.signedIn) {
     showMessage(
       ScaffoldMessenger.of(context),
-      messageStrings.signInToCustomiseListingCards,
+      messageStrings.cardPreferencesAccountRequired,
     );
     return;
   }

@@ -402,9 +402,7 @@ String dealerMessage(
       model: listing.model,
       year: listing.year == null
           ? ''
-          : language.messages.fromNegotiationText(
-              year: listing.year.toString(),
-            ),
+          : language.messages.fromYearSuffix(year: listing.year.toString()),
       price: Formatters.price(amount, language: language),
     ),
     for (final ask in asks) '- $ask;',

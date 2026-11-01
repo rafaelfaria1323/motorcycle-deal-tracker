@@ -508,9 +508,9 @@
   "@thereAreNoActiveListingsYet": {
     "description": "Interface text in data_quality_details, build."
   },
-  "forTrackedModelsDataQualityText": "{scoredCount} dos modelos acompanhados",
-  "@forTrackedModelsDataQualityText": {
-    "description": "Interface text in data_quality_text, qualityMixLine.",
+  "scoredForTrackedModels": "{scoredCount} dos modelos acompanhados",
+  "@scoredForTrackedModels": {
+    "description": "Data quality: how many of the scored listings are of tracked models.",
     "placeholders": {
       "scoredCount": {
         "type": "String"
@@ -645,17 +645,17 @@
   "@sunday": {
     "description": "Interface text in alerts_text, _weekdays."
   },
-  "todayCollectionText": "Hoje",
-  "@todayCollectionText": {
-    "description": "Interface text in collection_text, dailyRequestsText."
+  "todayHeading": "Hoje",
+  "@todayHeading": {
+    "description": "Today, capitalised, as the day of a collection run."
   },
-  "yesterdayCollectionText": "Ontem",
-  "@yesterdayCollectionText": {
-    "description": "Interface text in collection_text, dailyRequestsText."
+  "yesterdayHeading": "Ontem",
+  "@yesterdayHeading": {
+    "description": "Yesterday, capitalised, as the day of a collection run."
   },
-  "newListingAlertsText": "Novo anúncio: {bike}",
-  "@newListingAlertsText": {
-    "description": "Interface text in alerts_text, alertTitle.",
+  "newListingOf": "Novo anúncio: {bike}",
+  "@newListingOf": {
+    "description": "An alert's title: a new listing of the bike.",
     "placeholders": {
       "bike": {
         "type": "String"
@@ -680,9 +680,9 @@
       }
     }
   },
-  "listingRemovedAlertsText": "Anúncio removido: {bike}",
-  "@listingRemovedAlertsText": {
-    "description": "Interface text in alerts_text, alertTitle.",
+  "listingRemovedOf": "Anúncio removido: {bike}",
+  "@listingRemovedOf": {
+    "description": "An alert's title: the bike's listing was removed.",
     "placeholders": {
       "bike": {
         "type": "String"
@@ -838,9 +838,9 @@
   "@againstMarket": {
     "description": "Interface text in compare_text, compareRows."
   },
-  "yearCompareText": "Ano",
-  "@yearCompareText": {
-    "description": "Interface text in compare_text, compareRows."
+  "yearLabel": "Ano",
+  "@yearLabel": {
+    "description": "The year, as a field label or a column heading."
   },
   "mileage": "Quilometragem",
   "@mileage": {
@@ -870,9 +870,9 @@
   "@extras": {
     "description": "Interface text in compare_text, compareRows."
   },
-  "locationCompareText": "Localização",
-  "@locationCompareText": {
-    "description": "Interface text in compare_text, compareRows."
+  "locationLabel": "Localização",
+  "@locationLabel": {
+    "description": "The location, as a field label or a column heading."
   },
   "seller": "Vendedor",
   "@seller": {
@@ -890,7 +890,7 @@
   "@cardPreferencesLoadError": {
     "description": "Interface text in listing_card_preferences_cubit, load."
   },
-  "cardPreferencesAccountRequired": "Inicie sessão para personalizar os cartões.",
+  "cardPreferencesAccountRequired": "Inicie sessão para personalizar os cartões dos anúncios.",
   "@cardPreferencesAccountRequired": {
     "description": "Interface text in listing_card_preferences_cubit, save."
   },
@@ -928,9 +928,9 @@
       }
     }
   },
-  "ofTextDealerText": "{n} de {bikes}",
-  "@ofTextDealerText": {
-    "description": "Interface text in dealer_text, share.",
+  "countOfTotal": "{n} de {bikes}",
+  "@countOfTotal": {
+    "description": "A count out of a total of the dealer's bikes.",
     "placeholders": {
       "n": {
         "type": "String"
@@ -1054,9 +1054,9 @@
   "@firstOwner": {
     "description": "Interface text in listing_card_text, listingCardExtraFacts."
   },
-  "registeredOwnersListingCardText": "{owners} registos (donos)",
-  "@registeredOwnersListingCardText": {
-    "description": "Interface text in listing_card_text, listingCardExtraFacts.",
+  "registeredOwnersCount": "{owners} registos (donos)",
+  "@registeredOwnersCount": {
+    "description": "How many registered owners the bike had.",
     "placeholders": {
       "owners": {
         "type": "String"
@@ -1204,9 +1204,9 @@
       }
     }
   },
-  "colourListingDetailText": "Cor",
-  "@colourListingDetailText": {
-    "description": "Interface text in listing_detail_text, bikeFacts."
+  "colourLabel": "Cor",
+  "@colourLabel": {
+    "description": "The colour, as a field label."
   },
   "oneOfYourPreferredColours": "{colour} (uma das suas preferidas)",
   "@oneOfYourPreferredColours": {
@@ -1221,9 +1221,9 @@
   "@origin": {
     "description": "Interface text in listing_detail_text, bikeFacts."
   },
-  "factoryWarrantyUntilListingDetailText": "Garantia de fábrica até",
-  "@factoryWarrantyUntilListingDetailText": {
-    "description": "Interface text in listing_detail_text, bikeFacts."
+  "factoryWarrantyUntilLabel": "Garantia de fábrica até",
+  "@factoryWarrantyUntilLabel": {
+    "description": "The end of the factory warranty, as a field label."
   },
   "sellerWarranty": "Garantia do vendedor",
   "@sellerWarranty": {
@@ -1242,17 +1242,17 @@
   "@sellerType": {
     "description": "Interface text in listing_detail_text, adFacts."
   },
-  "publishedListingDetailText": "Publicado",
-  "@publishedListingDetailText": {
-    "description": "Interface text in listing_detail_text, adFacts."
+  "publishedLabel": "Publicado",
+  "@publishedLabel": {
+    "description": "When the listing was published, as a field label."
   },
-  "renewedOnSiteListingDetailText": "Renovado no site",
-  "@renewedOnSiteListingDetailText": {
-    "description": "Interface text in listing_detail_text, adFacts."
+  "renewedOnSiteLabel": "Renovado no site",
+  "@renewedOnSiteLabel": {
+    "description": "When the listing was last renewed on the site, as a field label."
   },
-  "statusListingDetailText": "Estado",
-  "@statusListingDetailText": {
-    "description": "Interface text in listing_detail_text, adFacts."
+  "statusLabel": "Estado",
+  "@statusLabel": {
+    "description": "The listing's status, as a field label."
   },
   "bestScore": "Melhor pontuação",
   "@bestScore": {
@@ -2319,9 +2319,9 @@
   "@editSearch": {
     "description": "Interface text in alerts_page, build."
   },
-  "deleteAlertAlertsPage": "Eliminar alerta",
-  "@deleteAlertAlertsPage": {
-    "description": "Interface text in alerts_page, build."
+  "deleteAlertAction": "Eliminar alerta",
+  "@deleteAlertAction": {
+    "description": "The action that deletes an alert."
   },
   "compare": "Comparar",
   "@compare": {
@@ -2369,9 +2369,9 @@
       }
     }
   },
-  "compareDashboardPage": "Comparar ({length})",
-  "@compareDashboardPage": {
-    "description": "Interface text in dashboard_page, build.",
+  "compareCount": "Comparar ({length})",
+  "@compareCount": {
+    "description": "The comparison's button, with how many listings are picked.",
     "placeholders": {
       "length": {
         "type": "String"
@@ -2462,9 +2462,9 @@
   "@couldNotLoadListingCardsTryAgain": {
     "description": "Interface text in favourites_page, build."
   },
-  "listingListingDetailPage": "O anúncio",
-  "@listingListingDetailPage": {
-    "description": "Interface text in listing_detail_page, build."
+  "theListing": "O anúncio",
+  "@theListing": {
+    "description": "The listing page's title before the bike is known."
   },
   "listingNotFound": "Anúncio não encontrado",
   "@listingNotFound": {
@@ -2510,9 +2510,9 @@
   "@bike": {
     "description": "Interface text in listing_detail_page, _cards."
   },
-  "listingRemovedListingDetailPage": "Anúncio removido",
-  "@listingRemovedListingDetailPage": {
-    "description": "Interface text in listing_detail_page, _statusCards."
+  "listingRemoved": "Anúncio removido",
+  "@listingRemoved": {
+    "description": "The listing is no longer on the site."
   },
   "thisListingIsNoLongerAvailable": "Este anúncio já não está disponível.",
   "@thisListingIsNoLongerAvailable": {
@@ -2720,9 +2720,9 @@
   "@weeklySummaryNoneYet": {
     "description": "Interface text in weekly_summary_page, build."
   },
-  "newText": "Novos: {byModel}",
-  "@newText": {
-    "description": "Interface text in weekly_summary_page, build.",
+  "newByModel": "Novos: {byModel}",
+  "@newByModel": {
+    "description": "The weekly summary: the new listings by model.",
     "placeholders": {
       "byModel": {
         "type": "String"
@@ -3394,9 +3394,9 @@
       }
     }
   },
-  "fromSellerMessageText": "de {year}",
-  "@fromSellerMessageText": {
-    "description": "Interface text in seller_message_text, sellerMessage.",
+  "fromYearPhrase": "de {year}",
+  "@fromYearPhrase": {
+    "description": "A bike's year inside a message to the seller.",
     "placeholders": {
       "year": {
         "type": "String"
@@ -3465,9 +3465,9 @@
       }
     }
   },
-  "fromTrackedModelsText": "Desde {minYear}",
-  "@fromTrackedModelsText": {
-    "description": "Interface text in tracked_models_text, modelSubtitle.",
+  "fromMinYear": "Desde {minYear}",
+  "@fromMinYear": {
+    "description": "The first year followed for a model.",
     "placeholders": {
       "minYear": {
         "type": "String"
@@ -3478,9 +3478,9 @@
   "@noSearch": {
     "description": "Interface text in tracked_models_text, modelSubtitle."
   },
-  "andTrackedModelsText": " e ",
-  "@andTrackedModelsText": {
-    "description": "Interface text in tracked_models_text, modelSubtitle."
+  "andSeparator": " e ",
+  "@andSeparator": {
+    "description": "Joins the last two items of a list."
   },
   "noNewBikePrice": "Sem preço de uma nova",
   "@noNewBikePrice": {
@@ -3690,9 +3690,9 @@
       }
     }
   },
-  "scoreWeeklySummaryText": "Pontuação {dealScore}",
-  "@scoreWeeklySummaryText": {
-    "description": "Interface text in weekly_summary_text, bestDealText.",
+  "scoreValue": "Pontuação {dealScore}",
+  "@scoreValue": {
+    "description": "A Deal Score value.",
     "placeholders": {
       "dealScore": {
         "type": "String"
@@ -3783,10 +3783,6 @@
   "@alsoListedOn": {
     "description": "Interface text in also_listed_section, build."
   },
-  "locationNotStatedAlsoListedSection": "Local não indicado",
-  "@locationNotStatedAlsoListedSection": {
-    "description": "Interface text in also_listed_section, build."
-  },
   "dealScoreOutOf100": "Deal Score {score} de 100",
   "@dealScoreOutOf100": {
     "description": "Interface text in deal_score_badge, build.",
@@ -3796,17 +3792,17 @@
       }
     }
   },
-  "dealerDealerCard": "O stand",
-  "@dealerDealerCard": {
-    "description": "Interface text in dealer_card, build."
+  "theDealer": "O stand",
+  "@theDealer": {
+    "description": "The heading of the dealer's figures."
   },
   "fromThisDealerSListingsThatWeTrack": "Dos anúncios deste stand que acompanhamos (só dos modelos seguidos), nos dois sites.",
   "@fromThisDealerSListingsThatWeTrack": {
     "description": "Interface text in dealer_card, build."
   },
-  "deleteSearchDeleteSavedSearchDialog": "Eliminar pesquisa?",
-  "@deleteSearchDeleteSavedSearchDialog": {
-    "description": "Interface text in delete_saved_search_dialog, confirmDeleteSavedSearch."
+  "deleteSearchQuestion": "Eliminar pesquisa?",
+  "@deleteSearchQuestion": {
+    "description": "Asks to confirm deleting a saved search."
   },
   "searchWillBeDeletedThisCannotBeUndone": "A pesquisa \"{displayName}\" será eliminada. Esta ação não pode ser desfeita.",
   "@searchWillBeDeletedThisCannotBeUndone": {
@@ -3857,9 +3853,9 @@
   "@newListingAppears": {
     "description": "Interface text in edit_saved_search_sheet, build."
   },
-  "priceDropsEditSavedSearchSheet": "O preço baixar",
-  "@priceDropsEditSavedSearchSheet": {
-    "description": "Interface text in edit_saved_search_sheet, build."
+  "notifyWhenPriceDrops": "O preço baixar",
+  "@notifyWhenPriceDrops": {
+    "description": "A saved search's option: alert when the price drops."
   },
   "thereIsExcellentOpportunity": "Houver uma excelente oportunidade",
   "@thereIsExcellentOpportunity": {
@@ -4070,9 +4066,9 @@
   "@yourTargetPrice": {
     "description": "Interface text in offer_card, _content."
   },
-  "yourTargetPriceOfferCard": "O seu preço: {price}",
-  "@yourTargetPriceOfferCard": {
-    "description": "Interface text in offer_card, _content.",
+  "yourTargetPriceIs": "O seu preço: {price}",
+  "@yourTargetPriceIs": {
+    "description": "The favourite's target price, with its value.",
     "placeholders": {
       "price": {
         "type": "String"
@@ -4087,9 +4083,9 @@
   "@weWillAlertYouWhenListingCostsThis": {
     "description": "Interface text in offer_card, _content."
   },
-  "setText": "Definir",
-  "@setText": {
-    "description": "Interface text in offer_card, _content."
+  "setTargetPrice": "Definir",
+  "@setTargetPrice": {
+    "description": "The action that sets a target price."
   },
   "hideCalculation": "Esconder o cálculo",
   "@hideCalculation": {
@@ -4107,9 +4103,9 @@
   "@notifyMeWhenItCostsUpTo": {
     "description": "Interface text in offer_card, build."
   },
-  "removeOfferCard": "Remover",
-  "@removeOfferCard": {
-    "description": "Interface text in offer_card, build."
+  "removeTargetPrice": "Remover",
+  "@removeTargetPrice": {
+    "description": "The action that removes a target price."
   },
   "costOfOwningThisBike": "Custo de ter esta mota",
   "@costOfOwningThisBike": {
@@ -4159,9 +4155,9 @@
   "@priceHasNotChangedSinceItWasFirst": {
     "description": "Interface text in price_history_section, build."
   },
-  "previouslyPriceHistorySection": "Antes: {price}",
-  "@previouslyPriceHistorySection": {
-    "description": "Interface text in price_history_section, paint.",
+  "previouslyAt": "Antes: {price}",
+  "@previouslyAt": {
+    "description": "An earlier price in the price history.",
     "placeholders": {
       "price": {
         "type": "String"
@@ -4184,9 +4180,9 @@
       }
     }
   },
-  "riskScoreExplanationCard": "Risco  ",
-  "@riskScoreExplanationCard": {
-    "description": "Interface text in score_explanation_card, build."
+  "riskScorePrefix": "Risco  ",
+  "@riskScorePrefix": {
+    "description": "Precedes the Risk Score in the score explanation."
   },
   "positive": "Positivo",
   "@positive": {
@@ -4212,10 +4208,6 @@
         "type": "String"
       }
     }
-  },
-  "copyMessageSellerMessageCard": "Copiar mensagem",
-  "@copyMessageSellerMessageCard": {
-    "description": "Interface text in seller_message_card, build."
   },
   "forViewing": "Para a visita",
   "@forViewing": {
@@ -4263,9 +4255,9 @@
   "@share": {
     "description": "Interface text in accounts_page, _showLink."
   },
-  "removeAccountsPage": "Remover {email}?",
-  "@removeAccountsPage": {
-    "description": "Interface text in accounts_page, _removeAccount.",
+  "removeAccountQuestion": "Remover {email}?",
+  "@removeAccountQuestion": {
+    "description": "Asks to confirm removing an account.",
     "placeholders": {
       "email": {
         "type": "String"
@@ -4300,9 +4292,9 @@
   "@thereAreNoInvitesYetTapInviteTo": {
     "description": "Interface text in accounts_page, build."
   },
-  "inviteAccountsPage": "Convite",
-  "@inviteAccountsPage": {
-    "description": "Interface text in accounts_page, build."
+  "inviteHeading": "Convite",
+  "@inviteHeading": {
+    "description": "An invite, as a noun."
   },
   "cancelInvite": "Cancelar convite",
   "@cancelInvite": {
@@ -4506,9 +4498,9 @@
   "@newVersionIsAvailable": {
     "description": "Interface text in android_app_text, androidAppOffer."
   },
-  "versionAndroidAppText": "Versão {latest}. {keeps}",
-  "@versionAndroidAppText": {
-    "description": "Interface text in android_app_text, androidAppOffer.",
+  "androidVersionLine": "Versão {latest}. {keeps}",
+  "@androidVersionLine": {
+    "description": "The newer Android build on offer.",
     "placeholders": {
       "latest": {
         "type": "String"
@@ -4614,9 +4606,9 @@
   "@welcome": {
     "description": "Interface text in join_page, _form."
   },
-  "inviteShareText": "Recebeu um convite para o Motorcycle Deal Tracker: as motas usadas à venda em Portugal, com o preço justo e a pontuação de cada anúncio. Escolha o email e a palavra-passe com que vai entrar.",
-  "@inviteShareText": {
-    "description": "Interface text in join_page, _form."
+  "inviteMessage": "Recebeu um convite para o Motorcycle Deal Tracker: as motas usadas à venda em Portugal, com o preço justo e a pontuação de cada anúncio. Escolha o email e a palavra-passe com que vai entrar.",
+  "@inviteMessage": {
+    "description": "The message sent with an invite link."
   },
   "atLeast8Characters": "Pelo menos 8 caracteres",
   "@atLeast8Characters": {
@@ -4637,10 +4629,6 @@
   "thenChooseBikesYouWantToFollowIn": "Depois, em Mais › Modelos acompanhados, escolha as motas que quer seguir.",
   "@thenChooseBikesYouWantToFollowIn": {
     "description": "Interface text in join_page, _form."
-  },
-  "signInToCustomiseListingCards": "Inicie sessão para personalizar os cartões dos anúncios.",
-  "@signInToCustomiseListingCards": {
-    "description": "Interface text in listing_card_preferences_tile, showListingCardPreferences."
   },
   "cardsUpdated": "Cartões atualizados",
   "@cardsUpdated": {
@@ -4850,21 +4838,21 @@
   "@simpleTestNotification": {
     "description": "Interface text in workflows_text, pushTestKindText."
   },
-  "newListingWorkflowsText": "Novo anúncio",
-  "@newListingWorkflowsText": {
-    "description": "Interface text in workflows_text, pushTestKindText."
+  "pushKindNewListing": "Novo anúncio",
+  "@pushKindNewListing": {
+    "description": "A test notification's kind: a new listing."
   },
-  "excellentOpportunityWorkflowsText": "Excelente oportunidade",
-  "@excellentOpportunityWorkflowsText": {
-    "description": "Interface text in workflows_text, pushTestKindText."
+  "pushKindExcellent": "Excelente oportunidade",
+  "@pushKindExcellent": {
+    "description": "A test notification's kind: an excellent opportunity."
   },
-  "targetPriceReachedWorkflowsText": "Chegou ao seu preço",
-  "@targetPriceReachedWorkflowsText": {
-    "description": "Interface text in workflows_text, pushTestKindText."
+  "pushKindTargetPrice": "Chegou ao seu preço",
+  "@pushKindTargetPrice": {
+    "description": "A test notification's kind: a target price reached."
   },
-  "backOnMarketWorkflowsText": "Voltou ao mercado",
-  "@backOnMarketWorkflowsText": {
-    "description": "Interface text in workflows_text, pushTestKindText."
+  "pushKindBackOnMarket": "Voltou ao mercado",
+  "@pushKindBackOnMarket": {
+    "description": "A test notification's kind: back on the market."
   },
   "collectionFailedAdministrators": "A recolha falhou (administradores)",
   "@collectionFailedAdministrators": {
@@ -4938,13 +4926,13 @@
   "@less": {
     "description": "Interface text in listing_dates_text, relistText."
   },
-  "moreListingDatesText": "mais",
-  "@moreListingDatesText": {
-    "description": "Interface text in listing_dates_text, relistText."
+  "moreWord": "mais",
+  "@moreWord": {
+    "description": "The word \"more\", as in \"and N more\"."
   },
-  "fromNegotiationText": " de {year}",
-  "@fromNegotiationText": {
-    "description": "Interface text in negotiation_text, dealerMessage.",
+  "fromYearSuffix": " de {year}",
+  "@fromYearSuffix": {
+    "description": "A bike's year after its name in a negotiation argument.",
     "placeholders": {
       "year": {
         "type": "String"
@@ -5339,10 +5327,6 @@
   "@bikeValueIntro": {
     "description": "Interface text in bike_value_text / bike_value_page."
   },
-  "bikeValueYear": "Ano",
-  "@bikeValueYear": {
-    "description": "Interface text in bike_value_text / bike_value_page."
-  },
   "bikeValueMileage": "Quilómetros (opcional)",
   "@bikeValueMileage": {
     "description": "Interface text in bike_value_text / bike_value_page."
@@ -5435,10 +5419,6 @@
   "@bikeValueNote": {
     "description": "Interface text in bike_value_text / bike_value_page."
   },
-  "bikeValueChooseModel": "Escolha o modelo",
-  "@bikeValueChooseModel": {
-    "description": "Interface text in bike_value_text / bike_value_page."
-  },
   "bikeValueIntroAnyModel": "Escolha o modelo, o ano e os quilómetros da sua mota. O valor vem dos anúncios ativos desse modelo, ajustados ao ano e aos quilómetros. Qualquer marca e modelo: se ainda não recolhemos os anúncios dela, vamos procurá-los na próxima recolha e avisamos quando o valor estiver pronto.",
   "@bikeValueIntroAnyModel": {
     "description": "Interface text in bike_value_text / bike_value_page."
@@ -5471,9 +5451,9 @@
   "@bikeValueRequestLimit": {
     "description": "Interface text in bike_value_text / bike_value_page."
   },
-  "bikeValueRequests": "Os seus pedidos",
-  "@bikeValueRequests": {
-    "description": "Interface text in bike_value_text / bike_value_page."
+  "yourValueRequests": "Os seus pedidos",
+  "@yourValueRequests": {
+    "description": "The heading of the valuations the account asked for."
   },
   "bikeValueRequestWaiting": "À espera da recolha",
   "@bikeValueRequestWaiting": {
@@ -5525,10 +5505,6 @@
   },
   "bikeValueOwnersMore": "3 ou mais",
   "@bikeValueOwnersMore": {
-    "description": "Interface text in bike_value_text / bike_value_page."
-  },
-  "bikeValueServiceBook": "Livro de revisões",
-  "@bikeValueServiceBook": {
     "description": "Interface text in bike_value_text / bike_value_page."
   },
   "bikeValueServiceBookYes": "Tem, com as revisões",
@@ -5626,10 +5602,6 @@
   },
   "photoMarkTitle": "Ensinar o modelo de imagem: esta foto mostra um problema?",
   "@photoMarkTitle": {
-    "description": "Interface text in photo_hints_text / photo_gallery (photo marks, P.3)."
-  },
-  "photoMarkProblem": "Problema",
-  "@photoMarkProblem": {
     "description": "Interface text in photo_hints_text / photo_gallery (photo marks, P.3)."
   },
   "photoMarkFine": "Bem",
@@ -5955,10 +5927,6 @@
   "alertFilterNew": "Novos",
   "@alertFilterNew": {
     "description": "Alertas: chip showing new listings and bikes back on sale."
-  },
-  "alertFilterPriceDrops": "Baixas de preço",
-  "@alertFilterPriceDrops": {
-    "description": "Alertas: chip showing price drops and target prices reached."
   },
   "alertFilterExcellent": "Excelentes",
   "@alertFilterExcellent": {

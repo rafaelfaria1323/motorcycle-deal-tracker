@@ -29,15 +29,12 @@ String pushTestKindText(
   AppLanguage language = .portuguese,
 }) => switch (kind) {
   PushTestKind.test => language.messages.simpleTestNotification,
-  PushTestKind.newListing => language.messages.newListingWorkflowsText,
+  PushTestKind.newListing => language.messages.pushKindNewListing,
   PushTestKind.priceReduction => language.messages.priceDrop,
-  PushTestKind.excellentOpportunity =>
-    language.messages.excellentOpportunityWorkflowsText,
-  PushTestKind.targetPriceReached =>
-    language.messages.targetPriceReachedWorkflowsText,
-  PushTestKind.listingRemoved =>
-    language.messages.listingRemovedListingDetailPage,
-  PushTestKind.backOnMarket => language.messages.backOnMarketWorkflowsText,
+  PushTestKind.excellentOpportunity => language.messages.pushKindExcellent,
+  PushTestKind.targetPriceReached => language.messages.pushKindTargetPrice,
+  PushTestKind.listingRemoved => language.messages.listingRemoved,
+  PushTestKind.backOnMarket => language.messages.pushKindBackOnMarket,
   PushTestKind.runFailed => language.messages.collectionFailedAdministrators,
   PushTestKind.runBlocked =>
     language.messages.siteRefusedCollectionAdministrators,

@@ -340,7 +340,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
                 ),
             ],
             validator: (value) => value == null || value == _otherModel
-                ? strings.bikeValueChooseModel
+                ? strings.chooseModel
                 : null,
             onChanged: (value) {
               if (value == _otherModel) {
@@ -355,7 +355,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
             controller: _year,
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
-              labelText: strings.bikeValueYear,
+              labelText: strings.yearLabel,
               border: const OutlineInputBorder(),
             ),
             validator: (text) {

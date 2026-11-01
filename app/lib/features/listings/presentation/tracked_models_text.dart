@@ -14,10 +14,10 @@ String modelSubtitle(CatalogModel m, {AppLanguage language = .portuguese}) {
     if (m.standvirtualSearch != null) 'Standvirtual',
   ];
   return [
-    language.messages.fromTrackedModelsText(minYear: m.minYear.toString()),
+    language.messages.fromMinYear(minYear: m.minYear.toString()),
     sites.isEmpty
         ? language.messages.noSearch
-        : sites.join(language.messages.andTrackedModelsText),
+        : sites.join(language.messages.andSeparator),
     ?favouriteColoursText(m.colours, language: language),
   ].join(' · ');
 }

@@ -39,7 +39,7 @@ String bestDealText(SummaryDeal d, {AppLanguage language = .portuguese}) => [
   if (d.price != null) Formatters.price(d.price, language: language),
   if (d.mileage != null) Formatters.mileage(d.mileage, language: language),
   if (d.dealScore != null)
-    language.messages.scoreWeeklySummaryText(dealScore: d.dealScore.toString()),
+    language.messages.scoreValue(dealScore: d.dealScore.toString()),
 ].join(' · ');
 
 /// A price drop: "7 500 € → 7 200 € (−4 %)".

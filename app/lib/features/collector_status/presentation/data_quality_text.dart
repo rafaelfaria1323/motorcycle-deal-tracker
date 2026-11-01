@@ -11,7 +11,7 @@ String qualityTitle(SourceQuality q, {AppLanguage language = .portuguese}) =>
 /// What the site's live listings are: tracked, other models, duplicates.
 String qualityMixLine(SourceQuality q, {AppLanguage language = .portuguese}) {
   final parts = [
-    language.messages.forTrackedModelsDataQualityText(
+    language.messages.scoredForTrackedModels(
       scoredCount: q.scoredCount.toString(),
     ),
     if (q.unmatchedCount > 0)

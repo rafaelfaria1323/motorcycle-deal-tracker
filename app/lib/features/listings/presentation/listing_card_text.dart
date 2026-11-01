@@ -55,9 +55,7 @@ List<(ListingCardField, String)> listingCardExtraFacts(
     else if (listing.registrations case final owners?)
       (
         ListingCardField.registrations,
-        language.messages.registeredOwnersListingCardText(
-          owners: (owners).toString(),
-        ),
+        language.messages.registeredOwnersCount(owners: (owners).toString()),
       )
     else if (listing.hasFirstOwnerSignal)
       (

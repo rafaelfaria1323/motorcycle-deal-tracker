@@ -79,7 +79,7 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
                   key: const ValueKey('compact'),
                   listing: listing,
                 ),
-                _ => Text(context.strings.listingListingDetailPage),
+                _ => Text(context.strings.theListing),
               },
             ),
           ),
@@ -264,7 +264,7 @@ class _ContentState extends State<_Content> {
         if (description != null && description.isNotEmpty)
           DescriptionCard(description: description),
         FactsCard(
-          title: context.strings.listingListingDetailPage,
+          title: context.strings.theListing,
           facts: adFacts(listing, language: context.language),
         ),
       ],

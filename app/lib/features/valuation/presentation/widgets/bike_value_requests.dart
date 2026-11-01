@@ -19,7 +19,7 @@ class const BikeValueRequests({
       children: [
         const SizedBox(height: 24),
         Text(
-          context.strings.bikeValueRequests,
+          context.strings.yourValueRequests,
           style: theme.textTheme.titleSmall,
         ),
         for (final request in requests)

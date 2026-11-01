@@ -23,7 +23,7 @@ class const ListingStatusCards({required final Listing listing, super.key})
           _StatusCard(
             color: scheme.errorContainer,
             icon: Icons.block,
-            title: context.strings.listingRemovedListingDetailPage,
+            title: context.strings.listingRemoved,
             text: lastSeenAt == null
                 ? context.strings.thisListingIsNoLongerAvailable
                 : context.strings.thisListingIsNoLongerAvailableLastSeen(

@@ -125,9 +125,9 @@ class _AccountsPageState extends State<AccountsPage> {
     final messageStrings = context.strings;
 
     final ok = await _confirm(
-      messageStrings.removeAccountsPage(email: account.email),
+      messageStrings.removeAccountQuestion(email: account.email),
       messageStrings.removeAccountWarning,
-      messageStrings.removeOfferCard,
+      messageStrings.removeTargetPrice,
     );
     if (!ok || !mounted) return;
     await _run(
@@ -182,9 +182,7 @@ class _AccountsPageState extends State<AccountsPage> {
                         ? Icons.mail_outline
                         : Icons.drafts_outlined,
                   ),
-                  title: Text(
-                    invite.note ?? context.strings.inviteAccountsPage,
-                  ),
+                  title: Text(invite.note ?? context.strings.inviteHeading),
                   subtitle: Text(
                     inviteSubtitle(
                       invite,

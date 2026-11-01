@@ -45,7 +45,7 @@ class const TargetPriceTile({
       title: Text(
         target == null
             ? context.strings.yourTargetPrice
-            : context.strings.yourTargetPriceOfferCard(
+            : context.strings.yourTargetPriceIs(
                 price: Formatters.price(target, language: context.language),
               ),
       ),
@@ -57,7 +57,9 @@ class const TargetPriceTile({
       trailing: TextButton(
         onPressed: () => _edit(context),
         child: Text(
-          target == null ? context.strings.setText : context.strings.change,
+          target == null
+              ? context.strings.setTargetPrice
+              : context.strings.change,
         ),
       ),
     );
@@ -109,7 +111,7 @@ class _TargetDialogState extends State<_TargetDialog> {
           TextButton(
             onPressed: () =>
                 Navigator.of(context).pop(const _TargetResult(null)),
-            child: Text(context.strings.removeOfferCard),
+            child: Text(context.strings.removeTargetPrice),
           ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(),

@@ -131,7 +131,7 @@ class _JoinPageState extends State<JoinPage> {
           children: [
             Text(context.strings.welcome, style: theme.textTheme.headlineSmall),
             const SizedBox(height: 8),
-            Text(context.strings.inviteShareText),
+            Text(context.strings.inviteMessage),
             const SizedBox(height: 20),
             AutofillGroup(
               child: Column(

@@ -92,7 +92,7 @@ typedef Fact = (String label, String value);
 /// when the ad says. A mileage read from the description says so, and a
 /// colour among the person's favourites.
 List<Fact> bikeFacts(Listing listing, {AppLanguage language = .portuguese}) => [
-  (language.messages.yearCompareText, listing.year?.toString() ?? '—'),
+  (language.messages.yearLabel, listing.year?.toString() ?? '—'),
   (
     language.messages.mileage,
     listing.mileageFromText
@@ -103,7 +103,7 @@ List<Fact> bikeFacts(Listing listing, {AppLanguage language = .portuguese}) => [
   ),
   if (colourLabel(listing.colour, language: language) case final colour?)
     (
-      language.messages.colourListingDetailText,
+      language.messages.colourLabel,
       listing.myColour
           ? language.messages.oneOfYourPreferredColours(colour: colour)
           : colour,
@@ -123,10 +123,7 @@ List<Fact> bikeFacts(Listing listing, {AppLanguage language = .portuguese}) => [
           : language.messages.imported,
     ),
   if (listing.warrantyUntil case final until?)
-    (
-      language.messages.factoryWarrantyUntilListingDetailText,
-      Formatters.date(until),
-    ),
+    (language.messages.factoryWarrantyUntilLabel, Formatters.date(until)),
   if (listing.dealerWarrantyMonths case final months?)
     (
       language.messages.sellerWarranty,
@@ -141,7 +138,7 @@ List<Fact> adFacts(
   AppLanguage language = .portuguese,
 }) => [
   (
-    language.messages.locationCompareText,
+    language.messages.locationLabel,
     placeText(listing, language: language) ?? '—',
   ),
   (language.messages.seller, listing.sellerName ?? '—'),
@@ -149,16 +146,13 @@ List<Fact> adFacts(
   (language.messages.source, sourceLabel(listing.source, language: language)),
   if (listing.publishedAt case final published?)
     (
-      language.messages.publishedListingDetailText,
+      language.messages.publishedLabel,
       dateWithAge(published, now: now, language: language),
     ),
   if (renewalToShow(listing) case final renewed?)
     (
-      language.messages.renewedOnSiteListingDetailText,
+      language.messages.renewedOnSiteLabel,
       dateWithAge(renewed, now: now, language: language),
     ),
-  (
-    language.messages.statusListingDetailText,
-    listing.status.label(language: language),
-  ),
+  (language.messages.statusLabel, listing.status.label(language: language)),
 ];

@@ -50,7 +50,7 @@ class const BikeConditionFields({
         ),
         const SizedBox(height: 12),
         _ConditionChoice(
-          label: strings.bikeValueServiceBook,
+          label: strings.serviceBook,
           value: condition.serviceBook,
           options: {
             BikeServiceBook.unknown: strings.bikeValueUnknown,

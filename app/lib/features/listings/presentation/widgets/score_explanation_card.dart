@@ -63,7 +63,7 @@ class const _RiskMeter({required final int risk}) extends StatelessWidget {
             Text.rich(
               TextSpan(
                 children: [
-                  TextSpan(text: context.strings.riskScoreExplanationCard),
+                  TextSpan(text: context.strings.riskScorePrefix),
                   TextSpan(
                     text: ScoreExplainer.riskLabel(
                       risk,

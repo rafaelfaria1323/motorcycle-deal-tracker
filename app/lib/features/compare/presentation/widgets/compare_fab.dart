@@ -19,9 +19,7 @@ class const CompareFab({super.key}) extends StatelessWidget {
       return FloatingActionButton.extended(
         icon: const Icon(Icons.compare_arrows),
         label: Text(
-          context.strings.compareDashboardPage(
-            length: compared.length.toString(),
-          ),
+          context.strings.compareCount(length: compared.length.toString()),
         ),
         onPressed: () {
           if (compared.length >= 2) {
