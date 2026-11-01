@@ -10,6 +10,7 @@ import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/bike_condition.dart';
 import '../../domain/entities/bike_value.dart';
 import '../../domain/entities/bike_value_request.dart';
+import '../../../market/domain/entities/exit_price.dart';
 import '../../../market/domain/entities/market_behaviour.dart';
 import '../../../market/domain/entities/model_market.dart';
 import '../../../listings/domain/repositories/catalog_repository.dart';
@@ -53,6 +54,7 @@ typedef _Outcome = ({
   int? mileage,
   BikeValue? value,
   MarketBehaviour? market,
+  ExitPrice? exit,
 });
 
 /// The dropdown's entry that opens the make and model form.
@@ -188,11 +190,16 @@ class _BikeValuePageState extends State<BikeValuePage> {
         mileage: mileage,
         value: null,
         market: null,
+        exit: null,
       );
     }
-    final (value, market) = await (
+    final (value, market, exit) = await (
       _repository.getBikeValue(motorcycleId, year: year, mileage: mileage),
       _repository.getForModel(motorcycleId),
+      // Extra: without it the value still shows.
+      _repository
+          .getExitPrice(motorcycleId, year: year, mileage: mileage)
+          .then<ExitPrice?>((e) => e, onError: (Object _) => null),
     ).wait;
     return (
       name: name,
@@ -200,6 +207,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
       mileage: mileage,
       value: value,
       market: market,
+      exit: exit,
     );
   }
 
@@ -429,6 +437,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
           value: value,
           market: outcome.market,
           condition: _condition,
+          exit: outcome.exit,
         );
         if (value == null || !widget.importing) return card;
         return Column(

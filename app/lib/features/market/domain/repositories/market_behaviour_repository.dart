@@ -1,5 +1,6 @@
 import '../../../valuation/domain/entities/bike_value.dart';
 import '../../../valuation/domain/entities/bike_value_request.dart';
+import '../entities/exit_price.dart';
 import '../entities/market_behaviour.dart';
 import '../entities/model_market.dart';
 
@@ -24,6 +25,16 @@ abstract interface class MarketBehaviourRepository {
     String motorcycleId, {
     required int year,
     int? mileage,
+  });
+
+  /// What [motorcycleId]'s ads gone in the last 90 days left the market
+  /// at, brought to [year] and [mileage] (unknown: not adjusted for it);
+  /// [except] leaves out that listing and the one it repeats.
+  Future<ExitPrice> getExitPrice(
+    String motorcycleId, {
+    int? year,
+    int? mileage,
+    String? except,
   });
 
   /// The catalog model to value a bike of [brand] [model], found by name

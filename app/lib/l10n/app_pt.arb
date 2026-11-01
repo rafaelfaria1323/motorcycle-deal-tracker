@@ -5972,5 +5972,39 @@
   "district": "Distrito",
   "@district": {
     "description": "Filters: the district (or autonomous region) of the ad's place (F.11)."
+  },
+  "exitPriceLine": "Saíram do mercado por cerca de {price}: o último preço de {count, plural, =1{1 anúncio} other{{count} anúncios}} deste modelo que saíram nos últimos 90 dias, ajustado ao ano e aos km.",
+  "@exitPriceLine": {
+    "description": "Mercado and a bike's value: the median last price of the model's ads gone in the last 90 days (F.11, exit_price).",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exitPriceAbove": "Este anúncio pede {percent} mais.",
+  "@exitPriceAbove": {
+    "description": "Mercado: the ad's asking price above what the model's gone ads left at.",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "exitPriceBelow": "Este anúncio pede {percent} menos.",
+  "@exitPriceBelow": {
+    "description": "Mercado: the ad's asking price below what the model's gone ads left at.",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "exitPriceSame": "Este anúncio pede o mesmo.",
+  "@exitPriceSame": {
+    "description": "Mercado: the ad's asking price within 1 % of what the model's gone ads left at."
   }
 }

@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../valuation/domain/entities/bike_value.dart';
 import '../../../valuation/domain/entities/bike_value_request.dart';
 import '../../../listings/domain/entities/listing.dart' show minRealPrice;
+import '../../domain/entities/exit_price.dart';
 import '../../domain/entities/market_behaviour.dart';
 import '../../domain/entities/model_market.dart';
 import '../../domain/repositories/market_behaviour_repository.dart';
@@ -141,6 +142,27 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
     return rows.isEmpty
         ? const BikeValue(comparableCount: 0)
         : bikeValueFrom(rows.first as Map<String, dynamic>);
+  }
+
+  @override
+  Future<ExitPrice> getExitPrice(
+    String motorcycleId, {
+    int? year,
+    int? mileage,
+    String? except,
+  }) async {
+    final rows = await _client.rpc<List<dynamic>>(
+      'exit_price',
+      params: {
+        'p_motorcycle_id': motorcycleId,
+        'p_year': year,
+        'p_mileage': mileage,
+        'p_except': except,
+      },
+    );
+    return rows.isEmpty
+        ? const ExitPrice(goneCount: 0)
+        : exitPriceFrom(rows.first as Map<String, dynamic>);
   }
 
   @override
@@ -320,6 +342,12 @@ BikeValue bikeValueFrom(Map<String, dynamic> row) => BikeValue(
   estimate: (row['fair_price'] as num?)?.toDouble(),
   low: (row['low_price'] as num?)?.toDouble(),
   high: (row['high_price'] as num?)?.toDouble(),
+);
+
+/// The row of `exit_price`.
+ExitPrice exitPriceFrom(Map<String, dynamic> row) => ExitPrice(
+  goneCount: (row['gone_count'] as num).toInt(),
+  median: (row['median_price'] as num?)?.toDouble(),
 );
 
 /// A row of `bike_value_requests` with its model's names.

@@ -1013,6 +1013,14 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   `listings_keep_market_position`) keeps a gone ad's last position, since
   its scores are cleared. App: `time_to_sale_text.dart`, in "Mercado
   deste modelo". Never a score slice.
+- Exit prices (`exit_price(model, year, km, except)`, F.11; readable by
+  everyone): the median last price of the model's ads gone (removed or
+  sold) in the last 90 days, not duplicates, not relisted since, 300 € or
+  more, adjusted as `bike_value`; `except` leaves out an ad and the one it
+  repeats. App (`exit_price_text.dart`, from 5 gone): "Saíram do mercado
+  por" in "Mercado deste modelo" (with how the ad's price compares) and in
+  "Quanto vale a minha mota" (adjusted to the condition). Shown only:
+  never a score slice or the fair value until compared for some weeks.
 - Price trends (`model_price_trend`): per model and week (last 12), the ads
   seen that week at their price by its end (no duplicates, none under
   300 €), plain and adjusted median (each price brought to the model's

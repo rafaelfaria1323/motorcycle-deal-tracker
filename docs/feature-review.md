@@ -177,7 +177,10 @@ touches the fetching rules.
    - only after some weeks of comparing it with the estimate, decide
      whether it should feed the fair value.
 
-   Nothing changes in the score until then.
+   Nothing changes in the score until then. *First step done (F.11):
+   `exit_price()`, in "Mercado deste modelo" (with how the ad's price
+   compares) and in "Quanto vale a minha mota"; the second step waits for
+   those weeks.*
 2. **P3 [ux] Bike value and the import calculator share one 598-line
    page** (`bike_value_page.dart`, `importing: true`). This is fine for
    the person, but see 7.3.
@@ -278,6 +281,6 @@ The P1s first, each a small PR with its tests:
 | F.8 ✅ | 7.1 schema snapshot | tool + CI |
 | F.9 ✅ | 3.4 Favoritos tab, Pesquisas inside Alertas | app |
 | F.10 ✅ | 7.2 split `features/listings` ✅, 7.3 big widgets and the collector's stores ✅, 7.4 keys ✅ | app, several PRs |
-| F.11 | 1.6 ✅, 1.7 ✅ filters; 5.1 "Saíram do mercado por" | app + SQL, two PRs |
+| F.11 ✅ | 1.6 ✅, 1.7 ✅ filters; 5.1 "Saíram do mercado por" ✅ (first step) | app + SQL, two PRs |
 
 Item 6.1 (Firebase) is Rafael's and can happen at any time.
