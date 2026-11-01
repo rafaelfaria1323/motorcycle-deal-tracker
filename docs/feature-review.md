@@ -66,10 +66,11 @@ touches the fetching rules.
    `ilike '%Porto%'` also matches "Porto de Mós" and misses spellings.
    With `places` (towns, municipalities, districts) and the distance
    filter, the text field is the weaker tool. *Proposal:* replace it with
-   a district picker (or drop it).
+   a district picker (or drop it). *Done (F.11): a district picker
+   (`places.district`, the computed field `listings.district`).*
 7. **P3 [ux] Missing filters:** a maximum year and a minimum price.
    Both are cheap to add to the filters and to `saved_search_matches`.
-   With item 1 done, the minimum price matters less.
+   With item 1 done, the minimum price matters less. *Done (F.11).*
 8. **P3 [ux] The card doesn't show the most useful number.** The Deal
    Score badge is there, but "x % abaixo do valor estimado" (the reason
    the ad is a deal) needs a tap. *Proposal:* add it as an optional card
@@ -277,6 +278,6 @@ The P1s first, each a small PR with its tests:
 | F.8 ✅ | 7.1 schema snapshot | tool + CI |
 | F.9 ✅ | 3.4 Favoritos tab, Pesquisas inside Alertas | app |
 | F.10 ✅ | 7.2 split `features/listings` ✅, 7.3 big widgets and the collector's stores ✅, 7.4 keys ✅ | app, several PRs |
-| F.11 | 1.6, 1.7 filters; 5.1 "Saíram do mercado por" | app + SQL |
+| F.11 | 1.6 ✅, 1.7 ✅ filters; 5.1 "Saíram do mercado por" | app + SQL, two PRs |
 
 Item 6.1 (Firebase) is Rafael's and can happen at any time.

@@ -7,6 +7,7 @@ import '../../../../app/di/injection.dart';
 import '../../../../core/widgets/collapsible_section.dart';
 import '../../../settings/presentation/home_place_cubit.dart';
 import '../../../settings/presentation/home_place_tile.dart';
+import '../../domain/entities/districts.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/entities/listing_filters.dart';
 import '../../domain/entities/motorcycle_option.dart';
@@ -35,9 +36,16 @@ class _FiltersSheetState extends State<FiltersSheet> {
   late int? _maxDistanceKm = widget.initial.maxDistanceKm;
   late final Set<String> _extras = {...widget.initial.extras};
   late bool _onlyMyColours = widget.initial.onlyMyColours;
+  late String? _district = widget.initial.district;
 
   late final _year = TextEditingController(
     text: widget.initial.minYear?.toString() ?? '',
+  );
+  late final _maxYear = TextEditingController(
+    text: widget.initial.maxYear?.toString() ?? '',
+  );
+  late final _minPrice = TextEditingController(
+    text: widget.initial.minPrice?.toStringAsFixed(0) ?? '',
   );
   late final _price = TextEditingController(
     text: widget.initial.maxPrice?.toStringAsFixed(0) ?? '',
@@ -45,16 +53,14 @@ class _FiltersSheetState extends State<FiltersSheet> {
   late final _mileage = TextEditingController(
     text: widget.initial.maxMileage?.toString() ?? '',
   );
-  late final _location = TextEditingController(
-    text: widget.initial.location ?? '',
-  );
 
   @override
   void dispose() {
     _year.dispose();
+    _maxYear.dispose();
+    _minPrice.dispose();
     _price.dispose();
     _mileage.dispose();
-    _location.dispose();
     super.dispose();
   }
 
@@ -70,9 +76,11 @@ class _FiltersSheetState extends State<FiltersSheet> {
         ),
       ],
       minYear: parseWholeNumberField(_year.text),
+      maxYear: parseWholeNumberField(_maxYear.text),
+      minPrice: parsePriceField(_minPrice.text),
       maxPrice: parsePriceField(_price.text),
       maxMileage: parseWholeNumberField(_mileage.text),
-      location: parseTextField(_location.text),
+      district: _district,
       sellerType: _sellerType,
       minDealScore: _minDealScore,
       maxRiskScore: _maxRiskScore,
@@ -90,9 +98,8 @@ class _FiltersSheetState extends State<FiltersSheet> {
   @override
   Widget build(BuildContext context) {
     final language = context.language;
-    final location = parseTextField(_location.text);
     final placeChoices = [
-      ?location,
+      ?_district,
       if (_maxDistanceKm case final km?)
         maxDistanceLabel(km, language: language),
     ];
@@ -140,27 +147,24 @@ class _FiltersSheetState extends State<FiltersSheet> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 8),
-                  _NumberField(
-                    controller: _year,
-                    label: context.strings.earliestYear,
+                  // Each range on one row: from, then to.
+                  _RangeFields(
+                    from: _year,
+                    fromLabel: context.strings.earliestYear,
+                    to: _maxYear,
+                    toLabel: context.strings.latestYear,
                   ),
                   const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _NumberField(
-                          controller: _price,
-                          label: context.strings.maximumPriceEUR,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _NumberField(
-                          controller: _mileage,
-                          label: context.strings.maximumMileageKm,
-                        ),
-                      ),
-                    ],
+                  _RangeFields(
+                    from: _minPrice,
+                    fromLabel: context.strings.minimumPriceEUR,
+                    to: _price,
+                    toLabel: context.strings.maximumPriceEUR,
+                  ),
+                  const SizedBox(height: 12),
+                  _NumberField(
+                    controller: _mileage,
+                    label: context.strings.maximumMileageKm,
                   ),
                   const SizedBox(height: 12),
                   SegmentedButton<SellerType?>(
@@ -236,14 +240,27 @@ class _FiltersSheetState extends State<FiltersSheet> {
                     ),
                     active: placeChoices.isNotEmpty,
                     children: [
-                      TextField(
-                        controller: _location,
-                        // The summary above follows what is typed.
-                        onChanged: (_) => setState(() {}),
+                      // A list, not free text: the ads' towns are looked up
+                      // in their district (`listings.district`).
+                      DropdownButtonFormField<String?>(
+                        initialValue: _district,
+                        isExpanded: true,
                         decoration: InputDecoration(
-                          labelText: context.strings.locationLabel,
+                          labelText: context.strings.district,
                           border: const OutlineInputBorder(),
                         ),
+                        items: [
+                          DropdownMenuItem(
+                            value: null,
+                            child: Text(context.strings.any),
+                          ),
+                          for (final district in portugueseDistricts)
+                            DropdownMenuItem(
+                              value: district,
+                              child: Text(district),
+                            ),
+                        ],
+                        onChanged: (value) => setState(() => _district = value),
                       ),
                       const SizedBox(height: 12),
                       BlocBuilder<HomePlaceCubit, HomePlaceState>(
@@ -458,6 +475,29 @@ class const _NumberField({
         labelText: label,
         border: const OutlineInputBorder(),
       ),
+    );
+  }
+}
+
+/// A range on one row: its lower bound, then its upper one.
+class const _RangeFields({
+  required final TextEditingController from,
+  required final String fromLabel,
+  required final TextEditingController to,
+  required final String toLabel,
+}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _NumberField(controller: from, label: fromLabel),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _NumberField(controller: to, label: toLabel),
+        ),
+      ],
     );
   }
 }

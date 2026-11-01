@@ -5854,7 +5854,7 @@
   },
   "filterPlaceSection": "Local e distância",
   "@filterPlaceSection": {
-    "description": "Filters: section with the location and the maximum distance."
+    "description": "Filters: section with the district and the maximum distance."
   },
   "filterScoreSection": "Deal Score e risco",
   "@filterScoreSection": {
@@ -5960,5 +5960,17 @@
   },
   "@showNewListings": {
     "description": "Tooltip of Ofertas' new-ads pill (F.7)."
+  },
+  "latestYear": "Ano máximo",
+  "@latestYear": {
+    "description": "Filters: the latest year of registration (F.11)."
+  },
+  "minimumPriceEUR": "Preço mínimo (€)",
+  "@minimumPriceEUR": {
+    "description": "Filters: the minimum asking price (F.11)."
+  },
+  "district": "Distrito",
+  "@district": {
+    "description": "Filters: the district (or autonomous region) of the ad's place (F.11)."
   }
 }

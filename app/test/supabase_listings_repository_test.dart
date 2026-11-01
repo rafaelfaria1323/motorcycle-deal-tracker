@@ -72,6 +72,26 @@ void main() {
     expect(parameters.containsKey('price'), isFalse);
   });
 
+  test('year and price ranges and the district (F.11)', () async {
+    await repository.getListings(
+      filters: const ListingFilters(
+        minYear: 2018,
+        maxYear: 2020,
+        minPrice: 4000,
+        maxPrice: 6000,
+        district: 'Porto',
+      ),
+    );
+    final parameters = requests.single.url.queryParametersAll;
+    expect(parameters['year'], ['gte.2018', 'lte.2020']);
+    expect(parameters['asking_price'], [
+      startsWith('gte.4000'),
+      startsWith('lte.6000'),
+    ]);
+    expect(parameters['district'], ['eq.Porto']);
+    expect(parameters.containsKey('location'), isFalse);
+  });
+
   test('the newest first is the order web/index.html prefetches', () async {
     expect((await query())['order'], startsWith('first_seen_at.desc'));
   });

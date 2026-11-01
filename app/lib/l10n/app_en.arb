@@ -1055,5 +1055,8 @@
   "showAllAlerts": "Show all",
   "marketPositionField": "Position against the market",
   "newListingsSinceLoad": "{count, plural, =1{1 new ad} other{{count} new ads}}",
-  "showNewListings": "Show the ads found since the list opened"
+  "showNewListings": "Show the ads found since the list opened",
+  "latestYear": "Latest year",
+  "minimumPriceEUR": "Minimum price (EUR)",
+  "district": "District"
 }

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
 import 'package:motorcycle_deal_tracker/core/localization/app_language.dart';
 import 'package:motorcycle_deal_tracker/features/saved_searches/data/models/saved_search_model.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
@@ -37,9 +38,11 @@ void main() {
       'name': 'Teste',
       'motorcycle_ids': ['m1'],
       'min_year': 2026,
+      'max_year': 2028,
+      'min_price': 4000,
       'max_price': 8000,
       'max_mileage': null,
-      'location': 'Porto',
+      'district': 'Porto',
       'seller_type': null,
       'created_at': '2026-10-18T12:00:00Z',
     });
@@ -48,8 +51,10 @@ void main() {
       const ListingFilters(
         motorcycleIds: ['m1'],
         minYear: 2026,
+        maxYear: 2028,
+        minPrice: 4000,
         maxPrice: 8000,
-        location: 'Porto',
+        district: 'Porto',
       ),
     );
     expect(savedSearchName(search), 'Teste');
@@ -87,6 +92,39 @@ void main() {
     expect(text, contains('desde 2026'));
   });
 
+  test('the year and price ranges and the district read as criteria', () {
+    const filters = ListingFilters(
+      minYear: 2018,
+      maxYear: 2020,
+      minPrice: 4000,
+      maxPrice: 6000,
+      district: 'Porto',
+    );
+    expect(filters.hasCriteria, isTrue);
+    expect(filters.appliedCount, 5);
+    expect(
+      summarizeFilters(filters, const []),
+      'desde 2018 · até 2020 · desde ${Formatters.price(4000)} · '
+      'até ${Formatters.price(6000)} · Porto',
+    );
+    final chips = filterChips(filters, const []);
+    expect(chips.map((c) => c.label), [
+      'desde 2018',
+      'até 2020',
+      'desde ${Formatters.price(4000)}',
+      'até ${Formatters.price(6000)}',
+      'Porto',
+    ]);
+    expect(chips[1].without.maxYear, isNull);
+    expect(chips[1].without.minYear, 2018);
+    expect(chips[2].without.minPrice, isNull);
+    expect(chips[2].without.maxPrice, 6000);
+    expect(chips[4].without.district, isNull);
+    expect(const ListingFilters(maxYear: 2020).hasCriteria, isTrue);
+    expect(const ListingFilters(minPrice: 1).hasCriteria, isTrue);
+    expect(const ListingFilters(district: 'Faro').hasCriteria, isTrue);
+  });
+
   test('copyWith changes only what it is given', () {
     final search = SavedSearchModel.fromJson({
       'id': 's1',
@@ -112,11 +150,13 @@ void main() {
       'id': 's1',
       'name': 'Teste',
       'created_at': '2026-10-18T12:00:00Z',
-    }).copyWith(filters: const ListingFilters(location: 'Porto'));
+    }).copyWith(filters: const ListingFilters(district: 'Porto'));
 
     final row = SavedSearchModel.toUpdate(search);
 
-    expect(row['location'], 'Porto');
+    expect(row['district'], 'Porto');
+    expect(row.containsKey('max_year'), isTrue);
+    expect(row['min_price'], isNull);
     expect(row.containsKey('min_year'), isTrue);
     expect(row['min_year'], isNull);
     expect(row['notify_price_reduction'], isTrue);
