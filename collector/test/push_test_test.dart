@@ -1,7 +1,7 @@
 import 'package:collector/collector.dart';
 import 'package:test/test.dart';
 
-class _Store implements ListingStore {
+class _Store implements PushStore {
   _Store({this.requester});
 
   final String? requester;

@@ -27,7 +27,7 @@ class _Fetcher implements PoliteFetcher {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _Store implements ListingStore {
+class _Store implements PhotoStore {
   List<({String id, List<int> hashes})>? stored;
   String? model;
   List<({String id, List<PhotoFeatures> photos})>? features;

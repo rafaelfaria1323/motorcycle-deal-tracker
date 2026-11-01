@@ -6,7 +6,7 @@ import 'package:supabase/supabase.dart';
 import 'package:test/test.dart';
 
 /// The database's answers and each account's devices, in memory.
-class _Exams implements ListingStore {
+class _Exams implements PushStore {
   _Exams(this.answers);
 
   final List<PhotoExamAnswer> answers;
@@ -158,7 +158,7 @@ void main() {
       await server.close(force: true);
     });
 
-    final answer = (await ListingStore(client).photoExamAnswers(['l1'])).single;
+    final answer = (await PushStore(client).photoExamAnswers(['l1'])).single;
 
     expect(asked, {
       'p_listings': ['l1'],

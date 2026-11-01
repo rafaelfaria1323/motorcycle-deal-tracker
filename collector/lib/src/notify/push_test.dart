@@ -1,4 +1,4 @@
-import '../store/listing_store.dart';
+import '../store/push_store.dart';
 import 'notification_text.dart';
 import 'pending_alert.dart';
 import 'run_health.dart';
@@ -37,7 +37,7 @@ const pushTestKinds = {
 
 /// An example of the [kind] notification, built as the real one is (so it
 /// looks the same and a tap opens the same page), with one line saying it
-/// is a test. Alerts show [listing] (a live listing, `ListingStore.
+/// is a test. Alerts show [listing] (a live listing, `PushStore.
 /// sampleListing`) with made-up price changes; without one, an example
 /// bike that opens Ofertas.
 Map<String, Object?> samplePushMessage(
@@ -135,7 +135,7 @@ Map<String, Object?> samplePushMessage(
 /// of the account that last asked for one in the last 30 minutes, else
 /// (GitHub's "Run workflow") to every admin's devices.
 Future<({int devices, int sent})> sendTestPush(
-  ListingStore store,
+  PushStore store,
   WebPushSender push, {
   String? account,
   String kind = 'test',
@@ -162,7 +162,7 @@ Future<({int devices, int sent})> sendTestPush(
 /// language) on all its devices. The languages and the devices are read
 /// once for the whole batch; a failed lookup sends nothing.
 Future<({int devices, int sent})> pushToUsers(
-  ListingStore store,
+  PushStore store,
   WebPushSender push,
   List<String> users,
   Map<String, Object?> Function(String user, NotificationLanguage language)

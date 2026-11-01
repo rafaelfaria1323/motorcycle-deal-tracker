@@ -1,4 +1,5 @@
 import 'package:collector/collector.dart';
+import 'package:collector/src/store/store_support.dart';
 import 'package:test/test.dart';
 
 NormalizedListing _listing(String id) {

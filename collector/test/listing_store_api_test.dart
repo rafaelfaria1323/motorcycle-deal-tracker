@@ -68,6 +68,9 @@ void main() {
   late HttpServer server;
   late SupabaseClient client;
   late ListingStore store;
+  late PhotoStore photos;
+  late PushStore pushes;
+  late SummaryStore summaries;
   late List<_Call> calls;
   // What each RPC answers (by name; tables as 'table:<name>'); other RPCs
   // answer a count, other tables nothing.
@@ -103,6 +106,9 @@ void main() {
       authOptions: const AuthClientOptions(autoRefreshToken: false),
     );
     store = ListingStore(client);
+    photos = PhotoStore(client);
+    pushes = PushStore(client);
+    summaries = SummaryStore(client);
   });
 
   tearDown(() async {
@@ -139,13 +145,13 @@ void main() {
       const ListingDetails(sourceListingId: 'a', description: 'x'),
     ]);
     await store.markDetailsFailed('standvirtual', ['a']);
-    await store.listingsMissingPhotoChecks(5, examine: true);
-    await store.listingsAwaitingPhotoExam(3);
-    await store.finishPhotoExams(['id']);
-    await store.storePhotoHashes([
+    await photos.listingsMissingPhotoChecks(5, examine: true);
+    await photos.listingsAwaitingPhotoExam(3);
+    await photos.finishPhotoExams(['id']);
+    await photos.storePhotoHashes([
       (id: 'id', hashes: [1]),
     ]);
-    await store.storePhotoFeatures('clip', [
+    await photos.storePhotoFeatures('clip', [
       (
         id: 'id',
         photos: [
@@ -153,8 +159,8 @@ void main() {
         ],
       ),
     ]);
-    await store.photoTrainingSet('clip');
-    await store.storePhotoClassifier(
+    await photos.photoTrainingSet('clip');
+    await photos.storePhotoClassifier(
       'clip',
       const PhotoClassifier(
         weights: [0.5],
@@ -186,11 +192,11 @@ void main() {
     ]);
     await store.setSearchKeys('olx', {'a': 's'});
     await store.generateAlerts();
-    await store.pendingNotifications(limit: 5, at: DateTime.utc(2026, 10, 29));
-    await store.storeServiceAccess('https://x.supabase.co', 'key');
-    await store.pushKeys();
-    await store.answerBikeValues(DateTime.utc(2026, 10, 28));
-    await store.markNotified(['alert']);
+    await pushes.pendingNotifications(limit: 5, at: DateTime.utc(2026, 10, 29));
+    await pushes.storeServiceAccess('https://x.supabase.co', 'key');
+    await pushes.pushKeys();
+    await pushes.answerBikeValues(DateTime.utc(2026, 10, 28));
+    await pushes.markNotified(['alert']);
   }
 
   test('every RPC the store calls exists with those arguments', () async {
@@ -272,42 +278,45 @@ void main() {
   test('empty inputs send nothing', () async {
     expect(await store.applyDetails('olx', const []), 0);
     expect(await store.markDetailsFailed('olx', const []), 0);
-    expect(await store.finishPhotoExams(const []), 0);
-    expect(await store.storePhotoHashes(const []), 0);
-    expect(await store.storePhotoFeatures('clip', const []), 0);
+    expect(await photos.finishPhotoExams(const []), 0);
+    expect(await photos.storePhotoHashes(const []), 0);
+    expect(await photos.storePhotoFeatures('clip', const []), 0);
     expect(await store.markSeen('olx', const []), 0);
     expect(await store.applyPriceChanges('olx', const []), 0);
     expect(await store.applyPricesBeforeDrop('olx', [testListing('a')]), 0);
     expect(await store.rematch('olx', const [], const Catalog([])), 0);
     expect(await store.applyListingDates('olx', [testListing('a')]), 0);
     expect(await store.setSearchKeys('olx', const {}), 0);
-    expect(await store.markNotified(const []), 0);
-    await store.forgetPushTargets(const []);
-    await store.markPushTargetsUsed(const []);
-    expect(await store.summaryListings(const {}, DateTime.utc(2026)), isEmpty);
+    expect(await pushes.markNotified(const []), 0);
+    await pushes.forgetPushTargets(const []);
+    await pushes.markPushTargetsUsed(const []);
+    expect(
+      await summaries.summaryListings(const {}, DateTime.utc(2026)),
+      isEmpty,
+    );
     expect(calls, isEmpty);
   });
 
   test("one account's weekly summary reads only that account's data", () async {
-    final summaries = await loadWeeklySummaries(
-      store,
+    final loaded = await loadWeeklySummaries(
+      summaries,
       {'mt07': 'Yamaha MT-07'},
       until: DateTime.utc(2026, 10, 19),
       account: 'u3',
     );
 
     // It follows nothing: no listing or price history is read.
-    expect(summaries.keys, ['u3']);
-    expect(summaries['u3']!.liveCount, 0);
+    expect(loaded.keys, ['u3']);
+    expect(loaded['u3']!.liveCount, 0);
     expect(calls.map((c) => c.name), ['user_models']);
     expect(calls.single.query['user_id'], 'eq.u3');
-    await store.followedModels();
+    await summaries.followedModels();
     expect(calls.last.query.containsKey('user_id'), isFalse);
   });
 
   test('price history is read only for the listings asked about', () async {
     expect(
-      await store.priceHistoryChangedSince(const {}, DateTime.utc(2026)),
+      await summaries.priceHistoryChangedSince(const {}, DateTime.utc(2026)),
       isEmpty,
     );
     expect(calls, isEmpty);
@@ -315,7 +324,7 @@ void main() {
     final ids = {
       for (var i = 0; i < 150; i++) 'l${i.toString().padLeft(3, '0')}',
     };
-    await store.priceHistoryChangedSince(ids, DateTime.utc(2026, 10, 12));
+    await summaries.priceHistoryChangedSince(ids, DateTime.utc(2026, 10, 12));
     // Two requests of at most 100 ids, each limited to the week.
     expect(calls.map((c) => c.name), [
       'listing_price_history',
@@ -336,7 +345,7 @@ void main() {
         'observed_at': '2026-10-14T00:00:00Z',
       },
     ];
-    final points = await store.priceHistoryChangedSince(
+    final points = await summaries.priceHistoryChangedSince(
       ids,
       DateTime.utc(2026, 10, 12),
     );
@@ -347,15 +356,17 @@ void main() {
   });
 
   test('table reads ask for the rows they parse', () async {
-    await store.followedModels();
-    await store.pushTargets();
-    await store.adminIds();
-    await store.lastWorkflowStarter('collect.yml', DateTime.utc(2026));
-    await store.accountLanguages(['u1', 'u1', 'u2']);
-    await store.sampleListing(null);
-    await store.summaryListings({'mt07': 'Yamaha MT-07'}, DateTime.utc(2026));
-    await store.forgetPushTargets(['e']);
-    await store.markPushTargetsUsed(['e']);
+    await summaries.followedModels();
+    await pushes.pushTargets();
+    await pushes.adminIds();
+    await pushes.lastWorkflowStarter('collect.yml', DateTime.utc(2026));
+    await pushes.accountLanguages(['u1', 'u1', 'u2']);
+    await pushes.sampleListing(null);
+    await summaries.summaryListings({
+      'mt07': 'Yamaha MT-07',
+    }, DateTime.utc(2026));
+    await pushes.forgetPushTargets(['e']);
+    await pushes.markPushTargetsUsed(['e']);
 
     final byTable = {for (final c in calls) c.name: c};
     expect(byTable['user_models']!.query['tracked'], 'eq.true');

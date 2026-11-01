@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 void main() {
   late HttpServer server;
   late SupabaseClient client;
-  late ListingStore store;
+  late PushStore store;
   late List<Uri> requests;
   late List<Map<String, String>> rows;
   late int status;
@@ -47,7 +47,7 @@ void main() {
       'test-publishable-key',
       authOptions: const AuthClientOptions(autoRefreshToken: false),
     );
-    store = ListingStore(client);
+    store = PushStore(client);
   });
 
   tearDown(() async {

@@ -5,7 +5,7 @@ import 'package:collector/collector.dart';
 import 'package:supabase/supabase.dart';
 import 'package:test/test.dart';
 
-class _Store implements ListingStore {
+class _Store implements PushStore {
   _Store(this.answers);
 
   final List<BikeValueAnswer> answers;
@@ -187,7 +187,7 @@ void main() {
       await server.close(force: true);
     });
 
-    final answers = await ListingStore(client)
+    final answers = await PushStore(client)
         .answerBikeValues(DateTime.utc(2026, 10, 28, 8));
 
     expect(body, {'p_started_at': '2026-10-28T08:00:00.000Z'});

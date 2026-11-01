@@ -61,10 +61,11 @@ Future<void> main(List<String> args) async {
   try {
     await withServiceClient((client) async {
       final store = ListingStore(client);
+      final pushes = PushStore(client);
       final catalog = await loadCatalog(client);
       final config = SupabaseConfig.fromEnvironment();
       try {
-        await store.storeServiceAccess(config.url, config.serviceKey);
+        await pushes.storeServiceAccess(config.url, config.serviceKey);
       } on PostgrestException catch (e) {
         // Only invites need it; the collection goes on.
         stdout.writeln('Accounts access not stored: ${e.message}');
@@ -93,7 +94,7 @@ Future<void> main(List<String> args) async {
       }
 
       stdout.writeln('== all sites ==');
-      await finishRun(store, startedAt: startedAt);
+      await finishRun(store, pushes, startedAt: startedAt);
     });
   } finally {
     stdout.writeln(

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
-import '../store/listing_store.dart';
+import '../store/photo_store.dart';
 
 /// Fewest marked photos of each kind (problem, fine) before a classifier is
 /// trained: fewer and it learns the few photos, not what they show.
@@ -205,7 +205,7 @@ double _sigmoid(double z) => 1 / (1 + math.exp(-z.clamp(-50, 50)));
 /// examined listing's hints). Returns how many listings were refreshed; 0
 /// when nothing changed or there are still too few marks.
 Future<int> trainOnPhotoMarks(
-  ListingStore store,
+  PhotoStore store,
   String model, {
   StringSink? out,
 }) async {

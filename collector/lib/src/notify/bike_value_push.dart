@@ -1,4 +1,4 @@
-import '../store/listing_store.dart';
+import '../store/push_store.dart';
 import 'notification_text.dart';
 import 'push_test.dart';
 import 'web_push.dart';
@@ -61,7 +61,7 @@ Map<String, Object?> bikeValuePush(
 /// [startedAt]) read, and tells each owner on their devices ([push]; none
 /// when Web Push isn't available: the answer still shows in the app).
 Future<({int answered, int sent})> answerBikeValues(
-  ListingStore store,
+  PushStore store,
   WebPushSender? push,
   DateTime startedAt,
 ) async {

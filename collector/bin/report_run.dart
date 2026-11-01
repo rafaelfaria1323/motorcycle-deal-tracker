@@ -76,7 +76,7 @@ Future<void> main(List<String> args) async {
     if (runHealthMessage(runs) == null) return;
     // The run is recorded; a missed message must not fail the job.
     try {
-      final store = ListingStore(client);
+      final store = PushStore(client);
       final push = WebPushSender(
         await store.pushKeys(),
         fcm: FcmSender.fromEnvironment(),
