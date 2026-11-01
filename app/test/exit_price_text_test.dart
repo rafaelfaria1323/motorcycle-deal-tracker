@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
-import 'package:motorcycle_deal_tracker/core/localization/localizations.dart';
 import 'package:motorcycle_deal_tracker/features/market/domain/entities/exit_price.dart';
 import 'package:motorcycle_deal_tracker/features/market/presentation/exit_price_text.dart';
 
