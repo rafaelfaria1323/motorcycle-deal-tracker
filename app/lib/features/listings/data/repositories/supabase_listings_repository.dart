@@ -74,17 +74,24 @@ class SupabaseListingsRepository(final SupabaseClient _client)
     if (filters.minYear != null) {
       query = query.gte('year', filters.minYear!);
     }
+    if (filters.maxYear != null) {
+      query = query.lte('year', filters.maxYear!);
+    }
     // asking_price: the price without placeholders under 300 € (null
     // then), so a maximum never matches "1 €" and the price sorts put
     // those last.
+    if (filters.minPrice != null) {
+      query = query.gte('asking_price', filters.minPrice!);
+    }
     if (filters.maxPrice != null) {
       query = query.lte('asking_price', filters.maxPrice!);
     }
     if (filters.maxMileage != null) {
       query = query.lte('mileage', filters.maxMileage!);
     }
-    if (filters.location != null) {
-      query = query.ilike('location', '%${filters.location}%');
+    // The computed field `district`: the ad's place looked up in `places`.
+    if (filters.district != null) {
+      query = query.eq('district', filters.district!);
     }
     if (filters.sellerType != null) {
       query = query.eq('seller_type', filters.sellerType!.name);

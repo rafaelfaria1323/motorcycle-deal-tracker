@@ -6,9 +6,16 @@ class const ListingFilters({
   /// The models asked for (catalog ids); empty: any model.
   final List<String> motorcycleIds = const [],
   final int? minYear,
+  final int? maxYear,
+
+  /// Placeholder prices under 300 € never match a set price criterion.
+  final double? minPrice,
   final double? maxPrice,
   final int? maxMileage,
-  final String? location,
+
+  /// One of `portugueseDistricts`; listings whose place is unknown never
+  /// match (`listings.district`).
+  final String? district,
   final SellerType? sellerType,
 
   /// Listings without a score never match a set score criterion.
@@ -32,9 +39,11 @@ class const ListingFilters({
   int get appliedCount => [
     motorcycleIds.isNotEmpty,
     minYear != null,
+    maxYear != null,
+    minPrice != null,
     maxPrice != null,
     maxMileage != null,
-    location != null,
+    district != null,
     sellerType != null,
     minDealScore != null,
     maxRiskScore != null,
@@ -48,9 +57,11 @@ class const ListingFilters({
   List<Object?> get props => [
     motorcycleIds,
     minYear,
+    maxYear,
+    minPrice,
     maxPrice,
     maxMileage,
-    location,
+    district,
     sellerType,
     minDealScore,
     maxRiskScore,

@@ -16,9 +16,4 @@ void main() {
     expect(parsePriceField(''), isNull);
     expect(parsePriceField('x'), isNull);
   });
-
-  test('text fields are trimmed and a blank one is null', () {
-    expect(parseTextField('  Porto '), 'Porto');
-    expect(parseTextField('   '), isNull);
-  });
 }

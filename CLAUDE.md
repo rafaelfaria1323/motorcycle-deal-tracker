@@ -1059,6 +1059,12 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   says so and asks for one before it applies, and the filter's distance is
   off with a button; both open the town search in place (`pickHomePlace`,
   `home_place_tile.dart`, also Mais's tile).
+  Districts (F.11): `places.district` (one of `district_names()`, the
+  18 districts and the Açores and Madeira; = the app's
+  `portugueseDistricts`, `districts_test.dart` reads `schema.sql`),
+  `place_district()` and the computed field `listings.district`: Ofertas'
+  and saved searches' district picker (`ListingFilters.district`,
+  `saved_searches.district`); an ad whose place is unknown matches none.
 - Dealer figures (`dealer_reliability` view, per dealer name trimmed and
   case-folded, both sites; shown as "O stand" on dealer listings): bikes,
   live, relisted, sharp price changes, missing mileage, repeated used
@@ -1127,6 +1133,9 @@ ad; relists first seen in the last 14 days). Only events after the saved search 
 and in the last day (a listing first seen, a drop or a removal older than
 that, e.g. of a model just followed, never alerts). Saved
 searches can also require a minimum Deal Score / maximum Risk Score,
+a year range and a price range (`min_year`/`max_year`,
+`min_price`/`max_price`; placeholder prices never match either), a
+district,
 several models (`motorcycle_ids`, empty: any; as Ofertas'
 `ListingFilters.motorcycleIds`), a maximum distance from the owner's home, equipment (`extras`, all
 required; `listing_extras` codes) and only the owner's colours of each

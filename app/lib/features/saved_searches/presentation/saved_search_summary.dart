@@ -43,6 +43,16 @@ String summarizeFilters(
   if (filters.minYear != null) {
     parts.add(language.messages.from(minYear: filters.minYear.toString()));
   }
+  if (filters.maxYear != null) {
+    parts.add(language.messages.upTo(price: filters.maxYear.toString()));
+  }
+  if (filters.minPrice != null) {
+    parts.add(
+      language.messages.from(
+        minYear: Formatters.price(filters.minPrice, language: language),
+      ),
+    );
+  }
   if (filters.maxPrice != null) {
     parts.add(
       language.messages.upTo(
@@ -57,7 +67,7 @@ String summarizeFilters(
       ),
     );
   }
-  if (filters.location != null) parts.add(filters.location!);
+  if (filters.district != null) parts.add(filters.district!);
   if (filters.sellerType != null) {
     parts.add(filters.sellerType!.label(language: language));
   }
@@ -150,9 +160,11 @@ List<FilterChipData> filterChips(
   ListingFilters copy({
     String? withoutModel,
     bool year = true,
+    bool maxYear = true,
+    bool minPrice = true,
     bool price = true,
     bool mileage = true,
-    bool location = true,
+    bool district = true,
     bool seller = true,
     bool score = true,
     bool risk = true,
@@ -166,9 +178,11 @@ List<FilterChipData> filterChips(
         if (id != withoutModel) id,
     ],
     minYear: year ? f.minYear : null,
+    maxYear: maxYear ? f.maxYear : null,
+    minPrice: minPrice ? f.minPrice : null,
     maxPrice: price ? f.maxPrice : null,
     maxMileage: mileage ? f.maxMileage : null,
-    location: location ? f.location : null,
+    district: district ? f.district : null,
     sellerType: seller ? f.sellerType : null,
     minDealScore: score ? f.minDealScore : null,
     maxRiskScore: risk ? f.maxRiskScore : null,
@@ -196,6 +210,18 @@ List<FilterChipData> filterChips(
         label: language.messages.from(minYear: f.minYear.toString()),
         without: copy(year: false),
       ),
+    if (f.maxYear != null)
+      (
+        label: language.messages.upTo(price: f.maxYear.toString()),
+        without: copy(maxYear: false),
+      ),
+    if (f.minPrice != null)
+      (
+        label: language.messages.from(
+          minYear: Formatters.price(f.minPrice, language: language),
+        ),
+        without: copy(minPrice: false),
+      ),
     if (f.maxPrice != null)
       (
         label: language.messages.upTo(
@@ -210,8 +236,8 @@ List<FilterChipData> filterChips(
         ),
         without: copy(mileage: false),
       ),
-    if (f.location != null)
-      (label: f.location!, without: copy(location: false)),
+    if (f.district != null)
+      (label: f.district!, without: copy(district: false)),
     if (f.sellerType != null)
       (
         label: f.sellerType!.label(language: language),

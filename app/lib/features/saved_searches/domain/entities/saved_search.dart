@@ -62,9 +62,11 @@ extension ListingFiltersCriteria on ListingFilters {
   bool get hasCriteria =>
       motorcycleIds.isNotEmpty ||
       minYear != null ||
+      maxYear != null ||
+      minPrice != null ||
       maxPrice != null ||
       maxMileage != null ||
-      location != null ||
+      district != null ||
       sellerType != null ||
       minDealScore != null ||
       maxRiskScore != null ||
@@ -76,9 +78,11 @@ extension ListingFiltersCriteria on ListingFilters {
   ListingFilters get criteriaOnly => ListingFilters(
     motorcycleIds: motorcycleIds,
     minYear: minYear,
+    maxYear: maxYear,
+    minPrice: minPrice,
     maxPrice: maxPrice,
     maxMileage: maxMileage,
-    location: location,
+    district: district,
     sellerType: sellerType,
     minDealScore: minDealScore,
     maxRiskScore: maxRiskScore,
@@ -98,9 +102,11 @@ extension SameCriteria on ListingFilters {
 ListingFilters _sorted(ListingFilters f) => ListingFilters(
   motorcycleIds: [...f.motorcycleIds]..sort(),
   minYear: f.minYear,
+  maxYear: f.maxYear,
+  minPrice: f.minPrice,
   maxPrice: f.maxPrice,
   maxMileage: f.maxMileage,
-  location: f.location,
+  district: f.district,
   sellerType: f.sellerType,
   minDealScore: f.minDealScore,
   maxRiskScore: f.maxRiskScore,

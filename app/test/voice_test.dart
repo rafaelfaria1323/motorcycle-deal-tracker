@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/entities/districts.dart';
 
 /// The app speaks to the user as "você" ("Verifique a ligação", "a sua
 /// conta"), never as "tu". This catches "tu" forms in the UI text.
@@ -77,7 +78,10 @@ void main() {
           continue;
         }
         for (final literal in _stringLiteral.allMatches(line)) {
-          if (_speaksAsTu(literal.group(1)!)) {
+          final text = literal.group(1)!;
+          // Place names, not the app speaking: the district Guarda.
+          if (portugueseDistricts.contains(text)) continue;
+          if (_speaksAsTu(text)) {
             found.add('${file.path}:${i + 1}: ${literal.group(0)}');
           }
         }

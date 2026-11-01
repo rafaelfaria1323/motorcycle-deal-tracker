@@ -1300,6 +1300,28 @@ CREATE FUNCTION public.distance_km(l public.listings) RETURNS integer
 $$;
 
 --
+-- Name: district(public.listings); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.district(l public.listings) RETURNS text
+    LANGUAGE sql STABLE
+    SET search_path TO ''
+    AS $$
+  select public.place_district(l.location)
+$$;
+
+--
+-- Name: district_names(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.district_names() RETURNS text[]
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$
+  select array['Aveiro', 'Beja', 'Braga', 'Bragança', 'Castelo Branco', 'Coimbra', 'Évora', 'Faro', 'Guarda', 'Leiria', 'Lisboa', 'Portalegre', 'Porto', 'Santarém', 'Setúbal', 'Viana do Castelo', 'Vila Real', 'Viseu', 'Açores', 'Madeira']
+$$;
+
+--
 -- Name: duplicate_similarity(integer, integer, numeric, numeric, text, text, text, text, text, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -2941,6 +2963,18 @@ CREATE FUNCTION public.photo_training_set(p_model text) RETURNS TABLE(features t
   select encode(marked.features, 'base64'), marked.problem, state.k,
          (select c.marks_key from public.photo_classifiers c where c.model = p_model)
   from state left join marked on true
+$$;
+
+--
+-- Name: place_district(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.place_district(p_location text) RETURNS text
+    LANGUAGE sql STABLE
+    SET search_path TO ''
+    AS $$
+  select p.district from public.places p
+  where p.key = public.place_key(p_location)
 $$;
 
 --
@@ -5164,6 +5198,8 @@ CREATE TABLE public.places (
     name text NOT NULL,
     lat double precision NOT NULL,
     lon double precision NOT NULL,
+    district text NOT NULL,
+    CONSTRAINT places_district_check CHECK ((district = ANY (public.district_names()))),
     CONSTRAINT places_key_check CHECK ((key = public.place_key(key))),
     CONSTRAINT places_lat_check CHECK (((lat >= (30)::double precision) AND (lat <= (43)::double precision))),
     CONSTRAINT places_lon_check CHECK (((lon >= ('-32'::integer)::double precision) AND (lon <= ('-6'::integer)::double precision)))
@@ -5233,12 +5269,18 @@ CREATE TABLE public.saved_searches (
     extras text[] DEFAULT '{}'::text[] NOT NULL,
     only_my_colours boolean DEFAULT false NOT NULL,
     motorcycle_ids uuid[] DEFAULT '{}'::uuid[] NOT NULL,
+    district text,
+    max_year smallint,
+    min_price numeric(10,2),
+    CONSTRAINT saved_searches_district_check CHECK ((district = ANY (public.district_names()))),
     CONSTRAINT saved_searches_extras_check CHECK ((extras <@ ARRAY['quickshifter'::text, 'exhaust'::text, 'luggage'::text, 'heated_grips'::text, 'protection'::text, 'new_tyres'::text, 'tail_tidy'::text, 'screen'::text, 'levers'::text, 'mirrors'::text, 'phone_mount'::text, 'alarm'::text, 'steering_damper'::text, 'centre_stand'::text, 'cruise_control'::text, 'suspension'::text, 'led_indicators'::text, 'passenger_grips'::text, 'original_parts'::text])),
     CONSTRAINT saved_searches_max_distance_km_check CHECK (((max_distance_km >= 1) AND (max_distance_km <= 1000))),
     CONSTRAINT saved_searches_max_mileage_check CHECK ((max_mileage >= 0)),
     CONSTRAINT saved_searches_max_price_check CHECK ((max_price >= (0)::numeric)),
     CONSTRAINT saved_searches_max_risk_score_check CHECK (((max_risk_score >= 0) AND (max_risk_score <= 100))),
-    CONSTRAINT saved_searches_min_deal_score_check CHECK (((min_deal_score >= 0) AND (min_deal_score <= 100)))
+    CONSTRAINT saved_searches_max_year_check CHECK (((max_year >= 1900) AND (max_year <= 2100))),
+    CONSTRAINT saved_searches_min_deal_score_check CHECK (((min_deal_score >= 0) AND (min_deal_score <= 100))),
+    CONSTRAINT saved_searches_min_price_check CHECK ((min_price >= (0)::numeric))
 );
 
 --
@@ -5249,7 +5291,7 @@ CREATE VIEW public.saved_search_matches WITH (security_invoker='true') AS
  SELECT s.id AS saved_search_id,
     l.id AS listing_id
    FROM (public.saved_searches s
-     JOIN public.listings l ON (((l.status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status])) AND (l.duplicate_of IS NULL) AND public.listing_matches_search(l.motorcycle_id, (l.year)::integer, l.price, l.mileage, l.location, l.seller_type, NULL::uuid, (s.min_year)::integer, s.max_price, s.max_mileage, s.location, s.seller_type) AND ((cardinality(s.motorcycle_ids) = 0) OR (l.motorcycle_id = ANY (s.motorcycle_ids))) AND public.owner_tracks(s.user_id, l.motorcycle_id, (l.year)::integer) AND ((s.min_deal_score IS NULL) OR (l.deal_score >= s.min_deal_score)) AND ((s.max_risk_score IS NULL) OR (l.risk_score <= s.max_risk_score)) AND ((s.max_distance_km IS NULL) OR (public.distance_from_home(s.user_id, l.location) <= s.max_distance_km)) AND ((cardinality(s.extras) = 0) OR (COALESCE((l.score_breakdown -> 'extras'::text), '[]'::jsonb) @> to_jsonb(s.extras))) AND ((NOT s.only_my_colours) OR public.likes_colour(s.user_id, l.motorcycle_id, l.colour)))));
+     JOIN public.listings l ON (((l.status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status])) AND (l.duplicate_of IS NULL) AND public.listing_matches_search(l.motorcycle_id, (l.year)::integer, l.price, l.mileage, l.location, l.seller_type, NULL::uuid, (s.min_year)::integer, s.max_price, s.max_mileage, s.location, s.seller_type) AND ((cardinality(s.motorcycle_ids) = 0) OR (l.motorcycle_id = ANY (s.motorcycle_ids))) AND public.owner_tracks(s.user_id, l.motorcycle_id, (l.year)::integer) AND ((s.min_deal_score IS NULL) OR (l.deal_score >= s.min_deal_score)) AND ((s.max_risk_score IS NULL) OR (l.risk_score <= s.max_risk_score)) AND ((s.max_distance_km IS NULL) OR (public.distance_from_home(s.user_id, l.location) <= s.max_distance_km)) AND ((cardinality(s.extras) = 0) OR (COALESCE((l.score_breakdown -> 'extras'::text), '[]'::jsonb) @> to_jsonb(s.extras))) AND ((NOT s.only_my_colours) OR public.likes_colour(s.user_id, l.motorcycle_id, l.colour)) AND ((s.district IS NULL) OR (public.place_district(l.location) = s.district)) AND ((s.max_year IS NULL) OR (l.year <= s.max_year)) AND ((s.min_price IS NULL) OR ((l.price >= (300)::numeric) AND (l.price >= s.min_price))))));
 
 --
 -- Name: saved_search_match_counts; Type: VIEW; Schema: public; Owner: -
@@ -6804,6 +6846,22 @@ GRANT ALL ON FUNCTION public.distance_km(l public.listings) TO authenticated;
 GRANT ALL ON FUNCTION public.distance_km(l public.listings) TO service_role;
 
 --
+-- Name: FUNCTION district(l public.listings); Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON FUNCTION public.district(l public.listings) TO anon;
+GRANT ALL ON FUNCTION public.district(l public.listings) TO authenticated;
+GRANT ALL ON FUNCTION public.district(l public.listings) TO service_role;
+
+--
+-- Name: FUNCTION district_names(); Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON FUNCTION public.district_names() TO anon;
+GRANT ALL ON FUNCTION public.district_names() TO authenticated;
+GRANT ALL ON FUNCTION public.district_names() TO service_role;
+
+--
 -- Name: FUNCTION duplicate_similarity(p_mileage_a integer, p_mileage_b integer, p_price_a numeric, p_price_b numeric, p_location_a text, p_location_b text, p_description_a text, p_description_b text, p_seller_a text, p_seller_b text); Type: ACL; Schema: public; Owner: -
 --
 
@@ -7230,6 +7288,14 @@ GRANT ALL ON FUNCTION public.photo_learned_share(p_model text, p_features bytea)
 
 REVOKE ALL ON FUNCTION public.photo_training_set(p_model text) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.photo_training_set(p_model text) TO service_role;
+
+--
+-- Name: FUNCTION place_district(p_location text); Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON FUNCTION public.place_district(p_location text) TO anon;
+GRANT ALL ON FUNCTION public.place_district(p_location text) TO authenticated;
+GRANT ALL ON FUNCTION public.place_district(p_location text) TO service_role;
 
 --
 -- Name: FUNCTION place_key(p_name text); Type: ACL; Schema: public; Owner: -
