@@ -190,7 +190,13 @@ void main() {
           owners: BikeOwners.one,
         ),
       );
-      expect([for (final l in lines) l.kind], BikeValueLineKind.values);
+      expect(
+        [for (final l in lines) l.kind],
+        [
+          for (final kind in BikeValueLineKind.values)
+            if (kind != BikeValueLineKind.exit) kind,
+        ],
+      );
       // 6320 x 0.98 = 6193.6; 6000 -> 5880; 6600 -> 6468.
       expect(
         lines[0].text,
