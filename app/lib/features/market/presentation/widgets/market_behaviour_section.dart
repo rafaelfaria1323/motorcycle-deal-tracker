@@ -3,13 +3,17 @@ import 'package:flutter/material.dart';
 import '../../../../app/di/injection.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../../../listings/domain/entities/listing.dart';
+import '../../domain/entities/exit_price.dart';
 import '../../domain/entities/market_behaviour.dart';
 import '../../domain/repositories/market_behaviour_repository.dart';
 import '../market_behaviour_text.dart';
 import '../../../listings/presentation/price_position_text.dart';
+import '../exit_price_text.dart';
 import '../time_to_sale_text.dart';
 import '../../../listings/presentation/widgets/price_position_strip.dart';
 import '../../../../core/localization/localizations.dart';
+
+typedef _Loaded = (MarketBehaviour?, List<double>, TimeToSale?, ExitPrice?);
 
 class const MarketBehaviourSection({required final Listing listing, super.key})
     extends StatefulWidget {
@@ -18,7 +22,7 @@ class const MarketBehaviourSection({required final Listing listing, super.key})
 }
 
 class _MarketBehaviourSectionState extends State<MarketBehaviourSection> {
-  Future<(MarketBehaviour?, List<double>, TimeToSale?)>? _future;
+  Future<_Loaded>? _future;
 
   @override
   void initState() {
@@ -27,28 +31,34 @@ class _MarketBehaviourSectionState extends State<MarketBehaviourSection> {
     if (id != null) _future = _load(id);
   }
 
-  Future<(MarketBehaviour?, List<double>, TimeToSale?)> _load(
-    String motorcycleId,
-  ) async {
+  Future<_Loaded> _load(String motorcycleId) async {
     final repository = getIt<MarketBehaviourRepository>();
     final listing = widget.listing;
-    final (market, prices, timeToSale) = await (
+    final (market, prices, timeToSale, exit) = await (
       repository.getForModel(motorcycleId),
-      // The comparison and the time to sale are extra: without them the
-      // rest still shows.
+      // The comparison, the time to sale and the exit price are extra:
+      // without them the rest still shows.
       repository
           .getLivePrices(motorcycleId)
           .catchError((Object _) => <String, double>{}),
       repository
           .getTimeToSale(listing.id)
           .then<TimeToSale?>((t) => t, onError: (Object _) => null),
+      repository
+          .getExitPrice(
+            motorcycleId,
+            year: listing.year,
+            mileage: listing.mileage,
+            except: listing.id,
+          )
+          .then<ExitPrice?>((e) => e, onError: (Object _) => null),
     ).wait;
     final others = [
       for (final MapEntry(:key, :value) in prices.entries)
         // Neither this listing nor the one it repeats.
         if (key != listing.id && key != listing.duplicateOf) value,
     ];
-    return (market, others, timeToSale);
+    return (market, others, timeToSale, exit);
   }
 
   @override
@@ -56,11 +66,11 @@ class _MarketBehaviourSectionState extends State<MarketBehaviourSection> {
     final future = _future;
     if (future == null) return const SizedBox.shrink();
 
-    return FutureBuilder<(MarketBehaviour?, List<double>, TimeToSale?)>(
+    return FutureBuilder<_Loaded>(
       future: future,
       builder: (context, snapshot) {
-        final (market, others, timeToSale) =
-            snapshot.data ?? (null, const <double>[], null);
+        final (market, others, timeToSale, exit) =
+            snapshot.data ?? (null, const <double>[], null, null);
         // Secondary information: hide it while loading or on any error.
         if (market == null) return const SizedBox.shrink();
 
@@ -86,6 +96,13 @@ class _MarketBehaviourSectionState extends State<MarketBehaviourSection> {
                 language: context.language,
               );
 
+        final exitLine = exit == null
+            ? null
+            : [
+                exitPriceLine(exit, language: context.language),
+                exitPriceComparison(exit, price, language: context.language),
+              ].nonNulls.join(' ');
+
         return SectionCard(
           title: context.strings.thisModelSMarket,
           children: [
@@ -95,6 +112,7 @@ class _MarketBehaviourSectionState extends State<MarketBehaviourSection> {
               PricePositionStrip(position: position),
               const SizedBox(height: 8),
             ],
+            if (exitLine != null && exitLine.isNotEmpty) _Line(exitLine),
             for (final line in marketLines(
               market,
               daysListed: days,

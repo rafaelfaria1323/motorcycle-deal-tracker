@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/localization/localizations.dart';
 import '../../../collector_status/presentation/collection_text.dart';
 import '../../../listings/presentation/widgets/icon_line.dart';
+import '../../../market/domain/entities/exit_price.dart';
 import '../../../market/domain/entities/market_behaviour.dart';
 import '../../domain/entities/bike_condition.dart';
 import '../../domain/entities/bike_value.dart';
@@ -16,6 +17,7 @@ class const BikeValueCard({
   required final BikeValue? value,
   required final MarketBehaviour? market,
   required final BikeCondition condition,
+  final ExitPrice? exit,
   super.key,
 }) extends StatelessWidget {
   @override
@@ -52,6 +54,7 @@ class const BikeValueCard({
                 value,
                 market,
                 condition: condition,
+                exit: exit,
                 language: context.language,
               ))
                 IconLine(icon: _icons[line.kind]!, text: line.text),
@@ -68,6 +71,7 @@ class const BikeValueCard({
 const _icons = {
   BikeValueLineKind.estimate: Icons.euro,
   BikeValueLineKind.condition: Icons.tune,
+  BikeValueLineKind.exit: Icons.handshake_outlined,
   BikeValueLineKind.asking: Icons.sell_outlined,
   BikeValueLineKind.time: Icons.schedule,
   BikeValueLineKind.tradeIn: Icons.store_outlined,

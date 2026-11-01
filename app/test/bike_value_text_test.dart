@@ -4,6 +4,7 @@ import 'package:motorcycle_deal_tracker/core/localization/localizations.dart';
 import 'package:motorcycle_deal_tracker/features/valuation/domain/entities/bike_condition.dart';
 import 'package:motorcycle_deal_tracker/features/valuation/domain/entities/bike_value.dart';
 import 'package:motorcycle_deal_tracker/features/valuation/domain/entities/bike_value_request.dart';
+import 'package:motorcycle_deal_tracker/features/market/domain/entities/exit_price.dart';
 import 'package:motorcycle_deal_tracker/features/market/domain/entities/market_behaviour.dart';
 import 'package:motorcycle_deal_tracker/features/valuation/presentation/bike_value_text.dart';
 
@@ -102,6 +103,36 @@ void main() {
       'para negociar',
     );
     expect(lines[2].text, contains('ainda poucos dados'));
+  });
+
+  test('what the gone ads left at, after the value, with the condition', () {
+    const exit = ExitPrice(goneCount: 6, median: 6000);
+    final lines = bikeValueLines(
+      value,
+      null,
+      condition: const BikeCondition(damage: BikeDamage.accident),
+      exit: exit,
+    );
+    expect([for (final l in lines) l.kind].take(3), [
+      BikeValueLineKind.estimate,
+      BikeValueLineKind.condition,
+      BikeValueLineKind.exit,
+    ]);
+    // 6000 x 0.85.
+    expect(
+      lines[2].text,
+      startsWith('Saíram do mercado por cerca de ${price(5100)}: '),
+    );
+
+    // Too few gone ads: no line.
+    expect(
+      bikeValueLines(
+        value,
+        null,
+        exit: const ExitPrice(goneCount: 4, median: 6000),
+      ),
+      bikeValueLines(value, null),
+    );
   });
 
   test('English', () {

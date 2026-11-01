@@ -3,7 +3,9 @@ import '../../../core/localization/localizations.dart';
 import '../domain/entities/bike_condition.dart';
 import '../domain/entities/bike_value.dart';
 import '../domain/entities/bike_value_request.dart';
+import '../../market/domain/entities/exit_price.dart';
 import '../../market/domain/entities/market_behaviour.dart';
+import '../../market/presentation/exit_price_text.dart';
 import '../../market/presentation/market_behaviour_text.dart';
 import '../../listings/presentation/offer_text.dart';
 
@@ -20,7 +22,7 @@ const maxAskingRoom = 0.08;
 /// the dealer has to resell with a margin and a warranty.
 const tradeInShare = 0.80;
 
-enum BikeValueLineKind { estimate, condition, asking, time, tradeIn }
+enum BikeValueLineKind { estimate, condition, exit, asking, time, tradeIn }
 
 typedef BikeValueLine = ({BikeValueLineKind kind, String text});
 
@@ -77,13 +79,16 @@ double? conditionEstimate(
 }
 
 /// What to say about a bike's value: the estimate and its range (adjusted
-/// to [condition], with a line saying how), the price to ask, how long the
-/// model takes to sell and a dealer's trade-in. Fewer than
+/// to [condition], with a line saying how), what the model's gone ads left
+/// the market at ([exit], adjusted the same way; left out with too few),
+/// the price to ask, how long the model takes to sell and a dealer's
+/// trade-in. Fewer than
 /// [minComparables] listings give only a line saying so.
 List<BikeValueLine> bikeValueLines(
   BikeValue value,
   MarketBehaviour? market, {
   BikeCondition condition = const BikeCondition(),
+  ExitPrice? exit,
   AppLanguage language = .portuguese,
 }) {
   final messages = language.messages;
@@ -106,6 +111,9 @@ List<BikeValueLine> bikeValueLines(
   final roomText = Formatters.percent(room * 100, language: language);
   final gone = market?.goneCount ?? 0;
   final toGone = market?.medianDaysToGone;
+  final exitLine = exit == null
+      ? null
+      : exitPriceLine(exit, adjust: adjust, language: language);
 
   return [
     (
@@ -129,6 +137,7 @@ List<BikeValueLine> bikeValueLines(
           total: _signedPercent(adjust - 1, language),
         ),
       ),
+    if (exitLine != null) (kind: BikeValueLineKind.exit, text: exitLine),
     (
       kind: BikeValueLineKind.asking,
       text: askingRoomFromModel(market)

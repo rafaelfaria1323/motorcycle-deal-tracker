@@ -120,9 +120,10 @@ Screen names below use the Portuguese labels; English provides the same screens.
   - **Detalhes:** the bike's facts, the seller's description, the ad's
     facts.
   - **Mercado:** market behaviour for the model (with where the asking
-    price sits among the model's live listings, and about how many days
-    this ad has left on the market, from the model's ads at a similar
-    price), the price history, the
+    price sits among the model's live listings, what the model's ads
+    that left the market in the last 90 days last asked against this
+    one's price, and about how many days this ad has left on the market,
+    from the model's ads at a similar price), the price history, the
     comparison with a new one, "E se a comprar no estrangeiro?" (one
     closed line until tapped: the
     same bike's price in Spain, France or Germany, the engine size
@@ -178,8 +179,10 @@ Screen names below use the Portuguese labels; English provides the same screens.
   model, collected for the request and answered by a notification after
   the next collection, from its year and km: the market value and its
   range, adjusted to its condition when you say it (falls or accidents,
-  owners, service book, warranty), the price to ask, the time to sell
-  and a dealer's trade-in; your last requests below), "Comprar no
+  owners, service book, warranty), what the model's ads that left the
+  market in the last 90 days last asked ("Saíram do mercado por"), the
+  price to ask, the time to sell and a dealer's trade-in; your last
+  requests below), "Comprar no
   estrangeiro" (the same form for a bike seen in Spain, France or
   Germany: its price there plus vehicle tax (ISV), legalisation and
   transport, against its value here), the collection in one line (when the last run was and the next is, tinted when the last failed, a site blocked it or it is 12 h old; admins tap it, or Administração's tile, for "Estado da recolha": the last runs with what they found, their requests, errors and how long the scores took, the last 30 days' failures by site and cause, each site's requests today and pause, each search's pages read and ads found in the last run, this month's runs and GitHub minutes, the data quality per site (live listings, unmatched, duplicates, missing year/km/location, when listings were last seen, sudden price changes), the GitHub token's expiry and the database's size against the free plan's 500 MB; "Recolher agora").

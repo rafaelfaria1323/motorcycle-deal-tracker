@@ -5,6 +5,7 @@ import 'package:http/http.dart';
 import 'package:http/testing.dart';
 import 'package:motorcycle_deal_tracker/features/market/data/repositories/supabase_market_behaviour_repository.dart';
 import 'package:motorcycle_deal_tracker/features/valuation/domain/entities/bike_value_request.dart';
+import 'package:motorcycle_deal_tracker/features/market/domain/entities/exit_price.dart';
 import 'package:motorcycle_deal_tracker/features/market/domain/entities/market_behaviour.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -202,6 +203,29 @@ void main() {
       expect(value.estimate, 6000);
     },
   );
+
+  test('getExitPrice asks exit_price for the model, year, km and ad', () async {
+    reply = '[{"gone_count":7,"median_price":6100.5}]';
+    final exit = await repository.getExitPrice(
+      'm1',
+      year: 2020,
+      mileage: 15000,
+      except: 'l1',
+    );
+    expect(requests.single.url.path, endsWith('/rpc/exit_price'));
+    expect(jsonDecode(requests.single.body), {
+      'p_motorcycle_id': 'm1',
+      'p_year': 2020,
+      'p_mileage': 15000,
+      'p_except': 'l1',
+    });
+    expect(exit, const ExitPrice(goneCount: 7, median: 6100.5));
+
+    expect(
+      exitPriceFrom({'gone_count': 0, 'median_price': null}),
+      const ExitPrice(goneCount: 0),
+    );
+  });
 
   test('requestBikeValue asks for the bike and says if it is ready', () async {
     reply = '[{"request_id":"r1","ready":false}]';

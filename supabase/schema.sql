@@ -1401,6 +1401,60 @@ end;
 $$;
 
 --
+-- Name: exit_price(uuid, integer, integer, uuid); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.exit_price(p_motorcycle_id uuid, p_year integer, p_mileage integer DEFAULT NULL::integer, p_except uuid DEFAULT NULL::uuid) RETURNS TABLE(gone_count integer, median_price numeric)
+    LANGUAGE sql STABLE
+    SET search_path TO ''
+    AS $$
+  with excepted as (
+    select e.id, e.duplicate_of
+    from public.listings e
+    where e.id = p_except
+  ),
+  gone as (
+    select c.year, c.mileage, c.price,
+           p_year is not null and abs(p_year - c.year) <= 3 as near
+    from public.listings c
+    where c.motorcycle_id = p_motorcycle_id
+      and c.status in ('removed', 'sold')
+      and c.last_seen_at >= now() - interval '90 days'
+      and c.duplicate_of is null
+      and c.price >= 300
+      and (p_year is null or c.year is not null)
+      and (p_mileage is null or c.mileage is not null)
+      and not exists (
+        select 1 from public.listings r where r.relisted_from = c.id
+      )
+      and not exists (
+        select 1 from excepted x
+        where c.id = x.id or c.id = x.duplicate_of
+      )
+  ),
+  chosen as (
+    select g.*
+    from gone g
+    where g.near
+       or (select count(*) from gone n where n.near) < 5
+  ),
+  adjusted as (
+    select ch.price * public.age_mileage_factor(
+             p_year - ch.year,
+             p_mileage - ch.mileage,
+             coalesce(d.per_year, 0.04),
+             coalesce(d.per_1000km, 0.002)
+           ) as price
+    from chosen ch
+    left join public.model_depreciation d on d.motorcycle_id = p_motorcycle_id
+  )
+  select
+    count(*)::integer,
+    round((percentile_cont(0.5) within group (order by price))::numeric, 2)
+  from adjusted;
+$$;
+
+--
 -- Name: expected_mileage(integer, integer, numeric); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -6882,6 +6936,15 @@ GRANT ALL ON FUNCTION public.engine_range_from_name(p_model text) TO service_rol
 
 REVOKE ALL ON FUNCTION public.ensure_model_searches() FROM PUBLIC;
 GRANT ALL ON FUNCTION public.ensure_model_searches() TO service_role;
+
+--
+-- Name: FUNCTION exit_price(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_except uuid); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.exit_price(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_except uuid) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.exit_price(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_except uuid) TO service_role;
+GRANT ALL ON FUNCTION public.exit_price(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_except uuid) TO anon;
+GRANT ALL ON FUNCTION public.exit_price(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_except uuid) TO authenticated;
 
 --
 -- Name: FUNCTION expected_mileage(p_year integer, p_km_per_year integer, p_reference numeric); Type: ACL; Schema: public; Owner: -
