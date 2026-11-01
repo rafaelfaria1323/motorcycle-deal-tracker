@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_filters.dart';
-import 'package:motorcycle_deal_tracker/features/listings/domain/entities/saved_search.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/alerts_text.dart';
+import 'package:motorcycle_deal_tracker/features/saved_searches/domain/entities/saved_search.dart';
+import 'package:motorcycle_deal_tracker/features/alerts/presentation/alerts_text.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/dashboard_text.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/saved_search_summary.dart';
+import 'package:motorcycle_deal_tracker/features/saved_searches/presentation/saved_search_summary.dart';
 
 void main() {
   test('loaded listings are not presented as the entire market', () {

@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:motorcycle_deal_tracker/features/listings/data/repositories/supabase_alerts_repository.dart';
-import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_alert.dart';
+import 'package:motorcycle_deal_tracker/features/alerts/data/repositories/supabase_alerts_repository.dart';
+import 'package:motorcycle_deal_tracker/features/alerts/domain/entities/listing_alert.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {

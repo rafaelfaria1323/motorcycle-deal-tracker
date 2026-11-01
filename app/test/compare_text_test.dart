@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/compare_text.dart';
+import 'package:motorcycle_deal_tracker/features/compare/presentation/compare_text.dart';
 
 Listing listing(
   String id, {

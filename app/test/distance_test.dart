@@ -1,14 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
 import 'package:motorcycle_deal_tracker/features/listings/data/models/listing_model.dart';
-import 'package:motorcycle_deal_tracker/features/listings/data/models/saved_search_model.dart';
+import 'package:motorcycle_deal_tracker/features/saved_searches/data/models/saved_search_model.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_filters.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_sort.dart';
-import 'package:motorcycle_deal_tracker/features/listings/domain/entities/saved_search.dart';
+import 'package:motorcycle_deal_tracker/features/saved_searches/domain/entities/saved_search.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/listing_detail_text.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/listing_labels.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/saved_search_summary.dart';
+import 'package:motorcycle_deal_tracker/features/saved_searches/presentation/saved_search_summary.dart';
 import 'package:motorcycle_deal_tracker/features/settings/domain/place.dart';
 import 'package:motorcycle_deal_tracker/features/settings/presentation/place_text.dart';
 

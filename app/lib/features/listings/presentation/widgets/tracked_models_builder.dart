@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/localization/localizations.dart';
 import '../../../../core/widgets/state_message.dart';
-import '../../domain/entities/model_market.dart';
+import '../../../market/domain/entities/model_market.dart';
 
 /// The followed models' market once [future] gives it: a spinner meanwhile,
 /// the failure with "Tentar novamente" ([onRetry]), or a message when no

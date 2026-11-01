@@ -4,7 +4,7 @@ import 'package:motorcycle_deal_tracker/core/localization/localizations.dart';
 import 'package:motorcycle_deal_tracker/features/valuation/domain/entities/bike_condition.dart';
 import 'package:motorcycle_deal_tracker/features/valuation/domain/entities/bike_value.dart';
 import 'package:motorcycle_deal_tracker/features/valuation/domain/entities/bike_value_request.dart';
-import 'package:motorcycle_deal_tracker/features/listings/domain/entities/market_behaviour.dart';
+import 'package:motorcycle_deal_tracker/features/market/domain/entities/market_behaviour.dart';
 import 'package:motorcycle_deal_tracker/features/valuation/presentation/bike_value_text.dart';
 
 MarketBehaviour market({

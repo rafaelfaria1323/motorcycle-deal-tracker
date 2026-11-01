@@ -4,12 +4,12 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/core/localization/localizations.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/alerts_text.dart';
+import 'package:motorcycle_deal_tracker/features/alerts/presentation/alerts_text.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/colour_text.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/dashboard_text.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/saved_search_summary.dart';
+import 'package:motorcycle_deal_tracker/features/saved_searches/presentation/saved_search_summary.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/score_explanation.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/viewing_checklist.dart';
+import 'package:motorcycle_deal_tracker/features/favourites/presentation/viewing_checklist.dart';
 import 'package:motorcycle_deal_tracker/features/settings/presentation/language_cubit.dart';
 
 import '../integration_test/support/language_fixture.dart';
@@ -133,9 +133,8 @@ void main() {
         isNot(same(colourLabels())),
       );
       expect(
-        viewingChecklistItems(
-          language: AppLanguage.english,
-        ).map((item) => item.key),
+        viewingChecklistItems(language: AppLanguage.english)
+            .map((item) => item.key),
         viewingChecklistItems().map((item) => item.key),
       );
     },

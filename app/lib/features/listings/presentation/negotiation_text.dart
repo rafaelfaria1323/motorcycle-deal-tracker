@@ -1,12 +1,12 @@
 import '../../../core/formatting/formatters.dart';
-import '../domain/entities/favourite.dart';
+import '../../favourites/domain/entities/favourite.dart';
 import '../domain/entities/listing.dart';
-import '../domain/entities/market_behaviour.dart';
-import 'market_behaviour_text.dart';
+import '../../market/domain/entities/market_behaviour.dart';
+import '../../market/presentation/market_behaviour_text.dart';
 import 'offer_text.dart';
 import '../../valuation/presentation/ownership_cost.dart';
 import 'score_explanation.dart';
-import 'viewing_checklist.dart';
+import '../../favourites/presentation/viewing_checklist.dart';
 import '../../../core/localization/localizations.dart';
 
 /// A problem marked at the visit and what fixing it typically costs.

@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import '../../../core/formatting/formatters.dart';
-import '../../listings/domain/entities/market_behaviour.dart';
+import '../../market/domain/entities/market_behaviour.dart';
 import '../domain/entities/ownership_settings.dart';
 import '../../../core/localization/localizations.dart';
 

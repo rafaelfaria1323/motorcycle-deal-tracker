@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/core/localization/localizations.dart';
-import 'package:motorcycle_deal_tracker/features/listings/domain/entities/market_behaviour.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/time_to_sale_text.dart';
+import 'package:motorcycle_deal_tracker/features/market/domain/entities/market_behaviour.dart';
+import 'package:motorcycle_deal_tracker/features/market/presentation/time_to_sale_text.dart';
 
 TimeToSale sale({PriceBand? band, int? typical = 20, int? remaining = 12}) =>
     TimeToSale(

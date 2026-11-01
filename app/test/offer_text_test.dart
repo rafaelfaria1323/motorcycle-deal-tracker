@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
-import 'package:motorcycle_deal_tracker/features/listings/domain/entities/market_behaviour.dart';
+import 'package:motorcycle_deal_tracker/features/market/domain/entities/market_behaviour.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/offer_text.dart';
 
 Listing _listing({
