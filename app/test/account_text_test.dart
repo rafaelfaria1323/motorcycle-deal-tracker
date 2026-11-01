@@ -10,6 +10,26 @@ void main() {
     );
   });
 
+  test('each known auth code has its own message', () {
+    const unavailable =
+        'Esta conta não pode iniciar sessão. Contacte um administrador.';
+    const limited =
+        'Demasiadas tentativas. Aguarde um momento e tente novamente.';
+    for (final (code, text) in [
+      (
+        'email_not_confirmed',
+        'Este email ainda não foi confirmado. '
+            'Contacte um administrador.',
+      ),
+      ('user_banned', unavailable),
+      ('user_not_found', unavailable),
+      ('over_request_rate_limit', limited),
+      ('over_email_send_rate_limit', limited),
+    ]) {
+      expect(authErrorText(code, 'server text'), text, reason: code);
+    }
+  });
+
   test('other auth errors keep the server message', () {
     expect(authErrorText(null, 'Network down'), 'Network down');
   });

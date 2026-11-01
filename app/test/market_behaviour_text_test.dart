@@ -44,9 +44,33 @@ void main() {
     );
   });
 
+  test('the live count comes first', () {
+    expect(marketLines(market()).first, '12 anúncios ativos deste modelo');
+  });
+
+  test('exactly 5 is enough for the typical time and the drop share', () {
+    final lines = marketLines(market(gone: 5, toGone: 30, priced: 5));
+
+    expect(
+      lines,
+      contains('Tempo típico até sair do mercado: 30 dias (5 anúncios)'),
+    );
+    expect(
+      lines,
+      contains(
+        'Nenhum vendedor baixou o preço desde que acompanhamos este modelo',
+      ),
+    );
+  });
+
   test('the age line says publicado only with the site\'s date', () {
     expect(
       marketLines(market(), daysListed: 0).last,
+      'Este anúncio foi publicado hoje',
+    );
+    // A publication date a little ahead of the clock is still today.
+    expect(
+      marketLines(market(), daysListed: -1).last,
       'Este anúncio foi publicado hoje',
     );
     expect(
@@ -67,6 +91,12 @@ void main() {
     final lines = marketLines(market(gone: 6, toGone: 20), daysListed: 45);
 
     expect(lines.last, startsWith('Está à venda há mais do dobro'));
+  });
+
+  test('no hint before twice the usual time', () {
+    final lines = marketLines(market(gone: 6, toGone: 20), daysListed: 30);
+
+    expect(lines.last, 'Este anúncio está publicado há 30 dias');
   });
 
   test('no hint without enough departures', () {

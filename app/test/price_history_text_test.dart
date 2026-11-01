@@ -24,7 +24,8 @@ void main() {
     expect(l.priceChange, -300);
     expect(l.hasPriceChanged, isTrue);
     expect(siteDropLine(l), contains('Standvirtual'));
-    expect(siteDropLine(l), contains('4,4 %'));
+    // The cut is shown with its own sign, never doubled.
+    expect(siteDropLine(l), contains('(−4,4 % até hoje)'));
   });
 
   test('our own first price wins when it is higher', () {

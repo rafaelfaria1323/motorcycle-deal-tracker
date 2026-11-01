@@ -96,12 +96,20 @@ void main() {
         offer.reasons.first,
         'O preço pedido está em linha com o valor estimado.',
       );
+      expect(
+        offer.reasons[1],
+        'Vendedor particular: ponto de partida 6 % abaixo.',
+      );
     });
 
     test('a dealer leaves less room', () {
       final offer = suggestOffer(_listing(sellerType: SellerType.dealer))!;
       expect(offer.opening, 6750); // 6790
-      expect(offer.reasons[1], startsWith('Vendedor profissional'));
+      expect(
+        offer.reasons[1],
+        'Vendedor profissional: ponto de partida 3 % abaixo (os stands '
+        'negociam pouco o preço).',
+      );
     });
 
     test('above the estimate, the estimate is the most to pay', () {
@@ -114,9 +122,36 @@ void main() {
     test('below the estimate, says how far', () {
       final offer = suggestOffer(_listing(price: 6300, estimate: 7000))!;
       expect(offer.ceiling, 6300);
-      expect(offer.reasons.first, contains('10 % abaixo do valor estimado'));
+      expect(
+        offer.reasons.first,
+        'O preço pedido já está 10 % abaixo do valor estimado '
+        '(${Formatters.price(7000)}): há menos margem para negociar.',
+      );
       // 6 % less the 10 % already given: the 1 % minimum.
       expect(offer.opening, 6200); // 6237
+    });
+
+    test('what the price is already below the estimate comes off', () {
+      // 5 % below: 6 % less 5 % is 1 % (6583), well above the 90 % floor.
+      final offer = suggestOffer(_listing(price: 6650, estimate: 7000))!;
+      expect(offer.opening, 6550);
+    });
+
+    test('an estimate of 0 or less is no estimate, even when damaged', () {
+      for (final estimate in [0.0, -1.0]) {
+        expect(
+          suggestOffer(
+            _listing(
+              estimate: estimate,
+              riskReasons: const ['needs_repair'],
+              damagedValue: 5000,
+              damageAllowance: 0.1,
+            ),
+          ),
+          isNull,
+          reason: '$estimate',
+        );
+      }
     });
 
     test('a fair price long on sale is not pushed far below its value', () {
@@ -166,6 +201,20 @@ void main() {
       expect(atTypical.opening, 6550);
     });
 
+    test('5 departures are enough for the model\'s typical time', () {
+      final offer = suggestOffer(
+        _listing(),
+        market: _market(goneCount: 5, medianDaysToGone: 30),
+        daysListed: 40,
+      )!;
+      expect(offer.opening, 6350);
+      expect(
+        offer.reasons.last,
+        'À venda há 40 dias, mais do que o típico deste modelo (30 dias): '
+        'há mais margem para negociar.',
+      );
+    });
+
     test('without enough model data, 45 days is long', () {
       final few = _market(goneCount: 4);
       expect(
@@ -192,12 +241,35 @@ void main() {
       );
     });
 
+    test('a drop of 1 € counts as a drop', () {
+      final offer = suggestOffer(_listing(price: 7000, initialPrice: 7001))!;
+      expect(offer.opening, 6700);
+    });
+
     test('a model whose sellers often drop adds half the usual drop', () {
       final often = _market(droppedCount: 7, medianDropPct: 5);
+      final oftenOffer = suggestOffer(_listing(), market: often)!;
+      expect(oftenOffer.opening, 6400); // 8.5 %: 6405
       expect(
-        suggestOffer(_listing(), market: often)!.opening,
-        6400,
-      ); // 8.5 %: 6405
+        oftenOffer.reasons.last,
+        'Muitos vendedores deste modelo acabam por baixar o preço '
+        '(descida típica 5,0 %).',
+      );
+      // Exactly a third, and exactly 5 priced ads, are enough.
+      for (final (priced, dropped) in [(6, 2), (5, 2)]) {
+        expect(
+          suggestOffer(
+            _listing(),
+            market: _market(
+              pricedCount: priced,
+              droppedCount: dropped,
+              medianDropPct: 5,
+            ),
+          )!.opening,
+          6400,
+          reason: '$dropped of $priced',
+        );
+      }
       final big = _market(droppedCount: 7, medianDropPct: 12);
       expect(
         suggestOffer(_listing(), market: big)!.opening,
@@ -214,7 +286,12 @@ void main() {
     });
 
     test('a high risk adds room; everything together is capped at 10 %', () {
-      expect(suggestOffer(_listing(riskScore: 50))!.opening, 6350); // 9 %: 6370
+      final risky = suggestOffer(_listing(riskScore: 50))!;
+      expect(risky.opening, 6350); // 9 %: 6370
+      expect(
+        risky.reasons.last,
+        'O risco é elevado: peça para ver o que falta e use-o para negociar.',
+      );
       expect(suggestOffer(_listing(riskScore: 49))!.opening, 6550);
       final all = suggestOffer(
         _listing(riskScore: 80),
@@ -342,6 +419,46 @@ void main() {
         'mais, ${Formatters.price(8400)} ainda está dentro do máximo.',
       );
       expect(offer.replyTo(8250), startsWith('Aceite')); // halfway 8 200
+    });
+
+    test('the reply at each boundary', () {
+      String price(double p) => Formatters.price(p);
+      expect(
+        offer.replyTo(7950),
+        'Aceite: ${price(7950)} é menos do que a sua primeira proposta.',
+      );
+      for (final asked in [8100.0, 8200.0]) {
+        expect(
+          offer.replyTo(asked),
+          'Aceite: ${price(asked)} está dentro do que vale a pena pagar.',
+        );
+      }
+      // Halfway is still the last offer (8 200): accept.
+      expect(
+        offer.replyTo(8290),
+        'Aceite: ${price(8290)} está dentro do máximo (${price(8500)}).',
+      );
+      // One step from the seller's price: accept.
+      expect(
+        offer.replyTo(8300),
+        'Aceite: ${price(8300)} está dentro do máximo (${price(8500)}).',
+      );
+      expect(offer.replyTo(8301), startsWith('Proponha ${price(8250)}'));
+    });
+
+    test('a repair found at the visit comes off both offers', () {
+      final lower = offer.lowerBy(300, 'Pneus');
+      expect((lower.opening, lower.ceiling), (7650.0, 8200.0));
+      expect(lower.reasons, ['Pneus']);
+
+      // The opening stays below the new most to pay.
+      const close = OfferSuggestion(opening: 8450, ceiling: 8500, reasons: []);
+      final closer = close.lowerBy(100, 'Corrente');
+      expect((closer.opening, closer.ceiling), (8300.0, 8400.0));
+
+      // Never under one rounding step.
+      final gone = offer.lowerBy(9000, 'Motor');
+      expect((gone.opening, gone.ceiling), (50.0, 50.0));
       expect(
         offer.replyTo(8700),
         '${Formatters.price(8700)} passa do máximo: ofereça '
@@ -358,6 +475,8 @@ void main() {
     expect(parseCounterOffer('8500,50'), 8500.5);
     expect(parseCounterOffer(''), isNull);
     expect(parseCounterOffer('8'), isNull);
+    expect(parseCounterOffer('50'), 50);
+    expect(parseCounterOffer('49'), isNull);
     expect(parseCounterOffer('abc'), isNull);
   });
 }

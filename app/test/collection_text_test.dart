@@ -37,6 +37,16 @@ void main() {
       );
     });
 
+    test('16:00, 18:00 and 20:00 too, on a day past the 12th', () {
+      // Day 25 also tells the day from the month in the hour's start.
+      for (final hour in [16, 18, 20]) {
+        expect(
+          nextCollection(DateTime.utc(2026, 11, 25, hour - 1, 30)),
+          DateTime.utc(2026, 11, 25, hour),
+        );
+      }
+    });
+
     test('midnight, then 08:00, then 10:00', () {
       expect(
         nextCollection(DateTime.utc(2026, 12, 1, 22, 10)),

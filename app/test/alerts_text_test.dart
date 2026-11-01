@@ -32,6 +32,21 @@ void main() {
     expect(alertDayLabel(DateTime(2026, 10, 12, 12), now: now), '12/10/2026');
   });
 
+  test('days count across the end of a month and of a year', () {
+    expect(
+      alertDayLabel(DateTime(2026, 10, 30, 12), now: DateTime(2026, 11, 2, 9)),
+      'Sexta-feira',
+    );
+    expect(
+      alertDayLabel(DateTime(2026, 12, 31, 12), now: DateTime(2027, 1, 1, 9)),
+      'Ontem',
+    );
+  });
+
+  test('a time later than now (clock skew) reads as today', () {
+    expect(alertDayLabel(DateTime(2026, 10, 20, 12), now: now), 'Hoje');
+  });
+
   test('a day across the summer time change is still one day', () {
     // Clocks went back on Sunday 25 October 2026 in Portugal.
     expect(

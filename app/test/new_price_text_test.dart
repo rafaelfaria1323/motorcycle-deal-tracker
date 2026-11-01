@@ -50,6 +50,18 @@ void main() {
     expect(lines, contains(startsWith('Menos de 10 % abaixo de uma nova')));
   });
 
+  test('a price within 1 € of a new one costs the same', () {
+    final lines = newPriceLines(
+      listing(price: 8249.5, newPrice: 8250),
+      now: now,
+    );
+
+    expect(lines, [
+      'Preço de uma nova: ${Formatters.price(8250)}',
+      'Custa o mesmo que uma nova',
+    ]);
+  });
+
   test('a price above a new one is flagged', () {
     final lines = newPriceLines(listing(price: 9000, newPrice: 8250), now: now);
 
