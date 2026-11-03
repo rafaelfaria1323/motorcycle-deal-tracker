@@ -151,6 +151,13 @@ void main() {
   );
 
   test('saves every page of a search and the manifest', () async {
+    // Pages over 1 KB, so the log's sizes are not all 0.
+    answer = (page) => _page(
+      page,
+      3,
+      ads: List.filled(4, (DateTime.utc(2026, 10, 30), false)),
+    );
+    final log = StringBuffer();
     final outcome = await local(() async {
       final fetcher = PoliteFetcher(
         site: site,
@@ -161,12 +168,7 @@ void main() {
       );
       await fetcher.prepare();
       try {
-        return await fetchSearches(
-          fetcher,
-          [search],
-          dir.path,
-          out: StringBuffer(),
-        );
+        return await fetchSearches(fetcher, [search], dir.path, out: log);
       } finally {
         fetcher.close();
       }
@@ -179,6 +181,15 @@ void main() {
     expect(manifest.files.values.toSet(), {'$search'});
     expect(manifest.pages, {'$search': 3});
     expect(paths.where((p) => p.contains('page=')), hasLength(2));
+    for (final name in manifest.files.keys) {
+      final page = File('${dir.path}/$name').readAsStringSync();
+      expect(
+        '$log',
+        contains('  saved ${dir.path}/$name (${page.length ~/ 1024} KB)\n'),
+      );
+      expect(page.length, greaterThan(1024));
+    }
+    expect('$log', isNot(contains('not read in full in the last')));
   });
 
   test(
@@ -462,7 +473,13 @@ void main() {
     final manifest = (await SearchManifest.readFrom(dir.path))!;
     expect(manifest.planned, ['$banded', '$search']);
     expect(manifest.files.values, ['$search']);
-    expect('$log', contains('OLX found no ads'));
+    expect(
+      '$log',
+      contains(
+        '  OLX found no ads for $banded with the engine-size filter; '
+        'its listings are kept as they are (check olxEngineBands)\n',
+      ),
+    );
   });
 
   group('light runs (R.2)', () {

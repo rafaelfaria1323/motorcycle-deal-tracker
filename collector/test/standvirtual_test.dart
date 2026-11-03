@@ -356,4 +356,48 @@ void main() {
       expect(plan.skipReason, isNotNull);
     });
   });
+
+  test(
+    'a page that is not a listing is a read issue naming the file',
+    () async {
+      final dir = Directory.systemTemp.createTempSync('standvirtual');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      File('${dir.path}/a.html').writeAsStringSync(page(advert()));
+      File('${dir.path}/b.html').writeAsStringSync('<html></html>');
+
+      final result = await StandvirtualPageAdapter(dir.path).read();
+
+      expect(result.records.single.id, '123456');
+      expect(result.issues.single.message, startsWith('b.html: '));
+    },
+  );
+
+  test('a listing without an id or url is a format error', () {
+    expect(
+      () => adapter.parsePage(page({...advert(), 'url': null})),
+      throwsA(
+        isA<FormatException>().having(
+          (e) => e.message,
+          'message',
+          'listing has no id or url',
+        ),
+      ),
+    );
+  });
+
+  test('the dealer\'s place: the municipality, else the city, else none', () {
+    String? at(Map<String, dynamic> location) => adapter
+        .parsePage(
+          page({
+            ...advert(),
+            'seller': {'type': 'PROFESSIONAL', 'location': location},
+          }),
+        )
+        .location;
+
+    expect(at({'shortAddress': 'Rua X, concelho Viseu (Portugal)'}), 'Viseu');
+    expect(at({'city': ' Tondela '}), 'Tondela');
+    expect(at({'city': '  '}), isNull);
+    expect(at({'city': null}), isNull);
+  });
 }

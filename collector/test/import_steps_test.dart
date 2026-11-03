@@ -80,6 +80,32 @@ class _Store implements ListingStore {
   }
 
   @override
+  Future<int> markDuplicates() async => 3;
+
+  @override
+  Future<int> recalculateScores() async => 12;
+
+  @override
+  Future<int> generateAlerts() async => 4;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// No push keys (so nothing is sent) and [answers] valuations waiting.
+class _Pushes implements PushStore {
+  _Pushes({this.answers = const []});
+
+  final List<BikeValueAnswer> answers;
+
+  @override
+  Future<VapidKeys> pushKeys() async => throw StateError('no keys');
+
+  @override
+  Future<List<BikeValueAnswer>> answerBikeValues(DateTime startedAt) async =>
+      answers;
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -165,6 +191,10 @@ void main() {
     );
     expect(
       unmatchedLabel(ad('SH 350 ligue 912 345 678')),
+      'unmatched "Honda SH 350 ligue …"',
+    );
+    expect(
+      unmatchedLabel(ad('SH 350 ligue 912-345-678')),
       'unmatched "Honda SH 350 ligue …"',
     );
     expect(unmatchedLabel(ad('x' * 80)).length, lessThan(75));
@@ -291,5 +321,120 @@ void main() {
     expect(store.calls.last, 'markRemoved');
     expect(store.removedForced, isTrue);
     expect(store.removedSeen, unorderedEquals(['a', 'b', 'c']));
+  });
+
+  test('a full import logs each step in the words the report reads', () async {
+    final out = StringBuffer();
+    await importBatch(_batch(), catalog, store: _Store(), full: true, out: out);
+
+    expect(out.toString().split('\n'), [
+      'Source: olx',
+      'Catalog: 0 model(s)',
+      'Read 3 record(s), 0 read issue(s).',
+      '  - unmatched "Yamaha MT-07" · - · 7000.0 EUR · a',
+      '  - unmatched "Yamaha MT-07" · - · 7000.0 EUR · b',
+      '  ! old: year 2015 too old',
+      'Mapped 2, rejected 1.',
+      'Stored 2 new, 0 already stored, 0 duplicate(s) in the input.',
+      'Seen 2 listing(s).',
+      'Price changes: 0',
+      'Site-reported price cuts updated: 0',
+      'Removed: 0',
+      '',
+    ]);
+  });
+
+  test('read issues count among the records read', () async {
+    final out = StringBuffer();
+    await importBatch(
+      _batch(issues: [const ParseIssue(3, 'bad JSON')]),
+      catalog,
+      store: null,
+      out: out,
+    );
+
+    expect(out.toString(), contains('Read 4 record(s), 1 read issue(s).\n'));
+  });
+
+  test('a removal by search says which listings it leaves alone', () async {
+    const a = 'https://www.olx.pt/a', b = 'https://www.olx.pt/b';
+    final out = StringBuffer();
+    await importBatch(
+      SourceBatch(
+        'olx',
+        const [ParseIssue(3, 'bad JSON', search: b)],
+        [MappedRecord('a', Mapped(testListing('a')), search: a)],
+        manifest: const SearchManifest(
+          planned: [a, b],
+          files: {'a.html': a, 'b.html': b},
+          pages: {a: 1, b: 1},
+        ),
+      ),
+      catalog,
+      store: _Store(),
+      full: true,
+      out: out,
+    );
+
+    expect(
+      out.toString(),
+      contains(
+        'Removal covers 1 search(es) read in full (listings not yet tied '
+        'to a search are left alone).\nRemoved: 0\n',
+      ),
+    );
+  });
+
+  group('finishRun', () {
+    const answer = BikeValueAnswer(
+      id: 'r1',
+      userId: 'u1',
+      brand: 'Yamaha',
+      model: 'MT-07',
+      year: 2021,
+      comparableCount: 8,
+      fairPrice: 6500,
+    );
+
+    test('logs duplicates, scores, alerts and what was sent', () async {
+      final out = StringBuffer();
+      await finishRun(_Store(), _Pushes(), out: out);
+      final lines = out.toString().split('\n');
+
+      expect(lines[0], 'Duplicates flagged: 3');
+      expect(
+        lines[1],
+        matches(RegExp(r'^Scored 12 listing\(s\) in \d+ ms\.$')),
+      );
+      expect(lines[2], 'Alerts created: 4');
+      expect(
+        lines[3],
+        'Web Push not available, alerts kept for the next run: '
+        'Bad state: no keys',
+      );
+      expect(lines.sublist(4), ['Notifications sent: 0 (0 to devices)', '']);
+    });
+
+    test(
+      'says how many bike values were answered, only when some were',
+      () async {
+        final started = DateTime.utc(2026, 11, 1, 8);
+        final answered = StringBuffer();
+        await finishRun(
+          _Store(),
+          _Pushes(answers: const [answer, answer]),
+          startedAt: started,
+          out: answered,
+        );
+        final none = StringBuffer();
+        await finishRun(_Store(), _Pushes(), startedAt: started, out: none);
+
+        expect(
+          answered.toString(),
+          endsWith('Bike values answered: 2 (0 to devices)\n'),
+        );
+        expect(none.toString(), isNot(contains('Bike values answered')));
+      },
+    );
   });
 }

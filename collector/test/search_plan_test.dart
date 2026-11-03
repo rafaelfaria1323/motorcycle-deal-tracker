@@ -226,6 +226,26 @@ void main() {
       },
     );
 
+    test('a band holds models from its first cc to its last', () {
+      String? band(int min, int max) => olxEngineBand([
+        CatalogEntry(
+          slug: 'x',
+          brand: 'Yamaha',
+          model: 'X',
+          minYear: 2024,
+          engineCcMin: min,
+          engineCcMax: max,
+        ),
+      ]);
+
+      expect(band(0, 50), 'ate-50-cc');
+      expect(band(51, 125), '51-125-cc');
+      expect(band(126, 500), '126-500-cc');
+      expect(band(501, 1000), '501-1000-cc');
+      expect(band(1001, 1300), 'mais-de-1000-cc');
+      expect(band(40, 125), isNull, reason: '40-125 cc spans two bands');
+    });
+
     test('a band in the stored address is replaced, not kept', () {
       final plan = planSearches(
         Catalog([
