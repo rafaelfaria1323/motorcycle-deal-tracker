@@ -64,6 +64,7 @@ const _base = 'https://www.standvirtual.com/motos/anuncio';
 void main() {
   test('a page that is gone, unreadable or refused is skipped', () async {
     final store = _Store();
+    final log = StringBuffer();
     final updated = await enrichDetails(
       store,
       _Fetcher({
@@ -86,13 +87,25 @@ void main() {
         _pending('6'),
         _pending('7'),
       ],
-      out: StringBuffer(),
+      out: log,
     );
 
     expect(updated, 2);
     expect(store.storedIds, ['1', '5']);
     // Marked, so the next runs read the listings never tried first.
     expect(store.failedIds, ['2', '3', '4', '6', '7']);
+    expect(
+      log.toString(),
+      '  read standvirtual.com/1\n'
+      '  - skipped standvirtual.com/2: HTTP 404\n'
+      '  - skipped standvirtual.com/3: no __NEXT_DATA__ block '
+      '(is this a Standvirtual listing page?)\n'
+      '  - skipped standvirtual.com/4: only /motos/ pages\n'
+      '  read standvirtual.com/5\n'
+      '  - skipped standvirtual.com/6: the page is standvirtual.com/7\n'
+      '  - skipped standvirtual.com/7: HTTP 410\n'
+      'Details stored for 2 listing(s), 5 skipped.\n',
+    );
   });
 
   test('running out of requests stores what was read, quietly', () async {

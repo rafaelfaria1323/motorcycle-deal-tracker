@@ -105,4 +105,44 @@ void main() {
       expect(parseSellerType('banana'), isNull);
     });
   });
+
+  test('image links: http(s) with a host, once each, in order', () {
+    expect(
+      cleanImages([
+        ' http://img.example.com/1.jpg ',
+        'ftp://img.example.com/2.jpg',
+        'https://img.example.com/3.jpg',
+        'https://img.example.com/3.jpg',
+        'https:///4.jpg',
+        'not a link',
+      ]),
+      ['http://img.example.com/1.jpg', 'https://img.example.com/3.jpg'],
+    );
+  });
+
+  group('numeric references the HTML tokenizer cannot take', () {
+    test('past U+10FFFF become a replacement character', () {
+      for (final reference in [
+        '&#1114112;',
+        '&#x110000;',
+        '&#xbbbbbbbb;',
+        '&#XBBBBBBBB;',
+      ]) {
+        expect(safeNumericReferences(reference), '�', reason: reference);
+      }
+    });
+
+    test('of the same length when offsets must still match', () {
+      expect(
+        safeNumericReferences('a &#x110000; b', preserveLength: true),
+        'a ${'�' * 10} b',
+      );
+    });
+
+    test('the highest one, decimal or hex, is kept', () {
+      for (final reference in ['&#1114111;', '&#x10FFFF;', '&#X10ffff;']) {
+        expect(safeNumericReferences(reference), reference, reason: reference);
+      }
+    });
+  });
 }

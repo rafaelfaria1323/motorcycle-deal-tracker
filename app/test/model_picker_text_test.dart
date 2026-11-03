@@ -48,6 +48,9 @@ void main() {
     expect(pickedModelName('MT-125', 125), 'MT-125');
     expect(pickedModelName('CB', 650), 'CB 650');
     expect(pickedModelName('1250 GS', 125), '1250 GS 125');
+    // Part of a longer number is not the engine size, on either side.
+    expect(pickedModelName('GS 1250', 250), 'GS 1250 250');
+    expect(pickedModelName('V 1255', 125), 'V 1255 125');
   });
 
   test('the searches are built from the sites\' ids', () {
@@ -78,6 +81,16 @@ void main() {
       'tenere700',
     );
     expect(olxModelFor(models, sv('tracer', 'Tracer', 49)), isNull);
+
+    // By name every letter and digit counts, only the rest is ignored.
+    final names = [
+      olx('xsr07', 'XSR 07'),
+      olx('cb750', 'CB 750'),
+      olx('mt07', 'MT 07'),
+      olx('cb650', 'CB 650'),
+    ];
+    expect(olxModelFor(names, sv('mt-07', 'MT-07', 5))?.id, 'mt07');
+    expect(olxModelFor(names, sv('cb-650', 'CB650', 5))?.id, 'cb650');
     expect(
       olxModelFor([sv('forza', 'Forza', 32)], sv('forza', 'Forza', 32)),
       isNull,

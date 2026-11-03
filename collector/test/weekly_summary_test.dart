@@ -126,6 +126,34 @@ void main() {
     expect(s.drops.single.oldPrice, 8000);
   });
 
+  test('the history may come in any order', () {
+    final s = summary(
+      [listing('a')],
+      [
+        PricePoint('a', 7200, thisWeek.add(const Duration(days: 1))),
+        PricePoint('a', 7600, thisWeek),
+        PricePoint('a', 8000, lastWeek),
+      ],
+    );
+    expect(s.drops.single.oldPrice, 8000);
+    expect(s.drops.single.newPrice, 7200);
+  });
+
+  test('the biggest drop is the biggest share of the price', () {
+    final s = summary(
+      [listing('dear'), listing('cheap')],
+      [
+        // Both 1 000 € down: 10 % and 25 %.
+        PricePoint('dear', 10000, lastWeek),
+        PricePoint('dear', 9000, thisWeek),
+        PricePoint('cheap', 4000, lastWeek),
+        PricePoint('cheap', 3000, thisWeek),
+      ],
+    );
+    expect(s.drops.map((d) => d.listing.id), ['cheap', 'dear']);
+    expect(s.drops.map((d) => d.fraction), [0.25, 0.1]);
+  });
+
   test('best deals: risk exactly 50 is left out, 49 is kept', () {
     final s = summary([
       listing('r50', dealScore: 90, riskScore: 50),
