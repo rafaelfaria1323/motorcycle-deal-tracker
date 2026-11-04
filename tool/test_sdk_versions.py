@@ -78,7 +78,7 @@ class SdkVersionsTest(unittest.TestCase):
         tests = text.split("  collector-test:\n", 1)[1].split("\n  collector-db:", 1)[0]
         self.assertIn("uses: ./.github/actions/collector", tests)
         self.assertNotIn("subosito/flutter-action", tests)
-        self.assertIn("needs: [app, app-test, smoke, collector-test, collector-db]", text)
+        self.assertIn("needs: [plan, app, app-test, smoke, collector-test, collector-db]", text)
 
 
 if __name__ == "__main__":

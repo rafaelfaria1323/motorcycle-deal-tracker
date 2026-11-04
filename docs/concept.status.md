@@ -114,8 +114,9 @@ offline Chrome smoke (`make app-smoke`, SDK `integration_test`) using its
 real router and in-memory repositories: saved filters, listing navigation,
 alert read state and browser back. CI runs it separately from the unit
 tests; it does not cover Supabase authentication or native pushes. The app's
-and the collector's unit tests each run in two parallel CI jobs, split by
-file, with the coverage floors taken over both (N.48).*
+and the collector's unit tests each run in parallel CI jobs, as many as they need (about 40 s
+each, from each file's time in the last run), split by file, with the
+coverage floors taken over all of them (N.48).*
 
 *Collector safety follow-up: repeated Standvirtual pages never count as
 complete removal input, engine-size rejections stay unmatched, and malformed

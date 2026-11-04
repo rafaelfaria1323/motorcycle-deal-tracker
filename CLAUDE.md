@@ -151,12 +151,16 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   collection message (`pushTestKinds`)
 .github/workflows/check.yml       On every pull request to main, parallel
                                   jobs: app (`make app-analyze`, `dead-code`),
-                                  app-test (0, 1) and collector-test (0, 1)
+                                  app-test (0..n) and collector-test (0..n)
                                   (each a shard of its suite's test files,
                                   `make app-test-coverage` /
-                                  `collector-test-coverage SHARDS= SHARD=`,
-                                  tool/test_shard.py, split by file and size;
-                                  matrix `shard`: add a number for more),
+                                  `collector-test-coverage` with TEST_FILES;
+                                  how many and which files: job `plan`,
+                                  `tool/test_shard.py plan`, about 40 s of
+                                  tests each, at most 8, each file weighed
+                                  by its time in the last run's artifact
+                                  `test-times` (this repo's runs only;
+                                  bytes without one); `check` writes it),
                                   smoke (`make app-smoke`, offline Chrome
                                   flow) and collector-db (migrations,
                                   `lint-scripts`, `collector-lint`,
@@ -253,7 +257,7 @@ Makefile    All commands (`make help`)
 ```
 make check                     analyze + test app and collector, test tool/ (before every commit)
 make coverage / duplication    coverage floors (runs the tests; app-coverage / collector-coverage
-                               one side; CI runs them in shards, SHARDS=n SHARD=i) and
+                               one side; CI runs them in shards: TEST_FILES, or SHARDS=n SHARD=i) and
                                copy-paste check (also in CI)
 make lint-scripts              actionlint on the workflows, shellcheck on tool/*.sh (also in CI)
 make dead-code                 unused code and files in the app (dart_code_linter; also in CI)
