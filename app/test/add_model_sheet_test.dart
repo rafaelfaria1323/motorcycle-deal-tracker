@@ -5,9 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/app/theme/app_theme.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/site_model.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/repositories/catalog_repository.dart';
+import 'package:motorcycle_deal_tracker/core/widgets/searchable_picker.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/add_model_sheet.dart';
 
 import '../integration_test/support/interface_fixture.dart';
+
 import 'package:motorcycle_deal_tracker/core/localization/localizations.dart';
 
 class _Catalog extends Fake implements CatalogRepository {
@@ -59,22 +61,20 @@ void main() {
         supportedLocales: appLocales,
         theme: AppTheme.light,
         builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(
-            context,
-          ).copyWith(textScaler: TextScaler.linear(textScale)),
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: TextScaler.linear(textScale)),
           child: child!,
         ),
         home: Scaffold(
           body: Builder(
             builder: (context) => TextButton(
-              onPressed: () async =>
-                  onResult(
-                    await showAddModelSheet(
-                      context,
-                      repository,
-                      forValue: forValue,
-                    ),
-                  ),
+              onPressed: () async => onResult(
+                await showAddModelSheet(
+                  context,
+                  repository,
+                  forValue: forValue,
+                ),
+              ),
               child: const Text('Abrir'),
             ),
           ),
@@ -103,7 +103,7 @@ void main() {
   }
 
   Future<void> pickBrand(WidgetTester tester) async {
-    await tester.tap(find.byType(DropdownMenu<SiteMake>));
+    await tester.tap(find.byType(SearchablePickerField<SiteMake>));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Honda').last);
     await tester.pumpAndSettle();
@@ -115,7 +115,7 @@ void main() {
     NewModel? result;
     await open(tester, _Catalog(), (value) => result = value);
     await pickBrand(tester);
-    await tester.tap(find.byType(DropdownMenu<SiteModel>));
+    await tester.tap(find.byType(SearchablePickerField<SiteModel>));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Forza').last);
     await tester.pumpAndSettle();
@@ -137,6 +137,48 @@ void main() {
       'https://www.standvirtual.com/motos/honda/forza/q-350',
     );
     expect(result?.minYear, 2022);
+  });
+
+  testWidgets('the open list has a search box that narrows it', (tester) async {
+    await open(
+      tester,
+      _Catalog()
+        ..makes = const [
+          SiteMake(id: 'yamaha', name: 'Yamaha', ads: 400),
+          SiteMake(id: 'bmw', name: 'BMW', ads: 549),
+          SiteMake(id: 'honda', name: 'Honda', ads: 32),
+        ],
+      (_) {},
+    );
+    await tester.tap(find.byType(SearchablePickerField<SiteMake>));
+    await tester.pumpAndSettle();
+
+    final dialog = find.byType(AlertDialog);
+    final names = find.descendant(of: dialog, matching: find.byType(ListTile));
+    expect(
+      [
+        for (final tile in tester.widgetList<ListTile>(names))
+          (tile.title! as Text).data,
+      ],
+      ['BMW', 'Honda', 'Yamaha'],
+    );
+    await tester.enterText(
+      find.descendant(of: dialog, matching: find.byType(TextField)),
+      'ya',
+    );
+    await tester.pump();
+    expect(names, findsOneWidget);
+    expect(
+      find.descendant(of: dialog, matching: find.text('Yamaha')),
+      findsOneWidget,
+    );
+
+    await tester.enterText(
+      find.descendant(of: dialog, matching: find.byType(TextField)),
+      'ducati',
+    );
+    await tester.pump();
+    expect(find.text('Nada encontrado'), findsOneWidget);
   });
 
   testWidgets('manual names need no copied addresses or aliases', (
