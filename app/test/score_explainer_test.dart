@@ -243,7 +243,7 @@ void main() {
     )!.lines;
     final line = lines.firstWhere((l) => l.text.startsWith('Quase nova'));
     expect(line.tone, ExplanationTone.positive);
-    expect(line.text, contains('12,1 %'));
+    expect(line.text, contains('12 %'));
     expect(line.text, contains(Formatters.price(8250)));
   });
 
