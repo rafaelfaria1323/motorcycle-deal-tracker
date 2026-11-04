@@ -623,7 +623,9 @@ invites; written by the collector on each run).
   another search of that site was read in full, and the run still
   finished; it counts as ok unless the run before also failed on the
   same site ("falhou duas vezes seguidas"), its GitHub job stays green with
-  a warning, and the app shows it as "Incompleta". It also stores `problems` (`runProblems`, runs not
+  a warning, and the app shows it as "Incompleta". A refresh that got to
+  "== all sites ==" without any site section failed, whatever its exit
+  code (`readNoSite`, N.47). It also stores `problems` (`runProblems`, runs not
   ok), `sites` (each fetch state file's `report()`: requests today,
   paused until), `searches` (`searchesRead`: per search the pages it
   spans and the pages read, from `searches.json`'s `pages`, the ads found,

@@ -6,6 +6,38 @@ void main() {
     expect(runStatus(0, 'Stopped, the site pushed back'), 'ok');
   });
 
+  group('a refresh that read no site', () {
+    // The scheduled runs of 31 October to 4 November 2026.
+    const noSite =
+        'Reading: light\n'
+        'cd collector && dart run bin/refresh.dart --full --light\n'
+        '== all sites ==\n'
+        'Duplicates flagged: 8\n'
+        'Scored 304 listing(s) in 2146 ms.\n'
+        'Alerts created: 0\n'
+        'Notifications sent: 0 (0 to devices)\n'
+        'Refresh finished in 7 s.\n';
+
+    test('failed, even with exit code 0', () {
+      expect(runStatus(0, noSite), 'failed');
+      expect(runStatus(2, noSite), 'failed');
+    });
+
+    test('a site skipped for want of tracked models was still tried', () {
+      const skipped =
+          '== standvirtual ==\n'
+          'No tracked model has a standvirtual search, skipped.\n'
+          '(standvirtual done at 1 s)\n'
+          '== all sites ==\n'
+          'Notifications sent: 0 (0 to devices)\n';
+      expect(runStatus(0, skipped), 'ok');
+    });
+
+    test('a log without the refresh sections is judged as before', () {
+      expect(runStatus(0, 'Notifications sent: 0 (0 to devices)'), 'ok');
+    });
+  });
+
   test('a push-back or a pause is a block', () {
     expect(runStatus(2, 'Stopped, the site pushed back: HTTP 429'), 'blocked');
     expect(runStatus(2, 'Not fetched: paused until 2026-10-20'), 'blocked');

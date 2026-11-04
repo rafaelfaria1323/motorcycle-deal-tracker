@@ -82,10 +82,34 @@ const noLogProblem =
     'No run log: the job stopped before the collector started '
     '(see the GitHub run).';
 
+/// The problem of a refresh that got to its end (`== all sites ==`)
+/// without reading any site: nothing was fetched, so the run is not ok
+/// whatever its exit code (refresh.dart once read no site when started
+/// without `--site`, 31 October to 4 November 2026, and every run said ok).
+const noSiteProblem =
+    'No site was read: the refresh reached its end without any site '
+    '(see the GitHub run).';
+
+/// Whether [log] is a refresh that read no site ([noSiteProblem]): its
+/// `== all sites ==` line with no site section before it. A site skipped
+/// because no tracked model has a search still has its section.
+bool readNoSite(String log) {
+  final sections = [
+    for (final m in RegExp(
+      r'^\s*== (.+) ==\s*$',
+      multiLine: true,
+    ).allMatches(log))
+      m.group(1)!,
+  ];
+  return sections.contains('all sites') &&
+      sections.every((name) => name == 'all sites');
+}
+
 /// What went wrong in a run, from refresh.dart's error lines, each with the
 /// site it happened on (`standvirtual: Failed: …`). Without any, the last
 /// line that is not make's own (an error before the sites started); with
-/// no log at all, [noLogProblem]. At most [max] lines, each cut to
+/// no log at all, [noLogProblem]; a refresh that read no site starts with
+/// [noSiteProblem]. At most [max] lines, each cut to
 /// [maxChars].
 List<String> runProblems(String log, {int max = 5, int maxChars = 200}) {
   final lines = log.split('\n').map((l) => l.trim()).where((l) => l != '');
@@ -101,6 +125,7 @@ List<String> runProblems(String log, {int max = 5, int maxChars = 200}) {
       problems.add(site == null ? line : '$site: $line');
     }
   }
+  if (readNoSite(log)) problems.insert(0, noSiteProblem);
   if (problems.isEmpty) {
     final last = lines.lastWhere(
       (l) => !l.startsWith('make') && !l.startsWith('Refresh finished'),
