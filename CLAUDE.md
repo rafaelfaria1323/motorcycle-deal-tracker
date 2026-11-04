@@ -373,10 +373,9 @@ invites; written by the collector on each run).
   `ListingCardPreferencesCubit` loads on first use and follows
   `SessionCubit`'s user id itself: a different account or sign-out resets
   the cards at once, ignoring earlier in-flight loads and saves.
-- Routing: go_router `StatefulShellRoute` (Ofertas / Favoritos / Alertas /
-  Mais; F.9). Pesquisas (`/searches`) is Alertas' second part, a route of
-  the same branch, switched in place by `AlertsSegments` (no transition);
-  a tap on the Alertas tab always opens the alerts (its badge). Account, "Modelos acompanhados" and collection status live in Mais,
+- Routing: go_router `StatefulShellRoute` (Ofertas / Favoritos / Pesquisas
+  / Alertas / Mais; F.9, F.12: Pesquisas inside Alertas was hard to find,
+  so it is its own tab again; Alertas carries the unread badge). Account, "Modelos acompanhados" and collection status live in Mais,
   in sections (Conta, Pessoal, Ferramentas, Notificações, A app, Recolha
   de dados) plus "Administração" for admins only (`AdminTiles`; `MorePage`
   asks `isAdmin()` once per account). Recolha de dados is one line for

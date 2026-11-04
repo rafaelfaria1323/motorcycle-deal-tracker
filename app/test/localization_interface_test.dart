@@ -86,13 +86,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('What changed'), findsOneWidget);
     expect(find.byTooltip('Mark all as read'), findsOneWidget);
-    // Searches is Alerts' second part (F.9).
-    await tester.tap(
-      find.descendant(
-        of: find.byType(SegmentedButton<bool>),
-        matching: find.text('Searches'),
-      ),
-    );
+    await tester.tap(find.widgetWithText(NavigationDestination, 'Searches'));
     await tester.pumpAndSettle();
     expect(find.text('Your searches'), findsOneWidget);
     expect(find.text('New search'), findsOneWidget);

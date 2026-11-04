@@ -1314,7 +1314,7 @@ void main() {
       size: const Size(320, 720),
       textScale: 2,
     );
-    // The alerts' own list, below the Alertas / Pesquisas segments (F.9).
+    // The alerts' own list.
     final list = find
         .descendant(
           of: find.byType(AlertsPage),
@@ -1435,21 +1435,14 @@ void main() {
     expect(find.byType(FavouritesPage), findsOneWidget);
     expect(find.byType(BackButton), findsNothing);
 
-    // Pesquisas is Alertas' second part (F.9).
+    // Pesquisas has its own tab (F.12).
     await tester.tap(
       find
           .descendant(
             of: find.byType(NavigationBar),
-            matching: find.text('Alertas'),
+            matching: find.text('Pesquisas'),
           )
           .last,
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(
-      find.descendant(
-        of: find.byType(SegmentedButton<bool>),
-        matching: find.text('Pesquisas'),
-      ),
     );
     await tester.pumpAndSettle();
     expect(find.text('As suas pesquisas'), findsOneWidget);

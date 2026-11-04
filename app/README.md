@@ -143,8 +143,8 @@ Screen names below use the Portuguese labels; English provides the same screens.
     questions the ad leaves open, optionally with the suggested offer; one
     tap copies it), "Para a visita" for favourites (12 points to check when
     seeing the bike, each "Está bem" or "Problema" with a note).
-- **Pesquisas** (Alertas' second part, "Alertas | Pesquisas" at the top
-  of the tab: searches exist to make alerts): saved searches, each with its criteria, configured alert
+- **Pesquisas** (its own tab, between Favoritos and Alertas; F.12):
+  saved searches, each with its criteria, configured alert
   types and "N anúncios encontrados". Tap the card to apply it; the
   options menu edits or deletes it; swipe right to edit, left to confirm
   deletion. "Nova pesquisa" creates one (Ofertas
@@ -228,7 +228,7 @@ accounts. "Partilhar a app" sends the app's link to anyone.
 ## Code layout
 
 ```text
-lib/app/        App widget, theme, router (go_router, one shell with 4 tabs; ads and their
+lib/app/        App widget, theme, router (go_router, one shell with 5 tabs; ads and their
                 photos above it, pushed), DI (get_it)
 lib/core/       Formatting, shared widgets
 lib/l10n/       Portuguese/English ARB catalogs; ignored generated localizations
@@ -243,7 +243,7 @@ integration_test/  offline browser smoke and shared in-memory interface fixtures
 test_driver/    Flutter browser integration driver
 ```
 
-The four tabs share editorial headings (`core/widgets/page_intro.dart`).
+The five tabs share editorial headings (`core/widgets/page_intro.dart`).
 A compact wordmark with the app logo (`app_brand.dart`,
 `assets/brand/app_logo.png`) anchors Ofertas and the
 desktop navigation. Bottom navigation on

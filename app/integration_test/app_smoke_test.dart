@@ -29,17 +29,8 @@ Future<void> _tab(WidgetTester tester, String label) async {
   await tester.pumpAndSettle();
 }
 
-/// Pesquisas, the second part of the Alertas tab (F.9).
-Future<void> _searches(WidgetTester tester) async {
-  await _tab(tester, 'Alertas');
-  await tester.tap(
-    find.descendant(
-      of: find.byType(SegmentedButton<bool>),
-      matching: find.text('Pesquisas'),
-    ),
-  );
-  await tester.pumpAndSettle();
-}
+/// Pesquisas, its own tab (F.12).
+Future<void> _searches(WidgetTester tester) => _tab(tester, 'Pesquisas');
 
 Future<void> _backTo(WidgetTester tester, String location) async {
   await tester.tap(find.byType(BackButton));
