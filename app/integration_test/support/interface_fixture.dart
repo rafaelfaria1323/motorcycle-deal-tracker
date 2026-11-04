@@ -230,23 +230,21 @@ class InterfaceFixture {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: AppRoutes.alerts,
-                pageBuilder: (_, state) => NoTransitionPage<void>(
-                  key: state.pageKey,
-                  child: BlocProvider.value(
-                    value: alerts,
-                    child: const AlertsPage(),
-                  ),
+                path: AppRoutes.searches,
+                builder: (_, _) => BlocProvider.value(
+                  value: searches,
+                  child: const SavedSearchesPage(),
                 ),
               ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
               GoRoute(
-                path: AppRoutes.searches,
-                pageBuilder: (_, state) => NoTransitionPage<void>(
-                  key: state.pageKey,
-                  child: BlocProvider.value(
-                    value: searches,
-                    child: const SavedSearchesPage(),
-                  ),
+                path: AppRoutes.alerts,
+                builder: (_, _) => BlocProvider.value(
+                  value: alerts,
+                  child: const AlertsPage(),
                 ),
               ),
             ],

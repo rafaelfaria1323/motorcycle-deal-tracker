@@ -16,7 +16,6 @@ import '../../../listings/presentation/cubit/listings_cubit.dart';
 import '../cubit/saved_searches_cubit.dart';
 import '../cubit/saved_searches_state.dart';
 import '../saved_search_summary.dart';
-import '../../../alerts/presentation/widgets/alerts_segments.dart';
 import '../widgets/delete_saved_search_dialog.dart';
 import '../widgets/edit_saved_search_sheet.dart';
 import '../../../../core/localization/localizations.dart';
@@ -82,8 +81,7 @@ class const SavedSearchesPage({super.key}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Pesquisas is a part of the Alertas tab (F.9).
-      appBar: AppBar(title: Text(context.strings.alerts)),
+      appBar: AppBar(title: Text(context.strings.searches)),
       floatingActionButton: BlocBuilder<SavedSearchesCubit, SavedSearchesState>(
         buildWhen: (previous, current) =>
             previous.status != current.status ||
@@ -99,71 +97,68 @@ class const SavedSearchesPage({super.key}) extends StatelessWidget {
               )
             : const SizedBox.shrink(),
       ),
-      body: AlertsSegments(
-        searches: true,
-        child: BlocBuilder<SavedSearchesCubit, SavedSearchesState>(
-          builder: (context, state) {
-            switch (state.status) {
-              case .initial:
-              case .loading:
-                return const Center(child: CircularProgressIndicator());
-              case .failure:
+      body: BlocBuilder<SavedSearchesCubit, SavedSearchesState>(
+        builder: (context, state) {
+          switch (state.status) {
+            case .initial:
+            case .loading:
+              return const Center(child: CircularProgressIndicator());
+            case .failure:
+              return StateMessage(
+                icon: Icons.cloud_off,
+                title: context.strings.couldNotLoadSearches,
+                message: context.strings.checkYourConnectionAndTryAgain,
+                actionLabel: context.strings.retry,
+                onAction: () => context.read<SavedSearchesCubit>().load(),
+              );
+            case .success:
+              if (state.searches.isEmpty) {
                 return StateMessage(
-                  icon: Icons.cloud_off,
-                  title: context.strings.couldNotLoadSearches,
-                  message: context.strings.checkYourConnectionAndTryAgain,
-                  actionLabel: context.strings.retry,
-                  onAction: () => context.read<SavedSearchesCubit>().load(),
+                  icon: Icons.bookmark_border,
+                  title: context.strings.youHaveNoSavedSearchesYet,
+                  message: context.strings.createSearchAndWeWillLetYouKnow,
+                  actionLabel: context.strings.newSearch,
+                  onAction: () => _create(context, state.motorcycles),
                 );
-              case .success:
-                if (state.searches.isEmpty) {
-                  return StateMessage(
-                    icon: Icons.bookmark_border,
-                    title: context.strings.youHaveNoSavedSearchesYet,
-                    message: context.strings.createSearchAndWeWillLetYouKnow,
-                    actionLabel: context.strings.newSearch,
-                    onAction: () => _create(context, state.motorcycles),
-                  );
-                }
-                return Align(
-                  alignment: Alignment.topCenter,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 800),
-                    child: ListView(
-                      // Room at the end so the button never covers a search.
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 104),
-                      children: [
-                        PageIntro(
-                          eyebrow: context.strings.savedSearches,
-                          title: context.strings.yourSearches,
-                          description: context.strings.searchesIntro,
-                        ),
-                        const SizedBox(height: 28),
-                        for (final search in state.searches)
-                          _SearchCard(
-                            key: ValueKey(search.id),
-                            search: search,
-                            summary: summarizeFilters(
-                              search.filters,
-                              state.motorcycles,
-                              language: context.language,
-                            ),
-                            matches: state.matchCounts[search.id] ?? 0,
-                            onTap: () => _apply(context, search),
-                            onEdit: () => editSavedSearch(
-                              context,
-                              search: search,
-                              cubit: context.read<SavedSearchesCubit>(),
-                            ),
-                            onDelete: () => _delete(context, search),
+              }
+              return Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 800),
+                  child: ListView(
+                    // Room at the end so the button never covers a search.
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 104),
+                    children: [
+                      PageIntro(
+                        eyebrow: context.strings.savedSearches,
+                        title: context.strings.yourSearches,
+                        description: context.strings.searchesIntro,
+                      ),
+                      const SizedBox(height: 28),
+                      for (final search in state.searches)
+                        _SearchCard(
+                          key: ValueKey(search.id),
+                          search: search,
+                          summary: summarizeFilters(
+                            search.filters,
+                            state.motorcycles,
+                            language: context.language,
                           ),
-                      ],
-                    ),
+                          matches: state.matchCounts[search.id] ?? 0,
+                          onTap: () => _apply(context, search),
+                          onEdit: () => editSavedSearch(
+                            context,
+                            search: search,
+                            cubit: context.read<SavedSearchesCubit>(),
+                          ),
+                          onDelete: () => _delete(context, search),
+                        ),
+                    ],
                   ),
-                );
-            }
-          },
-        ),
+                ),
+              );
+          }
+        },
       ),
     );
   }

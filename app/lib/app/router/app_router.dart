@@ -116,28 +116,26 @@ final appRouter = GoRouter(
             ),
           ],
         ),
-        // Alertas and its second part, Pesquisas (F.9): two addresses in
-        // one tab, switched in place by AlertsSegments without a slide.
+        // Pesquisas has its own tab again (F.12): as a part of Alertas
+        // (F.9) people could not find it.
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: AppRoutes.searches,
+              builder: (context, state) => BlocProvider.value(
+                value: getIt<SavedSearchesCubit>()..load(),
+                child: const SavedSearchesPage(),
+              ),
+            ),
+          ],
+        ),
         StatefulShellBranch(
           routes: [
             GoRoute(
               path: AppRoutes.alerts,
-              pageBuilder: (context, state) => NoTransitionPage<void>(
-                key: state.pageKey,
-                child: BlocProvider.value(
-                  value: getIt<AlertsCubit>()..load(),
-                  child: const AlertsPage(),
-                ),
-              ),
-            ),
-            GoRoute(
-              path: AppRoutes.searches,
-              pageBuilder: (context, state) => NoTransitionPage<void>(
-                key: state.pageKey,
-                child: BlocProvider.value(
-                  value: getIt<SavedSearchesCubit>()..load(),
-                  child: const SavedSearchesPage(),
-                ),
+              builder: (context, state) => BlocProvider.value(
+                value: getIt<AlertsCubit>()..load(),
+                child: const AlertsPage(),
               ),
             ),
           ],
