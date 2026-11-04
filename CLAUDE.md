@@ -957,6 +957,12 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   registration 100 €, plates 30 €) + transport (Spain 350, France 550,
   Germany 700 €, or a quote), against `conditionEstimate`; a bike of this
   year or the last with 6 000 km or less warns of VAT paid here.
+  Nearly new (N.51): a bike of 2 years or less from mid-year with at
+  most half the normal mileage (`mileage_use_score` = 100) and no damage
+  in the text is also priced against `new_price_reference` (same 2.5
+  points per %); the price slice takes the better (breakdown `new_price`,
+  `pct_below_new`, `price_from_new`), also without comparables. Only
+  the slice: fair value, offer and risk signals stay on the market.
   Price score (2.5 points per %: 0 / 100 at 20 % above / below) and the
   risk's price signal need >= 3 comparables; so does the app's offer.
 - Deal score = weighted average of the available slices: price 35,
