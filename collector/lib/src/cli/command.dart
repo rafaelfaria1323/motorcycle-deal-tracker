@@ -117,3 +117,14 @@ int? intOption(ArgResults results, String name) =>
       final String text => int.parse(text),
       null => null,
     };
+
+/// The sites named by a repeatable `--site` option, in the order given;
+/// every site ([FetchSite.byName]'s order) when none is named, as the
+/// scheduled collection asks. An empty list would read nothing and
+/// still record the run as ok.
+List<FetchSite> sitesToRead(List<String> names) => [
+  if (names.isEmpty)
+    ...FetchSite.byName.values
+  else
+    for (final name in names) FetchSite.byName[name]!,
+];

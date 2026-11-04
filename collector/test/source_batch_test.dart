@@ -22,6 +22,15 @@ const b = 'https://www.standvirtual.com/motos/yamaha/r/q-7';
 const both = SearchManifest(planned: [a, b], files: {'a.html': a, 'b.html': b});
 
 void main() {
+  test('the kinds of input collector.dart reads (the Makefile\'s SOURCE)', () {
+    expect(sourceKinds, [
+      'manual',
+      'standvirtual',
+      'standvirtual-search',
+      'olx-search',
+    ]);
+  });
+
   test('a rejected bike still on the site counts as seen', () {
     final ids = liveIds(
       batch([

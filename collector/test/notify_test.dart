@@ -148,6 +148,7 @@ void main() {
     ));
     expect(store.notified, ['a', 'b']);
     expect(store.limits, [pendingPerRun]);
+    expect(pendingPerRun, 200, reason: 'up to 200 alerts a run');
     expect(store.times, [
       _now,
     ], reason: "quiet hours are judged at the run's time");

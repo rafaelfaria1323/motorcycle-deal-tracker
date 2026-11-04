@@ -186,6 +186,16 @@ void main() {
       expect(runProblems('\n  \n'), [noLogProblem]);
     });
 
+    test('a refresh that read no site says so first', () {
+      const log =
+          '== all sites ==\n'
+          'Notifications sent: 0 (0 to devices)\n'
+          'Refresh finished in 7 s.\n';
+      expect(runProblems(log), [noSiteProblem]);
+      expect(readNoSite('== olx ==\n== all sites ==\n'), isFalse);
+      expect(readNoSite('Notifications sent: 0\n'), isFalse);
+    });
+
     test('read issues keep their site and cause after a partial import', () {
       const log =
           '== olx ==\n'

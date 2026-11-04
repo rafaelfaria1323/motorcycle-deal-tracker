@@ -16,7 +16,9 @@ import '../notify/run_health.dart';
 /// same site was read in full: its search removes nothing, and a site
 /// whose pages all fail that way still fails. The admins hear of it only
 /// when the same site fails again in the next run (runHealthMessage).
+/// A refresh that read no site (`readNoSite`) failed, even with exit code 0.
 String runStatus(int exitCode, String log) {
+  if (readNoSite(log)) return 'failed';
   if (exitCode == 0) return 'ok';
   const blockedMarks = ['the site pushed back', 'paused until'];
   if (blockedMarks.any(log.contains)) return 'blocked';

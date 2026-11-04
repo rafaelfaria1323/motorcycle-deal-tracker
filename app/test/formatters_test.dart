@@ -108,6 +108,18 @@ void main() {
     },
   );
 
+  test('price entry keeps a leading sign in both languages', () {
+    for (final language in AppLanguage.values) {
+      expect(Formatters.parsePrice('+500', language: language), 500);
+      expect(Formatters.parsePrice('-500', language: language), -500);
+    }
+  });
+
+  test('a date later than now (clock skew) reads as today', () {
+    final now = DateTime(2026, 10, 19, 12);
+    expect(Formatters.daysAgo(DateTime(2026, 10, 21, 12), now: now), 'hoje');
+  });
+
   test('calendar days count local days, not 24-hour spans', () {
     // Late evening to just after midnight: the next day.
     expect(

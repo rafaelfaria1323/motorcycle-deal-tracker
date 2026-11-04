@@ -53,11 +53,13 @@ String searchPage(
   String? bumpDate,
   Map<String, dynamic>? filters,
   List<Map<String, dynamic>> topAds = const [],
+  bool withPageSize = true,
+  List<Map<String, dynamic>> rawEdges = const [],
 }) {
   final search = {
     'advertSearch': {
       'totalCount': total ?? nodes.length,
-      'pageInfo': {'pageSize': 32, 'currentOffset': offset},
+      'pageInfo': {if (withPageSize) 'pageSize': 32, 'currentOffset': offset},
       'topads': [
         for (final n in topAds) {'node': n},
       ],
@@ -67,6 +69,7 @@ String searchPage(
             'vas': {'bumpDate': bumpDate},
             'node': n,
           },
+        ...rawEdges,
       ],
     },
   };
@@ -526,5 +529,91 @@ void main() {
         expect(removalPlan(batch).searches, isNull);
       },
     );
+  });
+
+  group('a page\'s count of pages', () {
+    StandvirtualSearchPage counted(
+      int total, {
+      int offset = 0,
+      int shown = 0,
+    }) => StandvirtualSearchPage(
+      records: const [],
+      problems: const [],
+      total: total,
+      offset: offset,
+      shown: shown,
+    );
+
+    test('32 results a page unless the site says otherwise', () {
+      expect(counted(32).totalPages, 1);
+      expect(counted(33).totalPages, 2);
+      expect(counted(64).totalPages, 2);
+    });
+
+    test('a search with no results (or a nonsense count) is one page', () {
+      expect(counted(0).totalPages, 1);
+      expect(counted(-1).totalPages, 1);
+    });
+
+    test('a last page past a count that fell is still complete', () {
+      expect(counted(33, offset: 32, shown: 5).isComplete, isTrue);
+      expect(counted(33, shown: 32).isComplete, isFalse);
+    });
+
+    test('a page that doesn\'t give its size holds 32', () {
+      final page = adapter.parseSearchPage(
+        searchPage([node()], total: 40, withPageSize: false),
+      );
+
+      expect(page.pageSize, 32);
+      expect(page.totalPages, 2);
+    });
+  });
+
+  test('results without data, id or url are problems, the rest read', () {
+    final page = adapter.parseSearchPage(
+      searchPage(
+        [
+          node(),
+          {...node(id: '2'), 'url': null},
+          {...node(), 'id': ''},
+        ],
+        rawEdges: [
+          {'vas': null, 'node': null},
+        ],
+      ),
+    );
+
+    expect(page.records.map((r) => r.id), ['1']);
+    expect(page.problems, [
+      'a result has no id or url',
+      'a result has no id or url',
+      'a result had no data',
+    ]);
+  });
+
+  test('the place: the town, else the district, else the long town', () {
+    String? at(String? city, String? region) => adapter
+        .parseSearchPage(
+          searchPage([
+            {
+              ...node(),
+              'location': {
+                'city': {'name': city},
+                'region': {'name': region},
+              },
+            },
+          ]),
+        )
+        .records
+        .single
+        .location;
+
+    expect(at('Viseu', 'Viseu'), 'Viseu');
+    expect(at('', 'Santarém'), 'Santarém');
+    expect(at('Abrantes, Alferrarede', ''), 'Abrantes, Alferrarede');
+    expect(at('Abrantes, Alferrarede', null), 'Abrantes, Alferrarede');
+    expect(at('', ''), isNull);
+    expect(at(null, null), isNull);
   });
 }

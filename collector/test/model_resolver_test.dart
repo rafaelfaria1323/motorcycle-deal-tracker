@@ -108,6 +108,9 @@ void main() {
       ('Yamaha', 'yzf', 'YZF-R7 [2024]'): 'yamaha-r7',
       ('Yamaha', 'yzf', 'yzf r125 2025'): null,
       ('Honda', 'cb', 'CB125R 2024 - 7000kms APENAS'): 'honda-cb125r',
+      // Without the closing R, after a digit other than 0 or 9.
+      ('Honda', 'cb', 'CB 125 de 2024'): 'honda-cb125r',
+      ('Honda', 'cbr', 'CBR 500 2024'): 'honda-cbr500r',
       ('Honda', 'cb', 'cb125 f , de 2024'): null,
       ('Honda', 'cb', 'CB 125f 2023 Preta'): null,
       ('Honda', 'cb', 'CB300r 2023'): 'honda-cb300r',

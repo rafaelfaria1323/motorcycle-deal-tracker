@@ -53,7 +53,10 @@ void main() {
   test('rejects years below the tracked range or out of range', () {
     final low = mapper.map(_raw(year: 2024));
     expect(low, isA<Rejected>());
-    expect((low as Rejected).reason, contains('below'));
+    expect(
+      (low as Rejected).reason,
+      'year 2024 is below the tracked range (2026+ for Yamaha R7)',
+    );
 
     final old = mapper.map(_raw(year: 1970));
     expect((old as Rejected).reason, contains('out of range'));
@@ -106,7 +109,10 @@ void main() {
     );
 
     expect(m.listing.images, ['https://example.com/1.jpg']);
-    expect(m.warnings.single, contains('image'));
+    expect(
+      m.warnings.single,
+      '2 image link(s) dropped (invalid or duplicated)',
+    );
   });
 
   test('derives the source and id from the url', () {

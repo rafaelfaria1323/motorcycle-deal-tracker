@@ -549,4 +549,47 @@ void main() {
       },
     );
   });
+
+  test('a result without an id or url is a read problem, the rest read', () {
+    final page = adapter.parseSearchPage(
+      searchPage([
+        ad(),
+        {...ad(id: 2), 'url': null},
+        {...ad(id: 3), 'id': ''},
+      ]),
+    );
+
+    expect(page.records.map((r) => r.id), ['1']);
+    expect(page.problems, [
+      'a result has no id or url',
+      'a result has no id or url',
+    ]);
+  });
+
+  test('the place is the town, else the district, else none', () {
+    OlxRawListing at(Object? city, Object? region) => one({
+      ...ad(),
+      'location': {'cityName': city, 'regionName': region},
+    });
+
+    expect(at('Fafe', 'Braga').location, 'Fafe');
+    expect(at('', 'Braga').location, 'Braga');
+    expect(at(null, 'Braga').location, 'Braga');
+    expect(at('', '').location, isNull);
+    expect(at(null, null).location, isNull);
+  });
+
+  test('the photos are kept, links only', () {
+    expect(
+      one({
+        ...ad(),
+        'photos': [
+          'https://img.example.com/a.jpg',
+          7,
+          'https://img.example.com/b.jpg',
+        ],
+      }).images,
+      ['https://img.example.com/a.jpg', 'https://img.example.com/b.jpg'],
+    );
+  });
 }

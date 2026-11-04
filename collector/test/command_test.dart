@@ -202,4 +202,18 @@ void main() {
       expect(out.toString(), allOf(contains('Usage: test'), contains('--max')));
     });
   });
+
+  group('sitesToRead', () {
+    test('every site when none is named, as the scheduled run asks', () {
+      expect(sitesToRead([]), [FetchSite.standvirtual, FetchSite.olx]);
+    });
+
+    test('only the sites named, in their order', () {
+      expect(sitesToRead(['olx']), [FetchSite.olx]);
+      expect(sitesToRead(['olx', 'standvirtual']), [
+        FetchSite.olx,
+        FetchSite.standvirtual,
+      ]);
+    });
+  });
 }
