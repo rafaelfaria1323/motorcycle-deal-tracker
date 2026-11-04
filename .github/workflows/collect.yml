@@ -125,8 +125,12 @@ jobs:
           ficou por ler por uma falha passageira (ver run.log); a próxima
           recolha volta a ler."
 
+      # Also a run recorded as failed with exit code 0: a refresh that
+      # read no site (readNoSite, N.47).
       - name: Fail the job if the refresh failed
-        if: steps.refresh.outputs.code != '0' && steps.record.outputs.status != 'partial'
+        if: >-
+          (steps.refresh.outputs.code != '0' && steps.record.outputs.status != 'partial')
+          || steps.record.outputs.status == 'failed'
         run: exit 1
 
   # Photo fingerprints (P.1), damage hints (P.2) and full examinations

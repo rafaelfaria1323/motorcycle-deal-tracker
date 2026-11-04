@@ -50,9 +50,7 @@ Future<void> main(List<String> args) async {
   final light = options.flag('light');
   final force = options.flag('force');
   final enrichMax = intOption(options, 'enrich-max'); // null: all waiting
-  final sites = [
-    for (final name in options.multiOption('site')) FetchSite.byName[name]!,
-  ];
+  final sites = sitesToRead(options.multiOption('site'));
   final watch = Stopwatch()..start();
   // Before the catalog is read: a valuation's model collected from before
   // now is in this run's searches.
