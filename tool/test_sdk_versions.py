@@ -75,7 +75,10 @@ class SdkVersionsTest(unittest.TestCase):
         self.assertIn("dart run bin/report_run.dart", job)
         self.assertNotIn("subosito/flutter-action", job)
         self.assertNotIn("  collector-setup:\n", text)
-        self.assertIn("needs: [app, smoke, collector-db]", text)
+        tests = text.split("  collector-test:\n", 1)[1].split("\n  collector-db:", 1)[0]
+        self.assertIn("uses: ./.github/actions/collector", tests)
+        self.assertNotIn("subosito/flutter-action", tests)
+        self.assertIn("needs: [app, app-test, smoke, collector-test, collector-db]", text)
 
 
 if __name__ == "__main__":

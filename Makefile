@@ -3,6 +3,7 @@
         collector-get collector-lint collector-check collect-dry collect \
         db-push db-new db-test sql-lint schema check tool-check lint-scripts format clean mutation \
         coverage app-coverage collector-coverage duplication dead-code \
+        app-test-coverage app-coverage-floor collector-test-coverage collector-coverage-floor \
         require-collector-env require-file
 
 # Which source the collector reads: manual (a JSON file), standvirtual
@@ -152,15 +153,36 @@ APP_LOGIC_FILES = _text\.dart$$|/domain/|/data/models/|/cubit/|/core/formatting/
 # make check: each test suite once.
 coverage: app-coverage collector-coverage ## Test coverage of app logic and collector, with floors (needs `dart pub global activate coverage`)
 
-app-coverage: ## The app's tests with coverage and its floor
-	cd app && flutter test --coverage
-	python3 tool/lcov_summary.py app/coverage/lcov.info --name app \
+app-coverage: app-test-coverage app-coverage-floor ## The app's tests with coverage and its floor
+
+collector-coverage: collector-test-coverage collector-coverage-floor ## The collector's tests with coverage and its floor (needs `dart pub global activate coverage`)
+
+# check.yml runs each suite in SHARDS parallel jobs: SHARD (0-based) picks
+# that job's test files (tool/test_shard.py, split by file and size), and
+# the floor is then taken once over every shard's lcov, merged line by
+# line (APP_LCOV / COLLECTOR_LCOV, shell globs). By default one shard:
+# every test.
+SHARDS ?= 1
+SHARD ?= 0
+APP_LCOV ?= app/coverage/lcov.info
+COLLECTOR_LCOV ?= collector/coverage/lcov.info
+
+app-test-coverage: ## The app's tests (one shard: SHARDS=n SHARD=i) with coverage, no floor
+	files=$$(python3 tool/test_shard.py app $(SHARDS) $(SHARD)) && \
+	  cd app && flutter test --coverage $$files
+
+app-coverage-floor: ## The app's coverage floor over APP_LCOV (every shard's lcov)
+	python3 tool/lcov_summary.py $(APP_LCOV) --name app \
 	  --only '$(APP_LOGIC_FILES)' --min $(APP_COVERAGE_MIN)
 
-collector-coverage: ## The collector's tests with coverage and its floor (needs `dart pub global activate coverage`)
-	cd collector && dart test --coverage=coverage && dart pub global run coverage:format_coverage \
+collector-test-coverage: ## The collector's tests (one shard: SHARDS=n SHARD=i) with coverage, no floor
+	files=$$(python3 tool/test_shard.py collector $(SHARDS) $(SHARD)) && \
+	  cd collector && dart test --coverage=coverage $$files && \
+	  dart pub global run coverage:format_coverage \
 	  --lcov --in=coverage --out=coverage/lcov.info --report-on=lib --package=.
-	python3 tool/lcov_summary.py collector/coverage/lcov.info --name collector \
+
+collector-coverage-floor: ## The collector's coverage floor over COLLECTOR_LCOV (every shard's lcov)
+	python3 tool/lcov_summary.py $(COLLECTOR_LCOV) --name collector \
 	  --min $(COLLECTOR_COVERAGE_MIN)
 
 duplication: ## Copy-pasted code above 1 % of the lines fails (jscpd, via npx)
