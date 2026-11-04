@@ -3323,6 +3323,27 @@
       }
     }
   },
+  "nearlyNewBelowNewPrice": "Quase nova: {pctText} abaixo do preço de uma nova ({price}), e é esta comparação que conta no preço",
+  "@nearlyNewBelowNewPrice": {
+    "description": "Interface text in score_explanation, explain.",
+    "placeholders": {
+      "pctText": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "nearlyNewComparedWithNewPrice": "Quase nova: o preço é comparado com o de uma nova ({price})",
+  "@nearlyNewComparedWithNewPrice": {
+    "description": "Interface text in score_explanation, explain.",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "priceNotEnoughComparables": "Ainda poucos anúncios comparáveis ({marketCount}) para estimar o valor: o preço não conta",
   "@priceNotEnoughComparables": {
     "description": "Interface text in score_explanation, explain.",

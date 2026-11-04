@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/score_explanation.dart';
 
@@ -222,6 +223,57 @@ void main() {
     expect(lines.first.tone, ExplanationTone.neutral);
     expect(lines[1].text, startsWith('Valor estimado'));
     expect(lines[2].text, contains('para a reparação'));
+  });
+
+  test('a nearly new bike says it was priced against a new one', () {
+    final lines = ScoreExplainer.explain(
+      _listing(
+        dealScore: 90,
+        price: 7250,
+        breakdown: {
+          'pct_below_market': 6.0,
+          'market_price': 7713,
+          'market_listing_count': 5,
+          'new_price': 8250,
+          'pct_below_new': 12.1,
+          'price_from_new': true,
+        },
+      ),
+      today: DateTime(2026, 12, 31),
+    )!.lines;
+    final line = lines.firstWhere((l) => l.text.startsWith('Quase nova'));
+    expect(line.tone, ExplanationTone.positive);
+    expect(line.text, contains('12,1 %'));
+    expect(line.text, contains(Formatters.price(8250)));
+  });
+
+  test('priced from a new one alone, the price still counts', () {
+    final lines = ScoreExplainer.explain(
+      _listing(
+        dealScore: 85,
+        price: 8400,
+        breakdown: {
+          'market_listing_count': 1,
+          'new_price': 8250,
+          'pct_below_new': -1.8,
+          'price_from_new': true,
+        },
+      ),
+      today: DateTime(2026, 12, 31),
+    )!.lines;
+    expect(lines.single.tone, ExplanationTone.neutral);
+    expect(lines.single.text, startsWith('Quase nova: o preço é comparado'));
+  });
+
+  test('without the flag there is no new-price line', () {
+    final lines = ScoreExplainer.explain(
+      _listing(
+        dealScore: 70,
+        price: 7250,
+        breakdown: {'new_price': 8250, 'pct_below_new': 12.1},
+      ),
+    )!.lines;
+    expect(lines.any((l) => l.text.startsWith('Quase nova')), isFalse);
   });
 
   group('mileage against the bike\'s age (5 000 km a year is normal)', () {

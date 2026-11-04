@@ -383,7 +383,30 @@ abstract final class ScoreExplainer {
         );
       }
     }
-    if (!priceScored) {
+    // Nearly new: the price was also judged against a new one's (N.51).
+    final newPrice = (data['new_price'] as num?)?.toDouble();
+    final pctBelowNew = (data['pct_below_new'] as num?)?.toDouble();
+    final fromNew = data['price_from_new'] == true;
+    if (fromNew && newPrice != null && pctBelowNew != null) {
+      final newPriceText = Formatters.price(newPrice, language: language);
+      lines.add(
+        pctBelowNew >= _priceNoticePct
+            ? ExplanationLine(
+                ExplanationTone.positive,
+                language.messages.nearlyNewBelowNewPrice(
+                  pctText: Formatters.percent(pctBelowNew, language: language),
+                  price: newPriceText,
+                ),
+              )
+            : ExplanationLine(
+                ExplanationTone.neutral,
+                language.messages.nearlyNewComparedWithNewPrice(
+                  price: newPriceText,
+                ),
+              ),
+      );
+    }
+    if (!priceScored && !fromNew) {
       lines.add(
         ExplanationLine(
           ExplanationTone.neutral,

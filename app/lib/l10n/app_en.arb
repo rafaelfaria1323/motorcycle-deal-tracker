@@ -546,6 +546,8 @@
   "priceInLineWithEstimatedValue": "Price in line with estimated value",
   "estimatedValueForThisYearAndMileageFrom": "Estimated value for this year and mileage (from comparable asking prices): {price}",
   "damagedValueWithRepairAllowance": "The listing mentions damage or repairs: the price is compared with the estimated value less {percent} for the repair ({price})",
+  "nearlyNewBelowNewPrice": "Nearly new: {pctText} below the price of a new one ({price}), and this comparison scores the price",
+  "nearlyNewComparedWithNewPrice": "Nearly new: the price is compared with a new one's ({price})",
   "priceNotEnoughComparables": "Not enough comparable listings ({marketCount}) to estimate value: price does not count",
   "withoutPriceComparisonScoreIsCappedAt70": "Without a price comparison, the score is capped at 70",
   "scoreCappedForDamage": "With damage or outstanding repairs, the score is capped at 79: the damage can't be seen in the photos, so it is never an excellent opportunity",
