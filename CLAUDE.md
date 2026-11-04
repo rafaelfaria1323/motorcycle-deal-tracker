@@ -26,7 +26,9 @@ Yamaha R7, Honda CB650R, Honda CBR650R. Available: Tracer 7, R1, R3, R9,
 CB125R, CB300R, CBR500R, CB750 Hornet, CBR600RR. Any account can add more
 from the app (it then follows them):
 brand and model picked from `site_models` (the sites' filter lists, stored
-by every import from the search pages; view `site_makes` for the brands),
+by every import from the search pages; view `site_makes` for the brands;
+both lists in name order, each opening with a search box:
+`SearchablePickerField`, `core/widgets/`, `core/formatting/name_search.dart`),
 optional engine size (name "Forza 350", Standvirtual `q-350`, engine range
 +-10 %; a model named with a size but added without one gets that size's
 range, `engine_range_from_name`), or brand and model entered by name.

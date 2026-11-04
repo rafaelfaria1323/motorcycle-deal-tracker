@@ -1,23 +1,17 @@
 import '../domain/entities/site_model.dart';
 import 'tracked_models_text.dart';
+import '../../../core/formatting/name_search.dart';
 import '../../../core/localization/localizations.dart';
 
-/// Brands with the most ads first, then by name.
-List<SiteMake> sortedMakes(List<SiteMake> makes) => [...makes]
-  ..sort((a, b) {
-    final ads = b.ads.compareTo(a.ads);
-    return ads != 0 ? ads : a.name.compareTo(b.name);
-  });
+/// Brands by name (case and accents aside, then the id).
+List<SiteMake> sortedMakes(List<SiteMake> makes) =>
+    [...makes]..sort((a, b) => compareNames(a.name, a.id, b.name, b.id));
 
-/// Standvirtual's models of a brand (it lists them all), most ads first.
-List<SiteModel> pickerModels(List<SiteModel> models) =>
-    [
-      for (final m in models)
-        if (m.source == 'standvirtual') m,
-    ]..sort((a, b) {
-      final ads = (b.ads ?? 0).compareTo(a.ads ?? 0);
-      return ads != 0 ? ads : a.name.compareTo(b.name);
-    });
+/// Standvirtual's models of a brand (it lists them all), by name.
+List<SiteModel> pickerModels(List<SiteModel> models) => [
+  for (final m in models)
+    if (m.source == 'standvirtual') m,
+]..sort((a, b) => compareNames(a.name, a.id, b.name, b.id));
 
 /// Reads the optional engine size ("350", "350 cc"); empty means every
 /// size.

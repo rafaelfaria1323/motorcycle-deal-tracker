@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../domain/entities/site_model.dart';
@@ -5,6 +7,7 @@ import '../../domain/repositories/catalog_repository.dart';
 import '../model_picker_text.dart';
 import '../tracked_models_text.dart';
 import '../../../../core/localization/localizations.dart';
+import '../../../../core/widgets/searchable_picker.dart';
 
 /// What the "add a model" form returns.
 typedef NewModel = ({
@@ -90,15 +93,14 @@ class _AddModelSheetState extends State<_AddModelSheet> {
     }
   }
 
-  Future<void> _pickMake(SiteMake? make) async {
+  Future<void> _pickMake(SiteMake make) async {
     setState(() {
       _make = make;
       _picked = null;
       _makeModels = const [];
-      _loadingModels = make != null;
+      _loadingModels = true;
       _modelsProblem = null;
     });
-    if (make == null) return;
     try {
       final models = await widget.repository.getSiteModels(make.id);
       if (mounted && _make == make) {
@@ -212,40 +214,31 @@ class _AddModelSheetState extends State<_AddModelSheet> {
     return [
       Padding(
         padding: const EdgeInsets.only(bottom: 12),
-        child: DropdownMenu<SiteMake>(
-          expandedInsets: EdgeInsets.zero,
-          label: Text(context.strings.make),
-          menuHeight: 320,
-          enableFilter: true,
-          requestFocusOnTap: true,
+        child: SearchablePickerField<SiteMake>(
+          label: context.strings.make,
+          searchHint: context.strings.searchMake,
+          items: makes,
+          itemLabel: (m) => m.name,
+          selected: _make,
           errorText: _problems['brand'],
-          initialSelection: _make,
-          onSelected: _pickMake,
-          dropdownMenuEntries: [
-            for (final m in makes) DropdownMenuEntry(value: m, label: m.name),
-          ],
+          onSelected: (m) {
+            if (m != _make) unawaited(_pickMake(m));
+          },
         ),
       ),
       Padding(
         padding: const EdgeInsets.only(bottom: 12),
-        child: DropdownMenu<SiteModel>(
-          // A new brand starts with an empty model.
-          key: ValueKey(_make?.id),
-          expandedInsets: EdgeInsets.zero,
-          label: Text(
-            _loadingModels
-                ? context.strings.loadingModels
-                : context.strings.model,
-          ),
+        child: SearchablePickerField<SiteModel>(
+          label: _loadingModels
+              ? context.strings.loadingModels
+              : context.strings.model,
+          searchHint: context.strings.searchModel,
           enabled: _make != null && models.isNotEmpty,
-          menuHeight: 320,
-          enableFilter: true,
-          requestFocusOnTap: true,
+          items: models,
+          itemLabel: (m) => m.name,
+          selected: _picked,
           errorText: _problems['model'],
           onSelected: (m) => setState(() => _picked = m),
-          dropdownMenuEntries: [
-            for (final m in models) DropdownMenuEntry(value: m, label: m.name),
-          ],
         ),
       ),
     ];

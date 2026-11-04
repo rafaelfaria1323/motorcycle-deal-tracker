@@ -168,7 +168,7 @@ Screen names below use the Portuguese labels; English provides the same screens.
   shows its distance from it), "Modelos acompanhados" (your own models: switch on/off, first
   year, favourite colours of each (listings in them are marked "Cor
   preferida", never scored), new-bike price, add models: brand and model picked from the sites'
-  lists or entered by name, with optional engine size; both OLX and
+  lists (in name order, with a search box) or entered by name, with optional engine size; both OLX and
   Standvirtual are searched automatically, without copied URLs; alternative
   model names are tucked under "Outros nomes do modelo"), "Mercado por modelo"
   (your models side by side: typical asking

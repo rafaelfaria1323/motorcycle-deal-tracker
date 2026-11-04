@@ -3735,6 +3735,18 @@
   "@loadingModels": {
     "description": "Interface text in add_model_sheet, _pickerFields."
   },
+  "searchMake": "Procurar marca",
+  "@searchMake": {
+    "description": "Interface text in searchable_picker / add_model_sheet."
+  },
+  "searchModel": "Procurar modelo",
+  "@searchModel": {
+    "description": "Interface text in searchable_picker / add_model_sheet."
+  },
+  "nothingFound": "Nada encontrado",
+  "@nothingFound": {
+    "description": "Interface text in searchable_picker / add_model_sheet."
+  },
   "chooseMakeAndModelWeSearchOLXAnd": "Escolha a marca e o modelo. Pesquisamos automaticamente no OLX e no Standvirtual.",
   "@chooseMakeAndModelWeSearchOLXAnd": {
     "description": "Interface text in add_model_sheet, build."

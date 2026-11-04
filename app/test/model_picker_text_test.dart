@@ -15,13 +15,13 @@ SiteModel olx(String id, String name) =>
     SiteModel(source: 'olx', makeId: 'honda', id: id, name: name);
 
 void main() {
-  test('brands and models with the most ads come first', () {
+  test('brands and models are in name order', () {
     final makes = sortedMakes(const [
       SiteMake(id: 'ktm', name: 'KTM', ads: 87),
       SiteMake(id: 'bmw', name: 'BMW', ads: 549),
-      SiteMake(id: 'aprilia', name: 'Aprilia', ads: 87),
+      SiteMake(id: 'aprilia', name: 'aprilia', ads: 87),
     ]);
-    expect([for (final m in makes) m.id], ['bmw', 'aprilia', 'ktm']);
+    expect([for (final m in makes) m.id], ['aprilia', 'bmw', 'ktm']);
 
     final models = pickerModels([
       sv('cb', 'CB', 52),
@@ -29,7 +29,7 @@ void main() {
       sv('forza', 'Forza', 32),
       sv('adv', 'ADV', 32),
     ]);
-    expect([for (final m in models) m.id], ['cb', 'adv', 'forza']);
+    expect([for (final m in models) m.id], ['adv', 'cb', 'forza']);
   });
 
   test('the engine size is optional', () {
