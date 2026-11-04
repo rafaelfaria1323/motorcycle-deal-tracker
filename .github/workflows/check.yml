@@ -150,6 +150,17 @@ jobs:
           flutter-version-file: .fvmrc
           cache: true
 
+      # The kernel the last smoke run on this branch (or main) compiled:
+      # flutter drive starts its debug compile from it, and the compiler
+      # checks it against the sources, so only what changed is compiled
+      # again. A new entry per run keeps the newest; Flutter's version
+      # and the packages are in the key, since a kernel holds them too.
+      - uses: actions/cache@v6
+        with:
+          path: app/build/*cache.dill.track.dill
+          key: smoke-dill-${{ hashFiles('.fvmrc', 'app/pubspec.lock') }}-${{ github.run_id }}
+          restore-keys: smoke-dill-${{ hashFiles('.fvmrc', 'app/pubspec.lock') }}-
+
       - name: make app-smoke
         run: make app-smoke
 
