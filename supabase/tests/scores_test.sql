@@ -42,7 +42,16 @@ declare
     ['escape original incluído', 'original_parts'],
     ['entrego as peças originais', 'original_parts'],
     ['pneus originais, mantém tudo de origem', ''],
-    ['pegas para o pendura', 'passenger_grips']
+    ['pegas para o pendura', 'passenger_grips'],
+    -- An MT-09 Rafael found (OLX, 2024): parts named by their maker.
+    [E'Linha completa Yoshimura Racing AT-2\nManetes Gilles Tooling\nSuporte de Matrícula Lightech\nTampas do motor GB Racing\nProteção de peseiras em Carbono\nKit gráfico 70th anniversary Yamaha\nKeyless',
+     'exhaust,levers,protection,tail_tidy'],
+    ['protecção dos pedais', 'protection'],
+    ['tampas de embraiagem em carbono', 'protection'],
+    ['tampas do motor', ''],
+    ['manetes de origem', ''],
+    ['suporte de matrícula original', ''],
+    ['porta-matrículas R&G', 'tail_tidy']
   ];
   i int;
   got text;
