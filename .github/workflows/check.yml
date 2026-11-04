@@ -241,7 +241,7 @@ jobs:
 
       # The photo model's tests need its dependencies (and onnx, to build
       # tiny models); without them they would be skipped.
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
           cache: pip
