@@ -975,8 +975,10 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   suspension, cruise control, steering damper, new tyres), at most + 3, so
   extras only break ties (never more than about a year newer), never above
   100 (all extras are still read, shown and filterable; `listing_extras`: keywords in variant/description for quickshifter,
-  exhaust, luggage, heated grips, protection (also "cogumelos"), new tyres,
-  short plate holder, tinted or sport screen, adjustable levers, bar-end
+  exhaust, luggage, heated grips, protection (also "cogumelos", engine
+  covers, heel guards), new tyres, short plate holder, tinted or sport
+  screen, adjustable levers (also by maker: "manetes Gilles", the plate
+  holder's "Lightech"), bar-end
   mirrors, phone mount/USB, alarm/tracker, steering damper, centre stand,
   cruise control, upgraded suspension, LED indicators, passenger grab
   handles, original parts included (so it can go back to stock); codes

@@ -2019,20 +2019,22 @@ CREATE FUNCTION public.listing_extras(p_variant text, p_description text) RETURN
       ('protection',
         '(crash\s*-?\s*(pads?|bars?)|\msliders?\M|cogumelos|\mprote[cç][oõ]es\M'
         '|barras?\s+de\s+prote|tank\s*-?\s*pad|grelha\s+(de\s+|do\s+)?radiador'
-        '|prote[cç][cç]?[aã]o\s+(de\s+|do\s+|da\s+|dos\s+|das\s+)?(motor|quadro|c[aá]rter|radiador|dep[oó]sito|punhos?|m[aã]os|manetes?|corrente|farol|escape)'
-        '|protetor(es)?\s+(de\s+|do\s+|da\s+|dos\s+|das\s+)?(motor|quadro|c[aá]rter|radiador|dep[oó]sito|punhos?|m[aã]os|manetes?|corrente|farol|escape))'),
+        -- engine covers and protectors by their makers
+        '|gb\s*-?\s*racing|tampas?\s+(de\s+|do\s+)?(motor|embraiagem|alternador)\s+(\w+\s+)?(carbono|prote|racing)'
+        '|prote[cç][cç]?[aã]o\s+(de\s+|do\s+|da\s+|dos\s+|das\s+)?(motor|quadro|c[aá]rter|radiador|dep[oó]sito|punhos?|m[aã]os|manetes?|corrente|farol|escape|peseiras?|calcanhar(es)?|pedais)'
+        '|protetor(es)?\s+(de\s+|do\s+|da\s+|dos\s+|das\s+)?(motor|quadro|c[aá]rter|radiador|dep[oó]sito|punhos?|m[aã]os|manetes?|corrente|farol|escape|peseiras?|calcanhar(es)?|pedais))'),
       ('new_tyres',
         '(pneus?\s+(\w+\s+){0,2}(novos?|recentes?)\M|pneus?\s+(mudad|trocad|substitu[ií]d)'
         '|(mudou|trocou|colocou|meteu)\s+pneus)'),
       ('tail_tidy',
-        '(suporte\s+curto|(suporte|porta)[\s-]*(de\s+|da\s+)?matr[ií]culas?\s+(curt|desportiv|regul[aá]v)'
+        '(suporte\s+curto|(suporte|porta)[\s-]*(de\s+|da\s+)?matr[ií]culas?\s+(\w+\s+)?(curt|desportiv|regul[aá]v|lightech|rizoma|evotech|puig|barracuda|highsider|gilles|bonamici|r\s*&\s*g\M)'
         '|matr[ií]cula\s+curta|eliminador\s+(de\s+|do\s+)?guarda[\s-]*lamas|tail\s*-?\s*tidy)'),
       ('screen',
         '((bolha|viseira|para[\s-]*brisas?|ecr[aã])\s+(\w+\s+)?'
         '(fumad|fum[eê]|escurecid|escur|desportiv|alt[ao]|touring|racing|puig|ermax|\mmra\M))'),
       ('levers',
         -- also misspelt ("manteres curtas")
-        '(\mmane?te?r?e?s?\s+(\w+\s+)?(ajust[aá]ve|regul[aá]ve|curt|desportiv|articulad|rizoma|puig|\mcnc\M))'),
+        '(\mmane?te?r?e?s?\s+(\w+\s+)?(ajust[aá]ve|regul[aá]ve|curt|desportiv|articulad|rizoma|puig|\mcnc\M|gilles|lightech|bonamici|evotech|\mlsl\M|valter))'),
       ('mirrors',
         '(espelhos?\s+(\w+\s+)?(de\s+|na\s+)?(ponta|bar[\s-]*end|rizoma)'
         '|retrovisores?\s+(\w+\s+)?(de\s+|na\s+)?(ponta|bar[\s-]*end|rizoma))'),
