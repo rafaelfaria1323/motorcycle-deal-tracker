@@ -162,7 +162,10 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   `test-times` (this repo's runs only;
                                   bytes without one); `check` writes it),
                                   smoke (`make app-smoke`, offline Chrome
-                                  flow) and collector-db (migrations,
+                                  flow; its compiled kernel,
+                                  app/build/*cache.dill.track.dill, cached
+                                  between runs, so flutter drive compiles
+                                  only what changed) and collector-db (migrations,
                                   `lint-scripts`, `collector-lint`,
                                   `tool-check`, `duplication`, `sql-lint` with
                                   `db-test` on a Postgres service); the
