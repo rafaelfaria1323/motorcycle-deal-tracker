@@ -149,19 +149,31 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   devices of whoever asked in the app; input
                                   `kind`: an example of one alert or
                                   collection message (`pushTestKinds`)
-.github/workflows/check.yml       On every pull request to main, three parallel
-                                  jobs: app (`make app-analyze`, `dead-code`,
-                                  `app-coverage`), smoke (`make app-smoke`,
-                                  offline Chrome flow) and collector-db
-                                  (migrations, `lint-scripts`, `collector-lint`,
-                                  `collector-coverage`, `tool-check`,
-                                  `duplication`, `sql-lint` with `db-test` on a
-                                  Postgres service); collector-db uses the
-                                  shared .github/actions/collector and checks
-                                  that the collector starts, without Flutter
-                                  or a separate setup job; each suite runs once,
-                                  in its coverage target; the job `check` passes
-                                  only when all three did
+.github/workflows/check.yml       On every pull request to main, parallel
+                                  jobs: app (`make app-analyze`, `dead-code`),
+                                  app-test (0..n) and collector-test (0..n)
+                                  (each a shard of its suite's test files,
+                                  `make app-test-coverage` /
+                                  `collector-test-coverage` with TEST_FILES;
+                                  how many and which files: job `plan`,
+                                  `tool/test_shard.py plan`, about 40 s of
+                                  tests each, at most 8, each file weighed
+                                  by its time in the last run's artifact
+                                  `test-times` (this repo's runs only;
+                                  bytes without one); `check` writes it),
+                                  smoke (`make app-smoke`, offline Chrome
+                                  flow) and collector-db (migrations,
+                                  `lint-scripts`, `collector-lint`,
+                                  `tool-check`, `duplication`, `sql-lint` with
+                                  `db-test` on a Postgres service); the
+                                  collector's jobs use the shared
+                                  .github/actions/collector, collector-db
+                                  checks that the collector starts; each test
+                                  runs once; the job `check` passes only when
+                                  all did, then takes each suite's coverage
+                                  floor over its shards' lcov merged
+                                  (`app-coverage-floor`,
+                                  `collector-coverage-floor`)
 .github/workflows/preview-web.yml Every PR touching app/: the app built and
                                   published to pr-<number>.<project>.pages.dev,
                                   linked in one comment on the PR (real
@@ -245,7 +257,8 @@ Makefile    All commands (`make help`)
 ```
 make check                     analyze + test app and collector, test tool/ (before every commit)
 make coverage / duplication    coverage floors (runs the tests; app-coverage / collector-coverage
-                               one side) and copy-paste check (also in CI)
+                               one side; CI runs them in shards: TEST_FILES, or SHARDS=n SHARD=i) and
+                               copy-paste check (also in CI)
 make lint-scripts              actionlint on the workflows, shellcheck on tool/*.sh (also in CI)
 make dead-code                 unused code and files in the app (dart_code_linter; also in CI)
 make app-run                   run the app in Chrome (app/env/dev.json)

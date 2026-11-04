@@ -5,10 +5,15 @@ name: Check
 # `make app-smoke` (offline Chrome flow), and `make db-test`
 # (migrations and SQL tests on Postgres), so a change is
 # proven before it is merged rather than when the deploy runs.
-# Three jobs run side by side (app, smoke, collector/database); the
-# last uses the workflows' shared collector setup. Each suite runs once, inside
-# its coverage target. The job `check` waits
-# for them and is the one result the PR shows as "check".
+# The jobs run side by side: the app's checks, its tests in shards, the
+# smoke, the collector's tests in shards and the collector/database
+# checks (the collector's jobs use the workflows' shared collector
+# setup). Each suite runs once, split by file over as many shards as
+# its tests need (the job `plan`, tool/test_shard.py: from the last
+# run's times of each file), each shard with coverage. The job `check`
+# waits for them, takes each suite's coverage floor over its shards'
+# lcov files merged, keeps this run's times for the next plan (artifact
+# `test-times`), and is the one result the PR shows as "check".
 # PRs opened by a workflow (code quality, test hardening) don't trigger
 # pull_request runs (GitHub's rule for GITHUB_TOKEN), so backlog-pass.yml
 # starts this by workflow_dispatch on the PR's branch; the result is
@@ -27,8 +32,48 @@ permissions:
   contents: read
 
 jobs:
-  # The app: analyze, unused code, then its tests once, with coverage and
-  # the floor of its logic (Makefile's APP_COVERAGE_MIN).
+  # How many shards each suite's tests get and which files each runs
+  # (tool/test_shard.py plan): about TARGET_SECONDS of tests each, at
+  # most MAX_SHARDS, every file weighed by what it took in the newest
+  # run that kept its times (artifact `test-times`, this repository's
+  # runs only, never a fork's); without one, by its size. So the shards
+  # grow with the tests and stay even.
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      app: ${{ steps.plan.outputs.app }}
+      collector: ${{ steps.plan.outputs.collector }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # Best effort: no artifact (the first run, or expired) or a failed
+      # download leaves no file, and the plan uses the files' sizes.
+      - name: The last run's test times
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO_ID: ${{ github.repository_id }}
+        run: |
+          id=$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=test-times&per_page=30" \
+            --jq "[.artifacts[] | select(.expired | not) | select(.workflow_run.head_repository_id == $REPO_ID)][0].id // empty" || true)
+          if [ -n "$id" ] && gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$id/zip" > "$RUNNER_TEMP/times.zip"; then
+            unzip -p "$RUNNER_TEMP/times.zip" test-times.json > times.json || rm -f times.json
+          fi
+          if [ -f times.json ]; then echo "Times from artifact $id"; else echo "No times: split by size"; fi
+
+      - id: plan
+        run: |
+          app=$(python3 tool/test_shard.py plan app times.json)
+          collector=$(python3 tool/test_shard.py plan collector times.json)
+          echo "app=$app" >> "$GITHUB_OUTPUT"
+          echo "collector=$collector" >> "$GITHUB_OUTPUT"
+          echo "App: $app"
+          echo "Collector: $collector"
+
+  # The app: analyze and unused code (its tests: app-test).
   app:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -53,8 +98,44 @@ jobs:
           dart pub global activate dart_code_linter 4.4.2 >/dev/null
           make dead-code
 
-      - name: make app-coverage (the app's tests)
-        run: make app-coverage
+  # The app's tests in one job per shard (as many and with the files
+  # `plan` says), each with coverage; the floor is taken over all of
+  # them in `check`.
+  app-test:
+    name: app-test (${{ matrix.shard }})
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.app) }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: .fvmrc
+          cache: true
+
+      - name: Install dependencies
+        run: cd app && flutter pub get --enforce-lockfile
+
+      - name: make app-test-coverage (this shard's files)
+        env:
+          TEST_FILES: ${{ matrix.files }}
+        run: make app-test-coverage
+
+      # The lcov for the floor, the JSON report for the next plan.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: coverage-app-${{ matrix.shard }}
+          path: |
+            app/coverage/lcov.info
+            app/coverage/tests.jsonl
+          retention-days: 1
+          if-no-files-found: error
 
   # The offline Chrome flow (ChromeDriver is on the runner image).
   smoke:
@@ -72,8 +153,42 @@ jobs:
       - name: make app-smoke
         run: make app-smoke
 
-  # Everything without Flutter's app: migrations, workflows and scripts,
-  # the collector, tool/, copy-paste and the database.
+  # The collector's tests in one job per shard (as many and with the
+  # files `plan` says), each with coverage; the floor is taken over all
+  # of them in `check`.
+  collector-test:
+    name: collector-test (${{ matrix.shard }})
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.collector) }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/collector
+
+      - name: make collector-test-coverage (this shard's files)
+        env:
+          TEST_FILES: ${{ matrix.files }}
+        run: |
+          dart pub global activate coverage >/dev/null
+          make collector-test-coverage
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: coverage-collector-${{ matrix.shard }}
+          path: |
+            collector/coverage/lcov.info
+            collector/coverage/tests.jsonl
+          retention-days: 1
+          if-no-files-found: error
+
+  # Everything else without Flutter's app: migrations, workflows and
+  # scripts, the collector's format and analysis, tool/, copy-paste and
+  # the database.
   collector-db:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -124,12 +239,6 @@ jobs:
       - name: make collector-lint
         run: make collector-lint
 
-      # The collector's tests once, with coverage and its floor.
-      - name: make collector-coverage (the collector's tests)
-        run: |
-          dart pub global activate coverage >/dev/null
-          make collector-coverage
-
       # The photo model's tests need its dependencies (and onnx, to build
       # tiny models); without them they would be skipped.
       - uses: actions/setup-python@v6
@@ -164,9 +273,10 @@ jobs:
           make sql-lint
 
   # The single result named "check", as before the split: green only when
-  # all three jobs passed (also when one was cancelled or skipped).
+  # every job passed (also when one was cancelled or skipped) and each
+  # suite's coverage, over all its shards, is above its floor.
   check:
-    needs: [app, smoke, collector-db]
+    needs: [plan, app, app-test, smoke, collector-test, collector-db]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -179,3 +289,30 @@ jobs:
           for result in $RESULTS; do
             [ "$result" = success ] || exit 1
           done
+
+      # The floors need the Makefile and tool/lcov_summary.py.
+      - uses: actions/checkout@v7
+
+      # One folder per shard: coverage/coverage-app-0/lcov.info, ...
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: coverage-*
+          path: coverage
+
+      - name: Coverage floors (every shard's lcov, merged)
+        run: |
+          make app-coverage-floor APP_LCOV="coverage/coverage-app-*/lcov.info"
+          make collector-coverage-floor COLLECTOR_LCOV="coverage/coverage-collector-*/lcov.info"
+
+      # Each file's time in this run, for the next run's plan.
+      - name: This run's test times
+        run: |
+          python3 tool/test_shard.py times coverage > test-times.json
+          cat test-times.json
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: test-times
+          path: test-times.json
+          retention-days: 30
+          if-no-files-found: error

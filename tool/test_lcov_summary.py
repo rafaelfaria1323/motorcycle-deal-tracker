@@ -28,6 +28,19 @@ class CoverageTest(unittest.TestCase):
             "lib/domain/c.dart": (1, 1),
         })
 
+    def test_shards_are_merged_line_by_line(self):
+        first = "SF:lib/a_text.dart\nDA:1,1\nDA:2,0\nend_of_record\n"
+        second = ("SF:lib/a_text.dart\nDA:1,0\nDA:2,4\nDA:3,0\nend_of_record\n"
+                  "SF:lib/domain/c.dart\nDA:1,1\nend_of_record\n")
+        self.assertEqual(parse_lcov(first, second), {
+            "lib/a_text.dart": (3, 2),
+            "lib/domain/c.dart": (1, 1),
+        })
+
+    def test_a_line_twice_in_one_report_counts_once(self):
+        text = "SF:lib/a.dart\nDA:1,0\nDA:1,2\nend_of_record\n"
+        self.assertEqual(parse_lcov(text), {"lib/a.dart": (1, 1)})
+
     def test_summary_of_everything_least_covered_first(self):
         percent, found, hit, per_file = summarize(parse_lcov(LCOV))
         self.assertEqual((found, hit), (6, 3))

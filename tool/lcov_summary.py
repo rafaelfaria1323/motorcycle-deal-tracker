@@ -4,6 +4,8 @@ floor that fails the check when coverage drops below it.
     python3 tool/lcov_summary.py app/coverage/lcov.info --name app \\
         --only '_text\\.dart$|/domain/|/data/models/' --min 80
 
+Several lcov files (one per CI shard) are merged line by line first.
+
 --only keeps the files whose path matches the regular expression (the
 logic worth a floor; widgets are tried on the phone). On GitHub Actions
 the summary also goes to the run's summary page. Used by `make coverage`
@@ -16,22 +18,26 @@ import re
 import sys
 
 
-def parse_lcov(text):
-    """{path: (lines found, lines hit)} from lcov text."""
-    files, path = {}, None
-    for line in text.splitlines():
-        line = line.strip()
-        if line.startswith("SF:"):
-            # Short paths in the report (lcov from `dart test` has absolute ones).
-            path = os.path.relpath(line[3:]) if os.path.isabs(line[3:]) else line[3:]
-            files.setdefault(path, [0, 0])
-        elif line.startswith("DA:") and path is not None:
-            hits = int(line[3:].split(",")[1])
-            files[path][0] += 1
-            files[path][1] += hits > 0
-        elif line == "end_of_record":
-            path = None
-    return {p: tuple(v) for p, v in files.items()}
+def parse_lcov(*texts):
+    """{path: (lines found, lines hit)} from one or more lcov texts. The
+    texts of a suite run in shards are merged line by line: a file in two
+    shards' reports counts each line once, hit when either shard hit it."""
+    lines = {}  # path -> {line: hit}
+    for text in texts:
+        path = None
+        for line in text.splitlines():
+            line = line.strip()
+            if line.startswith("SF:"):
+                # Short paths in the report (lcov from `dart test` has absolute ones).
+                path = os.path.relpath(line[3:]) if os.path.isabs(line[3:]) else line[3:]
+                lines.setdefault(path, {})
+            elif line.startswith("DA:") and path is not None:
+                number, hits = line[3:].split(",")[:2]
+                seen = lines[path]
+                seen[number] = seen.get(number, False) or int(hits) > 0
+            elif line == "end_of_record":
+                path = None
+    return {p: (len(v), sum(v.values())) for p, v in lines.items()}
 
 
 def summarize(files, only=None):
@@ -55,14 +61,17 @@ def report(name, percent, found, hit, per_file, minimum, worst=5):
 
 def main(argv):
     parser = argparse.ArgumentParser()
-    parser.add_argument("lcov")
+    parser.add_argument("lcov", nargs="+", help="lcov files (a sharded run's, merged)")
     parser.add_argument("--name", default="coverage")
     parser.add_argument("--only")
     parser.add_argument("--min", type=float, default=0)
     args = parser.parse_args(argv)
 
-    with open(args.lcov) as f:
-        percent, found, hit, per_file = summarize(parse_lcov(f.read()), args.only)
+    texts = []
+    for path in args.lcov:
+        with open(path) as f:
+            texts.append(f.read())
+    percent, found, hit, per_file = summarize(parse_lcov(*texts), args.only)
     text = report(args.name, percent, found, hit, per_file, args.min)
     print(text)
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
