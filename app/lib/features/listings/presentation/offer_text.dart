@@ -207,9 +207,28 @@ OfferSuggestion? suggestOffer(
       ?.toDouble();
   final allowance = (listing.scoreBreakdown?['damage_allowance'] as num?)
       ?.toDouble();
-  final estimate = damaged && damagedValue != null && damagedValue > 0
+  // Not yet legalised in Portugal (N.52): the database's value less what
+  // legalising costs, damage included. That cost is a rough one, so it
+  // sets no floor either.
+  final legalisedValue = (listing.scoreBreakdown?['legalised_value'] as num?)
+      ?.toDouble();
+  final legalisationCost =
+      (listing.scoreBreakdown?['legalisation_cost'] as num?)?.toDouble();
+  final notLegalised =
+      legalisedValue != null && legalisedValue > 0 && legalisationCost != null;
+  final estimate = notLegalised
+      ? legalisedValue
+      : damaged && damagedValue != null && damagedValue > 0
       ? damagedValue
       : undamaged;
+  if (notLegalised) {
+    reasons.add(
+      language.messages.offerLegalisedValue(
+        cost: Formatters.price(legalisationCost, language: language),
+        price: Formatters.price(legalisedValue, language: language),
+      ),
+    );
+  }
   if (damaged && allowance != null && damagedValue != null) {
     reasons.add(
       language.messages.offerDamagedValue(
@@ -351,8 +370,9 @@ OfferSuggestion? suggestOffer(
     0.01,
     damaged ? damagedMaxMargin : maxMargin,
   );
-  // The damage is unknown: no floor from the reference.
-  final floor = damaged
+  // The damage (or the legalisation's cost) is unknown: no floor from the
+  // reference.
+  final floor = damaged || notLegalised
       ? offerStep
       : _roundDown(estimate * (1 - maxBelowEstimate));
   final opening = min(

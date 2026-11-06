@@ -225,6 +225,42 @@ void main() {
     expect(lines[2].text, contains('para a reparação'));
   });
 
+  test('a bike still to be legalised is judged against that value', () {
+    final explanation = ScoreExplainer.explain(
+      _listing(
+        dealScore: 40,
+        price: 9000,
+        breakdown: {
+          'pct_below_market': 5.3,
+          'market_price': 9500,
+          'market_listing_count': 5,
+          'legalisation_cost': 3110,
+          'legalised_value': 6390,
+          'pct_below_legalised_value': -40.8,
+          'risk_reasons': ['not_legalised_outside_eu'],
+        },
+      ),
+      today: DateTime(2026, 12, 31),
+    )!;
+    final lines = explanation.lines;
+    // 41 % above 6 390, not 5 % below 9 500.
+    expect(lines.first.tone, ExplanationTone.negative);
+    expect(lines[1].text, startsWith('Valor estimado'));
+    expect(lines[2].text, contains('para a legalização'));
+    expect(
+      lines.map((l) => l.text).join(' '),
+      contains('fora da UE'),
+    );
+  });
+
+  test('a bike still to be legalised says its score is capped at 79', () {
+    final lines = ScoreExplainer.explain(
+      _listing(dealScore: 79, breakdown: {'capped_for_legalisation': true}),
+    )!.lines;
+    expect(lines.single.tone, ExplanationTone.negative);
+    expect(lines.single.text, contains('Por legalizar'));
+  });
+
   test('a nearly new bike says it was priced against a new one', () {
     final lines = ScoreExplainer.explain(
       _listing(

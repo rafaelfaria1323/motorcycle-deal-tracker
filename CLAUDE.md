@@ -605,7 +605,7 @@ invites; written by the collector on each run).
 - Pure scoring functions take plain values (testable with literals).
 - Scoring speed: the description's signals are stored per listing
   (`text_signals` = `description_signals()`: accident, repair, scratches,
-  A2 version, single owner; `text_extras` = `listing_extras()`), filled by
+  A2 version, single owner, not legalised; `text_extras` = `listing_extras()`), filled by
   the trigger `listings_text_signals` only when the variant or description
   changes; the risk view reads them through `risk_from_signals`
   (`risk_assessment` = the same rules on raw text, for tests). A migration
@@ -962,6 +962,16 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   points per %); the price slice takes the better (breakdown `new_price`,
   `pct_below_new`, `price_from_new`), also without comparables. Only
   the slice: fair value, offer and risk signals stay on the market.
+  Not yet legalised (N.52, the risk codes above): the price slice compares
+  the price with the estimate (less any repair allowance) less
+  `legalisation_cost` (ISV by the model's engine size, `motorcycle_isv` =
+  the app's `isvBands`, **check every January**; inspection 95, registration
+  100, plates 30 €; from outside the EU + 30 % of the price for duty and
+  VAT; from the EU, this year's or last year's with 6 000 km or less + 23 %
+  VAT), the score is at most 79 (`legalisation_cap`, `capped_for_legalisation`),
+  no near-new comparison; breakdown `legalisation_cost`, `legalised_value`,
+  `pct_below_legalised_value` (the market position's and the offer's
+  reference, which sets no floor).
   Price score (2.5 points per %: 0 / 100 at 20 % above / below) and the
   risk's price signal need >= 3 comparables; so does the app's offer.
 - Deal score = weighted average of the available slices: price 35,
@@ -1017,7 +1027,11 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   "até"), more km, imported, no service
   book; 10 each), an A2 (35 kW) version (`power_version` on variant and
   description: `a2_limited` 15, still held back; `a2_unlocked` 10; "pode
-  ser limitada", "kit A2 incluído" count nothing); reassuring: first owner
+  ser limitada", "kit A2 incluído" count nothing), not yet legalised in
+  Portugal (`legalisation_status`: "por legalizar", "proceder à
+  legalização", or a foreign registration not said to be legalised;
+  `not_legalised` 15, `not_legalised_outside_eu` 20 for the UK,
+  Switzerland or Norway; either replaces `imported`); reassuring: first owner
   (the field, or `single_owner_in_text` when it is empty: "primeiro /
   único dono", "1ª mão", "first owner"; denials don't count), service
   book, factory warranty (negative points, floor 0).
