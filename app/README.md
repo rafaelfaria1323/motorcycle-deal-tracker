@@ -66,10 +66,13 @@ Screen names below use the Portuguese labels; English provides the same screens.
   Back in the app after 30 minutes or more, "3 anúncios novos" over the
   list counts the ads found since, with the same filters; a tap brings
   the list to the top and shows them.
-  By default, photo-led cards show the source, Deal Score, price change,
-  the position against the estimated value ("8 % abaixo do mercado"),
-  year, mileage, place and distance from your home, and preferred-colour
-  indicator, with a visible "Comparar" action. Mais › "Cartões dos anúncios"
+  By default, photo-led cards show the source, the Deal Score with its band
+  ("Muito bom") beside the name, year and mileage on one line, the price
+  with its change and the position against the estimated value ("8 %
+  abaixo do mercado") in a light box, place and distance from your home,
+  and preferred-colour indicator, with a visible "Comparar" action;
+  serious risk reasons ("Por legalizar", "Acidente referido", at most two)
+  show on the photo. Mais › "Cartões dos anúncios"
   lets each signed-in
   account show or hide these details, or add Risk Score, seller type,
   colour, owners / first owner, service book, origin, factory and seller

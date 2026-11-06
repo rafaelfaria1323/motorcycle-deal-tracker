@@ -1074,5 +1074,11 @@
   "exitPriceLine": "Left the market at about {price}: the last price of {count, plural, =1{1 ad} other{{count} ads}} of this model that left in the last 90 days, adjusted to the year and mileage.",
   "exitPriceAbove": "This ad asks {percent} more.",
   "exitPriceBelow": "This ad asks {percent} less.",
-  "exitPriceSame": "This ad asks the same."
+  "exitPriceSame": "This ad asks the same.",
+  "cardWarningNotLegalised": "Not registered in Portugal",
+  "cardWarningAccident": "Accident mentioned",
+  "cardWarningRepair": "Needs repair",
+  "cardWarningPhotosReused": "Photos from another ad",
+  "cardWarningContradiction": "Text contradicts the ad",
+  "cardWarningA2": "A2 restricted"
 }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_theme.dart';
-import '../../../../core/formatting/formatters.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/entities/listing_card_preferences.dart';
 import '../listing_card_text.dart';
@@ -28,6 +27,10 @@ class const ListingCard({
   static const photoHeight = 180.0;
   static const _gridFactLines = 2;
 
+  /// The height of every card in a grid: room for a two-line name, the
+  /// year and mileage line when either is shown, the price box and
+  /// [_gridFactLines] lines per optional fact; a card that needs less
+  /// leaves the space above its footer.
   static double gridHeight(
     BuildContext context, {
     ListingCardPreferences preferences =
@@ -36,18 +39,19 @@ class const ListingCard({
     final extraRows = ListingCardPreferences.additionalFields
         .where(preferences.shows)
         .length;
-    final hasFacts =
+    final hasYearOrMileage =
         preferences.shows(ListingCardField.year) ||
-        preferences.shows(ListingCardField.mileage) ||
-        extraRows > 0;
+        preferences.shows(ListingCardField.mileage);
     final scaler = MediaQuery.textScalerOf(context);
     final factStyle = Theme.of(context).textTheme.bodyMedium;
     final factLineHeight =
         (scaler.scale(factStyle?.fontSize ?? 14) * (factStyle?.height ?? 1.5))
             .ceilToDouble();
-    return 390 -
-        (hasFacts ? 0 : 32) +
-        extraRows * (factLineHeight * _gridFactLines + 8) +
+    return 410 -
+        (hasYearOrMileage ? 0 : 25) +
+        (extraRows > 0
+            ? extraRows * (factLineHeight * _gridFactLines + 8) + 2
+            : 0) +
         (scaler.scale(16) - 16) * 10;
   }
 
@@ -113,11 +117,12 @@ class const _CardPhoto({
 }) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final score = preferences.shows(ListingCardField.dealScore)
-        ? listing.dealScore
-        : null;
     final preferredColour =
         preferences.shows(ListingCardField.preferredColour) && listing.myColour;
+    final warnings = cardWarnings(
+      listing.riskReasons,
+      language: context.language,
+    );
     return SizedBox(
       height: ListingCard.photoHeight,
       child: Stack(
@@ -130,7 +135,7 @@ class const _CardPhoto({
             Positioned(
               top: 12,
               left: 12,
-              right: preferences.shows(ListingCardField.dealScore) ? 100 : 12,
+              right: favourite ? 52 : 12,
               child: Align(
                 alignment: Alignment.topLeft,
                 child: _PhotoPill(
@@ -138,22 +143,18 @@ class const _CardPhoto({
                 ),
               ),
             ),
-          if (score != null)
-            Positioned(
-              top: 12,
-              right: 12,
-              child: DealScoreBadge(score: score, showLabel: true),
-            ),
-          if (listing.isRemoved || preferredColour)
+          if (listing.isRemoved || preferredColour || warnings.isNotEmpty)
             Positioned(
               bottom: 12,
               left: 12,
-              right: favourite ? 52 : 12,
+              right: 12,
               child: Wrap(
                 spacing: 6,
                 runSpacing: 6,
                 children: [
                   if (listing.isRemoved) _PhotoPill(context.strings.removed),
+                  for (final warning in warnings)
+                    _PhotoPill(warning, icon: Icons.warning_amber_rounded),
                   if (preferredColour)
                     _PhotoPill(
                       context.strings.preferredColour,
@@ -164,7 +165,7 @@ class const _CardPhoto({
             ),
           if (favourite)
             Positioned(
-              bottom: 10,
+              top: 10,
               right: 10,
               child: CircleAvatar(
                 radius: 14,
@@ -193,9 +194,14 @@ class const _CardDetails({
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final muted = theme.colorScheme.onSurfaceVariant;
-    final showYear =
-        preferences.shows(ListingCardField.year) && listing.year != null;
-    final showMileage = preferences.shows(ListingCardField.mileage);
+    final score = preferences.shows(ListingCardField.dealScore)
+        ? listing.dealScore
+        : null;
+    final yearAndMileage = yearAndMileageText(
+      listing,
+      preferences,
+      language: context.language,
+    );
     final extraFacts = listingCardExtraFacts(
       listing,
       preferences,
@@ -205,53 +211,45 @@ class const _CardDetails({
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            listing.name,
-            style: textTheme.titleLarge?.copyWith(fontSize: 23),
-            maxLines: MediaQuery.textScalerOf(context).scale(16) > 20
-                ? null
-                : 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 6),
-          Wrap(
-            spacing: 8,
-            runSpacing: 4,
-            crossAxisAlignment: WrapCrossAlignment.center,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 12,
             children: [
-              Text(
-                listing.priceLabel(language: context.language),
-                style: textTheme.headlineSmall?.copyWith(
-                  fontSize: 30,
-                  height: 1.1,
-                  fontFeatures: AppTheme.tabularFigures,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 4,
+                  children: [
+                    Text(
+                      listing.name,
+                      style: textTheme.titleLarge?.copyWith(fontSize: 21),
+                      maxLines: MediaQuery.textScalerOf(context).scale(16) > 20
+                          ? null
+                          : 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (yearAndMileage != null)
+                      Text(
+                        yearAndMileage,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: muted,
+                          fontFeatures: AppTheme.tabularFigures,
+                        ),
+                      ),
+                  ],
                 ),
               ),
-              if (preferences.shows(ListingCardField.priceChange))
-                PriceChangeTag(listing: listing),
+              if (score != null) DealScoreBadge(score: score, showBand: true),
             ],
           ),
-          if (preferences.shows(ListingCardField.marketPosition))
-            if (marketPositionText(
-                  listing.marketPosition,
-                  language: context.language,
-                )
-                case final position?) ...[
-              const SizedBox(height: 4),
-              Text(
-                position,
-                style: textTheme.labelLarge?.copyWith(
-                  color: _marketPositionColour(
-                    context,
-                    listing.marketPosition!,
-                  ),
-                ),
-              ),
-            ],
-          if (showYear || showMileage || extraFacts.isNotEmpty) ...[
-            const SizedBox(height: 12),
+          const SizedBox(height: 10),
+          _PriceBox(listing: listing, preferences: preferences),
+          if (extraFacts.isNotEmpty) ...[
+            const SizedBox(height: 10),
             DefaultTextStyle.merge(
               style: textTheme.bodyMedium?.copyWith(color: muted),
               child: IconTheme.merge(
@@ -260,37 +258,6 @@ class const _CardDetails({
                   crossAxisAlignment: CrossAxisAlignment.start,
                   spacing: 8,
                   children: [
-                    if (showYear || showMileage)
-                      Wrap(
-                        spacing: 16,
-                        runSpacing: 6,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          if (showYear)
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              spacing: 5,
-                              children: [
-                                const Icon(Icons.calendar_today_outlined),
-                                Text('${listing.year}'),
-                              ],
-                            ),
-                          if (showMileage)
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              spacing: 5,
-                              children: [
-                                const Icon(Icons.speed),
-                                Text(
-                                  Formatters.mileage(
-                                    listing.mileage,
-                                    language: context.language,
-                                  ),
-                                ),
-                              ],
-                            ),
-                        ],
-                      ),
                     for (final (field, text) in extraFacts)
                       Row(
                         spacing: 5,
@@ -331,6 +298,79 @@ class const _CardDetails({
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// The price and, below it, where it sits against the estimated value,
+/// in a light box with a hairline border.
+class const _PriceBox({
+  required final Listing listing,
+  required final ListingCardPreferences preferences,
+}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final pct = preferences.shows(ListingCardField.marketPosition)
+        ? listing.marketPosition
+        : null;
+    final position = marketPositionText(pct, language: context.language);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 2,
+          children: [
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  listing.priceLabel(language: context.language),
+                  style: textTheme.headlineSmall?.copyWith(
+                    fontSize: 28,
+                    height: 1.1,
+                    fontFeatures: AppTheme.tabularFigures,
+                  ),
+                ),
+                if (preferences.shows(ListingCardField.priceChange))
+                  PriceChangeTag(listing: listing),
+              ],
+            ),
+            if (position != null)
+              Row(
+                spacing: 4,
+                children: [
+                  if (pct!.round() != 0)
+                    Icon(
+                      pct > 0 ? Icons.arrow_downward : Icons.arrow_upward,
+                      size: 14,
+                      color: _marketPositionColour(context, pct),
+                    ),
+                  Flexible(
+                    child: Text(
+                      position,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.labelLarge?.copyWith(
+                        color: _marketPositionColour(context, pct),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+          ],
+        ),
       ),
     );
   }

@@ -6083,5 +6083,29 @@
   "exitPriceSame": "Este anúncio pede o mesmo.",
   "@exitPriceSame": {
     "description": "Mercado: the ad's asking price within 1 % of what the model's gone ads left at."
+  },
+  "cardWarningNotLegalised": "Por legalizar",
+  "@cardWarningNotLegalised": {
+    "description": "Card photo warning: the ad says the bike is not yet legalised in Portugal."
+  },
+  "cardWarningAccident": "Acidente referido",
+  "@cardWarningAccident": {
+    "description": "Card photo warning: the ad's text mentions an accident or a fall."
+  },
+  "cardWarningRepair": "Precisa de reparação",
+  "@cardWarningRepair": {
+    "description": "Card photo warning: the ad's text says something needs repairing."
+  },
+  "cardWarningPhotosReused": "Fotos de outro anúncio",
+  "@cardWarningPhotosReused": {
+    "description": "Card photo warning: the photos were seen in another ad."
+  },
+  "cardWarningContradiction": "Texto contradiz o anúncio",
+  "@cardWarningContradiction": {
+    "description": "Card photo warning: the description contradicts the ad's fields."
+  },
+  "cardWarningA2": "Limitada A2",
+  "@cardWarningA2": {
+    "description": "Card photo warning: an A2 (35 kW) restricted version."
   }
 }

@@ -460,8 +460,13 @@ void main() {
         tester.widget<ListingCard>(card).preferences,
         fixture.cardPreferencesRepository.value,
       );
+      // Mileage hidden: the year alone under the name.
       expect(
-        find.descendant(of: card, matching: find.byIcon(Icons.speed)),
+        find.descendant(of: card, matching: find.text('2023')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: card, matching: _textStarting('2023 · ')),
         findsNothing,
       );
       expect(
@@ -522,7 +527,7 @@ void main() {
       );
       expect(find.byType(DealScoreBadge), findsNothing);
       expect(find.byType(PriceChangeTag), findsNothing);
-      expect(find.byIcon(Icons.speed), findsNothing);
+      expect(_textStarting('2023 · '), findsNothing);
       expect(find.byIcon(Icons.place_outlined), findsNothing);
       // The card's star, not the Favoritos tab's (F.9).
       expect(
@@ -535,7 +540,7 @@ void main() {
         const ListingCardPreferences.defaults(),
       );
       await tester.pumpAndSettle();
-      expect(find.byIcon(Icons.speed), findsOneWidget);
+      expect(_textStarting('2023 · '), findsOneWidget);
       expect(find.byType(DealScoreBadge), findsOneWidget);
       expect(find.byType(PriceChangeTag), findsOneWidget);
       expect(find.text('Risk Score: 10/100'), findsNothing);
@@ -2094,3 +2099,8 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 }
+
+/// A text that starts with [prefix] ("2023 · 12 000 km").
+Finder _textStarting(String prefix) => find.byWidgetPredicate(
+  (widget) => widget is Text && (widget.data?.startsWith(prefix) ?? false),
+);

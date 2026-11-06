@@ -19,6 +19,61 @@ String? marketPositionText(double? pct, {AppLanguage language = .portuguese}) {
       : language.messages.aboveMarketValue(percent: '${-rounded}');
 }
 
+/// "2023 · 12 000 km" under the card's title: the year when shown and
+/// known, the mileage when shown ("—" when unknown); null with neither.
+String? yearAndMileageText(
+  Listing listing,
+  ListingCardPreferences preferences, {
+  AppLanguage language = .portuguese,
+}) {
+  final parts = [
+    if (preferences.shows(ListingCardField.year) && listing.year != null)
+      '${listing.year}',
+    if (preferences.shows(ListingCardField.mileage))
+      Formatters.mileage(listing.mileage, language: language),
+  ];
+  return parts.isEmpty ? null : parts.join(' · ');
+}
+
+/// The risk reasons serious enough to warn of on the photo, strongest
+/// first; the rest stay in the ad's Avaliação.
+const _cardWarningCodes = [
+  'not_legalised_outside_eu',
+  'not_legalised',
+  'possible_accident',
+  'needs_repair',
+  'photos_reused',
+  'text_year_mismatch',
+  'text_mileage_mismatch',
+  'text_origin_mismatch',
+  'text_service_book_mismatch',
+  'a2_limited',
+];
+
+/// Short warnings for the card's photo ("Por legalizar", "Acidente
+/// referido"), at most [max], each said once.
+List<String> cardWarnings(
+  List<String> reasons, {
+  int max = 2,
+  AppLanguage language = .portuguese,
+}) {
+  final messages = language.messages;
+  final present = reasons.toSet();
+  return [
+    for (final code in _cardWarningCodes)
+      if (present.contains(code))
+        switch (code) {
+          'not_legalised' ||
+          'not_legalised_outside_eu' => messages.cardWarningNotLegalised,
+          'possible_accident' => messages.cardWarningAccident,
+          'needs_repair' => messages.cardWarningRepair,
+          'photos_reused' => messages.cardWarningPhotosReused,
+          'a2_limited' => messages.cardWarningA2,
+          _ => messages.cardWarningContradiction,
+        },
+  ].toSet().take(max).toList();
+}
+
 List<(ListingCardField, String)> listingCardExtraFacts(
   Listing listing,
   ListingCardPreferences preferences, {

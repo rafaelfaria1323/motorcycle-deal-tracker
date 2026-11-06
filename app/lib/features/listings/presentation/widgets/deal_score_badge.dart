@@ -3,14 +3,16 @@ import 'package:flutter/material.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/localization/localizations.dart';
+import '../score_explanation.dart';
 
 /// The Deal Score in its band colour (90+ excellent, 80+ very good,
 /// 70+ interesting, 60+ normal, below 60 poor). [large] is the square
-/// shown at the top of the score explanation.
+/// shown at the top of the score explanation; [showBand] adds the band's
+/// name below ("Muito bom"), as on the cards.
 class const DealScoreBadge({
   required final int score,
   final bool large = false,
-  final bool showLabel = false,
+  final bool showBand = false,
   super.key,
 }) extends StatelessWidget {
   @override
@@ -48,26 +50,19 @@ class const DealScoreBadge({
     return Semantics(
       label: context.strings.dealScoreOutOf100(score: (score).toString()),
       excludeSemantics: true,
-      child: showLabel
-          ? DecoratedBox(
-              decoration: BoxDecoration(
-                color: AppColors.photoPillScrim,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(5),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    badge,
-                    const SizedBox(height: 3),
-                    Text(
-                      context.strings.dealScore,
-                      style: AppTheme.onPhotoLabel.copyWith(fontSize: 10),
-                    ),
-                  ],
+      child: showBand
+          ? Column(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 3,
+              children: [
+                badge,
+                Text(
+                  ScoreExplainer.label(score, language: context.language),
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
-              ),
+              ],
             )
           : badge,
     );
