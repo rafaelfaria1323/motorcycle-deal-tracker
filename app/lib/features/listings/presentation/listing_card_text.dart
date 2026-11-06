@@ -59,7 +59,7 @@ List<String> cardWarnings(
 }) {
   final messages = language.messages;
   final present = reasons.toSet();
-  return [
+  return <String>{
     for (final code in _cardWarningCodes)
       if (present.contains(code))
         switch (code) {
@@ -71,7 +71,7 @@ List<String> cardWarnings(
           'a2_limited' => messages.cardWarningA2,
           _ => messages.cardWarningContradiction,
         },
-  ].toSet().take(max).toList();
+  }.take(max).toList();
 }
 
 List<(ListingCardField, String)> listingCardExtraFacts(
