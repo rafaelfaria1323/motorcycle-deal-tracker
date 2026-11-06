@@ -269,6 +269,14 @@ abstract final class ScoreExplainer {
         ExplanationTone.negative,
         language.messages.riskA2Unlocked,
       ),
+      'not_legalised': (
+        ExplanationTone.negative,
+        language.messages.riskNotLegalised,
+      ),
+      'not_legalised_outside_eu': (
+        ExplanationTone.negative,
+        language.messages.riskNotLegalisedOutsideEu,
+      ),
       'first_owner': (ExplanationTone.positive, language.messages.firstOwner),
       'service_book': (
         ExplanationTone.positive,
@@ -320,10 +328,20 @@ abstract final class ScoreExplainer {
     final allowance = (data['damage_allowance'] as num?)?.toDouble();
     final damagedValue = (data['damaged_value'] as num?)?.toDouble();
     final damaged = allowance != null && damagedValue != null;
-    final pct = damaged
+    // Not yet legalised in Portugal: less what legalising costs too (N.52).
+    final legalisationCost = (data['legalisation_cost'] as num?)?.toDouble();
+    final legalisedValue = (data['legalised_value'] as num?)?.toDouble();
+    final notLegalised = legalisationCost != null && legalisedValue != null;
+    final pct = notLegalised
+        ? (data['pct_below_legalised_value'] as num?)?.toDouble()
+        : damaged
         ? (data['pct_below_damaged_value'] as num?)?.toDouble()
         : (data['pct_below_market'] as num?)?.toDouble();
-    final market = damaged ? damagedValue : undamaged;
+    final market = notLegalised
+        ? legalisedValue
+        : damaged
+        ? damagedValue
+        : undamaged;
     final price = listing.price;
     final marketCount = (data['market_listing_count'] as num?)?.toInt();
     // Below 3 comparables the price is not scored, so it is not explained.
@@ -382,6 +400,17 @@ abstract final class ScoreExplainer {
           ),
         );
       }
+      if (notLegalised) {
+        lines.add(
+          ExplanationLine(
+            ExplanationTone.negative,
+            language.messages.legalisedValueLine(
+              cost: Formatters.price(legalisationCost, language: language),
+              price: Formatters.price(legalisedValue, language: language),
+            ),
+          ),
+        );
+      }
     }
     // Nearly new: the price was also judged against a new one's (N.51).
     final newPrice = (data['new_price'] as num?)?.toDouble();
@@ -429,6 +458,14 @@ abstract final class ScoreExplainer {
         ExplanationLine(
           ExplanationTone.negative,
           language.messages.scoreCappedForDamage,
+        ),
+      );
+    }
+    if (data['capped_for_legalisation'] == true) {
+      lines.add(
+        ExplanationLine(
+          ExplanationTone.negative,
+          language.messages.scoreCappedForLegalisation,
         ),
       );
     }

@@ -1135,7 +1135,8 @@ CREATE FUNCTION public.description_signals(p_variant text, p_description text) R
     case when public.cosmetic_damage(p_description) then 'cosmetic_damage' end,
     public.power_version(p_variant, p_description),
     case when public.single_owner_in_text(p_variant, p_description)
-      then 'single_owner_in_text' end
+      then 'single_owner_in_text' end,
+    public.legalisation_status(p_variant, p_description)
   ], null)
 $$;
 
@@ -1974,6 +1975,91 @@ end;
 $$;
 
 --
+-- Name: legalisation_cap(text[]); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.legalisation_cap(p_reasons text[]) RETURNS smallint
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$
+  select case when p_reasons && array['not_legalised', 'not_legalised_outside_eu']
+              then 79::smallint end
+$$;
+
+--
+-- Name: legalisation_cost(text[], integer, numeric, integer, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.legalisation_cost(p_reasons text[], p_engine_cc integer, p_price numeric, p_year integer, p_mileage integer) RETURNS numeric
+    LANGUAGE sql STABLE
+    SET search_path TO ''
+    AS $$
+  select case
+    when not coalesce(p_reasons && array['not_legalised', 'not_legalised_outside_eu'], false)
+      then 0
+    else public.motorcycle_isv(p_engine_cc) + 95 + 100 + 30
+      + coalesce(p_price, 0) * case
+          when 'not_legalised_outside_eu' = any(p_reasons) then 0.30
+          when p_year >= extract(year from current_date)::integer - 1
+           and p_mileage <= 6000 then 0.23
+          else 0
+        end
+  end
+$$;
+
+--
+-- Name: legalisation_status(text, text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.legalisation_status(p_variant text, p_description text) RETURNS text
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$
+  with t as (
+    -- "não precisa de legalizar" says the opposite.
+    select regexp_replace(lower(concat_ws(' ', p_variant, p_description)),
+             '(\mn[ãa]o|\mnunca)\s+(precis|necessit)\w*\s+(\w+\s+){0,2}?legaliz\w*',
+             ' ', 'g') as d
+  ),
+  found as (
+    select d,
+      -- Still to do.
+      d ~ ('\mn[ãa]o\s+(est[áa]\s+|se\s+encontra\s+|foi\s+)?legalizad'
+           '|\m(por|para|a)\s+legalizar\M'
+           '|\mfalta(m|r)?\s+([^\s.!?;]+\s+){0,8}?legaliz'
+           '|\mproceder\s+[àa]\s+legaliza'
+           '|(precis|necessit|carece)\w*\s+(de\s+)?(ser\s+)?legaliz'
+           '|\mlegaliza[çc][ãa]o\s+([^\s.!?;]+\s+){0,3}?'
+           '(a\s+cargo|por\s+conta|por\s+fazer|pendente|n[ãa]o\s+inclu)')
+        as pending,
+      -- A foreign registration.
+      d ~ ('\mmatr[íi]cula\s+(\w+\s+)?(inglesa|brit[âa]nica|espanhola|francesa'
+           '|alem[ãa]|italiana|holandesa|belga|su[íi][çc]a|luxemburguesa'
+           '|estrangeira|do\s+reino\s+unido|\muk\M|\mgb\M)'
+           '|\mmatriculad[ao]\s+(em|n[ao]s?)\s+(inglaterra|reino\s+unido|espanha'
+           '|fran[çc]a|alemanha|it[áa]lia|holanda|b[ée]lgica|su[íi][çc]a'
+           '|luxemburgo|estrangeiro|\muk\M)')
+        as foreign_plate,
+      -- Legalised already ("já legalizada", "matrícula portuguesa").
+      regexp_replace(d, '\mn[ãa]o\s+(est[áa]\s+|se\s+encontra\s+|foi\s+)?legalizad\w*',
+                     ' ', 'g')
+        ~ ('\mlegalizad[ao]\M|\mmatr[íi]cula\s+(portuguesa|nacional)'
+           '|\mmatr[íi]cula\s+pt\M')
+        as done
+    from t
+  )
+  select case
+    when not (pending or (foreign_plate and not done)) then null
+    when d ~ ('\m(matr[íi]cula|matriculad[ao]|importad[ao]|vind[ao]|veio|proveniente|origem)'
+              '\s+([^\s.!?;]+\s+){0,3}?'
+              '(ingl|brit[âa]n|reino\s+unido|\muk\M|\mgb\M|su[íi][çc]|noruega|esc[óo]c)')
+      then 'not_legalised_outside_eu'
+    else 'not_legalised'
+  end
+  from found
+$$;
+
+--
 -- Name: likes_colour(uuid, uuid, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -2521,6 +2607,9 @@ CREATE FUNCTION public.market_position(l public.listings) RETURNS numeric
      and coalesce((l.score_breakdown ->> 'market_listing_count')::integer, 0) >= 3
     then round(
       case
+        when l.score_breakdown ? 'legalisation_cost'
+         and l.score_breakdown ? 'pct_below_legalised_value'
+        then (l.score_breakdown ->> 'pct_below_legalised_value')::numeric
         when l.score_breakdown ? 'damage_allowance'
          and l.score_breakdown ? 'damaged_value'
         then (l.score_breakdown ->> 'pct_below_damaged_value')::numeric
@@ -2725,6 +2814,25 @@ CREATE FUNCTION public.mileage_use_score(p_mileage integer, p_year integer, p_km
               end)))::smallint
           from (select p_mileage::numeric
                        / public.expected_mileage(p_year, p_km_per_year, p_reference) as r) x)
+  end
+$$;
+
+--
+-- Name: motorcycle_isv(integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.motorcycle_isv(p_engine_cc integer) RETURNS numeric
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$
+  select case
+    when p_engine_cc is null then 245.14
+    when p_engine_cc <= 119 then 0
+    when p_engine_cc <= 250 then 73.78
+    when p_engine_cc <= 350 then 91.63
+    when p_engine_cc <= 500 then 122.57
+    when p_engine_cc <= 750 then 184.45
+    else 245.14
   end
 $$;
 
@@ -3212,6 +3320,11 @@ begin
       l.price,
       ps.market_price,
       public.damage_allowance(rs.reasons) as allowance,
+      -- Not yet legalised in Portugal (N.52): what that costs comes off.
+      public.legalisation_cost(
+        rs.reasons, coalesce(m.engine_cc_max, m.engine_cc_min),
+        case when l.price >= 300 then l.price else ps.market_price end,
+        l.year, l.mileage) as legalisation,
       ps.pct_below_market,
       ps.listing_count,
       -- Nearly new (2 years or less from mid-year, at most half the normal
@@ -3247,11 +3360,11 @@ begin
       s.id,
       s.risk_score,
       s.allowance,
-      case
-        when c.deal_score > public.damage_cap(s.reasons)
-          then public.damage_cap(s.reasons)
-        else c.deal_score
-      end as deal_score,
+      -- least ignores nulls: the lower of the caps that apply.
+      coalesce(least(c.deal_score,
+                     public.damage_cap(s.reasons),
+                     public.legalisation_cap(s.reasons)),
+               c.deal_score) as deal_score,
       c.breakdown || jsonb_build_object(
         'market_price',         s.market_price,
         'pct_below_market',     s.pct_below_market,
@@ -3272,6 +3385,16 @@ begin
           case when s.new_price > 0
                then round((s.new_price - s.price) / s.new_price * 100, 1)
           end,
+        'legalisation_cost',
+          case when s.legalisation > 0 then round(s.legalisation) end,
+        'legalised_value',
+          case when s.legalisation > 0 then round(s.compared_value) end,
+        'pct_below_legalised_value',
+          case when s.legalisation > 0 and s.compared_value > 0
+               then round((s.compared_value - s.price) / s.compared_value * 100, 1)
+          end,
+        'capped_for_legalisation',
+          coalesce(c.deal_score > public.legalisation_cap(s.reasons), false),
         'price_from_new',       coalesce(s.new_score > s.market_score
                                          or (s.market_score is null
                                              and s.new_score is not null), false),
@@ -3282,7 +3405,8 @@ begin
       -- The price is scored against the value of the bike with its damage,
       -- so a damaged bike well below that still ranks high.
       -- A nearly new bike takes the better of that and its price against a
-      -- new one's (not a damaged one: the damage is unseen).
+      -- new one's (not a damaged one: the damage is unseen; nor one still
+      -- to be legalised).
       select s1.*,
              case when s1.new_score > s1.market_score
                     or s1.market_score is null
@@ -3294,12 +3418,20 @@ begin
                s0.market_price * (1 - s0.allowance) as damaged_value,
                case when s0.listing_count >= 3
                     then public.price_score(s0.price,
-                           s0.market_price * (1 - s0.allowance), 2.5)
+                           greatest(s0.compared_value, 1), 2.5)
                end as market_score,
-               case when s0.allowance = 0 and s0.new_price > 0
+               case when s0.allowance = 0 and s0.legalisation = 0
+                     and s0.new_price > 0
                     then public.price_score(s0.price, s0.new_price, 2.5)
                end as new_score
-        from scored s0
+        from (
+          -- The value the price is compared with: the estimate less a
+          -- repair allowance and what legalising costs.
+          select sc.*,
+                 sc.market_price * (1 - sc.allowance) - sc.legalisation
+                   as compared_value
+          from scored sc
+        ) s0
       ) s1
     ) s
     cross join lateral public.combine_deal_score(
@@ -3785,7 +3917,14 @@ CREATE FUNCTION public.risk_from_signals(p_price numeric, p_market_price numeric
     union all
     select 'no_service_book', 10 where p_service_book = false
     union all
+    -- Not yet legalised in Portugal (legalisation_status): more than
+    -- imported, which it replaces.
+    select v, case v when 'not_legalised_outside_eu' then 20 else 15 end
+    from unnest(p_text_signals) v
+    where v in ('not_legalised', 'not_legalised_outside_eu')
+    union all
     select 'imported', 10 where p_origin is not null and p_origin <> 'national'
+      and not coalesce(p_text_signals && array['not_legalised', 'not_legalised_outside_eu'], false)
     union all
     -- The text says something else than the ad's own fields.
     select c, 10 from unnest(public.text_contradictions(
@@ -7131,6 +7270,27 @@ REVOKE ALL ON FUNCTION public.keep_market_position() FROM PUBLIC;
 GRANT ALL ON FUNCTION public.keep_market_position() TO service_role;
 
 --
+-- Name: FUNCTION legalisation_cap(p_reasons text[]); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.legalisation_cap(p_reasons text[]) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.legalisation_cap(p_reasons text[]) TO service_role;
+
+--
+-- Name: FUNCTION legalisation_cost(p_reasons text[], p_engine_cc integer, p_price numeric, p_year integer, p_mileage integer); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.legalisation_cost(p_reasons text[], p_engine_cc integer, p_price numeric, p_year integer, p_mileage integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.legalisation_cost(p_reasons text[], p_engine_cc integer, p_price numeric, p_year integer, p_mileage integer) TO service_role;
+
+--
+-- Name: FUNCTION legalisation_status(p_variant text, p_description text); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.legalisation_status(p_variant text, p_description text) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.legalisation_status(p_variant text, p_description text) TO service_role;
+
+--
 -- Name: FUNCTION likes_colour(p_user uuid, p_motorcycle_id uuid, p_colour text); Type: ACL; Schema: public; Owner: -
 --
 
@@ -7292,6 +7452,13 @@ GRANT ALL ON FUNCTION public.mileage_score(p_mileage integer, p_max_km integer) 
 
 REVOKE ALL ON FUNCTION public.mileage_use_score(p_mileage integer, p_year integer, p_km_per_year integer, p_reference numeric) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.mileage_use_score(p_mileage integer, p_year integer, p_km_per_year integer, p_reference numeric) TO service_role;
+
+--
+-- Name: FUNCTION motorcycle_isv(p_engine_cc integer); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.motorcycle_isv(p_engine_cc integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.motorcycle_isv(p_engine_cc integer) TO service_role;
 
 --
 -- Name: FUNCTION my_colour(l public.listings); Type: ACL; Schema: public; Owner: -

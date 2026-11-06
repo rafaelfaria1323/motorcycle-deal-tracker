@@ -233,6 +233,8 @@ List<(String, String)> _riskArguments({AppLanguage language = .portuguese}) => [
     language.messages.itDoesNotHaveCompleteServiceBookMissing,
   ),
   ('many_owners', language.messages.itHasHad3OrMoreOwners),
+  ('not_legalised', language.messages.argumentNotLegalised),
+  ('not_legalised_outside_eu', language.messages.argumentNotLegalisedOutsideEu),
   ('imported', language.messages.itIsImportedItWillBeWorthLess),
   ('a2_limited', language.messages.itIsA2Version35KWRemovingRestriction),
   ('a2_unlocked', language.messages.itWasUnrestrictedA2VersionAndDoesNot),

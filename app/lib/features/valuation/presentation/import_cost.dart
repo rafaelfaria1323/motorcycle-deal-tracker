@@ -15,7 +15,7 @@ enum ImportCountry {
 /// size (Código do ISV, art. 7; the 2024 amounts, kept in 2025 and 2026);
 /// under 120 cc the table charges nothing. The State Budget can change
 /// them every January: check and update [isvTableYear] with them, as
-/// `iucBands`.
+/// `iucBands`, and the database's copy (`motorcycle_isv`, N.52).
 const isvTableYear = 2026;
 const isvBands = <({int? maxCc, double euros})>[
   (maxCc: 119, euros: 0),

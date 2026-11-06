@@ -185,6 +185,18 @@ void main() {
       expect(a2('a2_unlocked').single, contains('deslimitada'));
     });
 
+    test('not yet legalised in Portugal, from the EU or outside it', () {
+      List<String> legal(String code) => argue(
+        _listing(
+          breakdown: {
+            'risk_reasons': [code],
+          },
+        ),
+      );
+      expect(legal('not_legalised').single, contains('ISV'));
+      expect(legal('not_legalised_outside_eu').single, contains('fora da UE'));
+    });
+
     test('damage in the description, accident first', () {
       final args = argue(
         _listing(

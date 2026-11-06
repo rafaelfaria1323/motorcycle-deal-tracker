@@ -1710,6 +1710,14 @@
   "@itIsImportedItWillBeWorthLess": {
     "description": "Interface text in negotiation_text, _riskArguments."
   },
+  "argumentNotLegalised": "Ainda não está legalizada em Portugal: o ISV, a inspeção e a matrícula ficam por conta do comprador.",
+  "@argumentNotLegalised": {
+    "description": "Interface text in negotiation_text, _riskArguments."
+  },
+  "argumentNotLegalisedOutsideEu": "Vem de fora da UE e ainda não está legalizada: além da legalização, o comprador pode ter de pagar direitos aduaneiros e IVA.",
+  "@argumentNotLegalisedOutsideEu": {
+    "description": "Interface text in negotiation_text, _riskArguments."
+  },
   "itIsA2Version35KWRemovingRestriction": "É a versão A2 (35 kW): tirar a limitação e atualizar os documentos fica por sua conta.",
   "@itIsA2Version35KWRemovingRestriction": {
     "description": "Interface text in negotiation_text, _riskArguments."
@@ -2035,6 +2043,18 @@
     "description": "Interface text in offer_text, suggestOffer.",
     "placeholders": {
       "percent": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "offerLegalisedValue": "Por legalizar em Portugal: o valor de referência é o estimado menos cerca de {cost} para a legalização ({price}). Confirme o custo na alfândega e no IMT antes de fechar negócio.",
+  "@offerLegalisedValue": {
+    "description": "Interface text in offer_text, suggestOffer.",
+    "placeholders": {
+      "cost": {
         "type": "String"
       },
       "price": {
@@ -3238,6 +3258,14 @@
   "@riskA2Unlocked": {
     "description": "Interface text in score_explanation, _riskLines."
   },
+  "riskNotLegalised": "Por legalizar em Portugal: ISV, inspeção, matrícula e chapas ficam por sua conta",
+  "@riskNotLegalised": {
+    "description": "Interface text in score_explanation, _riskLines."
+  },
+  "riskNotLegalisedOutsideEu": "Por legalizar e vinda de fora da UE (Reino Unido, Suíça): além da legalização, pode pagar direitos aduaneiros e IVA",
+  "@riskNotLegalisedOutsideEu": {
+    "description": "Interface text in score_explanation, _riskLines."
+  },
   "stillUnderFactoryWarranty": "Ainda com garantia de fábrica",
   "@stillUnderFactoryWarranty": {
     "description": "Interface text in score_explanation, _riskLines."
@@ -3323,6 +3351,18 @@
       }
     }
   },
+  "legalisedValueLine": "Por legalizar em Portugal: o preço é comparado com o valor estimado menos cerca de {cost} para a legalização ({price})",
+  "@legalisedValueLine": {
+    "description": "Interface text in score_explanation, explain.",
+    "placeholders": {
+      "cost": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "nearlyNewBelowNewPrice": "Quase nova: {pctText} abaixo do preço de uma nova ({price}), e é esta comparação que conta no preço",
   "@nearlyNewBelowNewPrice": {
     "description": "Interface text in score_explanation, explain.",
@@ -3359,6 +3399,10 @@
   },
   "scoreCappedForDamage": "Com danos ou reparações por fazer, a pontuação fica no máximo em 79: o dano não se vê nas fotos, por isso nunca é uma oportunidade excelente",
   "@scoreCappedForDamage": {
+    "description": "Interface text in score_explanation, explain."
+  },
+  "scoreCappedForLegalisation": "Por legalizar, a pontuação fica no máximo em 79: o custo real só se sabe depois de tratar dos papéis, por isso nunca é uma oportunidade excelente",
+  "@scoreCappedForLegalisation": {
     "description": "Interface text in score_explanation, explain."
   },
   "modelYear": "Modelo de {year}",

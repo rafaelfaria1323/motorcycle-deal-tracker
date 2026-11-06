@@ -20,6 +20,8 @@ Listing _listing({
   List<String>? riskReasons,
   double? damagedValue,
   double? damageAllowance,
+  double? legalisedValue,
+  double? legalisationCost,
 }) => Listing(
   id: 'l1',
   source: 'olx',
@@ -46,6 +48,8 @@ Listing _listing({
           'risk_reasons': ?riskReasons,
           'damaged_value': ?damagedValue,
           'damage_allowance': ?damageAllowance,
+          'legalised_value': ?legalisedValue,
+          'legalisation_cost': ?legalisationCost,
         },
 );
 
@@ -299,6 +303,37 @@ void main() {
         daysListed: 100,
       )!;
       expect(all.opening, 6300); // 18 % capped at 10: 6300
+    });
+
+    test('not legalised: judged against the estimate less its cost', () {
+      // The CBR650R from England: 9 000 € against 9 500 €, about 3 110 € to
+      // legalise (ISV, fees, duty and VAT).
+      final uk = suggestOffer(
+        _listing(
+          price: 9000,
+          estimate: 9500,
+          riskScore: 20,
+          riskReasons: const ['not_legalised_outside_eu'],
+          legalisedValue: 6390,
+          legalisationCost: 3110,
+        ),
+      )!;
+      expect(uk.ceiling, 6350);
+      expect(uk.opening, 5950); // 6 % below 6 350: 5 969
+      expect(uk.reasons.first, contains('para a legalização'));
+
+      // Well below its legalised value: no floor from that rough value.
+      final cheap = suggestOffer(
+        _listing(
+          price: 3000,
+          estimate: 9500,
+          riskReasons: const ['not_legalised'],
+          legalisedValue: 9000,
+          legalisationCost: 500,
+        ),
+      )!;
+      expect(cheap.ceiling, 3000);
+      expect(cheap.opening, 2950); // 1 %: the seller gave a lot already
     });
 
     test('damage: judged against the estimate less the repair allowance', () {
