@@ -50,8 +50,9 @@ class const ListingCardSkeleton({super.key}) extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                // The price box.
-                bar(double.infinity, 64),
+                bar(130, 30),
+                const SizedBox(height: 8),
+                bar(150, 14),
               ],
             ),
           ),

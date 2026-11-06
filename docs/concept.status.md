@@ -194,7 +194,7 @@ All four types, each at most once per event, only for events after the search wa
 
 *F.7: back in the app after 30 minutes or more, Ofertas counts the ads found since ("3 anúncios novos", a tap shows them), and the cards say where the price sits against the estimated value ("8 % abaixo do mercado"), on by default.*
 
-*UI.1: the card after the Stitch design: the Deal Score and its band beside the name, year and km on one line, the price and market position in a light box, serious risk reasons (not legalised, accident, repair, reused photos, contradictions, A2) as pills on the photo.*
+*UI.1: the card after the Stitch design: the Deal Score and its band beside the name, year and km on one line, the price with the market position under it, serious risk reasons (not legalised, accident, repair, reused photos, contradictions, A2) as pills on the photo.*
 
 ➕ Card details per account ✅ (15.31): Mais › "Cartões dos anúncios" (also in Ofertas' toolbar until F.3) selects the details shown in Ofertas and Favoritos, saved to the account across devices. The current layout is the default; additional choices cover Risk Score, seller type, colour, owners / first owner, service book, origin, factory and seller warranties, stand name, status, and publication, renewal and first-found dates. A first-owner statement can come from the existing ad-text signal when no owner count is known; publication, renewal and discovery stay distinct, and missing facts are omitted. Photo, model, price, removal notices and actions stay visible. Cancel and reset-to-defaults are available; anonymous visitors retain the default layout.
 

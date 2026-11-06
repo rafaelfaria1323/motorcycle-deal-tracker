@@ -28,7 +28,7 @@ class const ListingCard({
   static const _gridFactLines = 2;
 
   /// The height of every card in a grid: room for a two-line name, the
-  /// year and mileage line when either is shown, the price box and
+  /// year and mileage line when either is shown, the price and
   /// [_gridFactLines] lines per optional fact; a card that needs less
   /// leaves the space above its footer.
   static double gridHeight(
@@ -247,7 +247,7 @@ class const _CardDetails({
             ],
           ),
           const SizedBox(height: 10),
-          _PriceBox(listing: listing, preferences: preferences),
+          _PriceLine(listing: listing, preferences: preferences),
           if (extraFacts.isNotEmpty) ...[
             const SizedBox(height: 10),
             DefaultTextStyle.merge(
@@ -303,9 +303,10 @@ class const _CardDetails({
   }
 }
 
-/// The price and, below it, where it sits against the estimated value,
-/// in a light box with a hairline border.
-class const _PriceBox({
+/// The price and its change and, below them, where the price sits
+/// against the estimated value; on the card itself, as in the Stitch
+/// design (a box around it read as a form field).
+class const _PriceLine({
   required final Listing listing,
   required final ListingCardPreferences preferences,
 }) extends StatelessWidget {
@@ -318,60 +319,50 @@ class const _PriceBox({
         : null;
     final position = marketPositionText(pct, language: context.language);
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 2,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 2,
+      children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Text(
-                  listing.priceLabel(language: context.language),
-                  style: textTheme.headlineSmall?.copyWith(
-                    fontSize: 28,
-                    height: 1.1,
-                    fontFeatures: AppTheme.tabularFigures,
-                  ),
-                ),
-                if (preferences.shows(ListingCardField.priceChange))
-                  PriceChangeTag(listing: listing),
-              ],
-            ),
-            if (position != null)
-              Row(
-                spacing: 4,
-                children: [
-                  if (pct!.round() != 0)
-                    Icon(
-                      pct > 0 ? Icons.arrow_downward : Icons.arrow_upward,
-                      size: 14,
-                      color: _marketPositionColour(context, pct),
-                    ),
-                  Flexible(
-                    child: Text(
-                      position,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.labelLarge?.copyWith(
-                        color: _marketPositionColour(context, pct),
-                      ),
-                    ),
-                  ),
-                ],
+            Text(
+              listing.priceLabel(language: context.language),
+              style: textTheme.headlineSmall?.copyWith(
+                fontSize: 28,
+                height: 1.1,
+                fontFeatures: AppTheme.tabularFigures,
               ),
+            ),
+            if (preferences.shows(ListingCardField.priceChange))
+              PriceChangeTag(listing: listing),
           ],
         ),
-      ),
+        if (position != null)
+          Row(
+            spacing: 4,
+            children: [
+              if (pct!.round() != 0)
+                Icon(
+                  pct > 0 ? Icons.arrow_downward : Icons.arrow_upward,
+                  size: 14,
+                  color: _marketPositionColour(context, pct),
+                ),
+              Flexible(
+                child: Text(
+                  position,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.labelLarge?.copyWith(
+                    color: _marketPositionColour(context, pct),
+                  ),
+                ),
+              ),
+            ],
+          ),
+      ],
     );
   }
 }
