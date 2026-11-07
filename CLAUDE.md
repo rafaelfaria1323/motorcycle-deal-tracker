@@ -516,8 +516,9 @@ invites; written by the collector on each run).
   (`toggleFavourite`, `favourite_widgets.dart`); name with year · km
   under it and the Deal Score tile with its band inside beside it; the
   price with its change and the market position on its right, the
-  estimated value for its year under the price (`estimatedValueText`,
-  from the position) in a filled box without a border; then chips: the serious
+  national median for its year under the price (`estimatedValueText`,
+  from the position; "Valor estimado" for a damaged or unlegalised bike)
+  in a filled box without a border; then chips: the serious
   risk reasons (`cardWarnings`, at most two, from `Listing.riskReasons`)
   red, the preferred colour and reassuring facts green, the rest grey;
   the footer's place and "Comparar" check box (the card opens the ad).

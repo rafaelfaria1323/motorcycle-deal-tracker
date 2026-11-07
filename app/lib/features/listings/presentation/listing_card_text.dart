@@ -20,10 +20,11 @@ String? marketPositionText(double? pct, {AppLanguage language = .portuguese}) {
 }
 
 /// The value [Listing.marketPosition] is measured against, to the nearest
-/// 10 €, for the bike's year when known ("Valor estimado para 2023:
-/// 8 450 €", as Stitch's price box): the estimate for its year and
-/// mileage, or for a damaged or not yet legalised bike the value it is
-/// judged against. Null without a real price or a position.
+/// 10 €, for the bike's year when known, as Stitch's price box: the
+/// median of the whole country's comparable ads for its year and mileage
+/// ("Mediana nacional para 2023: 8 450 €"), or, for a damaged or not yet
+/// legalised bike, the lower value it is judged against ("Valor estimado
+/// para 2023: …"). Null without a real price or a position.
 String? estimatedValueText(
   Listing listing, {
   AppLanguage language = .portuguese,
@@ -34,13 +35,25 @@ String? estimatedValueText(
   final value = (price / (1 - pct / 100) / 10).round() * 10.0;
   final formatted = Formatters.price(value, language: language);
   final year = listing.year;
+  final messages = language.messages;
+  if (listing.riskReasons.any(_adjustedReferenceReasons.contains)) {
+    return year == null
+        ? messages.estimatedValueLine(price: formatted)
+        : messages.estimatedValueForYearLine(year: '$year', price: formatted);
+  }
   return year == null
-      ? language.messages.estimatedValueLine(price: formatted)
-      : language.messages.estimatedValueForYearLine(
-          year: '$year',
-          price: formatted,
-        );
+      ? messages.marketMedianLine(price: formatted)
+      : messages.marketMedianForYearLine(year: '$year', price: formatted);
 }
+
+/// Risk reasons whose bike the database judges against a value below the
+/// market's (`damaged_value`, `legalised_value`).
+const _adjustedReferenceReasons = {
+  'possible_accident',
+  'needs_repair',
+  'not_legalised',
+  'not_legalised_outside_eu',
+};
 
 /// How long ago the ad went up, for the card's photo: "há 18 min",
 /// "há 5 h", "ontem", "há 3 dias".

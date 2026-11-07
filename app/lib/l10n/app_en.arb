@@ -1082,5 +1082,7 @@
   "cardWarningA2": "A2 restricted",
   "hoursAgo": "{hours} h ago",
   "estimatedValueLine": "Estimated value: {price}",
-  "estimatedValueForYearLine": "Estimated value for {year}: {price}"
+  "estimatedValueForYearLine": "Estimated value for {year}: {price}",
+  "marketMedianLine": "National median: {price}",
+  "marketMedianForYearLine": "National median for {year}: {price}"
 }
