@@ -462,14 +462,35 @@ void main() {
       estimatedValueText(
         _cardListing({'price': 7200, 'market_position': 10.0, 'year': 2023}),
       ),
-      'Mediana nacional para 2023: ${Formatters.price(8000)}',
+      'Mediana nacional (2023): ${Formatters.price(8000)}',
     );
     expect(
       estimatedValueText(
         _cardListing({'price': 7200, 'market_position': 10.0, 'year': 2023}),
         language: .english,
       ),
-      'National median for 2023: ${Formatters.price(8000, language: .english)}',
+      'National median (2023): ${Formatters.price(8000, language: .english)}',
+    );
+    // The median is brought to the bike's year and mileage, so it names both.
+    expect(
+      estimatedValueText(
+        _cardListing({
+          'price': 7200,
+          'market_position': 10.0,
+          'year': 2025,
+          'mileage': 2000,
+        }),
+      ),
+      'Mediana nacional (2025, ${Formatters.mileage(2000)}): '
+      '${Formatters.price(8000)}',
+    );
+    expect(
+      estimatedValueText(
+        _cardListing({'price': 7200, 'market_position': 10.0, 'mileage': 110}),
+        language: .english,
+      ),
+      'National median (${Formatters.mileage(110, language: .english)}): '
+      '${Formatters.price(8000, language: .english)}',
     );
     // A damaged bike is judged against a lower value, not the median.
     expect(
@@ -481,7 +502,7 @@ void main() {
           'card_risk_reasons': ['possible_accident'],
         }),
       ),
-      'Valor estimado para 2023: ${Formatters.price(8000)}',
+      'Valor estimado (2023): ${Formatters.price(8000)}',
     );
     expect(
       estimatedValueText(

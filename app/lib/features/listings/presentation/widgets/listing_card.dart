@@ -53,7 +53,7 @@ class const ListingCard({
         (chipLine + _chipPadding * 2 + 10) -
         (hasYearOrMileage ? 0 : 25) +
         (preferences.shows(ListingCardField.marketPosition)
-            ? chipLine + 2
+            ? chipLine * 2 + 2
             : 0) +
         chips * (chipLine * _gridFactLines + _chipPadding * 2 + 6) +
         (scaler.scale(16) - 16) * 10;
@@ -572,9 +572,11 @@ class const _PriceLine({
               ],
             ),
             if (estimate != null)
+              // Two lines at most: a long mileage on a narrow card must not
+              // cut off the value (`gridHeight` counts the second).
               Text(
                 estimate,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,

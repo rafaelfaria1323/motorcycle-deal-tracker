@@ -355,7 +355,7 @@ void main() {
               ? findsOneWidget
               : findsNothing;
           expect(find.text('11,4 % abaixo da mediana'), position);
-          expect(find.textContaining('Mediana nacional para 2023: '), position);
+          expect(find.textContaining('Mediana nacional (2023, '), position);
           if (preferences.shows(ListingCardField.registrations)) {
             expect(find.text('Primeiro dono'), findsOneWidget);
           }

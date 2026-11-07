@@ -71,7 +71,7 @@ Screen names below use the Portuguese labels; English provides the same screens.
   band inside ("MUITO BOM") beside the name, year and mileage on one line,
   the price with its change and, on its right, the position against the
   median ("▼ 11,4 % abaixo da mediana") with that value under the
-  price ("Mediana nacional para 2023: 8 000 €"; "Valor estimado" for a
+  price ("Mediana nacional (2023, 12 000 km): 8 000 €": the median brought to the bike's year and mileage, so two bikes of one year differ; "Valor estimado" for a
   damaged or not yet legalised bike) in a light box, place and distance
   from your home, and the preferred colour as a green chip, with a
   "Comparar" check box (the whole card opens the ad); serious risk

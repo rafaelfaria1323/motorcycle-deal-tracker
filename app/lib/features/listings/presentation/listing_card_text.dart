@@ -50,11 +50,13 @@ String? cardMarketPositionText(
 }
 
 /// The value [Listing.marketPosition] is measured against, to the nearest
-/// 10 €, for the bike's year when known, as Stitch's price box: the
-/// median of the whole country's comparable ads for its year and mileage
-/// ("Mediana nacional para 2023: 8 450 €"), or, for a damaged or not yet
-/// legalised bike, the lower value it is judged against ("Valor estimado
-/// para 2023: …"). Null without a real price or a position.
+/// 10 €, as Stitch's price box: the median of the whole country's
+/// comparable ads, each brought to this bike's year and mileage, which it
+/// names, so two bikes of one year can differ ("Mediana nacional (2023,
+/// 12 000 km): 8 450 €"); or, for a damaged or not yet legalised bike, the
+/// lower value it is judged against ("Valor estimado (2023, 12 000 km):
+/// …"). Without either figure, no parentheses. Null without a real price
+/// or a position.
 String? estimatedValueText(
   Listing listing, {
   AppLanguage language = .portuguese,
@@ -64,16 +66,20 @@ String? estimatedValueText(
   if (price == null || pct == null || pct >= 100) return null;
   final value = (price / (1 - pct / 100) / 10).round() * 10.0;
   final formatted = Formatters.price(value, language: language);
-  final year = listing.year;
+  final bike = [
+    if (listing.year case final year?) '$year',
+    if (listing.mileage != null)
+      Formatters.mileage(listing.mileage, language: language),
+  ].join(', ');
   final messages = language.messages;
   if (listing.riskReasons.any(_adjustedReferenceReasons.contains)) {
-    return year == null
+    return bike.isEmpty
         ? messages.estimatedValueLine(price: formatted)
-        : messages.estimatedValueForYearLine(year: '$year', price: formatted);
+        : messages.estimatedValueForBikeLine(bike: bike, price: formatted);
   }
-  return year == null
+  return bike.isEmpty
       ? messages.marketMedianLine(price: formatted)
-      : messages.marketMedianForYearLine(year: '$year', price: formatted);
+      : messages.marketMedianForBikeLine(bike: bike, price: formatted);
 }
 
 /// Risk reasons whose bike the database judges against a value below the
