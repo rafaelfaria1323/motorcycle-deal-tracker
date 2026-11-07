@@ -12,10 +12,9 @@ double _contrast(Color a, Color b) {
   return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
 }
 
-/// WCAG AA: 4.5 for ordinary text, 3 for large text (24px, or 18.7px
-/// bold; the Deal Score badges are 18-28px bold display figures).
+/// WCAG AA for ordinary text; also the Deal Score tiles, whose band name
+/// is small text.
 const _text = 4.5;
-const _large = 3.0;
 
 void main() {
   for (final (name, theme, colors) in [
