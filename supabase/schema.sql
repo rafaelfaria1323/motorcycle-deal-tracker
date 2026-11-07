@@ -2607,11 +2607,11 @@ CREATE FUNCTION public.market_position(l public.listings) RETURNS numeric
      and coalesce((l.score_breakdown ->> 'market_listing_count')::integer, 0) >= 3
     then round(
       case
-        when l.score_breakdown ? 'legalisation_cost'
-         and l.score_breakdown ? 'pct_below_legalised_value'
+        when l.score_breakdown ->> 'legalisation_cost' is not null
+         and l.score_breakdown ->> 'pct_below_legalised_value' is not null
         then (l.score_breakdown ->> 'pct_below_legalised_value')::numeric
-        when l.score_breakdown ? 'damage_allowance'
-         and l.score_breakdown ? 'damaged_value'
+        when l.score_breakdown ->> 'damage_allowance' is not null
+         and l.score_breakdown ->> 'pct_below_damaged_value' is not null
         then (l.score_breakdown ->> 'pct_below_damaged_value')::numeric
         else (l.score_breakdown ->> 'pct_below_market')::numeric
       end, 1)
