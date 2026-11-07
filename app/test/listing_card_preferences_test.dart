@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:motorcycle_deal_tracker/core/auth/session_cubit.dart';
+import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
+import 'package:motorcycle_deal_tracker/core/localization/app_language.dart';
 import 'package:motorcycle_deal_tracker/features/listings/data/models/listing_model.dart';
 import 'package:motorcycle_deal_tracker/features/listings/data/repositories/supabase_listing_card_preferences_repository.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
@@ -200,7 +202,7 @@ void main() {
     expect(marketPositionText(-0.4), 'No valor de mercado');
     expect(marketPositionText(null), isNull);
     expect(
-      marketPositionText(12.3, language: .english),
+      marketPositionText(12.3, language: AppLanguage.english),
       '12% below market value',
     );
     expect(_cardListing({'market_position': 12.3}).marketPosition, 12.3);
@@ -244,7 +246,6 @@ void main() {
           '18 meses de garantia do vendedor',
         ),
         (ListingCardField.sellerName, 'Stand: Motos do Norte'),
-        (ListingCardField.publishedAt, 'Publicado: 09/10/2026 (há 16 dias)'),
         (
           ListingCardField.siteRefreshedAt,
           'Renovado no site: 24/10/2026 (ontem)',
@@ -350,6 +351,7 @@ void main() {
         ),
         isEmpty,
       );
+      // Publication is the age on the photo, not a fact under the price.
       expect(
         listingCardExtraFacts(
           _cardListing({
@@ -359,7 +361,7 @@ void main() {
           preferences,
           now: now,
         ),
-        [(ListingCardField.publishedAt, 'Publicado: 24/10/2026 (ontem)')],
+        isEmpty,
       );
       expect(
         listingCardExtraFacts(
@@ -376,6 +378,128 @@ void main() {
       );
     },
   );
+
+  test('the age on the photo counts minutes, hours, then days', () {
+    final now = DateTime.utc(2026, 10, 25, 12);
+    expect(listingAgeText(now, now: now), 'há 1 min');
+    expect(
+      listingAgeText(now.subtract(const Duration(minutes: 42)), now: now),
+      'há 42 min',
+    );
+    expect(
+      listingAgeText(now.subtract(const Duration(hours: 5)), now: now),
+      'há 5 h',
+    );
+    expect(
+      listingAgeText(
+        now.subtract(const Duration(hours: 5)),
+        now: now,
+        language: .english,
+      ),
+      '5 h ago',
+    );
+    expect(
+      listingAgeText(now.subtract(const Duration(hours: 30)), now: now),
+      'ontem',
+    );
+    expect(listingAgeText(DateTime.utc(2026, 10, 9), now: now), 'há 16 dias');
+  });
+
+  test('the card says whether the price is below or above the median', () {
+    expect(
+      cardMarketPositionText(
+        _cardListing({'price': 7200, 'market_position': 11.4}),
+      ),
+      '11,4 % abaixo da mediana',
+    );
+    expect(
+      cardMarketPositionText(
+        _cardListing({'price': 7200, 'market_position': -5}),
+        language: .english,
+      ),
+      '5.0% above the median',
+    );
+    expect(
+      cardMarketPositionText(
+        _cardListing({'price': 7200, 'market_position': 0.0}),
+      ),
+      'Na mediana',
+    );
+    expect(
+      cardMarketPositionText(
+        _cardListing({
+          'price': 7200,
+          'market_position': 8.0,
+          'card_risk_reasons': ['needs_repair'],
+        }),
+      ),
+      '8,0 % abaixo do valor estimado',
+    );
+    expect(cardMarketPositionText(_cardListing({'price': 7200})), isNull);
+    expect(
+      cardMarketPositionText(
+        _cardListing({'price': 1, 'market_position': 10.0}),
+      ),
+      isNull,
+    );
+  });
+
+  test('the estimated value is worked back from the market position', () {
+    expect(
+      estimatedValueText(
+        _cardListing({'price': 7200, 'market_position': 10.0}),
+      ),
+      'Mediana nacional: ${Formatters.price(8000)}',
+    );
+    expect(
+      estimatedValueText(
+        _cardListing({'price': 8400, 'market_position': -5.0}),
+        language: .english,
+      ),
+      'National median: ${Formatters.price(8000, language: .english)}',
+    );
+    expect(
+      estimatedValueText(
+        _cardListing({'price': 7200, 'market_position': 10.0, 'year': 2023}),
+      ),
+      'Mediana nacional para 2023: ${Formatters.price(8000)}',
+    );
+    expect(
+      estimatedValueText(
+        _cardListing({'price': 7200, 'market_position': 10.0, 'year': 2023}),
+        language: .english,
+      ),
+      'National median for 2023: ${Formatters.price(8000, language: .english)}',
+    );
+    // A damaged bike is judged against a lower value, not the median.
+    expect(
+      estimatedValueText(
+        _cardListing({
+          'price': 7200,
+          'market_position': 10.0,
+          'year': 2023,
+          'card_risk_reasons': ['possible_accident'],
+        }),
+      ),
+      'Valor estimado para 2023: ${Formatters.price(8000)}',
+    );
+    expect(
+      estimatedValueText(
+        _cardListing({
+          'price': 7200,
+          'market_position': 10.0,
+          'card_risk_reasons': ['not_legalised'],
+        }),
+        language: .english,
+      ),
+      'Estimated value: ${Formatters.price(8000, language: .english)}',
+    );
+    expect(estimatedValueText(_cardListing({'price': 7200})), isNull);
+    expect(
+      estimatedValueText(_cardListing({'price': 1, 'market_position': 10.0})),
+      isNull,
+    );
+  });
 
   group('Supabase card preferences', () {
     late _Recorder recorder;
@@ -627,5 +751,79 @@ void main() {
       await loading;
       expect(cubit.isClosed, isTrue);
     });
+  });
+
+  test('the year and mileage line follows the chosen fields', () {
+    final listing = _cardListing({'year': 2023, 'mileage': 12000});
+    final km = Formatters.mileage(12000);
+    expect(yearAndMileageText(listing, _defaults), '2023 · $km');
+    expect(
+      yearAndMileageText(
+        listing,
+        ListingCardPreferences(const [ListingCardField.year]),
+      ),
+      '2023',
+    );
+    expect(
+      yearAndMileageText(
+        listing,
+        ListingCardPreferences(const [ListingCardField.mileage]),
+      ),
+      km,
+    );
+    expect(yearAndMileageText(listing, ListingCardPreferences(const [])), null);
+    // An unknown year is left out; an unknown mileage reads as a dash.
+    expect(yearAndMileageText(_cardListing(), _defaults), '—');
+    expect(
+      yearAndMileageText(
+        _cardListing(),
+        ListingCardPreferences(const [ListingCardField.year]),
+      ),
+      isNull,
+    );
+  });
+
+  test('the card warns of the serious risk reasons, strongest first', () {
+    expect(cardWarnings(const []), isEmpty);
+    expect(cardWarnings(const ['first_owner', 'missing_mileage']), isEmpty);
+    expect(cardWarnings(const ['needs_repair', 'not_legalised_outside_eu']), [
+      'Por legalizar',
+      'Precisa de reparação',
+    ]);
+    // Both contradictions are one warning, and both legalisation codes too.
+    expect(
+      cardWarnings(const ['text_year_mismatch', 'text_mileage_mismatch']),
+      ['Texto contradiz o anúncio'],
+    );
+    expect(cardWarnings(const ['not_legalised', 'not_legalised_outside_eu']), [
+      'Por legalizar',
+    ]);
+    expect(
+      cardWarnings(const [
+        'a2_limited',
+        'photos_reused',
+        'possible_accident',
+      ], max: 3),
+      ['Acidente referido', 'Fotos de outro anúncio', 'Limitada A2'],
+    );
+    expect(
+      cardWarnings(const ['possible_accident'], language: AppLanguage.english),
+      ['Accident mentioned'],
+    );
+    // At most two by default.
+    expect(
+      cardWarnings(const ['a2_limited', 'photos_reused', 'needs_repair']),
+      hasLength(2),
+    );
+  });
+
+  test('lists read the risk reason codes for the card', () {
+    expect(
+      _cardListing({
+        'card_risk_reasons': ['possible_accident'],
+      }).riskReasons,
+      ['possible_accident'],
+    );
+    expect(_cardListing().riskReasons, isEmpty);
   });
 }

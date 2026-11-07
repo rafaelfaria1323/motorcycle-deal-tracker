@@ -10,6 +10,7 @@ import '../cubit/favourites_state.dart';
 import '../../../listings/presentation/cubit/listing_card_preferences_cubit.dart';
 import '../favourites_text.dart';
 import '../viewing_checklist.dart';
+import '../widgets/favourite_widgets.dart';
 import '../../../listings/presentation/widgets/listing_card.dart';
 import '../../../../core/localization/localizations.dart';
 
@@ -91,6 +92,8 @@ class const FavouritesPage({super.key}) extends StatelessWidget {
                             ListingCard(
                               listing: f.listing!,
                               favourite: true,
+                              onFavourite: () =>
+                                  toggleFavourite(context, f.listing!),
                               preferences: cards.preferences,
                               onTap: () => context.push(
                                 AppRoutes.listingDetail(f.listingId),

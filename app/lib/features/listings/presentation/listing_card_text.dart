@@ -19,6 +19,147 @@ String? marketPositionText(double? pct, {AppLanguage language = .portuguese}) {
       : language.messages.aboveMarketValue(percent: '${-rounded}');
 }
 
+/// Where the card's price sits against the value under it, to one decimal
+/// as in Stitch: "11,4 % abaixo da mediana", "5,0 % acima da mediana",
+/// "Na mediana"; for a damaged or not yet legalised bike against the
+/// estimated value ("abaixo do valor estimado"). Null without a position.
+String? cardMarketPositionText(
+  Listing listing, {
+  AppLanguage language = .portuguese,
+}) {
+  final pct = listing.marketPosition;
+  if (pct == null || listing.askingPrice == null) return null;
+  final messages = language.messages;
+  final estimate = listing.riskReasons.any(_adjustedReferenceReasons.contains);
+  final percent = Formatters.percent(
+    pct.abs(),
+    decimals: 1,
+    language: language,
+  );
+  if (pct.abs() < 0.05) {
+    return estimate ? messages.cardAtEstimatedValue : messages.cardAtMedian;
+  }
+  if (pct > 0) {
+    return estimate
+        ? messages.cardBelowEstimatedValue(percent: percent)
+        : messages.cardBelowMedian(percent: percent);
+  }
+  return estimate
+      ? messages.cardAboveEstimatedValue(percent: percent)
+      : messages.cardAboveMedian(percent: percent);
+}
+
+/// The value [Listing.marketPosition] is measured against, to the nearest
+/// 10 €, for the bike's year when known, as Stitch's price box: the
+/// median of the whole country's comparable ads for its year and mileage
+/// ("Mediana nacional para 2023: 8 450 €"), or, for a damaged or not yet
+/// legalised bike, the lower value it is judged against ("Valor estimado
+/// para 2023: …"). Null without a real price or a position.
+String? estimatedValueText(
+  Listing listing, {
+  AppLanguage language = .portuguese,
+}) {
+  final price = listing.askingPrice;
+  final pct = listing.marketPosition;
+  if (price == null || pct == null || pct >= 100) return null;
+  final value = (price / (1 - pct / 100) / 10).round() * 10.0;
+  final formatted = Formatters.price(value, language: language);
+  final year = listing.year;
+  final messages = language.messages;
+  if (listing.riskReasons.any(_adjustedReferenceReasons.contains)) {
+    return year == null
+        ? messages.estimatedValueLine(price: formatted)
+        : messages.estimatedValueForYearLine(year: '$year', price: formatted);
+  }
+  return year == null
+      ? messages.marketMedianLine(price: formatted)
+      : messages.marketMedianForYearLine(year: '$year', price: formatted);
+}
+
+/// Risk reasons whose bike the database judges against a value below the
+/// market's (`damaged_value`, `legalised_value`).
+const _adjustedReferenceReasons = {
+  'possible_accident',
+  'needs_repair',
+  'not_legalised',
+  'not_legalised_outside_eu',
+};
+
+/// How long ago the ad went up, for the card's photo: "há 18 min",
+/// "há 5 h", "ontem", "há 3 dias".
+String listingAgeText(
+  DateTime published, {
+  DateTime? now,
+  AppLanguage language = .portuguese,
+}) {
+  final age = (now ?? DateTime.now()).difference(published);
+  if (age < const Duration(hours: 1)) {
+    final minutes = age.inMinutes < 1 ? 1 : age.inMinutes;
+    return language.messages.minutesAgo(minutes: '$minutes');
+  }
+  if (age < const Duration(days: 1)) {
+    return language.messages.hoursAgo(hours: '${age.inHours}');
+  }
+  return Formatters.daysAgo(published, now: now, language: language);
+}
+
+/// "2023 · 12 000 km" under the card's title: the year when shown and
+/// known, the mileage when shown ("—" when unknown); null with neither.
+String? yearAndMileageText(
+  Listing listing,
+  ListingCardPreferences preferences, {
+  AppLanguage language = .portuguese,
+}) {
+  final parts = [
+    if (preferences.shows(ListingCardField.year) && listing.year != null)
+      '${listing.year}',
+    if (preferences.shows(ListingCardField.mileage))
+      Formatters.mileage(listing.mileage, language: language),
+  ];
+  return parts.isEmpty ? null : parts.join(' · ');
+}
+
+/// The risk reasons serious enough to warn of on the card, strongest
+/// first; the rest stay in the ad's Avaliação.
+const _cardWarningCodes = [
+  'not_legalised_outside_eu',
+  'not_legalised',
+  'possible_accident',
+  'needs_repair',
+  'photos_reused',
+  'text_year_mismatch',
+  'text_mileage_mismatch',
+  'text_origin_mismatch',
+  'text_service_book_mismatch',
+  'a2_limited',
+];
+
+/// Short warnings for the card's chips ("Por legalizar", "Acidente
+/// referido"), at most [max], each said once.
+List<String> cardWarnings(
+  List<String> reasons, {
+  int max = 2,
+  AppLanguage language = .portuguese,
+}) {
+  final messages = language.messages;
+  final present = reasons.toSet();
+  return <String>{
+    for (final code in _cardWarningCodes)
+      if (present.contains(code))
+        switch (code) {
+          'not_legalised' ||
+          'not_legalised_outside_eu' => messages.cardWarningNotLegalised,
+          'possible_accident' => messages.cardWarningAccident,
+          'needs_repair' => messages.cardWarningRepair,
+          'photos_reused' => messages.cardWarningPhotosReused,
+          'a2_limited' => messages.cardWarningA2,
+          _ => messages.cardWarningContradiction,
+        },
+  }.take(max).toList();
+}
+
+/// The chosen optional facts, each a chip under the price. The
+/// publication is not one: it is the age on the photo ([listingAgeText]).
 List<(ListingCardField, String)> listingCardExtraFacts(
   Listing listing,
   ListingCardPreferences preferences, {
@@ -92,14 +233,6 @@ List<(ListingCardField, String)> listingCardExtraFacts(
     if (listing.sellerName?.trim() case final seller?)
       if (seller.isNotEmpty)
         (ListingCardField.sellerName, language.messages.dealer(seller: seller)),
-  if (preferences.shows(ListingCardField.publishedAt))
-    if (listing.publishedAt case final published?)
-      (
-        ListingCardField.publishedAt,
-        language.messages.publishedOn(
-          date: dateWithAge(published, now: now, language: language),
-        ),
-      ),
   if (preferences.shows(ListingCardField.siteRefreshedAt))
     if (renewalToShow(listing) case final renewed?)
       (

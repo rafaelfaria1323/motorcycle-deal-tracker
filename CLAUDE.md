@@ -509,7 +509,21 @@ invites; written by the collector on each run).
   `AppShell` uses bottom navigation below 840px, a compact rail above it,
   and an extended sidebar from 1180px (compact with enlarged text).
   Cards size naturally on phones and with enlarged text; otherwise up to
-  three columns, with aligned location/comparison footers. The detail hero
+  three columns, with aligned location/comparison footers (`ListingCard.gridHeight`
+  is the grid cell: keep it in step with the card). The card (UI.1, after
+  the Stitch list screen): on the photo the source and, when chosen, the
+  ad's age (`listingAgeText`) as tags, and the favourite star
+  (`toggleFavourite`, `favourite_widgets.dart`); name with year · km
+  under it and the Deal Score tile with its band inside beside it; the
+  price with its change and, on its right, whether it is above or below
+  the median ("11,4 % abaixo da mediana", `cardMarketPositionText`), the
+  national median for its year under the price (`estimatedValueText`,
+  from the position; "Valor estimado" for a damaged or unlegalised bike)
+  in a filled box without a border; then chips: the serious
+  risk reasons (`cardWarnings`, at most two, from `Listing.riskReasons`)
+  red, the preferred colour and reassuring facts green, the rest grey;
+  the footer's place and "Comparar" check box (the card opens the ad).
+  The score bands are dark enough for small white text (4.5:1). The detail hero
   splits into photo and summary at 800px of content width; its four
   scrollable tabs keep opened sections alive, and the original-link action
   stays fixed below. `interface_test.dart` covers responsive layouts and

@@ -21,6 +21,7 @@ import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/lis
 import 'package:motorcycle_deal_tracker/features/alerts/presentation/pages/alerts_page.dart';
 import 'package:motorcycle_deal_tracker/features/favourites/presentation/pages/favourites_page.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/listing_detail_page.dart';
+import 'package:motorcycle_deal_tracker/features/listings/presentation/listing_card_text.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/photo_viewer_args.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/deal_score_badge.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/listing_card.dart';
@@ -334,6 +335,7 @@ void main() {
                               dealerWarrantyMonths: 18,
                               location: 'Vila Nova de Gaia',
                               distanceKm: 128,
+                              marketPosition: 11.4,
                             ),
                             onTap: () {},
                             onLongPress: () {},
@@ -348,6 +350,12 @@ void main() {
           );
           await tester.pumpAndSettle();
           expect(find.text('Comparar'), findsOneWidget);
+          // Whether the price is above or below the median, and the median.
+          final position = preferences.shows(ListingCardField.marketPosition)
+              ? findsOneWidget
+              : findsNothing;
+          expect(find.text('11,4 % abaixo da mediana'), position);
+          expect(find.textContaining('Mediana nacional para 2023: '), position);
           if (preferences.shows(ListingCardField.registrations)) {
             expect(find.text('Primeiro dono'), findsOneWidget);
           }
@@ -401,11 +409,13 @@ void main() {
         matching: find.byWidgetPredicate(
           (widget) =>
               widget is Text &&
-              (widget.data?.startsWith('Publicado: 09/10/2026') ?? false),
+              widget.data ==
+                  listingAgeText(DateTime.utc(2026, 10, 9)).toUpperCase(),
         ),
       );
+      // The age tag on the photo (Stitch), one line.
       expect(published, findsOneWidget);
-      expect(tester.widget<Text>(published).maxLines, isNull);
+      expect(tester.widget<Text>(published).maxLines, 1);
       expect(
         fixture.cardPreferencesRepository.value.shows(
           ListingCardField.registrations,
@@ -460,8 +470,13 @@ void main() {
         tester.widget<ListingCard>(card).preferences,
         fixture.cardPreferencesRepository.value,
       );
+      // Mileage hidden: the year alone under the name.
       expect(
-        find.descendant(of: card, matching: find.byIcon(Icons.speed)),
+        find.descendant(of: card, matching: find.text('2023')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: card, matching: _textStarting('2023 · ')),
         findsNothing,
       );
       expect(
@@ -516,13 +531,14 @@ void main() {
         find.byWidgetPredicate(
           (widget) =>
               widget is Text &&
-              (widget.data?.startsWith('Publicado: 09/10/2026') ?? false),
+              widget.data ==
+                  listingAgeText(DateTime.utc(2026, 10, 9)).toUpperCase(),
         ),
         findsOneWidget,
       );
       expect(find.byType(DealScoreBadge), findsNothing);
       expect(find.byType(PriceChangeTag), findsNothing);
-      expect(find.byIcon(Icons.speed), findsNothing);
+      expect(_textStarting('2023 · '), findsNothing);
       expect(find.byIcon(Icons.place_outlined), findsNothing);
       // The card's star, not the Favoritos tab's (F.9).
       expect(
@@ -535,7 +551,7 @@ void main() {
         const ListingCardPreferences.defaults(),
       );
       await tester.pumpAndSettle();
-      expect(find.byIcon(Icons.speed), findsOneWidget);
+      expect(_textStarting('2023 · '), findsOneWidget);
       expect(find.byType(DealScoreBadge), findsOneWidget);
       expect(find.byType(PriceChangeTag), findsOneWidget);
       expect(find.text('Risk Score: 10/100'), findsNothing);
@@ -2094,3 +2110,8 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 }
+
+/// A text that starts with [prefix] ("2023 · 12 000 km").
+Finder _textStarting(String prefix) => find.byWidgetPredicate(
+  (widget) => widget is Text && (widget.data?.startsWith(prefix) ?? false),
+);

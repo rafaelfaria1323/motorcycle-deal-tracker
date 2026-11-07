@@ -26,21 +26,33 @@ class const ListingCardSkeleton({super.key}) extends StatelessWidget {
         children: [
           Container(height: ListingCard.photoHeight, color: fill),
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 16, 14, 0),
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                FractionallySizedBox(
-                  widthFactor: 0.6,
-                  child: bar(double.infinity, 20),
+                Row(
+                  spacing: 12,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 8,
+                        children: [
+                          FractionallySizedBox(
+                            widthFactor: 0.7,
+                            child: bar(double.infinity, 20),
+                          ),
+                          bar(110, 14),
+                        ],
+                      ),
+                    ),
+                    bar(56, 48),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                bar(100, 30),
-                const SizedBox(height: 12),
-                FractionallySizedBox(
-                  widthFactor: 0.8,
-                  child: bar(double.infinity, 14),
-                ),
+                const SizedBox(height: 10),
+                bar(double.infinity, 66),
+                const SizedBox(height: 10),
+                Row(spacing: 6, children: [bar(90, 22), bar(70, 22)]),
               ],
             ),
           ),

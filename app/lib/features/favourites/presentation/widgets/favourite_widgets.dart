@@ -8,48 +8,51 @@ import '../cubit/favourites_cubit.dart';
 import '../cubit/favourites_state.dart';
 import '../../../../core/localization/localizations.dart';
 
-/// The star in the listing page's app bar: adds the listing to the
-/// favourites or takes it out (asking first when that deletes a note).
+/// Adds [listing] to the favourites or takes it out (asking first when
+/// that deletes a note), and says how it went: the listing page's star and
+/// the card's.
+Future<void> toggleFavourite(BuildContext context, Listing listing) async {
+  final cubit = getIt<FavouritesCubit>();
+  final messageStrings = context.strings;
+
+  final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
+  final favourite = cubit.state.favouriteOf(listing.id);
+  if (favourite?.note != null && !await _confirmRemove(context)) return;
+
+  final saved = await cubit.toggle(listing);
+  if (!saved) {
+    showMessage(messenger, messageStrings.couldNotSaveTryAgain);
+  } else if (favourite == null) {
+    showMessage(messenger, messageStrings.addedToFavouritesWeWillAlertYouIf);
+  } else {
+    showMessage(messenger, messageStrings.removedFromFavourites);
+  }
+}
+
+Future<bool> _confirmRemove(BuildContext context) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(context.strings.removeFromFavourites),
+      content: Text(context.strings.yourNoteAboutThisListingWillAlsoBe),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(context.strings.cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text(context.strings.remove),
+        ),
+      ],
+    ),
+  );
+  return confirmed ?? false;
+}
+
+/// The star in the listing page's app bar ([toggleFavourite]).
 class const FavouriteButton({required final Listing listing, super.key})
     extends StatelessWidget {
-  Future<void> _toggle(BuildContext context, FavouritesCubit cubit) async {
-    final messageStrings = context.strings;
-
-    final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
-    final favourite = cubit.state.favouriteOf(listing.id);
-    if (favourite?.note != null && !await _confirmRemove(context)) return;
-
-    final saved = await cubit.toggle(listing);
-    if (!saved) {
-      showMessage(messenger, messageStrings.couldNotSaveTryAgain);
-    } else if (favourite == null) {
-      showMessage(messenger, messageStrings.addedToFavouritesWeWillAlertYouIf);
-    } else {
-      showMessage(messenger, messageStrings.removedFromFavourites);
-    }
-  }
-
-  Future<bool> _confirmRemove(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.strings.removeFromFavourites),
-        content: Text(context.strings.yourNoteAboutThisListingWillAlsoBe),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(context.strings.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(context.strings.remove),
-          ),
-        ],
-      ),
-    );
-    return confirmed ?? false;
-  }
-
   @override
   Widget build(BuildContext context) {
     final cubit = getIt<FavouritesCubit>();
@@ -66,7 +69,7 @@ class const FavouriteButton({required final Listing listing, super.key})
           isSelected: favourite,
           icon: const Icon(Icons.star_border),
           selectedIcon: const Icon(Icons.star),
-          onPressed: () => _toggle(context, cubit),
+          onPressed: () => toggleFavourite(context, listing),
         );
       },
     );

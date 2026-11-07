@@ -1110,15 +1110,6 @@
       }
     }
   },
-  "publishedOn": "Publicado: {date}",
-  "@publishedOn": {
-    "description": "Interface text in listing_card_text, listingCardExtraFacts.",
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
   "renewedOnSite": "Renovado no site: {date}",
   "@renewedOnSite": {
     "description": "Interface text in listing_card_text, listingCardExtraFacts.",
@@ -6083,5 +6074,124 @@
   "exitPriceSame": "Este anúncio pede o mesmo.",
   "@exitPriceSame": {
     "description": "Mercado: the ad's asking price within 1 % of what the model's gone ads left at."
+  },
+  "cardWarningNotLegalised": "Por legalizar",
+  "@cardWarningNotLegalised": {
+    "description": "Card photo warning: the ad says the bike is not yet legalised in Portugal."
+  },
+  "cardWarningAccident": "Acidente referido",
+  "@cardWarningAccident": {
+    "description": "Card photo warning: the ad's text mentions an accident or a fall."
+  },
+  "cardWarningRepair": "Precisa de reparação",
+  "@cardWarningRepair": {
+    "description": "Card photo warning: the ad's text says something needs repairing."
+  },
+  "cardWarningPhotosReused": "Fotos de outro anúncio",
+  "@cardWarningPhotosReused": {
+    "description": "Card photo warning: the photos were seen in another ad."
+  },
+  "cardWarningContradiction": "Texto contradiz o anúncio",
+  "@cardWarningContradiction": {
+    "description": "Card photo warning: the description contradicts the ad's fields."
+  },
+  "cardWarningA2": "Limitada A2",
+  "@cardWarningA2": {
+    "description": "Card photo warning: an A2 (35 kW) restricted version."
+  },
+  "hoursAgo": "há {hours} h",
+  "@hoursAgo": {
+    "description": "The ad's age on the card's photo, under a day.",
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "estimatedValueLine": "Valor estimado: {price}",
+  "@estimatedValueLine": {
+    "description": "Under the card's price: the value its market position is measured against.",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "estimatedValueForYearLine": "Valor estimado para {year}: {price}",
+  "@estimatedValueForYearLine": {
+    "description": "Under the card's price: the value its market position is measured against, for the bike's year (and mileage).",
+    "placeholders": {
+      "year": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "marketMedianLine": "Mediana nacional: {price}",
+  "@marketMedianLine": {
+    "description": "Under the card's price: the median of the country's comparable ads, which its market position is measured against.",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "marketMedianForYearLine": "Mediana nacional para {year}: {price}",
+  "@marketMedianForYearLine": {
+    "description": "Under the card's price: the median of the country's comparable ads for the bike's year (and mileage).",
+    "placeholders": {
+      "year": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "cardBelowMedian": "{percent} abaixo da mediana",
+  "@cardBelowMedian": {
+    "description": "On the card's price box: where the asking price sits against the value shown under it.",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "cardAboveMedian": "{percent} acima da mediana",
+  "@cardAboveMedian": {
+    "description": "On the card's price box: where the asking price sits against the value shown under it.",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "cardAtMedian": "Na mediana",
+  "@cardAtMedian": {
+    "description": "On the card's price box: where the asking price sits against the value shown under it."
+  },
+  "cardBelowEstimatedValue": "{percent} abaixo do valor estimado",
+  "@cardBelowEstimatedValue": {
+    "description": "On the card's price box: where the asking price sits against the value shown under it.",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "cardAboveEstimatedValue": "{percent} acima do valor estimado",
+  "@cardAboveEstimatedValue": {
+    "description": "On the card's price box: where the asking price sits against the value shown under it.",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "cardAtEstimatedValue": "No valor estimado",
+  "@cardAtEstimatedValue": {
+    "description": "On the card's price box: where the asking price sits against the value shown under it."
   }
 }

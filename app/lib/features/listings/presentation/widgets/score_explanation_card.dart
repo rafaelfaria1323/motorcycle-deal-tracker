@@ -50,6 +50,11 @@ class const _RiskMeter({required final int risk}) extends StatelessWidget {
         : risk >= 20
         ? colors.scoreInteresting
         : colors.positive;
+    // The amber is for the bar; as text a medium risk reads in the
+    // ordinary colour (amber text is too faint on the dark theme).
+    final labelColor = risk >= 50 || risk < 20
+        ? color
+        : theme.colorScheme.onSurface;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,7 +74,7 @@ class const _RiskMeter({required final int risk}) extends StatelessWidget {
                       risk,
                       language: context.language,
                     ),
-                    style: TextStyle(color: color),
+                    style: TextStyle(color: labelColor),
                   ),
                 ],
               ),

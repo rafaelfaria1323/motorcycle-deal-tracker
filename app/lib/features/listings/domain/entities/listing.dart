@@ -47,6 +47,10 @@ class const Listing({
   /// The existing `first_owner` scoring signal, including claims in the ad
   /// when no owner count is known. Lists load only the risk-reason codes.
   final bool hasFirstOwnerSignal = false,
+
+  /// The Risk Score's reason codes (`score_breakdown->risk_reasons`, which
+  /// lists load); the card warns of the serious ones.
+  final List<String> riskReasons = const [],
   final bool? serviceBook,
   final String? origin,
   final DateTime? warrantyUntil,

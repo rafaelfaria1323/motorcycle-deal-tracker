@@ -12,10 +12,9 @@ double _contrast(Color a, Color b) {
   return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
 }
 
-/// WCAG AA: 4.5 for ordinary text, 3 for large text (24px, or 18.7px
-/// bold; the Deal Score badges are 18-28px bold display figures).
+/// WCAG AA for ordinary text; also the Deal Score tiles, whose band name
+/// is small text.
 const _text = 4.5;
-const _large = 3.0;
 
 void main() {
   for (final (name, theme, colors) in [
@@ -70,11 +69,12 @@ void main() {
         );
       });
 
-      test('every Deal Score band is readable behind its white figure', () {
+      // The card's tile holds the band's name in small capitals too.
+      test('every Deal Score band is readable behind its white text', () {
         for (final score in [95, 85, 75, 65, 40]) {
           expect(
             _contrast(AppColors.onPhoto, colors.score(score)),
-            greaterThanOrEqualTo(_large),
+            greaterThanOrEqualTo(_text),
             reason: 'score $score',
           );
         }

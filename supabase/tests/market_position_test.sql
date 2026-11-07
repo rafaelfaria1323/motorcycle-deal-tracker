@@ -13,7 +13,16 @@ values
      "damaged_value": 5700, "pct_below_damaged_value": 12.3}'),
   ('manual', 'mp-placeholder', 'https://example.com/mp-placeholder', 'Yamaha', 'MT-07', 1,
    '{"pct_below_market": 99, "market_listing_count": 9}'),
-  ('manual', 'mp-none', 'https://example.com/mp-none', 'Yamaha', 'MT-07', 6400, null);
+  ('manual', 'mp-none', 'https://example.com/mp-none', 'Yamaha', 'MT-07', 6400, null),
+  -- Today's breakdown: every key, null where it doesn't apply.
+  ('manual', 'mp-null-keys', 'https://example.com/mp-null-keys', 'Yamaha', 'MT-07', 7250,
+   '{"pct_below_market": 7.4, "market_listing_count": 72, "damage_allowance": null,
+     "damaged_value": null, "pct_below_damaged_value": null, "legalisation_cost": null,
+     "legalised_value": null, "pct_below_legalised_value": null}'),
+  ('manual', 'mp-legalised', 'https://example.com/mp-legalised', 'Yamaha', 'MT-07', 5000,
+   '{"pct_below_market": 25, "market_listing_count": 9, "damage_allowance": null,
+     "pct_below_damaged_value": null, "legalisation_cost": 900,
+     "legalised_value": 5600, "pct_below_legalised_value": 10.7}');
 
 do $$
 begin
@@ -29,6 +38,10 @@ begin
           where source_listing_id = 'mp-placeholder'), 'nothing for a placeholder price';
   assert (select l.market_position is null from public.listings l
           where source_listing_id = 'mp-none'), 'nothing before scoring';
+  assert (select l.market_position = 7.4 from public.listings l
+          where source_listing_id = 'mp-null-keys'), 'keys set to null are no reference';
+  assert (select l.market_position = 10.7 from public.listings l
+          where source_listing_id = 'mp-legalised'), 'not legalised: its legalised value';
   assert has_function_privilege('anon', 'public.market_position(public.listings)', 'execute');
 end $$;
 
