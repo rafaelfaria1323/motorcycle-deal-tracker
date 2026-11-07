@@ -505,7 +505,9 @@ class const _PriceLine({
     final textTheme = theme.textTheme;
     final showPosition = preferences.shows(ListingCardField.marketPosition);
     final pct = showPosition ? listing.marketPosition : null;
-    final position = marketPositionText(pct, language: context.language);
+    final position = showPosition
+        ? cardMarketPositionText(listing, language: context.language)
+        : null;
     final estimate = showPosition
         ? estimatedValueText(listing, language: context.language)
         : null;
@@ -549,7 +551,7 @@ class const _PriceLine({
                     mainAxisSize: MainAxisSize.min,
                     spacing: 4,
                     children: [
-                      if (pct!.round() != 0)
+                      if (pct!.abs() >= 0.05)
                         Icon(
                           pct > 0 ? Icons.arrow_downward : Icons.arrow_upward,
                           size: 14,

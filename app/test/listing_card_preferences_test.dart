@@ -405,6 +405,45 @@ void main() {
     expect(listingAgeText(DateTime.utc(2026, 10, 9), now: now), 'há 16 dias');
   });
 
+  test('the card says whether the price is below or above the median', () {
+    expect(
+      cardMarketPositionText(
+        _cardListing({'price': 7200, 'market_position': 11.4}),
+      ),
+      '11,4 % abaixo da mediana',
+    );
+    expect(
+      cardMarketPositionText(
+        _cardListing({'price': 7200, 'market_position': -5}),
+        language: .english,
+      ),
+      '5.0% above the median',
+    );
+    expect(
+      cardMarketPositionText(
+        _cardListing({'price': 7200, 'market_position': 0.0}),
+      ),
+      'Na mediana',
+    );
+    expect(
+      cardMarketPositionText(
+        _cardListing({
+          'price': 7200,
+          'market_position': 8.0,
+          'card_risk_reasons': ['needs_repair'],
+        }),
+      ),
+      '8,0 % abaixo do valor estimado',
+    );
+    expect(cardMarketPositionText(_cardListing({'price': 7200})), isNull);
+    expect(
+      cardMarketPositionText(
+        _cardListing({'price': 1, 'market_position': 10.0}),
+      ),
+      isNull,
+    );
+  });
+
   test('the estimated value is worked back from the market position', () {
     expect(
       estimatedValueText(

@@ -19,6 +19,36 @@ String? marketPositionText(double? pct, {AppLanguage language = .portuguese}) {
       : language.messages.aboveMarketValue(percent: '${-rounded}');
 }
 
+/// Where the card's price sits against the value under it, to one decimal
+/// as in Stitch: "11,4 % abaixo da mediana", "5,0 % acima da mediana",
+/// "Na mediana"; for a damaged or not yet legalised bike against the
+/// estimated value ("abaixo do valor estimado"). Null without a position.
+String? cardMarketPositionText(
+  Listing listing, {
+  AppLanguage language = .portuguese,
+}) {
+  final pct = listing.marketPosition;
+  if (pct == null || listing.askingPrice == null) return null;
+  final messages = language.messages;
+  final estimate = listing.riskReasons.any(_adjustedReferenceReasons.contains);
+  final percent = Formatters.percent(
+    pct.abs(),
+    decimals: 1,
+    language: language,
+  );
+  if (pct.abs() < 0.05) {
+    return estimate ? messages.cardAtEstimatedValue : messages.cardAtMedian;
+  }
+  if (pct > 0) {
+    return estimate
+        ? messages.cardBelowEstimatedValue(percent: percent)
+        : messages.cardBelowMedian(percent: percent);
+  }
+  return estimate
+      ? messages.cardAboveEstimatedValue(percent: percent)
+      : messages.cardAboveMedian(percent: percent);
+}
+
 /// The value [Listing.marketPosition] is measured against, to the nearest
 /// 10 €, for the bike's year when known, as Stitch's price box: the
 /// median of the whole country's comparable ads for its year and mileage

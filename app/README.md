@@ -70,7 +70,7 @@ Screen names below use the Portuguese labels; English provides the same screens.
   star on it to add or remove the favourite, the Deal Score tile with its
   band inside ("MUITO BOM") beside the name, year and mileage on one line,
   the price with its change and, on its right, the position against the
-  estimated value ("8 % abaixo do mercado") with that value under the
+  median ("▼ 11,4 % abaixo da mediana") with that value under the
   price ("Mediana nacional para 2023: 8 000 €"; "Valor estimado" for a
   damaged or not yet legalised bike) in a light box, place and distance
   from your home, and the preferred colour as a green chip, with a

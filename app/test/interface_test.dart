@@ -335,6 +335,7 @@ void main() {
                               dealerWarrantyMonths: 18,
                               location: 'Vila Nova de Gaia',
                               distanceKm: 128,
+                              marketPosition: 11.4,
                             ),
                             onTap: () {},
                             onLongPress: () {},
@@ -349,6 +350,12 @@ void main() {
           );
           await tester.pumpAndSettle();
           expect(find.text('Comparar'), findsOneWidget);
+          // Whether the price is above or below the median, and the median.
+          final position = preferences.shows(ListingCardField.marketPosition)
+              ? findsOneWidget
+              : findsNothing;
+          expect(find.text('11,4 % abaixo da mediana'), position);
+          expect(find.textContaining('Mediana nacional para 2023: '), position);
           if (preferences.shows(ListingCardField.registrations)) {
             expect(find.text('Primeiro dono'), findsOneWidget);
           }

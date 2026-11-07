@@ -6149,5 +6149,49 @@
         "type": "String"
       }
     }
+  },
+  "cardBelowMedian": "{percent} abaixo da mediana",
+  "@cardBelowMedian": {
+    "description": "On the card's price box: where the asking price sits against the value shown under it.",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "cardAboveMedian": "{percent} acima da mediana",
+  "@cardAboveMedian": {
+    "description": "On the card's price box: where the asking price sits against the value shown under it.",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "cardAtMedian": "Na mediana",
+  "@cardAtMedian": {
+    "description": "On the card's price box: where the asking price sits against the value shown under it."
+  },
+  "cardBelowEstimatedValue": "{percent} abaixo do valor estimado",
+  "@cardBelowEstimatedValue": {
+    "description": "On the card's price box: where the asking price sits against the value shown under it.",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "cardAboveEstimatedValue": "{percent} acima do valor estimado",
+  "@cardAboveEstimatedValue": {
+    "description": "On the card's price box: where the asking price sits against the value shown under it.",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "cardAtEstimatedValue": "No valor estimado",
+  "@cardAtEstimatedValue": {
+    "description": "On the card's price box: where the asking price sits against the value shown under it."
   }
 }

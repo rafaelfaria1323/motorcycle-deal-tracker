@@ -1084,5 +1084,11 @@
   "estimatedValueLine": "Estimated value: {price}",
   "estimatedValueForYearLine": "Estimated value for {year}: {price}",
   "marketMedianLine": "National median: {price}",
-  "marketMedianForYearLine": "National median for {year}: {price}"
+  "marketMedianForYearLine": "National median for {year}: {price}",
+  "cardBelowMedian": "{percent} below the median",
+  "cardAboveMedian": "{percent} above the median",
+  "cardAtMedian": "At the median",
+  "cardBelowEstimatedValue": "{percent} below the estimated value",
+  "cardAboveEstimatedValue": "{percent} above the estimated value",
+  "cardAtEstimatedValue": "At the estimated value"
 }

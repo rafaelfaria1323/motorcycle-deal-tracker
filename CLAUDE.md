@@ -515,7 +515,8 @@ invites; written by the collector on each run).
   ad's age (`listingAgeText`) as tags, and the favourite star
   (`toggleFavourite`, `favourite_widgets.dart`); name with year · km
   under it and the Deal Score tile with its band inside beside it; the
-  price with its change and the market position on its right, the
+  price with its change and, on its right, whether it is above or below
+  the median ("11,4 % abaixo da mediana", `cardMarketPositionText`), the
   national median for its year under the price (`estimatedValueText`,
   from the position; "Valor estimado" for a damaged or unlegalised bike)
   in a filled box without a border; then chips: the serious
