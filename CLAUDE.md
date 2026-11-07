@@ -513,7 +513,7 @@ invites; written by the collector on each run).
   is the grid cell: keep it in step with the card). The card (UI.1, after
   the Stitch design): name with year · km under it and the Deal Score
   badge with its band beside it, the price with its change and the
-  market position under it (no box: one read as a form field), the serious risk reasons as pills on the photo
+  market position on its right (a filled box without a border, the Stitch list screen's), the serious risk reasons as pills on the photo
   (`cardWarnings`, at most two, from `Listing.riskReasons`). The detail hero
   splits into photo and summary at 800px of content width; its four
   scrollable tabs keep opened sections alive, and the original-link action

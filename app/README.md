@@ -68,8 +68,8 @@ Screen names below use the Portuguese labels; English provides the same screens.
   the list to the top and shows them.
   By default, photo-led cards show the source, the Deal Score with its band
   ("Muito bom") beside the name, year and mileage on one line, the price
-  with its change and, under it, the position against the estimated value
-  ("8 % abaixo do mercado"), place and distance from your home,
+  with its change and, on its right, the position against the estimated
+  value ("8 % abaixo do mercado") in a light box, place and distance from your home,
   and preferred-colour indicator, with a visible "Comparar" action;
   serious risk reasons ("Por legalizar", "Acidente referido", at most two)
   show on the photo. Mais › "Cartões dos anúncios"

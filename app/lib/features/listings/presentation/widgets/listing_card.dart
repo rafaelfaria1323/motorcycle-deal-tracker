@@ -303,9 +303,9 @@ class const _CardDetails({
   }
 }
 
-/// The price and its change and, below them, where the price sits
-/// against the estimated value; on the card itself, as in the Stitch
-/// design (a box around it read as a form field).
+/// The price and its change on the left and, on the same row (below it
+/// when there is no room), where the price sits against the estimated
+/// value, in a filled box without a border, as in the Stitch list design.
 class const _PriceLine({
   required final Listing listing,
   required final ListingCardPreferences preferences,
@@ -319,50 +319,65 @@ class const _PriceLine({
         : null;
     final position = marketPositionText(pct, language: context.language);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 2,
-      children: [
-        Wrap(
-          spacing: 8,
-          runSpacing: 4,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Text(
-              listing.priceLabel(language: context.language),
-              style: textTheme.headlineSmall?.copyWith(
-                fontSize: 28,
-                height: 1.1,
-                fontFeatures: AppTheme.tabularFigures,
-              ),
-            ),
-            if (preferences.shows(ListingCardField.priceChange))
-              PriceChangeTag(listing: listing),
-          ],
-        ),
-        if (position != null)
-          Row(
-            spacing: 4,
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: SizedBox(
+          width: double.infinity,
+          child: Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 4,
             children: [
-              if (pct!.round() != 0)
-                Icon(
-                  pct > 0 ? Icons.arrow_downward : Icons.arrow_upward,
-                  size: 14,
-                  color: _marketPositionColour(context, pct),
-                ),
-              Flexible(
-                child: Text(
-                  position,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: textTheme.labelLarge?.copyWith(
-                    color: _marketPositionColour(context, pct),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    listing.priceLabel(language: context.language),
+                    style: textTheme.headlineSmall?.copyWith(
+                      fontSize: 26,
+                      height: 1.1,
+                      fontFeatures: AppTheme.tabularFigures,
+                    ),
                   ),
-                ),
+                  if (preferences.shows(ListingCardField.priceChange))
+                    PriceChangeTag(listing: listing),
+                ],
               ),
+              if (position != null)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 4,
+                  children: [
+                    if (pct!.round() != 0)
+                      Icon(
+                        pct > 0 ? Icons.arrow_downward : Icons.arrow_upward,
+                        size: 14,
+                        color: _marketPositionColour(context, pct),
+                      ),
+                    Flexible(
+                      child: Text(
+                        position,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.labelLarge?.copyWith(
+                          color: _marketPositionColour(context, pct),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
             ],
           ),
-      ],
+        ),
+      ),
     );
   }
 }
