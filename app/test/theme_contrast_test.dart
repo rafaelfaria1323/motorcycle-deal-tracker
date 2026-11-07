@@ -70,11 +70,12 @@ void main() {
         );
       });
 
-      test('every Deal Score band is readable behind its white figure', () {
+      // The card's tile holds the band's name in small capitals too.
+      test('every Deal Score band is readable behind its white text', () {
         for (final score in [95, 85, 75, 65, 40]) {
           expect(
             _contrast(AppColors.onPhoto, colors.score(score)),
-            greaterThanOrEqualTo(_large),
+            greaterThanOrEqualTo(_text),
             reason: 'score $score',
           );
         }

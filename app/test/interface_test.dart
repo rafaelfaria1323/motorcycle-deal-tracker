@@ -21,6 +21,7 @@ import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/lis
 import 'package:motorcycle_deal_tracker/features/alerts/presentation/pages/alerts_page.dart';
 import 'package:motorcycle_deal_tracker/features/favourites/presentation/pages/favourites_page.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/listing_detail_page.dart';
+import 'package:motorcycle_deal_tracker/features/listings/presentation/listing_card_text.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/photo_viewer_args.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/deal_score_badge.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/listing_card.dart';
@@ -401,11 +402,13 @@ void main() {
         matching: find.byWidgetPredicate(
           (widget) =>
               widget is Text &&
-              (widget.data?.startsWith('Publicado: 09/10/2026') ?? false),
+              widget.data ==
+                  listingAgeText(DateTime.utc(2026, 10, 9)).toUpperCase(),
         ),
       );
+      // The age tag on the photo (Stitch), one line.
       expect(published, findsOneWidget);
-      expect(tester.widget<Text>(published).maxLines, isNull);
+      expect(tester.widget<Text>(published).maxLines, 1);
       expect(
         fixture.cardPreferencesRepository.value.shows(
           ListingCardField.registrations,
@@ -521,7 +524,8 @@ void main() {
         find.byWidgetPredicate(
           (widget) =>
               widget is Text &&
-              (widget.data?.startsWith('Publicado: 09/10/2026') ?? false),
+              widget.data ==
+                  listingAgeText(DateTime.utc(2026, 10, 9)).toUpperCase(),
         ),
         findsOneWidget,
       );

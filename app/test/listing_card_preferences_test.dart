@@ -246,7 +246,6 @@ void main() {
           '18 meses de garantia do vendedor',
         ),
         (ListingCardField.sellerName, 'Stand: Motos do Norte'),
-        (ListingCardField.publishedAt, 'Publicado: 09/10/2026 (há 16 dias)'),
         (
           ListingCardField.siteRefreshedAt,
           'Renovado no site: 24/10/2026 (ontem)',
@@ -352,6 +351,7 @@ void main() {
         ),
         isEmpty,
       );
+      // Publication is the age on the photo, not a fact under the price.
       expect(
         listingCardExtraFacts(
           _cardListing({
@@ -361,7 +361,7 @@ void main() {
           preferences,
           now: now,
         ),
-        [(ListingCardField.publishedAt, 'Publicado: 24/10/2026 (ontem)')],
+        isEmpty,
       );
       expect(
         listingCardExtraFacts(
@@ -378,6 +378,53 @@ void main() {
       );
     },
   );
+
+  test('the age on the photo counts minutes, hours, then days', () {
+    final now = DateTime.utc(2026, 10, 25, 12);
+    expect(listingAgeText(now, now: now), 'há 1 min');
+    expect(
+      listingAgeText(now.subtract(const Duration(minutes: 42)), now: now),
+      'há 42 min',
+    );
+    expect(
+      listingAgeText(now.subtract(const Duration(hours: 5)), now: now),
+      'há 5 h',
+    );
+    expect(
+      listingAgeText(
+        now.subtract(const Duration(hours: 5)),
+        now: now,
+        language: .english,
+      ),
+      '5 h ago',
+    );
+    expect(
+      listingAgeText(now.subtract(const Duration(hours: 30)), now: now),
+      'ontem',
+    );
+    expect(listingAgeText(DateTime.utc(2026, 10, 9), now: now), 'há 16 dias');
+  });
+
+  test('the estimated value is worked back from the market position', () {
+    expect(
+      estimatedValueText(
+        _cardListing({'price': 7200, 'market_position': 10.0}),
+      ),
+      'Valor estimado: ${Formatters.price(8000)}',
+    );
+    expect(
+      estimatedValueText(
+        _cardListing({'price': 8400, 'market_position': -5.0}),
+        language: .english,
+      ),
+      'Estimated value: ${Formatters.price(8000, language: .english)}',
+    );
+    expect(estimatedValueText(_cardListing({'price': 7200})), isNull);
+    expect(
+      estimatedValueText(_cardListing({'price': 1, 'market_position': 10.0})),
+      isNull,
+    );
+  });
 
   group('Supabase card preferences', () {
     late _Recorder recorder;

@@ -19,6 +19,41 @@ String? marketPositionText(double? pct, {AppLanguage language = .portuguese}) {
       : language.messages.aboveMarketValue(percent: '${-rounded}');
 }
 
+/// The value [Listing.marketPosition] is measured against, to the nearest
+/// 10 € ("Valor estimado: 8 450 €"): the estimate, or for a damaged or
+/// not yet legalised bike the value it is judged against. Null without a
+/// real price or a position.
+String? estimatedValueText(
+  Listing listing, {
+  AppLanguage language = .portuguese,
+}) {
+  final price = listing.askingPrice;
+  final pct = listing.marketPosition;
+  if (price == null || pct == null || pct >= 100) return null;
+  final value = (price / (1 - pct / 100) / 10).round() * 10.0;
+  return language.messages.estimatedValueLine(
+    price: Formatters.price(value, language: language),
+  );
+}
+
+/// How long ago the ad went up, for the card's photo: "há 18 min",
+/// "há 5 h", "ontem", "há 3 dias".
+String listingAgeText(
+  DateTime published, {
+  DateTime? now,
+  AppLanguage language = .portuguese,
+}) {
+  final age = (now ?? DateTime.now()).difference(published);
+  if (age < const Duration(hours: 1)) {
+    final minutes = age.inMinutes < 1 ? 1 : age.inMinutes;
+    return language.messages.minutesAgo(minutes: '$minutes');
+  }
+  if (age < const Duration(days: 1)) {
+    return language.messages.hoursAgo(hours: '${age.inHours}');
+  }
+  return Formatters.daysAgo(published, now: now, language: language);
+}
+
 /// "2023 · 12 000 km" under the card's title: the year when shown and
 /// known, the mileage when shown ("—" when unknown); null with neither.
 String? yearAndMileageText(
@@ -35,7 +70,7 @@ String? yearAndMileageText(
   return parts.isEmpty ? null : parts.join(' · ');
 }
 
-/// The risk reasons serious enough to warn of on the photo, strongest
+/// The risk reasons serious enough to warn of on the card, strongest
 /// first; the rest stay in the ad's Avaliação.
 const _cardWarningCodes = [
   'not_legalised_outside_eu',
@@ -50,7 +85,7 @@ const _cardWarningCodes = [
   'a2_limited',
 ];
 
-/// Short warnings for the card's photo ("Por legalizar", "Acidente
+/// Short warnings for the card's chips ("Por legalizar", "Acidente
 /// referido"), at most [max], each said once.
 List<String> cardWarnings(
   List<String> reasons, {
@@ -74,6 +109,8 @@ List<String> cardWarnings(
   }.take(max).toList();
 }
 
+/// The chosen optional facts, each a chip under the price. The
+/// publication is not one: it is the age on the photo ([listingAgeText]).
 List<(ListingCardField, String)> listingCardExtraFacts(
   Listing listing,
   ListingCardPreferences preferences, {
@@ -147,14 +184,6 @@ List<(ListingCardField, String)> listingCardExtraFacts(
     if (listing.sellerName?.trim() case final seller?)
       if (seller.isNotEmpty)
         (ListingCardField.sellerName, language.messages.dealer(seller: seller)),
-  if (preferences.shows(ListingCardField.publishedAt))
-    if (listing.publishedAt case final published?)
-      (
-        ListingCardField.publishedAt,
-        language.messages.publishedOn(
-          date: dateWithAge(published, now: now, language: language),
-        ),
-      ),
   if (preferences.shows(ListingCardField.siteRefreshedAt))
     if (renewalToShow(listing) case final renewed?)
       (

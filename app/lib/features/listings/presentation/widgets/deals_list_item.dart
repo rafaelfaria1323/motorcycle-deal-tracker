@@ -10,11 +10,13 @@ import '../../../compare/presentation/compare_text.dart';
 import '../../../compare/presentation/cubit/compare_cubit.dart';
 import '../../../favourites/presentation/cubit/favourites_cubit.dart';
 import '../../../favourites/presentation/cubit/favourites_state.dart';
+import '../../../favourites/presentation/widgets/favourite_widgets.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/entities/listing_card_preferences.dart';
 import 'listing_card.dart';
 
-/// One ad of Ofertas: its card with the star and the comparison pick,
+/// One ad of Ofertas: its card with the star (a tap adds or removes the
+/// favourite) and the comparison pick,
 /// each rebuilt only when this ad's own changes. A tap opens the ad, a
 /// long press adds it to the comparison.
 class const DealsListItem({
@@ -48,6 +50,7 @@ class const DealsListItem({
               preferences: preferences,
               selected: selected,
               favourite: favourites.isFavourite(listing.id),
+              onFavourite: () => toggleFavourite(context, listing),
               onTap: () => context.push(
                 AppRoutes.listingDetail(listing.id),
                 extra: AppRoutes.fromList,

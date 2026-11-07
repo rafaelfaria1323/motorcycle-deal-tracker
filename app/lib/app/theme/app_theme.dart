@@ -61,6 +61,16 @@ abstract final class AppTheme {
     color: AppColors.onPhoto,
   );
 
+  /// The band's name inside the card's Deal Score tile ("MUITO BOM").
+  static const scoreBand = TextStyle(
+    fontFamily: bodyFont,
+    fontSize: 10,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 0.4,
+    height: 1.1,
+    color: AppColors.onPhoto,
+  );
+
   static ThemeData get light => _build(_lightScheme, AppColors.light);
 
   static ThemeData get dark => _build(_darkScheme, AppColors.dark);

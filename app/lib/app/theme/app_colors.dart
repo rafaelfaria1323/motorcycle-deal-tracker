@@ -15,7 +15,8 @@ class const AppColors({
   required final Color scoreNormal,
   required final Color scorePoor,
 }) extends ThemeExtension<AppColors> {
-  // Deal Score bands, solid behind white text (also on top of photos).
+  // Deal Score bands, solid behind white text, the band's small name
+  // included: the same in light and dark mode.
 
   // Overlays on photos and score badges: the same in light and dark mode.
   static const onPhoto = Color(0xFFFFFFFF);
@@ -27,21 +28,21 @@ class const AppColors({
   static const light = AppColors(
     positive: Color(0xFF0A7F57),
     negative: Color(0xFFD12B2B),
-    scoreExcellent: Color(0xFF0B8A5E),
-    scoreVeryGood: Color(0xFF4A8C12),
-    scoreInteresting: Color(0xFFB07800),
-    scoreNormal: Color(0xFFD45A0A),
+    scoreExcellent: Color(0xFF0A7F57),
+    scoreVeryGood: Color(0xFF437E10),
+    scoreInteresting: Color(0xFF946600),
+    scoreNormal: Color(0xFFBF4F08),
     scorePoor: Color(0xFFC92A2A),
   );
 
   static const dark = AppColors(
     positive: Color(0xFF3DD68C),
     negative: Color(0xFFFF7A7A),
-    scoreExcellent: Color(0xFF0E9F6E),
-    scoreVeryGood: Color(0xFF55A015),
-    scoreInteresting: Color(0xFFC08600),
-    scoreNormal: Color(0xFFE0620B),
-    scorePoor: Color(0xFFD93636),
+    scoreExcellent: Color(0xFF0A7F57),
+    scoreVeryGood: Color(0xFF437E10),
+    scoreInteresting: Color(0xFF946600),
+    scoreNormal: Color(0xFFBF4F08),
+    scorePoor: Color(0xFFC92A2A),
   );
 
   static AppColors of(BuildContext context) =>

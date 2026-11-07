@@ -180,7 +180,6 @@
   "factoryWarrantyUntil": "Factory warranty until {date}",
   "sellerWarrantyMonths": "{months, plural, =0{0 months} =1{1 month} other{{months} months}} of seller warranty",
   "dealer": "Dealer: {seller}",
-  "publishedOn": "Published: {date}",
   "renewedOnSite": "Renewed on the site: {date}",
   "status": "Status: {label}",
   "relistedSince": "Was for sale in an earlier listing since {date}",
@@ -1080,5 +1079,8 @@
   "cardWarningRepair": "Needs repair",
   "cardWarningPhotosReused": "Photos from another ad",
   "cardWarningContradiction": "Text contradicts the ad",
-  "cardWarningA2": "A2 restricted"
+  "cardWarningA2": "A2 restricted",
+  "hoursAgo": "{hours} h ago",
+  "estimatedValueLine": "Estimated value: {price}",
+  "seeAnalysis": "See analysis"
 }

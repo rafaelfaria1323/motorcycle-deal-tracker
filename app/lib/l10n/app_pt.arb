@@ -1110,15 +1110,6 @@
       }
     }
   },
-  "publishedOn": "Publicado: {date}",
-  "@publishedOn": {
-    "description": "Interface text in listing_card_text, listingCardExtraFacts.",
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
   "renewedOnSite": "Renovado no site: {date}",
   "@renewedOnSite": {
     "description": "Interface text in listing_card_text, listingCardExtraFacts.",
@@ -6107,5 +6098,27 @@
   "cardWarningA2": "Limitada A2",
   "@cardWarningA2": {
     "description": "Card photo warning: an A2 (35 kW) restricted version."
+  },
+  "hoursAgo": "há {hours} h",
+  "@hoursAgo": {
+    "description": "The ad's age on the card's photo, under a day.",
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "estimatedValueLine": "Valor estimado: {price}",
+  "@estimatedValueLine": {
+    "description": "Under the card's price: the value its market position is measured against.",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "seeAnalysis": "Ver análise",
+  "@seeAnalysis": {
+    "description": "The card's button that opens the ad."
   }
 }
