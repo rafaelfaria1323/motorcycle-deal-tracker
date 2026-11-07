@@ -31,10 +31,6 @@ class const ListingCard({
   static const photoHeight = 180.0;
   static const _gridFactLines = 2;
 
-  /// Below this width the footer leaves out "Ver análise" (the whole card
-  /// opens the ad anyway).
-  static const _analysisButtonWidth = 340.0;
-
   /// The height of every card in a grid: room for a two-line name, the
   /// year and mileage line when either is shown, the price box (with the
   /// estimated value when the market position is shown), one line of
@@ -116,9 +112,6 @@ class const ListingCard({
                     listing: listing,
                     selected: selected,
                     onCompare: onLongPress,
-                    onOpen: constraints.maxWidth >= _analysisButtonWidth
-                        ? onTap
-                        : null,
                     showLocation: showLocation,
                   ),
                 ],
@@ -593,13 +586,12 @@ class const _PriceLine({
   }
 }
 
-/// The place on the left; "Comparar" with its check box and, on a wide
-/// enough card, "Ver análise" on the right, as in the Stitch design.
+/// The place on the left and "Comparar" with its check box on the right
+/// (the whole card opens the ad).
 class const _CardFooter({
   required final Listing listing,
   required final bool selected,
   required final VoidCallback? onCompare,
-  required final VoidCallback? onOpen,
   required final bool showLocation,
 }) extends StatelessWidget {
   @override
@@ -647,17 +639,6 @@ class const _CardFooter({
             )
           else
             const SizedBox(height: 48, width: 8),
-          if (onOpen != null)
-            TextButton.icon(
-              onPressed: onOpen,
-              style: TextButton.styleFrom(
-                minimumSize: const Size(48, 48),
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-              ),
-              iconAlignment: IconAlignment.end,
-              icon: const Icon(Icons.arrow_forward, size: 18),
-              label: Text(context.strings.seeAnalysis),
-            ),
         ],
       ),
     );

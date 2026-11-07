@@ -71,9 +71,9 @@ Screen names below use the Portuguese labels; English provides the same screens.
   band inside ("MUITO BOM") beside the name, year and mileage on one line,
   the price with its change and, on its right, the position against the
   estimated value ("8 % abaixo do mercado") with that value under the
-  price ("Valor estimado: 8 000 €") in a light box, place and distance
+  price ("Valor estimado para 2023: 8 000 €") in a light box, place and distance
   from your home, and the preferred colour as a green chip, with a
-  "Comparar" check box and, on wide cards, "Ver análise →"; serious risk
+  "Comparar" check box (the whole card opens the ad); serious risk
   reasons ("Por legalizar", "Acidente referido", at most two) show as red
   chips under the price, and every other chosen fact as a chip (green
   when reassuring: first owner, service book, warranties; the Risk

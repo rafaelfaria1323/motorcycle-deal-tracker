@@ -20,9 +20,10 @@ String? marketPositionText(double? pct, {AppLanguage language = .portuguese}) {
 }
 
 /// The value [Listing.marketPosition] is measured against, to the nearest
-/// 10 € ("Valor estimado: 8 450 €"): the estimate, or for a damaged or
-/// not yet legalised bike the value it is judged against. Null without a
-/// real price or a position.
+/// 10 €, for the bike's year when known ("Valor estimado para 2023:
+/// 8 450 €", as Stitch's price box): the estimate for its year and
+/// mileage, or for a damaged or not yet legalised bike the value it is
+/// judged against. Null without a real price or a position.
 String? estimatedValueText(
   Listing listing, {
   AppLanguage language = .portuguese,
@@ -31,9 +32,14 @@ String? estimatedValueText(
   final pct = listing.marketPosition;
   if (price == null || pct == null || pct >= 100) return null;
   final value = (price / (1 - pct / 100) / 10).round() * 10.0;
-  return language.messages.estimatedValueLine(
-    price: Formatters.price(value, language: language),
-  );
+  final formatted = Formatters.price(value, language: language);
+  final year = listing.year;
+  return year == null
+      ? language.messages.estimatedValueLine(price: formatted)
+      : language.messages.estimatedValueForYearLine(
+          year: '$year',
+          price: formatted,
+        );
 }
 
 /// How long ago the ad went up, for the card's photo: "há 18 min",

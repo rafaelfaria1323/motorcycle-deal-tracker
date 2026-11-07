@@ -6117,8 +6117,16 @@
       }
     }
   },
-  "seeAnalysis": "Ver análise",
-  "@seeAnalysis": {
-    "description": "The card's button that opens the ad."
+  "estimatedValueForYearLine": "Valor estimado para {year}: {price}",
+  "@estimatedValueForYearLine": {
+    "description": "Under the card's price: the value its market position is measured against, for the bike's year (and mileage).",
+    "placeholders": {
+      "year": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
   }
 }
