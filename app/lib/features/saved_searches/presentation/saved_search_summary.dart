@@ -318,7 +318,7 @@ List<SearchCriterion> searchCriteria(
     (null, final to?) => m.upTo(price: to),
     _ => null,
   };
-  String? price(int? value) =>
+  String? price(double? value) =>
       value == null ? null : Formatters.price(value, language: language);
 
   final models = modelsText(
