@@ -268,4 +268,72 @@ void main() {
       );
     });
   });
+
+  group('bikeValueFigures', () {
+    test('are null below the minimum of comparables', () {
+      expect(
+        bikeValueFigures(
+          const BikeValue(comparableCount: 2, estimate: 6000),
+          null,
+        ),
+        isNull,
+      );
+    });
+
+    test('give the tiles, the range and each factor in euros', () {
+      final figures = bikeValueFigures(
+        value,
+        market(priced: 5, drop: 6),
+        condition: const BikeCondition(
+          damage: BikeDamage.dropped,
+          owners: BikeOwners.one,
+        ),
+      )!;
+      // 6320 x (1 - 5 % + 3 %) = 6193.6.
+      expect(figures.estimate, closeTo(6193.6, 1e-6));
+      expect(figures.low, closeTo(6000 * 0.98, 1e-6));
+      expect(figures.high, closeTo(6600 * 0.98, 1e-6));
+      // 6193.6 x 1.06 = 6565.2, down to 50 €; x 0.8 = 4954.9.
+      expect(figures.asking, 6550);
+      expect(figures.tradeIn, 4950);
+      // Each factor's share of the comparables' 6320 €.
+      expect(figures.factors.map((f) => f.factor), [
+        ConditionFactor.dropped,
+        ConditionFactor.firstOwner,
+      ]);
+      expect(figures.factors[0].amount, closeTo(-316, 1e-6));
+      expect(figures.factors[1].amount, closeTo(189.6, 1e-6));
+    });
+
+    test('use the estimate for a missing range and have no factors', () {
+      final figures = bikeValueFigures(
+        const BikeValue(comparableCount: 8, estimate: 5000),
+        null,
+      )!;
+      expect(figures.low, 5000);
+      expect(figures.high, 5000);
+      expect(figures.factors, isEmpty);
+    });
+  });
+
+  test('conditionFactorLabel starts with a capital in both languages', () {
+    expect(conditionFactorLabel(ConditionFactor.firstOwner), 'Primeiro dono');
+    expect(
+      conditionFactorLabel(
+        ConditionFactor.noServiceBook,
+        language: AppLanguage.english,
+      ),
+      'No service book',
+    );
+  });
+
+  test('signedPrice marks gains with a plus and losses with a minus', () {
+    expect(signedPrice(180), '+${price(180)}');
+    expect(signedPrice(0), '+${price(0)}');
+    expect(signedPrice(-900), '−${price(900)}');
+    expect(
+      signedPrice(-900, language: AppLanguage.english),
+      '−${Formatters.price(900, language: AppLanguage.english)}',
+    );
+  });
 }
