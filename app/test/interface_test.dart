@@ -1516,11 +1516,11 @@ void main() {
         InterfaceFixture(signedIn: true, admin: admin),
         location: AppRoutes.more,
       );
-      await _reveal(tester, find.text('Recolha de dados'));
+      await _reveal(tester, find.text('RECOLHA DE DADOS'));
       // To the end of the list, past the last section.
       await tester.drag(find.byType(Scrollable).first, const Offset(0, -5000));
       await tester.pumpAndSettle();
-      expect(find.text('Administração'), admin ? findsOneWidget : findsNothing);
+      expect(find.text('ADMINISTRAÇÃO'), admin ? findsOneWidget : findsNothing);
       expect(
         find.text('Contas e convites'),
         admin ? findsOneWidget : findsNothing,
@@ -1708,17 +1708,18 @@ void main() {
       textScale: 2,
     );
     expect(find.text('A sua garagem'), findsOneWidget);
+    // The collection's line comes first (UI.6), then the sections.
+    await tester.scrollUntilVisible(
+      find.textContaining('Próxima recolha: '),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.scrollUntilVisible(
       find.text('Modelos acompanhados'),
       200,
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.text('Modelos acompanhados'), findsOneWidget);
-    await tester.scrollUntilVisible(
-      find.textContaining('Próxima recolha: '),
-      200,
-      scrollable: find.byType(Scrollable).first,
-    );
     expect(tester.takeException(), isNull);
   });
 

@@ -376,8 +376,9 @@ invites; written by the collector on each run).
 - Routing: go_router `StatefulShellRoute` (Ofertas / Favoritos / Pesquisas
   / Alertas / Mais; F.9, F.12: Pesquisas inside Alertas was hard to find,
   so it is its own tab again; Alertas carries the unread badge). Account, "Modelos acompanhados" and collection status live in Mais,
-  in sections (Conta, Pessoal, Ferramentas, Notificações, A app, Recolha
-  de dados) plus "Administração" for admins only (`AdminTiles`; `MorePage`
+  in sections (Recolha de dados first, then Conta, Pessoal, Ferramentas,
+  Notificações, A app; UI.6: each icon in a `SettingsIcon` square, names
+  in `AppTheme.groupLabel`) plus "Administração" for admins only (`AdminTiles`; `MorePage`
   asks `isAdmin()` once per account). Recolha de dados is one line for
   everyone (`CollectionLineTile`, `collectionLine`: the last run and the
   next, tinted when the last failed, was blocked or is 12 h old; only the

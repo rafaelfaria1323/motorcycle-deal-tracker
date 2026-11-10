@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../app/di/injection.dart';
 import '../../../core/localization/localizations.dart';
 import 'language_cubit.dart';
+import '../../../core/widgets/settings_icon.dart';
 
 String _languageName(AppLanguage language, AppLocalizations strings) =>
     switch (language) {
@@ -19,7 +20,7 @@ class const LanguageTile({super.key}) extends StatelessWidget {
         builder: (context, state) {
           final strings = context.strings;
           return ListTile(
-            leading: const Icon(Icons.language),
+            leading: const SettingsIcon(Icons.language),
             title: Text(strings.languageTitle),
             subtitle: Text(
               state.failure == .load

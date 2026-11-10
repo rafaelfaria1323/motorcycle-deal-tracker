@@ -8,6 +8,7 @@ import '../../../core/auth/session_cubit.dart';
 import 'collection_text.dart';
 import 'collector_status_cubit.dart';
 import '../../../core/localization/localizations.dart';
+import '../../../core/widgets/settings_icon.dart';
 
 /// Mais' "Recolha de dados" (F.5): one line for everyone, the last run and
 /// the next, tinted when the last run went wrong or is old. Admins tap it
@@ -65,7 +66,7 @@ class _CollectionLineTileState extends State<CollectionLineTile> {
             tileColor: background,
             textColor: foreground,
             iconColor: foreground,
-            leading: Icon(icon),
+            leading: SettingsIcon(icon),
             title: Text(line.title),
             subtitle: subtitle == null ? null : Text(subtitle),
             trailing: widget.admin ? const Icon(Icons.chevron_right) : null,

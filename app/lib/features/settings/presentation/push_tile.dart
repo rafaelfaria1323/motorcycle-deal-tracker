@@ -10,6 +10,7 @@ import 'push_text.dart';
 import 'start_workflow.dart';
 import 'workflows_text.dart';
 import '../../../core/localization/localizations.dart';
+import '../../../core/widgets/settings_icon.dart';
 
 /// "Notificações neste aparelho" in Mais: the account's alerts as
 /// notifications on this phone or computer (Web Push). When they are on,
@@ -188,7 +189,7 @@ class _PushTileState extends State<PushTile> {
     return Column(
       children: [
         ListTile(
-          leading: const Icon(Icons.notifications_outlined),
+          leading: const SettingsIcon(Icons.notifications_outlined),
           title: Text(context.strings.notificationsOnThisDevice),
           subtitle: Text(
             state == null
@@ -207,7 +208,7 @@ class _PushTileState extends State<PushTile> {
         if (widget.signedIn) ...[
           const Divider(height: 1),
           ListTile(
-            leading: const Icon(Icons.bedtime_outlined),
+            leading: const SettingsIcon(Icons.bedtime_outlined),
             title: Text(context.strings.quietHours),
             subtitle: Text(switch (_quiet) {
               final hours? => quietHoursSubtitle(
@@ -232,7 +233,7 @@ class _PushTileState extends State<PushTile> {
           ]) ...[
             const Divider(height: 1),
             ListTile(
-              leading: Icon(icon),
+              leading: SettingsIcon(icon),
               title: Text(
                 workflowText(workflow, language: context.language).title,
               ),

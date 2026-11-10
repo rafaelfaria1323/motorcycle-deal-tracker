@@ -9,6 +9,7 @@ import '../../../core/platform/apk_installer.dart';
 import '../../../core/platform/app_build.dart';
 import 'android_app_text.dart';
 import '../../../core/localization/localizations.dart';
+import '../../../core/widgets/settings_icon.dart';
 
 /// "App Android" in Mais. In an Android phone's browser: the latest APK,
 /// opened in the browser, which downloads it. In the app: whether a newer
@@ -75,7 +76,7 @@ class _AndroidAppTileState extends State<AndroidAppTile> {
     );
     if (offer == null) return const SizedBox.shrink();
     return ListTile(
-      leading: const Icon(Icons.android),
+      leading: const SettingsIcon(Icons.android),
       title: Text(offer.title),
       subtitle: Text(offer.subtitle),
       trailing: _downloading

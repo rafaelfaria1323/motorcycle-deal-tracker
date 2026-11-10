@@ -4,6 +4,7 @@ import '../../../core/platform/app_build.dart';
 import '../../../core/widgets/share_or_copy.dart';
 import 'accounts_text.dart';
 import '../../../core/localization/localizations.dart';
+import '../../../core/widgets/settings_icon.dart';
 
 /// "Partilhar a app" in Mais: the app's link, for anyone. Admins invite
 /// people from "Administração" instead, so their line doesn't send them
@@ -13,7 +14,7 @@ class const ShareAppTile({required final bool admin, super.key})
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: const Icon(Icons.ios_share),
+      leading: const SettingsIcon(Icons.ios_share),
       title: Text(context.strings.shareApp),
       subtitle: Text(
         admin

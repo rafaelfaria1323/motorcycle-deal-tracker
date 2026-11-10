@@ -11,6 +11,7 @@ import '../domain/home_repository.dart';
 import '../domain/place.dart';
 import 'home_place_cubit.dart';
 import '../../../core/localization/localizations.dart';
+import '../../../core/widgets/settings_icon.dart';
 
 /// Opens the town search and saves the chosen place as the account's
 /// home. True once a home was saved. Mais, the sort menu and the filters
@@ -61,7 +62,7 @@ class _HomePlaceTileState extends State<HomePlaceTile> {
       builder: (context, state) {
         final home = state.home;
         return ListTile(
-          leading: const Icon(Icons.home_outlined),
+          leading: const SettingsIcon(Icons.home_outlined),
           title: Text(
             home == null ? context.strings.yourHomeLocation : home.name,
           ),

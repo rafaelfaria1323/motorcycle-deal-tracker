@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/di/injection.dart';
 import '../../../app/router/app_routes.dart';
+import '../../../app/theme/app_theme.dart';
 import '../../../core/auth/account_sheet.dart';
 import '../../../core/auth/session_cubit.dart';
 import '../../../core/widgets/page_intro.dart';
@@ -17,6 +18,7 @@ import 'listing_card_preferences_tile.dart';
 import 'push_tile.dart';
 import 'share_app_tile.dart';
 import '../../../core/localization/localizations.dart';
+import '../../../core/widgets/settings_icon.dart';
 
 /// Everything that is not a list of offers: the account, the person's own
 /// lists and settings, the tools, notifications, the app, one line on the
@@ -74,6 +76,9 @@ class _MoreBodyState extends State<_MoreBody> {
                         context.strings.yourAccountModelsYouFollowAndToolsTo,
                   ),
                 ),
+                // The collection's state first, as Stitch's status card.
+                _Header(context.strings.dataCollection),
+                _Group(children: [CollectionLineTile(admin: admin)]),
                 _Header(context.strings.account),
                 _Group(
                   children: [
@@ -82,15 +87,7 @@ class _MoreBodyState extends State<_MoreBody> {
                         horizontal: 20,
                         vertical: 12,
                       ),
-                      leading: CircleAvatar(
-                        backgroundColor: Theme.of(context)
-                            .colorScheme
-                            .primaryContainer,
-                        foregroundColor: Theme.of(context)
-                            .colorScheme
-                            .onPrimaryContainer,
-                        child: const Icon(Icons.person_outline),
-                      ),
+                      leading: const SettingsIcon(Icons.person_outline),
                       title: Text(
                         signedIn
                             ? session.email ?? context.strings.signedIn
@@ -113,7 +110,7 @@ class _MoreBodyState extends State<_MoreBody> {
                 _Group(
                   children: [
                     ListTile(
-                      leading: const Icon(Icons.two_wheeler),
+                      leading: const SettingsIcon(Icons.two_wheeler),
                       title: Text(context.strings.followedModels),
                       subtitle: Text(
                         signedIn
@@ -127,7 +124,7 @@ class _MoreBodyState extends State<_MoreBody> {
                       onTap: () => context.push(AppRoutes.models),
                     ),
                     ListTile(
-                      leading: const Icon(Icons.summarize_outlined),
+                      leading: const SettingsIcon(Icons.summarize_outlined),
                       title: Text(context.strings.weeklySummary),
                       subtitle: Text(
                         signedIn
@@ -148,21 +145,26 @@ class _MoreBodyState extends State<_MoreBody> {
                 _Group(
                   children: [
                     ListTile(
-                      leading: const Icon(Icons.leaderboard_outlined),
+                      leading: const SettingsIcon(Icons.leaderboard_outlined),
                       title: Text(context.strings.marketByModel),
                       subtitle: Text(context.strings.marketPageSubtitle),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => context.push(AppRoutes.modelMarket),
                     ),
                     ListTile(
-                      leading: const Icon(Icons.price_check),
+                      leading: const SettingsIcon(
+                        Icons.price_check,
+                        strong: true,
+                      ),
                       title: Text(context.strings.bikeValueTitle),
                       subtitle: Text(context.strings.bikeValueSubtitle),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => context.push(AppRoutes.bikeValue),
                     ),
                     ListTile(
-                      leading: const Icon(Icons.local_shipping_outlined),
+                      leading: const SettingsIcon(
+                        Icons.local_shipping_outlined,
+                      ),
                       title: Text(context.strings.importPageTitle),
                       subtitle: Text(context.strings.importPageSubtitle),
                       trailing: const Icon(Icons.chevron_right),
@@ -179,8 +181,6 @@ class _MoreBodyState extends State<_MoreBody> {
                     if (AndroidAppTile.shown) const AndroidAppTile(),
                   ],
                 ),
-                _Header(context.strings.dataCollection),
-                _Group(children: [CollectionLineTile(admin: admin)]),
                 if (admin) ...[
                   _Header(context.strings.administration),
                   const _Group(children: [AdminTiles()]),
@@ -198,10 +198,12 @@ class _MoreBodyState extends State<_MoreBody> {
 class const _Header(final String text) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
-      child: Text(text, style: theme.textTheme.titleLarge),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+      child: Semantics(
+        header: true,
+        child: Text(text.toUpperCase(), style: AppTheme.groupLabel(context)),
+      ),
     );
   }
 }
