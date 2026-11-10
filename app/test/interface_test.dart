@@ -1333,7 +1333,7 @@ void main() {
   ) async {
     final fixture = InterfaceFixture();
     await _open(tester, fixture, location: AppRoutes.alerts);
-    final title = find.text('Novo anúncio: Yamaha MT-07 · 2023');
+    final title = find.text('NOVO ANÚNCIO');
     await _reveal(tester, title);
     await tester.tap(title);
     await tester.pumpAndSettle();

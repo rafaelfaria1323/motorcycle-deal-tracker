@@ -653,60 +653,6 @@
   "@yesterdayHeading": {
     "description": "Yesterday, capitalised, as the day of a collection run."
   },
-  "newListingOf": "Novo anúncio: {bike}",
-  "@newListingOf": {
-    "description": "An alert's title: a new listing of the bike.",
-    "placeholders": {
-      "bike": {
-        "type": "String"
-      }
-    }
-  },
-  "priceReduced": "Preço reduzido: {bike}",
-  "@priceReduced": {
-    "description": "Interface text in alerts_text, alertTitle.",
-    "placeholders": {
-      "bike": {
-        "type": "String"
-      }
-    }
-  },
-  "excellentOpportunity": "Excelente oportunidade: {bike}",
-  "@excellentOpportunity": {
-    "description": "Interface text in alerts_text, alertTitle.",
-    "placeholders": {
-      "bike": {
-        "type": "String"
-      }
-    }
-  },
-  "listingRemovedOf": "Anúncio removido: {bike}",
-  "@listingRemovedOf": {
-    "description": "An alert's title: the bike's listing was removed.",
-    "placeholders": {
-      "bike": {
-        "type": "String"
-      }
-    }
-  },
-  "backOnMarket": "Voltou ao mercado: {bike}",
-  "@backOnMarket": {
-    "description": "Interface text in alerts_text, alertTitle.",
-    "placeholders": {
-      "bike": {
-        "type": "String"
-      }
-    }
-  },
-  "targetPriceReached": "Chegou ao seu preço: {bike}",
-  "@targetPriceReached": {
-    "description": "Interface text in alerts_text, alertTitle.",
-    "placeholders": {
-      "bike": {
-        "type": "String"
-      }
-    }
-  },
   "previously": "{price} (antes {price2})",
   "@previously": {
     "description": "Interface text in alerts_text, alertDetailsLine.",
@@ -2308,14 +2254,6 @@
   },
   "viewSearches": "Ver pesquisas",
   "@viewSearches": {
-    "description": "Interface text in alerts_page, build."
-  },
-  "whatChanged": "O que mudou",
-  "@whatChanged": {
-    "description": "Interface text in alerts_page, build."
-  },
-  "alertsIntro": "Novos anúncios, baixas de preço e novidades das motas que acompanha. Deslize para a esquerda para eliminar ou para a direita para editar a pesquisa de origem.",
-  "@alertsIntro": {
     "description": "Interface text in alerts_page, build."
   },
   "unread": "Não lido",
@@ -6236,5 +6174,38 @@
         "type": "String"
       }
     }
+  },
+  "alertKindNew": "Novo anúncio",
+  "@alertKindNew": {
+    "description": "Interface text in alerts_text, alertKindLabel: the coloured tag on an alert's card, shown in capitals (a new ad)."
+  },
+  "alertKindDrop": "Baixa de preço",
+  "@alertKindDrop": {
+    "description": "Interface text in alerts_text, alertKindLabel: the coloured tag on an alert's card, shown in capitals (a price drop whose size is unknown)."
+  },
+  "alertKindDropBy": "Baixa de preço ({amount})",
+  "@alertKindDropBy": {
+    "description": "Interface text in alerts_text, alertKindLabel: the coloured tag on an alert's card, shown in capitals (a price drop; amount is how much it fell, e.g. -600 €).",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "alertKindExcellent": "Excelente oportunidade",
+  "@alertKindExcellent": {
+    "description": "Interface text in alerts_text, alertKindLabel: the coloured tag on an alert's card, shown in capitals (Deal Score 80 or more)."
+  },
+  "alertKindRemoved": "Removido ou vendido",
+  "@alertKindRemoved": {
+    "description": "Interface text in alerts_text, alertKindLabel: the coloured tag on an alert's card, shown in capitals (the ad left the site)."
+  },
+  "alertKindBack": "Voltou ao mercado",
+  "@alertKindBack": {
+    "description": "Interface text in alerts_text, alertKindLabel: the coloured tag on an alert's card, shown in capitals (a bike followed before was put on sale again)."
+  },
+  "alertKindTarget": "Chegou ao seu preço",
+  "@alertKindTarget": {
+    "description": "Interface text in alerts_text, alertKindLabel: the coloured tag on an alert's card, shown in capitals (a favourite reached the price the person set)."
   }
 }
