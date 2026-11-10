@@ -75,7 +75,7 @@ Tracked models (catalog) → searches → Collectors / Adapters → Normalizatio
    → Deal Engine · Price History · Status Tracking → Flutter Web/PWA → Alerts (app + Web Push / FCM)
 ```
 
-*Each source has its own adapter + mapper (`manual`, `standvirtual`, `standvirtual-search`, `olx-search`); model matching (`ModelResolver`) and everything after normalization are shared. Matching rules are prepared once per resolver and indexed by normalized brand, not rebuilt for each listing (roadmap N.34); matching and fetching rules are unchanged.*
+*Each source has its own adapter + mapper (`manual`, `standvirtual`, `standvirtual-search`, `olx-search`); model matching (`ModelResolver`) and everything after normalization are shared. Matching rules are prepared once per resolver and indexed by normalized brand, not rebuilt for each listing (roadmap N.34); matching and fetching rules are unchanged. A brand's other lines filed under a model's filter (a Tracer 9 or an XSR 900 under OLX's "MT-09") are ruled out for every model, also those added in the app, and a stored ad now follows the seller's edits (mileage, year, title, description, place) on every import (N.53).*
 
 *The app's shared listings, searches, alerts and favourites follow the
 session's account identity themselves (`AccountScopedCubit`, roadmap N.20),

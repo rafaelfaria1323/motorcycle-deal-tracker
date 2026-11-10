@@ -135,6 +135,50 @@ void main() {
     }
   });
 
+  group("another line filed under a model's filter (2026-11-10)", () {
+    // The MT-09 as an account adds it in the app: no rules of its own.
+    final withMt09 = Catalog([
+      ...full.entries,
+      const CatalogEntry(
+        slug: 'yamaha-mt-09',
+        brand: 'Yamaha',
+        model: 'MT-09',
+        minYear: 2021,
+      ),
+    ]);
+    final cases = <(String, String, String), String?>{
+      ('Yamaha', 'MT-09', 'Tracer 9 GT+ - caixa Y-AMT'): null,
+      ('Yamaha', 'MT-09', 'Trecer MT09 GT+ semi nova'): null,
+      ('Yamaha', 'MT-09', 'Xsr 900 Midnight Black'): null,
+      ('Yamaha', 'MT-09', 'XSR900 2025'): null,
+      ('Yamaha', 'MT-09', 'Niken GT'): null,
+      ('Yamaha', 'MT-07', 'Tenere 700 2024'): null,
+      ('Yamaha', 'MT-07', 'XSR 700'): null,
+      ('Yamaha', 'MT-09', 'MT-09 SP 2024'): 'yamaha-mt-09',
+      ('Yamaha', 'MT-09', 'MT09 Y-AMT'): 'yamaha-mt-09',
+      // Its own line's word never rules a model out.
+      ('Yamaha', 'MT-07', 'Tracer 7 GT'): 'yamaha-tracer-7',
+      ('Honda', 'CB', 'XL750 Transalp, motor da CB750 Hornet'): null,
+      ('Honda', 'CB', 'CB750 Hornet 2024'): 'honda-cb750-hornet',
+    };
+    for (final MapEntry(key: (brand, family, title), value: slug)
+        in cases.entries) {
+      test('$brand "$title" -> $slug', () {
+        expect(slugOf(withMt09, brand, family, title), slug);
+      });
+    }
+
+    test('every word is a key the text can hold', () {
+      for (final MapEntry(key: brand, value: words)
+          in relatedModelWords.entries) {
+        expect(brand, normalizeKey(brand));
+        for (final word in words) {
+          expect(word, normalizeKey(word));
+        }
+      }
+    });
+  });
+
   test('a model left out of the catalog is not matched as another', () {
     expect(
       slugOf(Catalog.mvp(), 'Yamaha', 'mt-07', 'Tracer 7 GT 2024'),

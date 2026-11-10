@@ -300,6 +300,55 @@ end;
 $$;
 
 --
+-- Name: apply_listing_facts(text, jsonb); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.apply_listing_facts(p_source text, p_facts jsonb) RETURNS integer
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+declare
+  n integer;
+begin
+  update public.listings l
+  set year        = coalesce(f.year, l.year),
+      mileage     = coalesce(f.mileage, l.mileage),
+      mileage_from_text = l.mileage_from_text and f.mileage is null,
+      variant     = coalesce(f.variant, l.variant),
+      description = coalesce(f.description, l.description),
+      location    = coalesce(f.location, l.location)
+  from (
+    -- As the phone-number trigger stores them, so an unchanged text
+    -- compares equal.
+    select r.source_listing_id, r.year, r.mileage,
+           public.without_phone_numbers(r.variant) as variant,
+           public.without_phone_numbers(r.description) as description,
+           r.location
+    from jsonb_to_recordset(p_facts) as r(
+      source_listing_id text,
+      year              smallint,
+      mileage           integer,
+      variant           text,
+      description       text,
+      location          text
+    )
+  ) f
+  where l.source = p_source
+    and l.source_listing_id = f.source_listing_id
+    and (   (f.year is not null and f.year is distinct from l.year)
+         or (f.mileage is not null
+             and (f.mileage is distinct from l.mileage or l.mileage_from_text))
+         or (f.variant is not null and f.variant is distinct from l.variant)
+         or (f.description is not null
+             and f.description is distinct from l.description)
+         or (f.location is not null and f.location is distinct from l.location));
+
+  get diagnostics n = row_count;
+  return n;
+end;
+$$;
+
+--
 -- Name: apply_price_updates(text, jsonb); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -6815,6 +6864,13 @@ GRANT ALL ON FUNCTION public.apply_listing_dates(p_source text, p_dates jsonb) T
 
 REVOKE ALL ON FUNCTION public.apply_listing_details(p_source text, p_details jsonb) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.apply_listing_details(p_source text, p_details jsonb) TO service_role;
+
+--
+-- Name: FUNCTION apply_listing_facts(p_source text, p_facts jsonb); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.apply_listing_facts(p_source text, p_facts jsonb) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.apply_listing_facts(p_source text, p_facts jsonb) TO service_role;
 
 --
 -- Name: FUNCTION apply_price_updates(p_source text, p_prices jsonb); Type: ACL; Schema: public; Owner: -

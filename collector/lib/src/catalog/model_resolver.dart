@@ -75,13 +75,32 @@ class ModelResolver(final Catalog catalog) {
       .toList();
 }
 
+/// Other lines of a brand that share an engine, a name or a site's model
+/// filter with a catalog model, by brand key: OLX sellers file a Tracer 9
+/// GT or an XSR 900 under "MT-09", and the title then names both. A model
+/// is never ruled out by its own line's word ("Tracer 7" keeps "tracer").
+/// Every catalog model gets these, also those added in the app; the
+/// database's one-off fix of stored ads uses the same words
+/// (`20261110120000_listing_facts.sql`).
+const relatedModelWords = <String, List<String>>{
+  // Tracer (and the common "Trecer"), XSR, Niken and Ténéré share the MT
+  // engines.
+  'yamaha': ['tracer', 'trecer', 'xsr', 'niken', 'tenere'],
+  // The Transalp shares the Hornet 750's engine, the X-ADV the NC750's.
+  'honda': ['transalp', 'xadv'],
+};
+
 /// Catalog-only work, prepared once per resolver rather than once per ad.
 class _ModelRule(final CatalogEntry entry) {
   final String family = normalizeKey(entry.model)
       .replaceFirst(_familySuffix, '');
-  final List<String> excludedWords = entry.excludedWords
-      .map(normalizeKey)
-      .toList();
+  late final List<String> excludedWords = [
+    ...entry.excludedWords.map(normalizeKey),
+    // The brand's other lines, unless this model is one of them.
+    for (final word
+        in relatedModelWords[normalizeKey(entry.brand)] ?? const <String>[])
+      if (!accepted.any((name) => name.contains(word))) word,
+  ];
   final Set<String> accepted = _acceptedNames(entry);
   late final int longest = accepted
       .map((key) => key.length)

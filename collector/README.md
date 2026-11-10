@@ -25,7 +25,8 @@ For each site (Standvirtual, OLX):
    the page that reaches ads 2 h older than that read; such a search
    removes nothing, the full runs (00, 08, 14 and 20 h) do.
 3. **Import:** parse, match each listing to a model, store it, record price
-   changes and dates, and mark listings that left the searches read in full
+   changes, dates and what the seller edited since (year, mileage, title,
+   description, place), and mark listings that left the searches read in full
    as removed (`--full`). The brand and model lists in the search pages'
    filters are stored too (`site_models`, for the app's model picker; no
    extra requests). The log says, per search, the pages it spans (from its

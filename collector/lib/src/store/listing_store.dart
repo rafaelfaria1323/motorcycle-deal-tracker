@@ -300,6 +300,49 @@ class ListingStore(final SupabaseClient _client) {
     return rpcCount(result);
   }
 
+  /// What the site says now about listings already stored: year, mileage,
+  /// title or version, description and place (`apply_listing_facts`).
+  /// `save` never updates a stored row, so a seller's later edit (the
+  /// mileage corrected) would never arrive without this. Absent facts are
+  /// left out: they never erase what is stored. Returns how many changed.
+  Future<int> applyListingFacts(
+    String source,
+    List<NormalizedListing> listings,
+  ) async {
+    final facts = [
+      for (final l in listings)
+        if (l.year != null ||
+            l.mileage != null ||
+            l.variant != null ||
+            l.description != null ||
+            l.location != null)
+          {
+            'source_listing_id': l.sourceListingId,
+            'year': l.year,
+            'mileage': l.mileage,
+            'variant': l.variant,
+            'description': l.description,
+            'location': l.location,
+          },
+    ];
+    var changed = 0;
+    // Descriptions are long: a few hundred listings per request.
+    for (var i = 0; i < facts.length; i += factsPerRequest) {
+      final end = i + factsPerRequest;
+      final result = await _client.rpc<Object?>(
+        'apply_listing_facts',
+        params: {
+          'p_source': source,
+          'p_facts': facts.sublist(i, end > facts.length ? facts.length : end),
+        },
+      );
+      changed += rpcCount(result);
+    }
+    return changed;
+  }
+
+  static const factsPerRequest = 200;
+
   /// Records the search each stored listing was found by; returns how many
   /// changed.
   Future<int> setSearchKeys(String source, Map<String, String> keys) async {

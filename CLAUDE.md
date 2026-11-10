@@ -723,7 +723,7 @@ invites; written by the collector on each run).
 starts once, the catalog is loaded once). For each site:
 `planSearches` (tracked models) → `fetchSearches` saves the pages plus
 `searches.json` (planned searches, search of each page) → `importBatch`:
-save → markSeen → rematch → applyPriceChanges → setSearchKeys → applyPricesBeforeDrop
+save → markSeen → rematch → applyListingFacts → applyPriceChanges → setSearchKeys → applyPricesBeforeDrop
 → applyListingDates → saveSiteModels → (if `--full`) markRemoved; Standvirtual then reads the details of every
 listing waiting for them (`enrichDetails`) with the same fetcher. Then once for all sites
 (`finishRun`): markDuplicates → recalculateScores → generateAlerts →
@@ -858,13 +858,20 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   suffixes (A, AC), per-model `excluded_words` ("tracer" for the MT-07,
   "650f", "125f"), on OLX the title read after the brand (also after sale words: "Vendo mota Honda ..."), `engine_cc_min/max` as tiebreaker and guard (a model
   without limits is never picked by engine size alone; "350cc" reads as
-  "350"). Ambiguous stays unmatched; Standvirtual's exact-name fallback
+  "350"); a brand's other lines rule a model out whatever its own rules
+  (`relatedModelWords`, N.53: Yamaha tracer, trecer, xsr, niken, tenere;
+  Honda transalp, xadv; never the model's own line: OLX sellers file a
+  Tracer 9 or an XSR 900 under "MT-09"). Ambiguous stays unmatched; Standvirtual's exact-name fallback
   cannot override an engine-size rejection. Every import re-checks the model of
   the ads it read (`rematch_listings`), so a better rule also fixes
   listings already stored. When the last account stops following a model
   its listings are unmatched at once; when one follows it again they are
   matched by their stored brand and model (a matched listing stores the
   catalog names), removed ones included.
+- A stored ad follows the seller's edits (N.53): `save` only inserts, so
+  each import sends what the site says now (`apply_listing_facts`: year,
+  mileage, title or version, description, place). A fact the site doesn't
+  give erases nothing; a mileage it gives replaces one read from the text.
 - An empty mileage field is read from the description (trigger
   `listings_mileage_from_text`, `mileage_in_text`: "com 12.000 km",
   "Quilometragem: 12000"; tyres, services, work done ("troquei a corrente com"), purchase and km/h numbers don't count,
