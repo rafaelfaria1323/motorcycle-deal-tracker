@@ -180,7 +180,6 @@ class const AlertsPage({super.key}) extends StatelessWidget {
       state.status == .success && state.mayHaveRead;
 
   Widget _list(BuildContext context, AlertsState state) {
-    final theme = Theme.of(context);
     final cubit = context.read<AlertsCubit>();
 
     return RefreshIndicator(
