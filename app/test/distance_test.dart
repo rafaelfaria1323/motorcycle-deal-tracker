@@ -65,13 +65,6 @@ void main() {
       expect(placeText(_listing(distanceKm: 8)), isNull);
     });
 
-    test('in the key facts line', () {
-      expect(
-        keyFactsLine(_listing(location: 'Porto', distanceKm: 274)),
-        '2022 · Porto, a ${Formatters.mileage(274)} · Particular',
-      );
-    });
-
     test('read from the computed field', () {
       final row = {
         'id': 'l1',

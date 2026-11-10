@@ -69,7 +69,10 @@ Future<void> loadInterfaceFonts() async {
   await Future.wait([body.load(), display.load(), icons.load()]);
 }
 
-Listing interfaceListing(int index) => Listing(
+/// The [index]th listing of the fixture. [detail]: as the ad's page loads
+/// it, with the model's engine size and the market position its summary
+/// shows (lists load the position too, but the cards' tests choose it).
+Listing interfaceListing(int index, {bool detail = false}) => Listing(
   id: '00000000-0000-4000-8000-${index.toString().padLeft(12, '0')}',
   source: index.isEven ? 'standvirtual' : 'olx',
   url: 'https://www.olx.pt/d/anuncio/test-$index.html',
@@ -95,6 +98,8 @@ Listing interfaceListing(int index) => Listing(
   location: 'Matosinhos',
   distanceKm: 8,
   myColour: index == 0,
+  engineCc: detail ? 690 : null,
+  marketPosition: detail ? 11.4 : null,
   description: List.filled(
     20,
     'Mota de garagem, com as revisões em dia e as peças de origem.',
@@ -344,7 +349,7 @@ class InterfaceListings implements ListingsRepository {
 
   @override
   Future<Listing?> getListingById(String id) async =>
-      interfaceListing(int.parse(id.split('-').last));
+      interfaceListing(int.parse(id.split('-').last), detail: true);
 
   @override
   Future<List<MotorcycleOption>> getMotorcycleOptions() async => const [

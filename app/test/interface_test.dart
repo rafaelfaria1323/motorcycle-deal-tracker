@@ -25,6 +25,7 @@ import 'package:motorcycle_deal_tracker/features/listings/presentation/listing_c
 import 'package:motorcycle_deal_tracker/features/listings/presentation/photo_viewer_args.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/deal_score_badge.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/listing_card.dart';
+import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/listing_header.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/photo_gallery.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/price_change_tag.dart';
 import 'package:motorcycle_deal_tracker/features/settings/presentation/listing_card_preferences_tile.dart';
@@ -1721,13 +1722,30 @@ void main() {
         location: AppRoutes.listingDetail(interfaceListing(0).id),
       );
       final photo = tester.getRect(find.byType(PhotoGallery));
-      final headline = tester.getRect(find.text('Yamaha MT-07'));
+      // The bar below names the bike too.
+      final headline = tester.getRect(
+        find
+            .descendant(
+              of: find.byType(ListingHeader),
+              matching: find.text('Yamaha MT-07'),
+            )
+            .first,
+      );
       if (size.width >= 840) {
         expect(headline.left, greaterThan(photo.right));
       } else {
         expect(headline.top, greaterThan(photo.bottom));
       }
       expect(find.text('Ver no Standvirtual'), findsOneWidget);
+      // Stitch's ad page (UI.2): the site and the ad's age on the photo,
+      // the specs as chips, the price against the median, both scores.
+      expect(find.text('STANDVIRTUAL'), findsOneWidget);
+      expect(find.text('690 cc'), findsOneWidget);
+      expect(find.text('Particular'), findsOneWidget);
+      expect(find.textContaining('abaixo da mediana ('), findsOneWidget);
+      expect(find.textContaining('Mediana nacional (2023, '), findsOneWidget);
+      expect(find.text('DEAL SCORE'), findsOneWidget);
+      expect(find.text('RISK SCORE'), findsOneWidget);
       await tester.scrollUntilVisible(
         find.byType(TabBar),
         200,
@@ -1956,54 +1974,55 @@ void main() {
 
   for (final score in [9, 92, 100]) {
     for (final scale in [1.0, 2.0]) {
-      testWidgets('detail score $score is centered at ${scale}x text', (
-        tester,
-      ) async {
-        await tester.pumpWidget(
-          MaterialApp(
-            locale: AppLanguage.portuguese.locale,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: appLocales,
-            theme: AppTheme.light,
-            home: Scaffold(
-              body: MediaQuery(
-                data: MediaQueryData(textScaler: TextScaler.linear(scale)),
-                child: Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [DealScoreBadge(score: score, large: true)],
+      testWidgets(
+        'the score $score is centred in its badge at ${scale}x text',
+        (tester) async {
+          await tester.pumpWidget(
+            MaterialApp(
+              locale: AppLanguage.portuguese.locale,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: appLocales,
+              theme: AppTheme.light,
+              home: Scaffold(
+                body: MediaQuery(
+                  data: MediaQueryData(textScaler: TextScaler.linear(scale)),
+                  child: Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [DealScoreBadge(score: score)],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        );
-        final badge = tester.getRect(find.byType(DealScoreBadge));
-        final paragraph = tester.renderObject<RenderParagraph>(
-          find.text('$score'),
-        );
-        final painter =
-            TextPainter(
-              text: paragraph.text,
-              textAlign: paragraph.textAlign,
-              textDirection: paragraph.textDirection,
-              textScaler: TextScaler.linear(scale),
-            )..layout(
-              minWidth: paragraph.size.width,
-              maxWidth: paragraph.size.width,
-            );
-        addTearDown(painter.dispose);
-        final line = painter.computeLineMetrics().single;
-        final center = paragraph.localToGlobal(
-          Offset(
-            line.left + line.width / 2,
-            line.baseline - line.ascent + line.height / 2,
-          ),
-        );
+          );
+          final badge = tester.getRect(find.byType(DealScoreBadge));
+          final paragraph = tester.renderObject<RenderParagraph>(
+            find.text('$score'),
+          );
+          final painter =
+              TextPainter(
+                text: paragraph.text,
+                textAlign: paragraph.textAlign,
+                textDirection: paragraph.textDirection,
+                textScaler: TextScaler.linear(scale),
+              )..layout(
+                minWidth: paragraph.size.width,
+                maxWidth: paragraph.size.width,
+              );
+          addTearDown(painter.dispose);
+          final line = painter.computeLineMetrics().single;
+          final center = paragraph.localToGlobal(
+            Offset(
+              line.left + line.width / 2,
+              line.baseline - line.ascent + line.height / 2,
+            ),
+          );
 
-        expect(center.dx, closeTo(badge.center.dx, 0.5));
-        expect(center.dy, closeTo(badge.center.dy, 0.5));
-      });
+          expect(center.dx, closeTo(badge.center.dx, 0.5));
+          expect(center.dy, closeTo(badge.center.dy, 0.5));
+        },
+      );
     }
   }
 
@@ -2045,6 +2064,44 @@ void main() {
     expect(received?.index, 1);
     expect(received?.images, images);
     expect(find.text('Fotografias'), findsOneWidget);
+  });
+
+  testWidgets('the thumbnail strip keeps the photo shown in view', (
+    tester,
+  ) async {
+    _screen(tester, const Size(390, 844));
+    final images = [
+      for (var i = 1; i <= 12; i++) 'https://example.test/$i.jpg',
+    ];
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (_, _) => Scaffold(
+            body: PhotoGallery(listingId: 'l1', images: images),
+          ),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(interfaceApp(router));
+    await tester.pumpAndSettle();
+    for (var i = 0; i < 9; i++) {
+      await tester.tap(find.byTooltip('Foto seguinte'));
+      await tester.pumpAndSettle();
+    }
+    expect(find.text('10 / 12'), findsOneWidget);
+    final thumb = find.byWidgetPredicate(
+      (widget) =>
+          widget is Semantics &&
+          widget.properties.label == '10 / 12' &&
+          widget.properties.selected == true,
+    );
+    expect(thumb, findsOneWidget);
+    final strip = tester.getRect(find.byType(ListView));
+    final shown = tester.getRect(thumb);
+    expect(shown.left, greaterThanOrEqualTo(strip.left));
+    expect(shown.right, lessThanOrEqualTo(strip.right));
   });
 
   testWidgets('empty states scroll instead of overflowing large text', (
@@ -2100,7 +2157,7 @@ void main() {
                   title: 'Comparação com uma mota nova',
                   children: [Text('Uma referência para a sua decisão.')],
                 ),
-                DealScoreBadge(score: 100, large: true),
+                DealScoreBadge(score: 100),
               ],
             ),
           ),

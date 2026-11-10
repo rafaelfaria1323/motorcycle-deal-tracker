@@ -7,16 +7,49 @@ import 'listing_dates_text.dart';
 import 'listing_labels.dart';
 import '../../../core/localization/localizations.dart';
 
-/// The line under the price: "2022 · 12 300 km · Lisboa · Profissional".
-/// Missing facts are left out rather than shown as dashes.
-String keyFactsLine(Listing listing, {AppLanguage language = .portuguese}) => [
-  if (listing.year != null) '${listing.year}',
-  if (listing.mileage != null)
-    Formatters.mileage(listing.mileage, language: language),
-  ?placeText(listing, language: language),
-  if (listing.sellerType != .unknown)
-    listing.sellerType.label(language: language),
-].join(' · ');
+/// The chips under the ad's name, as Stitch's ad page: the year, the
+/// mileage and the model's engine size, each only when known.
+List<String> heroSpecs(Listing listing, {AppLanguage language = .portuguese}) =>
+    [
+      if (listing.year != null) '${listing.year}',
+      if (listing.mileage != null)
+        Formatters.mileage(listing.mileage, language: language),
+      if (listing.engineCc case final cc?) '$cc cc',
+    ];
+
+/// Who sells: "Particular", "Stand: Motos Lopes" (the dealer's name when
+/// the ad gives it), "Stand"; null when unknown.
+String? sellerText(Listing listing, {AppLanguage language = .portuguese}) {
+  final name = listing.sellerName?.trim();
+  return switch (listing.sellerType) {
+    .unknown => null,
+    .dealer when name != null && name.isNotEmpty => language.messages.dealer(
+      seller: name,
+    ),
+    final type => type.label(language: language),
+  };
+}
+
+/// How far the price is from the value under it, in euros, to the
+/// nearest 10 € as that value ("860 €"); null without a position.
+String? marketGapText(Listing listing, {AppLanguage language = .portuguese}) {
+  final price = listing.askingPrice;
+  final pct = listing.marketPosition;
+  if (price == null || pct == null || pct >= 100) return null;
+  final value = price / (1 - pct / 100);
+  final gap = ((value - price).abs() / 10).round() * 10.0;
+  if (gap == 0) return null;
+  return Formatters.price(gap, language: language);
+}
+
+/// "Comparado com 14 anúncios": the comparables the estimate came from
+/// (`market_listing_count`); null when the breakdown doesn't say.
+String? comparablesText(Listing listing, {AppLanguage language = .portuguese}) {
+  final count = (listing.scoreBreakdown?['market_listing_count'] as num?)
+      ?.toInt();
+  if (count == null || count <= 0) return null;
+  return language.messages.comparedWithListings(count: count);
+}
 
 /// "a 45 km" from the person's home.
 String distanceText(int km, {AppLanguage language = .portuguese}) =>

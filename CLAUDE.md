@@ -398,8 +398,8 @@ invites; written by the collector on each run).
   (Ofertas, Favoritos, the comparison, another ad) is pushed with
   `extra: AppRoutes.fromList` and opens on the part last read; any other
   way in (a notification, an alert, a shared link) opens on Avaliação
-  (F.4). Its bar names the bike once the heading scrolls away, and its
-  share button (`shareOrCopy`, `core/widgets/share_or_copy.dart`, also
+  (F.4). Its bar names the bike once the heading scrolls away and
+  carries the share button (UI.2; `ShareListingButton`) (`shareOrCopy`, `core/widgets/share_or_copy.dart`, also
   the invites' and "Partilhar a app") sends `listingLink` with
   `listingShareText`. Android's back on a tab
   other than Ofertas goes to Ofertas (`AppShell`'s `PopScope`). Every
@@ -525,9 +525,18 @@ invites; written by the collector on each run).
   red, the preferred colour and reassuring facts green, the rest grey;
   the footer's place and "Comparar" check box (the card opens the ad).
   The score bands are dark enough for small white text (4.5:1). The detail hero
-  splits into photo and summary at 800px of content width; its four
+  (UI.2, after Stitch's ad screen) splits into photo and summary at 800px
+  of content width: the photo with the source and age as tags and the
+  thumbnails under it (2+ photos, `photoAtSize` 160); `ListingHeader` a
+  white box with name and price ("Preço anunciado"), spec chips
+  (`heroSpecs`: year, km, engine size), seller (`sellerText`) and place,
+  the market box (`cardMarketPositionText` with the gap in euros,
+  `marketGapText`, then `estimatedValueText` and `comparablesText`; the
+  page's query selects `market_position`) and Deal / Risk Score tiles
+  (figures in the text colour, bands on the band colours); its four
   scrollable tabs keep opened sections alive, and the original-link action
-  stays fixed below. `interface_test.dart` covers responsive layouts and
+  stays fixed below, beside the price, the Deal Score chip and the bike's
+  name. `interface_test.dart` covers responsive layouts and
   interactions with the real bundled fonts; keep narrow and enlarged-text
   layouts free of overflow.
   Mais › "Cartões dos anúncios" chooses the card details for Ofertas and

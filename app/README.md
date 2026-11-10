@@ -106,15 +106,20 @@ Screen names below use the Portuguese labels; English provides the same screens.
   photos "Problema" or "Bem", which the collector learns from, P.3); in
   Avaliação, what the photos may show and "Examinar todas as fotos" (every
   photo examined at once, P.4/P.7; 5 a day; "Avisar-me quando terminar"
-  joins a request already waiting, to be told too); model, price and facts with the Deal
-  Score and its verdict beside them; removed / duplicate / relisted notices;
+  joins a request already waiting, to be told too); the photo
+  with its site and age as tags and the thumbnails under it; a summary
+  box with the model, the asking price, year, km and engine size, the
+  seller and the place, how far the price is above or below the national
+  median (in % and euros, with how many ads it came from) and the Deal
+  Score and Risk Score tiles; removed / duplicate / relisted notices;
   your note when it is a favourite. Photos and summary sit side by side
   on wide screens and stack on phones, with a visible fullscreen control.
   Once the model's name scrolls away, the title bar names the bike, with
-  its year and price below. The original-listing button stays at the
-  bottom, beside a share button (the app's link to the ad, with the
-  bike, its km, its price and the seller's ad; copied where the device
-  has no share sheet), with the price beside them on wide screens.
+  its year and price below. The title bar has a share button (the app's link to the ad, with
+  the bike, its km, its price and the seller's ad; copied where the
+  device has no share sheet) beside the star. The original-listing
+  button stays at the bottom, beside the price, the Deal Score and the
+  bike's name.
   Below, four parts picked using scrollable tabs (an ad opened from
   Ofertas, Favoritos, the comparison or another ad opens on the part
   last read; from a notification, an alert or a shared link, on

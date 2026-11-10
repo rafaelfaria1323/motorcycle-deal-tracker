@@ -3,6 +3,7 @@ import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
 import 'package:motorcycle_deal_tracker/core/localization/app_language.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/listing_detail_text.dart';
+import 'package:motorcycle_deal_tracker/features/listings/presentation/listing_labels.dart';
 
 Listing listing({
   int? year,
@@ -10,6 +11,11 @@ Listing listing({
   String? location,
   double? price,
   String url = 'https://www.olx.pt/d/anuncio/x.html',
+  SellerType sellerType = SellerType.private,
+  String? sellerName,
+  int? engineCc,
+  double? marketPosition,
+  Map<String, dynamic>? scoreBreakdown,
 }) => Listing(
   id: 'l1',
   source: 'olx',
@@ -17,24 +23,87 @@ Listing listing({
   brand: 'Yamaha',
   model: 'MT-07',
   status: ListingStatus.active,
-  sellerType: SellerType.private,
+  sellerType: sellerType,
+  sellerName: sellerName,
   images: const [],
   year: year,
   mileage: mileage,
   location: location,
   price: price,
+  engineCc: engineCc,
+  marketPosition: marketPosition,
+  scoreBreakdown: scoreBreakdown,
 );
 
 void main() {
-  test('the key facts read in one line', () {
+  test('the summary chips: year, mileage and engine size when known', () {
+    expect(heroSpecs(listing(year: 2022, mileage: 12300, engineCc: 690)), [
+      '2022',
+      Formatters.mileage(12300),
+      '690 cc',
+    ]);
+    expect(heroSpecs(listing(mileage: 800)), [Formatters.mileage(800)]);
+    expect(heroSpecs(listing()), isEmpty);
+  });
+
+  test('the seller: the type, a dealer by name when the ad gives it', () {
+    expect(sellerText(listing()), 'Particular');
     expect(
-      keyFactsLine(listing(year: 2022, mileage: 12300, location: 'Lisboa')),
-      matches(RegExp(r'^2022 · 12.300 km · Lisboa · Particular$')),
+      sellerText(
+        listing(sellerType: SellerType.dealer, sellerName: ' Motos Lopes '),
+      ),
+      'Stand: Motos Lopes',
+    );
+    expect(
+      sellerText(listing(sellerType: SellerType.dealer, sellerName: ' ')),
+      SellerType.dealer.label(),
+    );
+    expect(sellerText(listing(sellerType: SellerType.unknown)), isNull);
+    expect(
+      sellerText(listing(), language: AppLanguage.english),
+      SellerType.private.label(language: AppLanguage.english),
     );
   });
 
-  test('missing facts are left out', () {
-    expect(keyFactsLine(listing(location: '  ')), 'Particular');
+  test('the gap to the median in euros, to the nearest 10 €', () {
+    // 7 490 € at 11,4 % below: the median is 8 453,7 €, 963,7 € more.
+    expect(
+      marketGapText(listing(price: 7490, marketPosition: 11.4)),
+      Formatters.price(960),
+    );
+    // Above the median: still the distance.
+    expect(
+      marketGapText(listing(price: 8000, marketPosition: -5)),
+      Formatters.price(380),
+    );
+    expect(marketGapText(listing(price: 8000, marketPosition: 0.01)), isNull);
+    expect(marketGapText(listing(price: 8000)), isNull);
+    expect(marketGapText(listing(price: 1, marketPosition: 5)), isNull);
+    expect(marketGapText(listing(price: 8000, marketPosition: 100)), isNull);
+  });
+
+  test('how many ads the estimate came from', () {
+    expect(
+      comparablesText(listing(scoreBreakdown: {'market_listing_count': 14})),
+      'Comparado com 14 anúncios',
+    );
+    expect(
+      comparablesText(listing(scoreBreakdown: {'market_listing_count': 1})),
+      'Comparado com 1 anúncio',
+    );
+    expect(
+      comparablesText(
+        listing(scoreBreakdown: {'market_listing_count': 14}),
+        language: AppLanguage.english,
+      ),
+      'Compared with 14 listings',
+    );
+    expect(
+      comparablesText(listing(scoreBreakdown: {'market_listing_count': 0})),
+      isNull,
+    );
+    expect(comparablesText(listing(scoreBreakdown: {})), isNull);
+    expect(comparablesText(listing()), isNull);
   });
 
   test('the photo counter starts at one', () {
