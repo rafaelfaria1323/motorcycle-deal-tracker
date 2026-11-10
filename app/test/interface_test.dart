@@ -1708,17 +1708,18 @@ void main() {
       textScale: 2,
     );
     expect(find.text('A sua garagem'), findsOneWidget);
+    // The collection's line comes first (UI.6), then the sections.
+    await tester.scrollUntilVisible(
+      find.textContaining('Próxima recolha: '),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.scrollUntilVisible(
       find.text('Modelos acompanhados'),
       200,
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.text('Modelos acompanhados'), findsOneWidget);
-    await tester.scrollUntilVisible(
-      find.textContaining('Próxima recolha: '),
-      200,
-      scrollable: find.byType(Scrollable).first,
-    );
     expect(tester.takeException(), isNull);
   });
 
