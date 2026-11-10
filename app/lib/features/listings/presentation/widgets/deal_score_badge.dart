@@ -20,7 +20,7 @@ class const DealScoreBadge({
     final figure = Text(
       '$score',
       textAlign: TextAlign.center,
-      style: TextStyle(
+      style: const TextStyle(
         fontFamily: AppTheme.displayFont,
         fontWeight: FontWeight.w700,
         fontSize: 22,

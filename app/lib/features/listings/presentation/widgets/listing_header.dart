@@ -6,6 +6,7 @@ import '../../../../core/localization/localizations.dart';
 import '../../domain/entities/listing.dart';
 import '../listing_card_text.dart';
 import '../listing_detail_text.dart';
+import '../listing_labels.dart';
 import '../score_explanation.dart';
 import 'price_change_tag.dart';
 

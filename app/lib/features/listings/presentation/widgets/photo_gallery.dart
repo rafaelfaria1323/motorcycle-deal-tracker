@@ -372,7 +372,11 @@ class _FullScreenGalleryState extends State<FullScreenGallery> {
               _GalleryControls(
                 index: _index,
                 count: images.length,
-                controller: _controller,
+                onShow: (index) => _controller.animateToPage(
+                  index,
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeOut,
+                ),
               ),
           ],
         ),
