@@ -17,7 +17,9 @@ import '../../../valuation/presentation/widgets/ownership_cost_card.dart';
 import '../../domain/entities/listing.dart';
 import '../cubit/listing_detail_cubit.dart';
 import '../cubit/listing_detail_state.dart';
+import '../listing_card_text.dart';
 import '../listing_detail_text.dart';
+import '../listing_labels.dart';
 import '../widgets/also_listed_section.dart';
 import '../widgets/dealer_card.dart';
 import '../widgets/description_card.dart';
@@ -85,11 +87,19 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
           ),
         ),
         actions: [
-          // The star needs the listing (the favourites page shows it).
+          // Sharing and the star need the listing (the favourites page
+          // shows it).
           BlocBuilder<ListingDetailCubit, ListingDetailState>(
-            builder: (context, state) => state.listing == null
-                ? const SizedBox.shrink()
-                : FavouriteButton(listing: state.listing!),
+            builder: (context, state) => switch (state.listing) {
+              final listing? => Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ShareListingButton(listing: listing),
+                  FavouriteButton(listing: listing),
+                ],
+              ),
+              null => const SizedBox.shrink(),
+            },
           ),
           CompareButton(listingId: listingId),
         ],
@@ -290,6 +300,17 @@ class _ContentState extends State<_Content> {
                       final photo = PhotoGallery(
                         listingId: listing.id,
                         images: listing.images,
+                        tags: [
+                          sourceLabel(
+                            listing.source,
+                            language: context.language,
+                          ),
+                          if (listing.publishedAt case final published?)
+                            listingAgeText(
+                              published,
+                              language: context.language,
+                            ),
+                        ],
                       );
                       final summary = Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,

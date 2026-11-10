@@ -9,6 +9,7 @@ import '../listing_detail_text.dart';
 import '../listing_labels.dart';
 import 'deal_score_badge.dart';
 import 'listing_photo.dart';
+import 'photo_tag.dart';
 import 'price_change_tag.dart';
 import '../../../../core/localization/localizations.dart';
 
@@ -159,12 +160,12 @@ class const _CardPhoto({
                   runSpacing: 6,
                   children: [
                     if (showSource)
-                      _PhotoTag(
+                      PhotoTag(
                         sourceLabel(listing.source, language: context.language),
                         strong: true,
                       ),
                     if (published != null)
-                      _PhotoTag(
+                      PhotoTag(
                         listingAgeText(published, language: context.language),
                       ),
                   ],
@@ -233,33 +234,6 @@ class const _FavouriteToggle({
         padding: EdgeInsets.zero,
       ),
       icon: icon,
-    );
-  }
-}
-
-/// A light tag on the photo, in capitals: the site ([strong]) and the
-/// ad's age.
-class const _PhotoTag(final String text, {final bool strong = false})
-    extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerLowest.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        child: Text(
-          text.toUpperCase(),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: AppTheme.groupLabel(context)?.copyWith(
-            color: strong ? scheme.onSurface : scheme.onSurfaceVariant,
-          ),
-        ),
-      ),
     );
   }
 }

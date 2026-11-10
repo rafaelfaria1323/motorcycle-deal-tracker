@@ -1090,5 +1090,7 @@
   "cardAtMedian": "At the median",
   "cardBelowEstimatedValue": "{percent} below the estimated value",
   "cardAboveEstimatedValue": "{percent} above the estimated value",
-  "cardAtEstimatedValue": "At the estimated value"
+  "cardAtEstimatedValue": "At the estimated value",
+  "comparedWithListings": "{count, plural, =1{Compared with 1 listing} other{Compared with {count} listings}}",
+  "askingPriceLabel": "Asking price"
 }

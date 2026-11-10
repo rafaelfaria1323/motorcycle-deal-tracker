@@ -10,17 +10,22 @@ import '../../../../core/widgets/page_back_button.dart';
 import '../../../settings/domain/accounts_repository.dart';
 import '../../domain/repositories/photo_marks_repository.dart';
 import '../listing_detail_text.dart';
+import '../photo_url.dart';
 import '../photo_exam_text.dart';
 import '../photo_viewer_args.dart';
 import 'listing_photo.dart';
+import 'photo_tag.dart';
 import 'zoomable_photo.dart';
 import '../../../../core/localization/localizations.dart';
 
 /// All the listing's photos: swipe or use the arrows, tap to see them
-/// full screen.
+/// full screen. As on Stitch's ad page, [tags] sit at the top left (the
+/// site, the first one, stronger; the ad's age) and a strip of thumbnails
+/// under the photo picks one.
 class const PhotoGallery({
   required final String listingId,
   required final List<String> images,
+  final List<String> tags = const [],
   super.key,
 }) extends StatefulWidget {
   @override
@@ -45,46 +50,126 @@ class _PhotoGalleryState extends State<PhotoGallery> {
     extra: PhotoViewerArgs(images: widget.images, index: _index).toExtra(),
   );
 
+  void _show(int index) => _controller.animateToPage(
+    index,
+    duration: const Duration(milliseconds: 250),
+    curve: Curves.easeOut,
+  );
+
   @override
   Widget build(BuildContext context) {
     final images = widget.images;
+    final tags = widget.tags;
 
-    return ClipRRect(
+    final photo = ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: AspectRatio(
         aspectRatio: 4 / 3,
-        child: images.isEmpty
-            ? const ListingPhoto()
-            : Stack(
-                fit: StackFit.expand,
-                children: [
-                  GestureDetector(
-                    onTap: _openFullScreen,
-                    child: PageView.builder(
-                      controller: _controller,
-                      itemCount: images.length,
-                      onPageChanged: (index) => setState(() => _index = index),
-                      itemBuilder: (_, index) =>
-                          ListingPhoto(url: images[index]),
-                    ),
-                  ),
-                  Positioned(
-                    left: 8,
-                    bottom: 8,
-                    child: _RoundButton(
-                      icon: Icons.fullscreen,
-                      tooltip: context.strings.enlargePhotos,
-                      onPressed: _openFullScreen,
-                    ),
-                  ),
-                  if (images.length > 1)
-                    _GalleryControls(
-                      index: _index,
-                      count: images.length,
-                      controller: _controller,
-                    ),
-                ],
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (images.isEmpty)
+              const ListingPhoto()
+            else ...[
+              GestureDetector(
+                onTap: _openFullScreen,
+                child: PageView.builder(
+                  controller: _controller,
+                  itemCount: images.length,
+                  onPageChanged: (index) => setState(() => _index = index),
+                  itemBuilder: (_, index) => ListingPhoto(url: images[index]),
+                ),
               ),
+              Positioned(
+                left: 8,
+                bottom: 8,
+                child: _RoundButton(
+                  icon: Icons.fullscreen,
+                  tooltip: context.strings.enlargePhotos,
+                  onPressed: _openFullScreen,
+                ),
+              ),
+              if (images.length > 1)
+                _GalleryControls(
+                  index: _index,
+                  count: images.length,
+                  onShow: _show,
+                ),
+            ],
+            if (tags.isNotEmpty)
+              Positioned(
+                top: 12,
+                left: 12,
+                right: 12,
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      for (final (i, tag) in tags.indexed)
+                        PhotoTag(tag, strong: i == 0),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (images.length < 2) return photo;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        photo,
+        const SizedBox(height: 8),
+        _Thumbnails(images: images, selected: _index, onShow: _show),
+      ],
+    );
+  }
+}
+
+/// The row of small photos under the gallery, the one shown outlined in
+/// the primary colour. Built as it scrolls: an ad can have 30.
+class const _Thumbnails({
+  required final List<String> images,
+  required final int selected,
+  required final ValueChanged<int> onShow,
+}) extends StatelessWidget {
+  static const _size = 56.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return SizedBox(
+      height: _size,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: images.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        itemBuilder: (context, index) => Semantics(
+          button: true,
+          selected: index == selected,
+          label: photoCounterText(index, images.length),
+          excludeSemantics: true,
+          child: GestureDetector(
+            onTap: () => onShow(index),
+            child: Container(
+              width: _size * 4 / 3,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: index == selected
+                      ? scheme.primary
+                      : scheme.outlineVariant,
+                  width: index == selected ? 2 : 1,
+                ),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: ListingPhoto(url: photoAtSize(images[index], 160)),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -95,14 +180,8 @@ class _PhotoGalleryState extends State<PhotoGallery> {
 class const _GalleryControls({
   required final int index,
   required final int count,
-  required final PageController controller,
+  required final ValueChanged<int> onShow,
 }) extends StatelessWidget {
-  void _go(int page) => controller.animateToPage(
-    page,
-    duration: const Duration(milliseconds: 250),
-    curve: Curves.easeOut,
-  );
-
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -113,7 +192,7 @@ class const _GalleryControls({
             child: _RoundButton(
               icon: Icons.chevron_left,
               tooltip: context.strings.previousPhoto,
-              onPressed: () => _go(index - 1),
+              onPressed: () => onShow(index - 1),
             ),
           ),
         if (index < count - 1)
@@ -122,7 +201,7 @@ class const _GalleryControls({
             child: _RoundButton(
               icon: Icons.chevron_right,
               tooltip: context.strings.nextPhoto,
-              onPressed: () => _go(index + 1),
+              onPressed: () => onShow(index + 1),
             ),
           ),
         Positioned(

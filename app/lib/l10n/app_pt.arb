@@ -6193,5 +6193,18 @@
   "cardAtEstimatedValue": "No valor estimado",
   "@cardAtEstimatedValue": {
     "description": "On the card's price box: where the asking price sits against the value shown under it."
+  },
+  "comparedWithListings": "{count, plural, =1{Comparado com 1 anúncio} other{Comparado com {count} anúncios}}",
+  "@comparedWithListings": {
+    "description": "In the ad's market box: how many other ads the estimate came from.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "askingPriceLabel": "Preço anunciado",
+  "@askingPriceLabel": {
+    "description": "Under the price at the top of the ad's page."
   }
 }

@@ -6,13 +6,11 @@ import '../../../../core/localization/localizations.dart';
 import '../score_explanation.dart';
 
 /// The Deal Score in its band colour (90+ excellent, 80+ very good,
-/// 70+ interesting, 60+ normal, below 60 poor). [large] is the square
-/// shown at the top of the score explanation; [showBand] makes it the
+/// 70+ interesting, 60+ normal, below 60 poor). [showBand] makes it the
 /// cards' tile, with the band's name in small capitals under the figure
 /// ("MUITO BOM"), as in the Stitch design.
 class const DealScoreBadge({
   required final int score,
-  final bool large = false,
   final bool showBand = false,
   super.key,
 }) extends StatelessWidget {
@@ -25,7 +23,7 @@ class const DealScoreBadge({
       style: TextStyle(
         fontFamily: AppTheme.displayFont,
         fontWeight: FontWeight.w700,
-        fontSize: large ? 32 : 22,
+        fontSize: 22,
         height: 1.1,
         color: AppColors.onPhoto,
         fontFeatures: AppTheme.tabularFigures,
@@ -37,9 +35,9 @@ class const DealScoreBadge({
       excludeSemantics: true,
       child: Container(
         constraints: BoxConstraints(
-          minWidth: large ? 64 : (showBand ? 56 : 44),
+          minWidth: showBand ? 56 : 44,
           maxWidth: showBand ? 80 : double.infinity,
-          minHeight: large ? 64 : (showBand ? 48 : 32),
+          minHeight: showBand ? 48 : 32,
         ),
         padding: EdgeInsets.symmetric(
           horizontal: showBand ? 6 : 8,
@@ -47,7 +45,7 @@ class const DealScoreBadge({
         ),
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(large || showBand ? 10 : 7),
+          borderRadius: BorderRadius.circular(showBand ? 10 : 7),
         ),
         child: showBand
             ? Column(
