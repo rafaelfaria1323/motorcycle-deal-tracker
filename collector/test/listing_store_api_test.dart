@@ -176,6 +176,23 @@ void main() {
     await store.markSeen('olx', ['a']);
     await store.applyPriceChanges('olx', [listing]);
     await store.rematch('olx', [listing], catalog);
+    await store.applyListingFacts('olx', [
+      NormalizedListing(
+        source: 'olx',
+        sourceListingId: 'a',
+        url: 'https://example.com/a',
+        brand: 'Yamaha',
+        model: 'MT-07',
+        price: 7000,
+        sellerType: SellerType.private,
+        images: const [],
+        year: 2025,
+        mileage: 8500,
+        location: 'Mateus',
+      ),
+      // Nothing the site could have changed: not sent.
+      testListing('b'),
+    ]);
     await store.markRemoved('olx', ['a'], searches: ['s']);
     await store.applyListingDates('olx', [
       NormalizedListing(
@@ -263,6 +280,19 @@ void main() {
         },
       },
     });
+    expect(bodyOf('apply_listing_facts'), {
+      'p_source': 'olx',
+      'p_facts': [
+        {
+          'source_listing_id': 'a',
+          'year': 2025,
+          'mileage': 8500,
+          'variant': null,
+          'description': null,
+          'location': 'Mateus',
+        },
+      ],
+    });
     expect(bodyOf('apply_price_updates'), {
       'p_source': 'olx',
       'p_prices': {'a': 7000.0},
@@ -286,6 +316,7 @@ void main() {
     expect(await store.applyPricesBeforeDrop('olx', [testListing('a')]), 0);
     expect(await store.rematch('olx', const [], const Catalog([])), 0);
     expect(await store.applyListingDates('olx', [testListing('a')]), 0);
+    expect(await store.applyListingFacts('olx', [testListing('a')]), 0);
     expect(await store.setSearchKeys('olx', const {}), 0);
     expect(await pushes.markNotified(const []), 0);
     await pushes.forgetPushTargets(const []);
@@ -296,6 +327,34 @@ void main() {
     );
     expect(calls, isEmpty);
   });
+
+  test(
+    'listing facts go a few hundred at a time, and the counts add up',
+    () async {
+      replies['apply_listing_facts'] = 3;
+      final listings = [
+        for (var i = 0; i <= ListingStore.factsPerRequest; i++)
+          NormalizedListing(
+            source: 'olx',
+            sourceListingId: '$i',
+            url: 'https://example.com/$i',
+            brand: 'Yamaha',
+            model: 'MT-07',
+            price: 7000,
+            sellerType: SellerType.private,
+            images: const [],
+            mileage: i,
+          ),
+      ];
+
+      expect(await store.applyListingFacts('olx', listings), 6);
+      final sizes = [
+        for (final c in calls)
+          ((c.body! as Map<String, dynamic>)['p_facts'] as List).length,
+      ];
+      expect(sizes, [ListingStore.factsPerRequest, 1]);
+    },
+  );
 
   test("one account's weekly summary reads only that account's data", () async {
     final loaded = await loadWeeklySummaries(

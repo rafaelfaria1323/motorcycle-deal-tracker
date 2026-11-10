@@ -109,6 +109,11 @@ Future<bool> importBatch(
   final rematched = await store.rematch(batch.source, unique, catalog);
   if (rematched > 0) log.writeln('Model corrected: $rematched listing(s)');
 
+  // 2b. What the seller edited since the ad was stored: year, mileage,
+  //     title, description, place.
+  final edited = await store.applyListingFacts(batch.source, unique);
+  if (edited > 0) log.writeln('Details corrected: $edited listing(s)');
+
   // 3. Known listings whose price moved get the new price and a history row.
   final changed = await store.applyPriceChanges(batch.source, unique);
   log.writeln('Price changes: $changed');
