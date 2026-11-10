@@ -84,7 +84,8 @@ void main() {
     await _open(tester, signedIn: true);
     await tester.tap(find.widgetWithText(NavigationDestination, 'Alerts'));
     await tester.pumpAndSettle();
-    expect(find.text('What changed'), findsOneWidget);
+    expect(find.text('3 unread alerts'), findsOneWidget);
+    expect(find.text('NEW LISTING'), findsOneWidget);
     expect(find.byTooltip('Mark all as read'), findsOneWidget);
     await tester.tap(find.widgetWithText(NavigationDestination, 'Searches'));
     await tester.pumpAndSettle();

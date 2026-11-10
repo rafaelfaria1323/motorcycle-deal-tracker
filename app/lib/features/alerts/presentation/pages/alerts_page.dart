@@ -6,13 +6,17 @@ import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_theme.dart';
+import '../../../../core/formatting/formatters.dart';
 import '../../../../core/widgets/confirm_delete.dart';
-import '../../../../core/widgets/page_intro.dart';
 import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../../../core/widgets/swipe_actions.dart';
 import '../../domain/entities/alert_filter.dart';
 import '../../domain/entities/listing_alert.dart';
+import '../../../listings/presentation/listing_labels.dart';
+import '../../../listings/presentation/widgets/deal_score_badge.dart';
+import '../../../listings/presentation/widgets/listing_photo.dart';
+import '../../../listings/presentation/widgets/photo_tag.dart';
 import '../alerts_text.dart';
 import '../cubit/alerts_cubit.dart';
 import '../cubit/alerts_state.dart';
@@ -176,7 +180,6 @@ class const AlertsPage({super.key}) extends StatelessWidget {
       state.status == .success && state.mayHaveRead;
 
   Widget _list(BuildContext context, AlertsState state) {
-    final theme = Theme.of(context);
     final cubit = context.read<AlertsCubit>();
 
     return RefreshIndicator(
@@ -198,22 +201,9 @@ class const AlertsPage({super.key}) extends StatelessWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
               children: [
-                PageIntro(
-                  eyebrow: context.strings.alerts,
-                  title: context.strings.whatChanged,
-                  description: context.strings.alertsIntro,
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  unreadAlertsText(
-                    state.unreadCount,
-                    language: context.language,
-                  ),
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: state.unreadCount > 0
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurfaceVariant,
-                  ),
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: _UnreadBadge(count: state.unreadCount),
                 ),
                 const SizedBox(height: 12),
                 _FilterChips(
@@ -263,7 +253,6 @@ class const AlertsPage({super.key}) extends StatelessWidget {
                         _AlertTile(
                           key: ValueKey(alert.id),
                           alert: alert,
-                          title: alertTitle(alert, language: context.language),
                           icon: _icon(alert.type),
                           onTap: () => _open(context, alert),
                           onEdit: alert.searchId == null
@@ -347,22 +336,58 @@ class const _FilterNote({
   }
 }
 
+/// "3 alertas por ler" in the accent while some are unread, else "Tudo lido".
+class const _UnreadBadge({required final int count}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final unread = count > 0;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: unread
+            ? scheme.primaryContainer
+            : scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+        child: Text(
+          unreadAlertsText(count, language: context.language),
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+            color: unread ? scheme.onPrimaryContainer : scheme.onSurfaceVariant,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 enum _AlertAction { edit, delete }
 
+/// An alert as in the Stitch design: the ad's photo with its site, the kind
+/// of alert in its colour and the time, the bike, its place and figures,
+/// the prices (the earlier one struck out) and the Deal Score. A removed
+/// ad is greyed out.
 class const _AlertTile({
   required final ListingAlert alert,
-  required final String title,
   required final IconData icon,
   required final VoidCallback onTap,
   required final Future<void> Function() onDelete,
   final Future<void> Function()? onEdit,
   super.key,
 }) extends StatelessWidget {
+  /// The photo's side: smaller on a phone, so the text keeps its room.
+  static double _photoSize(double width) => width < 400 ? 72 : 96;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final colors = AppColors.of(context);
+    final language = context.language;
+    final listing = alert.listing;
+    final gone = alert.type == AlertType.listingRemoved || listing.isRemoved;
 
     // Good news in green, a removal in grey, the rest in the accent.
     final (Color background, Color foreground) = switch (alert.type) {
@@ -381,6 +406,202 @@ class const _AlertTile({
         scheme.onPrimaryContainer,
       ),
     };
+    final kind = alertKindLabel(alert, language: language);
+    final facts = alertFactsLine(listing, language: language);
+    final prices = alertPrices(alert, language: language);
+    final score = listing.dealScore;
+
+    Widget photo(double size) => SizedBox.square(
+      dimension: size,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            ListingPhoto(url: listing.images.firstOrNull),
+            PositionedDirectional(
+              start: 4,
+              end: 4,
+              bottom: 4,
+              child: Align(
+                alignment: AlignmentDirectional.bottomStart,
+                child: PhotoTag(
+                  sourceLabel(listing.source, language: language),
+                  strong: true,
+                ),
+              ),
+            ),
+            if (!alert.isRead)
+              PositionedDirectional(
+                top: 6,
+                start: 6,
+                child: Semantics(
+                  label: context.strings.unread,
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: scheme.primary,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: scheme.surfaceContainerLowest,
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+
+    final details = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    if (kind.isNotEmpty)
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: background,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 3,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(icon, size: 14, color: foreground),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  kind.toUpperCase(),
+                                  style: AppTheme.groupLabel(context)
+                                      ?.copyWith(color: foreground),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    Text(
+                      Formatters.time(alert.createdAt),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            PopupMenuButton<_AlertAction>(
+              tooltip: context.strings.alertOptions,
+              onSelected: (action) => switch (action) {
+                _AlertAction.edit => onEdit?.call(),
+                _AlertAction.delete => onDelete(),
+              },
+              itemBuilder: (localizationContext) => [
+                if (onEdit != null)
+                  PopupMenuItem(
+                    value: _AlertAction.edit,
+                    child: Text(localizationContext.strings.editSearch),
+                  ),
+                PopupMenuItem(
+                  value: _AlertAction.delete,
+                  child: Text(localizationContext.strings.deleteAlertAction),
+                ),
+              ],
+            ),
+          ],
+        ),
+        Text(
+          listing.nameAndYear,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: alert.isRead ? FontWeight.w600 : FontWeight.w700,
+          ),
+        ),
+        if (facts.isNotEmpty) ...[
+          const SizedBox(height: 2),
+          Text(
+            facts,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+        const SizedBox(height: 8),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              child: Wrap(
+                spacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.end,
+                children: [
+                  if (prices.before case final before?)
+                    Text(
+                      before,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        decoration: TextDecoration.lineThrough,
+                        fontFeatures: AppTheme.tabularFigures,
+                      ),
+                    ),
+                  Text(
+                    prices.now,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontFamily: AppTheme.displayFont,
+                      fontWeight: FontWeight.w700,
+                      fontFeatures: AppTheme.tabularFigures,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (score != null && !gone) ...[
+              const SizedBox(width: 8),
+              DealScoreBadge(score: score),
+            ],
+          ],
+        ),
+        if (alert.searchName case final search?) ...[
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Icon(
+                Icons.bookmark_border,
+                size: 14,
+                color: scheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  search,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -391,95 +612,28 @@ class const _AlertTile({
         onDelete: onDelete,
         child: InkWell(
           onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: background,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(icon, size: 22, color: foreground),
+          child: Opacity(
+            opacity: gone ? 0.6 : 1,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 4, 12),
+              child: LayoutBuilder(
+                builder: (context, constraints) => Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: photo(_photoSize(constraints.maxWidth)),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: details,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              title,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: alert.isRead
-                                    ? FontWeight.w500
-                                    : FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                          if (!alert.isRead) ...[
-                            const SizedBox(width: 10),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 6),
-                              child: Semantics(
-                                label: context.strings.unread,
-                                child: Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    color: scheme.primary,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                          PopupMenuButton<_AlertAction>(
-                            tooltip: context.strings.alertOptions,
-                            onSelected: (action) => switch (action) {
-                              _AlertAction.edit => onEdit?.call(),
-                              _AlertAction.delete => onDelete(),
-                            },
-                            itemBuilder: (localizationContext) => [
-                              if (onEdit != null)
-                                PopupMenuItem(
-                                  value: _AlertAction.edit,
-                                  child: Text(
-                                    localizationContext.strings.editSearch,
-                                  ),
-                                ),
-                              PopupMenuItem(
-                                value: _AlertAction.delete,
-                                child: Text(
-                                  localizationContext.strings.deleteAlertAction,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        alertDetailsLine(alert, language: context.language),
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        alertOriginLine(alert),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),

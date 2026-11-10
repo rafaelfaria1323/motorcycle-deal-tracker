@@ -1,4 +1,5 @@
 import '../../../core/formatting/formatters.dart';
+import '../../listings/domain/entities/listing.dart';
 import '../domain/entities/listing_alert.dart';
 import '../../../core/localization/localizations.dart';
 
@@ -58,54 +59,73 @@ List<AlertDay> groupAlertsByDay(
 DateTime _day(DateTime local) =>
     DateTime.utc(local.year, local.month, local.day);
 
-/// "Preço reduzido: Yamaha MT-07 · 2021".
-String alertTitle(ListingAlert alert, {AppLanguage language = .portuguese}) {
-  final bike = alert.listing.nameAndYear;
-  return switch (alert.type) {
-    AlertType.newListing => language.messages.newListingOf(bike: bike),
-    AlertType.priceReduction => language.messages.priceReduced(bike: bike),
-    AlertType.excellentOpportunity => language.messages.excellentOpportunity(
-      bike: bike,
-    ),
-    AlertType.listingRemoved => language.messages.listingRemovedOf(bike: bike),
-    AlertType.backOnMarket => language.messages.backOnMarket(bike: bike),
-    AlertType.targetPriceReached => language.messages.targetPriceReached(
-      bike: bike,
-    ),
-    AlertType.unknown => bike,
-  };
-}
-
-/// "7 000 € → 6 500 € · Lisboa": the old and new price for a reduction,
-/// otherwise the price, then the place.
-String alertDetailsLine(
+/// The tag on an alert's card: "Novo anúncio", "Baixa de preço (-600 €)".
+String alertKindLabel(
   ListingAlert alert, {
   AppLanguage language = .portuguese,
 }) {
-  final oldPrice = alert.oldPrice;
-  final newPrice = alert.newPrice;
-  final price = switch ((alert.type, oldPrice, newPrice)) {
-    (AlertType.priceReduction, final old?, final current?) =>
-      '${Formatters.price(old, language: language)} → ${Formatters.price(current, language: language)}',
-    // Back on the market: the new price, and what the earlier ad asked.
-    (AlertType.backOnMarket, final old?, final current?) =>
-      language.messages.previously(
-        price: Formatters.price(current, language: language),
-        price2: Formatters.price(old, language: language),
-      ),
-    // The target is stored as the old price.
-    (AlertType.targetPriceReached, final target?, final current?) =>
-      language.messages.yourTarget(
-        price: Formatters.price(current, language: language),
-        price2: Formatters.price(target, language: language),
-      ),
-    _ => Formatters.price(newPrice ?? alert.listing.price, language: language),
+  final messages = language.messages;
+  return switch (alert.type) {
+    AlertType.newListing => messages.alertKindNew,
+    AlertType.priceReduction => switch ((alert.oldPrice, alert.newPrice)) {
+      (final old?, final current?) when old > current =>
+        messages.alertKindDropBy(
+          amount: '-${Formatters.price(old - current, language: language)}',
+        ),
+      _ => messages.alertKindDrop,
+    },
+    AlertType.excellentOpportunity => messages.alertKindExcellent,
+    AlertType.listingRemoved => messages.alertKindRemoved,
+    AlertType.backOnMarket => messages.alertKindBack,
+    AlertType.targetPriceReached => messages.alertKindTarget,
+    AlertType.unknown => '',
   };
-  return [price, ?alert.listing.location].join(' · ');
 }
 
-/// '"MT-07 até 7000" · 21:04': the saved search, then the time.
-String alertOriginLine(ListingAlert alert) => [
-  if (alert.searchName != null) '"${alert.searchName}"',
-  Formatters.time(alert.createdAt),
-].join(' · ');
+/// "Braga · 8 500 km · 649 cc": what is known of the place and the bike.
+String alertFactsLine(Listing listing, {AppLanguage language = .portuguese}) =>
+    [
+      ?listing.location,
+      if (listing.mileage != null)
+        Formatters.mileage(listing.mileage, language: language),
+      if (listing.engineCc case final cc?) '$cc cc',
+    ].join(' · ');
+
+/// The card's prices: [before] struck out for a reduction ("7 000 €"),
+/// then the price now, with the earlier ad's price or the person's target
+/// beside it when the alert is about one of them.
+({String? before, String now}) alertPrices(
+  ListingAlert alert, {
+  AppLanguage language = .portuguese,
+}) {
+  String price(double value) => Formatters.price(value, language: language);
+  return switch ((alert.type, alert.oldPrice, alert.newPrice)) {
+    (AlertType.priceReduction, final old?, final current?) => (
+      before: price(old),
+      now: price(current),
+    ),
+    // Back on the market: the new price, and what the earlier ad asked.
+    (AlertType.backOnMarket, final old?, final current?) => (
+      before: null,
+      now: language.messages.previously(
+        price: price(current),
+        price2: price(old),
+      ),
+    ),
+    // The target is stored as the old price.
+    (AlertType.targetPriceReached, final target?, final current?) => (
+      before: null,
+      now: language.messages.yourTarget(
+        price: price(current),
+        price2: price(target),
+      ),
+    ),
+    _ => (
+      before: null,
+      now: Formatters.price(
+        alert.newPrice ?? alert.listing.price,
+        language: language,
+      ),
+    ),
+  };
+}

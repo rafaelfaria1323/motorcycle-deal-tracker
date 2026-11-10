@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
+import 'package:motorcycle_deal_tracker/core/localization/app_language.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
 import 'package:motorcycle_deal_tracker/features/alerts/domain/entities/listing_alert.dart';
 import 'package:motorcycle_deal_tracker/features/alerts/presentation/alerts_text.dart';
@@ -79,6 +80,8 @@ void main() {
       double? newPrice,
       String? search,
       String? location,
+      int? mileage,
+      int? engineCc,
     }) => ListingAlert(
       id: 'a',
       type: type,
@@ -98,72 +101,97 @@ void main() {
         year: 2021,
         price: 6500,
         location: location,
+        mileage: mileage,
+        engineCc: engineCc,
       ),
     );
 
-    test('the title names the event and the bike', () {
+    test('the tag names the kind of alert, a drop with its size', () {
+      expect(alertKindLabel(of(AlertType.newListing)), 'Novo anúncio');
       expect(
-        alertTitle(of(AlertType.priceReduction)),
-        'Preço reduzido: Yamaha MT-07 · 2021',
+        alertKindLabel(
+          of(AlertType.priceReduction, oldPrice: 7000, newPrice: 6400),
+        ),
+        'Baixa de preço (-${Formatters.price(600)})',
       );
-      expect(alertTitle(of(AlertType.unknown)), 'Yamaha MT-07 · 2021');
+      expect(alertKindLabel(of(AlertType.priceReduction)), 'Baixa de preço');
+      expect(
+        alertKindLabel(of(AlertType.excellentOpportunity)),
+        'Excelente oportunidade',
+      );
+      expect(
+        alertKindLabel(of(AlertType.listingRemoved)),
+        'Removido ou vendido',
+      );
+      expect(alertKindLabel(of(AlertType.backOnMarket)), 'Voltou ao mercado');
+      expect(
+        alertKindLabel(of(AlertType.targetPriceReached)),
+        'Chegou ao seu preço',
+      );
+      expect(alertKindLabel(of(AlertType.unknown)), isEmpty);
+      expect(
+        alertKindLabel(
+          of(AlertType.priceReduction, oldPrice: 7000, newPrice: 6400),
+          language: AppLanguage.english,
+        ),
+        'Price drop (-${Formatters.price(600, language: AppLanguage.english)})',
+      );
+      expect(
+        alertKindLabel(
+          of(AlertType.listingRemoved),
+          language: AppLanguage.english,
+        ),
+        'Removed or sold',
+      );
     });
 
-    test('a reduction shows both prices, the rest the price', () {
+    test('the facts line: place, mileage and engine size when known', () {
       expect(
-        alertDetailsLine(
+        alertFactsLine(
           of(
-            AlertType.priceReduction,
-            oldPrice: 7000,
-            newPrice: 6500,
-            location: 'Lisboa',
-          ),
+            AlertType.newListing,
+            location: 'Braga',
+            mileage: 8500,
+            engineCc: 689,
+          ).listing,
         ),
-        '${Formatters.price(7000)} → ${Formatters.price(6500)} · Lisboa',
+        'Braga · ${Formatters.mileage(8500)} · 689 cc',
       );
-      expect(
-        alertDetailsLine(of(AlertType.newListing)),
-        Formatters.price(6500),
+      expect(alertFactsLine(of(AlertType.newListing).listing), isEmpty);
+    });
+
+    test('a reduction strikes out the old price, the rest show the price', () {
+      final drop = alertPrices(
+        of(AlertType.priceReduction, oldPrice: 7000, newPrice: 6500),
       );
+      expect(drop.before, Formatters.price(7000));
+      expect(drop.now, Formatters.price(6500));
+      final listing = alertPrices(of(AlertType.newListing));
+      expect(listing.before, isNull);
+      expect(listing.now, Formatters.price(6500));
     });
 
     test('back on the market: the new price and the earlier one', () {
       expect(
-        alertTitle(of(AlertType.backOnMarket)),
-        'Voltou ao mercado: Yamaha MT-07 · 2021',
-      );
-      expect(
-        alertDetailsLine(
-          of(AlertType.backOnMarket, oldPrice: 7000, newPrice: 6500),
-        ),
+        alertPrices(of(AlertType.backOnMarket, oldPrice: 7000, newPrice: 6500))
+            .now,
         '${Formatters.price(6500)} (antes ${Formatters.price(7000)})',
       );
       expect(
-        alertDetailsLine(of(AlertType.backOnMarket, newPrice: 6500)),
+        alertPrices(of(AlertType.backOnMarket, newPrice: 6500)).now,
         Formatters.price(6500),
       );
     });
 
     test('a target price reached: the price and the target', () {
-      expect(
-        alertTitle(of(AlertType.targetPriceReached)),
-        'Chegou ao seu preço: Yamaha MT-07 · 2021',
+      final target = alertPrices(
+        of(AlertType.targetPriceReached, oldPrice: 6600, newPrice: 6500),
       );
+      expect(target.before, isNull);
       expect(
-        alertDetailsLine(
-          of(AlertType.targetPriceReached, oldPrice: 6600, newPrice: 6500),
-        ),
+        target.now,
         '${Formatters.price(6500)} (o seu preço: ${Formatters.price(6600)})',
       );
-    });
-
-    test('the origin names the saved search, then the time', () {
-      final withSearch = of(AlertType.newListing, search: 'MT-07 barata');
-      expect(
-        alertOriginLine(withSearch),
-        '"MT-07 barata" · ${Formatters.time(withSearch.createdAt)}',
-      );
-      expect(alertOriginLine(of(AlertType.newListing)), isNot(contains('"')));
     });
   });
 }

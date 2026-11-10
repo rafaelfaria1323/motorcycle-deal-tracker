@@ -113,7 +113,7 @@ void main() {
 
     await _tab(tester, 'Alertas');
     final alert = fixture.alertsRepository.values.first;
-    final title = find.text(alertTitle(alert));
+    final title = find.text(alertKindLabel(alert).toUpperCase());
     await tester.ensureVisible(title);
     await tester.tap(title);
     await tester.pumpAndSettle();
@@ -130,7 +130,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Alerts'), findsWidgets);
     expect(
-      find.text(alertTitle(alert, language: AppLanguage.english)),
+      find.text(
+        alertKindLabel(alert, language: AppLanguage.english).toUpperCase(),
+      ),
       findsOneWidget,
     );
     expect(appRouter.routeInformationProvider.value.uri.path, AppRoutes.alerts);

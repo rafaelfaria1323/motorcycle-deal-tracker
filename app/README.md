@@ -170,8 +170,12 @@ Screen names below use the Portuguese labels; English provides the same screens.
   guardada", and the same search is never saved twice).
 - **Alertas:** new listings, price drops, excellent opportunities, bikes
   you followed back on the market in a new ad ("Voltou ao mercado") and
-  removed listings, grouped by day, with an unread summary above them;
-  the tab also shows the unread count. Swipe left to confirm deletion, or
+  removed listings, grouped by day, with the unread count in a badge above
+  them; the tab also shows the unread count. Each alert is a card (UI.4):
+  the ad's photo with its site and an unread dot, the kind in its colour
+  ("BAIXA DE PREÇO (-600 €)") and the time, the bike, its place, mileage
+  and engine size, the prices (the earlier one struck out) with the Deal
+  Score, and the saved search that sent it; a removed ad is greyed out. Swipe left to confirm deletion, or
   right to edit the saved search that created the alert; the same actions
   are in its options menu. Without a source search, only deletion is
   available. Deleted alerts leave the list and unread count but retain
