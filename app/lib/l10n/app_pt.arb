@@ -6206,5 +6206,35 @@
   "askingPriceLabel": "Preço anunciado",
   "@askingPriceLabel": {
     "description": "Under the price at the top of the ad's page."
+  },
+  "distanceLabel": "Distância",
+  "@distanceLabel": {
+    "description": "Interface text in saved_search_summary, searchCriteria: the label of the maximum distance from home."
+  },
+  "yourColours": "As suas cores",
+  "@yourColours": {
+    "description": "Interface text in saved_search_summary, searchCriteria: the search asks only for the account's colours of each model."
+  },
+  "searchCreated": "Criada {when}",
+  "@searchCreated": {
+    "description": "Interface text in saved_search_summary, searchCreatedText: when the saved search was made (hoje, ontem, há 3 dias).",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "seeResults": "Ver resultados",
+  "@seeResults": {
+    "description": "Interface text in saved_searches_page: the button that opens Ofertas with the search's filters."
+  },
+  "searchNumber": "Pesquisa {number}",
+  "@searchNumber": {
+    "description": "Interface text in saved_searches_page: the small capitals line above a saved search's name, its place in the list.",
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
   }
 }

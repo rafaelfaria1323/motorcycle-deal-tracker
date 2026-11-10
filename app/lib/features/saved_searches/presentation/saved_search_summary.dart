@@ -296,3 +296,81 @@ String alreadySavedText(
 }) => language.messages.thisSearchIsAlreadySavedAs(
   displayName: savedSearchName(existing, language: language),
 );
+
+/// One criterion of a saved search on its card: what it is ("Ano") and
+/// what it asks ("De 2020 a 2023"); [positive] for the Deal Score's
+/// minimum, shown in the good colour.
+typedef SearchCriterion = ({String label, String value, bool positive});
+
+/// The criteria of [filters] as label and value, in the order of
+/// [summarizeFilters]: a range is one criterion ("De 2020 a 2023").
+List<SearchCriterion> searchCriteria(
+  ListingFilters filters,
+  List<MotorcycleOption> motorcycles, {
+  AppLanguage language = .portuguese,
+}) {
+  final m = language.messages;
+  SearchCriterion plain(String label, String value) =>
+      (label: label, value: value, positive: false);
+  String? range(String? from, String? to) => switch ((from, to)) {
+    (final from?, final to?) => m.fromTo(from: from, to: to),
+    (final from?, null) => m.from(minYear: from),
+    (null, final to?) => m.upTo(price: to),
+    _ => null,
+  };
+  String? price(int? value) =>
+      value == null ? null : Formatters.price(value, language: language);
+
+  final models = modelsText(
+    filters.motorcycleIds,
+    motorcycles,
+    language: language,
+  );
+  final years = range(filters.minYear?.toString(), filters.maxYear?.toString());
+  final prices = range(price(filters.minPrice), price(filters.maxPrice));
+  final minScore = filters.minDealScore;
+  final maxRisk = filters.maxRiskScore;
+  final maxKm = filters.maxDistanceKm;
+  final labels = extraLabels(language: language);
+
+  return [
+    if (models.isNotEmpty) plain(m.models, models),
+    if (years != null) plain(m.yearLabel, years),
+    if (prices != null) plain(m.price, prices),
+    if (filters.maxMileage != null)
+      plain(
+        m.mileage,
+        m.upTo(
+          price: Formatters.mileage(filters.maxMileage, language: language),
+        ),
+      ),
+    if (filters.district != null) plain(m.district, filters.district!),
+    if (filters.sellerType != null)
+      plain(m.seller, filters.sellerType!.label(language: language)),
+    if (minScore != null)
+      (
+        label: m.dealScore,
+        value: dealScoreOptionLabel(minScore, language: language),
+        positive: true,
+      ),
+    if (maxRisk != null)
+      plain(m.risk, riskCriterionLabel(maxRisk, language: language)),
+    if (maxKm != null)
+      plain(m.distanceLabel, maxDistanceLabel(maxKm, language: language)),
+    if (filters.extras.isNotEmpty)
+      plain(
+        m.equipment,
+        [for (final code in filters.extras) labels[code] ?? code].join(', '),
+      ),
+    if (filters.onlyMyColours) plain(m.colourLabel, m.yourColours),
+  ];
+}
+
+/// "Criada há 3 dias".
+String searchCreatedText(
+  SavedSearch search, {
+  DateTime? now,
+  AppLanguage language = .portuguese,
+}) => language.messages.searchCreated(
+  when: Formatters.daysAgo(search.createdAt, now: now, language: language),
+);

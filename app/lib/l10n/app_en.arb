@@ -1092,5 +1092,10 @@
   "cardAboveEstimatedValue": "{percent} above the estimated value",
   "cardAtEstimatedValue": "At the estimated value",
   "comparedWithListings": "{count, plural, =1{Compared with 1 listing} other{Compared with {count} listings}}",
-  "askingPriceLabel": "Asking price"
+  "askingPriceLabel": "Asking price",
+  "distanceLabel": "Distance",
+  "yourColours": "Your colours",
+  "searchCreated": "Created {when}",
+  "seeResults": "See results",
+  "searchNumber": "Search {number}"
 }
