@@ -9,6 +9,7 @@ import '../../listings/domain/entities/listing_card_preferences.dart';
 import '../../listings/presentation/cubit/listing_card_preferences_cubit.dart';
 import '../../listings/presentation/listing_labels.dart';
 import '../../../core/localization/localizations.dart';
+import '../../../core/widgets/settings_icon.dart';
 
 Future<void> showListingCardPreferences(BuildContext context) async {
   final messageStrings = context.strings;
@@ -44,7 +45,7 @@ class const ListingCardPreferencesTile({
         builder: (context, cards) {
           final failed = signedIn && cards.status == .failure;
           return ListTile(
-            leading: Icon(
+            leading: SettingsIcon(
               failed
                   ? Icons.warning_amber_outlined
                   : Icons.view_agenda_outlined,

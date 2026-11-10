@@ -1516,11 +1516,11 @@ void main() {
         InterfaceFixture(signedIn: true, admin: admin),
         location: AppRoutes.more,
       );
-      await _reveal(tester, find.text('Recolha de dados'));
+      await _reveal(tester, find.text('RECOLHA DE DADOS'));
       // To the end of the list, past the last section.
       await tester.drag(find.byType(Scrollable).first, const Offset(0, -5000));
       await tester.pumpAndSettle();
-      expect(find.text('Administração'), admin ? findsOneWidget : findsNothing);
+      expect(find.text('ADMINISTRAÇÃO'), admin ? findsOneWidget : findsNothing);
       expect(
         find.text('Contas e convites'),
         admin ? findsOneWidget : findsNothing,

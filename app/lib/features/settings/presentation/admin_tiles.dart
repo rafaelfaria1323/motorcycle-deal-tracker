@@ -7,6 +7,7 @@ import '../domain/workflows_repository.dart';
 import 'start_workflow.dart';
 import 'workflows_text.dart';
 import '../../../core/localization/localizations.dart';
+import '../../../core/widgets/settings_icon.dart';
 
 /// "Administração" in Mais, shown to admins only: the accounts and
 /// invites, the "Estado da recolha" page and starting the collection now.
@@ -61,7 +62,7 @@ class _AdminTilesState extends State<AdminTiles> {
     return Column(
       children: [
         ListTile(
-          leading: const Icon(Icons.group_outlined),
+          leading: const SettingsIcon(Icons.group_outlined),
           title: Text(context.strings.accountsAndInvites),
           subtitle: Text(context.strings.invitePeopleWithLinkAndSeeWhoHas),
           trailing: const Icon(Icons.chevron_right),
@@ -69,7 +70,7 @@ class _AdminTilesState extends State<AdminTiles> {
         ),
         const Divider(height: 1),
         ListTile(
-          leading: const Icon(Icons.monitor_heart_outlined),
+          leading: const SettingsIcon(Icons.monitor_heart_outlined),
           title: Text(context.strings.collectionStatus),
           subtitle: Text(context.strings.collectionStatusSubtitle),
           trailing: const Icon(Icons.chevron_right),
@@ -77,7 +78,7 @@ class _AdminTilesState extends State<AdminTiles> {
         ),
         const Divider(height: 1),
         ListTile(
-          leading: const Icon(Icons.play_circle_outline),
+          leading: const SettingsIcon(Icons.play_circle_outline),
           title: Text(collect.title),
           subtitle: Text(collect.subtitle),
           trailing: _starting
