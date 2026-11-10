@@ -1096,5 +1096,14 @@
   "alertKindExcellent": "Excellent opportunity",
   "alertKindRemoved": "Removed or sold",
   "alertKindBack": "Back on the market",
-  "alertKindTarget": "Target price reached"
+  "alertKindTarget": "Target price reached",
+  "bikeValueTools": "Valuation tools",
+  "bikeValueMarketEstimate": "Market estimate",
+  "bikeValueBasedOn": "{name} · {count, plural, =1{1 comparable listing} other{{count} comparable listings}}",
+  "bikeValueTileAsking": "Asking price",
+  "bikeValueTileValue": "Market value",
+  "bikeValueTileTradeIn": "Trade-in",
+  "bikeValueRange": "Where most listings sit",
+  "bikeValueReasoning": "How we got there",
+  "bikeValueFactors": "Condition adjustments"
 }

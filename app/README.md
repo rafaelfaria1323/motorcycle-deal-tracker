@@ -199,11 +199,12 @@ Screen names below use the Portuguese labels; English provides the same screens.
   year and km, with a small chart; cheapest first), "Quanto vale a minha
   mota" (a bike of one of your models, or with an account any brand and
   model, collected for the request and answered by a notification after
-  the next collection, from its year and km: the market value and its
-  range, adjusted to its condition when you say it (falls or accidents,
-  owners, service book, warranty), what the model's ads that left the
-  market in the last 90 days last asked ("Saíram do mercado por"), the
-  price to ask, the time to sell and a dealer's trade-in; your last
+  the next collection, from its year and km: the price to ask, the
+  market value and a dealer's trade-in as three tiles, a bar of where
+  most comparable ads sit, all adjusted to its condition when you say it
+  (falls or accidents, owners, service book, warranty, each shown in
+  euros), what the model's ads that left the market in the last 90 days
+  last asked ("Saíram do mercado por") and the time to sell; your last
   requests below), "Comprar no
   estrangeiro" (the same form for a bike seen in Spain, France or
   Germany: its price there plus vehicle tax (ISV), legalisation and

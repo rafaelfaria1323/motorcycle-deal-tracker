@@ -6207,5 +6207,49 @@
   "alertKindTarget": "Chegou ao seu preço",
   "@alertKindTarget": {
     "description": "Interface text in alerts_text, alertKindLabel: the coloured tag on an alert's card, shown in capitals (a favourite reached the price the person set)."
+  },
+  "bikeValueTools": "Ferramentas de avaliação",
+  "@bikeValueTools": {
+    "description": "Interface text in bike_value_page: the small heading above the page's title."
+  },
+  "bikeValueMarketEstimate": "Estimativa de mercado",
+  "@bikeValueMarketEstimate": {
+    "description": "Interface text in bike_value_card (Quanto vale a minha mota): the result card's title."
+  },
+  "bikeValueBasedOn": "{name} · {count, plural, =1{1 anúncio comparável} other{{count} anúncios comparáveis}}",
+  "@bikeValueBasedOn": {
+    "description": "Interface text in bike_value_card (Quanto vale a minha mota): under the title; name is the model and year, count the listings the value comes from.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bikeValueTileAsking": "Preço a pedir",
+  "@bikeValueTileAsking": {
+    "description": "Interface text in bike_value_card (Quanto vale a minha mota): tile with the price to ask (shown in capitals)."
+  },
+  "bikeValueTileValue": "Valor de mercado",
+  "@bikeValueTileValue": {
+    "description": "Interface text in bike_value_card (Quanto vale a minha mota): the highlighted tile with the value (shown in capitals)."
+  },
+  "bikeValueTileTradeIn": "Retoma",
+  "@bikeValueTileTradeIn": {
+    "description": "Interface text in bike_value_card (Quanto vale a minha mota): tile with a dealer's trade-in (shown in capitals)."
+  },
+  "bikeValueRange": "Onde está a maioria dos anúncios",
+  "@bikeValueRange": {
+    "description": "Interface text in bike_value_card (Quanto vale a minha mota): label of the bar with the middle half of the comparable listings' prices (shown in capitals)."
+  },
+  "bikeValueReasoning": "Como chegámos ao valor",
+  "@bikeValueReasoning": {
+    "description": "Interface text in bike_value_card (Quanto vale a minha mota): heading of the explanation."
+  },
+  "bikeValueFactors": "Ajustes ao estado",
+  "@bikeValueFactors": {
+    "description": "Interface text in bike_value_card (Quanto vale a minha mota): label of the box with what each condition answer moves the value by (shown in capitals)."
   }
 }

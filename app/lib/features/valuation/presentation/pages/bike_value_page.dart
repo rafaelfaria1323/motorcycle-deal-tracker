@@ -6,6 +6,7 @@ import '../../../../app/di/injection.dart';
 import '../../../../core/auth/session_cubit.dart';
 import '../../../../core/localization/localizations.dart';
 import '../../../../core/widgets/page_back_button.dart';
+import '../../../../core/widgets/page_intro.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/bike_condition.dart';
 import '../../domain/entities/bike_value.dart';
@@ -287,14 +288,8 @@ class _BikeValuePageState extends State<BikeValuePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: const PageBackButton(),
-        title: Text(
-          widget.importing
-              ? context.strings.importPageTitle
-              : context.strings.bikeValueTitle,
-        ),
-      ),
+      // The title is the page's heading (PageIntro), as on the tabs.
+      appBar: AppBar(leading: const PageBackButton()),
       body: TrackedModelsBuilder(
         future: _models,
         allowEmpty: _signedIn,
@@ -304,13 +299,25 @@ class _BikeValuePageState extends State<BikeValuePage> {
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
             children: [
-              Text(switch ((widget.importing, _signedIn)) {
-                (true, _) => context.strings.importPageIntro,
-                (false, true) => context.strings.bikeValueIntroAnyModel,
-                (false, false) => context.strings.bikeValueIntro,
-              }),
-              const SizedBox(height: 16),
-              _formFields(context, choices),
+              PageIntro(
+                eyebrow: context.strings.bikeValueTools,
+                title: widget.importing
+                    ? context.strings.importPageTitle
+                    : context.strings.bikeValueTitle,
+                description: switch ((widget.importing, _signedIn)) {
+                  (true, _) => context.strings.importPageIntro,
+                  (false, true) => context.strings.bikeValueIntroAnyModel,
+                  (false, false) => context.strings.bikeValueIntro,
+                },
+              ),
+              const SizedBox(height: 20),
+              Card(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: _formFields(context, choices),
+                ),
+              ),
               const SizedBox(height: 16),
               if (_outcome != null) _result(context, choices),
               if (_requests.isNotEmpty)
