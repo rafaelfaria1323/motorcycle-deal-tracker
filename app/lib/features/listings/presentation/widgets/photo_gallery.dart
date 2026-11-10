@@ -131,31 +131,70 @@ class _PhotoGalleryState extends State<PhotoGallery> {
 
 /// The row of small photos under the gallery, the one shown outlined in
 /// the primary colour. Built as it scrolls: an ad can have 30.
+/// The strip of thumbnails. It follows the photo shown: swiping the big
+/// photo or using its arrows scrolls the strip so that photo's thumbnail
+/// is in view, centred where it can be.
 class const _Thumbnails({
   required final List<String> images,
   required final int selected,
   required final ValueChanged<int> onShow,
-}) extends StatelessWidget {
+}) extends StatefulWidget {
+  @override
+  State<_Thumbnails> createState() => _ThumbnailsState();
+}
+
+class _ThumbnailsState extends State<_Thumbnails> {
   static const _size = 56.0;
+  static const _width = _size * 4 / 3;
+  static const _gap = 8.0;
+
+  final _scroll = ScrollController();
+
+  @override
+  void didUpdateWidget(_Thumbnails oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selected != widget.selected) _reveal(widget.selected);
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  void _reveal(int index) {
+    if (!_scroll.hasClients) return;
+    final position = _scroll.position;
+    final centred =
+        index * (_width + _gap) - (position.viewportDimension - _width) / 2;
+    _scroll.animateTo(
+      centred.clamp(position.minScrollExtent, position.maxScrollExtent),
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final images = widget.images;
+    final selected = widget.selected;
     return SizedBox(
       height: _size,
       child: ListView.separated(
+        controller: _scroll,
         scrollDirection: Axis.horizontal,
         itemCount: images.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => const SizedBox(width: _gap),
         itemBuilder: (context, index) => Semantics(
           button: true,
           selected: index == selected,
           label: photoCounterText(index, images.length),
           excludeSemantics: true,
           child: GestureDetector(
-            onTap: () => onShow(index),
+            onTap: () => widget.onShow(index),
             child: Container(
-              width: _size * 4 / 3,
+              width: _width,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(

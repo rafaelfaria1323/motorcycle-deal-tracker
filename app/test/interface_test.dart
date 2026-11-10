@@ -2066,6 +2066,44 @@ void main() {
     expect(find.text('Fotografias'), findsOneWidget);
   });
 
+  testWidgets('the thumbnail strip keeps the photo shown in view', (
+    tester,
+  ) async {
+    _screen(tester, const Size(390, 844));
+    final images = [
+      for (var i = 1; i <= 12; i++) 'https://example.test/$i.jpg',
+    ];
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (_, _) => Scaffold(
+            body: PhotoGallery(listingId: 'l1', images: images),
+          ),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(interfaceApp(router));
+    await tester.pumpAndSettle();
+    for (var i = 0; i < 9; i++) {
+      await tester.tap(find.byTooltip('Foto seguinte'));
+      await tester.pumpAndSettle();
+    }
+    expect(find.text('10 / 12'), findsOneWidget);
+    final thumb = find.byWidgetPredicate(
+      (widget) =>
+          widget is Semantics &&
+          widget.properties.label == '10 / 12' &&
+          widget.properties.selected == true,
+    );
+    expect(thumb, findsOneWidget);
+    final strip = tester.getRect(find.byType(ListView));
+    final shown = tester.getRect(thumb);
+    expect(shown.left, greaterThanOrEqualTo(strip.left));
+    expect(shown.right, lessThanOrEqualTo(strip.right));
+  });
+
   testWidgets('empty states scroll instead of overflowing large text', (
     tester,
   ) async {
