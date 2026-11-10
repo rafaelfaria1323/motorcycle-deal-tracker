@@ -159,10 +159,13 @@ Screen names below use the Portuguese labels; English provides the same screens.
     tap copies it), "Para a visita" for favourites (12 points to check when
     seeing the bike, each "Está bem" or "Problema" with a note).
 - **Pesquisas** (its own tab, between Favoritos and Alertas; F.12):
-  saved searches, each with its criteria, configured alert
-  types and "N anúncios encontrados". Tap the card to apply it; the
-  options menu edits or deletes it; swipe right to edit, left to confirm
-  deletion. "Nova pesquisa" creates one (Ofertas
+  saved searches as Stitch's cards (UI.3): "PESQUISA 1", the name and
+  "N anúncios encontrados", the alert types in a tinted box (a tap edits
+  them), each criterion as a labelled chip ("ANO  De 2020 a 2023", the
+  minimum Deal Score in green), and when it was made beside "Ver
+  resultados". Tap the card or that button to apply it; the options menu
+  edits or deletes it; swipe right to edit, left to confirm deletion.
+  "Nova pesquisa", in the title bar, creates one (Ofertas
   can also save its current filters; filters already saved read "Pesquisa
   guardada", and the same search is never saved twice).
 - **Alertas:** new listings, price drops, excellent opportunities, bikes

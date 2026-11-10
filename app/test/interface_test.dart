@@ -952,6 +952,32 @@ void main() {
     expect(fixture.listings.state.filters.minYear, 2022);
   });
 
+  testWidgets('a saved search card shows its criteria and alerts', (
+    tester,
+  ) async {
+    final fixture = InterfaceFixture();
+    final router = await _open(tester, fixture, location: AppRoutes.searches);
+    expect(find.text('PESQUISA 1'), findsOneWidget);
+    expect(find.textContaining('desde 2022'), findsOneWidget);
+    expect(find.text('Novos anúncios · Baixas de preço'), findsOneWidget);
+
+    await tester.tap(find.text('Novos anúncios · Baixas de preço'));
+    await tester.pumpAndSettle();
+    expect(find.text('Editar pesquisa'), findsOneWidget);
+    final cancel = find.text('Cancelar');
+    await tester.ensureVisible(cancel);
+    await tester.tap(cancel);
+    await tester.pumpAndSettle();
+    expect(find.text('Editar pesquisa'), findsNothing);
+
+    final results = find.text('Ver resultados');
+    await _reveal(tester, results);
+    await tester.tap(results);
+    await tester.pumpAndSettle();
+    expect(router.routeInformationProvider.value.uri.path, AppRoutes.deals);
+    expect(fixture.listings.state.filters.minYear, 2022);
+  });
+
   testWidgets('saved search actions fit narrow screens with enlarged text', (
     tester,
   ) async {

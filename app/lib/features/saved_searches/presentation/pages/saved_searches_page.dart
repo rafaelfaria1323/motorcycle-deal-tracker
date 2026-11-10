@@ -9,7 +9,6 @@ import '../../../../app/router/app_routes.dart';
 import '../../../../core/widgets/page_intro.dart';
 import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
-import '../../../../core/widgets/swipe_actions.dart';
 import '../../../listings/domain/entities/motorcycle_option.dart';
 import '../../domain/entities/saved_search.dart';
 import '../../../listings/presentation/cubit/listings_cubit.dart';
@@ -18,6 +17,7 @@ import '../cubit/saved_searches_state.dart';
 import '../saved_search_summary.dart';
 import '../widgets/delete_saved_search_dialog.dart';
 import '../widgets/edit_saved_search_sheet.dart';
+import '../widgets/saved_search_card.dart';
 import '../../../../core/localization/localizations.dart';
 
 class const SavedSearchesPage({super.key}) extends StatelessWidget {
@@ -81,21 +81,28 @@ class const SavedSearchesPage({super.key}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(context.strings.searches)),
-      floatingActionButton: BlocBuilder<SavedSearchesCubit, SavedSearchesState>(
-        buildWhen: (previous, current) =>
-            previous.status != current.status ||
-            previous.searches.isEmpty != current.searches.isEmpty ||
-            previous.motorcycles != current.motorcycles,
-        // With no searches yet the empty screen has its own button.
-        builder: (context, state) =>
-            state.status == .success && state.searches.isNotEmpty
-            ? FloatingActionButton.extended(
-                onPressed: () => _create(context, state.motorcycles),
-                icon: const Icon(Icons.add),
-                label: Text(context.strings.newSearch),
-              )
-            : const SizedBox.shrink(),
+      appBar: AppBar(
+        title: Text(context.strings.searches),
+        actions: [
+          BlocBuilder<SavedSearchesCubit, SavedSearchesState>(
+            buildWhen: (previous, current) =>
+                previous.status != current.status ||
+                previous.searches.isEmpty != current.searches.isEmpty ||
+                previous.motorcycles != current.motorcycles,
+            // With no searches yet the empty screen has its own button.
+            builder: (context, state) =>
+                state.status == .success && state.searches.isNotEmpty
+                ? Padding(
+                    padding: const EdgeInsetsDirectional.only(end: 12),
+                    child: FilledButton.icon(
+                      onPressed: () => _create(context, state.motorcycles),
+                      icon: const Icon(Icons.add, size: 18),
+                      label: Text(context.strings.newSearch),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ],
       ),
       body: BlocBuilder<SavedSearchesCubit, SavedSearchesState>(
         builder: (context, state) {
@@ -126,8 +133,7 @@ class const SavedSearchesPage({super.key}) extends StatelessWidget {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 800),
                   child: ListView(
-                    // Room at the end so the button never covers a search.
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 104),
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
                     children: [
                       PageIntro(
                         eyebrow: context.strings.savedSearches,
@@ -135,11 +141,12 @@ class const SavedSearchesPage({super.key}) extends StatelessWidget {
                         description: context.strings.searchesIntro,
                       ),
                       const SizedBox(height: 28),
-                      for (final search in state.searches)
-                        _SearchCard(
+                      for (final (index, search) in state.searches.indexed)
+                        SavedSearchCard(
                           key: ValueKey(search.id),
                           search: search,
-                          summary: summarizeFilters(
+                          number: index + 1,
+                          criteria: searchCriteria(
                             search.filters,
                             state.motorcycles,
                             language: context.language,
@@ -159,138 +166,6 @@ class const SavedSearchesPage({super.key}) extends StatelessWidget {
               );
           }
         },
-      ),
-    );
-  }
-}
-
-enum _SearchAction { edit, delete }
-
-class const _SearchCard({
-  required final SavedSearch search,
-  required final String summary,
-  required final int matches,
-  required final VoidCallback onTap,
-  required final Future<void> Function() onEdit,
-  required final Future<void> Function() onDelete,
-  super.key,
-}) extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: SwipeActions(
-        id: search.id,
-        onEdit: onEdit,
-        onDelete: onDelete,
-        child: InkWell(
-          onTap: onTap,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 8, 0),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.bookmark_outline,
-                      size: 20,
-                      color: scheme.primary,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        savedSearchName(search, language: context.language),
-                        style: theme.textTheme.titleLarge,
-                      ),
-                    ),
-                    PopupMenuButton<_SearchAction>(
-                      tooltip: context.strings.searchOptions,
-                      onSelected: (action) => switch (action) {
-                        _SearchAction.edit => onEdit(),
-                        _SearchAction.delete => onDelete(),
-                      },
-                      itemBuilder: (localizationContext) => [
-                        PopupMenuItem(
-                          value: _SearchAction.edit,
-                          child: Text(localizationContext.strings.editSearch),
-                        ),
-                        PopupMenuItem(
-                          value: _SearchAction.delete,
-                          child: Text(localizationContext.strings.deleteSearch),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 4, 20, 18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      summary,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                        height: 1.45,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.notifications_none,
-                          size: 16,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            searchNotificationText(
-                              search,
-                              language: context.language,
-                            ),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    const Divider(),
-                    const SizedBox(height: 14),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            searchMatchesText(
-                              matches,
-                              language: context.language,
-                            ),
-                            style: theme.textTheme.labelLarge?.copyWith(
-                              color: scheme.primary,
-                            ),
-                          ),
-                        ),
-                        Icon(
-                          Icons.arrow_forward,
-                          size: 20,
-                          color: scheme.primary,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

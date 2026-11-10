@@ -199,4 +199,103 @@ void main() {
       expect(text, 'Deal Score 80+ · Risco até médio');
     });
   });
+
+  group('card criteria', () {
+    const motorcycles = [
+      MotorcycleOption(id: 'mt', brand: 'Yamaha', model: 'MT-07'),
+      MotorcycleOption(id: 'cb', brand: 'Honda', model: 'CB650R'),
+    ];
+
+    test('name each criterion and join a range', () {
+      final criteria = searchCriteria(
+        const ListingFilters(
+          motorcycleIds: ['mt', 'cb'],
+          minYear: 2020,
+          maxYear: 2023,
+          maxPrice: 7500,
+          maxMileage: 25000,
+          district: 'Porto',
+          sellerType: SellerType.private,
+          minDealScore: 80,
+          maxRiskScore: 19,
+          maxDistanceKm: 50,
+          extras: ['quickshifter', 'luggage'],
+          onlyMyColours: true,
+        ),
+        motorcycles,
+      );
+
+      expect(criteria.map((c) => (c.label, c.value)), [
+        ('Modelos', 'Yamaha MT-07 ou Honda CB650R'),
+        ('Ano', 'De 2020 a 2023'),
+        ('Preço', 'até ${Formatters.price(7500)}'),
+        ('Quilometragem', 'até ${Formatters.mileage(25000)}'),
+        ('Distrito', 'Porto'),
+        ('Vendedor', 'Particular'),
+        ('Deal Score', 'Muito bom (80+)'),
+        ('Risco', 'Risco baixo'),
+        ('Distância', 'até ${Formatters.mileage(50)} de casa'),
+        ('Equipamento', 'quickshifter, malas'),
+        ('Cor', 'As suas cores'),
+      ]);
+      expect(criteria.where((c) => c.positive).map((c) => c.label), [
+        'Deal Score',
+      ]);
+    });
+
+    test('an open range says from or up to', () {
+      String? value(ListingFilters filters, String label) => searchCriteria(
+        filters,
+        const [],
+      ).where((c) => c.label == label).firstOrNull?.value;
+
+      expect(value(const ListingFilters(minYear: 2020), 'Ano'), 'desde 2020');
+      expect(value(const ListingFilters(maxYear: 2023), 'Ano'), 'até 2023');
+      expect(
+        value(const ListingFilters(minPrice: 4000, maxPrice: 5800), 'Preço'),
+        'De ${Formatters.price(4000)} a ${Formatters.price(5800)}',
+      );
+      expect(
+        value(const ListingFilters(minPrice: 4000), 'Preço'),
+        'desde ${Formatters.price(4000)}',
+      );
+      expect(searchCriteria(ListingFilters.empty, const []), isEmpty);
+    });
+
+    test('in English', () {
+      final criteria = searchCriteria(
+        const ListingFilters(minYear: 2020, onlyMyColours: true),
+        const [],
+        language: AppLanguage.english,
+      );
+      expect(criteria.map((c) => (c.label, c.value)), [
+        ('Year', 'from 2020'),
+        ('Colour', 'Your colours'),
+      ]);
+    });
+
+    test('the card says when the search was made', () {
+      final search = SavedSearch(
+        id: 's1',
+        filters: ListingFilters.empty,
+        createdAt: DateTime(2026, 11, 1, 12),
+      );
+      expect(
+        searchCreatedText(search, now: DateTime(2026, 11, 1, 18)),
+        'Criada hoje',
+      );
+      expect(
+        searchCreatedText(search, now: DateTime(2026, 11, 4, 12)),
+        'Criada há 3 dias',
+      );
+      expect(
+        searchCreatedText(
+          search,
+          now: DateTime(2026, 11, 2, 12),
+          language: AppLanguage.english,
+        ),
+        'Created yesterday',
+      );
+    });
+  });
 }

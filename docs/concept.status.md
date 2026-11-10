@@ -198,6 +198,8 @@ All four types, each at most once per event, only for events after the search wa
 
 *UI.2: the ad's page after the Stitch design: site and age tags and thumbnails on the photo; one summary box with the asking price, year / km / engine-size chips, the seller and place, the position against the national median in % and euros with how many ads it came from, and Deal / Risk Score tiles; the fixed bar shows the price, the Deal Score and the bike, sharing sits in the title bar.*
 
+*UI.3: Pesquisas after the Stitch design: each search a card with its number, name and ads found, its alerts in a tinted box that opens the editor, every criterion as a labelled chip (ranges in one, the minimum Deal Score in green), when it was made and "Ver resultados"; "Nova pesquisa" in the title bar instead of a floating button.*
+
 ➕ Card details per account ✅ (15.31): Mais › "Cartões dos anúncios" (also in Ofertas' toolbar until F.3) selects the details shown in Ofertas and Favoritos, saved to the account across devices. The current layout is the default; additional choices cover Risk Score, seller type, colour, owners / first owner, service book, origin, factory and seller warranties, stand name, status, and publication, renewal and first-found dates. A first-owner statement can come from the existing ad-text signal when no owner count is known; publication, renewal and discovery stay distinct, and missing facts are omitted. Photo, model, price, removal notices and actions stay visible. Cancel and reset-to-defaults are available; anonymous visitors retain the default layout.
 
 ## 18. Listing Detail Page ✅
