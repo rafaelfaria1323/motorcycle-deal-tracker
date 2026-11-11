@@ -19,3 +19,15 @@ NotificationLink? notificationLink(String url) {
   }
   return null;
 }
+
+/// The page a link to the web app opens in the Android app (App Links). The
+/// link is the web app's own address (`https://<site>/#/deals/<id>`), and
+/// Android hands the app its path and fragment (`/#/deals/<id>`), so the
+/// page is the fragment. Null for anything else (the web's own hash
+/// addresses never have a fragment here).
+String? appLinkLocation(Uri uri) {
+  final page = uri.fragment;
+  if (!page.startsWith('/')) return null;
+  if (uri.path.isNotEmpty && uri.path != '/') return null;
+  return page;
+}

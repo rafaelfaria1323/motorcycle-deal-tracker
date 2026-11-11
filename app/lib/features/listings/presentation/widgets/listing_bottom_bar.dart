@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/localization/localizations.dart';
 import '../../../../core/platform/app_build.dart';
+import '../../../../core/platform/open_ad.dart';
 import '../../../../core/widgets/share_or_copy.dart';
 import '../../../../core/widgets/show_message.dart';
 import '../../domain/entities/listing.dart';
@@ -19,9 +19,7 @@ class const ListingBottomBar({required final Listing listing, super.key})
     final messageStrings = context.strings;
 
     final uri = adAddress(listing);
-    final opened =
-        uri != null &&
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
+    final opened = uri != null && await openAd(uri);
 
     if (!opened && context.mounted) {
       showMessage(

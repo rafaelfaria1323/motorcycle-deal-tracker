@@ -235,6 +235,15 @@ tile stays hidden.
 The app's shared links (invites, "Partilhar a app") point to
 `https://motorcycle-deal-tracker.pages.dev`; if Cloudflare gave the
 project another address, set the repository variable `WEB_APP_URL` to it.
+
+Shared links open the Android app (App Links, N.54): the APK claims the
+web app's address (`tool/android_manifest.py`) and each deploy with the
+signing key publishes `/.well-known/assetlinks.json` with the key's
+SHA-256 fingerprint (`tool/asset_links.py`). Android checks it when the app
+is installed or updated; a new key or address needs a deploy before the
+links open the app again. Check it on the phone with Definições › Apps ›
+Deal Tracker › "Abrir por predefinição" (the address listed as verified).
+The iPhone's home-screen app cannot take links: iOS gives them to Safari.
 ### Notifications in the Android app
 
 Web Push lives in browsers, so the Android app gets its notifications

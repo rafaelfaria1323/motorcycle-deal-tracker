@@ -163,10 +163,33 @@ jobs:
             --dart-define=APK_URL="$apk_url"
           ../tool/web_preconnect.sh build/web/index.html "$SUPABASE_URL" "$SUPABASE_PUBLISHABLE_KEY"
 
+      # Android App Links: the site says the app signed with this key may
+      # open its links (a shared ad opens the Android app). Only the key's
+      # certificate fingerprint is published, never the key.
+      - name: App Links (assetlinks.json)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ]; then
+            echo "No Android signing key: no App Links."
+            exit 0
+          fi
+          keystore="$RUNNER_TEMP/links.p12"
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$keystore"
+          fingerprint=$(keytool -list -v -keystore "$keystore" -storetype PKCS12 \
+            -alias upload -storepass "$KEYSTORE_PASSWORD" |
+            sed -n 's/^[[:space:]]*SHA256:[[:space:]]*//p' | head -n 1)
+          rm -f "$keystore"
+          mkdir -p app/build/web/.well-known
+          python3 tool/asset_links.py "$fingerprint" > app/build/web/.well-known/assetlinks.json
+
+      # include-hidden-files: .well-known starts with a dot.
       - uses: actions/upload-artifact@v7
         with:
           name: web
           path: app/build/web
+          include-hidden-files: true
           retention-days: 1
 
   deploy:

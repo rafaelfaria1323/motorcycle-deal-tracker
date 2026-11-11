@@ -29,4 +29,16 @@ void main() {
     expect(notificationLink('javascript:alert(1)'), isNull);
     expect(notificationLink('deals/1'), isNull);
   });
+
+  test('a link to the web app opens its page in the Android app', () {
+    expect(appLinkLocation(Uri.parse('/#/deals/42')), '/deals/42');
+    expect(appLinkLocation(Uri.parse('#/summary')), '/summary');
+    expect(
+      appLinkLocation(Uri.parse('https://example.pages.dev/#/deals/42')),
+      '/deals/42',
+    );
+    expect(appLinkLocation(Uri.parse('/deals/42')), isNull);
+    expect(appLinkLocation(Uri.parse('/models#/deals/42')), isNull);
+    expect(appLinkLocation(Uri.parse('/#access_token=x')), isNull);
+  });
 }

@@ -2,7 +2,7 @@
 
 import unittest
 
-from android_manifest import ManifestError, fit_manifest
+from android_manifest import ManifestError, fit_manifest, web_host
 
 # The start of the manifest `flutter create` makes.
 TEMPLATE = """<manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -42,6 +42,36 @@ class FitManifestTest(unittest.TestCase):
             fit_manifest("<foo/>")
         with self.assertRaises(ManifestError):
             fit_manifest(TEMPLATE.replace('android:label="motorcycle_deal_tracker"', ""))
+
+    def test_the_web_address_becomes_an_app_link(self):
+        template = TEMPLATE.replace(
+            'android:exported="true"/>',
+            'android:exported="true">\n            <intent-filter>\n'
+            '                <action android:name="android.intent.action.MAIN"/>\n'
+            '            </intent-filter>\n        </activity>')
+        xml = fit_manifest(template, "deal.example.pages.dev")
+        self.assertIn('<intent-filter android:autoVerify="true">', xml)
+        self.assertIn(
+            '<data android:scheme="https" android:host="deal.example.pages.dev"/>', xml)
+        self.assertIn("android.intent.action.VIEW", xml)
+        self.assertIn("android.intent.category.BROWSABLE", xml)
+        # Inside the activity, after its launcher filter.
+        self.assertLess(xml.index("action.MAIN"), xml.index("action.VIEW"))
+        self.assertLess(xml.index("action.VIEW"), xml.index("</activity>"))
+        self.assertEqual(fit_manifest(xml, "deal.example.pages.dev"), xml)
+        # Without an address the manifest has no link.
+        self.assertNotIn("autoVerify", fit_manifest(template))
+        with self.assertRaises(ManifestError):
+            fit_manifest(TEMPLATE, "deal.example.pages.dev")
+
+    def test_only_an_https_host_is_taken(self):
+        self.assertEqual(web_host("https://deal.example.pages.dev"), "deal.example.pages.dev")
+        self.assertEqual(web_host("https://Deal.Example.dev/path#/x"), "deal.example.dev")
+        self.assertIsNone(web_host(""))
+        self.assertIsNone(web_host(None))
+        for bad in ("http://deal.example.dev", "deal.example.dev", 'https://a"b.dev'):
+            with self.assertRaises(ManifestError):
+                web_host(bad)
 
 
 if __name__ == "__main__":

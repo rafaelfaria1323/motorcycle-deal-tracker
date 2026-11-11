@@ -18,3 +18,5 @@ double get iosBottomInset => bottomInsetFor(
   screenHeight: () => _screenHeight.toDartDouble,
   screenWidth: () => _screenWidth.toDartDouble,
 );
+
+bool get isIosHomeScreenApp => _standalone?.toDart ?? false;

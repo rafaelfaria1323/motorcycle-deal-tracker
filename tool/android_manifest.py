@@ -9,13 +9,18 @@ matches the runner's Flutter), then runs this on its main manifest:
   otherwise copy the app's files, the signed-in session among them, to the
   person's Google account. (Android 12+ still copies them phone to phone
   when asked to; the session is encrypted with a Keystore key, which never
-  leaves the phone, so the new one just starts signed out.)
+  leaves the phone, so the new one just starts signed out.);
+- with the web app's address, an App Link for it: a shared link
+  (https://<host>/#/deals/<id>) opens the app, not the browser, once
+  Android has checked the site's /.well-known/assetlinks.json
+  (tool/asset_links.py, written by the deploy).
 
-Usage: python3 tool/android_manifest.py app/android/app/src/main/AndroidManifest.xml
+Usage: python3 tool/android_manifest.py app/android/app/src/main/AndroidManifest.xml [web app URL]
 """
 
 import re
 import sys
+from urllib.parse import urlsplit
 
 LABEL = "Deal Tracker"
 INTERNET = '<uses-permission android:name="android.permission.INTERNET"/>'
@@ -25,9 +30,37 @@ class ManifestError(Exception):
     pass
 
 
-def fit_manifest(xml):
-    """The manifest with the permission, the label and no backups; fails
-    when the template changed so that they can't be placed."""
+def web_host(url):
+    """The host of the web app's address; None without one."""
+    if not url:
+        return None
+    parts = urlsplit(url)
+    if parts.scheme != "https" or not parts.hostname:
+        raise ManifestError(f"not an https address: {url}")
+    if not re.fullmatch(r"[a-z0-9.-]+", parts.hostname):
+        raise ManifestError(f"unexpected host: {parts.hostname}")
+    return parts.hostname
+
+
+def app_link_filter(host):
+    return f"""<intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https" android:host="{host}"/>
+            </intent-filter>
+        """
+
+
+def fit_manifest(xml, host=None):
+    """The manifest with the permission, the label, no backups and, with
+    [host], the App Link for it; fails when the template changed so that
+    they can't be placed."""
+    if host and f'android:host="{host}"' not in xml:
+        closing = xml.find("</activity>")
+        if closing < 0:
+            raise ManifestError("no </activity> to put the App Link in")
+        xml = xml[:closing] + app_link_filter(host) + xml[closing:]
     if "android.permission.INTERNET" not in xml:
         opening = re.search(r"<manifest\b[^>]*>", xml)
         if opening is None:
@@ -48,13 +81,13 @@ def fit_manifest(xml):
 
 
 def main(argv):
-    if len(argv) != 2:
+    if len(argv) not in (2, 3):
         print(__doc__.strip().splitlines()[-1], file=sys.stderr)
         return 2
     with open(argv[1], encoding="utf-8") as f:
         xml = f.read()
     try:
-        xml = fit_manifest(xml)
+        xml = fit_manifest(xml, web_host(argv[2] if len(argv) == 3 else None))
     except ManifestError as e:
         print(f"{argv[1]}: {e}", file=sys.stderr)
         return 1

@@ -478,7 +478,17 @@ invites; written by the collector on each run).
   Keystore key; `core/platform/session_storage.dart`, Supabase's
   `localStorage`; an earlier build's SharedPreferences copy is moved over
   once, `session_store.dart`), and the manifest says
-  `android:allowBackup="false"` (`tool/android_manifest.py`).
+  `android:allowBackup="false"` (`tool/android_manifest.py`). Links to
+  the web app open the Android app (App Links, N.54): the manifest claims
+  `WEB_URL`'s host (`autoVerify`, `tool/android_manifest.py`), the deploy's
+  web job publishes `/.well-known/assetlinks.json` (`tool/asset_links.py`,
+  the signing key's SHA-256 from keytool; upload-artifact with
+  `include-hidden-files`), and go_router's redirect turns the address
+  Android hands over (`/#/deals/<id>`) into that page (`appLinkLocation`,
+  `notification_link.dart`). The seller's ad opens through `openAd`
+  (`core/platform/open_ad.dart`): in the iPhone's home-screen app it goes
+  to Safari (`x-safari-https:`, `_top`), since its in-app sheet stayed
+  blank behind the OLX app.
 - Photos: `Image.network` with `WebHtmlElementStrategy.prefer` (the photo
   CDNs don't send CORS headers, so an `<img>` element is the only way).
   Cards, gallery and comparison ask the CDN for at most 1280 px on the
