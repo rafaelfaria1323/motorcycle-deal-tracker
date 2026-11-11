@@ -1,0 +1,122 @@
+import 'dart:io';
+
+import 'package:args/args.dart';
+import 'package:collector/collector.dart';
+import 'package:http/http.dart' as http;
+
+/// Ads per request: short enough for a complete answer, few enough requests
+/// for the free tier.
+const adsPerRequest = 10;
+
+/// Unmatched titles per request (one line each).
+const titlesPerRequest = 40;
+
+/// The weekly description check (N.55): a sample of the week's ads goes to
+/// Gemini's free tier (env `GEMINI_API_KEY`, `GEMINI_MODEL`), which reads
+/// the same facts as the database's rules (accident, repair, scratches, A2,
+/// single owner, legalisation, extras, km in the text) and places titles no
+/// model matched; the report of the disagreements goes to stdout and to the
+/// run's summary (`GITHUB_STEP_SUMMARY`). It changes nothing in the
+/// database. Without a key it says so and stops (exit 0).
+Future<void> main(List<String> args) async {
+  final options = readCommandLine(
+    ArgParser()
+      ..addOption('ads', defaultsTo: '60', help: 'Ads to check.')
+      ..addOption('titles', defaultsTo: '40', help: 'Unmatched titles to ask.')
+      ..addOption(
+        'days',
+        defaultsTo: '7',
+        help: 'Ads first seen this recently.',
+      ),
+    args,
+    atLeast: {'ads': 0, 'titles': 0, 'days': 1},
+    usage: 'Usage: dart run bin/text_audit.dart [options]',
+  );
+  if (options == null) return;
+  final env = Platform.environment;
+  final apiKey = env['GEMINI_API_KEY']?.trim() ?? '';
+  if (apiKey.isEmpty) {
+    stdout.writeln(
+      'GEMINI_API_KEY is not set; the description check is skipped.',
+    );
+    return;
+  }
+  final model = switch (env['GEMINI_MODEL']?.trim()) {
+    final m? when m.isNotEmpty => m,
+    _ => defaultGeminiModel,
+  };
+  final since = DateTime.now().toUtc().subtract(
+    Duration(days: int.parse(options.option('days')!)),
+  );
+
+  await withServiceClient((client) async {
+    final store = AuditStore(client);
+    final ads = await store.sample(since, int.parse(options.option('ads')!));
+    final titles = await store.unmatchedTitles(
+      since,
+      int.parse(options.option('titles')!),
+    );
+    final catalog = await loadCatalog(client);
+    final httpClient = http.Client();
+    final gemini = GeminiClient(
+      apiKey: apiKey,
+      model: model,
+      httpClient: httpClient,
+    );
+    final problems = <String>[];
+    final disagreements = <Disagreement>[];
+    final suggestions = <TitleSuggestion>[];
+    var read = 0;
+    try {
+      for (var i = 0; i < ads.length; i += adsPerRequest) {
+        final batch = ads.sublist(i, (i + adsPerRequest).clamp(0, ads.length));
+        try {
+          final answer = await gemini.generateJson(
+            descriptionPrompt(batch),
+            descriptionSchema,
+          );
+          final readings = readDescriptionAnswer(batch, answer);
+          read += readings.length;
+          for (final MapEntry(key: ad, value: reading) in readings.entries) {
+            disagreements.addAll(compareReadings(ad, reading));
+          }
+        } on GeminiFailure catch (e) {
+          problems.add('ads ${i + 1}-${i + batch.length}: ${e.message}');
+        }
+      }
+      for (var i = 0; i < titles.length; i += titlesPerRequest) {
+        final batch = titles.sublist(
+          i,
+          (i + titlesPerRequest).clamp(0, titles.length),
+        );
+        try {
+          final answer = await gemini.generateJson(
+            titlesPrompt(batch, catalog),
+            titlesSchema,
+          );
+          suggestions.addAll(readTitlesAnswer(batch, catalog, answer));
+        } on GeminiFailure catch (e) {
+          problems.add('titles ${i + 1}-${i + batch.length}: ${e.message}');
+        }
+      }
+    } finally {
+      httpClient.close();
+    }
+
+    final report = auditReport(
+      model: model,
+      adsAsked: ads.length,
+      adsRead: read,
+      disagreements: disagreements,
+      titlesAsked: titles.length,
+      titles: suggestions,
+      problems: problems,
+    );
+    stdout.write(report);
+    if (env['GITHUB_STEP_SUMMARY'] case final path? when path.isNotEmpty) {
+      File(path).writeAsStringSync(report, mode: FileMode.append);
+    }
+    // Every request failed: the key, the model or the quota needs a look.
+    if (problems.isNotEmpty && read == 0 && suggestions.isEmpty) exitCode = 1;
+  });
+}

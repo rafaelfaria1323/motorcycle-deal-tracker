@@ -1,0 +1,41 @@
+name: Description check
+
+# N.55: a sample of the week's ads goes to Gemini's free tier, which reads
+# the same facts as the database's description rules (accident, repair,
+# scratches, A2, single owner, legalisation, extras, km in the text) and
+# places titles no model matched. The disagreements are written to this
+# run's summary, for fixing the rules with tests. It changes nothing in the
+# database and never feeds a score. Without the GEMINI_API_KEY secret it
+# says so and passes.
+#
+# Called by weekly-summary.yml after the Monday summary for everyone (not
+# when one account asks for its own); "Run workflow" here runs it now.
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: text-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      # Optional repository variable; empty uses the current Flash model.
+      GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/collector
+
+      - name: Check the descriptions
+        run: cd collector && dart run bin/text_audit.dart
