@@ -228,7 +228,7 @@ Shown on the detail page. Reference prices are edited in the app; set for the or
 
 ✅ Collection runs and blocks are tracked. ✅ Requests used per run, run duration, next run and monthly usage shown in the app (since F.5 to admins in "Estado da recolha"; everyone else sees one line in Mais: when the last run was and the next is, tinted when it failed, was blocked or is old). ✅ Per site, in "Estado da recolha" since F.5: live listings, tracked/unmatched/duplicate shares, missing year, mileage and location, Standvirtual pages still to read, when listings were last seen on each site (warns after 24 h) and sudden price changes of 50 % or more in the last 30 days (view `source_data_quality`). ⬜ Per-field confidence. ✅ Each run's log says, per search, how many of the ads it read are a followed model (9.10c), so searches that spend requests on other bikes show up; unmatched ads are logged with their brand and model. ✅ Near the free plan's limit (400 of 500 MB), old gone listings of models nobody follows are deleted (9.10d).
 
-✅ The description rules are checked every week against a free LLM (Gemini, N.55): a sample of the week's ads is read by both, and the disagreements (and unmatched titles of a followed model) are a report on the run's page for fixing the rules with tests; the LLM never feeds a score.
+✅ The description rules are checked every week against a free LLM (Gemini, N.55): a sample of the week's ads is read by both, and the disagreements (and unmatched titles of a followed model) are a report on the run's page for fixing the rules with tests; the LLM never feeds a score. The first run's misses are fixed (mileage formats, extras, "danos de queda", brakes needed, "PCX" titles).
 
 ## 22. Privacy 🟡
 

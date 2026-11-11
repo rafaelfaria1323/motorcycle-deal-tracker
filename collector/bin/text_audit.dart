@@ -27,9 +27,14 @@ Future<void> main(List<String> args) async {
         'days',
         defaultsTo: '7',
         help: 'Ads first seen this recently.',
+      )
+      ..addOption(
+        'minutes',
+        defaultsTo: '10',
+        help: 'No new request after this long; the report covers what came.',
       ),
     args,
-    atLeast: {'ads': 0, 'titles': 0, 'days': 1},
+    atLeast: {'ads': 0, 'titles': 0, 'days': 1, 'minutes': 1},
     usage: 'Usage: dart run bin/text_audit.dart [options]',
   );
   if (options == null) return;
@@ -41,10 +46,7 @@ Future<void> main(List<String> args) async {
     );
     return;
   }
-  final model = switch (env['GEMINI_MODEL']?.trim()) {
-    final m? when m.isNotEmpty => m,
-    _ => defaultGeminiModel,
-  };
+  final models = geminiModels(env['GEMINI_MODEL']);
   final since = DateTime.now().toUtc().subtract(
     Duration(days: int.parse(options.option('days')!)),
   );
@@ -60,28 +62,61 @@ Future<void> main(List<String> args) async {
     final httpClient = http.Client();
     final gemini = GeminiClient(
       apiKey: apiKey,
-      model: model,
+      models: models,
       httpClient: httpClient,
+      log: stdout.writeln,
     );
     final problems = <String>[];
     final disagreements = <Disagreement>[];
     final suggestions = <TitleSuggestion>[];
     var read = 0;
+    final budget = Duration(minutes: int.parse(options.option('minutes')!));
+    final clock = Stopwatch()..start();
+
+    // One request: its answer, or null with the reason in the problems; a
+    // line in the log either way, so a slow run shows where it is.
+    Future<Object?> ask(
+      String label,
+      String prompt,
+      Map<String, Object?> schema,
+    ) async {
+      if (clock.elapsed >= budget) {
+        problems.add('$label: not asked, the ${budget.inMinutes} min are up');
+        stdout.writeln('$label: not asked (time is up)');
+        return null;
+      }
+      final started = clock.elapsed;
+      try {
+        final answer = await gemini.generateJson(prompt, schema);
+        stdout.writeln('$label: ${_seconds(clock.elapsed - started)}');
+        return answer;
+      } on GeminiFailure catch (e) {
+        problems.add('$label: ${e.message}');
+        stdout.writeln(
+          '$label: failed after ${_seconds(clock.elapsed - started)}: '
+          '${e.message}',
+        );
+        return null;
+      }
+    }
+
+    stdout.writeln(
+      'Asking ${models.join(' (else ')}${')' * (models.length - 1)} about ${ads.length} ad(s) and ${titles.length} '
+      'title(s).',
+    );
     try {
       for (var i = 0; i < ads.length; i += adsPerRequest) {
         final batch = ads.sublist(i, (i + adsPerRequest).clamp(0, ads.length));
-        try {
-          final answer = await gemini.generateJson(
-            descriptionPrompt(batch),
-            descriptionSchema,
-          );
-          final readings = readDescriptionAnswer(batch, answer);
-          read += readings.length;
-          for (final MapEntry(key: ad, value: reading) in readings.entries) {
-            disagreements.addAll(compareReadings(ad, reading));
-          }
-        } on GeminiFailure catch (e) {
-          problems.add('ads ${i + 1}-${i + batch.length}: ${e.message}');
+        final answer = await ask(
+          'ads ${i + 1}-${i + batch.length}',
+          descriptionPrompt(batch),
+          descriptionSchema,
+        );
+        if (answer == null) continue;
+        final readings = readDescriptionAnswer(batch, answer);
+        read += readings.length;
+        for (final MapEntry(key: ad, value: reading) in readings.entries) {
+          disagreements.addAll(compareReadings(ad, reading));
         }
       }
       for (var i = 0; i < titles.length; i += titlesPerRequest) {
@@ -89,14 +124,13 @@ Future<void> main(List<String> args) async {
           i,
           (i + titlesPerRequest).clamp(0, titles.length),
         );
-        try {
-          final answer = await gemini.generateJson(
-            titlesPrompt(batch, catalog),
-            titlesSchema,
-          );
+        final answer = await ask(
+          'titles ${i + 1}-${i + batch.length}',
+          titlesPrompt(batch, catalog),
+          titlesSchema,
+        );
+        if (answer != null) {
           suggestions.addAll(readTitlesAnswer(batch, catalog, answer));
-        } on GeminiFailure catch (e) {
-          problems.add('titles ${i + 1}-${i + batch.length}: ${e.message}');
         }
       }
     } finally {
@@ -104,7 +138,9 @@ Future<void> main(List<String> args) async {
     }
 
     final report = auditReport(
-      model: model,
+      model: gemini.answeredBy.isEmpty
+          ? gemini.model
+          : gemini.answeredBy.join('`, `'),
       adsAsked: ads.length,
       adsRead: read,
       disagreements: disagreements,
@@ -120,3 +156,6 @@ Future<void> main(List<String> args) async {
     if (problems.isNotEmpty && read == 0 && suggestions.isEmpty) exitCode = 1;
   });
 }
+
+String _seconds(Duration d) =>
+    '${(d.inMilliseconds / 1000).toStringAsFixed(1)} s';

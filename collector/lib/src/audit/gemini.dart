@@ -4,10 +4,22 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 /// Google's Gemini API, free tier (N.55): only the weekly description check
-/// uses it, never a score. Key from env `GEMINI_API_KEY`; model from
-/// `GEMINI_MODEL`, by default the alias of the current Flash model, so a
-/// retired model name doesn't stop the check.
-const defaultGeminiModel = 'gemini-flash-latest';
+/// uses it, never a score. Key from env `GEMINI_API_KEY`; models from
+/// `GEMINI_MODEL` (comma-separated, tried in order), by default the aliases
+/// of the current Flash-Lite and Flash models, so a retired model name
+/// doesn't stop the check. Flash-Lite first: on 2026-11-11 the free Flash
+/// model hung or answered 503 ("high demand") to every request, even a
+/// one-line one, while Flash-Lite answered an ad in 5 s.
+const defaultGeminiModels = ['gemini-flash-lite-latest', 'gemini-flash-latest'];
+
+/// The models a `GEMINI_MODEL` setting names, or [defaultGeminiModels].
+List<String> geminiModels(String? setting) {
+  final named = [
+    for (final m in (setting ?? '').split(','))
+      if (m.trim().isNotEmpty) m.trim(),
+  ];
+  return named.isEmpty ? defaultGeminiModels : named;
+}
 
 /// Why a request got no answer.
 class const GeminiFailure(final String message) implements Exception {
@@ -15,20 +27,41 @@ class const GeminiFailure(final String message) implements Exception {
   String toString() => 'Gemini: $message';
 }
 
+/// A model that can't answer now: busy, gone or silent.
+class const _Unavailable(final GeminiFailure failure) implements Exception;
+
 /// Asks Gemini for JSON in a given shape. One request at a time, [spacing]
 /// apart (the free tier allows a few a minute); a refusal for too many
 /// requests (429) or a busy server (500/503) is tried once more after
-/// [retryDelay].
+/// [retryDelay]. A model still busy, gone (404) or silent for [timeout]
+/// gives way to the next of [models], the last to the first again (a busy
+/// spell passes; each request asks each model at most once), and that one
+/// is asked from then on ([log] says so). The model's own temperature is kept (Gemini 3 loops below 1.0) and
+/// an answer is capped at [maxOutputTokens], so a loop ends as a cut
+/// answer. Thinking is switched off (`thinkingBudget: 0`); a model that
+/// refuses that setting (any HTTP 400: Flash-Lite says only "invalid
+/// argument") is asked again without it, for the rest of the run when that
+/// works.
 class GeminiClient({
   required final String apiKey,
-  final String model = defaultGeminiModel,
+  final List<String> models = defaultGeminiModels,
   required final http.Client httpClient,
   final Duration spacing = const Duration(seconds: 15),
   final Duration retryDelay = const Duration(seconds: 60),
   final Duration timeout = const Duration(seconds: 120),
+  final int maxOutputTokens = 8192,
   final Future<void> Function(Duration) wait = Future<void>.delayed,
+  final void Function(String) log = _ignore,
 }) {
   bool _first = true;
+  bool _thinkingOff = true;
+  int _current = 0;
+
+  /// The model asked now.
+  String get model => models[_current];
+
+  /// The models that answered, in the order they first did.
+  final Set<String> answeredBy = {};
 
   Uri get _endpoint => Uri.https(
     'generativelanguage.googleapis.com',
@@ -43,33 +76,68 @@ class GeminiClient({
   ) async {
     if (!_first) await wait(spacing);
     _first = false;
-    final body = jsonEncode({
-      'contents': [
-        {
-          'role': 'user',
-          'parts': [
-            {'text': prompt},
-          ],
-        },
-      ],
-      'generationConfig': {
-        'temperature': 0,
-        'responseMimeType': 'application/json',
-        'responseSchema': schema,
-      },
-    });
-    var response = await _post(body);
-    if (const {429, 500, 503}.contains(response.statusCode)) {
+    for (var tried = 1; ; tried++) {
+      final GeminiFailure failure;
+      try {
+        final answer = await _ask(prompt, schema);
+        answeredBy.add(model);
+        return answer;
+      } on _Unavailable catch (e) {
+        failure = e.failure;
+      }
+      if (tried >= models.length) throw failure;
+      final previous = model;
+      _current = (_current + 1) % models.length;
+      log('$previous: ${failure.message}; asking $model from now on');
+    }
+  }
+
+  Future<Object?> _ask(String prompt, Map<String, Object?> schema) async {
+    var response = await _post(_body(prompt, schema));
+    if (_thinkingOff && response.statusCode == 400) {
+      // Gemini 3.5 Flash-Lite refuses the setting with a bare "invalid
+      // argument", so any 400 is tried once without it; only when that
+      // helps is it left out for the rest of the run.
+      _thinkingOff = false;
+      final retried = await _post(_body(prompt, schema));
+      if (retried.statusCode == 400) {
+        _thinkingOff = true;
+      } else {
+        log('$model refuses thinkingBudget 0; asking with its own thinking');
+      }
+      response = retried;
+    }
+    if (_busy.contains(response.statusCode)) {
       await wait(retryDelay);
-      response = await _post(body);
+      response = await _post(_body(prompt, schema));
     }
     if (response.statusCode != 200) {
-      throw GeminiFailure(
+      final failure = GeminiFailure(
         'HTTP ${response.statusCode}: ${_shortError(response.body)}',
       );
+      throw _busy.contains(response.statusCode) || response.statusCode == 404
+          ? _Unavailable(failure)
+          : failure;
     }
     return answerJson(response.body);
   }
+
+  String _body(String prompt, Map<String, Object?> schema) => jsonEncode({
+    'contents': [
+      {
+        'role': 'user',
+        'parts': [
+          {'text': prompt},
+        ],
+      },
+    ],
+    'generationConfig': {
+      'maxOutputTokens': maxOutputTokens,
+      'responseMimeType': 'application/json',
+      'responseSchema': schema,
+      if (_thinkingOff) 'thinkingConfig': {'thinkingBudget': 0},
+    },
+  });
 
   Future<http.Response> _post(String body) async {
     try {
@@ -84,12 +152,16 @@ class GeminiClient({
           )
           .timeout(timeout);
     } on TimeoutException {
-      throw const GeminiFailure('no answer in time');
+      throw const _Unavailable(GeminiFailure('no answer in time'));
     } on http.ClientException catch (e) {
       throw GeminiFailure('request failed: ${e.message}');
     }
   }
 }
+
+const _busy = {429, 500, 503};
+
+void _ignore(String _) {}
 
 /// The JSON inside a `generateContent` answer: the first candidate's text
 /// (a code fence around it is tolerated); throws [GeminiFailure].
@@ -100,14 +172,15 @@ Object? answerJson(String responseBody) {
   } on FormatException {
     throw const GeminiFailure('the answer is not JSON');
   }
-  final text = switch (decoded) {
+  final (text, finish) = switch (decoded) {
     {
       'candidates': [
-        {'content': {'parts': [{'text': final String text}, ...]}},
+        {'content': {'parts': [{'text': final String text}, ...]}} &&
+            final Map<String, Object?> candidate,
         ...,
       ],
     } =>
-      text,
+      (text, candidate['finishReason']),
     {'candidates': [{'finishReason': final String reason}, ...]} =>
       throw GeminiFailure('no text (finish reason $reason)'),
     _ => throw const GeminiFailure('no text in the answer'),
@@ -119,7 +192,11 @@ Object? answerJson(String responseBody) {
   try {
     return jsonDecode(unfenced);
   } on FormatException {
-    throw const GeminiFailure('the text is not JSON');
+    throw GeminiFailure(
+      finish == 'MAX_TOKENS'
+          ? 'the answer was cut at the token limit'
+          : 'the text is not JSON',
+    );
   }
 }
 

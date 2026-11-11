@@ -155,7 +155,9 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   week's ads (`text_audit_sample`) and 40
                                   unmatched titles (`unmatched_title_sample`)
                                   to Gemini's free tier (audit/gemini.dart,
-                                  `GEMINI_API_KEY`, var `GEMINI_MODEL`);
+                                  `GEMINI_API_KEY`, var `GEMINI_MODEL`:
+                                  models in order, by default
+                                  Flash-Lite then Flash);
                                   audit/text_audit.dart compares with the
                                   rules, report in the run's summary;
                                   writes nothing; no key: skipped
@@ -898,7 +900,7 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   give erases nothing; a mileage it gives replaces one read from the text.
 - An empty mileage field is read from the description (trigger
   `listings_mileage_from_text`, `mileage_in_text`: "com 12.000 km",
-  "Quilometragem: 12000"; tyres, services, work done ("troquei a corrente com"), purchase and km/h numbers don't count,
+  "Quilometragem: 12000", "Km 7.500", "25,673 km"; tyres, services, work done ("troquei a corrente com"), purchase and km/h numbers don't count,
   two different values leave it empty) and marked `mileage_from_text`
   (the app's "(lido na descrição)"); the ad's own field always wins.
 - Dealer boilerplate sentences are stripped from descriptions (they caused
@@ -1067,10 +1069,10 @@ the bike and how many kinds of hint were found (a tap opens the ad).
 - Risk signals: price far below market (against the damaged value for
   a damaged bike), possible accident (text,
   `mentions_accident`: also falls and knocks, "caiu", "foi ao chão", "teve
-  um toque"; "nunca teve acidentes", "livre de sinistros", "macia ao
+  um toque", "danos de queda"; "nunca teve acidentes", "livre de sinistros", "macia ao
   toque", "o preço caiu" and insurance wording don't count), repairs or
   missing/broken parts (`needs_repair` 20: "precisa do suporte", "falta o
-  pisca", "para peças"; not "não precisa de nada", "precisa de carta",
+  pisca", "necessita de travão", "para peças"; not "não precisa de nada", "precisa de carta",
   "partida elétrica"), scratches (`cosmetic_damage` 5), missing
   mileage/year/location, thin description (only private sellers with details
   read, or on OLX, whose results hold the whole description), 3+ owners, no service book, imported, implausible mileage (under
