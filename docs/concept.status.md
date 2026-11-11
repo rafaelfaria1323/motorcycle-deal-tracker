@@ -230,7 +230,7 @@ Shown on the detail page. Reference prices are edited in the app; set for the or
 
 ✅ The description rules are checked every week against a free LLM (Gemini, N.55): a sample of the week's ads is read by both, and the disagreements (and unmatched titles of a followed model) are a report on the run's page for fixing the rules with tests; the LLM never feeds a score. The first run's misses are fixed (mileage formats, extras, "danos de queda", brakes needed, "PCX" titles).
 
-✅ The collector survives a lost connection to the database (one more try, then only that site fails), and an OLX ad's photos follow the seller's edits (N.56).
+✅ The collector survives a lost connection to the database (one more try, then only that site fails), and an OLX ad's photos follow the seller's edits (N.56). A run's status comes from a report the run writes, not from the wording of its log, and notifications go only to the browsers' own push services (N.57).
 
 ## 22. Privacy 🟡
 

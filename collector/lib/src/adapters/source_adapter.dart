@@ -1,11 +1,27 @@
 import '../fetch/search_manifest.dart';
 import 'site_model.dart';
 
+/// What a [ParseIssue] is, for the run's status (`reportStatus`): the
+/// two kinds a passing fetch failure leaves behind, and everything else.
+enum IssueKind {
+  /// Pages of a search that were not saved (a request failed first).
+  pagesUnread,
+
+  /// A saved page the site served without its results.
+  notResultsPage,
+  other,
+}
+
+/// The message of a page that is not a search results page
+/// ([IssueKind.notResultsPage]).
+const notResultsPageMessage = 'not a search results page';
+
 /// One record that could not be read; the rest of the file is still used.
 class const ParseIssue(
   /// Zero-based position of the record in the source.
   final int index,
   final String message, {
+  final IssueKind kind = .other,
 
   /// The search the problem belongs to, when the input says (see
   /// [SearchManifest]); that search then counts as not read in full.

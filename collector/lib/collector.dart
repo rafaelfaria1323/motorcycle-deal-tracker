@@ -41,6 +41,7 @@ export 'src/photos/photo_fingerprints.dart';
 export 'src/photos/photo_hash.dart';
 export 'src/pipeline/enrich_steps.dart';
 export 'src/pipeline/import_steps.dart';
+export 'src/pipeline/run_report.dart';
 export 'src/pipeline/run_status.dart';
 export 'src/pipeline/source_batch.dart';
 export 'src/store/audit_store.dart';

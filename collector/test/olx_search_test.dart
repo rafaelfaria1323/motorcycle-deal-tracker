@@ -333,6 +333,23 @@ void main() {
           .writeAsStringSync(searchPage([ad()], totalPages: 2));
       final partial = await OlxSearchAdapter(dir.path).read();
       expect(partial.issues.single.message, contains('1 of 2 page(s)'));
+      expect(partial.issues.single.kind, IssueKind.pagesUnread);
+
+      // A page without its results is its own kind; damaged JSON is not.
+      File('${dir.path}/p0.html').writeAsStringSync(
+        '<script>window.__PRERENDERED_STATE__= "{}";</script>',
+      );
+      File('${dir.path}/p3.html').writeAsStringSync('<html></html>');
+      final odd = await OlxSearchAdapter(dir.path).read();
+      expect({
+        for (final i in odd.issues) i.message.split(':').first: i.kind,
+      }, containsPair('p0.html', IssueKind.notResultsPage));
+      expect(
+        odd.issues.firstWhere((i) => i.message.startsWith('p3.html')).kind,
+        IssueKind.other,
+      );
+      File('${dir.path}/p0.html').deleteSync();
+      File('${dir.path}/p3.html').deleteSync();
 
       File('${dir.path}/p2.html')
           .writeAsStringSync(searchPage([ad(id: 2)], page: 2, totalPages: 2));

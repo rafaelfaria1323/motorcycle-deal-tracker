@@ -136,7 +136,7 @@ void main() {
       p256dh: device.publicBase64,
       auth: base64UrlNoPad(List.filled(16, 7)),
     );
-    final sender = WebPushSender(VapidKeys.generate());
+    final sender = WebPushSender(VapidKeys.generate(), allowed: (_) => true);
 
     test('an accepted push is sent, encrypted and signed', () async {
       status = 201;

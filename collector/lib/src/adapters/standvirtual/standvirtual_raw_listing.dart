@@ -5,7 +5,10 @@ class const StandvirtualRawListing({
   required final String status,
   required final String brand,
   required final String model,
-  required final num price,
+
+  /// Null for an ad shown without a price: rejected by the mapper, but
+  /// still a live listing (as on OLX).
+  required final num? price,
   required final String currency,
   final int? year,
   final int? mileageKm,

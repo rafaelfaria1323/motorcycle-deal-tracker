@@ -16,6 +16,8 @@ class StandvirtualMapper(final Catalog catalog, {int? currentYear}) {
     if (raw.status != 'ACTIVE') {
       return Rejected('listing is not active (${raw.status})');
     }
+    final price = raw.price;
+    if (price == null) return const Rejected('no price (on request)');
     if (raw.currency != 'EUR') {
       return Rejected('price is in ${raw.currency}, not EUR');
     }
@@ -38,7 +40,7 @@ class StandvirtualMapper(final Catalog catalog, {int? currentYear}) {
         brand: raw.brand,
         model: model,
         variant: entry != null ? raw.version : null,
-        priceEur: raw.price,
+        priceEur: price,
         year: raw.year,
         mileageKm: raw.mileageKm,
         sellerType: raw.sellerType,

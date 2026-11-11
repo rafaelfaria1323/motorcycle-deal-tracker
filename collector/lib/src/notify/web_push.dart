@@ -188,6 +188,10 @@ class WebPushSender(
   final VapidKeys keys, {
   final String subject = appOrigin,
   final FcmSender? fcm,
+
+  /// Which addresses may be called; the tests' local server stands in
+  /// for a push service.
+  final bool Function(Uri endpoint) allowed = isPushService,
 }) {
   bool _toldNoFcm = false;
 
@@ -196,7 +200,13 @@ class WebPushSender(
     Map<String, Object?> message,
   ) async {
     if (!target.isAndroid) {
-      return await sendWebPush(target, message, keys, subject: subject);
+      return await sendWebPush(
+        target,
+        message,
+        keys,
+        subject: subject,
+        allowed: allowed,
+      );
     }
     if (fcm case final fcm?) return await fcm.send(target, message);
     if (!_toldNoFcm) {
@@ -209,16 +219,46 @@ class WebPushSender(
   }
 }
 
+/// The browsers' own push services (N.57): Chrome and the browsers built
+/// on it, Safari, Firefox and Windows. A device is reached only at one of
+/// them or a subdomain; = the database's `push_endpoint_allowed`.
+const pushServiceHosts = [
+  'fcm.googleapis.com',
+  'android.googleapis.com',
+  'push.apple.com',
+  'push.services.mozilla.com',
+  'notify.windows.com',
+];
+
+/// Whether [endpoint] is a push service's address: https on its usual
+/// port, one of [pushServiceHosts] or a subdomain, no credentials.
+bool isPushService(Uri endpoint) {
+  final host = endpoint.host.toLowerCase();
+  return endpoint.scheme == 'https' &&
+      endpoint.port == 443 &&
+      endpoint.userInfo.isEmpty &&
+      pushServiceHosts.any((h) => host == h || host.endsWith('.$h'));
+}
+
 /// Sends [message] ({title, body, url, tag}, as [declarativePush]) to
-/// [target].
+/// [target]. An address that is no push service's is never called: the
+/// device is [PushResult.gone].
 /// Never throws: a network problem is [PushResult.failed].
 Future<PushResult> sendWebPush(
   PushTarget target,
   Map<String, Object?> message,
   VapidKeys keys, {
   required String subject,
+  bool Function(Uri endpoint) allowed = isPushService,
 }) async {
-  final endpoint = Uri.parse(target.endpoint);
+  final endpoint = Uri.tryParse(target.endpoint);
+  if (endpoint == null || !allowed(endpoint)) {
+    stderr.writeln(
+      'Push not sent: ${endpoint?.host ?? 'an unreadable address'} is not '
+      'a known push service',
+    );
+    return .gone;
+  }
   final Uint8List body;
   try {
     body = encryptPayload(

@@ -3377,6 +3377,20 @@ end;
 $$;
 
 --
+-- Name: push_endpoint_allowed(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.push_endpoint_allowed(p_endpoint text) RETURNS boolean
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$
+  select coalesce(lower(p_endpoint) ~ (
+    '^https://([a-z0-9-]+\.)*'
+    '(fcm\.googleapis\.com|android\.googleapis\.com|push\.apple\.com'
+    '|push\.services\.mozilla\.com|notify\.windows\.com)(:443)?/'), false)
+$$;
+
+--
 -- Name: push_keys(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -4069,7 +4083,7 @@ begin
   perform public.require_account();
 
   if not android
-     and (p_endpoint not like 'https://%'
+     and (not public.push_endpoint_allowed(p_endpoint)
           or nullif(btrim(p_p256dh), '') is null
           or nullif(btrim(p_auth), '') is null) then
     raise exception 'Invalid push subscription' using errcode = '22023';
@@ -7736,6 +7750,13 @@ GRANT ALL ON FUNCTION public.prune_anonymous_users(p_idle_days integer) TO servi
 
 REVOKE ALL ON FUNCTION public.prune_unfollowed_listings(p_limit_bytes bigint, p_min_days integer) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.prune_unfollowed_listings(p_limit_bytes bigint, p_min_days integer) TO service_role;
+
+--
+-- Name: FUNCTION push_endpoint_allowed(p_endpoint text); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.push_endpoint_allowed(p_endpoint text) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.push_endpoint_allowed(p_endpoint text) TO service_role;
 
 --
 -- Name: FUNCTION push_keys(); Type: ACL; Schema: public; Owner: -

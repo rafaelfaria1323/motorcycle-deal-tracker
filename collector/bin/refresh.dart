@@ -36,6 +36,12 @@ Future<void> main(List<String> args) async {
         help: 'Only this site (repeatable; default: all).',
       )
       ..addOption(
+        'report',
+        help:
+            'Write what the run did to this file (JSON), for '
+            'report_run.dart.',
+      )
+      ..addOption(
         'enrich-max',
         help:
             'Standvirtual listing pages to read (default: all waiting, '
@@ -51,6 +57,8 @@ Future<void> main(List<String> args) async {
   final force = options.flag('force');
   final enrichMax = intOption(options, 'enrich-max'); // null: all waiting
   final sites = sitesToRead(options.multiOption('site'));
+  final reportPath = options.option('report');
+  final report = RunReport();
   final watch = Stopwatch()..start();
   // Before the catalog is read: a valuation's model collected from before
   // now is in this run's searches.
@@ -79,6 +87,7 @@ Future<void> main(List<String> args) async {
           name,
           catalog,
           store,
+          report,
           full: full,
           light: light,
           force: force,
@@ -89,12 +98,14 @@ Future<void> main(List<String> args) async {
           exitCode = code;
         }
         stdout.writeln('($name done at ${watch.elapsed.inSeconds} s)');
+        if (reportPath != null) await report.writeTo(reportPath);
       }
 
       stdout.writeln('== all sites ==');
-      await finishRun(store, pushes, startedAt: startedAt);
+      await finishRun(store, pushes, startedAt: startedAt, report: report);
     });
   } finally {
+    if (reportPath != null) await report.writeTo(reportPath);
     stdout.writeln(
       'Refresh finished in ${watch.elapsed.inSeconds} s'
       '${failed > 0 ? ', $failed site(s) failed' : ''}.',
@@ -108,12 +119,24 @@ Future<int> _refreshSite(
   FetchSite site,
   String name,
   Catalog catalog,
-  ListingStore store, {
+  ListingStore store,
+  RunReport report, {
   required bool full,
   required bool light,
   required bool force,
   required int? enrichMax,
 }) async {
+  // In the report from the start: a site with no search still was read.
+  final siteReport = report.sites.putIfAbsent(name, SiteReport.new);
+  // The error line in the log, and the site's outcome in the report.
+  int stop(SiteOutcome outcome, String line, int code) {
+    stderr.writeln(line);
+    siteReport
+      ..outcome = outcome
+      ..problem = line;
+    return code;
+  }
+
   final plan = planSearches(catalog, site);
   for (final problem in plan.problems) {
     stderr.writeln('Skipped: $problem');
@@ -151,6 +174,7 @@ Future<int> _refreshSite(
       full: full,
       force: force,
       labels: {for (final s in plan.searches) '${s.url}': s.models.join(', ')},
+      report: report,
     );
     // Stopped by a failure after some pages: imported, still a failed run.
     if (outcome.failure case final failure?) throw failure;
@@ -168,32 +192,34 @@ Future<int> _refreshSite(
     // the next run carries on.
     stdout.writeln('Nothing fetched: $e; the next run carries on.');
     return 0;
+  } on FetchPaused catch (e) {
+    return stop(.blocked, 'Not fetched: $e', 75);
   } on FetchRefused catch (e) {
-    stderr.writeln('Not fetched: $e');
-    return 75;
+    return stop(.error, 'Not fetched: $e', 75);
   } on FetchBlocked catch (e) {
-    stderr.writeln('Stopped, the site pushed back: $e');
+    final code = stop(.blocked, 'Stopped, the site pushed back: $e', 75);
     stderr.writeln('No new requests to $name for 24 hours.');
-    return 75;
+    return code;
   } on FetchFailed catch (e) {
-    stderr.writeln('Failed: $e');
-    return 75;
+    return stop(.failed, 'Failed: $e', 75);
   } on FileSystemException catch (e) {
-    stderr.writeln('Cannot read the saved pages: ${e.message} (${e.path})');
-    return 66;
+    return stop(
+      .error,
+      'Cannot read the saved pages: ${e.message} (${e.path})',
+      66,
+    );
   } on FormatException catch (e) {
-    stderr.writeln('Not a search results page: ${e.message}');
-    return 65;
+    return stop(.error, 'Not a search results page: ${e.message}', 65);
   } on PostgrestException catch (e) {
-    stderr.writeln('Database error: ${e.message}');
-    return 70;
+    return stop(.error, 'Database error: ${e.message}', 70);
   } on Exception catch (e) {
     // Anything else (the database out of reach after its retry): this
     // site failed, the other one and the scores still run.
-    stderr.writeln('Database error: $e');
-    return 70;
+    return stop(.error, 'Database error: $e', 70);
   } finally {
-    // Read back by report_run.dart (requestsUsed) and shown in the app.
+    // In the report; the log line is what report_run.dart reads
+    // (requestsUsed) when a run leaves no report.
+    siteReport.requests = fetcher.requestsThisRun;
     stdout.writeln('Requests used: $name=${fetcher.requestsThisRun}');
     fetcher.close();
   }

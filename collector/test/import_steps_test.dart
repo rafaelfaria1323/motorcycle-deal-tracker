@@ -267,6 +267,45 @@ void main() {
     },
   );
 
+  test(
+    'the run report gets what an import and the end of the run did',
+    () async {
+      final report = RunReport();
+      await importBatch(
+        _batch(issues: [const ParseIssue(3, 'bad JSON')]),
+        catalog,
+        store: _Store(),
+        full: true,
+        force: true,
+        report: report,
+        out: StringBuffer(),
+      );
+      expect(report.sites.keys, ['olx']);
+      expect(report.sites['olx']!.issues, [
+        (text: '#3: bad JSON', kind: IssueKind.other),
+      ]);
+      expect(report.counts, {'new': 2, 'price_changes': 0, 'removed': 0});
+      expect(report.finished, isFalse);
+
+      await finishRun(_Store(), _Pushes(), report: report, out: StringBuffer());
+      expect(report.counts['alerts'], 4);
+      expect(report.scoringMs, isNotNull);
+      expect(report.finished, isTrue);
+
+      // A dry run still reports what it read, and counts nothing.
+      final dry = RunReport();
+      await importBatch(
+        _batch(),
+        catalog,
+        store: null,
+        report: dry,
+        out: StringBuffer(),
+      );
+      expect(dry.sites.keys, ['olx']);
+      expect(dry.counts, isEmpty);
+    },
+  );
+
   test('an input with unreadable records removes nothing', () async {
     final store = _Store();
     final out = StringBuffer();

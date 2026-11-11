@@ -19,6 +19,10 @@ class const FetchRefused(final String reason) implements Exception {
 /// a later run.
 class const FetchLimitReached(super.reason) extends FetchRefused;
 
+/// The site is still paused after it pushed back: nothing is sent until
+/// the pause ends.
+class const FetchPaused(super.reason) extends FetchRefused;
+
 /// The site's robots.txt does not allow this address.
 class const FetchDisallowed(super.reason) extends FetchRefused;
 
@@ -294,7 +298,7 @@ class PoliteFetcher({
     if (blocked != null) {
       final until = blocked.add(policy.cooldownAfterBlock);
       if (clock.now().toUtc().isBefore(until)) {
-        throw FetchRefused(
+        throw FetchPaused(
           'paused until ${until.toIso8601String()} because the site pushed '
           'back on ${blocked.toIso8601String()}; not retrying sooner',
         );
