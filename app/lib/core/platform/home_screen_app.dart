@@ -11,3 +11,7 @@ import 'home_screen_app_stub.dart'
 ///   labels stay above the home bar (there is no strip there);
 /// - 0 elsewhere.
 double get iosBottomInset => impl.iosBottomInset;
+
+/// Whether this is the home-screen app on an iPhone/iPad (Safari's
+/// `navigator.standalone`).
+bool get isIosHomeScreenApp => impl.isIosHomeScreenApp;

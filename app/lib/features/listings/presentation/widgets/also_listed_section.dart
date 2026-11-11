@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/di/injection.dart';
 import '../../../../core/formatting/formatters.dart';
+import '../../../../core/platform/open_ad.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/repositories/listings_repository.dart';
@@ -43,7 +43,7 @@ class _AlsoListedSectionState extends State<AlsoListedSection> {
                 trailing: Text(
                   Formatters.price(other.price, language: context.language),
                 ),
-                onTap: () => launchUrl(Uri.parse(other.url)),
+                onTap: () => openAd(Uri.parse(other.url)),
               ),
           ],
         );

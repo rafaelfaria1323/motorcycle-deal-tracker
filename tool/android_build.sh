@@ -7,7 +7,8 @@
 #
 # app/android is not in the repository: it is made afresh from this
 # Flutter's template (so it always matches it), then fitted by
-# tool/android_manifest.py (internet permission, name) and given the app's
+# tool/android_manifest.py (internet permission, name, the App Link for
+# WEB_URL) and given the app's
 # icon. The package name never changes (Android treats another one as
 # another app). The build number is the version code, so each build
 # installs over the one before. Phones are 64-bit ARM (a smaller APK than
@@ -26,7 +27,9 @@ cd "$(dirname "$0")/../app"
 
 flutter create --platforms=android --org io.github.rafaelfaria1323 \
   --project-name motorcycle_deal_tracker .
-python3 ../tool/android_manifest.py android/app/src/main/AndroidManifest.xml
+# With WEB_URL, links to the web app open this app (App Links).
+python3 ../tool/android_manifest.py android/app/src/main/AndroidManifest.xml \
+  ${WEB_URL:+"$WEB_URL"}
 # Gradle's build cache: tasks whose inputs didn't change (the plugins' Java
 # and Kotlin, R8) come from ~/.gradle, which the workflows keep between runs.
 echo 'org.gradle.caching=true' >> android/gradle.properties

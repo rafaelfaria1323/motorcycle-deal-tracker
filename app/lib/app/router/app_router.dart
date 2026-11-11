@@ -24,6 +24,7 @@ import '../../features/listings/presentation/widgets/photo_gallery.dart';
 import '../../features/settings/presentation/accounts_page.dart';
 import '../../features/settings/presentation/join_page.dart';
 import '../../features/settings/presentation/more_page.dart';
+import '../../core/platform/notification_link.dart';
 import '../di/injection.dart';
 import '../shell/app_shell.dart';
 import 'app_routes.dart';
@@ -42,7 +43,8 @@ final appRouter = GoRouter(
         url.contains('error=')) {
       return AppRoutes.deals;
     }
-    return null;
+    // A shared link opened in the Android app: `/#/deals/<id>`.
+    return appLinkLocation(state.uri);
   },
   routes: [
     StatefulShellRoute.indexedStack(
