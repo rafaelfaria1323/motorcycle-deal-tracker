@@ -86,6 +86,9 @@ push-test: require-collector-env ## Send a test notification to the admins' devi
 weekly-summary: require-collector-env ## Make and send each account's weekly summary (Web Push): make weekly-summary [ARGS=--dry-run]
 	cd collector && dart run bin/weekly_summary.dart $(ARGS)
 
+text-audit: require-collector-env ## The description check (N.55): the rules against Gemini on the week's ads; needs GEMINI_API_KEY: make text-audit [ARGS=--ads=20]
+	cd collector && dart run bin/text_audit.dart $(ARGS)
+
 enrich-dry: require-collector-env ## List the listings that still need details, requests nothing
 	cd collector && dart run bin/enrich.dart --dry-run
 

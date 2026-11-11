@@ -4621,6 +4621,27 @@ end;
 $$;
 
 --
+-- Name: text_audit_sample(timestamp with time zone, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.text_audit_sample(p_since timestamp with time zone, p_limit integer) RETURNS TABLE(id uuid, url text, variant text, description text, signals text[], extras text[], mileage_in_text integer)
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+  select l.id, l.url, l.variant, left(l.description, 2000),
+         coalesce(l.text_signals, public.description_signals(l.variant, l.description)),
+         coalesce(l.text_extras, public.listing_extras(l.variant, l.description)),
+         public.mileage_in_text(l.description)
+  from public.listings l
+  where l.motorcycle_id is not null
+    and l.duplicate_of is null
+    and l.first_seen_at >= p_since
+    and length(l.description) >= 80
+  order by md5(l.id::text)
+  limit greatest(p_limit, 0)
+$$;
+
+--
 -- Name: text_contradictions(text, integer, integer, text, boolean); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -4710,6 +4731,27 @@ CREATE FUNCTION public.tracked_by_me(m public.motorcycles) RETURNS boolean
     SET search_path TO ''
     AS $$
   select public.caller_tracks(m.id, null)
+$$;
+
+--
+-- Name: unmatched_title_sample(timestamp with time zone, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.unmatched_title_sample(p_since timestamp with time zone, p_limit integer) RETURNS TABLE(id uuid, url text, brand text, model text, variant text)
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+  select s.id, s.url, s.brand, s.model, s.variant
+  from (
+    select distinct on (lower(l.brand), lower(l.model), lower(coalesce(l.variant, '')))
+           l.id, l.url, l.brand, l.model, l.variant
+    from public.listings l
+    where l.motorcycle_id is null
+      and l.first_seen_at >= p_since
+    order by lower(l.brand), lower(l.model), lower(coalesce(l.variant, '')), l.id
+  ) s
+  order by md5(s.id::text)
+  limit greatest(p_limit, 0)
 $$;
 
 --
@@ -7907,6 +7949,13 @@ REVOKE ALL ON FUNCTION public.strip_phone_numbers() FROM PUBLIC;
 GRANT ALL ON FUNCTION public.strip_phone_numbers() TO service_role;
 
 --
+-- Name: FUNCTION text_audit_sample(p_since timestamp with time zone, p_limit integer); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.text_audit_sample(p_since timestamp with time zone, p_limit integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.text_audit_sample(p_since timestamp with time zone, p_limit integer) TO service_role;
+
+--
 -- Name: FUNCTION text_contradictions(p_description text, p_year integer, p_mileage integer, p_origin text, p_service_book boolean); Type: ACL; Schema: public; Owner: -
 --
 
@@ -7929,6 +7978,13 @@ GRANT ALL ON FUNCTION public.track_price_change() TO service_role;
 GRANT ALL ON FUNCTION public.tracked_by_me(m public.motorcycles) TO anon;
 GRANT ALL ON FUNCTION public.tracked_by_me(m public.motorcycles) TO authenticated;
 GRANT ALL ON FUNCTION public.tracked_by_me(m public.motorcycles) TO service_role;
+
+--
+-- Name: FUNCTION unmatched_title_sample(p_since timestamp with time zone, p_limit integer); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.unmatched_title_sample(p_since timestamp with time zone, p_limit integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.unmatched_title_sample(p_since timestamp with time zone, p_limit integer) TO service_role;
 
 --
 -- Name: FUNCTION user_tracks(p_user uuid, p_motorcycle_id uuid, p_year integer); Type: ACL; Schema: public; Owner: -

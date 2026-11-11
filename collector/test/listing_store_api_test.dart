@@ -137,6 +137,8 @@ void main() {
       'pending_notifications',
       'push_keys',
       'answer_bike_value_requests',
+      'text_audit_sample',
+      'unmatched_title_sample',
     ]) {
       replies[name] = const [];
     }
@@ -214,6 +216,8 @@ void main() {
     await pushes.pushKeys();
     await pushes.answerBikeValues(DateTime.utc(2026, 10, 28));
     await pushes.markNotified(['alert']);
+    await AuditStore(client).sample(DateTime.utc(2026, 11, 4), 60);
+    await AuditStore(client).unmatchedTitles(DateTime.utc(2026, 11, 4), 40);
   }
 
   test('every RPC the store calls exists with those arguments', () async {
@@ -303,6 +307,30 @@ void main() {
       'rpc:store_push_keys',
       'rpc:push_keys',
     ]);
+  });
+
+  test('the description check reads its samples', () async {
+    replies['text_audit_sample'] = [
+      {
+        'id': 'a',
+        'url': 'u',
+        'description': 'd',
+        'signals': ['needs_repair'],
+      },
+    ];
+    replies['unmatched_title_sample'] = [
+      {'id': 't', 'url': 'u', 'brand': 'Yamaha', 'model': 'MT'},
+    ];
+    final audit = AuditStore(client);
+    final ads = await audit.sample(DateTime.utc(2026, 11, 4), 60);
+    expect(ads.single.signals, ['needs_repair']);
+    expect(calls.last.body, {
+      'p_since': '2026-11-04T00:00:00.000Z',
+      'p_limit': 60,
+    });
+    final titles = await audit.unmatchedTitles(DateTime.utc(2026, 11, 4), 40);
+    expect(titles.single.title, 'Yamaha · MT');
+    expect(calls.last.name, 'rpc:unmatched_title_sample');
   });
 
   test('empty inputs send nothing', () async {

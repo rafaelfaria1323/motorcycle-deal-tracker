@@ -183,6 +183,22 @@ Check it with `select public.send_telegram('Teste');` (the message arrives
 on the phone). If pg_cron itself stops, this check stops too; the app's
 warning is then the only sign.
 
+### The description check (Gemini, N.55)
+
+`text-audit.yml` runs with Monday's summary and sends up to 60 of the
+week's ads (their public text, phone numbers already removed) and 40
+unmatched titles to Gemini's free tier; the report is on the run's page.
+Google may use what is sent on the free tier to improve its products.
+
+1. aistudio.google.com › "Get API key" › "Create API key" (a new project is
+   fine; no billing).
+2. GitHub › Settings › Secrets and variables › Actions → new secret
+   `GEMINI_API_KEY`.
+3. Optional: a repository variable `GEMINI_MODEL` (Variables tab) for
+   another model; empty uses `gemini-flash-latest`.
+4. Actions › "Description check" › Run workflow, and read the run's
+   summary. Without the secret it says so and passes.
+
 ## On the iPhone
 
 Open the address in Safari → Share → "Adicionar ao ecrã principal". The app
@@ -310,6 +326,7 @@ update `collector/.env` if you run the collector there.
 | Telegram bot token | Vault `telegram_bot_token` | In Telegram, @BotFather › `/revoke` › the bot: the old token stops at once, so put the new one in the Vault straight away (`vault.update_secret`). Check with `select public.send_telegram('Teste');`. The chat id never changes. |
 | Cloudflare API token | Repository secret `CLOUDFLARE_API_TOKEN` | Cloudflare › My Profile › API Tokens › the token › "Roll", then the repository secret; check with "Deploy web app" › Run workflow. |
 | Firebase service account | Repository secret `FIREBASE_SERVICE_ACCOUNT` | Firebase › Project settings › Service accounts › "Generate new private key", paste it as the secret, delete the file; check with "Enviar notificação de teste" in the Android app; then delete the old key in Google Cloud › IAM › Service accounts › the account › Keys. `FIREBASE_ANDROID_CONFIG` is not a secret worth replacing (it is inside every APK). |
+| Gemini API key | Repository secret `GEMINI_API_KEY` (the description check) | Google AI Studio › API keys › create a new key, put it in the secret, delete the old one there; check with "Description check" › Run workflow. |
 | Claude token | Repository secret `CLAUDE_CODE_OAUTH_TOKEN` (backlog passes) | `claude setup-token` on the Mac, paste it as the secret (these tokens last a year, so this one also has its own date). |
 
 Not replaced:

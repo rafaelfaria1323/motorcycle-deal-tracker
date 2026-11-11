@@ -140,6 +140,16 @@ account's devices (Web Push; a tap opens that page). Asked for in the app,
 the workflow gets the account as its input (`SUMMARY_ACCOUNT`) and makes
 only that one. It only reads the listings.
 
+Beside it, `bin/text_audit.dart` (workflow `text-audit.yml`, N.55) checks
+the description rules: up to 60 ads of the week (`text_audit_sample`) go to
+Gemini's free tier (`audit/gemini.dart`; env `GEMINI_API_KEY`, optional
+`GEMINI_MODEL`), which reads the same facts as `description_signals`,
+`listing_extras` and `mileage_in_text`; up to 40 titles no model matched
+(`unmatched_title_sample`) are placed among the followed models.
+`audit/text_audit.dart` compares them and writes the report (stdout and
+the run's summary). It writes nothing and never feeds a score; without the
+key it is skipped.
+
 ## Notification languages
 
 `notify/notification_text.dart` contains bundled Portuguese/English copy and
@@ -170,6 +180,7 @@ remain operational messages. There is no translation service or AI.
 | `make photos-dry` / `photos [ARGS=--max=50]` | Photo fingerprints of new listings (photo CDN, 5 minutes), and their damage hints with `PHOTO_MODEL_DIR` set |
 | `make push-test` | Send a test notification (Web Push) to the admins' devices (`push-test.yml` from the app: to the asking account's; `PUSH_KIND=price_reduction` etc. sends an example of that notification, `pushTestKinds`) |
 | `make weekly-summary [ARGS=--dry-run]` | Make and send (or print) each account's summary of the week |
+| `make text-audit [ARGS=--ads=20]` | The description check against Gemini (needs `GEMINI_API_KEY`) |
 | `make collector-check` | Format check, analyze and test |
 
 Secrets go in `collector/.env` (gitignored): `SUPABASE_URL`,
@@ -178,7 +189,7 @@ Secrets go in `collector/.env` (gitignored): `SUPABASE_URL`,
 ## Code layout
 
 ```text
-bin/        entry points (refresh, fetch, collector, enrich, photos, searches, report_run, push_test, weekly_summary;
+bin/        entry points (refresh, fetch, collector, enrich, photos, searches, report_run, push_test, weekly_summary, text_audit;
             `--help` lists each one's options, package args)
 lib/        fetcher, site adapters and mappers, model matching, store, run steps
 test/       unit tests

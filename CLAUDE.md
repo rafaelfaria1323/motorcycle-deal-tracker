@@ -47,7 +47,9 @@ never asks for search URLs; aliases sit under "Outros nomes do modelo".
 - **Prefer tools without AI.** AI is fine only where it is free, and a
   fixed, free tool wins whenever it can do the same job. The app and the
   collector use no AI (scores, estimates and alerts are rules and
-  statistics). Checks: analyzer rules (`*/analysis_options.yaml`, with Dart
+  statistics), except the weekly description check (N.55: Gemini's free
+  tier reads a sample of the week's ads; the disagreements with the rules
+  are a report for fixing them with tests, never a score). Checks: analyzer rules (`*/analysis_options.yaml`, with Dart
   3.11-3.13's lints, N.40),
   `make duplication` (jscpd), `make coverage` (floors in the Makefile),
   `make lint-scripts` (actionlint, shellcheck), `make dead-code`
@@ -146,7 +148,17 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
 .github/workflows/weekly-summary.yml  Mondays 08:52 Lisbon time (pg_cron): each account's
                                   summary of the week, kept for the app and
                                   pushed to its devices (bin/weekly_summary.dart);
-                                  input `account`: only that one
+                                  input `account`: only that one;
+                                  without one, also calls text-audit.yml
+.github/workflows/text-audit.yml  The description check (N.55,
+                                  bin/text_audit.dart): up to 60 of the
+                                  week's ads (`text_audit_sample`) and 40
+                                  unmatched titles (`unmatched_title_sample`)
+                                  to Gemini's free tier (audit/gemini.dart,
+                                  `GEMINI_API_KEY`, var `GEMINI_MODEL`);
+                                  audit/text_audit.dart compares with the
+                                  rules, report in the run's summary;
+                                  writes nothing; no key: skipped
 .github/workflows/push-test.yml   A test notification (bin/push_test.dart) to the
                                   devices of whoever asked in the app; input
                                   `kind`: an example of one alert or
@@ -284,6 +296,7 @@ make refresh ARGS=--full       one process for both sites (bin/refresh.dart): se
 make refresh-olx|refresh-standvirtual   the same for one site
 make push-test                 send a test notification to the admins' devices (Web Push)
 make weekly-summary [ARGS=--dry-run]   make and send (or print) each account's weekly summary
+make text-audit [ARGS=--ads=20]        the description check against Gemini (GEMINI_API_KEY)
 make mutation PKG=collector|app FILES="lib/..."   mutation testing of those files
                                (needs `dart pub global activate mutation_test`)
 ```
@@ -307,7 +320,8 @@ pooler connection string, `[YOUR-PASSWORD]` left in) and
 `SUPABASE_DB_PASSWORD` for the migrations, `FIREBASE_ANDROID_CONFIG`
 (the Firebase project's `google-services.json`, built into the APK) and
 `FIREBASE_SERVICE_ACCOUNT` (its service account key, the collector's
-sender) for the Android app's notifications, and `CLAUDE_CODE_OAUTH_TOKEN`
+sender) for the Android app's notifications, `GEMINI_API_KEY` for the
+weekly description check (N.55), and `CLAUDE_CODE_OAUTH_TOKEN`
 for the code-quality review. Supabase's Vault holds `github_dispatch_token`
 (starts the scheduled workflows), `telegram_bot_token` /
 `telegram_chat_id` (the watchdog's messages), `vapid_private_key` (Web
