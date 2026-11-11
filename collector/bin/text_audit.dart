@@ -138,7 +138,9 @@ Future<void> main(List<String> args) async {
     }
 
     final report = auditReport(
-      model: gemini.model,
+      model: gemini.answeredBy.isEmpty
+          ? gemini.model
+          : gemini.answeredBy.join('`, `'),
       adsAsked: ads.length,
       adsRead: read,
       disagreements: disagreements,

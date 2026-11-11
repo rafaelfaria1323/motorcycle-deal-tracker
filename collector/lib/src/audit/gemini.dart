@@ -34,8 +34,9 @@ class const _Unavailable(final GeminiFailure failure) implements Exception;
 /// apart (the free tier allows a few a minute); a refusal for too many
 /// requests (429) or a busy server (500/503) is tried once more after
 /// [retryDelay]. A model still busy, gone (404) or silent for [timeout]
-/// gives way to the next of [models] for the rest of the run ([log] says
-/// so). The model's own temperature is kept (Gemini 3 loops below 1.0) and
+/// gives way to the next of [models], the last to the first again (a busy
+/// spell passes; each request asks each model at most once), and that one
+/// is asked from then on ([log] says so). The model's own temperature is kept (Gemini 3 loops below 1.0) and
 /// an answer is capped at [maxOutputTokens], so a loop ends as a cut
 /// answer. Thinking is switched off (`thinkingBudget: 0`); a model that
 /// refuses that setting (any HTTP 400: Flash-Lite says only "invalid
@@ -59,6 +60,9 @@ class GeminiClient({
   /// The model asked now.
   String get model => models[_current];
 
+  /// The models that answered, in the order they first did.
+  final Set<String> answeredBy = {};
+
   Uri get _endpoint => Uri.https(
     'generativelanguage.googleapis.com',
     '/v1beta/models/$model:generateContent',
@@ -72,16 +76,18 @@ class GeminiClient({
   ) async {
     if (!_first) await wait(spacing);
     _first = false;
-    while (true) {
+    for (var tried = 1; ; tried++) {
       final GeminiFailure failure;
       try {
-        return await _ask(prompt, schema);
+        final answer = await _ask(prompt, schema);
+        answeredBy.add(model);
+        return answer;
       } on _Unavailable catch (e) {
         failure = e.failure;
       }
-      if (_current + 1 >= models.length) throw failure;
+      if (tried >= models.length) throw failure;
       final previous = model;
-      _current++;
+      _current = (_current + 1) % models.length;
       log('$previous: ${failure.message}; asking $model from now on');
     }
   }

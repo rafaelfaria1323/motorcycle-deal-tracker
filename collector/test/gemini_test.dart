@@ -265,6 +265,39 @@ void main() {
         );
         expect(await gone.generateJson('p', {}), {'ok': true});
         expect(gone.model, 'new');
+        expect(client.answeredBy, {'c'});
+      },
+    );
+
+    test(
+      'after the last model the first is asked again, each once a request',
+      () async {
+        final asked = <String>[];
+        var busy = {'a'};
+        final client = GeminiClient(
+          apiKey: 'k',
+          models: ['a', 'b'],
+          httpClient: MockClient((r) async {
+            final model = r.url.pathSegments.last.split(':').first;
+            asked.add(model);
+            return busy.contains(model)
+                ? http.Response('busy', model == 'a' ? 503 : 429)
+                : http.Response(_answer([1]), 200);
+          }),
+          wait: (_) async {},
+        );
+        expect(await client.generateJson('p', {}), [1]);
+        busy = {'b'};
+        expect(await client.generateJson('p', {}), [1]);
+        expect(client.model, 'a', reason: 'b out of quota, a free again');
+        expect(client.answeredBy, {'b', 'a'});
+        busy = {'a', 'b'};
+        asked.clear();
+        await expectLater(
+          client.generateJson('p', {}),
+          throwsA(isA<GeminiFailure>()),
+        );
+        expect(asked, ['a', 'a', 'b', 'b'], reason: 'never round again');
       },
     );
 
