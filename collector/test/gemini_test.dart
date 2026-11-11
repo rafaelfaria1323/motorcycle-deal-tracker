@@ -51,7 +51,7 @@ void main() {
           },
         ]);
         expect(body['generationConfig'], {
-          'temperature': 0,
+          'maxOutputTokens': 8192,
           'responseMimeType': 'application/json',
           'responseSchema': {'type': 'ARRAY'},
           'thinkingConfig': {'thinkingBudget': 0},
@@ -247,6 +247,23 @@ void main() {
           }),
         ),
         fails('the text is not JSON'),
+      );
+      expect(
+        () => answerJson(
+          jsonEncode({
+            'candidates': [
+              {
+                'content': {
+                  'parts': [
+                    {'text': '[{"id": 1, "evidence": "     '},
+                  ],
+                },
+                'finishReason': 'MAX_TOKENS',
+              },
+            ],
+          }),
+        ),
+        fails('the answer was cut at the token limit'),
       );
     });
   });

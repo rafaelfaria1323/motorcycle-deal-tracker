@@ -18,7 +18,10 @@ class const GeminiFailure(final String message) implements Exception {
 /// Asks Gemini for JSON in a given shape. One request at a time, [spacing]
 /// apart (the free tier allows a few a minute); a refusal for too many
 /// requests (429) or a busy server (500/503) is tried once more after
-/// [retryDelay]. Thinking is switched off (`thinkingBudget: 0`; with it a
+/// [retryDelay]. The model's own temperature is kept (Gemini 3 loops below
+/// 1.0, and a request ran to its timeout) and an answer is capped at
+/// [maxOutputTokens], so a loop ends in seconds as a cut answer. Thinking
+/// is switched off (`thinkingBudget: 0`; with it a
 /// batch of descriptions took minutes); a model that refuses that setting
 /// (HTTP 400 naming it) is asked again without it, for the rest of the run.
 class GeminiClient({
@@ -28,6 +31,7 @@ class GeminiClient({
   final Duration spacing = const Duration(seconds: 15),
   final Duration retryDelay = const Duration(seconds: 60),
   final Duration timeout = const Duration(seconds: 120),
+  final int maxOutputTokens = 8192,
   final Future<void> Function(Duration) wait = Future<void>.delayed,
 }) {
   bool _first = true;
@@ -75,7 +79,7 @@ class GeminiClient({
       },
     ],
     'generationConfig': {
-      'temperature': 0,
+      'maxOutputTokens': maxOutputTokens,
       'responseMimeType': 'application/json',
       'responseSchema': schema,
       if (_thinkingOff) 'thinkingConfig': {'thinkingBudget': 0},
@@ -111,14 +115,15 @@ Object? answerJson(String responseBody) {
   } on FormatException {
     throw const GeminiFailure('the answer is not JSON');
   }
-  final text = switch (decoded) {
+  final (text, finish) = switch (decoded) {
     {
       'candidates': [
-        {'content': {'parts': [{'text': final String text}, ...]}},
+        {'content': {'parts': [{'text': final String text}, ...]}} &&
+            final Map<String, Object?> candidate,
         ...,
       ],
     } =>
-      text,
+      (text, candidate['finishReason']),
     {'candidates': [{'finishReason': final String reason}, ...]} =>
       throw GeminiFailure('no text (finish reason $reason)'),
     _ => throw const GeminiFailure('no text in the answer'),
@@ -130,7 +135,11 @@ Object? answerJson(String responseBody) {
   try {
     return jsonDecode(unfenced);
   } on FormatException {
-    throw const GeminiFailure('the text is not JSON');
+    throw GeminiFailure(
+      finish == 'MAX_TOKENS'
+          ? 'the answer was cut at the token limit'
+          : 'the text is not JSON',
+    );
   }
 }
 
