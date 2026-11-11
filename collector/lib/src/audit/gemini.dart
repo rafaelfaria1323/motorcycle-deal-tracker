@@ -38,8 +38,9 @@ class const _Unavailable(final GeminiFailure failure) implements Exception;
 /// so). The model's own temperature is kept (Gemini 3 loops below 1.0) and
 /// an answer is capped at [maxOutputTokens], so a loop ends as a cut
 /// answer. Thinking is switched off (`thinkingBudget: 0`); a model that
-/// refuses that setting (HTTP 400 naming it) is asked again without it, for
-/// the rest of the run.
+/// refuses that setting (any HTTP 400: Flash-Lite says only "invalid
+/// argument") is asked again without it, for the rest of the run when that
+/// works.
 class GeminiClient({
   required final String apiKey,
   final List<String> models = defaultGeminiModels,
@@ -87,11 +88,18 @@ class GeminiClient({
 
   Future<Object?> _ask(String prompt, Map<String, Object?> schema) async {
     var response = await _post(_body(prompt, schema));
-    if (_thinkingOff &&
-        response.statusCode == 400 &&
-        response.body.toLowerCase().contains('thinking')) {
+    if (_thinkingOff && response.statusCode == 400) {
+      // Gemini 3.5 Flash-Lite refuses the setting with a bare "invalid
+      // argument", so any 400 is tried once without it; only when that
+      // helps is it left out for the rest of the run.
       _thinkingOff = false;
-      response = await _post(_body(prompt, schema));
+      final retried = await _post(_body(prompt, schema));
+      if (retried.statusCode == 400) {
+        _thinkingOff = true;
+      } else {
+        log('$model refuses thinkingBudget 0; asking with its own thinking');
+      }
+      response = retried;
     }
     if (_busy.contains(response.statusCode)) {
       await wait(retryDelay);

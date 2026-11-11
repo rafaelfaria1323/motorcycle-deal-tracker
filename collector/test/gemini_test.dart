@@ -76,7 +76,9 @@ void main() {
             return config.containsKey('thinkingConfig')
                 ? http.Response(
                     jsonEncode({
-                      'error': {'message': 'Thinking budget is not supported'},
+                      'error': {
+                        'message': 'Request contains an invalid argument.',
+                      },
                     }),
                     400,
                   )
@@ -91,16 +93,31 @@ void main() {
           null,
           null,
         ], reason: 'asked once with it, then never again');
+        final sent = <Object?>[];
         final other = GeminiClient(
           apiKey: 'k',
-          httpClient: MockClient((r) async => http.Response('bad schema', 400)),
+          httpClient: MockClient((r) async {
+            sent.add(
+              ((jsonDecode(r.body) as Map<String, Object?>)['generationConfig']
+                      as Map<String, Object?>)
+                  .containsKey('thinkingConfig'),
+            );
+            return http.Response('bad schema', 400);
+          }),
           wait: (_) async {},
         );
-        await expectLater(
-          other.generateJson('p', {}),
-          throwsA(isA<GeminiFailure>()),
-          reason: 'another 400 is not asked again',
-        );
+        for (var i = 0; i < 2; i++) {
+          await expectLater(
+            other.generateJson('p', {}),
+            throwsA(isA<GeminiFailure>()),
+          );
+        }
+        expect(sent, [
+          true,
+          false,
+          true,
+          false,
+        ], reason: 'a 400 without it too was not the setting: kept');
       },
     );
 
@@ -265,7 +282,8 @@ void main() {
         client.generateJson('p', {}),
         throwsA(isA<GeminiFailure>()),
       );
-      expect(asked, hasLength(1));
+      expect(asked, hasLength(2), reason: 'once more without thinkingConfig');
+      expect(asked.toSet(), hasLength(1));
       expect(client.model, 'a');
     });
 
