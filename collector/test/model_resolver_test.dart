@@ -371,6 +371,35 @@ void main() {
     });
   });
 
+  group('a PCX125 with "PCX" as another name (N.55, 2026-11-11)', () {
+    final resolver = ModelResolver(
+      Catalog(const [
+        CatalogEntry(
+          slug: 'honda-pcx125',
+          brand: 'Honda',
+          model: 'PCX125',
+          minYear: 2021,
+          aliases: ['PCX'],
+          engineCcMin: 113,
+          engineCcMax: 138,
+        ),
+      ]),
+    );
+    String? pcx(String text, {int? cc}) => resolver
+        .resolve(brand: 'Honda', family: '', text: text, engineCc: cc)
+        ?.slug;
+
+    test('OLX titles the description check found are matched', () {
+      expect(pcx('pcx 2022 excelente oportunidade'), 'honda-pcx125');
+      expect(pcx('PCX como novas preta e zinza'), 'honda-pcx125');
+      expect(pcx('PCX 125-2025-13.000km'), 'honda-pcx125');
+    });
+
+    test('a stated engine size that does not fit still rules it out', () {
+      expect(pcx('PCX 2022', cc: 160), isNull);
+    });
+  });
+
   group('boundaries', () {
     final resolver = ModelResolver(Catalog.mvp());
 
