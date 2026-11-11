@@ -46,10 +46,7 @@ Future<void> main(List<String> args) async {
     );
     return;
   }
-  final model = switch (env['GEMINI_MODEL']?.trim()) {
-    final m? when m.isNotEmpty => m,
-    _ => defaultGeminiModel,
-  };
+  final models = geminiModels(env['GEMINI_MODEL']);
   final since = DateTime.now().toUtc().subtract(
     Duration(days: int.parse(options.option('days')!)),
   );
@@ -65,8 +62,9 @@ Future<void> main(List<String> args) async {
     final httpClient = http.Client();
     final gemini = GeminiClient(
       apiKey: apiKey,
-      model: model,
+      models: models,
       httpClient: httpClient,
+      log: stdout.writeln,
     );
     final problems = <String>[];
     final disagreements = <Disagreement>[];
@@ -103,7 +101,7 @@ Future<void> main(List<String> args) async {
     }
 
     stdout.writeln(
-      'Asking $model about ${ads.length} ad(s) and ${titles.length} '
+      'Asking ${models.join(' (else ')}${')' * (models.length - 1)} about ${ads.length} ad(s) and ${titles.length} '
       'title(s).',
     );
     try {
@@ -140,7 +138,7 @@ Future<void> main(List<String> args) async {
     }
 
     final report = auditReport(
-      model: model,
+      model: gemini.model,
       adsAsked: ads.length,
       adsRead: read,
       disagreements: disagreements,

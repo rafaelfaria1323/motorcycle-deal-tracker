@@ -27,7 +27,7 @@ void main() {
         final waits = <Duration>[];
         final client = GeminiClient(
           apiKey: 'k',
-          model: 'm1',
+          models: ['m1'],
           httpClient: MockClient((r) async {
             sent = r;
             return http.Response(_answer([1, 2]), 200);
@@ -109,6 +109,7 @@ void main() {
       final waits = <Duration>[];
       final client = GeminiClient(
         apiKey: 'k',
+        models: ['m1'],
         httpClient: MockClient((r) async {
           calls++;
           return calls == 1
@@ -126,6 +127,7 @@ void main() {
       var calls = 0;
       final client = GeminiClient(
         apiKey: 'k',
+        models: ['m1'],
         httpClient: MockClient((r) async {
           calls++;
           return http.Response(
@@ -150,6 +152,7 @@ void main() {
       expect(calls, 2);
       final notFound = GeminiClient(
         apiKey: 'k',
+        models: ['m1'],
         httpClient: MockClient((r) async => http.Response('x' * 300, 404)),
         wait: (_) async {},
       );
@@ -184,6 +187,7 @@ void main() {
       );
       final slow = GeminiClient(
         apiKey: 'k',
+        models: ['m1'],
         httpClient: MockClient((r) => Completer<http.Response>().future),
         timeout: const Duration(milliseconds: 10),
       );
@@ -197,6 +201,80 @@ void main() {
           ),
         ),
       );
+    });
+  });
+
+  group('more than one model', () {
+    test(
+      'a busy, gone or silent model gives way to the next for good',
+      () async {
+        final asked = <String>[];
+        final logged = <String>[];
+        final waits = <Duration>[];
+        final client = GeminiClient(
+          apiKey: 'k',
+          models: ['a', 'b', 'c'],
+          timeout: const Duration(milliseconds: 10),
+          httpClient: MockClient((r) {
+            final model = r.url.pathSegments.last.split(':').first;
+            asked.add(model);
+            return switch (model) {
+              'a' => Future.value(http.Response('busy', 503)),
+              'b' => Completer<http.Response>().future,
+              _ => Future.value(http.Response(_answer([1]), 200)),
+            };
+          }),
+          wait: (d) async => waits.add(d),
+          log: logged.add,
+        );
+        expect(await client.generateJson('p', {}), [1]);
+        expect(asked, ['a', 'a', 'b', 'c'], reason: 'a busy model once more');
+        expect(waits, [const Duration(seconds: 60)]);
+        expect(logged, [
+          'a: HTTP 503: busy; asking b from now on',
+          'b: no answer in time; asking c from now on',
+        ]);
+        expect(client.model, 'c');
+        expect(await client.generateJson('p', {}), [1]);
+        expect(asked.last, 'c', reason: 'the run stays on it');
+        final gone = GeminiClient(
+          apiKey: 'k',
+          models: ['old', 'new'],
+          httpClient: MockClient(
+            (r) async => r.url.path.contains('old')
+                ? http.Response('no longer available', 404)
+                : http.Response(_answer({'ok': true}), 200),
+          ),
+        );
+        expect(await gone.generateJson('p', {}), {'ok': true});
+        expect(gone.model, 'new');
+      },
+    );
+
+    test('another error fails without trying the next model', () async {
+      final asked = <Uri>[];
+      final client = GeminiClient(
+        apiKey: 'k',
+        models: ['a', 'b'],
+        httpClient: MockClient((r) async {
+          asked.add(r.url);
+          return http.Response('bad request', 400);
+        }),
+      );
+      await expectLater(
+        client.generateJson('p', {}),
+        throwsA(isA<GeminiFailure>()),
+      );
+      expect(asked, hasLength(1));
+      expect(client.model, 'a');
+    });
+
+    test('the GEMINI_MODEL setting names them, in order', () {
+      expect(geminiModels(null), defaultGeminiModels);
+      expect(geminiModels(' '), defaultGeminiModels);
+      expect(geminiModels('x'), ['x']);
+      expect(geminiModels(' x , ,y '), ['x', 'y']);
+      expect(defaultGeminiModels.first, 'gemini-flash-lite-latest');
     });
   });
 

@@ -155,7 +155,9 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   week's ads (`text_audit_sample`) and 40
                                   unmatched titles (`unmatched_title_sample`)
                                   to Gemini's free tier (audit/gemini.dart,
-                                  `GEMINI_API_KEY`, var `GEMINI_MODEL`);
+                                  `GEMINI_API_KEY`, var `GEMINI_MODEL`:
+                                  models in order, by default
+                                  Flash-Lite then Flash);
                                   audit/text_audit.dart compares with the
                                   rules, report in the run's summary;
                                   writes nothing; no key: skipped

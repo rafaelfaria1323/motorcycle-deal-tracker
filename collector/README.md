@@ -143,7 +143,8 @@ only that one. It only reads the listings.
 Beside it, `bin/text_audit.dart` (workflow `text-audit.yml`, N.55) checks
 the description rules: up to 60 ads of the week (`text_audit_sample`) go to
 Gemini's free tier (`audit/gemini.dart`; env `GEMINI_API_KEY`, optional
-`GEMINI_MODEL`), which reads the same facts as `description_signals`,
+`GEMINI_MODEL`: models to try in order, by default
+`gemini-flash-lite-latest` then `gemini-flash-latest`), which reads the same facts as `description_signals`,
 `listing_extras` and `mileage_in_text`; up to 40 titles no model matched
 (`unmatched_title_sample`) are placed among the followed models.
 `audit/text_audit.dart` compares them and writes the report (stdout and

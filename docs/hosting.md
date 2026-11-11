@@ -194,8 +194,10 @@ Google may use what is sent on the free tier to improve its products.
    fine; no billing).
 2. GitHub › Settings › Secrets and variables › Actions → new secret
    `GEMINI_API_KEY`.
-3. Optional: a repository variable `GEMINI_MODEL` (Variables tab) for
-   another model; empty uses `gemini-flash-latest`.
+3. Optional: a repository variable `GEMINI_MODEL` (Variables tab) naming
+   the models to try, comma-separated, in order; empty uses
+   `gemini-flash-lite-latest`, then `gemini-flash-latest` when it is busy,
+   gone or silent (the free Flash model was overloaded on 2026-11-11).
 4. Actions › "Description check" › Run workflow, and read the run's
    summary. Without the secret it says so and passes.
 

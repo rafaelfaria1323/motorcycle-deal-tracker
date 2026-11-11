@@ -39,4 +39,4 @@ jobs:
       - uses: ./.github/actions/collector
 
       - name: Check the descriptions
-        run: cd collector && dart run bin/gemini_probe.dart
+        run: cd collector && dart run bin/text_audit.dart
