@@ -187,6 +187,11 @@ Future<int> _refreshSite(
   } on PostgrestException catch (e) {
     stderr.writeln('Database error: ${e.message}');
     return 70;
+  } on Exception catch (e) {
+    // Anything else (the database out of reach after its retry): this
+    // site failed, the other one and the scores still run.
+    stderr.writeln('Database error: $e');
+    return 70;
   } finally {
     // Read back by report_run.dart (requestsUsed) and shown in the app.
     stdout.writeln('Requests used: $name=${fetcher.requestsThisRun}');

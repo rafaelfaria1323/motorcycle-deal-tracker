@@ -119,6 +119,18 @@ fetching or retries. The normal fetcher, year/engine filters, model
 matching and incomplete-search removal safeguards still apply. Following
 more searches can mean more requests within the existing run-time limits.
 
+### 2026-11-11: robots.txt read with the one retry; changed photos read again (N.56)
+
+**Decisions (Rafael).** (1) Reading robots.txt gets the one retry a page
+already has (below): 60 s after a timeout, a dropped connection or HTTP
+500/502/504, counted as a request. A single timeout on it used to lose the
+site's whole run. Blocks (403, 429, 503) are still never retried and pause
+the site. (2) When an OLX seller replaces an ad's first three photos (seen
+in the search results already read, no extra request to the sites), the
+photo step reads the new three from the photo CDN, as it does for a new
+ad: "3 photos per listing, once" is now once per set of photos. Its own
+spacing, 5-minute limit and stops are unchanged.
+
 ### 2026-10-27: one retry after a passing error (N.22)
 
 **Why.** Four runs in three days lost a whole search to one passing error:

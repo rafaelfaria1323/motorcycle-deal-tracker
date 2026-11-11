@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import '../adapters/olx/olx_search_adapter.dart';
 import '../catalog/catalog.dart';
 import '../normalized/normalized_listing.dart';
 import '../notify/bike_value_push.dart';
@@ -110,8 +111,13 @@ Future<bool> importBatch(
   if (rematched > 0) log.writeln('Model corrected: $rematched listing(s)');
 
   // 2b. What the seller edited since the ad was stored: year, mileage,
-  //     title, description, place.
-  final edited = await store.applyListingFacts(batch.source, unique);
+  //     title, description, place, and on OLX (whose results hold every
+  //     photo; Standvirtual's only a thumbnail) the photos.
+  final edited = await store.applyListingFacts(
+    batch.source,
+    unique,
+    photos: batch.source == OlxSearchAdapter.sourceId,
+  );
   if (edited > 0) log.writeln('Details corrected: $edited listing(s)');
 
   // 3. Known listings whose price moved get the new price and a history row.

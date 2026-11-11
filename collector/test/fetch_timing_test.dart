@@ -310,6 +310,47 @@ void main() {
   }
 
   group('one retry', () {
+    test('robots.txt timing out is read once more, 60 s later', () {
+      _withFetcher((async, fetcher, client, files) {
+        final timeout = fetcher.policy.timeout;
+        client.responseDelay = timeout + const Duration(seconds: 10);
+        var prepared = false;
+        Object? failure;
+        unawaited(
+          fetcher.prepare().then(
+            (_) => prepared = true,
+            onError: (Object e) => failure = e,
+          ),
+        );
+        async.elapse(timeout);
+        expect(client.requests, hasLength(1));
+        client.responseDelay = Duration.zero;
+        async.elapse(_retryDelay - const Duration(milliseconds: 1));
+        expect(client.requests, hasLength(1));
+        async.elapse(const Duration(milliseconds: 1));
+        expect(client.requests, hasLength(2));
+        expect(prepared, isTrue);
+        expect(failure, isNull);
+        expect(fetcher.requestsThisRun, 2);
+        final state = jsonDecode(files['state.json']!) as Map<String, dynamic>;
+        expect(state['robots'], _robots);
+        async.elapse(const Duration(seconds: 10));
+      }, policy: _retry);
+    });
+
+    test('robots.txt timing out twice still stops the site', () {
+      _withFetcher((async, fetcher, client, _) {
+        final timeout = fetcher.policy.timeout;
+        client.responseDelay = timeout + const Duration(seconds: 10);
+        Object? failure;
+        unawaited(fetcher.prepare().catchError((Object e) => failure = e));
+        async.elapse(timeout + _retryDelay + timeout);
+        expect(client.requests, hasLength(2));
+        expect(failure, isA<FetchFailed>());
+        async.elapse(const Duration(seconds: 20));
+      }, policy: _retry);
+    });
+
     test('a timeout is retried once, 60 s later, and counted', () {
       _withFetcher((async, fetcher, client, files) {
         unawaited(fetcher.prepare());

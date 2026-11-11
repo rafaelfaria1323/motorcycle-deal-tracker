@@ -34,8 +34,12 @@ class _Store implements ListingStore {
   }
 
   @override
-  Future<int> applyListingFacts(String s, List<NormalizedListing> l) async {
-    calls.add('applyListingFacts');
+  Future<int> applyListingFacts(
+    String s,
+    List<NormalizedListing> l, {
+    bool photos = false,
+  }) async {
+    calls.add('applyListingFacts${photos ? ' with photos' : ''}');
     return 0;
   }
 
@@ -214,7 +218,7 @@ void main() {
       'save 2',
       'markSeen a,b',
       'rematch',
-      'applyListingFacts',
+      'applyListingFacts with photos',
       'applyPriceChanges',
       'setSearchKeys',
       'applyPricesBeforeDrop',

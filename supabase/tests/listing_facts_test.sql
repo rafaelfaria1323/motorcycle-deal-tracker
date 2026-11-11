@@ -65,3 +65,57 @@ begin
   assert not has_function_privilege('anon',
     'public.apply_listing_facts(text, jsonb)', 'execute');
 end $$;
+
+-- Photos follow the seller's edits (20261111150000_listing_photos_follow.sql).
+update public.listings
+set images = array['a', 'b', 'c', 'd'], photos_hashed_at = now(),
+    photos_examined_at = now(), photos_examined_all_at = now()
+where source = 'olx' and source_listing_id in ('edited', 'same', 'text');
+
+insert into auth.users (id) values ('00000000-0000-0000-0000-00000000f0f0');
+insert into public.photo_marks (user_id, listing_id, photo, problem)
+select '00000000-0000-0000-0000-00000000f0f0', id, 0, true
+from public.listings
+where source = 'olx' and source_listing_id in ('edited', 'same', 'text');
+
+do $$
+declare
+  n integer;
+begin
+  n := public.apply_listing_facts('olx', jsonb_build_array(
+    -- The first photo replaced.
+    jsonb_build_object('source_listing_id', 'edited',
+      'images', jsonb_build_array('z', 'b', 'c', 'd')),
+    -- Only a later photo added.
+    jsonb_build_object('source_listing_id', 'same',
+      'images', jsonb_build_array('a', 'b', 'c', 'd', 'e')),
+    -- The same photos, and a site that sends none.
+    jsonb_build_object('source_listing_id', 'text',
+      'images', jsonb_build_array('a', 'b', 'c', 'd')),
+    jsonb_build_object('source_listing_id', 'phone',
+      'images', jsonb_build_array())));
+  assert n = 2, format('2 listings got new photos, got %s', n);
+
+  assert (select images = array['z', 'b', 'c', 'd'] and photos_hashed_at is null
+                 and photos_examined_at is null
+                 and photos_examined_all_at is null
+          from public.listings where source_listing_id = 'edited'),
+    'new first photos are fingerprinted and examined again';
+  assert not exists (
+    select 1 from public.photo_marks k join public.listings l on l.id = k.listing_id
+    where l.source_listing_id = 'edited'), 'marks on replaced photos go';
+
+  assert (select cardinality(images) = 5 and photos_hashed_at is not null
+                 and photos_examined_at is not null
+                 and photos_examined_all_at is null
+          from public.listings where source_listing_id = 'same'),
+    'a later photo added keeps the first three''s checks';
+  assert (select count(*) = 2 from public.photo_marks),
+    'marks on unchanged photos stay';
+
+  assert (select photos_examined_all_at is not null
+          from public.listings where source_listing_id = 'text'),
+    'the same photos change nothing';
+end
+$$;
+

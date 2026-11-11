@@ -190,6 +190,40 @@ void main() {
       expect(page.length, greaterThan(1024));
     }
     expect('$log', isNot(contains('not read in full in the last')));
+    // 3 pages of 4 ads against the 4 the site says (N.56): logged only.
+    expect(
+      '$log',
+      contains(
+        "  ads read differ from the site's count: 12 read, OLX says 4 · "
+        '$search\n',
+      ),
+    );
+    expect(outcome.failure, isNull);
+  });
+
+  test('ads read matching the site\'s count say nothing', () async {
+    answer = (page) => _page(
+      page,
+      1,
+      ads: List.filled(4, (DateTime.utc(2026, 10, 30), false)),
+    );
+    final log = StringBuffer();
+    await local(() async {
+      final fetcher = PoliteFetcher(
+        site: site,
+        policy: const FetchPolicy(
+          minDelay: Duration.zero,
+          jitter: Duration.zero,
+        ),
+      );
+      await fetcher.prepare();
+      try {
+        await fetchSearches(fetcher, [search], dir.path, out: log);
+      } finally {
+        fetcher.close();
+      }
+    });
+    expect('$log', isNot(contains('ads read differ')));
   });
 
   test(

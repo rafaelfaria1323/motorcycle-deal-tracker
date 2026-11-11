@@ -670,6 +670,10 @@ invites; written by the collector on each run).
   "Scored N listing(s) in X ms." line, `scoringMs`); "Estado da recolha"
   warns above 30 s.
 - The service-role key is only ever used by the collector, never the app.
+  Its client asks once more, 5 s later, after a lost connection or a
+  gateway's 502/503/504 (`retryingClient`, N.56): keep the collector's
+  writes safe to repeat (upserts, functions that give the same result
+  twice). In a refresh, what still fails is one site's failure.
 - `source_data_quality` (view, readable by everyone) feeds "Qualidade dos
   dados" in "Estado da recolha" (admins; F.5), including `last_seen_at` (stale after 24 h: "verifique a
   recolha") and `sharp_price_changes` (live listings whose price moved by
@@ -869,7 +873,9 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   result's `priceDrop` is stored as `price_before_drop` (highest seen, never
   creates alerts).
 - **OLX** search results (`__PRERENDERED_STATE__`, 40 per page, `page=N`)
-  hold the full description; no listing pages. Ads with
+  hold the full description; no listing pages. A search counts as read
+  in full by its pages; ads read differing from OLX's count are only
+  logged for now (N.56, `fetchSearches`). Ads with
   `partner.code = 'standvirtual'` are copies of Standvirtual ads and are
   skipped. Ads without a price are rejected but count as live. `createdTime`
   is stored as `published_at`, `lastRefreshTime` (the date OLX shows) as
@@ -896,7 +902,9 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   catalog names), removed ones included.
 - A stored ad follows the seller's edits (N.53): `save` only inserts, so
   each import sends what the site says now (`apply_listing_facts`: year,
-  mileage, title or version, description, place). A fact the site doesn't
+  mileage, title or version, description, place, and on OLX the photos,
+  N.56: new first three are fingerprinted and examined again, the admins'
+  marks on them go). A fact the site doesn't
   give erases nothing; a mileage it gives replaces one read from the text.
 - An empty mileage field is read from the description (trigger
   `listings_mileage_from_text`, `mileage_in_text`: "com 12.000 km",
@@ -922,7 +930,8 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   `https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/...`,
   robots.txt read once a day: kept in the site's fetch state up to 24 h
   (`FetchPolicy.robotsMaxAge`, RFC 9309's limit; Rafael, 2026-10-22),
-  forgotten on a block, so the run after the pause reads it again.
+  forgotten on a block, so the run after the pause reads it again; read
+  with a page's one retry (Rafael, 2026-11-11).
 - 6-10 s between requests (counted from the end of the previous request,
   so work done in between counts), **never parallel**; one retry of a
   page, 60 s later, only after a timeout, a dropped connection or HTTP
@@ -962,7 +971,8 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   compared percent-decoded: `%5B` is `[`; `$` ends a rule only as its
   last character; any port but 443 is refused), and
   a photo it refuses stops the step without marking any listing checked
-  (`FetchDisallowed`). 3 photos per listing, once. Counted apart ("Photo requests:", never "Requests
+  (`FetchDisallowed`). 3 photos per listing, once, and again when the
+  seller replaces them (N.56). Counted apart ("Photo requests:", never "Requests
   used:"). Only hashes and the image model's scores and embeddings
   are kept, never the photos.
 - Honest user agent. Saved pages, manifests, generated search lists and

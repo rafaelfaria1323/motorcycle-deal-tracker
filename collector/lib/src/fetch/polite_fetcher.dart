@@ -307,7 +307,9 @@ class PoliteFetcher({
       _robots = RobotsRules.parse(kept);
       return;
     }
-    final robots = await _request(Uri.https(site.host, '/robots.txt'));
+    // With a page's one retry (Rafael, 2026-11-11): a timeout here lost
+    // the site's whole run.
+    final robots = await _requestOnceMore(Uri.https(site.host, '/robots.txt'));
     final unavailable = robots.status >= 400 && robots.status < 500;
     if (!site.robotsRequired && unavailable) {
       _robots = RobotsRules.parse('');

@@ -230,6 +230,8 @@ Shown on the detail page. Reference prices are edited in the app; set for the or
 
 ✅ The description rules are checked every week against a free LLM (Gemini, N.55): a sample of the week's ads is read by both, and the disagreements (and unmatched titles of a followed model) are a report on the run's page for fixing the rules with tests; the LLM never feeds a score. The first run's misses are fixed (mileage formats, extras, "danos de queda", brakes needed, "PCX" titles).
 
+✅ The collector survives a lost connection to the database (one more try, then only that site fails), and an OLX ad's photos follow the seller's edits (N.56).
+
 ## 22. Privacy 🟡
 
 Private sellers' names and all phone numbers are never stored; saved pages and fetch state are no longer committed. The repo stays public (Rafael, 2026-10-21: the free pipeline is worth more); old saved pages with phone numbers remain in its git history. The API roles may write only where the app does, and the site sends security headers (roadmap S.1); anonymous users idle for 30 days are deleted (S.2); personal data is owner-only by row level security and encrypted at rest by Supabase. How to replace each secret, and when, is written down in `docs/hosting.md` (roadmap S.4). The Android app keeps its session encrypted with a Keystore key and its data out of backups (S.5).
