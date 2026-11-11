@@ -345,6 +345,11 @@ void main() {
     expect(await store.rematch('olx', const [], const Catalog([])), 0);
     expect(await store.applyListingDates('olx', [testListing('a')]), 0);
     expect(await store.applyListingFacts('olx', [testListing('a')]), 0);
+    // An ad without photos has nothing to send with them either.
+    expect(
+      await store.applyListingFacts('olx', [testListing('a')], photos: true),
+      0,
+    );
     expect(await store.setSearchKeys('olx', const {}), 0);
     expect(await pushes.markNotified(const []), 0);
     await pushes.forgetPushTargets(const []);
@@ -383,6 +388,31 @@ void main() {
       expect(sizes, [ListingStore.factsPerRequest, 1]);
     },
   );
+
+  test('photos go with the facts only when asked for (OLX)', () async {
+    replies['apply_listing_facts'] = 1;
+    final listing = NormalizedListing(
+      source: 'olx',
+      sourceListingId: 'a',
+      url: 'https://example.com/a',
+      brand: 'Yamaha',
+      model: 'MT-07',
+      price: 7000,
+      sellerType: SellerType.private,
+      images: const ['https://cdn/1', 'https://cdn/2'],
+    );
+    Map<String, dynamic> sent() =>
+        ((calls.last.body! as Map<String, dynamic>)['p_facts'] as List).single
+            as Map<String, dynamic>;
+
+    // Nothing but photos: sent for them alone.
+    expect(await store.applyListingFacts('olx', [listing], photos: true), 1);
+    expect(sent()['images'], ['https://cdn/1', 'https://cdn/2']);
+
+    calls.clear();
+    expect(await store.applyListingFacts('standvirtual', [listing]), 0);
+    expect(calls, isEmpty);
+  });
 
   test("one account's weekly summary reads only that account's data", () async {
     final loaded = await loadWeeklySummaries(

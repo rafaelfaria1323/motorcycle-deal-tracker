@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:collector/collector.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:supabase/supabase.dart';
 import 'package:test/test.dart';
 
@@ -107,6 +109,66 @@ void main() {
   test('the wording runStatus reads in the log is kept', () {
     final blocked = describeFailure(const FetchBlocked('HTTP 429'))!;
     expect(runStatus(75, blocked.message), 'blocked');
+  });
+
+  group('the database client asks once more', () {
+    Future<({int status, int asked, String log})> ask(
+      List<Object> answers,
+    ) async {
+      var asked = 0;
+      final log = StringBuffer();
+      final client = retryingClient(
+        MockClient((_) async {
+          final answer = answers[asked++];
+          if (answer is Exception) throw answer;
+          return http.Response('', answer as int);
+        }),
+        delay: Duration.zero,
+        out: log,
+      );
+      try {
+        final response = await client.post(
+          Uri.parse('https://db.example/rest/v1/rpc/mark_duplicates'),
+        );
+        return (status: response.statusCode, asked: asked, log: '$log');
+      } finally {
+        client.close();
+      }
+    }
+
+    test('after a lost connection or a gateway error', () async {
+      for (final first in <Object>[
+        const SocketException('reset'),
+        http.ClientException('closed'),
+        502,
+        503,
+        504,
+      ]) {
+        final result = await ask([first, 200]);
+        expect(result.status, 200, reason: '$first');
+        expect(result.asked, 2, reason: '$first');
+        expect(
+          result.log,
+          'Database request asked again '
+          '(${first is int ? first : 'no answer'}): '
+          '/rest/v1/rpc/mark_duplicates\n',
+        );
+      }
+    });
+
+    test('only once, and not for an answer of the database itself', () async {
+      await expectLater(
+        ask([const SocketException('a'), const SocketException('b'), 200]),
+        throwsA(isA<SocketException>()),
+      );
+      expect((await ask([503, 503, 200])).status, 503);
+      for (final status in [200, 400, 409, 500]) {
+        final result = await ask([status, 200]);
+        expect(result.status, status);
+        expect(result.asked, 1);
+        expect(result.log, isEmpty);
+      }
+    });
   });
 
   test('anything unexpected is not described, so it crashes loudly', () {

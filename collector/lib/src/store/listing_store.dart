@@ -304,18 +304,23 @@ class ListingStore(final SupabaseClient _client) {
   /// title or version, description and place (`apply_listing_facts`).
   /// `save` never updates a stored row, so a seller's later edit (the
   /// mileage corrected) would never arrive without this. Absent facts are
-  /// left out: they never erase what is stored. Returns how many changed.
+  /// left out: they never erase what is stored. With [photos] (a source
+  /// whose input holds every photo of an ad: OLX) the photos go too, so
+  /// replaced ones are shown, fingerprinted and examined again (N.56).
+  /// Returns how many changed.
   Future<int> applyListingFacts(
     String source,
-    List<NormalizedListing> listings,
-  ) async {
+    List<NormalizedListing> listings, {
+    bool photos = false,
+  }) async {
     final facts = [
       for (final l in listings)
         if (l.year != null ||
             l.mileage != null ||
             l.variant != null ||
             l.description != null ||
-            l.location != null)
+            l.location != null ||
+            (photos && l.images.isNotEmpty))
           {
             'source_listing_id': l.sourceListingId,
             'year': l.year,
@@ -323,6 +328,7 @@ class ListingStore(final SupabaseClient _client) {
             'variant': l.variant,
             'description': l.description,
             'location': l.location,
+            if (photos && l.images.isNotEmpty) 'images': l.images,
           },
     ];
     var changed = 0;

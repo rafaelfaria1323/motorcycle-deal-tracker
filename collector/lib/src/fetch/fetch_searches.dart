@@ -120,7 +120,8 @@ Future<FetchOutcome> fetchSearches(
         continue;
       }
       await save(first, url, fetched: html);
-      var (:pages, :oldest) = _pageFacts(html, olx: olx);
+      var (:pages, :oldest, :total, :ids) = _pageFacts(html, olx: olx);
+      final read = {...ids};
       spans['$url'] = pages;
       for (var page = 2; page <= pages; page++) {
         if (newerThan != null && oldest != null && oldest.isBefore(newerThan)) {
@@ -137,9 +138,24 @@ Future<FetchOutcome> fetchSearches(
               : StandvirtualSearchAdapter.pageUrl(first, page),
           url,
         );
-        oldest = _pageFacts(next, olx: olx).oldest;
+        final facts = _pageFacts(next, olx: olx);
+        oldest = facts.oldest;
+        read.addAll(facts.ids);
       }
-      if (!newestOnly.contains('$url')) await fetcher.markFullRead(url);
+      if (!newestOnly.contains('$url')) {
+        await fetcher.markFullRead(url);
+        // OLX's pages are counted, not its ads (N.56): an ad that changes
+        // page between two requests is missed and then removed. Logged
+        // for now, to see how often and whether OLX's count can be relied
+        // on before a search with ads missing stops counting as read in
+        // full.
+        if (olx && total != null && read.length != total) {
+          log.writeln(
+            '  ads read differ from the site\'s count: ${read.length} read, '
+            'OLX says $total · $url',
+          );
+        }
+      }
     }
     return FetchOutcome(saved: saved.length);
   } on FetchLimitReached catch (e) {
@@ -201,18 +217,32 @@ bool _emptyWithEngineBand(Uri url, String html) {
   }
 }
 
-/// How many pages the search of page [html] spans, and the oldest
-/// publication or renewal among its ads (top ads aside); 1 and null when
-/// the page can't be read (the import reports it).
-({int pages, DateTime? oldest}) _pageFacts(String html, {required bool olx}) {
+/// How many pages the search of page [html] spans, the oldest publication
+/// or renewal among its ads (top ads aside) and, on OLX, how many ads the
+/// site says the search has and the ids of the page's; 1, null and none
+/// when the page can't be read (the import reports it).
+({int pages, DateTime? oldest, int? total, List<String> ids}) _pageFacts(
+  String html, {
+  required bool olx,
+}) {
   try {
     if (olx) {
       final page = OlxSearchAdapter('').parseSearchPage(html);
-      return (pages: page.totalPages, oldest: page.oldestOrganic);
+      return (
+        pages: page.totalPages,
+        oldest: page.oldestOrganic,
+        total: page.total,
+        ids: [for (final record in page.records) record.id],
+      );
     }
     final page = StandvirtualSearchAdapter('').parseSearchPage(html);
-    return (pages: page.totalPages, oldest: page.oldestOrganic);
+    return (
+      pages: page.totalPages,
+      oldest: page.oldestOrganic,
+      total: null,
+      ids: const [],
+    );
   } on FormatException {
-    return (pages: 1, oldest: null);
+    return (pages: 1, oldest: null, total: null, ids: const []);
   }
 }

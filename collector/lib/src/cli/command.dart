@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:http/http.dart' show Client, ClientException;
+import 'package:http/retry.dart';
 import 'package:supabase/supabase.dart';
 
 import '../config/supabase_config.dart';
@@ -41,9 +44,14 @@ Future<void> withServiceClient(
   Future<void> Function(SupabaseClient client) body,
 ) async {
   SupabaseClient? client;
+  Client? http;
   try {
     final config = SupabaseConfig.fromEnvironment();
-    client = SupabaseClient(config.url, config.serviceKey);
+    client = SupabaseClient(
+      config.url,
+      config.serviceKey,
+      httpClient: http = retryingClient(Client()),
+    );
     await body(client);
   } on Object catch (e) {
     final failure = describeFailure(e);
@@ -52,8 +60,32 @@ Future<void> withServiceClient(
     exitCode = failure.code;
   } finally {
     await client?.dispose();
+    http?.close();
   }
 }
+
+/// [inner], asking once more, 5 s later, when the connection to the
+/// database fails or its gateway answers 502, 503 or 504 (N.56: one lost
+/// connection ended a whole run). Safe to repeat: the collector's writes
+/// are upserts and functions that give the same result when run twice.
+Client retryingClient(
+  Client inner, {
+  Duration delay = const Duration(seconds: 5),
+  StringSink? out,
+}) => RetryClient(
+  inner,
+  retries: 1,
+  when: (response) => const {502, 503, 504}.contains(response.statusCode),
+  whenError: (error, _) =>
+      error is SocketException ||
+      error is ClientException ||
+      error is TimeoutException,
+  delay: (_) => delay,
+  onRetry: (request, response, _) => (out ?? stdout).writeln(
+    'Database request asked again (${response?.statusCode ?? 'no answer'}): '
+    '${request.url.path}',
+  ),
+);
 
 /// [args] read by [parser] (package `args`), or null when the command
 /// should stop: `--help` prints [usage] and the options to [out]; an
