@@ -265,6 +265,7 @@ void main() {
       ).writeTo(dir.path);
       final partial = await StandvirtualSearchAdapter(dir.path).read();
       expect(partial.issues.single.message, contains('holds 32 of 33'));
+      expect(partial.issues.single.kind, IssueKind.pagesUnread);
       expect(partial.issues.single.search, url);
 
       File(
@@ -371,12 +372,25 @@ void main() {
     });
   });
 
-  test('a result without a price is a problem, not a crash', () {
+  test('a result without a price is read, rejected and still live', () async {
     final bad = node(id: '3')..['price'] = {'amount': <String, Object?>{}};
     final page = adapter.parseSearchPage(searchPage([node(), bad]));
 
-    expect(page.records.length, 1);
-    expect(page.problems.length, 1);
+    expect(page.records.length, 2);
+    expect(page.problems, isEmpty);
+    expect(page.records.last.price, isNull);
+    final outcome = StandvirtualMapper(catalog).map(page.records.last);
+    expect(outcome, isA<Rejected>());
+    expect((outcome as Rejected).reason, 'no price (on request)');
+
+    // No read issue: its search is read in full, and the ad counts as
+    // seen, so nothing of it is removed.
+    final dir = Directory.systemTemp.createTempSync('standvirtual');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    File('${dir.path}/p1.html').writeAsStringSync(searchPage([node(), bad]));
+    final batch = await loadBatch('standvirtual-search', dir.path, catalog);
+    expect(batch.issues, isEmpty);
+    expect(liveIds(batch), contains(StandvirtualMapper.listingId('3')));
   });
 
   test('a page that is not a search page is a format error', () {

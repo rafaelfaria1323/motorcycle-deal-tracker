@@ -111,6 +111,7 @@ class StandvirtualSearchAdapter
               '$name: holds ${shown[key]} of ${totals[key]} listings (more '
               'pages exist and were not read)',
               search: search,
+              kind: .pagesUnread,
             ),
       ],
     );
@@ -224,8 +225,10 @@ StandvirtualRawListing _fromNode(
   }
 
   final amount = asMap(asMap(node['price'])?['amount']);
+  // An ad without a price is still on the site: the mapper rejects it,
+  // and it counts as seen (a read issue here failed the whole run and
+  // kept its search from removing anything, N.57).
   final price = num.tryParse('${amount?['value']}');
-  if (price == null) throw FormatException('$id: no price');
 
   final sellerName = asMap(node['sellerLink'])?['name'];
   final thumbnail = asMap(node['thumbnail'])?['x2'];
@@ -240,7 +243,9 @@ StandvirtualRawListing _fromNode(
     version: display('version'),
     price: price,
     currency: '${amount?['currencyCode']}',
-    priceBeforeDrop: priceBeforeDrop(node['priceDrop'], price),
+    priceBeforeDrop: price == null
+        ? null
+        : priceBeforeDrop(node['priceDrop'], price),
     year: int.tryParse(value('first_registration_year') ?? ''),
     mileageKm: int.tryParse(value('mileage') ?? ''),
     engineCc: int.tryParse(value('engine_capacity') ?? ''),

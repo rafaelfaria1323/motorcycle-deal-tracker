@@ -22,6 +22,14 @@ begin
   exception when invalid_parameter_value then refused := sqlerrm;
   end;
   assert refused = 'Invalid push subscription', 'only https push services';
+
+  -- Only the browsers' own push services (push_services_test.sql).
+  refused := null;
+  begin
+    perform public.save_push_subscription('https://example.com/push', 'k', 'a');
+  exception when invalid_parameter_value then refused := sqlerrm;
+  end;
+  assert refused = 'Invalid push subscription', 'another server is refused';
   begin
     perform public.push_keys();
     raise exception 'an account read the private key';

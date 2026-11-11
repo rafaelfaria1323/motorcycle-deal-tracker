@@ -9,6 +9,7 @@ import '../notify/fcm.dart';
 import '../notify/web_push.dart';
 import '../store/listing_store.dart';
 import '../store/push_store.dart';
+import 'run_report.dart';
 import 'source_batch.dart';
 
 /// How an ad no followed model matched shows in the log: its brand and
@@ -46,9 +47,16 @@ Future<bool> importBatch(
   bool full = false,
   bool force = false,
   Map<String, String> labels = const {},
+  RunReport? report,
   StringSink? out,
 }) async {
   final log = out ?? stdout;
+  report?.addImport(
+    batch.source,
+    issues: batch.issues,
+    searches: searchReports(batch),
+    labels: labels,
+  );
   log.writeln('Source: ${batch.source}');
   log.writeln('Catalog: ${catalog.entries.length} model(s)');
   log.writeln(
@@ -98,6 +106,7 @@ Future<bool> importBatch(
     'Stored ${stored.inserted} new, ${stored.alreadyStored} already stored, '
     '${stored.duplicatesInInput} duplicate(s) in the input.',
   );
+  report?.count('new', stored.inserted);
 
   // 2. Everything in this input was seen just now, new or not. A listing
   //    that had been marked removed comes back to life here.
@@ -123,6 +132,7 @@ Future<bool> importBatch(
   // 3. Known listings whose price moved get the new price and a history row.
   final changed = await store.applyPriceChanges(batch.source, unique);
   log.writeln('Price changes: $changed');
+  report?.count('price_changes', changed);
 
   // 3a. The search each listing was found by, so later runs remove only
   //     listings of the searches they read in full.
@@ -174,6 +184,7 @@ Future<bool> importBatch(
         includeUnkeyed: plan.includeUnkeyed,
       );
       log.writeln('Removed: $removed');
+      report?.count('removed', removed);
     }
   }
   return batch.issues.isEmpty;
@@ -186,6 +197,7 @@ Future<void> finishRun(
   ListingStore store,
   PushStore pushes, {
   DateTime? startedAt,
+  RunReport? report,
   StringSink? out,
 }) async {
   final log = out ?? stdout;
@@ -201,11 +213,13 @@ Future<void> finishRun(
   log.writeln(
     'Scored $scored listing(s) in ${scoring.elapsedMilliseconds} ms.',
   );
+  report?.scoringMs = scoring.elapsedMilliseconds;
 
   // 6. Last, once statuses, duplicates and prices are final: who needs to
   //    be told about what.
   final alerts = await store.generateAlerts();
   log.writeln('Alerts created: $alerts');
+  report?.count('alerts', alerts);
 
   // 7. Tell the phones: each account's devices (Web Push).
   WebPushSender? push;
@@ -222,6 +236,7 @@ Future<void> finishRun(
     'Notifications sent: ${notified.alerts} '
     '(${notified.pushes} to devices)',
   );
+  report?.finished = true;
 
   // 8. "Quanto vale a minha mota" requests that waited for this run.
   if (startedAt != null) {

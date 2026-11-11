@@ -10,11 +10,15 @@ import 'package:collector/collector.dart';
 /// only; a partial run only when its site failed in the run before too).
 /// In GitHub Actions the status goes to the step's outputs (`status`), so
 /// a partial run doesn't fail the job.
-/// Usage: `report_run.dart <exit-code> <started-at> <log-file>`
+/// What the run did comes from the report refresh.dart wrote
+/// (`--report`, N.57); the log is read only when there is none (the run
+/// stopped before its first site ended, or never started).
+/// Usage: `report_run.dart <exit-code> <started-at> <log-file> [report]`
 Future<void> main(List<String> args) async {
-  if (args.length != 3) {
+  if (args.length != 3 && args.length != 4) {
     stderr.writeln(
-      'Usage: dart run bin/report_run.dart <exit-code> <started-at> <log-file>',
+      'Usage: dart run bin/report_run.dart <exit-code> <started-at> '
+      '<log-file> [report-file]',
     );
     exitCode = 64;
     return;
@@ -23,10 +27,20 @@ Future<void> main(List<String> args) async {
   final code = int.tryParse(args[0]) ?? 1;
   final startedAt = DateTime.tryParse(args[1]) ?? DateTime.now().toUtc();
   final log = await File(args[2]).readAsString().catchError((_) => '');
+  // A report without a site (the run stopped before the first one) says
+  // less than the log's last lines.
+  final written = await readRunReport(args.length == 4 ? args[3] : null);
+  final report = written == null || written.sites.isEmpty ? null : written;
 
   await withServiceClient((client) async {
-    final status = runStatus(code, log);
-    final problems = status == 'ok' ? <String>[] : runProblems(log);
+    final status = report == null
+        ? runStatus(code, log)
+        : reportStatus(code, report);
+    final problems = status == 'ok'
+        ? <String>[]
+        : report == null
+        ? runProblems(log)
+        : reportProblems(report);
     final previous = await client
         .from('collector_runs')
         .select('status, problems')
@@ -37,11 +51,21 @@ Future<void> main(List<String> args) async {
       'started_at': startedAt.toUtc().toIso8601String(),
       'status': status,
       'summary': logTail(log),
-      'requests': requestsUsed(log),
-      'counts': runCounts(log),
-      'searches': searchesRead(log),
+      'requests': report == null
+          ? requestsUsed(log)
+          : {
+              for (final MapEntry(:key, :value) in report.sites.entries)
+                key: value.requests,
+            },
+      'counts': report?.counts ?? runCounts(log),
+      'searches': report == null
+          ? searchesRead(log)
+          : [
+              for (final MapEntry(:key, :value) in report.sites.entries)
+                for (final search in value.searches) {'site': key, ...search},
+            ],
       'problems': problems,
-      'scoring_ms': scoringMs(log),
+      'scoring_ms': report == null ? scoringMs(log) : report.scoringMs,
       'sites': {
         for (final MapEntry(key: name, value: site) in FetchSite.byName.entries)
           // No state yet: nothing used, no pause.

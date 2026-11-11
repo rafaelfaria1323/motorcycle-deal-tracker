@@ -80,6 +80,7 @@ class OlxSearchAdapter(
               '$search: ${pages.length} of ${totalPages[search]} page(s) '
               'saved (the others were not read)',
               search: manifestSearch[search],
+              kind: .pagesUnread,
             ),
       ],
     );
@@ -116,7 +117,7 @@ class OlxSearchAdapter(
     final listing = asMap(asMap(asMap(state)?['listing'])?['listing']);
     final ads = listing?['ads'];
     if (listing == null || ads is! List) {
-      throw const FormatException('not a search results page');
+      throw const FormatException(notResultsPageMessage);
     }
 
     final request = asMap(listing['requestParams']);

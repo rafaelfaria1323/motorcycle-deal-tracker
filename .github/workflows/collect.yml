@@ -82,7 +82,8 @@ jobs:
           if [ "$read" = light ]; then args="--full --light"; fi
           echo "Reading: $read"
           set +e
-          make refresh ARGS="$args" 2>&1 | tee run.log
+          # What the run did, for the step below (run from collector/).
+          make refresh ARGS="$args --report=../run_report.json" 2>&1 | tee run.log
           echo "code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
           exit 0
 
@@ -96,6 +97,7 @@ jobs:
           "${{ steps.refresh.outputs.code || '1' }}"
           "${{ steps.refresh.outputs.started }}"
           ../run.log
+          ../run_report.json
 
       - name: Save fetch state
         if: always()

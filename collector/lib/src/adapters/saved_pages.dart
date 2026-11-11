@@ -89,7 +89,14 @@ Future<ParseResult<R>> readSavedSearchPages<R, P>(
       final stale = staleIssue(i, name, age, maxAge, search: search);
       if (stale != null) issues.add(stale);
     } on FormatException catch (e) {
-      issues.add(ParseIssue(i, '$name: ${e.message}', search: search));
+      issues.add(
+        ParseIssue(
+          i,
+          '$name: ${e.message}',
+          search: search,
+          kind: e.message == notResultsPageMessage ? .notResultsPage : .other,
+        ),
+      );
     }
   }
   issues.addAll(finish(manifest?.newestOnly ?? const {}));

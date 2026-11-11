@@ -99,9 +99,13 @@ for the model (and brand when its filter is unknown). The planner applies
 the same year and OLX engine-band filters to these searches. This does not
 change the fetching rules, model matching, or per-search removal safeguards.
 
-After each scheduled run `bin/report_run.dart` records it in `collector_runs`
+After each scheduled run `bin/report_run.dart` records it in `collector_runs`,
+from the report the run wrote (`refresh.dart --report=<file>`, JSON: each
+site's outcome, error line, requests, read issues and searches, the counts
+and whether it finished; `pipeline/run_report.dart`), or from its log when
+it left none
 (with the error lines of a run that was not ok, each search's pages and
-ads from those lines, each site's requests today
+ads, each site's requests today
 and pause from its fetch state file, how long the scores took
 (`scoring_ms`) and the GitHub run's address; shown
 in the app's "Estado da recolha") and, when its status differs from the previous run's (ok, partial, blocked, failed),

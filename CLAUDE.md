@@ -678,11 +678,17 @@ invites; written by the collector on each run).
   dados" in "Estado da recolha" (admins; F.5), including `last_seen_at` (stale after 24 h: "verifique a
   recolha") and `sharp_price_changes` (live listings whose price moved by
   50 % or more in one step in the last 30 days).
-- `collector_runs` is readable only by non-anonymous users. `requests` holds
-  the requests each site used (from refresh.dart's "Requests used:" lines,
-  parsed by report_run.dart), `counts` what the run did over both sites
-  (`new`, `price_changes`, `removed`, `alerts`, from the log's own lines:
-  `runCounts`; keep those log lines' wording). report_run.dart also sends a notification to the
+- `collector_runs` is readable only by non-anonymous users. What a run
+  did comes from the report refresh.dart writes (`--report`, `RunReport`,
+  `pipeline/run_report.dart`, N.57: each site's outcome, error line,
+  requests, read issues with their `IssueKind` and searches; the counts,
+  scoring time and whether it finished), read by report_run.dart
+  (`reportStatus`, `reportProblems`). Only a run that left no report, or
+  one without a site, is read from its log as before (`runStatus`,
+  `runProblems`, `runCounts`...: keep those log lines' wording for that
+  case). `requests` holds
+  the requests each site used, `counts` what the run did over both sites
+  (`new`, `price_changes`, `removed`, `alerts`). report_run.dart also sends a notification to the
   admins' devices (Web Push, `pushToUsers`; a tap opens "Estado da
   recolha") when a run's status differs from the previous run's (`run_health.dart`:
   the error lines of each site, or "voltou a funcionar"), never twice for
@@ -855,7 +861,8 @@ the bike and how many kinds of hint were found (a tap opens the ad).
 - **Standvirtual** search pages hold everything except the description
   (including `createdAt` -> `published_at` and the bump date ->
   `site_refreshed_at`; `apply_listing_dates` keeps the earliest publication
-  and latest renewal) and only one thumbnail. Listing pages are read only
+  and latest renewal) and only one thumbnail. An ad without a price is
+  rejected but counts as live, as on OLX (N.57). Listing pages are read only
   for matched, non-duplicate listings without details (`details_checked_at
   is null`), for the details and every photo (up to 30,
   `maxImages`); then for listings read before the photos were kept
@@ -1271,7 +1278,9 @@ opportunity brought by a drop shows the drop), and past 4 listings the
 best 3 plus one summary, "Mais N alertas", that opens Alertas
 (`alertsSummaryMessage`, `pushesPerAccount`; the best sent last, on top);
 every alert covered is marked): to the account's devices by Web Push, or FCM
-for the Android app (`push_subscriptions`, saved from Mais ›
+for the Android app (`push_subscriptions`, only at the browsers' own
+push services: `push_endpoint_allowed` = the collector's
+`pushServiceHosts`, N.57; saved from Mais ›
 "Notificações neste aparelho", saved again on each visit, removed on
 sign-out; on the iPhone only in the home-screen app;
 no longer to Telegram since 2026-10-21). The collector sends them itself
