@@ -18,7 +18,9 @@ class const GeminiFailure(final String message) implements Exception {
 /// Asks Gemini for JSON in a given shape. One request at a time, [spacing]
 /// apart (the free tier allows a few a minute); a refusal for too many
 /// requests (429) or a busy server (500/503) is tried once more after
-/// [retryDelay].
+/// [retryDelay]. Thinking is switched off (`thinkingBudget: 0`; with it a
+/// batch of descriptions took minutes); a model that refuses that setting
+/// (HTTP 400 naming it) is asked again without it, for the rest of the run.
 class GeminiClient({
   required final String apiKey,
   final String model = defaultGeminiModel,
@@ -29,6 +31,7 @@ class GeminiClient({
   final Future<void> Function(Duration) wait = Future<void>.delayed,
 }) {
   bool _first = true;
+  bool _thinkingOff = true;
 
   Uri get _endpoint => Uri.https(
     'generativelanguage.googleapis.com',
@@ -43,25 +46,16 @@ class GeminiClient({
   ) async {
     if (!_first) await wait(spacing);
     _first = false;
-    final body = jsonEncode({
-      'contents': [
-        {
-          'role': 'user',
-          'parts': [
-            {'text': prompt},
-          ],
-        },
-      ],
-      'generationConfig': {
-        'temperature': 0,
-        'responseMimeType': 'application/json',
-        'responseSchema': schema,
-      },
-    });
-    var response = await _post(body);
+    var response = await _post(_body(prompt, schema));
+    if (_thinkingOff &&
+        response.statusCode == 400 &&
+        response.body.toLowerCase().contains('thinking')) {
+      _thinkingOff = false;
+      response = await _post(_body(prompt, schema));
+    }
     if (const {429, 500, 503}.contains(response.statusCode)) {
       await wait(retryDelay);
-      response = await _post(body);
+      response = await _post(_body(prompt, schema));
     }
     if (response.statusCode != 200) {
       throw GeminiFailure(
@@ -70,6 +64,23 @@ class GeminiClient({
     }
     return answerJson(response.body);
   }
+
+  String _body(String prompt, Map<String, Object?> schema) => jsonEncode({
+    'contents': [
+      {
+        'role': 'user',
+        'parts': [
+          {'text': prompt},
+        ],
+      },
+    ],
+    'generationConfig': {
+      'temperature': 0,
+      'responseMimeType': 'application/json',
+      'responseSchema': schema,
+      if (_thinkingOff) 'thinkingConfig': {'thinkingBudget': 0},
+    },
+  });
 
   Future<http.Response> _post(String body) async {
     try {

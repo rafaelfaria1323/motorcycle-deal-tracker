@@ -148,7 +148,9 @@ Gemini's free tier (`audit/gemini.dart`; env `GEMINI_API_KEY`, optional
 (`unmatched_title_sample`) are placed among the followed models.
 `audit/text_audit.dart` compares them and writes the report (stdout and
 the run's summary). It writes nothing and never feeds a score; without the
-key it is skipped.
+key it is skipped. Each request logs a line (how long, or why it failed);
+thinking is switched off (`thinkingBudget: 0`, dropped for a model that
+refuses it), and after 10 minutes (`--minutes`) no new request starts.
 
 ## Notification languages
 

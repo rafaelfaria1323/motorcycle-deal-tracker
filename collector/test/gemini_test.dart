@@ -54,10 +54,53 @@ void main() {
           'temperature': 0,
           'responseMimeType': 'application/json',
           'responseSchema': {'type': 'ARRAY'},
+          'thinkingConfig': {'thinkingBudget': 0},
         });
         expect(waits, isEmpty, reason: 'the first request waits for nothing');
         await client.generateJson('p', {});
         expect(waits, [const Duration(seconds: 15)]);
+      },
+    );
+
+    test(
+      'a model that refuses to stop thinking is asked again, with it on',
+      () async {
+        final configs = <Object?>[];
+        final client = GeminiClient(
+          apiKey: 'k',
+          httpClient: MockClient((r) async {
+            final config =
+                (jsonDecode(r.body) as Map<String, Object?>)['generationConfig']
+                    as Map<String, Object?>;
+            configs.add(config['thinkingConfig']);
+            return config.containsKey('thinkingConfig')
+                ? http.Response(
+                    jsonEncode({
+                      'error': {'message': 'Thinking budget is not supported'},
+                    }),
+                    400,
+                  )
+                : http.Response(_answer({'ok': true}), 200);
+          }),
+          wait: (_) async {},
+        );
+        expect(await client.generateJson('p', {}), {'ok': true});
+        expect(await client.generateJson('p', {}), {'ok': true});
+        expect(configs, [
+          {'thinkingBudget': 0},
+          null,
+          null,
+        ], reason: 'asked once with it, then never again');
+        final other = GeminiClient(
+          apiKey: 'k',
+          httpClient: MockClient((r) async => http.Response('bad schema', 400)),
+          wait: (_) async {},
+        );
+        await expectLater(
+          other.generateJson('p', {}),
+          throwsA(isA<GeminiFailure>()),
+          reason: 'another 400 is not asked again',
+        );
       },
     );
 
