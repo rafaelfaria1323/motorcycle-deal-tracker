@@ -277,6 +277,30 @@ void main() {
     );
   });
 
+  test('ads the engine-size search brings, as Standvirtual lists them', () {
+    // Read from Standvirtual's CBR, CB and R searches at their models'
+    // engine sizes (2026-11-12): the family, often no version, the size.
+    final resolver = ModelResolver(full);
+    String? slug(String family, String? version, int cc) => resolver
+        .resolve(
+          brand: 'Honda',
+          family: family,
+          text: '$family ${version ?? ''}',
+          engineCc: cc,
+        )
+        ?.slug;
+
+    expect(slug('CBR ', null, 649), 'honda-cbr650r');
+    expect(slug('CB ', 'Eclutch', 649), 'honda-cb650r');
+    expect(slug('CB ', '650 F full extras', 649), isNull);
+    expect(
+      resolver
+          .resolve(brand: 'Yamaha', family: 'R ', text: 'R  ', engineCc: 700)
+          ?.slug,
+      'yamaha-r7',
+    );
+  });
+
   test('the engine size picks the model within a family', () {
     final resolver = ModelResolver(full);
 

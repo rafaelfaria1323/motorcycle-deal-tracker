@@ -32,7 +32,11 @@ For each site (Standvirtual, OLX):
    extra requests). An OLX copy of a Standvirtual ad is skipped when the
    original is stored, else kept as an OLX ad (N.70: our Standvirtual
    searches can miss an ad; "Copies of Standvirtual ads: 8, 1 kept
-   (original not stored)."). The log says, per search, the pages it spans (from its
+   (original not stored)."). A Standvirtual word search inside a model
+   filter ("/motos/honda/cbr/q-650") is also read at its models' engine
+   sizes (N.71: "Honda CBR" ads with the version empty), and an OLX title
+   naming only the family takes the model the description names after the
+   brand. The log says, per search, the pages it spans (from its
    first page, kept in `searches.json`) and the pages read, the ads found,
    how many are a followed model and whether it was read in full
    ("Search (olx): yamaha-mt-07 · read 2 of 3 page(s) · 80 ad(s), 9

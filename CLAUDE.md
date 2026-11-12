@@ -854,7 +854,15 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   filter is a family ("R", "CB"), a search also asks for the engine-size
   band that holds all its models (`olxEngineBand`, the values of OLX's own
   filter list: up to 50, 51-125, 126-500, 501-1000, over 1000 cc), so other
-  models' ads aren't read; word searches ("q-honda-forza-350") too. Every page of a
+  models' ads aren't read; word searches ("q-honda-forza-350") too. On
+  Standvirtual a word search inside a model filter ("/motos/honda/cbr/q-650")
+  is followed by the same filter at its models' engine sizes
+  (`standvirtualEngineSearch`, `search[filter_float_engine_capacity:from/to]`,
+  N.71): the words miss an ad titled only "Honda CBR", the engine size
+  misses one that leaves it empty, so both are read. On OLX a title naming
+  only the family takes the model the description names right after the
+  brand in its first 12 words, if of the same family (`_fromDescription`).
+  Every page of a
   search is read (OLX 40 listings each, Standvirtual 32, `?page=N`), except
   in light runs (`--light`, R.2; `collect.yml` reads in full at 00, 08, 14
   and 20 h Lisbon time, input `read`): a search read in full in the last

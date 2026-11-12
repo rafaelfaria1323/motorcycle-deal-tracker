@@ -31,6 +31,35 @@ const olxEngineBands = [
   (value: 'mais-de-1000-cc', from: 1001, to: 100000),
 ];
 
+/// Standvirtual's engine-size filter (cc from, cc to), any whole number.
+const standvirtualEngineFrom = 'search[filter_float_engine_capacity:from]';
+const standvirtualEngineTo = 'search[filter_float_engine_capacity:to]';
+
+/// The engine-size search beside a Standvirtual word search inside a model
+/// filter ("/motos/honda/cbr/q-650"): the words find only the ads whose
+/// version spells them, and many CBR650R ads are titled "Honda CBR" with
+/// the version empty (2026-11-12: 1 ad for "q-650", 8 for CBR at 640-660
+/// cc). The engine size finds those, but not an ad that leaves it empty,
+/// so both are read. Null when [base] is not such a search or one of
+/// [entries] has no engine limits.
+Uri? standvirtualEngineSearch(Uri base, List<CatalogEntry> entries) {
+  final segments = base.pathSegments.where((s) => s.isNotEmpty).toList();
+  if (segments.length != 4 || !segments.last.startsWith('q-')) return null;
+  if (entries.any((e) => e.engineCcMin == null || e.engineCcMax == null)) {
+    return null;
+  }
+  return base.replace(
+    pathSegments: segments.take(3),
+    queryParameters: {
+      ...base.queryParameters,
+      standvirtualEngineFrom:
+          '${entries.map((e) => e.engineCcMin!).reduce(_min)}',
+      standvirtualEngineTo:
+          '${entries.map((e) => e.engineCcMax!).reduce(_max)}',
+    },
+  );
+}
+
 /// The band that holds every one of [entries], or null when one has no
 /// engine size or they don't fit one band.
 String? olxEngineBand(Iterable<CatalogEntry> entries) {
@@ -51,8 +80,9 @@ String? olxEngineBand(Iterable<CatalogEntry> entries) {
 /// The searches for [site] of the models in [catalog], in catalog order. Models
 /// with the same address share one search, which asks for the earliest year
 /// any of them tracks (and, on OLX, the engine-size band that holds all of
-/// them: [olxEngineBand]). Unusable addresses are left out and reported in
-/// `problems`.
+/// them: [olxEngineBand]; on Standvirtual, a word search inside a model
+/// filter is followed by its engine-size search, [standvirtualEngineSearch]).
+/// Unusable addresses are left out and reported in `problems`.
 ({List<PlannedSearch> searches, List<String> problems}) planSearches(
   Catalog catalog,
   FetchSite site,
@@ -80,26 +110,55 @@ String? olxEngineBand(Iterable<CatalogEntry> entries) {
     groups.putIfAbsent(base.toString(), () => (base, [])).$2.add(entry);
   }
 
-  return (
-    searches: [
-      for (final (base, entries) in groups.values)
-        PlannedSearch(
-          base.replace(
+  // Searches with the same address (an engine-size search can repeat
+  // another) are read once, for all their models.
+  final searches = <String, (Uri, List<String>)>{};
+  void add(Uri url, List<CatalogEntry> entries) {
+    final models = searches.putIfAbsent(url.toString(), () => (url, [])).$2;
+    for (final e in entries) {
+      final name = '${e.brand} ${e.model}';
+      if (!models.contains(name)) models.add(name);
+    }
+  }
+
+  for (final (base, entries) in groups.values) {
+    final yearFrom = '${entries.map((e) => e.minYear).reduce(_min)}';
+    add(
+      base.replace(
+        queryParameters: {
+          ...base.queryParameters,
+          site == .olx ? olxYearFrom : standvirtualYearFrom: yearFrom,
+          if (site == .olx) olxEngineSize: ?olxEngineBand(entries),
+        },
+      ),
+      entries,
+    );
+    if (site == .standvirtual) {
+      final engine = standvirtualEngineSearch(base, entries);
+      if (engine != null) {
+        add(
+          engine.replace(
             queryParameters: {
-              ...base.queryParameters,
-              site == .olx ? olxYearFrom : standvirtualYearFrom:
-                  '${entries.map((e) => e.minYear).reduce(_min)}',
-              if (site == .olx) olxEngineSize: ?olxEngineBand(entries),
+              ...engine.queryParameters,
+              standvirtualYearFrom: yearFrom,
             },
           ),
-          [for (final e in entries) '${e.brand} ${e.model}'],
-        ),
+          entries,
+        );
+      }
+    }
+  }
+
+  return (
+    searches: [
+      for (final (url, models) in searches.values) PlannedSearch(url, models),
     ],
     problems: problems,
   );
 }
 
 int _min(int a, int b) => a < b ? a : b;
+int _max(int a, int b) => a > b ? a : b;
 
 Uri _withoutPageOrYear(Uri url) {
   if (!url.hasQuery) return url;

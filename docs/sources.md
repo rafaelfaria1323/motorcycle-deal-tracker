@@ -5,6 +5,37 @@ here. Robots.txt is not permission; the source's terms of use decide.
 
 ## Decision log
 
+### 2026-11-12: Standvirtual read at the engine size too (N.71)
+
+**Why.** A CBR650R Rafael's father found (ID8Q1m16, "Honda CBR", the
+version empty, 649 cc) never reached the app (N.70). Standvirtual's model
+filter is a family ("CBR", "CB", "R"), and our searches narrowed it with
+words (`/motos/honda/cbr/q-650`), which match only an ad whose version
+spells them. Checked by hand on 2026-11-12 (a few requests, 10 s apart,
+robots.txt allows search pages): CBR with "q-650" 1 ad, CBR at 640-660 cc
+8 (this ad among them); CB with "q-650" 7, at 640-660 cc 15; R with "q-7"
+3, at 680-710 cc 2. The engine-size filter
+(`search[filter_float_engine_capacity:from]` / `:to]`, inclusive) misses
+ads that leave the engine size empty (an R7 "Edição 60º Aniversário", an
+R7 for the A2 licence, a CB650R E-Clutch 2026), which the words find.
+
+**Decision.** Keep each word search inside a model filter and read the same
+filter at its models' engine sizes after it (`standvirtualEngineSearch`:
+the lowest `engine_cc_min` to the highest `engine_cc_max`, the same first
+year; only when every model has both). Ads in both are stored once; the
+resolver matches the family and engine size ("CBR", 649 cc = CBR650R; a
+CB650F stays out by its excluded words). About one more page per such
+search and run (three today); the fetching rules are unchanged. Searches
+without a model filter ("/motos/yamaha/q-mt-07") get none: the engine
+size would bring every model of the brand at that size.
+
+On OLX, which gives no exact engine size, a title naming only the family
+("Honda CBR") now takes the model the description names right after the
+brand in its first 12 words ("VENDE-SE – HONDA CBR650R E-Clutch"), only of
+the ad's own OLX family, so "troco por Honda CB650R" never matches.
+Standvirtual's search pages have no description, so this is OLX only (a
+re-import would otherwise undo it).
+
 ### 2026-10-28: terms of use read (5.2)
 
 **Source.** Rafael's summary of both sites' terms (in Portuguese, the
@@ -219,7 +250,8 @@ brought every Honda: 2 pages each); an unknown value would make OLX return nothi
 first page has no ads is not saved: it isn't read in full and removes
 nothing, and the log says so. A model without an engine
 size, or models in different bands, keep the search as it was. Standvirtual
-searches already name the engine size (`q-650`, `q-7`). An ad whose seller
+searches name the engine size in words (`q-650`, `q-7`; since N.71 also
+read at the models' engine sizes). An ad whose seller
 left the engine size empty, or chose the wrong band, is no longer found on
 OLX (Standvirtual still lists dealer ads).
 

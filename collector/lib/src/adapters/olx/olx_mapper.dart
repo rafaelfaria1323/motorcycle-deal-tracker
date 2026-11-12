@@ -44,11 +44,9 @@ class OlxMapper(final Catalog catalog, {int? currentYear}) {
     final brand = _brand(raw);
     final family = raw.model ?? '';
     final title = _withoutBrand(raw.title, brand);
-    final entry = _models.resolve(
-      brand: brand,
-      family: family,
-      text: '$family $title',
-    );
+    final entry =
+        _models.resolve(brand: brand, family: family, text: '$family $title') ??
+        _fromDescription(raw.description, brand, family);
 
     // Unresolved: keep the title, without letting the base mapper's
     // exact lookup undo the resolver's decision.
@@ -108,6 +106,43 @@ class OlxMapper(final Catalog catalog, {int? currentYear}) {
     final rest = words.sublist(at + 1).join(' ');
     return rest.isEmpty ? whole : rest;
   }
+
+  /// The model the description names after the brand near its start
+  /// ("VENDE-SE – HONDA CBR650R E-Clutch 2026", under a title of only
+  /// "Honda CBR"), when it is of the ad's own OLX model [family] (its
+  /// letters, [_familyKey]): a description can name other bikes ("troco
+  /// por Honda CB650R"). Null without a family or when the start of the
+  /// description names no model.
+  CatalogEntry? _fromDescription(
+    String? description,
+    String brand,
+    String family,
+  ) {
+    final familyKey = _familyKey(family);
+    if (description == null || familyKey.isEmpty) return null;
+    final words = description.trim().split(RegExp(r'\s+'));
+    final brandKey = normalizeKey(brand);
+    final at = words
+        .take(_descriptionWords)
+        .toList()
+        .indexWhere((w) => normalizeKey(w) == brandKey);
+    if (at < 0) return null;
+    final entry = _models.resolve(
+      brand: brand,
+      family: family,
+      text: words.skip(at + 1).take(4).join(' '),
+    );
+    if (entry == null) return null;
+    return _familyKey(entry.model) == familyKey ? entry : null;
+  }
+
+  /// A model's letters before its first digit: "MT-07" and "MT-09" are
+  /// "mt", "CBR650R" is "cbr".
+  static String _familyKey(String model) =>
+      normalizeKey(model).replaceFirst(RegExp(r'[0-9].*$'), '');
+
+  /// How far into the description the brand is looked for.
+  static const _descriptionWords = 12;
 
   /// [title] without anything shaped like a Portuguese phone number (nine
   /// digits from 2 or 9, spaced or not): nobody's phone number is stored.
