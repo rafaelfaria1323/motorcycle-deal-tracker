@@ -145,7 +145,8 @@ Screen names below use the Portuguese labels; English provides the same screens.
     same bike's price in Spain, France or Germany, the engine size
     filled in, plus ISV, legalisation and transport, against this ad's
     price), "Custo de ter esta mota" (yearly cost:
-    depreciation, IUC, your insurance, tyres, services, chain; "Alterar"
+    depreciation, IUC, your insurance or its estimate by engine size
+    (more for a sports bike), tyres, services, chain; "Alterar"
     sets your insurance, km per year and years to keep, saved to your
     account).
   - **Negociar:** "Quanto oferecer" (where to start, a second offer if

@@ -1195,7 +1195,10 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   average depreciation over the years kept (model's curve at the owner's
   km/year) + IUC (category E table by the model's engine size, nothing
   under 10 €; **check `iucBands` every January**) + the owner's insurance
-  (left out until entered) + tyres, services and chain kit by engine size.
+  (until entered, `insuranceEstimate`: third-party by engine size,
+  `insuranceBands`, +30 % for a sports bike, `isSportBike` by brand and
+  model name) + tyres, services and chain kit by engine size (a sports
+  bike's tyres 15 % dearer, 20 % shorter-lived).
   The owner's figures live in `ownership_settings` (one row per account).
 - Favourite colours: `listings.colour` (a code: `colour_code()` of
   Standvirtual's `site_colour`, else `colour_in_text()`: a colour word in

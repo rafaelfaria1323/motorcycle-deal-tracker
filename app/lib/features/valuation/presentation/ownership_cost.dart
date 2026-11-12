@@ -77,12 +77,85 @@ const largeBikeCosts = RunningCostTable(
   chainLifeKm: 20000,
 );
 
-RunningCostTable runningCostsFor(int? engineCc) => switch (engineCc) {
-  null => middleBikeCosts,
-  <= 400 => smallBikeCosts,
-  <= 800 => middleBikeCosts,
-  _ => largeBikeCosts,
+/// Sports bikes' tyres: softer compounds cost more and wear sooner.
+const sportTyrePriceFactor = 1.15;
+const sportTyreLifeFactor = 0.8;
+
+/// The running costs of a bike of [engineCc]; a sports bike's tyres cost
+/// more and last less ([isSportBike]).
+RunningCostTable runningCostsFor(int? engineCc, {bool sport = false}) {
+  final table = switch (engineCc) {
+    null => middleBikeCosts,
+    <= 400 => smallBikeCosts,
+    <= 800 => middleBikeCosts,
+    _ => largeBikeCosts,
+  };
+  if (!sport) return table;
+  return RunningCostTable(
+    tyreSet: table.tyreSet * sportTyrePriceFactor,
+    tyreLifeKm: (table.tyreLifeKm * sportTyreLifeFactor).round(),
+    service: table.service,
+    serviceIntervalKm: table.serviceIntervalKm,
+    chainKit: table.chainKit,
+    chainLifeKm: table.chainLifeKm,
+  );
+}
+
+/// Fully faired sports bikes, which insurers price higher and whose tyres
+/// wear sooner: per brand, the start (or end) of the model's name with
+/// spaces and dashes removed. Yamaha's R1/R7 and Honda's CBR, but not
+/// BMW's R 1250 GS (a tourer).
+final _sportModels = <String, RegExp>{
+  'yamaha': RegExp(r'^(r\d|yzf)'),
+  'honda': RegExp(r'^cbr'),
+  'kawasaki': RegExp(r'^(ninja|zx\d)'),
+  'suzuki': RegExp(r'^gsxr'),
+  'ducati': RegExp(r'^(panigale|supersport)'),
+  'aprilia': RegExp(r'^(rs\d|rsv)'),
+  'ktm': RegExp(r'^rc\d'),
+  'bmw': RegExp(r'rr$'),
+  'triumph': RegExp(r'^daytona'),
+  'mv agusta': RegExp(r'^f[34]'),
 };
+
+bool isSportBike({required String brand, required String model}) {
+  final rule = _sportModels[brand.trim().toLowerCase()];
+  final name = model.toLowerCase().replaceAll(RegExp(r'[\s\-_]'), '');
+  return rule != null && rule.hasMatch(name);
+}
+
+/// Third-party insurance (the legal minimum, with travel assistance) for
+/// an experienced rider without claims, euros per year by engine size
+/// (2026 quotes and comparison sites: about 70-150 € up to 125 cc, 180-360 €
+/// for a 700 cc). The owner's own quote replaces it.
+const insuranceBands = <({int? maxCc, double euros})>[
+  (maxCc: 125, euros: 90),
+  (maxCc: 400, euros: 150),
+  (maxCc: 800, euros: 230),
+  (maxCc: null, euros: 340),
+];
+
+/// Insurers charge sports bikes about a third more.
+const sportInsuranceFactor = 1.3;
+
+/// The band of [insuranceBands] for [engineCc]; the middle one when unknown.
+({int? minCc, int? maxCc, double euros}) insuranceBandFor(int? engineCc) {
+  final cc = engineCc ?? 700;
+  final index = insuranceBands.indexWhere(
+    (b) => b.maxCc == null || cc <= b.maxCc!,
+  );
+  final band = insuranceBands[index];
+  return (
+    minCc: index == 0 ? null : insuranceBands[index - 1].maxCc! + 1,
+    maxCc: band.maxCc,
+    euros: band.euros,
+  );
+}
+
+/// The yearly third-party insurance a bike of [engineCc] typically costs.
+double insuranceEstimate(int? engineCc, {bool sport = false}) =>
+    (insuranceBandFor(engineCc).euros * (sport ? sportInsuranceFactor : 1))
+        .roundToDouble();
 
 /// Tyres age out even when little used: at least one set in this many years.
 const tyreMaxYears = 5;
@@ -102,8 +175,13 @@ class const OwnershipCost({
   /// Null when it can't be worked out (unknown engine size, old bike).
   required final double? iuc,
 
-  /// Null until the owner enters their quote.
-  required final double? insurance,
+  /// The owner's quote, or [insuranceEstimate] until they enter one.
+  required final double insurance,
+  required final bool insuranceEstimated,
+  required final bool sport,
+
+  /// The engine size the estimates used; null when unknown.
+  required final int? engineCc,
   required final double tyres,
   required final double services,
   required final double chain,
@@ -113,7 +191,7 @@ class const OwnershipCost({
   required final RunningCostTable table,
 }) {
   double get perYear =>
-      (iuc ?? 0) + (insurance ?? 0) + tyres + services + chain + depreciation;
+      (iuc ?? 0) + insurance + tyres + services + chain + depreciation;
 
   double get total => perYear * years;
 }
@@ -124,12 +202,14 @@ OwnershipCost? ownershipCost({
   required OwnershipSettings settings,
   int? engineCc,
   int? year,
+  bool sport = false,
   Depreciation? depreciation,
 }) {
   if (price == null || price <= 0) return null;
   final km = settings.kmPerYear;
   final years = settings.yearsToKeep;
-  final table = runningCostsFor(engineCc);
+  final table = runningCostsFor(engineCc, sport: sport);
+  final quote = settings.insurancePerYear?.toDouble();
   final rates = depreciation ?? generalDepreciation;
 
   // Same curve as the fair price: value falls by exp(-rate) per year of age
@@ -139,7 +219,10 @@ OwnershipCost? ownershipCost({
 
   return OwnershipCost(
     iuc: iucPerYear(engineCc: engineCc, year: year),
-    insurance: settings.insurancePerYear?.toDouble(),
+    insurance: quote ?? insuranceEstimate(engineCc, sport: sport),
+    insuranceEstimated: quote == null,
+    sport: sport,
+    engineCc: engineCc,
     tyres: table.tyreSet * max(km / table.tyreLifeKm, 1 / tyreMaxYears),
     // At least one service a year, however little it is ridden.
     services: table.service * max(km / table.serviceIntervalKm, 1),
@@ -196,8 +279,8 @@ List<String> ownershipLines(
         price: Formatters.price(iuc, language: language),
       ),
     },
-    c.insurance == null
-        ? language.messages.insuranceNotEntered
+    c.insuranceEstimated
+        ? _insuranceEstimateLine(c, language)
         : language.messages.insuranceYourFigure(
             price: Formatters.price(c.insurance, language: language),
           ),
@@ -215,6 +298,27 @@ List<String> ownershipLines(
       distance: km(t.chainLifeKm),
     ),
   ];
+}
+
+/// "Seguro: cerca de 300 € (estimativa contra terceiros, desportiva de 401
+/// a 800 cc; indique o seu valor)".
+String _insuranceEstimateLine(OwnershipCost c, AppLanguage language) {
+  final m = language.messages;
+  final price = Formatters.price(c.insurance, language: language);
+  final band = insuranceBandFor(c.engineCc);
+  final bandText = c.engineCc == null
+      ? m.insuranceEngineUnknown
+      : switch ((band.minCc, band.maxCc)) {
+          (null, final max?) => m.insuranceBandUpTo(max: max.toString()),
+          (final min?, null) => m.insuranceBandOver(min: (min - 1).toString()),
+          (final min, final max) => m.insuranceBandRange(
+            min: min.toString(),
+            max: max.toString(),
+          ),
+        };
+  return c.sport
+      ? m.insuranceEstimateSport(price: price, band: bandText)
+      : m.insuranceEstimate(price: price, band: bandText);
 }
 
 /// What the estimate assumes, under the lines.

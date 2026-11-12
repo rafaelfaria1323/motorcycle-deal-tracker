@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
+import 'package:motorcycle_deal_tracker/core/localization/localizations.dart';
 import 'package:motorcycle_deal_tracker/features/listings/data/models/listing_model.dart';
 import 'package:motorcycle_deal_tracker/features/market/domain/entities/market_behaviour.dart';
 import 'package:motorcycle_deal_tracker/features/valuation/domain/entities/ownership_settings.dart';
@@ -39,6 +40,88 @@ void main() {
     expect(runningCostsFor(null), same(middleBikeCosts));
   });
 
+  test('a sports bike\'s tyres cost more and last less', () {
+    final sport = runningCostsFor(695, sport: true);
+    expect(sport.tyreSet, closeTo(345, 0.001));
+    expect(sport.tyreLifeKm, 8000);
+    expect(sport.service, middleBikeCosts.service);
+    expect(sport.serviceIntervalKm, middleBikeCosts.serviceIntervalKm);
+    expect(sport.chainKit, middleBikeCosts.chainKit);
+    expect(sport.chainLifeKm, middleBikeCosts.chainLifeKm);
+    expect(runningCostsFor(998, sport: true).tyreLifeKm, 6400);
+  });
+
+  group('isSportBike', () {
+    test('fully faired sports bikes by brand', () {
+      for (final (brand, model) in [
+        ('Yamaha', 'R7'),
+        ('Yamaha', 'R1'),
+        ('Yamaha', 'YZF-R125'),
+        ('Honda', 'CBR650R'),
+        ('Honda', 'CBR 600 RR'),
+        ('Kawasaki', 'Ninja 650'),
+        ('Kawasaki', 'ZX-6R'),
+        ('Suzuki', 'GSX-R750'),
+        ('Ducati', 'Panigale V2'),
+        ('Aprilia', 'RS 660'),
+        ('KTM', 'RC 390'),
+        ('BMW', 'S 1000 RR'),
+        ('Triumph', 'Daytona 660'),
+        ('MV Agusta', 'F3 800'),
+      ]) {
+        expect(
+          isSportBike(brand: brand, model: model),
+          isTrue,
+          reason: model,
+        );
+      }
+    });
+
+    test('nakeds, tourers and unknown brands are not', () {
+      for (final (brand, model) in [
+        ('Yamaha', 'MT-07'),
+        ('Yamaha', 'Tracer 7'),
+        ('Honda', 'CB650R'),
+        ('Honda', 'CB750 Hornet'),
+        ('BMW', 'R 1250 GS'),
+        ('Kawasaki', 'Z900'),
+        ('Suzuki', 'GSX-S750'),
+        ('Aprilia', 'Tuono 660'),
+        ('Benelli', 'R1'),
+      ]) {
+        expect(
+          isSportBike(brand: brand, model: model),
+          isFalse,
+          reason: model,
+        );
+      }
+    });
+  });
+
+  group('insuranceEstimate', () {
+    test('by engine size band', () {
+      expect(insuranceEstimate(125), 90);
+      expect(insuranceEstimate(126), 150);
+      expect(insuranceEstimate(400), 150);
+      expect(insuranceEstimate(695), 230);
+      expect(insuranceEstimate(800), 230);
+      expect(insuranceEstimate(998), 340);
+      expect(insuranceEstimate(null), 230);
+    });
+
+    test('a third more for a sports bike', () {
+      expect(insuranceEstimate(125, sport: true), 117);
+      expect(insuranceEstimate(689, sport: true), 299);
+      expect(insuranceEstimate(998, sport: true), 442);
+    });
+
+    test('band limits', () {
+      expect(insuranceBandFor(125), (minCc: null, maxCc: 125, euros: 90.0));
+      expect(insuranceBandFor(300), (minCc: 126, maxCc: 400, euros: 150.0));
+      expect(insuranceBandFor(1000), (minCc: 801, maxCc: null, euros: 340.0));
+    });
+  });
+
   group('ownershipCost', () {
     test('an MT-07 with the defaults and the general rates', () {
       final c = ownershipCost(
@@ -48,21 +131,22 @@ void main() {
         year: 2021,
       )!;
       expect(c.iuc, 63.62);
-      expect(c.insurance, isNull);
+      expect(c.insurance, 230); // the estimate for 401 to 800 cc
+      expect(c.insuranceEstimated, isTrue);
       expect(c.tyres, 150); // half a 300 € set at 5 000 of 10 000 km
       expect(c.services, 180); // one a year
       expect(c.chain, 50); // a quarter of a 200 € kit
       // 6000 * (1 - e^(-(0.04 + 0.005 * 5) * 3)) / 3
       expect(c.depreciation, closeTo(354.33, 0.01));
-      expect(c.perYear, closeTo(797.95, 0.01));
-      expect(c.total, closeTo(2393.85, 0.01));
+      expect(c.perYear, closeTo(1027.95, 0.01));
+      expect(c.total, closeTo(3083.85, 0.01));
       expect(
         ownershipHeadline(c),
-        'Custa cerca de ${Formatters.price(800)} por ano',
+        'Custa cerca de ${Formatters.price(1030)} por ano',
       );
       expect(
         ownershipTotalLine(c),
-        'Em 3 anos: cerca de ${Formatters.price(2390)}',
+        'Em 3 anos: cerca de ${Formatters.price(3080)}',
       );
     });
 
@@ -84,6 +168,7 @@ void main() {
         ),
       )!;
       expect(c.insurance, 300);
+      expect(c.insuranceEstimated, isFalse);
       expect(c.iuc, 138.15);
       expect(c.tyres, 950); // 2.5 sets of 380 €
       expect(c.services, 500); // two services of 250 €
@@ -138,8 +223,44 @@ void main() {
       ]);
     });
 
+    test('estimates the insurance until the owner enters it', () {
+      final price = Formatters.price(230);
+      expect(
+        ownershipLines(cost())[2],
+        'Seguro: cerca de $price (estimativa contra terceiros, 401 a 800 cc; '
+        'indique o seu valor)',
+      );
+      expect(
+        ownershipLines(cost(cc: 125))[2],
+        'Seguro: cerca de ${Formatters.price(90)} (estimativa contra '
+        'terceiros, até 125 cc; indique o seu valor)',
+      );
+      expect(ownershipLines(cost(cc: 998))[2], contains('mais de 800 cc'));
+      expect(
+        ownershipLines(cost(cc: null))[2],
+        contains('cilindrada desconhecida'),
+      );
+      final sport = ownershipCost(
+        price: 8000,
+        settings: const OwnershipSettings(),
+        engineCc: 689,
+        sport: true,
+      )!;
+      expect(sport.tyres, closeTo(215.63, 0.01)); // 345 € every 8 000 km
+      expect(
+        ownershipLines(sport)[2],
+        'Seguro: cerca de ${Formatters.price(299)} (estimativa contra '
+        'terceiros, desportiva de 401 a 800 cc; indique o seu valor)',
+      );
+      expect(
+        ownershipLines(sport, language: AppLanguage.english)[2],
+        'Insurance: about ${Formatters.price(299, language: AppLanguage.english)} '
+        '(third-party estimate, 401 to 800 cc sports bike; enter your own '
+        'figure)',
+      );
+    });
+
     test('says what is missing or not charged', () {
-      expect(ownershipLines(cost())[2], startsWith('Seguro: não incluído'));
       expect(
         ownershipLines(cost(cc: null))[1],
         'IUC: cilindrada do modelo desconhecida',

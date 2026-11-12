@@ -214,7 +214,10 @@ List<String> negotiationArguments(
       language.messages.argumentOldTyres(
         age: (now.year - year).toString(),
         price: Formatters.price(
-          runningCostsFor(listing.engineCc).tyreSet,
+          runningCostsFor(
+            listing.engineCc,
+            sport: isSportBike(brand: listing.brand, model: listing.model),
+          ).tyreSet,
           language: language,
         ),
       ),
