@@ -15,6 +15,26 @@ String favouriteSinceText(
   ),
 );
 
+/// The planned visit (N.65): "Visita hoje às 18:30", "Visita amanhã às
+/// 10:00", "Visita a 20/11/2026 às 09:00"; once its time has gone by,
+/// "Visita a 12/11/2026 (já passou)".
+String visitText(
+  DateTime at, {
+  DateTime? now,
+  AppLanguage language = .portuguese,
+}) {
+  final today = now ?? DateTime.now();
+  final time = Formatters.time(at);
+  if (at.isBefore(today)) {
+    return language.messages.visitPast(date: Formatters.date(at));
+  }
+  return switch (Formatters.calendarDays(today, at)) {
+    0 => language.messages.visitToday(time: time),
+    1 => language.messages.visitTomorrow(time: time),
+    _ => language.messages.visitOn(date: Formatters.date(at), time: time),
+  };
+}
+
 /// The Favoritos page's summary: "3 anúncios, 1 já removido".
 String favouritesCountText(
   List<Favourite> favourites, {

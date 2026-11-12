@@ -22,6 +22,7 @@ enum PushTestKind {
   targetPriceReached('target_price_reached'),
   listingRemoved('listing_removed'),
   backOnMarket('back_on_market'),
+  visitReminder('visit_reminder'),
   runFailed('run_failed'),
   runBlocked('run_blocked'),
   runRecovered('run_recovered');

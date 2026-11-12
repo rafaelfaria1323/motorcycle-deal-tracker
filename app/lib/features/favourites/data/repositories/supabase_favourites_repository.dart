@@ -69,6 +69,22 @@ class SupabaseFavouritesRepository(final SupabaseClient _client)
   }
 
   @override
+  Future<void> saveVisit(String listingId, DateTime? visitAt) async {
+    // The database forgets an earlier reminder when the time changes.
+    final updated = await _client
+        .from(_table)
+        .update({
+          'visit_at': visitAt?.toUtc().toIso8601String(),
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        })
+        .eq('listing_id', listingId)
+        .select('listing_id');
+    if (updated.isEmpty) {
+      throw StateError('Favourite $listingId has no visit to save.');
+    }
+  }
+
+  @override
   Future<void> saveChecklist(
     String listingId,
     Map<String, ChecklistEntry> checklist,

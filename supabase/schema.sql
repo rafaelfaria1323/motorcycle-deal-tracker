@@ -2806,6 +2806,25 @@ end;
 $$;
 
 --
+-- Name: mark_visit_reminded(uuid, uuid, timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.mark_visit_reminded(p_user uuid, p_listing uuid, p_visit_at timestamp with time zone) RETURNS boolean
+    LANGUAGE sql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+  with marked as (
+    update public.listing_favourites f
+    set visit_reminded_at = now()
+    where f.user_id = p_user
+      and f.listing_id = p_listing
+      and f.visit_at = p_visit_at
+      and f.visit_reminded_at is null
+    returning 1)
+  select exists (select 1 from marked)
+$$;
+
+--
 -- Name: market_band(numeric); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -3347,6 +3366,30 @@ CREATE FUNCTION public.pending_notifications(p_limit integer DEFAULT 200, p_at t
     and (p_at is null or not public.account_quiet_at(a.user_id, p_at))
   order by a.created_at
   limit p_limit
+$$;
+
+--
+-- Name: pending_visit_reminders(timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.pending_visit_reminders(p_at timestamp with time zone) RETURNS TABLE(user_id uuid, listing_id uuid, visit_at timestamp with time zone, visit_day integer, visit_time text, brand text, model text, year integer, price numeric, location text, is_live boolean)
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+  select f.user_id, f.listing_id, f.visit_at,
+         ((f.visit_at at time zone 'Europe/Lisbon')::date
+           - (p_at at time zone 'Europe/Lisbon')::date)::integer,
+         to_char(f.visit_at at time zone 'Europe/Lisbon', 'HH24:MI'),
+         l.brand, l.model, l.year, l.price, l.location,
+         l.status in ('active', 'price_changed')
+  from public.listing_favourites f
+  join public.listings l on l.id = f.listing_id
+  join auth.users u on u.id = f.user_id and not coalesce(u.is_anonymous, false)
+  where f.visit_reminded_at is null
+    and f.visit_at > p_at
+    and f.visit_at <= p_at + interval '24 hours'
+    and not public.account_quiet_at(f.user_id, p_at)
+  order by f.visit_at, f.user_id, f.listing_id
 $$;
 
 --
@@ -4792,6 +4835,22 @@ end;
 $$;
 
 --
+-- Name: stamp_favourite_visit(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.stamp_favourite_visit() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+begin
+  if tg_op = 'INSERT' or new.visit_at is distinct from old.visit_at then
+    new.visit_reminded_at := null;
+  end if;
+  return new;
+end;
+$$;
+
+--
 -- Name: start_workflow(text, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -4816,7 +4875,7 @@ begin
   if p_kind is not null and (p_workflow <> 'push-test.yml' or p_kind not in (
        'test', 'new_listing', 'price_reduction', 'excellent_opportunity',
        'listing_removed', 'back_on_market', 'target_price_reached',
-       'run_failed', 'run_blocked', 'run_recovered')) then
+       'run_failed', 'run_blocked', 'run_recovered', 'visit_reminder')) then
     raise exception 'unknown kind %', p_kind using errcode = '22023';
   end if;
 
@@ -5695,6 +5754,8 @@ CREATE TABLE public.listing_favourites (
     checklist jsonb DEFAULT '{}'::jsonb NOT NULL,
     target_price numeric(10,2),
     target_set_at timestamp with time zone,
+    visit_at timestamp with time zone,
+    visit_reminded_at timestamp with time zone,
     CONSTRAINT listing_favourites_checklist_object CHECK (((jsonb_typeof(checklist) = 'object'::text) AND (octet_length((checklist)::text) <= 32000))),
     CONSTRAINT listing_favourites_note_check CHECK ((char_length(note) <= 2000)),
     CONSTRAINT listing_favourites_target_price_check CHECK ((target_price > (0)::numeric))
@@ -6687,6 +6748,12 @@ CREATE INDEX workflow_starts_recent ON public.workflow_starts USING btree (workf
 --
 
 CREATE TRIGGER listing_favourites_target_stamp BEFORE INSERT OR UPDATE OF target_price ON public.listing_favourites FOR EACH ROW EXECUTE FUNCTION public.stamp_favourite_target();
+
+--
+-- Name: listing_favourites listing_favourites_visit_stamp; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER listing_favourites_visit_stamp BEFORE INSERT OR UPDATE OF visit_at ON public.listing_favourites FOR EACH ROW EXECUTE FUNCTION public.stamp_favourite_visit();
 
 --
 -- Name: listings listings_a_strip_phone_numbers; Type: TRIGGER; Schema: public; Owner: -
@@ -8053,6 +8120,13 @@ REVOKE ALL ON FUNCTION public.mark_removed_listings(p_source text, p_seen_ids te
 GRANT ALL ON FUNCTION public.mark_removed_listings(p_source text, p_seen_ids text[], p_max_fraction numeric, p_search_keys text[], p_include_unkeyed boolean) TO service_role;
 
 --
+-- Name: FUNCTION mark_visit_reminded(p_user uuid, p_listing uuid, p_visit_at timestamp with time zone); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.mark_visit_reminded(p_user uuid, p_listing uuid, p_visit_at timestamp with time zone) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.mark_visit_reminded(p_user uuid, p_listing uuid, p_visit_at timestamp with time zone) TO service_role;
+
+--
 -- Name: FUNCTION market_band(p_pct_below numeric); Type: ACL; Schema: public; Owner: -
 --
 
@@ -8187,6 +8261,13 @@ GRANT ALL ON FUNCTION public.owner_tracks(p_user uuid, p_motorcycle_id uuid, p_y
 
 REVOKE ALL ON FUNCTION public.pending_notifications(p_limit integer, p_at timestamp with time zone) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.pending_notifications(p_limit integer, p_at timestamp with time zone) TO service_role;
+
+--
+-- Name: FUNCTION pending_visit_reminders(p_at timestamp with time zone); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.pending_visit_reminders(p_at timestamp with time zone) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.pending_visit_reminders(p_at timestamp with time zone) TO service_role;
 
 --
 -- Name: FUNCTION photo_exam_answers(p_listings uuid[]); Type: ACL; Schema: public; Owner: -
@@ -8502,6 +8583,13 @@ GRANT ALL ON FUNCTION public.sold_in_text(p_variant text, p_description text) TO
 
 REVOKE ALL ON FUNCTION public.stamp_favourite_target() FROM PUBLIC;
 GRANT ALL ON FUNCTION public.stamp_favourite_target() TO service_role;
+
+--
+-- Name: FUNCTION stamp_favourite_visit(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.stamp_favourite_visit() FROM PUBLIC;
+GRANT ALL ON FUNCTION public.stamp_favourite_visit() TO service_role;
 
 --
 -- Name: FUNCTION start_workflow(p_workflow text, p_kind text); Type: ACL; Schema: public; Owner: -

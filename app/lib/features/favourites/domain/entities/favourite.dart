@@ -19,6 +19,11 @@ class const Favourite({
   /// an alert says so ("Chegou ao seu preço"). Null when not set.
   final double? targetPrice,
 
+  /// When the user is going to see the bike (local time): the day before,
+  /// a notification reminds them and points to the checklist (N.65). Null
+  /// when no visit is planned.
+  final DateTime? visitAt,
+
   /// The listing itself, when it was loaded with the favourite.
   final Listing? listing,
 }) extends Equatable {
@@ -28,6 +33,7 @@ class const Favourite({
     note: note,
     checklist: checklist,
     targetPrice: targetPrice,
+    visitAt: visitAt,
     listing: listing,
   );
 
@@ -37,6 +43,7 @@ class const Favourite({
     note: note,
     checklist: checklist,
     targetPrice: targetPrice,
+    visitAt: visitAt,
     listing: listing,
   );
 
@@ -46,6 +53,17 @@ class const Favourite({
     note: note,
     checklist: checklist,
     targetPrice: targetPrice,
+    visitAt: visitAt,
+    listing: listing,
+  );
+
+  Favourite withVisit(DateTime? visitAt) => Favourite(
+    listingId: listingId,
+    createdAt: createdAt,
+    note: note,
+    checklist: checklist,
+    targetPrice: targetPrice,
+    visitAt: visitAt,
     listing: listing,
   );
 
@@ -56,6 +74,7 @@ class const Favourite({
     note,
     checklist,
     targetPrice,
+    visitAt,
     listing,
   ];
 }

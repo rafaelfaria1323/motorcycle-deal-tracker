@@ -143,6 +143,31 @@ class FavouritesCubit extends AccountScopedCubit<FavouritesState> {
     }
   }
 
+  /// Plans the visit to the bike (null clears it). Returns false when it
+  /// could not be saved; the change is undone then.
+  Future<bool> saveVisit(String listingId, DateTime? visitAt) async {
+    final account = accountGeneration;
+    if (!isCurrentAccount(account)) return false;
+    final before = state.favourites;
+    if (!state.isFavourite(listingId)) return false;
+
+    emit(
+      state.copyWith(
+        favourites: [
+          for (final f in before)
+            f.listingId == listingId ? f.withVisit(visitAt) : f,
+        ],
+      ),
+    );
+    try {
+      await _repository.saveVisit(listingId, visitAt);
+      return isCurrentAccount(account);
+    } catch (_) {
+      if (isCurrentAccount(account)) _undo(listingId, before);
+      return false;
+    }
+  }
+
   /// Saves one item of a favourite's viewing checklist: its mark (null:
   /// not looked at) and note (trimmed; empty clears it). Returns false when
   /// the listing is not a favourite or saving failed.

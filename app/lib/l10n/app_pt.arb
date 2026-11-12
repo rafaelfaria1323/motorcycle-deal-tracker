@@ -6491,5 +6491,68 @@
   "checklistOdometerHint": "Os km deste anúncio levantam dúvidas: compare o painel com a última inspeção e com as faturas.",
   "@checklistOdometerHint": {
     "description": "Hint of the odometer item."
+  },
+  "pushKindVisitReminder": "Lembrete de visita",
+  "@pushKindVisitReminder": {
+    "description": "Test notification kind: the reminder of a planned viewing (N.65)."
+  },
+  "visitToday": "Visita hoje às {time}",
+  "@visitToday": {
+    "description": "Planned viewing today, favourites_text visitText.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "visitTomorrow": "Visita amanhã às {time}",
+  "@visitTomorrow": {
+    "description": "Planned viewing tomorrow, visitText.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "visitOn": "Visita a {date} às {time}",
+  "@visitOn": {
+    "description": "Planned viewing on a later day, visitText.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "visitPast": "Visita a {date} (já passou)",
+  "@visitPast": {
+    "description": "Planned viewing whose time has gone by, visitText.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "planVisit": "Marcar visita",
+  "@planVisit": {
+    "description": "Button and title: plan the viewing of a favourite."
+  },
+  "visitNotPlanned": "Sem visita marcada",
+  "@visitNotPlanned": {
+    "description": "Visit tile title when none is planned."
+  },
+  "visitReminderHint": "Na véspera, lembramos a visita nos seus aparelhos com notificações ligadas.",
+  "@visitReminderHint": {
+    "description": "Visit tile subtitle."
+  },
+  "cancelVisit": "Desmarcar visita",
+  "@cancelVisit": {
+    "description": "Clears the planned viewing."
+  },
+  "couldNotSaveVisit": "Não foi possível guardar a visita. Tente novamente.",
+  "@couldNotSaveVisit": {
+    "description": "Error when the visit could not be saved."
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:motorcycle_deal_tracker/core/localization/app_language.dart';
 import 'package:motorcycle_deal_tracker/features/favourites/data/models/favourite_model.dart';
 import 'package:motorcycle_deal_tracker/features/listings/data/models/listing_model.dart';
 import 'package:motorcycle_deal_tracker/features/favourites/domain/entities/favourite.dart';
@@ -124,6 +125,13 @@ class _FakeFavourites implements FavouritesRepository {
   }
 
   @override
+  Future<void> saveVisit(String listingId, DateTime? visitAt) async {
+    if (writeDelay case final delay?) await delay;
+    if (fail || failWrites) throw StateError('offline');
+    calls.add('visit $listingId ${visitAt?.toUtc().toIso8601String()}');
+  }
+
+  @override
   Future<void> saveChecklist(
     String listingId,
     Map<String, ChecklistEntry> checklist,
@@ -158,6 +166,16 @@ void main() {
       }).targetPrice,
       6800,
     );
+    expect(favourite.visitAt, isNull);
+    expect(
+      FavouriteModel.fromJson({
+        'listing_id': 'l1',
+        'visit_at': '2026-11-13T10:00:00+00:00',
+        'created_at': '2026-10-15T12:00:00Z',
+      }).visitAt,
+      DateTime.utc(2026, 11, 13, 10).toLocal(),
+    );
+    expect(FavouriteModel.columns, contains('visit_at'));
   });
 
   test('the checklist is read leniently and written back the same', () {
@@ -333,6 +351,37 @@ void main() {
       expect(failing.state.favouriteOf('l1')?.targetPrice, isNull);
     });
 
+    test(
+      'a visit is planned, moved, cleared, and undone when it fails',
+      () async {
+        final repo = _FakeFavourites([_favourite('l1')]);
+        final cubit = _cubit(repo);
+        await cubit.load();
+        final at = DateTime.utc(2026, 11, 13, 10);
+
+        expect(await cubit.saveVisit('l1', at), isTrue);
+        expect(cubit.state.favouriteOf('l1')?.visitAt, at);
+        // The other edits keep it.
+        expect(cubit.state.favouriteOf('l1')?.withNote('x').visitAt, at);
+        expect(cubit.state.favouriteOf('l1')?.withTargetPrice(1).visitAt, at);
+        expect(cubit.state.favouriteOf('l1')?.withChecklist({}).visitAt, at);
+        expect(await cubit.saveVisit('l1', null), isTrue);
+        expect(cubit.state.favouriteOf('l1')?.visitAt, isNull);
+        expect(await cubit.saveVisit('l9', at), isFalse);
+        expect(repo.calls, [
+          'visit l1 2026-11-13T10:00:00.000Z',
+          'visit l1 null',
+        ]);
+
+        final failing = _cubit(
+          _FakeFavourites([_favourite('l1')], failWrites: true),
+        );
+        await failing.load();
+        expect(await failing.saveVisit('l1', at), isFalse);
+        expect(failing.state.favouriteOf('l1')?.visitAt, isNull);
+      },
+    );
+
     test('a note that fails to save is undone', () async {
       final cubit = _cubit(
         _FakeFavourites([_favourite('l1', note: 'Antiga')], failWrites: true),
@@ -492,6 +541,34 @@ void main() {
     expect(
       favouriteSinceText(_favourite('l1'), now: _added),
       'Adicionado aos favoritos hoje',
+    );
+  });
+
+  test('visitText: today, tomorrow, later, gone by', () {
+    final now = DateTime(2026, 11, 12, 9);
+    expect(
+      visitText(DateTime(2026, 11, 12, 18, 30), now: now),
+      'Visita hoje às 18:30',
+    );
+    expect(
+      visitText(DateTime(2026, 11, 13, 10), now: now),
+      'Visita amanhã às 10:00',
+    );
+    expect(
+      visitText(DateTime(2026, 11, 20, 9, 5), now: now),
+      'Visita a 20/11/2026 às 09:05',
+    );
+    expect(
+      visitText(DateTime(2026, 11, 12, 8), now: now),
+      'Visita a 12/11/2026 (já passou)',
+    );
+    expect(
+      visitText(
+        DateTime(2026, 11, 13, 10),
+        now: now,
+        language: AppLanguage.english,
+      ),
+      'Viewing tomorrow at 10:00',
     );
   });
 

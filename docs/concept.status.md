@@ -157,6 +157,8 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 
 ➕ ✅ The bike's own points in the viewing checklist (N.64): "Nesta mota" adds the valve check near the model's interval, the original tyre sizes, a sports bike's fairings, and the papers or the odometer when the ad's risk reasons call for them; repairs come off the offer, papers block.
 
+➕ ✅ Visit planning with a reminder (N.65): a favourite's visit day and time, set from "Para a visita" and shown in Favoritos; the day before (the first collection within 24 h, outside quiet hours) a notification names the bike and points to the checklist, or warns that the ad is gone.
+
 ## 13. Explainable Score ✅
 
 *Each score lists: % and € versus the estimated value for that age and mileage, the estimated value itself, mileage, model year, risk signals, and reassuring facts (first owner, service book, factory warranty).*

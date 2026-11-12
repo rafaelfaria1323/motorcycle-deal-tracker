@@ -10,10 +10,12 @@ import '../cubit/favourites_cubit.dart';
 import '../cubit/favourites_state.dart';
 import '../viewing_checklist.dart';
 import 'favourite_widgets.dart';
+import 'visit_tile.dart';
 import '../../../../core/localization/localizations.dart';
 
 /// "Para a visita" on the listing page, shown while it is a favourite: how
-/// much of the viewing checklist is done; opens the list.
+/// much of the viewing checklist is done; opens the list. Below it, the
+/// planned visit (N.65).
 class const ViewingChecklistCard({required final Listing listing, super.key})
     extends StatelessWidget {
   String get listingId => listing.id;
@@ -26,24 +28,31 @@ class const ViewingChecklistCard({required final Listing listing, super.key})
         final favourite = state.favouriteOf(listingId);
         if (favourite == null) return const SizedBox.shrink();
         return Card(
-          child: ListTile(
-            leading: const Icon(Icons.checklist),
-            title: Text(context.strings.forViewing),
-            subtitle: Text(
-              checklistSummaryText(
-                favourite.checklist,
-                language: context.language,
-                listing: listing,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.checklist),
+                title: Text(context.strings.forViewing),
+                subtitle: Text(
+                  checklistSummaryText(
+                    favourite.checklist,
+                    language: context.language,
+                    listing: listing,
+                  ),
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => showModalBottomSheet<void>(
+                  context: context,
+                  isScrollControlled: true,
+                  useSafeArea: true,
+                  constraints: const BoxConstraints(maxWidth: 560),
+                  builder: (_) => _ChecklistSheet(listing: listing),
+                ),
               ),
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => showModalBottomSheet<void>(
-              context: context,
-              isScrollControlled: true,
-              useSafeArea: true,
-              constraints: const BoxConstraints(maxWidth: 560),
-              builder: (_) => _ChecklistSheet(listing: listing),
-            ),
+              const Divider(height: 1),
+              VisitTile(favourite: favourite),
+            ],
           ),
         );
       },

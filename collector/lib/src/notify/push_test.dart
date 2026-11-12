@@ -2,6 +2,7 @@ import '../store/push_store.dart';
 import 'notification_text.dart';
 import 'pending_alert.dart';
 import 'run_health.dart';
+import 'visit_reminder_push.dart';
 import 'web_push.dart';
 
 /// The workflow that sends a test notification (`push-test.yml`), as
@@ -21,7 +22,7 @@ Map<String, Object?> testPushMessage({
 
 /// The kinds of notification the app can ask for an example of
 /// (`start_workflow` checks the same list): the test one, an alert of each
-/// type and the collection's health.
+/// type, the collection's health and a visit's reminder (N.65).
 const pushTestKinds = {
   'test',
   'new_listing',
@@ -33,6 +34,7 @@ const pushTestKinds = {
   'run_failed',
   'run_blocked',
   'run_recovered',
+  'visit_reminder',
 };
 
 /// An example of the [kind] notification, built as the real one is (so it
@@ -81,6 +83,29 @@ Map<String, Object?> samplePushMessage(
     _ => null,
   };
   if (health != null) return withNote(health);
+  if (kind == 'visit_reminder') {
+    // Tomorrow at 10:00, to the listing (or the example bike, which
+    // opens Ofertas).
+    final message = visitReminderPush(
+      VisitReminder(
+        userId: 'push-test',
+        listingId: listing?['id'] as String? ?? '',
+        visitAt: DateTime.utc(2026),
+        day: 1,
+        time: '10:00',
+        brand: listing?['brand'] as String? ?? 'Yamaha',
+        model: listing?['model'] as String? ?? 'MT-07',
+        year: listing == null ? 2021 : (listing['year'] as num?)?.toInt(),
+        price: listing == null ? 6500 : (listing['price'] as num?)?.toDouble(),
+        location: listing == null ? 'Lisboa' : listing['location'] as String?,
+        live: true,
+      ),
+      language: language,
+    );
+    return withNote(
+      listing == null ? {...message, 'url': '/#/deals'} : message,
+    );
+  }
   if (kind == 'test' || !pushTestKinds.contains(kind)) {
     return testPushMessage(language: language);
   }
