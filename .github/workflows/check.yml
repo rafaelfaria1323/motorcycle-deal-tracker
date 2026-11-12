@@ -259,10 +259,12 @@ jobs:
       # make sql-lint runs make db-test first, then checks the database it
       # leaves (plpgsql_check, splinter) and squawk on this PR's new
       # migrations. plpgsql_check goes into the Postgres container (the
-      # official image has the PostgreSQL apt repository). Installing it can
-      # also upgrade the server's package to a newer minor release, whose
-      # libraries the running (older) server can't load ("undefined symbol"
-      # in plpgsql.so), so the container is restarted on the new binaries.
+      # official image has the PostgreSQL apt repository). The server's
+      # package is held: a newer plpgsql_check build can require a newer
+      # minor release, whose plpgsql.so the running server can't load
+      # ("undefined symbol"), and a restarted, upgraded server dumps a
+      # different schema.sql. So the newest build that fits the server
+      # is installed (apt-cache madison lists newest first).
       - name: make sql-lint (with make db-test)
         env:
           PGHOST: localhost
@@ -270,14 +272,13 @@ jobs:
           PGPASSWORD: postgres
           POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
         run: |
-          docker exec "$POSTGRES_CONTAINER" sh -c \
-            'apt-get update -qq && apt-get install -y -qq postgresql-16-plpgsql-check' >/dev/null
-          docker restart "$POSTGRES_CONTAINER" >/dev/null
-          for _ in $(seq 30); do
-            docker exec "$POSTGRES_CONTAINER" pg_isready -U postgres -q && break
-            sleep 1
-          done
-          docker exec "$POSTGRES_CONTAINER" pg_isready -U postgres
+          docker exec "$POSTGRES_CONTAINER" sh -c '
+            apt-get update -qq && apt-mark hold postgresql-16 >/dev/null
+            for v in $(apt-cache madison postgresql-16-plpgsql-check | cut -d"|" -f2); do
+              apt-get install -y -qq "postgresql-16-plpgsql-check=$v" >/dev/null 2>&1 \
+                && { echo "plpgsql_check $v"; exit 0; }
+            done
+            echo "No plpgsql_check build fits the server"; exit 1'
           pipx install squawk-cli==2.70.0 >/dev/null
           make sql-lint
 
