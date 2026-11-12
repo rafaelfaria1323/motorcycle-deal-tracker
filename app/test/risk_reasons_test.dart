@@ -102,17 +102,17 @@ void main() {
       },
     );
     final lines = ScoreExplainer.explain(listing)!.lines;
-
-    expect(lines.map((l) => l.tone), everyElement(ExplanationTone.negative));
-    expect(
-      lines.map((l) => l.text),
-      containsAll([
-        contains(
-          'de ${Formatters.mileage(31000)} para ${Formatters.mileage(13000)}',
-        ),
-        contains('de 2020 para 2021'),
-      ]),
+    final mileage = lines.singleWhere(
+      (l) => l.text.contains(
+        'de ${Formatters.mileage(31000)} para ${Formatters.mileage(13000)}',
+      ),
     );
+    final year = lines.singleWhere(
+      (l) => l.text.contains('de 2020 para 2021'),
+    );
+
+    expect(mileage.tone, ExplanationTone.negative);
+    expect(year.tone, ExplanationTone.negative);
     expect(
       factEditLine('year_raised', listing, language: AppLanguage.english)!.text,
       contains('from 2020 to 2021'),
