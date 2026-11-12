@@ -148,8 +148,8 @@ class SupabaseListingsRepository(final SupabaseClient _client)
           '*, distance_km, my_colour, market_position, '
           'motorcycles(new_price_reference, new_price_checked_at, '
           'new_price_from_ads, new_price_ad_count, '
-          'engine_cc_min, engine_cc_max, front_tyre, rear_tyre, cylinders, '
-          'service_interval_km, valve_check_km)',
+          'engine_cc_min, engine_cc_max, '
+          '${ListingModel.maintenanceColumns})',
         )
         .eq('id', id)
         .maybeSingle();

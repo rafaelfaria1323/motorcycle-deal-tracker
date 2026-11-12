@@ -88,6 +88,7 @@ class _OfferCardState extends State<OfferCard> {
               engineCc: listing.engineCc,
               sport: isSportBike(brand: listing.brand, model: listing.model),
               maintenance: listing.maintenance,
+              listing: listing,
               language: context.language,
             );
             final arguments = negotiationArguments(

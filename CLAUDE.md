@@ -1194,9 +1194,9 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   (year +-1, no more km: `getCheaperSimilar`), km above normal, risk
   reasons, long on sale, an earlier drop, tyres of a 5+ year-old bike.
   Visit: a checklist item marked "Problema" takes its repair cost
-  (`repairCost`, tyres/chain/service from the running costs) off the
-  opening and the ceiling; documents, registry, cold start and test ride
-  are blockers, not prices. Also shown: "Pressa do vendedor"
+  (`repairCost`, tyres/chain/service/valve check from the running costs)
+  off the opening and the ceiling; documents, registry, cold start, test
+  ride and the bike's own papers and odometer are blockers, not prices. Also shown: "Pressa do vendedor"
   (`sellerUrgency`: past the model's typical time 1 point, twice it 2,
   three times it 3, an earlier drop 1, relisted 1 / often 2, an ad 30+
   days old renewed on the site in the last 30 days 1; 3+ alta, 1-2 média,
@@ -1382,6 +1382,10 @@ keeps one alert per price change, and a removal already alerted to the
 person since the listing was last seen isn't alerted again, when a saved
 search also covers it. A favourite also holds the viewing checklist's marks
 (`checklist jsonb`, `{"tyres": {"mark": "ok"|"issue", "note": ...}}`); the
-items live in the app (`viewing_checklist.dart`), keys never change.
+items live in the app (`viewing_checklist.dart`), keys never change: 12
+for every bike plus "Nesta mota" (`bikeChecklistItems`, N.64, from the
+model's figures and the ad's risk reasons: valve check from 80 % of the
+interval, tyre sizes, a sports bike's fairings, A2 papers, import papers,
+odometer); Favoritos embeds the model's `maintenanceColumns` for them.
 Reimporting everything after a reset: create saved searches AFTER the import,
 or every listing counts as new.

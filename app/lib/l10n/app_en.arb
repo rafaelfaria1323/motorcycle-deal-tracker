@@ -1126,5 +1126,18 @@
   "a2Ready": "A2-ready",
   "a2ReadyOrRestrictable": "A2-ready or restrictable to 35 kW",
   "a2Licence": "A2 licence",
-  "a2LicenceHelp": "From the model's power (restrictable: up to 70 kW). An ad that says it is the A2 version counts too."
+  "a2LicenceHelp": "From the model's power (restrictable: up to 70 kW). An ad that says it is the A2 version counts too.",
+  "onThisBike": "On this bike",
+  "checklistValveCheck": "Valve clearances",
+  "checklistValveCheckHint": "This model needs the check every {interval}; at {mileage}, ask for the last invoice or count on the cost.",
+  "checklistTyreSizes": "Tyre sizes",
+  "checklistTyreSizesHint": "Standard: {front} front and {rear} rear. Other sizes change the handling and must be on the registration document.",
+  "checklistFairings": "Fairings",
+  "checklistFairingsHint": "Look for scratches on the sides, bar ends, levers and footpegs, and parts that aren't original: they are signs of a fall.",
+  "checklistA2Version": "A2 version",
+  "checklistA2VersionHint": "Check the power on the registration document and, if the restriction was removed, ask for proof of the change.",
+  "checklistImportPapers": "Import papers",
+  "checklistImportPapersHint": "Ask for the registration from the country of origin, the certificate of conformity (COC) and proof the ISV was paid, or find out what is still to pay.",
+  "checklistOdometer": "Odometer",
+  "checklistOdometerHint": "This ad's mileage raises doubts: compare the dashboard with the last inspection and the invoices."
 }

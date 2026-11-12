@@ -6423,5 +6423,73 @@
   "a2LicenceHelp": "Pela potência do modelo (limitável: até 70 kW). Um anúncio que diz ser a versão A2 também conta.",
   "@a2LicenceHelp": {
     "description": "Helper under the A2 licence filter."
+  },
+  "onThisBike": "Nesta mota",
+  "@onThisBike": {
+    "description": "Viewing checklist: the section of points of this bike alone (N.64)."
+  },
+  "checklistValveCheck": "Folgas das válvulas",
+  "@checklistValveCheck": {
+    "description": "Viewing checklist item of a bike near or past its model's valve check interval."
+  },
+  "checklistValveCheckHint": "Este modelo pede a verificação a cada {interval}; com {mileage}, peça a fatura da última ou conte com o custo.",
+  "@checklistValveCheckHint": {
+    "description": "Hint of the valve check item.",
+    "placeholders": {
+      "interval": {
+        "type": "String"
+      },
+      "mileage": {
+        "type": "String"
+      }
+    }
+  },
+  "checklistTyreSizes": "Medidas dos pneus",
+  "@checklistTyreSizes": {
+    "description": "Viewing checklist item: the model's tyre sizes."
+  },
+  "checklistTyreSizesHint": "De origem: {front} à frente e {rear} atrás. Outras medidas mudam o comportamento e têm de constar do documento único.",
+  "@checklistTyreSizesHint": {
+    "description": "Hint of the tyre sizes item.",
+    "placeholders": {
+      "front": {
+        "type": "String"
+      },
+      "rear": {
+        "type": "String"
+      }
+    }
+  },
+  "checklistFairings": "Carenagens",
+  "@checklistFairings": {
+    "description": "Viewing checklist item of a sports bike."
+  },
+  "checklistFairingsHint": "Procure riscos nas laterais, nas pontas do guiador, nas manetes e nos poisa-pés, e peças que não sejam de origem: são sinais de queda.",
+  "@checklistFairingsHint": {
+    "description": "Hint of the fairings item."
+  },
+  "checklistA2Version": "Versão A2",
+  "@checklistA2Version": {
+    "description": "Viewing checklist item of an A2 (35 kW) version."
+  },
+  "checklistA2VersionHint": "Confirme no documento único a potência registada e, se a limitação foi retirada, peça o comprovativo da alteração.",
+  "@checklistA2VersionHint": {
+    "description": "Hint of the A2 version item."
+  },
+  "checklistImportPapers": "Papéis da importação",
+  "@checklistImportPapers": {
+    "description": "Viewing checklist item of an imported or not yet legalised bike."
+  },
+  "checklistImportPapersHint": "Peça o documento do país de origem, o certificado de conformidade (COC) e o comprovativo do ISV pago, ou saiba quanto falta pagar.",
+  "@checklistImportPapersHint": {
+    "description": "Hint of the import papers item."
+  },
+  "checklistOdometer": "Conta-quilómetros",
+  "@checklistOdometer": {
+    "description": "Viewing checklist item when the ad's mileage is in doubt."
+  },
+  "checklistOdometerHint": "Os km deste anúncio levantam dúvidas: compare o painel com a última inspeção e com as faturas.",
+  "@checklistOdometerHint": {
+    "description": "Hint of the odometer item."
   }
 }

@@ -1,5 +1,8 @@
 import '../domain/entities/favourite.dart';
+import '../../../core/formatting/formatters.dart';
 import '../../../core/localization/localizations.dart';
+import '../../listings/domain/entities/listing.dart';
+import '../../valuation/presentation/ownership_cost.dart';
 
 /// One thing to look at when seeing a bike. [key] is what the database
 /// stores (never change it; a new item gets a new key).
@@ -17,7 +20,23 @@ class const ChecklistSection(
 final _checklists = <AppLanguage, List<ChecklistSection>>{};
 final _checklistItems = <AppLanguage, List<ChecklistItem>>{};
 
-List<ChecklistSection> viewingChecklist({AppLanguage language = .portuguese}) =>
+/// The checklist for [listing]: the same points for every bike, then
+/// "Nesta mota" when the bike has points of its own
+/// ([bikeChecklistItems], N.64).
+List<ChecklistSection> viewingChecklist({
+  AppLanguage language = .portuguese,
+  Listing? listing,
+}) {
+  final own = listing == null
+      ? const <ChecklistItem>[]
+      : bikeChecklistItems(listing, language: language);
+  final general = _generalChecklist(language);
+  return own.isEmpty
+      ? general
+      : [...general, ChecklistSection(language.messages.onThisBike, own)];
+}
+
+List<ChecklistSection> _generalChecklist(AppLanguage language) =>
     _checklists.putIfAbsent(
       language,
       () => List<ChecklistSection>.unmodifiable([
@@ -101,21 +120,99 @@ List<ChecklistSection> viewingChecklist({AppLanguage language = .portuguese}) =>
 
 List<ChecklistItem> viewingChecklistItems({
   AppLanguage language = .portuguese,
-}) => _checklistItems.putIfAbsent(
-  language,
-  () => List<ChecklistItem>.unmodifiable([
-    for (final section in viewingChecklist(language: language))
-      ...section.items,
-  ]),
-);
+  Listing? listing,
+}) {
+  final general = _checklistItems.putIfAbsent(
+    language,
+    () => List<ChecklistItem>.unmodifiable([
+      for (final section in _generalChecklist(language)) ...section.items,
+    ]),
+  );
+  final own = listing == null
+      ? const <ChecklistItem>[]
+      : bikeChecklistItems(listing, language: language);
+  return own.isEmpty ? general : [...general, ...own];
+}
+
+/// The risk reasons that ask for the import's papers.
+const _importReasons = {
+  'imported',
+  'not_legalised',
+  'not_legalised_outside_eu',
+};
+
+/// The risk reasons that put the mileage in doubt.
+const _mileageReasons = {
+  'mileage_lowered',
+  'suspicious_mileage',
+  'text_mileage_mismatch',
+};
+
+/// The valve check is asked for from this share of the model's interval.
+const valveCheckShare = 0.8;
+
+/// The points of this bike alone (N.64), from its model's figures and what
+/// its ad says, never from a list typed per model: the valve check when the
+/// mileage reaches the model's interval, the model's tyre sizes, a sports
+/// bike's fairings, the A2 version's papers, an import's papers and a
+/// mileage in doubt. Keys never change, as the general items'.
+List<ChecklistItem> bikeChecklistItems(
+  Listing listing, {
+  AppLanguage language = .portuguese,
+}) {
+  final m = language.messages;
+  final reasons = listing.riskReasons.toSet();
+  final maintenance = listing.maintenance;
+  final valveKm = maintenance?.valveCheckKm;
+  final mileage = listing.mileage;
+  String km(int value) => Formatters.mileage(value, language: language);
+  return [
+    if ((valveKm, mileage) case (final every?, final now?)
+        when now >= every * valveCheckShare)
+      ChecklistItem(
+        'valve_check',
+        m.checklistValveCheck,
+        m.checklistValveCheckHint(interval: km(every), mileage: km(now)),
+      ),
+    if ((maintenance?.frontTyre, maintenance?.rearTyre) case (
+      final front?,
+      final rear?,
+    ))
+      ChecklistItem(
+        'tyre_sizes',
+        m.checklistTyreSizes,
+        m.checklistTyreSizesHint(front: front, rear: rear),
+      ),
+    if (isSportBike(brand: listing.brand, model: listing.model))
+      ChecklistItem('fairings', m.checklistFairings, m.checklistFairingsHint),
+    if (reasons.contains('a2_limited') || reasons.contains('a2_unlocked'))
+      ChecklistItem(
+        'a2_version',
+        m.checklistA2Version,
+        m.checklistA2VersionHint,
+      ),
+    if (reasons.any(_importReasons.contains))
+      ChecklistItem(
+        'import_papers',
+        m.checklistImportPapers,
+        m.checklistImportPapersHint,
+      ),
+    if (reasons.any(_mileageReasons.contains))
+      ChecklistItem('odometer', m.checklistOdometer, m.checklistOdometerHint),
+  ];
+}
 
 /// The marks of the items still on the list (keys of items taken out
-/// later are ignored).
+/// later, or of a bike's points that no longer apply, are ignored).
 Iterable<ChecklistMark> _marks(
   Map<String, ChecklistEntry> checklist, {
   AppLanguage language = .portuguese,
+  Listing? listing,
 }) => [
-  for (final item in viewingChecklistItems(language: language))
+  for (final item in viewingChecklistItems(
+    language: language,
+    listing: listing,
+  ))
     ?checklist[item.key]?.mark,
 ];
 
@@ -124,9 +221,17 @@ Iterable<ChecklistMark> _marks(
 String checklistSummaryText(
   Map<String, ChecklistEntry> checklist, {
   AppLanguage language = .portuguese,
+  Listing? listing,
 }) {
-  final total = viewingChecklistItems(language: language).length;
-  final marks = _marks(checklist, language: language).toList();
+  final total = viewingChecklistItems(
+    language: language,
+    listing: listing,
+  ).length;
+  final marks = _marks(
+    checklist,
+    language: language,
+    listing: listing,
+  ).toList();
   if (marks.isEmpty) {
     return language.messages.pointsToCheckAtViewing(total: (total).toString());
   }
@@ -149,9 +254,13 @@ String checklistSummaryText(
 String? checklistIssuesText(
   Map<String, ChecklistEntry> checklist, {
   AppLanguage language = .portuguese,
+  Listing? listing,
 }) {
   final titles = [
-    for (final item in viewingChecklistItems(language: language))
+    for (final item in viewingChecklistItems(
+      language: language,
+      listing: listing,
+    ))
       if (checklist[item.key]?.mark == .issue) item.title,
   ];
   if (titles.isEmpty) return null;
