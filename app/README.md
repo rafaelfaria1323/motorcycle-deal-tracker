@@ -10,7 +10,9 @@ Android app says when a newer version is out and installs it (the in-repo
 plugin `packages/apk_installer`; `docs/hosting.md`). The Android app gets
 its notifications through Firebase Cloud Messaging (the in-repo plugin
 `packages/android_push`); a tap opens the page in the app. Links to the web
-app (a shared ad) open in the Android app too (App Links). It keeps the
+app (a shared ad) open in the Android app too (App Links). A planned
+visit goes to the phone's calendar through the in-repo plugin
+`packages/calendar_event` (no calendar permission). It keeps the
 sign-in encrypted with a key in the Android Keystore
 (`flutter_secure_storage`) and leaves its data out of Android's backups.
 
@@ -98,7 +100,8 @@ Screen names below use the Portuguese labels; English provides the same screens.
   page), newest first, each with
   your private note, the problems found on the viewing checklist and the
   planned visit ("Para a visita" on the ad: a day and time, reminded on
-  your devices the day before); "Para a visita" on each favourite opens
+  your devices the day before, and "Adicionar ao calendário": the Android
+  app opens the calendar's new event, the browser downloads an .ics); "Para a visita" on each favourite opens
   the checklist, which keeps its marks on the device without a
   connection and sends them once there is one (the list itself shows the
   last copy kept on the device when it can't load);
