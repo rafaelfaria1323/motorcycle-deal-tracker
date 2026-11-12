@@ -14,6 +14,7 @@ import '../../features/valuation/presentation/pages/bike_value_page.dart';
 import '../../features/valuation/presentation/pages/my_bikes_page.dart';
 import '../../features/compare/presentation/pages/compare_page.dart';
 import '../../features/listings/presentation/pages/dashboard_page.dart';
+import '../../features/listings/presentation/pages/dealer_page.dart';
 import '../../features/favourites/presentation/pages/favourites_page.dart';
 import '../../features/listings/presentation/pages/listing_detail_page.dart';
 import '../../features/market/presentation/pages/model_market_page.dart';
@@ -187,6 +188,11 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.myBike,
       builder: (context, state) => const MyBikesPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.dealerPath,
+      builder: (context, state) =>
+          DealerPage(name: state.uri.queryParameters['name'] ?? ''),
     ),
     // An invite link (`/#/join?code=…`), opened from a message.
     GoRoute(

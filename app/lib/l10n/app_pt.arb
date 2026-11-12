@@ -6942,5 +6942,40 @@
   "financingNote": "A TAEG já conta as comissões e os seguros obrigatórios do crédito; usamo-la como taxa anual, por isso a prestação real pode diferir alguns euros. Confirme na FINE antes de assinar.",
   "@financingNote": {
     "description": "Interface text in financing_text / financing_card (N.69)."
+  },
+  "seeDealerAds": "{bikes, plural, =1{Ver o anúncio do stand} other{Ver os {bikes} anúncios do stand}}",
+  "@seeDealerAds": {
+    "description": "Interface text in the dealer's page and the ad's \"O stand\" (N.72).",
+    "placeholders": {
+      "bikes": {
+        "type": "int"
+      }
+    }
+  },
+  "couldNotLoadDealer": "Não foi possível carregar o stand",
+  "@couldNotLoadDealer": {
+    "description": "Interface text in the dealer's page and the ad's \"O stand\" (N.72)."
+  },
+  "noAdsOfThisDealer": "Ainda não vimos anúncios deste stand",
+  "@noAdsOfThisDealer": {
+    "description": "Interface text in the dealer's page and the ad's \"O stand\" (N.72)."
+  },
+  "dealerLiveAds": "{count, plural, =1{1 anúncio à venda} other{{count} anúncios à venda}}",
+  "@dealerLiveAds": {
+    "description": "Interface text in the dealer's page and the ad's \"O stand\" (N.72).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dealerGoneAds": "{count, plural, =1{1 anúncio que já saiu} other{{count} anúncios que já saíram}}",
+  "@dealerGoneAds": {
+    "description": "Interface text in the dealer's page and the ad's \"O stand\" (N.72).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

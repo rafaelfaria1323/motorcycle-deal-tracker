@@ -14,6 +14,7 @@ abstract final class AppRoutes {
   static const collectionStatus = '/collection-status';
   static const summary = '/summary';
   static const myBike = '/my-bike';
+  static const dealerPath = '/dealer';
 
   static String listingDetail(String id) => '$deals/$id';
 
@@ -22,6 +23,10 @@ abstract final class AppRoutes {
   /// go through ads one after another. Opened any other way (a
   /// notification, an alert, a shared link) it starts on Avaliação.
   static const fromList = 'list';
+
+  /// A dealer's page (N.72), by the name its ads give.
+  static String dealer(String name) =>
+      '$dealerPath?name=${Uri.encodeQueryComponent(name)}';
 
   static String listingPhotos(String id) => '$deals/$id/photos';
 

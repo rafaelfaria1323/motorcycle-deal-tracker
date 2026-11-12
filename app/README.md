@@ -134,7 +134,9 @@ Screen names below use the Portuguese labels; English provides the same screens.
     on the other site, "O stand" for dealers (what we have seen of its ads
     on both sites: relists, sharp price changes, missing mileage, repeated
     ads, price drops; from 5 bikes it also counts in the Deal Score, and
-    the reasons say how the dealer scored), and "O que as fotos podem
+    the reasons say how the dealer scored; "Ver os anúncios do stand"
+    opens its page: every ad of it we have seen, for sale first, then
+    the ones gone), and "O que as fotos podem
     mostrar": a free image model's hints of damage in the photos, and
     "Parecida com fotos marcadas como problema" once the admins' marks
     trained a classifier (a tap opens the photo; never part of a score).

@@ -420,7 +420,7 @@ invites; written by the collector on each run).
   title and Limpar/Aplicar fixed while the choices scroll.
   Switching tabs uses `context.go`; full pages outside the shell
   (`/models`, `/market`, `/worth`, `/import`, `/compare?ids=a,b,c`,
-  `/summary`, `/my-bike`)
+  `/summary`, `/my-bike`, `/dealer?name=…`)
   and an ad (`/deals/<id>`, from anywhere) are pushed, so back returns
   where the person was; pushed pages show their own address
   (`GoRouter.optionURLReflectsImperativeAPIs`, set in `main.dart`). The
@@ -1255,7 +1255,11 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   case-folded, both sites; shown as "O stand" on dealer listings): bikes,
   live, relisted, sharp price changes, missing mileage, repeated used
   bikes on the same site, price dropped. Scored as the Deal Score's seller
-  slice (`dealer_score`, see Scoring model).
+  slice (`dealer_score`, see Scoring model). Its button opens the
+  dealer's page (N.72, `/dealer?name=…`, `DealerPage`, pushed): the
+  figures, then every ad of it on both sites, live first, then the gone
+  ones (`dealer_listings(p_name)`: repeats left out, 100 by default, at most 200, index
+  `listings_dealer_key`; readable by everyone).
 - Cost of ownership (`ownership_cost.dart`, app only): per year =
   average depreciation over the years kept (model's curve at the owner's
   km/year) + IUC (category E table by the model's engine size, nothing
