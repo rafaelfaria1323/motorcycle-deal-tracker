@@ -13,7 +13,7 @@ class SupabaseCatalogRepository(final SupabaseClient _client)
         .select(
           'id, brand, model, my_min_year, tracked_by_me, is_active, '
           'my_colours, olx_search, standvirtual_search, new_price_reference, '
-          'new_price_checked_at',
+          'new_price_checked_at, new_price_from_ads, new_price_ad_count',
         );
     return [
       for (final row in rows)
@@ -31,6 +31,8 @@ class SupabaseCatalogRepository(final SupabaseClient _client)
           newPriceCheckedAt: row['new_price_checked_at'] is String
               ? DateTime.tryParse(row['new_price_checked_at'] as String)
               : null,
+          newPriceFromAds: (row['new_price_from_ads'] as num?)?.toDouble(),
+          newPriceAdCount: row['new_price_ad_count'] as int?,
         ),
     ];
   }

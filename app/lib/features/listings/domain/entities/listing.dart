@@ -66,10 +66,13 @@ class const Listing({
   final DateTime? relistedSince,
   final double? relistedPrice,
 
-  /// Official new-bike list price of the matched model, and when it was last
-  /// checked. Only loaded on the detail page.
+  /// New-bike price of the matched model: the median of the dealers' new
+  /// bikes for sale ([newPriceAdCount] of them, N.58), else the list price
+  /// an admin typed and when it was checked ([newPriceCheckedAt]). Only
+  /// loaded on the detail page.
   final double? newPrice,
   final DateTime? newPriceCheckedAt,
+  final int? newPriceAdCount,
 
   /// Engine size of the matched model (the middle of its catalog range).
   /// Only loaded on the detail page.

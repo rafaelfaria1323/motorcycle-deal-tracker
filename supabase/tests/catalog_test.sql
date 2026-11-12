@@ -1,6 +1,10 @@
 -- Catalog changes from the app: adding a model (checked, trimmed, tracked at
 -- once, never twice), its earliest year and its new-bike price.
-insert into auth.users (id) values ('00000000-0000-0000-0000-0000000000c1');
+insert into auth.users (id) values ('00000000-0000-0000-0000-0000000000c1'),
+                                    ('00000000-0000-0000-0000-0000000000c2');
+-- Only an admin types a new-bike price (N.58).
+insert into public.app_admins (user_id) values ('00000000-0000-0000-0000-0000000000c1')
+on conflict do nothing;
 set local role authenticated;
 set local test.uid = '00000000-0000-0000-0000-0000000000c1';
 set local test.jwt = '{"is_anonymous": false}';
@@ -112,6 +116,16 @@ begin
   exception when invalid_parameter_value then refused := sqlerrm;
   end;
   assert refused like 'Price 250000%', 'an absurd price is refused';
+end $$;
+
+set local test.uid = '00000000-0000-0000-0000-0000000000c2';
+do $$
+begin
+  begin
+    perform public.set_model_new_price((select id from public.motorcycles limit 1), 1000);
+    raise exception 'an account that is not an admin changed a price';
+  exception when insufficient_privilege then null;
+  end;
 end $$;
 
 set local test.jwt = '{"is_anonymous": true}';

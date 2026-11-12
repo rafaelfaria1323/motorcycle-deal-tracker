@@ -2960,6 +2960,8 @@ CREATE TABLE public.motorcycles (
     olx_search text,
     standvirtual_search text,
     collected_since timestamp with time zone DEFAULT now(),
+    new_price_from_ads numeric(10,2),
+    new_price_ad_count smallint,
     CONSTRAINT motorcycles_both_source_searches CHECK (((olx_search IS NOT NULL) AND (standvirtual_search IS NOT NULL))),
     CONSTRAINT motorcycles_engine_cc_max_check CHECK ((engine_cc_max > 0)),
     CONSTRAINT motorcycles_engine_cc_min_check CHECK ((engine_cc_min > 0)),
@@ -2998,6 +3000,18 @@ COMMENT ON COLUMN public.motorcycles.olx_search IS 'OLX search address that list
 --
 
 COMMENT ON COLUMN public.motorcycles.standvirtual_search IS 'Standvirtual search address that lists this model.';
+
+--
+-- Name: COLUMN motorcycles.new_price_from_ads; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.motorcycles.new_price_from_ads IS 'Median price of the live dealer ads of a new bike of this model (new_bike_ad), from 3 ads; refresh_new_prices_from_ads.';
+
+--
+-- Name: COLUMN motorcycles.new_price_ad_count; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.motorcycles.new_price_ad_count IS 'How many ads new_price_from_ads is the median of.';
 
 --
 -- Name: my_colours(public.motorcycles); Type: FUNCTION; Schema: public; Owner: -
@@ -3091,6 +3105,23 @@ CREATE FUNCTION public.needs_repair(p_description text) RETURNS boolean
       or d ~ ('\m' || p || '\w*\s+([^\s.,!?;]+\s+){0,3}?partid[ao]s?\M')
       or d ~ '\m(est[áa]|ficou|vem|veio)\s+(\w+\s+)?partid[ao]s?\M'
   from t, parts
+$$;
+
+--
+-- Name: new_bike_ad(integer, integer, numeric, public.seller_type, text[]); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.new_bike_ad(p_year integer, p_mileage integer, p_price numeric, p_seller_type public.seller_type, p_signals text[]) RETURNS boolean
+    LANGUAGE sql STABLE
+    SET search_path TO ''
+    AS $$
+  select p_seller_type = 'dealer'
+     and p_price >= 300
+     and p_year >= extract(year from now() at time zone 'Europe/Lisbon')::int - 1
+     and p_mileage is not null and p_mileage <= 100
+     and not coalesce(p_signals && array['possible_accident', 'needs_repair',
+                                         'cosmetic_damage', 'not_legalised',
+                                         'not_legalised_outside_eu'], false)
 $$;
 
 --
@@ -3415,6 +3446,8 @@ CREATE FUNCTION public.recalculate_deal_scores() RETURNS integer
 declare
   n integer;
 begin
+  perform public.refresh_new_prices_from_ads();
+
   with dealers as (
     select d.dealer_key, d.bikes,
            public.dealer_score(d.bikes, d.relisted, d.sharp_changes,
@@ -3439,7 +3472,7 @@ begin
       case when l.year is not null
             and public.decimal_year() - (l.year + 0.5) <= 2
             and public.mileage_use_score(l.mileage, l.year) = 100
-           then m.new_price_reference
+           then coalesce(m.new_price_from_ads, m.new_price_reference)
       end as new_price,
       coalesce(public.mileage_use_score(l.mileage, l.year),
                -- Hidden mileage: no better than an average-to-high one.
@@ -3699,6 +3732,50 @@ begin
   if v_now is distinct from v_was then
     perform public.recalculate_deal_scores();
   end if;
+end;
+$$;
+
+--
+-- Name: refresh_new_prices_from_ads(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.refresh_new_prices_from_ads() RETURNS integer
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+declare
+  n integer;
+begin
+  with ads as (
+    select l.motorcycle_id,
+           count(*)::smallint as ad_count,
+           round(percentile_cont(0.5) within group (order by l.price)::numeric)
+             as median_price
+    from public.listings l
+    where l.status in ('active', 'price_changed')
+      and l.duplicate_of is null
+      and l.motorcycle_id is not null
+      and public.new_bike_ad(l.year, l.mileage, l.price, l.seller_type,
+            coalesce(l.text_signals,
+                     public.description_signals(l.variant, l.description)))
+    group by l.motorcycle_id
+    having count(*) >= 3
+  ),
+  wanted as (
+    select m.id, a.median_price, a.ad_count
+    from public.motorcycles m
+    left join ads a on a.motorcycle_id = m.id
+  )
+  update public.motorcycles m
+  set new_price_from_ads = w.median_price,
+      new_price_ad_count = w.ad_count
+  from wanted w
+  where m.id = w.id
+    and (m.new_price_from_ads is distinct from w.median_price
+         or m.new_price_ad_count is distinct from w.ad_count);
+
+  get diagnostics n = row_count;
+  return n;
 end;
 $$;
 
@@ -4251,7 +4328,7 @@ CREATE FUNCTION public.set_model_new_price(p_motorcycle_id uuid, p_price numeric
     SET search_path TO ''
     AS $$
 begin
-  perform public.require_account();
+  perform public.require_admin();
 
   if p_price is not null and (p_price <= 0 or p_price > 200000) then
     raise exception 'Price % is out of range', p_price using errcode = '22023';
@@ -5284,12 +5361,12 @@ CREATE VIEW public.listing_new_price_comparison WITH (security_invoker='true') A
  SELECT l.id AS listing_id,
     l.motorcycle_id,
     l.price AS used_price,
-    m.new_price_reference AS new_price,
-    (m.new_price_reference - l.price) AS difference,
-    round((((m.new_price_reference - l.price) / NULLIF(m.new_price_reference, (0)::numeric)) * (100)::numeric), 1) AS difference_pct
+    COALESCE(m.new_price_from_ads, m.new_price_reference) AS new_price,
+    (COALESCE(m.new_price_from_ads, m.new_price_reference) - l.price) AS difference,
+    round((((COALESCE(m.new_price_from_ads, m.new_price_reference) - l.price) / NULLIF(COALESCE(m.new_price_from_ads, m.new_price_reference), (0)::numeric)) * (100)::numeric), 1) AS difference_pct
    FROM (public.listings l
      JOIN public.motorcycles m ON ((m.id = l.motorcycle_id)))
-  WHERE ((l.price IS NOT NULL) AND (m.new_price_reference IS NOT NULL));
+  WHERE ((l.price IS NOT NULL) AND (COALESCE(m.new_price_from_ads, m.new_price_reference) IS NOT NULL));
 
 --
 -- Name: listing_photo_features; Type: TABLE; Schema: public; Owner: -
@@ -7664,6 +7741,13 @@ REVOKE ALL ON FUNCTION public.needs_repair(p_description text) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.needs_repair(p_description text) TO service_role;
 
 --
+-- Name: FUNCTION new_bike_ad(p_year integer, p_mileage integer, p_price numeric, p_seller_type public.seller_type, p_signals text[]); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.new_bike_ad(p_year integer, p_mileage integer, p_price numeric, p_seller_type public.seller_type, p_signals text[]) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.new_bike_ad(p_year integer, p_mileage integer, p_price numeric, p_seller_type public.seller_type, p_signals text[]) TO service_role;
+
+--
 -- Name: FUNCTION owner_tracks(p_user uuid, p_motorcycle_id uuid, p_year integer); Type: ACL; Schema: public; Owner: -
 --
 
@@ -7795,6 +7879,13 @@ GRANT ALL ON FUNCTION public.redeem_invite(p_code text, p_email text, p_password
 
 REVOKE ALL ON FUNCTION public.refresh_collected_model(p_motorcycle_id uuid) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.refresh_collected_model(p_motorcycle_id uuid) TO service_role;
+
+--
+-- Name: FUNCTION refresh_new_prices_from_ads(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.refresh_new_prices_from_ads() FROM PUBLIC;
+GRANT ALL ON FUNCTION public.refresh_new_prices_from_ads() TO service_role;
 
 --
 -- Name: FUNCTION refresh_photo_hints(p_listings uuid[]); Type: ACL; Schema: public; Owner: -

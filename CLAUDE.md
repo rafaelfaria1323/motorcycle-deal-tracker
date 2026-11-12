@@ -1033,7 +1033,7 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   year or the last with 6 000 km or less warns of VAT paid here.
   Nearly new (N.51): a bike of 2 years or less from mid-year with at
   most half the normal mileage (`mileage_use_score` = 100) and no damage
-  in the text is also priced against `new_price_reference` (same 2.5
+  in the text is also priced against the new-bike price (same 2.5
   points per %); the price slice takes the better (breakdown `new_price`,
   `pct_below_new`, `price_from_new`), also without comparables. Only
   the slice: fair value, offer and risk signals stay on the market.
@@ -1209,8 +1209,16 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   suas cores" (`ListingFilters.onlyMyColours`), saved searches'
   `only_my_colours`, and alerts' "na sua cor" (`pending_notifications.
   my_colour`); never part of any score.
-- New-bike comparison: `motorcycles.new_price_reference` (+ checked date),
-  shown on the detail page; hidden when the model has no reference price.
+- New-bike price (N.58): `motorcycles.new_price_from_ads` and
+  `new_price_ad_count`, the median of the model's live dealer ads for a
+  new bike (`new_bike_ad`: this year or last, <= 100 km, 300 € or more,
+  no damage or legalisation signals; not duplicates) from 3 such ads,
+  refreshed by `refresh_new_prices_from_ads()` at the start of every
+  `recalculate_deal_scores()`; else `new_price_reference` (+ checked
+  date), typed by admins only (`set_model_new_price`, require_admin).
+  Used by the near-new slice and shown on the detail page ("Mediana de N
+  motas novas à venda nos stands", or the date checked) and in "Modelos
+  acompanhados"; hidden when the model has neither.
 
 ## Alerts
 

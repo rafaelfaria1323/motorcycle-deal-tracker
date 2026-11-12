@@ -117,6 +117,33 @@ void main() {
     expect(newPriceSubtitle(model('R9')), 'Sem preço de uma nova');
   });
 
+  test('the dealers\' new bikes come before the typed price (N.58)', () {
+    final fromAds = CatalogModel(
+      id: 'R7',
+      brand: 'Yamaha',
+      model: 'R7',
+      minYear: 2023,
+      isTracked: true,
+      newPrice: 10640,
+      newPriceCheckedAt: DateTime(2026, 10, 13),
+      newPriceFromAds: 10400,
+      newPriceAdCount: 4,
+    );
+
+    expect(
+      newPriceSubtitle(fromAds),
+      'Preço de uma nova: ${Formatters.price(10400)} '
+      '(mediana de 4 motas novas nos stands)',
+    );
+    expect(
+      newPriceSubtitle(fromAds, language: .english),
+      endsWith(' (median of 4 new bikes at dealers)'),
+    );
+    // The typed price stays for when the ads are gone.
+    expect(fromAds.withNewPrice(9000, DateTime(2026)).newPriceFromAds, 10400);
+    expect(fromAds.copyWith(minYear: 2024).newPriceAdCount, 4);
+  });
+
   test('prices are read the way they are written in Portugal', () {
     expect(parseNewPrice('8250').price, 8250);
     expect(parseNewPrice('8 250 €').price, 8250);

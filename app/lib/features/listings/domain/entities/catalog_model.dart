@@ -25,10 +25,15 @@ class const CatalogModel({
   final String? olxSearch,
   final String? standvirtualSearch,
 
-  /// Official new-bike list price, and when it was checked; null when not
-  /// set.
+  /// Official new-bike list price typed by an admin, and when it was
+  /// checked; null when not set. The fallback for [newPriceFromAds].
   final double? newPrice,
   final DateTime? newPriceCheckedAt,
+
+  /// The median asking price of the dealers' new bikes of this model for
+  /// sale (N.58), and how many; null below 3 such ads.
+  final double? newPriceFromAds,
+  final int? newPriceAdCount,
 }) extends Equatable {
   CatalogModel copyWith({
     bool? isTracked,
@@ -46,6 +51,8 @@ class const CatalogModel({
     standvirtualSearch: standvirtualSearch,
     newPrice: newPrice,
     newPriceCheckedAt: newPriceCheckedAt,
+    newPriceFromAds: newPriceFromAds,
+    newPriceAdCount: newPriceAdCount,
   );
 
   /// The same model with another new-bike price (null clears it).
@@ -61,6 +68,8 @@ class const CatalogModel({
     standvirtualSearch: standvirtualSearch,
     newPrice: price,
     newPriceCheckedAt: price == null ? null : checkedAt,
+    newPriceFromAds: newPriceFromAds,
+    newPriceAdCount: newPriceAdCount,
   );
 
   @override
@@ -76,6 +85,8 @@ class const CatalogModel({
     standvirtualSearch,
     newPrice,
     newPriceCheckedAt,
+    newPriceFromAds,
+    newPriceAdCount,
   ];
 }
 

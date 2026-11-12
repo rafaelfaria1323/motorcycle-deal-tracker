@@ -25,7 +25,7 @@ Unchanged.
 - ✅ Detect listings that disappear. *Per search: only searches read in full remove listings.*
 - ✅ Keep listing history.
 - ✅ Estimate current market price. *Fair value per listing, adjusted with each model's own depreciation.*
-- ✅ Compare used prices with new-bike prices. *Shown on the detail page; reference prices need setting for the newer models.*
+- ✅ Compare used prices with new-bike prices. *Shown on the detail page: the median of the dealers' new bikes for sale (3 or more, N.58), else the list price an admin typed.*
 - ✅ Calculate an explainable Deal Score.
 - ✅ Calculate a separate Risk Score.
 - ✅ Create saved searches. *Also by minimum Deal Score / maximum Risk Score.*

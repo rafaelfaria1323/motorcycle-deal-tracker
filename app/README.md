@@ -190,7 +190,8 @@ Screen names below use the Portuguese labels; English provides the same screens.
 - **Mais:** in sections (Recolha de dados first, then Conta, Pessoal, Ferramentas, Notificações, A app; "Administração" for admins only: "Contas e convites", "Estado da recolha", "Recolher agora"): account, "Idioma", "Cartões dos anúncios" (the same card display choices as Ofertas), "Partilhar a app" (the app's link), "Notificações neste aparelho" (with "Horas de silêncio": the hours, Portugal time, when alerts wait for the next collection, 23:00 to 08:00 unless changed, for all the account's devices; "Enviar notificação de teste", an example of any alert or collection message, and "Enviar o resumo da semana"), "Resumo da semana" (your models' last 7 days, made every Monday and sent as a notification that opens it: counts, new listings per model, the best deals and the biggest drops, each opening its listing), "A sua localidade" (your home town: every listing
   shows its distance from it), "Modelos acompanhados" (your own models: switch on/off, first
   year, favourite colours of each (listings in them are marked "Cor
-  preferida", never scored), new-bike price, add models: brand and model picked from the sites'
+  preferida", never scored), new-bike price (the median of 3+ new bikes for
+  sale at dealers when there are, else the list price, typed by admins), add models: brand and model picked from the sites'
   lists (in name order, with a search box) or entered by name, with optional engine size; both OLX and
   Standvirtual are searched automatically, without copied URLs; alternative
   model names are tucked under "Outros nomes do modelo"), "Mercado por modelo"

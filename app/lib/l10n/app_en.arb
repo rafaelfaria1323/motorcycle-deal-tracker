@@ -433,7 +433,7 @@
   "preferredColours": "Preferred colours",
   "listingsInTheseColoursAreMarkedAndYou": "Listings in these colours are marked, and you can filter them or receive alerts about them. Colour does not affect the score.",
   "newBikePriceInput": "New-bike price (EUR)",
-  "newPriceHelp": "List price on the manufacturer's website. Recorded with today's date; leave blank to remove it.",
+  "newPriceHelp": "List price on the manufacturer's website, used only when fewer than 3 new bikes are for sale at dealers. Recorded with today's date; leave blank to remove it.",
   "save": "Save",
   "weeklySummary": "Weekly summary",
   "availableWhenSignedIn": "Available when signed in",
@@ -1105,5 +1105,7 @@
   "bikeValueTileTradeIn": "Trade-in",
   "bikeValueRange": "Where most listings sit",
   "bikeValueReasoning": "How we got there",
-  "bikeValueFactors": "Condition adjustments"
+  "bikeValueFactors": "Condition adjustments",
+  "newBikePriceFromAds": "Median of {count} new bikes for sale at dealers",
+  "fromNewBikeAds": " (median of {count} new bikes at dealers)"
 }
