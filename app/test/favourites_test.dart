@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:motorcycle_deal_tracker/core/localization/app_language.dart';
 import 'package:motorcycle_deal_tracker/features/favourites/data/models/favourite_model.dart';
 import 'package:motorcycle_deal_tracker/features/listings/data/models/listing_model.dart';
 import 'package:motorcycle_deal_tracker/features/favourites/domain/entities/favourite.dart';
