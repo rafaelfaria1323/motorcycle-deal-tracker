@@ -88,16 +88,6 @@ class const ChecklistEntry({final ChecklistMark? mark, final String? note})
   /// Neither marked nor noted: the same as not there.
   bool get isEmpty => mark == null && note == null;
 
-  Favourite withVisit(DateTime? visitAt) => Favourite(
-    listingId: listingId,
-    createdAt: createdAt,
-    note: note,
-    checklist: checklist,
-    targetPrice: targetPrice,
-    visitAt: visitAt,
-    listing: listing,
-  );
-
   @override
   List<Object?> get props => [mark, note];
 }
