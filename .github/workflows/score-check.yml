@@ -1,0 +1,37 @@
+name: Score check
+
+# N.61: the estimates and the Deal Score against the ads that likely sold
+# (gone without expiring, coming back or staying on the other site, or
+# "vendida" in their text). Per model, where the likely sales sat against
+# the estimate; per Deal Score band, how many sold within 14 days. The
+# report goes to this run's summary, for deciding by hand. It changes
+# nothing in the database and uses no AI.
+#
+# Called by weekly-summary.yml after the Monday summary for everyone (not
+# when one account asks for its own); "Run workflow" here runs it now.
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: score-check
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/collector
+
+      - name: Check the scores against likely sales
+        run: cd collector && dart run bin/score_check.dart

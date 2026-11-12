@@ -10,16 +10,18 @@ void main() {
     test('says what the gone ads left at', () {
       expect(
         exitPriceLine(exit),
-        'Saíram do mercado por cerca de ${Formatters.price(6000)}: o último '
-        'preço de 7 anúncios deste modelo que saíram nos últimos 90 dias, '
-        'ajustado ao ano e aos km.',
+        'Último preço pedido antes de sair: cerca de '
+        '${Formatters.price(6000)}, a mediana de 7 anúncios deste modelo que '
+        'saíram nos últimos 90 dias e provavelmente foram vendidos (sem os '
+        'que expiraram, voltaram a ser publicados ou continuam no outro '
+        'site), ajustada ao ano e aos km.',
       );
       expect(
         exitPriceLine(exit, language: .english),
         startsWith(
-          'Left the market at about '
-          '${Formatters.price(6000, language: .english)}: the last price '
-          'of 7 ads',
+          'Last asking price before leaving: about '
+          '${Formatters.price(6000, language: .english)}, the median of 7 '
+          'ads',
         ),
       );
     });

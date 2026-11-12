@@ -489,6 +489,8 @@ CREATE TABLE public.listings (
     photo_exam_requested_at timestamp with time zone,
     photos_examined_all_at timestamp with time zone,
     last_pct_below_market numeric,
+    sold_marked_at timestamp with time zone,
+    last_deal_score smallint,
     CONSTRAINT listings_deal_score_check CHECK (((deal_score >= 0) AND (deal_score <= 100))),
     CONSTRAINT listings_duplicate_not_self CHECK (((duplicate_of IS NULL) OR (duplicate_of <> id))),
     CONSTRAINT listings_mileage_check CHECK ((mileage >= 0)),
@@ -538,6 +540,12 @@ COMMENT ON COLUMN public.listings.photo_exam_requested_at IS 'When someone first
 --
 
 COMMENT ON COLUMN public.listings.photos_examined_all_at IS 'When every photo was shown to the image model (P.4); null: only the first ones.';
+
+--
+-- Name: COLUMN listings.sold_marked_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.listings.sold_marked_at IS 'When the ad''s title or description said it was sold or reserved (sold_in_text); null when it no longer does.';
 
 --
 -- Name: asking_price(public.listings); Type: FUNCTION; Schema: public; Owner: -
@@ -1447,6 +1455,25 @@ CREATE FUNCTION public.duplicate_similarity(p_mileage_a integer, p_mileage_b int
 $$;
 
 --
+-- Name: ended_at_expiry(timestamp with time zone, timestamp with time zone, timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.ended_at_expiry(p_published timestamp with time zone, p_refreshed timestamp with time zone, p_last_seen timestamp with time zone) RETURNS boolean
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$
+  select coalesce(bool_or(
+           r.days >= 28
+           and r.days - 30 * round(r.days / 30) between -2 and 1
+         ), false)
+  from (
+    select extract(epoch from p_last_seen - d) / 86400 as days
+    from unnest(array[p_published, p_refreshed]) d
+    where d is not null and d <= p_last_seen
+  ) r
+$$;
+
+--
 -- Name: engine_range_from_name(text); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -1478,6 +1505,35 @@ end;
 $$;
 
 --
+-- Name: exit_kind(public.listings); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.exit_kind(l public.listings) RETURNS text
+    LANGUAGE sql STABLE
+    SET search_path TO ''
+    AS $$
+  select case
+    when l.status not in ('removed', 'sold') then null
+    when l.status = 'sold' or l.sold_marked_at is not null then 'sold_in_text'
+    when exists (
+      select 1 from public.listings r where r.relisted_from = l.id
+    ) then 'relisted'
+    when exists (
+      select 1 from public.listings o
+      where o.id <> l.id
+        and o.status in ('active', 'price_changed')
+        and (o.duplicate_of = l.id
+             or o.id = l.duplicate_of
+             or o.duplicate_of = l.duplicate_of)
+    ) then 'still_listed'
+    when l.seller_type <> 'dealer'
+     and public.ended_at_expiry(l.published_at, l.site_refreshed_at, l.last_seen_at)
+    then 'expired'
+    else 'likely_sold'
+  end
+$$;
+
+--
 -- Name: exit_price(uuid, integer, integer, uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -1501,9 +1557,7 @@ CREATE FUNCTION public.exit_price(p_motorcycle_id uuid, p_year integer, p_mileag
       and c.price >= 300
       and (p_year is null or c.year is not null)
       and (p_mileage is null or c.mileage is not null)
-      and not exists (
-        select 1 from public.listings r where r.relisted_from = c.id
-      )
+      and public.exit_kind(c) in ('sold_in_text', 'likely_sold')
       and not exists (
         select 1 from excepted x
         where c.id = x.id or c.id = x.duplicate_of
@@ -1602,6 +1656,24 @@ begin
   if new.mileage is null or new.mileage_from_text then
     new.mileage := public.mileage_in_text(new.description);
     new.mileage_from_text := new.mileage is not null;
+  end if;
+  return new;
+end;
+$$;
+
+--
+-- Name: fill_sold_marked(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fill_sold_marked() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+begin
+  if public.sold_in_text(new.variant, new.description) then
+    new.sold_marked_at := coalesce(new.sold_marked_at, now());
+  else
+    new.sold_marked_at := null;
   end if;
   return new;
 end;
@@ -2033,6 +2105,20 @@ CREATE FUNCTION public.is_admin() RETURNS boolean
     SET search_path TO ''
     AS $$
   select exists (select 1 from public.app_admins a where a.user_id = auth.uid())
+$$;
+
+--
+-- Name: keep_last_deal_score(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.keep_last_deal_score() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+begin
+  new.last_deal_score := new.deal_score;
+  return new;
+end;
 $$;
 
 --
@@ -4233,6 +4319,118 @@ end;
 $$;
 
 --
+-- Name: score_check_bands(integer, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.score_check_bands(p_days integer DEFAULT 60, p_horizon integer DEFAULT 14) RETURNS TABLE(band text, ads integer, sold_within integer, share numeric)
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+  with ads as (
+    select case
+             when l.last_deal_score >= 80 then '80-100'
+             when l.last_deal_score >= 60 then '60-79'
+             when l.last_deal_score >= 40 then '40-59'
+             else '0-39'
+           end as band,
+           public.exit_kind(l) in ('sold_in_text', 'likely_sold')
+             and l.last_seen_at - l.first_seen_at
+                 <= make_interval(days => p_horizon) as sold
+    from public.listings l
+    where l.first_seen_at >= now() - make_interval(days => p_days)
+      and l.first_seen_at <= now() - make_interval(days => p_horizon)
+      and (l.published_at is null
+           or l.published_at >= l.first_seen_at - interval '2 days')
+      and l.duplicate_of is null
+      and l.motorcycle_id is not null
+      and l.price >= 300
+      and l.last_deal_score is not null
+  )
+  select a.band,
+         count(*)::integer,
+         count(*) filter (where a.sold)::integer,
+         round(100.0 * count(*) filter (where a.sold) / count(*), 1)
+  from ads a
+  group by a.band
+  order by a.band desc;
+$$;
+
+--
+-- Name: score_check_models(integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.score_check_models(p_days integer DEFAULT 28) RETURNS TABLE(model text, gone integer, sold_in_text integer, likely_sold integer, relisted integer, still_listed integer, expired integer, sold_with_position integer, sold_position numeric, live_with_position integer, live_position numeric, sold_drop_pct numeric, sold_days numeric)
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+  with gone as (
+    select l.motorcycle_id,
+           public.exit_kind(l) as kind,
+           case when not coalesce(l.text_signals,
+                                  public.description_signals(l.variant, l.description))
+                     && array['possible_accident', 'needs_repair',
+                              'not_legalised', 'not_legalised_outside_eu']
+                then l.last_pct_below_market end as position,
+           100 * (1 - l.price / nullif(greatest(l.initial_price, l.price_before_drop, l.price), 0))
+             as drop_pct,
+           extract(epoch from l.last_seen_at
+                   - coalesce(l.published_at, l.first_seen_at)) / 86400 as days
+    from public.listings l
+    where l.status in ('removed', 'sold')
+      and l.last_seen_at >= now() - make_interval(days => p_days)
+      and l.duplicate_of is null
+      and l.motorcycle_id is not null
+      and l.price >= 300
+  ),
+  live as (
+    select l.motorcycle_id, public.market_position(l) as position
+    from public.listings l
+    where l.status in ('active', 'price_changed')
+      and l.duplicate_of is null
+      and l.motorcycle_id is not null
+  ),
+  per_gone as (
+    select g.motorcycle_id,
+           count(*)::integer as gone,
+           count(*) filter (where g.kind = 'sold_in_text')::integer as sold_in_text,
+           count(*) filter (where g.kind = 'likely_sold')::integer as likely_sold,
+           count(*) filter (where g.kind = 'relisted')::integer as relisted,
+           count(*) filter (where g.kind = 'still_listed')::integer as still_listed,
+           count(*) filter (where g.kind = 'expired')::integer as expired,
+           count(g.position) filter (where g.kind in ('sold_in_text', 'likely_sold'))::integer
+             as sold_with_position,
+           round((percentile_cont(0.5) within group (order by g.position)
+                  filter (where g.kind in ('sold_in_text', 'likely_sold')))::numeric, 1)
+             as sold_position,
+           round((percentile_cont(0.5) within group (order by g.drop_pct)
+                  filter (where g.kind in ('sold_in_text', 'likely_sold')))::numeric, 1)
+             as sold_drop_pct,
+           round((percentile_cont(0.5) within group (order by g.days)
+                  filter (where g.kind in ('sold_in_text', 'likely_sold')))::numeric, 0)
+             as sold_days
+    from gone g
+    group by g.motorcycle_id
+  ),
+  per_live as (
+    select v.motorcycle_id,
+           count(v.position)::integer as live_with_position,
+           round((percentile_cont(0.5) within group (order by v.position))::numeric, 1)
+             as live_position
+    from live v
+    group by v.motorcycle_id
+  )
+  select m.brand || ' ' || m.model,
+         g.gone, g.sold_in_text, g.likely_sold, g.relisted, g.still_listed,
+         g.expired, g.sold_with_position, g.sold_position,
+         coalesce(v.live_with_position, 0), v.live_position,
+         g.sold_drop_pct, g.sold_days
+  from per_gone g
+  join public.motorcycles m on m.id = g.motorcycle_id
+  left join per_live v on v.motorcycle_id = g.motorcycle_id
+  order by g.gone desc, 1;
+$$;
+
+--
 -- Name: send_telegram(text); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -4475,6 +4673,33 @@ CREATE FUNCTION public.single_owner_in_text(p_variant text, p_description text) 
               '|(primeira|1\s*[ªa])\s+m[ãa]o'
               '|\m(first|one|single|only)\s+owner')
 $$;
+
+--
+-- Name: sold_in_text(text, text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.sold_in_text(p_variant text, p_description text) RETURNS boolean
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $_$
+  with t as (
+    select lower(coalesce(p_variant, '')) as variant,
+           lower(coalesce(p_description, '')) as description,
+           -- The word on its own, not how the bike is sold.
+           '\m(vendid|reservad)[oa]s?\M(?!\s*(com|sem|no|na|nos|nas|em|ao|aos|à|a|pelo|pela|por|para|c/|s/|apenas|só|so|tal|como|ja|já|nova|novo|nunca)(\s|$|[[:punct:]]))'
+             as bare,
+           -- "não está vendida", "ainda não foi reservada".
+           '\mn[aã]o\s+((est[aá]|foi|ser[aá]|se\s+encontra)\s+)?(vendid|reservad)[oa]s?\M'
+             as denied
+  )
+  select (t.variant ~ t.bare
+          or t.variant ~ '\msold\M'
+          or left(t.description, 60) ~ t.bare
+          or t.description ~
+               '\m(j[aá]|est[aá]|encontra-se)\s+(vendid|reservad)[oa]s?\M(?!\s*(a|com|em|no|na|para|por|pelo|pela)(\s|$|[[:punct:]]))')
+     and not (t.variant ~ t.denied or t.description ~ t.denied)
+  from t
+$_$;
 
 --
 -- Name: stamp_favourite_target(); Type: FUNCTION; Schema: public; Owner: -
@@ -6380,6 +6605,12 @@ CREATE TRIGGER listings_a_strip_phone_numbers BEFORE INSERT OR UPDATE OF descrip
 CREATE TRIGGER listings_colour BEFORE INSERT OR UPDATE OF site_colour, variant, description ON public.listings FOR EACH ROW EXECUTE FUNCTION public.fill_listing_colour();
 
 --
+-- Name: listings listings_keep_last_deal_score; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER listings_keep_last_deal_score BEFORE UPDATE OF deal_score ON public.listings FOR EACH ROW WHEN (((new.deal_score IS NOT NULL) AND (new.deal_score IS DISTINCT FROM old.deal_score))) EXECUTE FUNCTION public.keep_last_deal_score();
+
+--
 -- Name: listings listings_keep_market_position; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -6402,6 +6633,12 @@ CREATE TRIGGER listings_record_initial_price AFTER INSERT ON public.listings FOR
 --
 
 CREATE TRIGGER listings_set_initial_price BEFORE INSERT ON public.listings FOR EACH ROW EXECUTE FUNCTION public.set_initial_price();
+
+--
+-- Name: listings listings_sold_marked; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER listings_sold_marked BEFORE INSERT OR UPDATE OF variant, description ON public.listings FOR EACH ROW EXECUTE FUNCTION public.fill_sold_marked();
 
 --
 -- Name: listings listings_text_signals; Type: TRIGGER; Schema: public; Owner: -
@@ -7361,6 +7598,13 @@ GRANT ALL ON FUNCTION public.duplicate_similarity(p_mileage_a integer, p_mileage
 GRANT ALL ON FUNCTION public.duplicate_similarity(p_mileage_a integer, p_mileage_b integer, p_price_a numeric, p_price_b numeric, p_location_a text, p_location_b text, p_description_a text, p_description_b text, p_seller_a text, p_seller_b text) TO service_role;
 
 --
+-- Name: FUNCTION ended_at_expiry(p_published timestamp with time zone, p_refreshed timestamp with time zone, p_last_seen timestamp with time zone); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.ended_at_expiry(p_published timestamp with time zone, p_refreshed timestamp with time zone, p_last_seen timestamp with time zone) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.ended_at_expiry(p_published timestamp with time zone, p_refreshed timestamp with time zone, p_last_seen timestamp with time zone) TO service_role;
+
+--
 -- Name: FUNCTION engine_range_from_name(p_model text); Type: ACL; Schema: public; Owner: -
 --
 
@@ -7373,6 +7617,15 @@ GRANT ALL ON FUNCTION public.engine_range_from_name(p_model text) TO service_rol
 
 REVOKE ALL ON FUNCTION public.ensure_model_searches() FROM PUBLIC;
 GRANT ALL ON FUNCTION public.ensure_model_searches() TO service_role;
+
+--
+-- Name: FUNCTION exit_kind(l public.listings); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.exit_kind(l public.listings) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.exit_kind(l public.listings) TO anon;
+GRANT ALL ON FUNCTION public.exit_kind(l public.listings) TO authenticated;
+GRANT ALL ON FUNCTION public.exit_kind(l public.listings) TO service_role;
 
 --
 -- Name: FUNCTION exit_price(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_except uuid); Type: ACL; Schema: public; Owner: -
@@ -7410,6 +7663,13 @@ GRANT ALL ON FUNCTION public.fill_listing_colour() TO service_role;
 
 REVOKE ALL ON FUNCTION public.fill_mileage_from_text() FROM PUBLIC;
 GRANT ALL ON FUNCTION public.fill_mileage_from_text() TO service_role;
+
+--
+-- Name: FUNCTION fill_sold_marked(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.fill_sold_marked() FROM PUBLIC;
+GRANT ALL ON FUNCTION public.fill_sold_marked() TO service_role;
 
 --
 -- Name: FUNCTION fill_text_signals(); Type: ACL; Schema: public; Owner: -
@@ -7528,6 +7788,13 @@ GRANT ALL ON FUNCTION public.invite_status(p_code text) TO service_role;
 REVOKE ALL ON FUNCTION public.is_admin() FROM PUBLIC;
 GRANT ALL ON FUNCTION public.is_admin() TO authenticated;
 GRANT ALL ON FUNCTION public.is_admin() TO service_role;
+
+--
+-- Name: FUNCTION keep_last_deal_score(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.keep_last_deal_score() FROM PUBLIC;
+GRANT ALL ON FUNCTION public.keep_last_deal_score() TO service_role;
 
 --
 -- Name: FUNCTION keep_market_position(); Type: ACL; Schema: public; Owner: -
@@ -8005,6 +8272,20 @@ REVOKE ALL ON FUNCTION public.saved_search_single_model() FROM PUBLIC;
 GRANT ALL ON FUNCTION public.saved_search_single_model() TO service_role;
 
 --
+-- Name: FUNCTION score_check_bands(p_days integer, p_horizon integer); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.score_check_bands(p_days integer, p_horizon integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.score_check_bands(p_days integer, p_horizon integer) TO service_role;
+
+--
+-- Name: FUNCTION score_check_models(p_days integer); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.score_check_models(p_days integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.score_check_models(p_days integer) TO service_role;
+
+--
 -- Name: FUNCTION send_telegram(p_text text); Type: ACL; Schema: public; Owner: -
 --
 
@@ -8080,6 +8361,13 @@ GRANT ALL ON FUNCTION public.set_search_keys(p_source text, p_keys jsonb) TO ser
 
 REVOKE ALL ON FUNCTION public.single_owner_in_text(p_variant text, p_description text) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.single_owner_in_text(p_variant text, p_description text) TO service_role;
+
+--
+-- Name: FUNCTION sold_in_text(p_variant text, p_description text); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.sold_in_text(p_variant text, p_description text) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.sold_in_text(p_variant text, p_description text) TO service_role;
 
 --
 -- Name: FUNCTION stamp_favourite_target(); Type: ACL; Schema: public; Owner: -

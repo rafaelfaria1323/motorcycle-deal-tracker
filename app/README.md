@@ -208,7 +208,9 @@ Screen names below use the Portuguese labels; English provides the same screens.
   most comparable ads sit, all adjusted to its condition when you say it
   (falls or accidents, owners, service book, warranty, each shown in
   euros), what the model's ads that left the market in the last 90 days
-  last asked ("Saíram do mercado por") and the time to sell; your last
+  and likely sold last asked ("Último preço pedido antes de sair": not
+  those that expired, came back or are still on the other site) and the
+  time to sell; your last
   requests below), "Comprar no
   estrangeiro" (the same form for a bike seen in Spain, France or
   Germany: its price there plus vehicle tax (ISV), legalisation and

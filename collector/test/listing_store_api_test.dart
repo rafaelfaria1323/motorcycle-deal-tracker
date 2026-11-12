@@ -139,6 +139,8 @@ void main() {
       'answer_bike_value_requests',
       'text_audit_sample',
       'unmatched_title_sample',
+      'score_check_models',
+      'score_check_bands',
     ]) {
       replies[name] = const [];
     }
@@ -218,6 +220,8 @@ void main() {
     await pushes.markNotified(['alert']);
     await AuditStore(client).sample(DateTime.utc(2026, 11, 4), 60);
     await AuditStore(client).unmatchedTitles(DateTime.utc(2026, 11, 4), 40);
+    await ScoreCheckStore(client).models(28);
+    await ScoreCheckStore(client).bands(60, 14);
   }
 
   test('every RPC the store calls exists with those arguments', () async {
@@ -331,6 +335,18 @@ void main() {
     final titles = await audit.unmatchedTitles(DateTime.utc(2026, 11, 4), 40);
     expect(titles.single.title, 'Yamaha · MT');
     expect(calls.last.name, 'rpc:unmatched_title_sample');
+
+    replies['score_check_models'] = [
+      {'model': 'Yamaha MT-07', 'gone': 3, 'likely_sold': 2},
+    ];
+    replies['score_check_bands'] = [
+      {'band': '80-100', 'ads': 5, 'sold_within': 1, 'share': 20.0},
+    ];
+    final check = ScoreCheckStore(client);
+    expect((await check.models(28)).single.sales, 2);
+    expect(calls.last.body, {'p_days': 28});
+    expect((await check.bands(60, 14)).single.share, 20.0);
+    expect(calls.last.body, {'p_days': 60, 'p_horizon': 14});
   });
 
   test('empty inputs send nothing', () async {
