@@ -5,6 +5,7 @@ import '../../../../core/widgets/collapsible_section.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../import_cost.dart';
 import '../import_cost_text.dart';
+import 'calculator_field.dart';
 
 /// "E se a comprar no estrangeiro?": the same bike seen in Spain, France
 /// or Germany, its price there and engine size, gives its cost on the road
@@ -65,19 +66,12 @@ class _ImportCostCardState extends State<ImportCostCard> {
     String label, {
     required String suffix,
     String? helper,
-  }) => Padding(
-    padding: const EdgeInsets.only(bottom: 12),
-    child: TextField(
-      controller: controller,
-      keyboardType: TextInputType.number,
-      onChanged: (_) => setState(() {}),
-      decoration: InputDecoration(
-        labelText: label,
-        suffixText: suffix,
-        helperText: helper,
-        border: const OutlineInputBorder(),
-      ),
-    ),
+  }) => CalculatorField(
+    controller: controller,
+    label: label,
+    suffix: suffix,
+    helper: helper,
+    onChanged: () => setState(() {}),
   );
 
   @override
@@ -145,26 +139,11 @@ class _ImportCostCardState extends State<ImportCostCard> {
         children: children,
       );
     }
-    final theme = Theme.of(context);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-        child: CollapsibleSection(
-          title: strings.importCostTitle,
-          summary: strings.importCostFolded,
-          childrenPadding: const EdgeInsets.only(bottom: 16),
-          children: [
-            ...children,
-            const SizedBox(height: 12),
-            Text(
-              note,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
+    return FoldedCard(
+      title: strings.importCostTitle,
+      summary: strings.importCostFolded,
+      footnote: note,
+      children: children,
     );
   }
 }

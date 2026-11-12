@@ -122,6 +122,15 @@ void main() {
       expect(afterVisit(offer, const VisitFindings()), same(offer));
     });
 
+    test("a listing's findings use its own engine size", () {
+      final listing = _listing(engineCc: 998);
+      expect(
+        listingVisitFindings(listing, {'tyres': _issue}).total,
+        visitFindings({'tyres': _issue}, engineCc: 998, listing: listing).total,
+      );
+      expect(listingVisitFindings(listing, const {}).isEmpty, isTrue);
+    });
+
     test('the opening stays below the most to pay after a big repair', () {
       const offer = OfferSuggestion(opening: 900, ceiling: 1000, reasons: []);
       final after = offer.lowerBy(950, 'x');

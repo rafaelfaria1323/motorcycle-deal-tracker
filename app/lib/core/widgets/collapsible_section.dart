@@ -46,3 +46,39 @@ class const CollapsibleSection({
     );
   }
 }
+
+/// A detail page card that is one closed line until asked for (F.4): a
+/// question about something besides the ad itself, such as buying abroad
+/// or paying in instalments. The muted [footnote] closes it once open.
+class const FoldedCard({
+  required final String title,
+  required final String summary,
+  required final String footnote,
+  required final List<Widget> children,
+  super.key,
+}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        child: CollapsibleSection(
+          title: title,
+          summary: summary,
+          childrenPadding: const EdgeInsets.only(bottom: 16),
+          children: [
+            ...children,
+            const SizedBox(height: 12),
+            Text(
+              footnote,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -15,7 +15,6 @@ import '../../../favourites/presentation/cubit/favourites_state.dart';
 import '../../../favourites/presentation/widgets/target_price_tile.dart';
 import '../negotiation_text.dart';
 import '../offer_text.dart';
-import '../../../valuation/presentation/ownership_cost.dart';
 import 'counter_offer_reply.dart';
 import '../../../../core/localization/localizations.dart';
 
@@ -83,12 +82,9 @@ class _OfferCardState extends State<OfferCard> {
               language: context.language,
             );
             if (planned == null) return const SizedBox.shrink();
-            final visit = visitFindings(
+            final visit = listingVisitFindings(
+              listing,
               favourite?.checklist ?? const {},
-              engineCc: listing.engineCc,
-              sport: isSportBike(brand: listing.brand, model: listing.model),
-              maintenance: listing.maintenance,
-              listing: listing,
               language: context.language,
             );
             final arguments = negotiationArguments(

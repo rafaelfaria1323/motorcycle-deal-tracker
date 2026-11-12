@@ -6847,5 +6847,100 @@
         "type": "String"
       }
     }
+  },
+  "financingTitle": "E se pagar a prestações?",
+  "@financingTitle": {
+    "description": "Interface text in financing_text / financing_card (N.69)."
+  },
+  "financingFolded": "A prestação, o total pago e os juros de um crédito para esta mota.",
+  "@financingFolded": {
+    "description": "Interface text in financing_text / financing_card (N.69)."
+  },
+  "financingIntro": "Indique a entrada, o prazo e a TAEG da simulação do stand ou do banco: mostramos a prestação, quanto paga ao todo e quanto poupa se fechar pela sua oferta.",
+  "@financingIntro": {
+    "description": "Interface text in financing_text / financing_card (N.69)."
+  },
+  "financingPrice": "Preço",
+  "@financingPrice": {
+    "description": "Interface text in financing_text / financing_card (N.69)."
+  },
+  "financingPriceHint": "O preço do anúncio; mude-o se combinar outro",
+  "@financingPriceHint": {
+    "description": "Interface text in financing_text / financing_card (N.69)."
+  },
+  "financingDeposit": "Entrada (opcional)",
+  "@financingDeposit": {
+    "description": "Interface text in financing_text / financing_card (N.69)."
+  },
+  "financingMonths": "Prazo",
+  "@financingMonths": {
+    "description": "Interface text in financing_text / financing_card (N.69)."
+  },
+  "financingMonthsOption": "{months} meses",
+  "@financingMonthsOption": {
+    "description": "Interface text in financing_text / financing_card (N.69).",
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "financingApr": "TAEG",
+  "@financingApr": {
+    "description": "Interface text in financing_text / financing_card (N.69)."
+  },
+  "financingAprHint": "Na simulação ou na FINE, por exemplo 11,9",
+  "@financingAprHint": {
+    "description": "Interface text in financing_text / financing_card (N.69)."
+  },
+  "financingMonthly": "{monthly} por mês durante {months} meses",
+  "@financingMonthly": {
+    "description": "Interface text in financing_text / financing_card (N.69).",
+    "placeholders": {
+      "monthly": {
+        "type": "String"
+      },
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "financingTotal": "Paga {total} ao todo, entrada incluída: {interest} a mais do que a pronto",
+  "@financingTotal": {
+    "description": "Interface text in financing_text / financing_card (N.69).",
+    "placeholders": {
+      "total": {
+        "type": "String"
+      },
+      "interest": {
+        "type": "String"
+      }
+    }
+  },
+  "financingAtOffer": "Se fechar pela oferta máxima de \"Quanto oferecer\" ({offer}): {monthly} por mês, {total} ao todo, menos {saving}",
+  "@financingAtOffer": {
+    "description": "Interface text in financing_text / financing_card (N.69).",
+    "placeholders": {
+      "offer": {
+        "type": "String"
+      },
+      "monthly": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      },
+      "saving": {
+        "type": "String"
+      }
+    }
+  },
+  "financingNothingFinanced": "A entrada cobre o preço: não há nada a financiar",
+  "@financingNothingFinanced": {
+    "description": "Interface text in financing_text / financing_card (N.69)."
+  },
+  "financingNote": "A TAEG já conta as comissões e os seguros obrigatórios do crédito; usamo-la como taxa anual, por isso a prestação real pode diferir alguns euros. Confirme na FINE antes de assinar.",
+  "@financingNote": {
+    "description": "Interface text in financing_text / financing_card (N.69)."
   }
 }
