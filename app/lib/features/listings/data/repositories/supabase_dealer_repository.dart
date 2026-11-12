@@ -21,7 +21,7 @@ class SupabaseDealerRepository(final SupabaseClient _client)
   @override
   Future<List<Listing>> getListings(String sellerName) async {
     final rows = await _client
-        .rpc('dealer_listings', params: {'p_name': sellerName})
+        .rpc<Object?>('dealer_listings', params: {'p_name': sellerName})
         .select(ListingModel.summaryColumns);
     return rows.map<Listing>(ListingModel.fromJson).toList();
   }

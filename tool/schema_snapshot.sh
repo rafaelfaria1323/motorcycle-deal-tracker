@@ -11,6 +11,9 @@
 # and the Vault are not Supabase's), without owners. pg_dump's own lines
 # that change between runs or versions (its version, \restrict keys, SET
 # lines) are left out; its "-- Name:" lines stay, to find an object.
+# So are the column options "pg_attver" that the postgres:16 image's
+# 16.16 build dumps for listings' columns (not a Postgres option, set by
+# no migration; not seen on 16.15).
 # Uses the usual libpq variables, like db_test.sh.
 set -euo pipefail
 
@@ -35,6 +38,7 @@ HEADER
         -e '/^\\(un)?restrict /d' \
         -e '/^-- (Dumped (from|by)|PostgreSQL database dump)/d' \
         -e '/^SET /d' \
+        -e '/^ALTER TABLE ONLY [^ ]+ ALTER COLUMN [^ ]+ SET \(pg_attver=[0-9]+\);$/d' \
         -e "/^SELECT pg_catalog.set_config\('search_path'/d" \
         -e "s/FOR ROLE $me IN SCHEMA/FOR ROLE postgres IN SCHEMA/" \
     | sed -n '/^-- Name:/,$p' | sed '1i --' | cat -s \
