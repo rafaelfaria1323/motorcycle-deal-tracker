@@ -11,7 +11,8 @@ name: Weekly summary
 # account. "Enviar o resumo da semana" in the app starts it with that
 # account as `account` (start_workflow), for that account only; "Run
 # workflow" here without an account makes everyone's, and then runs the
-# description check (text-audit.yml, N.55) beside it.
+# description check (text-audit.yml, N.55) and the score check
+# (score-check.yml, N.61) beside it.
 on:
   workflow_dispatch:
     inputs:
@@ -46,4 +47,10 @@ jobs:
     # Weekly with everyone's summary, never when one account asks for its own.
     if: inputs.account == ''
     uses: ./.github/workflows/text-audit.yml
+    secrets: inherit
+
+  score-check:
+    # Weekly with everyone's summary, as the description check.
+    if: inputs.account == ''
+    uses: ./.github/workflows/score-check.yml
     secrets: inherit

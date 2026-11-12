@@ -89,6 +89,9 @@ weekly-summary: require-collector-env ## Make and send each account's weekly sum
 text-audit: require-collector-env ## The description check (N.55): the rules against Gemini on the week's ads; needs GEMINI_API_KEY: make text-audit [ARGS=--ads=20]
 	cd collector && dart run bin/text_audit.dart $(ARGS)
 
+score-check: require-collector-env ## The estimates and Deal Score against likely sales (N.61): make score-check [ARGS=--days=14]
+	cd collector && dart run bin/score_check.dart $(ARGS)
+
 enrich-dry: require-collector-env ## List the listings that still need details, requests nothing
 	cd collector && dart run bin/enrich.dart --dry-run
 

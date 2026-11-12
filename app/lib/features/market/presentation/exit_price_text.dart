@@ -3,9 +3,9 @@ import '../../../core/localization/localizations.dart';
 import '../domain/entities/exit_price.dart';
 import 'market_behaviour_text.dart';
 
-/// "Saíram do mercado por cerca de 6 300 €: …", the price multiplied by
-/// [adjust] (a bike's condition, 1 = none). Null below [minMarketData]
-/// gone ads: too few to say what they went for.
+/// "Último preço pedido antes de sair: cerca de 6 300 €, …", the price
+/// multiplied by [adjust] (a bike's condition, 1 = none). Null below
+/// [minMarketData] likely sales: too few to say what they went for.
 String? exitPriceLine(
   ExitPrice exit, {
   double adjust = 1,

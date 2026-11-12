@@ -180,7 +180,10 @@ touches the fetching rules.
    Nothing changes in the score until then. *First step done (F.11):
    `exit_price()`, in "Mercado deste modelo" (with how the ad's price
    compares) and in "Quanto vale a minha mota"; the second step waits for
-   those weeks.*
+   those weeks. N.61: only gone ads that likely sold count (not expired,
+   relisted or still on the other site; or "vendida" in the text), the
+   app says "Último preço pedido antes de sair", and the Monday score
+   check (`score-check.yml`) does the comparing.*
 2. **P3 [ux] Bike value and the import calculator share one 598-line
    page** (`bike_value_page.dart`, `importing: true`). This is fine for
    the person, but see 7.3.

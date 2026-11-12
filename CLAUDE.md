@@ -49,7 +49,8 @@ never asks for search URLs; aliases sit under "Outros nomes do modelo".
   collector use no AI (scores, estimates and alerts are rules and
   statistics), except the weekly description check (N.55: Gemini's free
   tier reads a sample of the week's ads; the disagreements with the rules
-  are a report for fixing them with tests, never a score). Checks: analyzer rules (`*/analysis_options.yaml`, with Dart
+  are a report for fixing them with tests, never a score; beside it the
+  weekly score check, N.61, without AI). Checks: analyzer rules (`*/analysis_options.yaml`, with Dart
   3.11-3.13's lints, N.40),
   `make duplication` (jscpd), `make coverage` (floors in the Makefile),
   `make lint-scripts` (actionlint, shellcheck), `make dead-code`
@@ -150,6 +151,7 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   pushed to its devices (bin/weekly_summary.dart);
                                   input `account`: only that one;
                                   without one, also calls text-audit.yml
+                                  and score-check.yml
 .github/workflows/text-audit.yml  The description check (N.55,
                                   bin/text_audit.dart): up to 60 of the
                                   week's ads (`text_audit_sample`) and 40
@@ -161,6 +163,15 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   audit/text_audit.dart compares with the
                                   rules, report in the run's summary;
                                   writes nothing; no key: skipped
+.github/workflows/score-check.yml The score check (N.61, bin/score_check.dart,
+                                  no AI): per model, how its gone ads left
+                                  and where the likely sales sat against
+                                  the estimate (`score_check_models`); per
+                                  Deal Score band, how many sold within
+                                  14 days (`score_check_bands`);
+                                  audit/score_check.dart flags what looks
+                                  off; report in the run's summary;
+                                  writes nothing
 .github/workflows/push-test.yml   A test notification (bin/push_test.dart) to the
                                   devices of whoever asked in the app; input
                                   `kind`: an example of one alert or
@@ -299,6 +310,7 @@ make refresh-olx|refresh-standvirtual   the same for one site
 make push-test                 send a test notification to the admins' devices (Web Push)
 make weekly-summary [ARGS=--dry-run]   make and send (or print) each account's weekly summary
 make text-audit [ARGS=--ads=20]        the description check against Gemini (GEMINI_API_KEY)
+make score-check [ARGS=--days=14]      the estimates and Deal Score against likely sales (N.61)
 make mutation PKG=collector|app FILES="lib/..."   mutation testing of those files
                                (needs `dart pub global activate mutation_test`)
 ```
@@ -1126,14 +1138,30 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   `listings_keep_market_position`) keeps a gone ad's last position, since
   its scores are cleared. App: `time_to_sale_text.dart`, in "Mercado
   deste modelo". Never a score slice.
+- How a gone ad left (N.61): neither site says a bike sold, so the
+  status `sold` is never set and `removed` keeps meaning gone (alerts and
+  a relist's return rely on it). `exit_kind(listing)` (computed field,
+  readable by everyone; null while live) works it out: `sold_in_text`
+  (`sold_marked_at`, kept by the trigger `listings_sold_marked` from
+  `sold_in_text()`: "VENDIDA" / "reservada" alone in OLX's title or the
+  description's first 60 characters, "já vendida" / "está reservada"
+  anywhere; not "vendida com garantia", "vendido no estado", "não está
+  vendida"), `relisted` (a later ad's `relisted_from`), `still_listed` (a
+  live duplicate of it, or of what it repeats), `expired` (private ads
+  only: gone 28-31 days, or a multiple of 30 +-2, after publication or
+  the last renewal, `ended_at_expiry`; both sites run an ad 30 days),
+  else `likely_sold`. `listings.last_deal_score` (trigger
+  `listings_keep_last_deal_score`) keeps a gone ad's last Deal Score.
 - Exit prices (`exit_price(model, year, km, except)`, F.11; readable by
-  everyone): the median last price of the model's ads gone (removed or
-  sold) in the last 90 days, not duplicates, not relisted since, 300 € or
-  more, adjusted as `bike_value`; `except` leaves out an ad and the one it
-  repeats. App (`exit_price_text.dart`, from 5 gone): "Saíram do mercado
-  por" in "Mercado deste modelo" (with how the ad's price compares) and in
-  "Quanto vale a minha mota" (adjusted to the condition). Shown only:
-  never a score slice or the fair value until compared for some weeks.
+  everyone): the median last price of the model's ads gone in the last 90
+  days that likely sold (`exit_kind` `sold_in_text` or `likely_sold`, N.61),
+  not duplicates, 300 € or more, adjusted as `bike_value`; `except` leaves
+  out an ad and the one it repeats. App (`exit_price_text.dart`, from 5):
+  "Último preço pedido antes de sair" in "Mercado deste modelo" (with how
+  the ad's price compares) and in "Quanto vale a minha mota" (adjusted to
+  the condition). Shown only: never a score slice or the fair value until
+  the weekly score check (`score-check.yml`, `score_check_models` /
+  `score_check_bands`, service role only) has compared it for some weeks.
 - Price trends (`model_price_trend`): per model and week (last 12), the ads
   seen that week at their price by its end (no duplicates, none under
   300 €), plain and adjusted median (each price brought to the model's

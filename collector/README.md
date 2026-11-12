@@ -157,6 +157,20 @@ key it is skipped. Each request logs a line (how long, or why it failed);
 thinking is switched off (`thinkingBudget: 0`, dropped for a model that
 refuses it), and after 10 minutes (`--minutes`) no new request starts.
 
+Also beside it, `bin/score_check.dart` (workflow `score-check.yml`, N.61,
+no AI) checks the estimates and the Deal Score against the ads that likely
+sold (`exit_kind`: gone without expiring, coming back or staying on the
+other site, or "vendida" in their text). `score_check_models` gives, per
+model, how its ads of the last 28 days (`--days`) left and the median
+market position of the likely sales against the live ads';
+`score_check_bands` gives, per Deal Score band (the last score,
+`last_deal_score`), how many ads first seen 14 to 60 days ago
+(`--horizon`, `--band-days`) sold within 14 days. `audit/score_check.dart`
+writes the report (stdout and the run's summary) and lists what looks off:
+a model whose likely sales sat more than 7 % from the estimate, or a
+higher band selling less often than a lower one (each from 5). It writes
+nothing.
+
 ## Notification languages
 
 `notify/notification_text.dart` contains bundled Portuguese/English copy and
@@ -188,6 +202,7 @@ remain operational messages. There is no translation service or AI.
 | `make push-test` | Send a test notification (Web Push) to the admins' devices (`push-test.yml` from the app: to the asking account's; `PUSH_KIND=price_reduction` etc. sends an example of that notification, `pushTestKinds`) |
 | `make weekly-summary [ARGS=--dry-run]` | Make and send (or print) each account's summary of the week |
 | `make text-audit [ARGS=--ads=20]` | The description check against Gemini (needs `GEMINI_API_KEY`) |
+| `make score-check [ARGS=--days=14]` | The estimates and Deal Score against likely sales (N.61) |
 | `make collector-check` | Format check, analyze and test |
 
 Secrets go in `collector/.env` (gitignored): `SUPABASE_URL`,
@@ -196,7 +211,7 @@ Secrets go in `collector/.env` (gitignored): `SUPABASE_URL`,
 ## Code layout
 
 ```text
-bin/        entry points (refresh, fetch, collector, enrich, photos, searches, report_run, push_test, weekly_summary, text_audit;
+bin/        entry points (refresh, fetch, collector, enrich, photos, searches, report_run, push_test, weekly_summary, text_audit, score_check;
             `--help` lists each one's options, package args)
 lib/        fetcher, site adapters and mappers, model matching, store, run steps
 test/       unit tests

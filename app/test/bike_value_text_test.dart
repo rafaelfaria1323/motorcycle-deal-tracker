@@ -121,7 +121,7 @@ void main() {
     // 6000 x 0.85.
     expect(
       lines[2].text,
-      startsWith('Saíram do mercado por cerca de ${price(5100)}: '),
+      startsWith('Último preço pedido antes de sair: cerca de ${price(5100)}, '),
     );
 
     // Too few gone ads: no line.
