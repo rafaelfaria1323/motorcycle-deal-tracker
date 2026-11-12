@@ -1,6 +1,7 @@
 import '../../../valuation/domain/entities/bike_value.dart';
 import '../../../valuation/domain/entities/bike_value_request.dart';
 import '../entities/exit_price.dart';
+import '../entities/gone_deal.dart';
 import '../entities/market_behaviour.dart';
 import '../entities/model_market.dart';
 
@@ -36,6 +37,10 @@ abstract interface class MarketBehaviourRepository {
     int? mileage,
     String? except,
   });
+
+  /// [motorcycleId]'s ads gone in the last 90 days that likely sold
+  /// (duplicates left out), the latest first (N.68).
+  Future<List<GoneDeal>> getGoneDeals(String motorcycleId);
 
   /// The catalog model to value a bike of [brand] [model], found by name
   /// or added (not followed, not collected until a value is asked for).

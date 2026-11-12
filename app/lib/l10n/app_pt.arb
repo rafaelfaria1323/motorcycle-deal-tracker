@@ -6799,5 +6799,53 @@
         "type": "String"
       }
     }
+  },
+  "goneDealsLine": "As boas oportunidades deste modelo (Deal Score {minScore} ou mais) que saíram nos últimos 90 dias e provavelmente foram vendidas estiveram à venda {days, plural, =0{menos de 1 dia} =1{1 dia} other{{days} dias}} (mediana de {count}).",
+  "@goneDealsLine": {
+    "description": "Mercado: the median days on sale of the model's gone ads that likely sold with a Deal Score of minScore or more (N.68, gone_deals).",
+    "placeholders": {
+      "minScore": {
+        "type": "int"
+      },
+      "days": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goneDealsOthers": "As outras vendas levaram {days, plural, =0{menos de 1 dia} =1{1 dia} other{{days} dias}}.",
+  "@goneDealsOthers": {
+    "description": "Mercado: the median days on sale of the model's other likely sales (N.68).",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "goneDealsFew": "Boas oportunidades deste modelo (Deal Score {minScore} ou mais) que saíram nos últimos 90 dias e provavelmente foram vendidas:",
+  "@goneDealsFew": {
+    "description": "Mercado: introduces the list of good deals that likely sold, when too few for a median (N.68).",
+    "placeholders": {
+      "minScore": {
+        "type": "int"
+      }
+    }
+  },
+  "goneDealRow": "{facts}: {days, plural, =0{menos de 1 dia} =1{1 dia} other{{days} dias}} à venda, saiu {when}",
+  "@goneDealRow": {
+    "description": "Mercado: one good deal that likely sold; facts = year · km · price · Deal Score, when = 'há 10 dias' (N.68).",
+    "placeholders": {
+      "facts": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
   }
 }

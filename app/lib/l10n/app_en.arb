@@ -1191,5 +1191,9 @@
   "myBikeService": "Service",
   "myBikeValveCheck": "Valve check",
   "myBikeMaintenanceDueNow": "{name} due now at {at}: about {cost}",
-  "myBikeMaintenanceAt": "{name} at {at} ({left} to go): about {cost}"
+  "myBikeMaintenanceAt": "{name} at {at} ({left} to go): about {cost}",
+  "goneDealsLine": "This model's good deals (Deal Score {minScore} or more) that left in the last 90 days and were likely sold were on sale for {days, plural, =0{less than 1 day} =1{1 day} other{{days} days}} (median of {count}).",
+  "goneDealsOthers": "The other sales took {days, plural, =0{less than 1 day} =1{1 day} other{{days} days}}.",
+  "goneDealsFew": "This model's good deals (Deal Score {minScore} or more) that left in the last 90 days and were likely sold:",
+  "goneDealRow": "{facts}: {days, plural, =0{less than 1 day} =1{1 day} other{{days} days}} on sale, left {when}"
 }
