@@ -1437,5 +1437,12 @@ it and outside quiet hours (`pending_visit_reminders(p_at)`, Lisbon day
 and time; `mark_visit_reminded` only for the same `visit_at`; the trigger
 `listing_favourites_visit_stamp` forgets the reminder when it moves); no
 device took it: the next run tries again. Push-test kind `visit_reminder`.
+"Adicionar ao calendário" beside a planned visit (N.73, `visitEvent`,
+`visit_calendar_text.dart`; `addToCalendar`, `core/platform/calendar.dart`):
+the Android app opens the calendar app's new event through the in-repo
+plugin `app/packages/calendar_event` (Java, channel
+`deal_tracker/calendar_event`, `Intent.ACTION_INSERT`, no permission), the
+browser downloads `visita.ics` (`icsText`, `core/calendar/calendar_event.dart`:
+RFC 5545, UTC, folded at 75 octets).
 Reimporting everything after a reset: create saved searches AFTER the import,
 or every listing counts as new.

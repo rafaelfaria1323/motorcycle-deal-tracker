@@ -52,6 +52,9 @@ dependencies:
   # The Android app's notifications (Firebase Cloud Messaging; no Dart code).
   android_push:
     path: packages/android_push
+  # A planned visit to the Android calendar (no Dart code, N.73).
+  calendar_event:
+    path: packages/calendar_event
 
 dev_dependencies:
   flutter_test:

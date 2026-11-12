@@ -1,14 +1,19 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../app/di/injection.dart';
 import '../../../../core/localization/localizations.dart';
+import '../../../../core/platform/app_build.dart';
+import '../../../../core/platform/calendar.dart';
 import '../../../../core/widgets/show_message.dart';
 import '../../domain/entities/favourite.dart';
 import '../cubit/favourites_cubit.dart';
 import '../favourites_text.dart';
+import '../visit_calendar_text.dart';
 
 /// When the user goes to see the bike (N.65): a day, then a time. The day
-/// before, the collector reminds them on their devices.
+/// before, the collector reminds them on their devices; a planned visit
+/// also goes to the phone's calendar (N.73).
 class const VisitTile({required final Favourite favourite, super.key})
     extends StatelessWidget {
   /// How far ahead a visit can be planned.
@@ -57,6 +62,20 @@ class const VisitTile({required final Favourite favourite, super.key})
     if (!saved) showMessage(messenger, strings.couldNotSaveVisit);
   }
 
+  Future<void> _addToCalendar(BuildContext context, DateTime at) async {
+    final strings = context.strings;
+    final messenger = ScaffoldMessenger.of(context);
+    final added = await addToCalendar(
+      visitEvent(favourite, at, origin: webOrigin, language: context.language),
+    );
+    if (!added) {
+      showMessage(messenger, strings.couldNotAddToCalendar);
+    } else if (kIsWeb) {
+      // The browser only downloaded the file.
+      showMessage(messenger, strings.visitCalendarDownloaded);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final visit = favourite.visitAt;
@@ -74,11 +93,24 @@ class const VisitTile({required final Favourite favourite, super.key})
               onPressed: () => _plan(context),
               child: Text(context.strings.planVisit),
             )
-          : IconButton(
-              tooltip: context.strings.cancelVisit,
-              icon: const Icon(Icons.event_busy_outlined),
-              onPressed: () =>
-                  _save(ScaffoldMessenger.of(context), context.strings, null),
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  tooltip: context.strings.addVisitToCalendar,
+                  icon: const Icon(Icons.edit_calendar_outlined),
+                  onPressed: () => _addToCalendar(context, visit),
+                ),
+                IconButton(
+                  tooltip: context.strings.cancelVisit,
+                  icon: const Icon(Icons.event_busy_outlined),
+                  onPressed: () => _save(
+                    ScaffoldMessenger.of(context),
+                    context.strings,
+                    null,
+                  ),
+                ),
+              ],
             ),
     );
   }

@@ -6551,6 +6551,35 @@
   "@cancelVisit": {
     "description": "Clears the planned viewing."
   },
+  "addVisitToCalendar": "Adicionar ao calendário",
+  "@addVisitToCalendar": {
+    "description": "Interface text: the planned visit in the calendar (N.73)."
+  },
+  "visitEventTitle": "Visita: {bike}",
+  "@visitEventTitle": {
+    "description": "Interface text: the planned visit in the calendar (N.73).",
+    "placeholders": {
+      "bike": {
+        "type": "String"
+      }
+    }
+  },
+  "visitEventBike": "mota",
+  "@visitEventBike": {
+    "description": "Interface text: the planned visit in the calendar (N.73)."
+  },
+  "visitEventChecklist": "Leve a lista «Para a visita» da app.",
+  "@visitEventChecklist": {
+    "description": "Interface text: the planned visit in the calendar (N.73)."
+  },
+  "visitCalendarDownloaded": "Abra o ficheiro visita.ics para a pôr no calendário.",
+  "@visitCalendarDownloaded": {
+    "description": "Interface text: the planned visit in the calendar (N.73)."
+  },
+  "couldNotAddToCalendar": "Não foi possível abrir o calendário.",
+  "@couldNotAddToCalendar": {
+    "description": "Interface text: the planned visit in the calendar (N.73)."
+  },
   "couldNotSaveVisit": "Não foi possível guardar a visita. Tente novamente.",
   "@couldNotSaveVisit": {
     "description": "Error when the visit could not be saved."
