@@ -247,10 +247,7 @@ void main() {
     expect(lines.first.tone, ExplanationTone.negative);
     expect(lines[1].text, startsWith('Valor estimado'));
     expect(lines[2].text, contains('para a legalização'));
-    expect(
-      lines.map((l) => l.text).join(' '),
-      contains('fora da UE'),
-    );
+    expect(lines.map((l) => l.text).join(' '), contains('fora da UE'));
   });
 
   test('a bike still to be legalised says its score is capped at 79', () {

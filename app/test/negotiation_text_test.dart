@@ -74,7 +74,7 @@ void main() {
       expect(visitFindings(const {}).isEmpty, isTrue);
     });
 
-    test('the bike\'s own points: the valve check costs, papers block', () {
+    test("the bike's own points: the valve check costs, papers block", () {
       const figures = BikeMaintenance(valveCheckKm: 24000);
       const bike = Listing(
         id: 'l2',

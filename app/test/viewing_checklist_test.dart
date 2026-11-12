@@ -96,7 +96,7 @@ void main() {
     );
   });
 
-  group('the bike's own points (N.64)', () {
+  group("the bike's own points (N.64)", () {
     List<String> keys(Listing listing) =>
         bikeChecklistItems(listing).map((i) => i.key).toList();
 
