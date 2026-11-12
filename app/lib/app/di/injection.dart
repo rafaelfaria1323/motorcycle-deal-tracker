@@ -88,7 +88,7 @@ void configureDependencies(SharedPreferences preferences) {
       dispose: (cubit) => cubit.close(),
     )
     ..registerLazySingleton<FavouritesRepository>(
-      () => SupabaseFavouritesRepository(getIt<SupabaseClient>()),
+      () => SupabaseFavouritesRepository(getIt<SupabaseClient>(), preferences),
     )
     ..registerLazySingleton<FavouritesCubit>(
       () =>

@@ -87,12 +87,40 @@ class _FakeFavourites implements FavouritesRepository {
 
   /// Loads work, saving fails.
   final bool failWrites;
+
+  /// No connection (N.66): checklists fail to save, though not refused;
+  /// loads fail too.
+  var offline = false;
+
+  /// This device's copies.
+  List<Favourite>? copy;
+  final unsent = <String, Map<String, ChecklistEntry>>{};
   final calls = <String>[];
   Future<void>? writeDelay;
 
   @override
+  Future<List<Favourite>?> lastCopy() async => copy;
+
+  @override
+  Future<Map<String, Map<String, ChecklistEntry>>> unsentChecklists() async =>
+      Map.of(unsent);
+
+  @override
+  Future<void> keepUnsentChecklist(
+    String listingId,
+    Map<String, ChecklistEntry>? checklist,
+  ) async {
+    if (checklist == null) {
+      unsent.remove(listingId);
+    } else {
+      unsent[listingId] = checklist;
+    }
+  }
+
+  @override
   Future<List<Favourite>> getAll() async {
     if (fail) throw StateError('offline');
+    if (offline) throw Exception('no connection');
     return List.of(items);
   }
 
@@ -138,6 +166,10 @@ class _FakeFavourites implements FavouritesRepository {
   ) async {
     if (writeDelay case final delay?) await delay;
     if (fail || failWrites) throw StateError('offline');
+    if (offline) throw Exception('no connection');
+    if (!items.any((f) => f.listingId == listingId)) {
+      throw StateError('not a favourite');
+    }
     calls.add('checklist $listingId ${checklist.keys.join(',')}');
   }
 }
@@ -201,6 +233,22 @@ void main() {
     });
     expect(FavouriteModel.checklistFromJson(null), isEmpty);
     expect(FavouriteModel.checklistFromJson(['tyres']), isEmpty);
+  });
+
+  test('the checklists waiting on this device are read back the same', () {
+    final unsent = {
+      'l1': {
+        'tyres': const ChecklistEntry(mark: ChecklistMark.issue, note: 'DOT'),
+      },
+      'l2': <String, ChecklistEntry>{},
+    };
+    expect(
+      FavouriteModel.unsentFromJson(FavouriteModel.unsentToJson(unsent)),
+      unsent,
+    );
+    expect(FavouriteModel.unsentFromJson(null), isEmpty);
+    expect(FavouriteModel.unsentFromJson('{broken'), isEmpty);
+    expect(FavouriteModel.unsentFromJson('[1]'), isEmpty);
   });
 
   test('a row without its listing or note is handled', () {
@@ -288,7 +336,7 @@ void main() {
 
       expect(
         await cubit.saveChecklistItem('l1', 'tyres', mark: ChecklistMark.issue),
-        isTrue,
+        ChecklistSave.saved,
       );
       expect(
         await cubit.saveChecklistItem(
@@ -297,7 +345,7 @@ void main() {
           mark: ChecklistMark.ok,
           note: '  Nova  ',
         ),
-        isTrue,
+        ChecklistSave.saved,
       );
       expect(cubit.state.favouriteOf('l1')?.checklist, {
         'tyres': const ChecklistEntry(mark: ChecklistMark.issue),
@@ -306,7 +354,10 @@ void main() {
       expect(cubit.state.favouriteOf('l1')?.note, 'Antiga');
 
       // No mark and a blank note: the item is gone.
-      expect(await cubit.saveChecklistItem('l1', 'tyres', note: ' '), isTrue);
+      expect(
+        await cubit.saveChecklistItem('l1', 'tyres', note: ' '),
+        ChecklistSave.saved,
+      );
       expect(cubit.state.favouriteOf('l1')?.checklist.keys, ['chain']);
       expect(repo.calls, [
         'checklist l1 tyres',
@@ -314,7 +365,10 @@ void main() {
         'checklist l1 chain',
       ]);
 
-      expect(await cubit.saveChecklistItem('l9', 'tyres'), isFalse);
+      expect(
+        await cubit.saveChecklistItem('l9', 'tyres'),
+        ChecklistSave.failed,
+      );
     });
 
     test('a checklist item that fails to save is undone', () async {
@@ -325,9 +379,106 @@ void main() {
 
       expect(
         await cubit.saveChecklistItem('l1', 'tyres', mark: ChecklistMark.ok),
-        isFalse,
+        ChecklistSave.failed,
       );
       expect(cubit.state.favouriteOf('l1')?.checklist, isEmpty);
+    });
+
+    test('without a connection a checklist mark stays and waits', () async {
+      final repo = _FakeFavourites([_favourite('l1'), _favourite('l2')]);
+      final cubit = _cubit(repo);
+      await cubit.load();
+      repo.offline = true;
+
+      expect(
+        await cubit.saveChecklistItem('l1', 'tyres', mark: ChecklistMark.ok),
+        ChecklistSave.kept,
+      );
+      expect(cubit.state.favouriteOf('l1')?.checklist, {
+        'tyres': const ChecklistEntry(mark: ChecklistMark.ok),
+      });
+      expect(cubit.state.unsent, {'l1'});
+      expect(repo.unsent.keys, ['l1']);
+
+      // Still offline: a refresh keeps the list and the mark.
+      await cubit.load();
+      expect(cubit.state.unsent, {'l1'});
+      expect(cubit.state.favouriteOf('l1')?.checklist.keys, ['tyres']);
+      expect(repo.calls, isEmpty);
+
+      // Back online: a save elsewhere sends it too.
+      repo.offline = false;
+      expect(
+        await cubit.saveChecklistItem('l2', 'chain', mark: ChecklistMark.ok),
+        ChecklistSave.saved,
+      );
+      await pumpEventQueue();
+      expect(repo.calls, ['checklist l2 chain', 'checklist l1 tyres']);
+      expect(repo.unsent, isEmpty);
+      expect(cubit.state.unsent, isEmpty);
+    });
+
+    test('a load sends what waited before reading the list', () async {
+      final repo = _FakeFavourites([_favourite('l1')])
+        ..unsent['l1'] = {
+          'tyres': const ChecklistEntry(mark: ChecklistMark.issue),
+        };
+      final cubit = _cubit(repo);
+      await cubit.load();
+
+      expect(repo.calls, ['checklist l1 tyres']);
+      expect(repo.unsent, isEmpty);
+      expect(cubit.state.unsent, isEmpty);
+    });
+
+    test(
+      'a waiting checklist for a favourite gone meanwhile is dropped',
+      () async {
+        final repo = _FakeFavourites([_favourite('l1')])
+          ..unsent['l9'] = {
+            'tyres': const ChecklistEntry(mark: ChecklistMark.ok),
+          };
+        final cubit = _cubit(repo);
+        await cubit.load();
+
+        expect(repo.calls, isEmpty);
+        expect(repo.unsent, isEmpty);
+      },
+    );
+
+    test(
+      'without a connection the device copy is shown with its marks',
+      () async {
+        final repo = _FakeFavourites([])
+          ..offline = true
+          ..copy = [_favourite('l1', note: 'Ligar antes')]
+          ..unsent['l1'] = {
+            'tyres': const ChecklistEntry(mark: ChecklistMark.ok),
+          };
+        final cubit = _cubit(repo);
+        await cubit.load();
+
+        expect(cubit.state.status, FavouritesStatus.success);
+        expect(cubit.state.fromDevice, isTrue);
+        expect(cubit.state.unsent, {'l1'});
+        expect(cubit.state.favouriteOf('l1')?.note, 'Ligar antes');
+        expect(cubit.state.favouriteOf('l1')?.checklist.keys, ['tyres']);
+
+        // The connection is back: the database's list, the mark sent.
+        repo
+          ..offline = false
+          ..items.add(_favourite('l1', note: 'Ligar antes'));
+        await cubit.load();
+        expect(cubit.state.fromDevice, isFalse);
+        expect(cubit.state.unsent, isEmpty);
+        expect(repo.calls, ['checklist l1 tyres']);
+      },
+    );
+
+    test('without a connection or a copy loading fails', () async {
+      final cubit = _cubit(_FakeFavourites([])..offline = true);
+      await cubit.load();
+      expect(cubit.state.status, FavouritesStatus.failure);
     });
 
     test('a target price is set, cleared, and undone when it fails', () async {
@@ -473,8 +624,9 @@ void main() {
       'remove': (cubit) => cubit.toggle(_listing('l1')),
       'note': (cubit) => cubit.saveNote('l1', 'Changed'),
       'target': (cubit) => cubit.saveTargetPrice('l1', 6000),
-      'checklist': (cubit) =>
-          cubit.saveChecklistItem('l1', 'tyres', mark: ChecklistMark.issue),
+      'checklist': (cubit) => cubit
+          .saveChecklistItem('l1', 'tyres', mark: ChecklistMark.issue)
+          .then((saved) => saved == ChecklistSave.saved),
     };
     for (final change in changes.entries) {
       for (final fails in [false, true]) {

@@ -10,8 +10,8 @@ keeps each listing's price and status history, and ranks the listings with
 an explainable **Deal Score** (price against similar bikes, year and
 mileage) and a separate **Risk Score** (missing details, possible accident
 or damage, several owners, price too good to be true…). Saved searches and favourite
-listings (with private notes, a viewing checklist and the visit's day,
-reminded the day before) raise alerts in the
+listings (with private notes, a viewing checklist that works without signal
+and the visit's day, reminded the day before) raise alerts in the
 app and as notifications on each account's phone (Web Push; Firebase Cloud
 Messaging in the Android app), except during each account's quiet hours
 (23:00 to 08:00 unless changed), when they wait for the next collection.

@@ -98,7 +98,10 @@ Screen names below use the Portuguese labels; English provides the same screens.
   page), newest first, each with
   your private note, the problems found on the viewing checklist and the
   planned visit ("Para a visita" on the ad: a day and time, reminded on
-  your devices the day before);
+  your devices the day before); "Para a visita" on each favourite opens
+  the checklist, which keeps its marks on the device without a
+  connection and sends them once there is one (the list itself shows the
+  last copy kept on the device when it can't load);
   removed ones stay, marked. A favourite always alerts
   you about price drops and its removal.
 - **Comparar:** up to 3 listings side by side ("Comparar" on a card in

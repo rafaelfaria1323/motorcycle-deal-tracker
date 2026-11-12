@@ -553,6 +553,19 @@ class InterfaceFavourites implements FavouritesRepository {
   Future<List<Favourite>> getAll() async => values;
 
   @override
+  Future<List<Favourite>?> lastCopy() async => null;
+
+  @override
+  Future<Map<String, Map<String, ChecklistEntry>>> unsentChecklists() async =>
+      const {};
+
+  @override
+  Future<void> keepUnsentChecklist(
+    String listingId,
+    Map<String, ChecklistEntry>? checklist,
+  ) async {}
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

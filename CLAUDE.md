@@ -387,7 +387,8 @@ invites; written by the collector on each run).
   read Supabase's auth directly) are lazy singletons, provided in routes with
   `BlocProvider.value`. The shell (`AppShell`) loads `AlertsCubit` at start
   and on app resume for the unread badge on Alertas, `FavouritesCubit`
-  at start for the stars on the cards, and `HomePlaceCubit` (the account's
+  at start for the stars on the cards (and on resume sends the checklist
+  marks kept offline, `sendUnsent`), and `HomePlaceCubit` (the account's
   home) at start for the distance sort and filter. `ListingsCubit`,
   `SavedSearchesCubit`, `AlertsCubit`, `FavouritesCubit` and
   `HomePlaceCubit` inherit `AccountScopedCubit`
@@ -1387,6 +1388,13 @@ for every bike plus "Nesta mota" (`bikeChecklistItems`, N.64, from the
 model's figures and the ad's risk reasons: valve check from 80 % of the
 interval, tyre sizes, a sports bike's fairings, A2 papers, import papers,
 odometer); Favoritos embeds the model's `maintenanceColumns` for them.
+Without a connection (N.66) a checklist save that fails for any reason
+but a `StateError` (refused) stays on the device (SharedPreferences
+`unsent_checklists:<account id>`, `ChecklistSave.kept`) and is sent
+before the next load, after the next save that works and on resume;
+each load keeps `favourites_copy:<account id>`, shown when a load fails
+with nothing on screen (`FavouritesState.fromDevice`). The web app
+still needs a connection to start.
 A favourite's planned visit (N.65, `listing_favourites.visit_at`, set
 under "Para a visita", `VisitTile`, shown in Favoritos by `visitText`):
 `finishRun`'s last step (`remindVisits`, `notify/visit_reminder_push.dart`)
