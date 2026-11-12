@@ -248,7 +248,7 @@ class _ContentState extends State<_Content> {
       _Section.negotiate => [
         OfferCard(listing: listing),
         SellerMessageCard(listing: listing),
-        ViewingChecklistCard(listingId: listing.id),
+        ViewingChecklistCard(listing: listing),
       ],
       _Section.market => [
         MarketBehaviourSection(listing: listing),

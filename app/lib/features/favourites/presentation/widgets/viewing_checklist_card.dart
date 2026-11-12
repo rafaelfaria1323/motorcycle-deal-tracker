@@ -5,6 +5,7 @@ import '../../../../app/di/injection.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/show_message.dart';
 import '../../domain/entities/favourite.dart';
+import '../../../listings/domain/entities/listing.dart';
 import '../cubit/favourites_cubit.dart';
 import '../cubit/favourites_state.dart';
 import '../viewing_checklist.dart';
@@ -13,8 +14,10 @@ import '../../../../core/localization/localizations.dart';
 
 /// "Para a visita" on the listing page, shown while it is a favourite: how
 /// much of the viewing checklist is done; opens the list.
-class const ViewingChecklistCard({required final String listingId, super.key})
+class const ViewingChecklistCard({required final Listing listing, super.key})
     extends StatelessWidget {
+  String get listingId => listing.id;
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<FavouritesCubit, FavouritesState>(
@@ -30,6 +33,7 @@ class const ViewingChecklistCard({required final String listingId, super.key})
               checklistSummaryText(
                 favourite.checklist,
                 language: context.language,
+                listing: listing,
               ),
             ),
             trailing: const Icon(Icons.chevron_right),
@@ -38,7 +42,7 @@ class const ViewingChecklistCard({required final String listingId, super.key})
               isScrollControlled: true,
               useSafeArea: true,
               constraints: const BoxConstraints(maxWidth: 560),
-              builder: (_) => _ChecklistSheet(listingId: listingId),
+              builder: (_) => _ChecklistSheet(listing: listing),
             ),
           ),
         );
@@ -47,8 +51,10 @@ class const ViewingChecklistCard({required final String listingId, super.key})
   }
 }
 
-class const _ChecklistSheet({required final String listingId})
+class const _ChecklistSheet({required final Listing listing})
     extends StatelessWidget {
+  String get listingId => listing.id;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -77,6 +83,7 @@ class const _ChecklistSheet({required final String listingId})
                       summary: checklistSummaryText(
                         favourite.checklist,
                         language: context.language,
+                        listing: listing,
                       ),
                     ),
                     style: theme.textTheme.bodyMedium?.copyWith(
@@ -85,6 +92,7 @@ class const _ChecklistSheet({required final String listingId})
                   ),
                   for (final section in viewingChecklist(
                     language: context.language,
+                    listing: listing,
                   )) ...[
                     const SizedBox(height: 16),
                     Text(section.title, style: theme.textTheme.titleMedium),

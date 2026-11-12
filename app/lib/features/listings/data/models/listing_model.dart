@@ -159,6 +159,10 @@ class const ListingModel({
     return ((min + max) / 2).round();
   }
 
+  /// The columns of `motorcycles` that [maintenanceOf] reads.
+  static const maintenanceColumns =
+      'front_tyre, rear_tyre, cylinders, service_interval_km, valve_check_km';
+
   /// The model's maintenance figures; null when it has none.
   static BikeMaintenance? maintenanceOf(Map<String, dynamic>? bike) {
     if (bike == null) return null;

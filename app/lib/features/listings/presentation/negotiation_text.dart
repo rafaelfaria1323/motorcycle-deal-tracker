@@ -34,7 +34,16 @@ class const VisitFindings({
 
 /// Checklist items whose problem is no matter of price: papers that don't
 /// match, a debt on the bike, an engine or gearbox that needs a mechanic.
-const visitBlockers = {'documents', 'registry', 'cold_start', 'test_ride'};
+/// So are a bike's own points on its papers and mileage (N.64).
+const visitBlockers = {
+  'documents',
+  'registry',
+  'cold_start',
+  'test_ride',
+  'a2_version',
+  'import_papers',
+  'odometer',
+};
 
 /// The typical cost of fixing a problem marked on [key] (workshop prices,
 /// 2026), from the bike's running costs where they apply. Null for items
@@ -43,6 +52,9 @@ double? repairCost(String key, RunningCostTable costs) => switch (key) {
   'tyres' => costs.tyreSet,
   'chain' => costs.chainKit,
   'service' => costs.service,
+  'valve_check' => costs.valveCheck,
+  'tyre_sizes' => costs.tyreSet,
+  'fairings' => 250,
   'brakes' => 150,
   'suspension' => 200,
   'fall' => 150,
@@ -57,6 +69,7 @@ VisitFindings visitFindings(
   int? engineCc,
   bool sport = false,
   BikeMaintenance? maintenance,
+  Listing? listing,
   AppLanguage language = .portuguese,
 }) {
   final costs = runningCostsFor(
@@ -66,7 +79,10 @@ VisitFindings visitFindings(
   );
   final repairs = <VisitRepair>[];
   final blockers = <String>[];
-  for (final item in viewingChecklistItems(language: language)) {
+  for (final item in viewingChecklistItems(
+    language: language,
+    listing: listing,
+  )) {
     if (checklist[item.key]?.mark != .issue) continue;
     if (visitBlockers.contains(item.key)) {
       blockers.add(item.title);

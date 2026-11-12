@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
 import 'package:motorcycle_deal_tracker/features/favourites/domain/entities/favourite.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/entities/bike_maintenance.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
 import 'package:motorcycle_deal_tracker/features/market/domain/entities/market_behaviour.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/negotiation_text.dart';
@@ -71,6 +72,35 @@ void main() {
         '(~${Formatters.price(200)})',
       );
       expect(visitFindings(const {}).isEmpty, isTrue);
+    });
+
+    test('the bike\'s own points: the valve check costs, papers block', () {
+      const figures = BikeMaintenance(valveCheckKm: 24000);
+      const bike = Listing(
+        id: 'l2',
+        source: 'olx',
+        url: 'https://example.com/l2',
+        brand: 'Yamaha',
+        model: 'MT-07',
+        status: ListingStatus.active,
+        sellerType: SellerType.private,
+        images: [],
+        mileage: 23000,
+        maintenance: figures,
+        riskReasons: ['not_legalised'],
+      );
+      final checklist = {'valve_check': _issue, 'import_papers': _issue};
+      final findings = visitFindings(
+        checklist,
+        engineCc: 689,
+        maintenance: figures,
+        listing: bike,
+      );
+      expect(findings.repairs.map((r) => r.title), ['Folgas das válvulas']);
+      expect(findings.total, greaterThan(0));
+      expect(findings.blockers, ['Papéis da importação']);
+      // Without the bike its points aren't on the list.
+      expect(visitFindings(checklist).isEmpty, isTrue);
     });
 
     test('repair prices follow the engine size', () {

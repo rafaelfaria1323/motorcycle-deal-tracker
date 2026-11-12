@@ -155,6 +155,8 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 
 ➕ ✅ A2 licence filter (N.63): Ofertas and saved searches can ask for bikes ready for an A2 licence (35 kW or less by the model's power, or an ad that says it is the A2 version) or also those that can be limited to it (up to 70 kW). Never a score.
 
+➕ ✅ The bike's own points in the viewing checklist (N.64): "Nesta mota" adds the valve check near the model's interval, the original tyre sizes, a sports bike's fairings, and the papers or the odometer when the ad's risk reasons call for them; repairs come off the offer, papers block.
+
 ## 13. Explainable Score ✅
 
 *Each score lists: % and € versus the estimated value for that age and mileage, the estimated value itself, mileage, model year, risk signals, and reassuring facts (first owner, service book, factory warranty).*

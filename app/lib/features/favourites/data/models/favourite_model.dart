@@ -4,10 +4,13 @@ import '../../../listings/data/models/listing_model.dart';
 class FavouriteModel {
   const FavouriteModel._();
 
-  /// The columns `fromJson` reads, with the listing embedded.
+  /// The columns `fromJson` reads, with the listing embedded and its
+  /// model's maintenance figures (the viewing checklist's points of the
+  /// bike, N.64).
   static const columns =
       'listing_id, note, checklist, target_price, created_at, '
-      'listings(${ListingModel.summaryColumns})';
+      'listings(${ListingModel.summaryColumns}, '
+      'motorcycles(${ListingModel.maintenanceColumns}))';
 
   /// Expects the row with its listing embedded (`select(columns)`).
   static Favourite fromJson(Map<String, dynamic> json) {

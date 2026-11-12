@@ -117,10 +117,12 @@ class const FavouritesPage({super.key}) extends StatelessWidget {
                                       checklistIssuesText(
                                             f.checklist,
                                             language: context.language,
+                                            listing: f.listing,
                                           ) ??
                                           checklistSummaryText(
                                             f.checklist,
                                             language: context.language,
+                                            listing: f.listing,
                                           ),
                                       style: theme.textTheme.bodyMedium,
                                     ),
