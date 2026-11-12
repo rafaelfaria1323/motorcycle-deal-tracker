@@ -8,6 +8,7 @@ import '../../../../core/widgets/collapsible_section.dart';
 import '../../../../core/widgets/page_back_button.dart';
 import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
+import '../../../settings/domain/accounts_repository.dart';
 import '../../domain/entities/catalog_model.dart';
 import '../../domain/repositories/catalog_repository.dart';
 import '../colour_text.dart';
@@ -36,6 +37,12 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
 
   /// Something was saved: Ofertas' models and listings change with it.
   bool _changed = false;
+
+  /// Only admins type the new-bike list price (N.58: the fallback when
+  /// too few new bikes are for sale at dealers).
+  late final Future<bool> _admin = getIt<AccountsRepository>()
+      .isAdmin()
+      .catchError((Object _) => false);
 
   @override
   void initState() {
@@ -97,9 +104,11 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
   );
 
   Future<void> _edit(CatalogModel model) async {
+    final admin = await _admin;
+    if (!mounted) return;
     final edited = await showDialog<_ModelEdit>(
       context: context,
-      builder: (_) => _ModelDialog(model: model),
+      builder: (_) => _ModelDialog(model: model, canSetPrice: admin),
     );
     if (edited == null) return;
     final yearChanged = edited.year != model.minYear;
@@ -256,10 +265,12 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
 
 typedef _ModelEdit = ({int year, double? price, List<String> colours});
 
-/// Edits a model's first year, favourite colours and new-bike price;
-/// returns null if cancelled.
-class const _ModelDialog({required final CatalogModel model})
-    extends StatefulWidget {
+/// Edits a model's first year, favourite colours and, for admins
+/// ([canSetPrice]), new-bike price; returns null if cancelled.
+class const _ModelDialog({
+  required final CatalogModel model,
+  required final bool canSetPrice,
+}) extends StatefulWidget {
   @override
   State<_ModelDialog> createState() => _ModelDialogState();
 }
@@ -280,7 +291,9 @@ class _ModelDialogState extends State<_ModelDialog> {
   }
 
   void _submit() {
-    final parsed = parseNewPrice(_price.text, language: context.language);
+    final parsed = widget.canSetPrice
+        ? parseNewPrice(_price.text, language: context.language)
+        : (price: widget.model.newPrice, error: null);
     if (parsed.error != null) {
       setState(() => _priceError = parsed.error);
       return;
@@ -362,21 +375,23 @@ class _ModelDialogState extends State<_ModelDialog> {
                 Text(context.strings.listingsInTheseColoursAreMarkedAndYou),
               ],
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _price,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
+            if (widget.canSetPrice) ...[
+              const SizedBox(height: 16),
+              TextField(
+                controller: _price,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: InputDecoration(
+                  labelText: context.strings.newBikePriceInput,
+                  helperText: context.strings.newPriceHelp,
+                  helperMaxLines: 3,
+                  errorText: _priceError,
+                  border: const OutlineInputBorder(),
+                ),
+                onSubmitted: (_) => _submit(),
               ),
-              decoration: InputDecoration(
-                labelText: context.strings.newBikePriceInput,
-                helperText: context.strings.newPriceHelp,
-                helperMaxLines: 3,
-                errorText: _priceError,
-                border: const OutlineInputBorder(),
-              ),
-              onSubmitted: (_) => _submit(),
-            ),
+            ],
           ],
         ),
       ),

@@ -172,6 +172,24 @@ void main() {
     );
     expect(listing.newPrice, 8999.0);
     expect(listing.newPriceCheckedAt, DateTime.utc(2026, 10));
+    expect(listing.newPriceAdCount, isNull);
+  });
+
+  test('the dealers\' new bikes win over the typed price (N.58)', () {
+    final listing = ListingModel.fromJson(
+      _row({
+        'motorcycles': {
+          'new_price_reference': 8999,
+          'new_price_checked_at': '2026-10-01T00:00:00Z',
+          'new_price_from_ads': 8400,
+          'new_price_ad_count': 4,
+        },
+      }),
+    );
+    expect(listing.newPrice, 8400.0);
+    expect(listing.newPriceAdCount, 4);
+    // The typed price's date doesn't describe the ads' median.
+    expect(listing.newPriceCheckedAt, isNull);
   });
 
   test('reads the earlier ad of a relisted bike', () {

@@ -2140,8 +2140,62 @@
       }
     }
   },
-  "insuranceNotEntered": "Seguro: não incluído; indique o valor do seu seguro",
-  "@insuranceNotEntered": {
+  "insuranceEstimate": "Seguro: cerca de {price} (estimativa contra terceiros, {band}; indique o seu valor)",
+  "@insuranceEstimate": {
+    "description": "Interface text in ownership_cost, ownershipLines.",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "band": {
+        "type": "String"
+      }
+    }
+  },
+  "insuranceEstimateSport": "Seguro: cerca de {price} (estimativa contra terceiros, desportiva de {band}; indique o seu valor)",
+  "@insuranceEstimateSport": {
+    "description": "Interface text in ownership_cost, ownershipLines.",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "band": {
+        "type": "String"
+      }
+    }
+  },
+  "insuranceBandUpTo": "até {max} cc",
+  "@insuranceBandUpTo": {
+    "description": "Interface text in ownership_cost, ownershipLines.",
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "insuranceBandRange": "{min} a {max} cc",
+  "@insuranceBandRange": {
+    "description": "Interface text in ownership_cost, ownershipLines.",
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "insuranceBandOver": "mais de {min} cc",
+  "@insuranceBandOver": {
+    "description": "Interface text in ownership_cost, ownershipLines.",
+    "placeholders": {
+      "min": {
+        "type": "String"
+      }
+    }
+  },
+  "insuranceEngineUnknown": "cilindrada desconhecida",
+  "@insuranceEngineUnknown": {
     "description": "Interface text in ownership_cost, ownershipLines."
   },
   "insuranceYourFigure": "Seguro: {price} (o seu valor)",
@@ -2192,7 +2246,43 @@
       }
     }
   },
-  "atPerYearTypicalWorkshopPricesAndRoad": "Com {mileage} por ano. Preços de oficina típicos e IUC de {iucTableYear}; a desvalorização vem dos preços pedidos deste modelo.",
+  "ownershipTyresSized": "Pneus: {price} ({front} e {rear}, um jogo a cada {distance}, pelo menos a cada {tyreMaxYears} anos)",
+  "@ownershipTyresSized": {
+    "description": "Interface text in ownership_cost, ownershipLines.",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "front": {
+        "type": "String"
+      },
+      "rear": {
+        "type": "String"
+      },
+      "distance": {
+        "type": "String"
+      },
+      "tyreMaxYears": {
+        "type": "String"
+      }
+    }
+  },
+  "ownershipValves": "Folga das válvulas: {price} ({cost} a cada {distance})",
+  "@ownershipValves": {
+    "description": "Interface text in ownership_cost, ownershipLines.",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "cost": {
+        "type": "String"
+      },
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "atPerYearTypicalWorkshopPricesAndRoad": "Com {mileage} por ano. Preços de oficina típicos (pelas medidas dos pneus e intervalos do fabricante deste modelo, quando conhecidos) e IUC de {iucTableYear}; a desvalorização vem dos preços pedidos deste modelo.",
   "@atPerYearTypicalWorkshopPricesAndRoad": {
     "description": "Interface text in ownership_cost, ownershipFootnote.",
     "placeholders": {
@@ -2637,7 +2727,7 @@
   "@newBikePriceInput": {
     "description": "Interface text in tracked_models_page, build."
   },
-  "newPriceHelp": "Preço de tabela no site da marca. Fica registado com a data de hoje; deixe vazio para apagar.",
+  "newPriceHelp": "Preço de tabela no site da marca, usado só quando há menos de 3 motas novas à venda nos stands. Fica registado com a data de hoje; deixe vazio para apagar.",
   "@newPriceHelp": {
     "description": "Interface text in tracked_models_page, build."
   },
@@ -4125,7 +4215,7 @@
   "@insurancePerYear": {
     "description": "Interface text in ownership_cost_card, build."
   },
-  "yourEstimateLeaveBlankIfNotYetKnown": "A sua simulação; vazio se ainda não tem",
+  "yourEstimateLeaveBlankIfNotYetKnown": "A sua simulação; vazio usa uma estimativa",
   "@yourEstimateLeaveBlankIfNotYetKnown": {
     "description": "Interface text in ownership_cost_card, build."
   },
@@ -6251,5 +6341,23 @@
   "bikeValueFactors": "Ajustes ao estado",
   "@bikeValueFactors": {
     "description": "Interface text in bike_value_card (Quanto vale a minha mota): label of the box with what each condition answer moves the value by (shown in capitals)."
+  },
+  "newBikePriceFromAds": "Mediana de {count} motas novas à venda nos stands",
+  "@newBikePriceFromAds": {
+    "description": "Interface text in new_price_text, newPriceLines: where the new-bike price comes from (N.58).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fromNewBikeAds": " (mediana de {count} motas novas nos stands)",
+  "@fromNewBikeAds": {
+    "description": "Interface text in tracked_models_text, newPriceSubtitle: where the new-bike price comes from (N.58).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

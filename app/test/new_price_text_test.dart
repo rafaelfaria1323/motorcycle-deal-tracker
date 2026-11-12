@@ -3,20 +3,25 @@ import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/new_price_text.dart';
 
-Listing listing({double? price, double? newPrice, DateTime? checkedAt}) =>
-    Listing(
-      id: 'l1',
-      source: 'olx',
-      url: 'https://www.olx.pt/d/anuncio/x.html',
-      brand: 'Yamaha',
-      model: 'MT-07',
-      status: ListingStatus.active,
-      sellerType: SellerType.private,
-      images: const [],
-      price: price,
-      newPrice: newPrice,
-      newPriceCheckedAt: checkedAt,
-    );
+Listing listing({
+  double? price,
+  double? newPrice,
+  DateTime? checkedAt,
+  int? adCount,
+}) => Listing(
+  id: 'l1',
+  source: 'olx',
+  url: 'https://www.olx.pt/d/anuncio/x.html',
+  brand: 'Yamaha',
+  model: 'MT-07',
+  status: ListingStatus.active,
+  sellerType: SellerType.private,
+  images: const [],
+  price: price,
+  newPrice: newPrice,
+  newPriceCheckedAt: checkedAt,
+  newPriceAdCount: adCount,
+);
 
 void main() {
   final checked = DateTime(2026, 10, 13);
@@ -78,5 +83,15 @@ void main() {
     );
 
     expect(lines.last, endsWith(': pode estar desatualizado'));
+  });
+
+  test('a price from the dealers\' new bikes says how many (N.58)', () {
+    final lines = newPriceLines(
+      listing(price: 7000, newPrice: 8400, adCount: 4),
+      now: now,
+    );
+
+    expect(lines.first, 'Preço de uma nova: ${Formatters.price(8400)}');
+    expect(lines.last, 'Mediana de 4 motas novas à venda nos stands');
   });
 }

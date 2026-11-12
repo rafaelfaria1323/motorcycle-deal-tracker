@@ -13,7 +13,7 @@ import '../ownership_cost.dart';
 import '../../../../core/localization/localizations.dart';
 
 /// "Custo de ter esta mota": the yearly cost (depreciation, IUC, the
-/// owner's insurance, tyres, services, chain) and the total for the years
+/// owner's insurance or its estimate, tyres, services, chain) and the total for the years
 /// the owner plans to keep it. "Alterar" edits the owner's figures.
 class const OwnershipCostCard({required final Listing listing, super.key})
     extends StatefulWidget {
@@ -78,6 +78,8 @@ class _OwnershipCostCardState extends State<OwnershipCostCard> {
           settings: settings,
           engineCc: listing.engineCc,
           year: listing.year,
+          sport: isSportBike(brand: listing.brand, model: listing.model),
+          maintenance: listing.maintenance,
           depreciation: data.$2,
         );
         if (cost == null) return const SizedBox.shrink();

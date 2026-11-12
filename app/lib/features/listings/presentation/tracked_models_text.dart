@@ -22,8 +22,18 @@ String modelSubtitle(CatalogModel m, {AppLanguage language = .portuguese}) {
   ].join(' · ');
 }
 
-/// "Preço de uma nova: 8 250 € (verificado em 13/10/2026)".
+/// "Preço de uma nova: 8 400 € (mediana de 4 motas novas nos stands)", or
+/// with the typed list price "Preço de uma nova: 8 250 € (verificado em
+/// 13/10/2026)" (N.58).
 String newPriceSubtitle(CatalogModel m, {AppLanguage language = .portuguese}) {
+  final fromAds = m.newPriceFromAds;
+  final adCount = m.newPriceAdCount;
+  if (fromAds != null && adCount != null) {
+    return language.messages.newBikePriceLine(
+      price: Formatters.price(fromAds, language: language),
+      checkedNote: language.messages.fromNewBikeAds(count: adCount),
+    );
+  }
   final price = m.newPrice;
   if (price == null) return language.messages.noNewBikePrice;
   final checked = m.newPriceCheckedAt;

@@ -9,8 +9,10 @@ const newPriceStaleAfterDays = 180;
 /// comparing.
 const smallDiscountPct = 10;
 
-/// Lines comparing the listing's price with a new bike of the same model;
-/// empty when either price is unknown (or a placeholder).
+/// Lines comparing the listing's price with a new bike of the same model,
+/// ending with where that price comes from (the dealers' new bikes, N.58,
+/// or the list price and when it was checked); empty when either price is
+/// unknown (or a placeholder).
 List<String> newPriceLines(
   Listing listing, {
   DateTime? now,
@@ -56,8 +58,11 @@ List<String> newPriceLines(
     lines.add(language.messages.itIsNotCheaperThanNewOneCheck);
   }
 
+  final adCount = listing.newPriceAdCount;
   final checked = listing.newPriceCheckedAt;
-  if (checked != null) {
+  if (adCount != null) {
+    lines.add(language.messages.newBikePriceFromAds(count: adCount));
+  } else if (checked != null) {
     final age = (now ?? DateTime.now()).difference(checked).inDays;
     lines.add(
       language.messages.newBikePriceCheckedOn(
