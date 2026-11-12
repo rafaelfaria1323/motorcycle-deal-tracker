@@ -1229,6 +1229,27 @@ end;
 $$;
 
 --
+-- Name: dealer_listings(text, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.dealer_listings(p_name text, p_limit integer DEFAULT 100) RETURNS SETOF public.listings
+    LANGUAGE sql STABLE
+    SET search_path TO ''
+    AS $$
+  select l.*
+  from public.listings l
+  where l.seller_type = 'dealer'
+    and lower(btrim(l.seller_name)) = lower(btrim(p_name))
+    and nullif(btrim(p_name), '') is not null
+    and l.duplicate_of is null
+  order by l.status in ('active', 'price_changed') desc,
+           case when l.status in ('active', 'price_changed')
+                then l.first_seen_at else l.last_seen_at end desc,
+           l.id
+  limit least(greatest(coalesce(p_limit, 100), 1), 200);
+$$;
+
+--
 -- Name: dealer_score(bigint, bigint, bigint, bigint, bigint, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -6741,6 +6762,12 @@ CREATE INDEX listings_active_model_price_idx ON public.listings USING btree (mot
 CREATE INDEX listings_deal_score_idx ON public.listings USING btree (deal_score DESC NULLS LAST);
 
 --
+-- Name: listings_dealer_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX listings_dealer_key ON public.listings USING btree (lower(btrim(seller_name))) WHERE (seller_type = 'dealer'::public.seller_type);
+
+--
 -- Name: listings_duplicate_of_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7814,6 +7841,15 @@ GRANT ALL ON FUNCTION public.damage_cap(p_reasons text[]) TO service_role;
 REVOKE ALL ON FUNCTION public.database_usage() FROM PUBLIC;
 GRANT ALL ON FUNCTION public.database_usage() TO authenticated;
 GRANT ALL ON FUNCTION public.database_usage() TO service_role;
+
+--
+-- Name: FUNCTION dealer_listings(p_name text, p_limit integer); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.dealer_listings(p_name text, p_limit integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.dealer_listings(p_name text, p_limit integer) TO service_role;
+GRANT ALL ON FUNCTION public.dealer_listings(p_name text, p_limit integer) TO anon;
+GRANT ALL ON FUNCTION public.dealer_listings(p_name text, p_limit integer) TO authenticated;
 
 --
 -- Name: FUNCTION dealer_score(p_bikes bigint, p_relisted bigint, p_sharp_changes bigint, p_missing_mileage bigint, p_repeated bigint, p_min_bikes integer); Type: ACL; Schema: public; Owner: -

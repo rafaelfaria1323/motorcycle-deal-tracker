@@ -14,6 +14,21 @@ String? dealerLookupName(Listing listing) {
   return name == null || name.isEmpty ? null : name;
 }
 
+/// The dealer page's two lists (N.72): the ads still for sale and the
+/// ones gone, each in the order the database gives.
+({List<Listing> live, List<Listing> gone}) dealerAdsByStatus(
+  List<Listing> ads,
+) => (
+  live: [
+    for (final ad in ads)
+      if (ad.isLive) ad,
+  ],
+  gone: [
+    for (final ad in ads)
+      if (!ad.isLive) ad,
+  ],
+);
+
 /// "Motos Lda: 12 motas vistas desde 21/08/2026 (5 à venda)".
 String dealerHeadline(
   DealerReliability d, {

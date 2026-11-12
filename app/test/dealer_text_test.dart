@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:motorcycle_deal_tracker/app/router/app_routes.dart';
 import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
 import 'package:motorcycle_deal_tracker/features/listings/data/models/dealer_reliability_model.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/dealer_reliability.dart';
@@ -146,6 +147,49 @@ void main() {
 
     test('the key matches the view (trimmed, lower case)', () {
       expect(dealerKey('  MOTOS Lda '), 'motos lda');
+    });
+  });
+
+  group('dealer page (N.72)', () {
+    Listing ad(String id, ListingStatus status) => Listing(
+      id: id,
+      source: 'olx',
+      url: 'https://example.com/$id',
+      brand: 'Yamaha',
+      model: 'MT-07',
+      status: status,
+      sellerType: SellerType.dealer,
+      sellerName: 'Motos Lda',
+      images: const [],
+    );
+
+    test('splits the ads into live and gone, keeping their order', () {
+      final split = dealerAdsByStatus([
+        ad('a', ListingStatus.priceChanged),
+        ad('b', ListingStatus.active),
+        ad('c', ListingStatus.removed),
+        ad('d', ListingStatus.sold),
+      ]);
+      expect(split.live.map((l) => l.id), ['a', 'b']);
+      expect(split.gone.map((l) => l.id), ['c', 'd']);
+    });
+
+    test('an empty list has neither', () {
+      final split = dealerAdsByStatus(const []);
+      expect(split.live, isEmpty);
+      expect(split.gone, isEmpty);
+    });
+
+    test('the address keeps any name', () {
+      expect(
+        AppRoutes.dealer('Motos & Filhos, Lda'),
+        '/dealer?name=Motos+%26+Filhos%2C+Lda',
+      );
+      expect(
+        Uri.parse(AppRoutes.dealer('Motos & Filhos, Lda'))
+            .queryParameters['name'],
+        'Motos & Filhos, Lda',
+      );
     });
   });
 }

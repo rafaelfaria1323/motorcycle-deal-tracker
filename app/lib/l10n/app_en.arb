@@ -1210,5 +1210,10 @@
   "financingTotal": "You pay {total} in all, deposit included: {interest} more than paying at once",
   "financingAtOffer": "If you close at the most to pay in \"How much to offer\" ({offer}): {monthly} a month, {total} in all, {saving} less",
   "financingNothingFinanced": "The deposit covers the price: there is nothing to borrow",
-  "financingNote": "The APR (TAEG) already counts the loan's fees and compulsory insurance; we use it as a yearly rate, so the real instalment can differ by a few euros. Check the FINE sheet before signing."
+  "financingNote": "The APR (TAEG) already counts the loan's fees and compulsory insurance; we use it as a yearly rate, so the real instalment can differ by a few euros. Check the FINE sheet before signing.",
+  "seeDealerAds": "{bikes, plural, =1{See the dealer's ad} other{See the dealer's {bikes} ads}}",
+  "couldNotLoadDealer": "Could not load the dealer",
+  "noAdsOfThisDealer": "We have not seen any ads from this dealer yet",
+  "dealerLiveAds": "{count, plural, =1{1 ad for sale} other{{count} ads for sale}}",
+  "dealerGoneAds": "{count, plural, =1{1 ad already gone} other{{count} ads already gone}}"
 }
