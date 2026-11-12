@@ -6,6 +6,7 @@ import '../normalized/normalized_listing.dart';
 import '../notify/bike_value_push.dart';
 import '../notify/notify_pending.dart';
 import '../notify/fcm.dart';
+import '../notify/visit_reminder_push.dart';
 import '../notify/web_push.dart';
 import '../store/listing_store.dart';
 import '../store/push_store.dart';
@@ -246,5 +247,13 @@ Future<void> finishRun(
         'Bike values answered: ${valued.answered} (${valued.sent} to devices)',
       );
     }
+  }
+
+  // 9. Favourites' visits due within a day (N.65): the reminder.
+  final visits = await remindVisits(pushes, push, DateTime.now());
+  if (visits.reminded > 0) {
+    log.writeln(
+      'Visits reminded: ${visits.reminded} (${visits.sent} to devices)',
+    );
   }
 }

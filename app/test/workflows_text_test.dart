@@ -27,6 +27,7 @@ void main() {
       'target_price_reached',
       'listing_removed',
       'back_on_market',
+      'visit_reminder',
       'run_failed',
       'run_blocked',
       'run_recovered',

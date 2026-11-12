@@ -96,7 +96,9 @@ Screen names below use the Portuguese labels; English provides the same screens.
   naturally sized cards.
 - **Favoritos** (a tab): the listings you starred (star on a listing's
   page), newest first, each with
-  your private note and the problems found on the viewing checklist;
+  your private note, the problems found on the viewing checklist and the
+  planned visit ("Para a visita" on the ad: a day and time, reminded on
+  your devices the day before);
   removed ones stay, marked. A favourite always alerts
   you about price drops and its removal.
 - **Comparar:** up to 3 listings side by side ("Comparar" on a card in

@@ -174,6 +174,23 @@ extension NotificationText on NotificationLanguage {
           '${_count(kinds, 'hint', 'hints')} in the photos: see the Assessment.',
         );
 
+  String visitTitle(int day, String time) => switch (day) {
+    0 => _text('📍 Visita hoje às $time', '📍 Viewing today at $time'),
+    1 => _text('📍 Visita amanhã às $time', '📍 Viewing tomorrow at $time'),
+    _ => _text(
+      '📍 Visita daqui a $day dias, às $time',
+      '📍 Viewing in $day days, at $time',
+    ),
+  };
+  String get visitBring => _text(
+    'Leve a lista «Para a visita»: está no anúncio.',
+    'Take the viewing checklist with you: it\'s on the listing.',
+  );
+  String get visitAdGone => _text(
+    'O anúncio já saiu: confirme com o vendedor antes de ir.',
+    'The listing is gone: check with the seller before you go.',
+  );
+
   String number(int value) {
     final digits = value.abs().toString();
     final out = StringBuffer(value < 0 ? '-' : '');

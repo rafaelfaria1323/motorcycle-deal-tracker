@@ -34,6 +34,7 @@ export 'src/notify/photo_exam_push.dart';
 export 'src/notify/push_test.dart';
 export 'src/notify/run_health.dart';
 export 'src/notify/send_weekly_summaries.dart';
+export 'src/notify/visit_reminder_push.dart';
 export 'src/notify/weekly_summary.dart';
 export 'src/notify/web_push.dart';
 export 'src/photos/photo_classifier.dart';

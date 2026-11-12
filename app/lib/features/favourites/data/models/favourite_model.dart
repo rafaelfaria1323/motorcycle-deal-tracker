@@ -8,7 +8,7 @@ class FavouriteModel {
   /// model's maintenance figures (the viewing checklist's points of the
   /// bike, N.64).
   static const columns =
-      'listing_id, note, checklist, target_price, created_at, '
+      'listing_id, note, checklist, target_price, visit_at, created_at, '
       'listings(${ListingModel.summaryColumns}, '
       'motorcycles(${ListingModel.maintenanceColumns}))';
 
@@ -21,6 +21,10 @@ class FavouriteModel {
       note: json['note'] as String?,
       checklist: checklistFromJson(json['checklist']),
       targetPrice: (json['target_price'] as num?)?.toDouble(),
+      visitAt: switch (json['visit_at']) {
+        final String at => DateTime.parse(at).toLocal(),
+        _ => null,
+      },
       listing: listing == null ? null : ListingModel.fromJson(listing),
     );
   }

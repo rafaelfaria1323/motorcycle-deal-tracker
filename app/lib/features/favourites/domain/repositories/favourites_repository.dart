@@ -18,6 +18,10 @@ abstract interface class FavouritesRepository {
   /// listing is not a favourite.
   Future<void> saveTargetPrice(String listingId, double? targetPrice);
 
+  /// Saves when the visit to the bike is (null: none planned). Throws if
+  /// the listing is not a favourite.
+  Future<void> saveVisit(String listingId, DateTime? visitAt);
+
   /// Saves the viewing checklist of a favourite (all of it). Throws if the
   /// listing is not a favourite.
   Future<void> saveChecklist(

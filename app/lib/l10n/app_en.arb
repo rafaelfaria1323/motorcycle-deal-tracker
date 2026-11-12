@@ -1139,5 +1139,15 @@
   "checklistImportPapers": "Import papers",
   "checklistImportPapersHint": "Ask for the registration from the country of origin, the certificate of conformity (COC) and proof the ISV was paid, or find out what is still to pay.",
   "checklistOdometer": "Odometer",
-  "checklistOdometerHint": "This ad's mileage raises doubts: compare the dashboard with the last inspection and the invoices."
+  "checklistOdometerHint": "This ad's mileage raises doubts: compare the dashboard with the last inspection and the invoices.",
+  "pushKindVisitReminder": "Viewing reminder",
+  "visitToday": "Viewing today at {time}",
+  "visitTomorrow": "Viewing tomorrow at {time}",
+  "visitOn": "Viewing on {date} at {time}",
+  "visitPast": "Viewing on {date} (past)",
+  "planVisit": "Plan a viewing",
+  "visitNotPlanned": "No viewing planned",
+  "visitReminderHint": "The day before, we remind you on your devices with notifications on.",
+  "cancelVisit": "Cancel the viewing",
+  "couldNotSaveVisit": "Could not save the viewing. Try again."
 }

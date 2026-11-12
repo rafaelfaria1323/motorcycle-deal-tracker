@@ -164,6 +164,32 @@ class PushStore(final SupabaseClient _client) {
     ];
   }
 
+  /// The favourites' visits to remind at [at] (`pending_visit_reminders`:
+  /// within 24 hours, outside the owner's quiet hours, not reminded yet).
+  Future<List<VisitReminder>> pendingVisitReminders(DateTime at) async {
+    final rows = await _client.rpc<List<dynamic>>(
+      'pending_visit_reminders',
+      params: {'p_at': at.toUtc().toIso8601String()},
+    );
+    return [
+      for (final row in rows)
+        VisitReminder.fromRow(row as Map<String, dynamic>),
+    ];
+  }
+
+  /// Marks [visit] reminded, unless it was moved meanwhile
+  /// (`mark_visit_reminded`).
+  Future<void> markVisitReminded(VisitReminder visit) async {
+    await _client.rpc<Object?>(
+      'mark_visit_reminded',
+      params: {
+        'p_user': visit.userId,
+        'p_listing': visit.listingId,
+        'p_visit_at': visit.visitAt.toUtc().toIso8601String(),
+      },
+    );
+  }
+
   /// The account that last started [workflow] from the app since [since].
   Future<String?> lastWorkflowStarter(String workflow, DateTime since) async {
     final rows = await _client

@@ -776,7 +776,7 @@ save → markSeen → rematch → applyListingFacts → applyPriceChanges → se
 listing waiting for them (`enrichDetails`) with the same fetcher. Then once for all sites
 (`finishRun`): markDuplicates → recalculateScores → generateAlerts →
 notifications (Web Push) → bike values answered (`answer_bike_value_requests`,
-pushed to the asker's devices). The single-step commands (`fetch.dart`,
+pushed to the asker's devices) → visit reminders (N.65, `remindVisits`). The single-step commands (`fetch.dart`,
 `collector.dart`, `enrich.dart`, `searches.dart`) reuse the same library
 functions for manual work. Every command reads its options with package
 `args` (`readCommandLine`, `cli/command.dart`): `--help` lists them, an
@@ -1387,5 +1387,13 @@ for every bike plus "Nesta mota" (`bikeChecklistItems`, N.64, from the
 model's figures and the ad's risk reasons: valve check from 80 % of the
 interval, tyre sizes, a sports bike's fairings, A2 papers, import papers,
 odometer); Favoritos embeds the model's `maintenanceColumns` for them.
+A favourite's planned visit (N.65, `listing_favourites.visit_at`, set
+under "Para a visita", `VisitTile`, shown in Favoritos by `visitText`):
+`finishRun`'s last step (`remindVisits`, `notify/visit_reminder_push.dart`)
+pushes the owner's devices once, from the first run within 24 h before
+it and outside quiet hours (`pending_visit_reminders(p_at)`, Lisbon day
+and time; `mark_visit_reminded` only for the same `visit_at`; the trigger
+`listing_favourites_visit_stamp` forgets the reminder when it moves); no
+device took it: the next run tries again. Push-test kind `visit_reminder`.
 Reimporting everything after a reset: create saved searches AFTER the import,
 or every listing counts as new.

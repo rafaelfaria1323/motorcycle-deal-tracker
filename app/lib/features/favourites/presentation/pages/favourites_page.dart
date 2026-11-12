@@ -112,6 +112,16 @@ class const FavouritesPage({super.key}) extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 4),
                                   ],
+                                  if (f.visitAt case final visit?) ...[
+                                    Text(
+                                      visitText(
+                                        visit,
+                                        language: context.language,
+                                      ),
+                                      style: theme.textTheme.bodyMedium,
+                                    ),
+                                    const SizedBox(height: 4),
+                                  ],
                                   if (f.checklist.isNotEmpty) ...[
                                     Text(
                                       checklistIssuesText(

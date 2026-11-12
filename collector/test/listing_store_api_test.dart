@@ -137,6 +137,7 @@ void main() {
       'pending_notifications',
       'push_keys',
       'answer_bike_value_requests',
+      'pending_visit_reminders',
       'text_audit_sample',
       'unmatched_title_sample',
       'score_check_models',
@@ -218,6 +219,19 @@ void main() {
     await pushes.pushKeys();
     await pushes.answerBikeValues(DateTime.utc(2026, 10, 28));
     await pushes.markNotified(['alert']);
+    await pushes.pendingVisitReminders(DateTime.utc(2026, 11, 12, 10));
+    await pushes.markVisitReminded(
+      VisitReminder(
+        userId: 'u1',
+        listingId: 'l1',
+        visitAt: DateTime.utc(2026, 11, 13, 10),
+        day: 1,
+        time: '10:00',
+        brand: 'Yamaha',
+        model: 'MT-07',
+        live: true,
+      ),
+    );
     await AuditStore(client).sample(DateTime.utc(2026, 11, 4), 60);
     await AuditStore(client).unmatchedTitles(DateTime.utc(2026, 11, 4), 40);
     await ScoreCheckStore(client).models(28);
@@ -263,6 +277,14 @@ void main() {
       'p_max_fraction': 0.5,
       'p_search_keys': ['s'],
       'p_include_unkeyed': true,
+    });
+    expect(bodyOf('mark_visit_reminded'), {
+      'p_user': 'u1',
+      'p_listing': 'l1',
+      'p_visit_at': '2026-11-13T10:00:00.000Z',
+    });
+    expect(bodyOf('pending_visit_reminders'), {
+      'p_at': '2026-11-12T10:00:00.000Z',
     });
     expect(bodyOf('rematch_listings'), {
       'p_source': 'olx',
