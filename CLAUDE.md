@@ -1227,6 +1227,14 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   and, for dealers, what to ask for besides the price (`dealerAsks`:
   service, tyres when due, written warranty, registration paid) with a
   message.
+- Paying in instalments (N.69, `financing.dart`, `financing_text.dart`,
+  `FinancingCard` after "Quanto oferecer", folded like the import
+  calculator: `FoldedCard`, `CalculatorField`; app only, nothing saved):
+  price (the ad's, changeable), deposit, term (12-84 months) and the
+  quote's TAEG, an effective yearly rate (the month's rate is its twelfth
+  root) -> instalment, total paid, interest; then the same loan at the
+  offer's most to pay after the visit (`listingVisitFindings`, shared
+  with `OfferCard`), from 50 € below the price.
 - Distance from home: `places` (towns, municipalities, districts with
   coordinates; GeoNames CC BY 4.0), `user_home` (one place per account,
   set in Mais), `place_key()` (= the app's `placeKey`, keep them equal),

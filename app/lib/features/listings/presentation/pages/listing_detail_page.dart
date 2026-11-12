@@ -12,6 +12,7 @@ import '../../../favourites/presentation/widgets/favourite_widgets.dart';
 import '../../../favourites/presentation/widgets/viewing_checklist_card.dart';
 import '../../../market/presentation/widgets/market_behaviour_section.dart';
 import '../../../valuation/presentation/import_cost_text.dart';
+import '../../../valuation/presentation/widgets/financing_card.dart';
 import '../../../valuation/presentation/widgets/import_cost_card.dart';
 import '../../../valuation/presentation/widgets/ownership_cost_card.dart';
 import '../../domain/entities/listing.dart';
@@ -248,6 +249,7 @@ class _ContentState extends State<_Content> {
       ],
       _Section.negotiate => [
         OfferCard(listing: listing),
+        FinancingCard(key: ValueKey(listing.id), listing: listing),
         SellerMessageCard(listing: listing),
         ViewingChecklistCard(listing: listing),
         BoughtThisCard(listing: listing),

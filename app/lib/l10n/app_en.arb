@@ -1195,5 +1195,20 @@
   "goneDealsLine": "This model's good deals (Deal Score {minScore} or more) that left in the last 90 days and were likely sold were on sale for {days, plural, =0{less than 1 day} =1{1 day} other{{days} days}} (median of {count}).",
   "goneDealsOthers": "The other sales took {days, plural, =0{less than 1 day} =1{1 day} other{{days} days}}.",
   "goneDealsFew": "This model's good deals (Deal Score {minScore} or more) that left in the last 90 days and were likely sold:",
-  "goneDealRow": "{facts}: {days, plural, =0{less than 1 day} =1{1 day} other{{days} days}} on sale, left {when}"
+  "goneDealRow": "{facts}: {days, plural, =0{less than 1 day} =1{1 day} other{{days} days}} on sale, left {when}",
+  "financingTitle": "What if you pay in instalments?",
+  "financingFolded": "The instalment, total paid and interest of a loan for this bike.",
+  "financingIntro": "Enter the deposit, the term and the APR (TAEG) from the dealer's or the bank's quote: we show the instalment, how much you pay in all and how much you save if you close at your offer.",
+  "financingPrice": "Price",
+  "financingPriceHint": "The ad's price; change it if you agree on another",
+  "financingDeposit": "Deposit (optional)",
+  "financingMonths": "Term",
+  "financingMonthsOption": "{months} months",
+  "financingApr": "APR (TAEG)",
+  "financingAprHint": "On the quote or the FINE sheet, for example 11.9",
+  "financingMonthly": "{monthly} a month for {months} months",
+  "financingTotal": "You pay {total} in all, deposit included: {interest} more than paying at once",
+  "financingAtOffer": "If you close at the most to pay in \"How much to offer\" ({offer}): {monthly} a month, {total} in all, {saving} less",
+  "financingNothingFinanced": "The deposit covers the price: there is nothing to borrow",
+  "financingNote": "The APR (TAEG) already counts the loan's fees and compulsory insurance; we use it as a yearly rate, so the real instalment can differ by a few euros. Check the FINE sheet before signing."
 }

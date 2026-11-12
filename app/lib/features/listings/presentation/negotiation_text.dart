@@ -93,6 +93,21 @@ VisitFindings visitFindings(
   return VisitFindings(repairs: repairs, blockers: blockers);
 }
 
+/// [visitFindings] for [listing] from its checklist: the costs by its
+/// engine size, sportiness and the model's own figures.
+VisitFindings listingVisitFindings(
+  Listing listing,
+  Map<String, ChecklistEntry> checklist, {
+  AppLanguage language = .portuguese,
+}) => visitFindings(
+  checklist,
+  engineCc: listing.engineCc,
+  sport: isSportBike(brand: listing.brand, model: listing.model),
+  maintenance: listing.maintenance,
+  listing: listing,
+  language: language,
+);
+
 /// The offer after the visit: the repairs come off both the opening and
 /// the most to pay. Unchanged without repairs.
 OfferSuggestion afterVisit(
