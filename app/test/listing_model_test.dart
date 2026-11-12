@@ -31,6 +31,15 @@ void main() {
     expect(listing.hasFirstOwnerSignal, isFalse);
   });
 
+  test('reads what the ad showed before the seller edited it (N.62)', () {
+    final listing = ListingModel.fromJson(
+      _row({'mileage_max_seen': 31000, 'year_first_seen': 2020}),
+    );
+    expect(listing.mileageMaxSeen, 31000);
+    expect(listing.yearFirstSeen, 2020);
+    expect(ListingModel.fromJson(_row({})).mileageMaxSeen, isNull);
+  });
+
   test(
     'summary queries fetch card facts without descriptions or full scores',
     () {

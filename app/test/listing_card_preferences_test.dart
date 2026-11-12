@@ -831,6 +831,10 @@ void main() {
       cardWarnings(const ['possible_accident'], language: AppLanguage.english),
       ['Accident mentioned'],
     );
+    expect(cardWarnings(const ['year_raised', 'mileage_lowered']), [
+      'Km baixados',
+      'Ano alterado',
+    ]);
     // At most two by default.
     expect(
       cardWarnings(const ['a2_limited', 'photos_reused', 'needs_repair']),

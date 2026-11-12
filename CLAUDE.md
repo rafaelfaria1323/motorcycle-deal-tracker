@@ -1109,7 +1109,13 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   `relisted_often` 10: twice, or on sale for over 90 days counting the
   earlier ads), photos reused (`photos_reused` 10: an ad first seen
   earlier with the same photos is another model, or a dealer's on a
-  private ad), the text contradicting the ad's fields
+  private ad), the seller's edits in their own favour after the ad was
+  found (N.62, `fact_edit_signals`: `mileage_lowered` 15, the ad's own
+  mileage 1 000 km or more under the highest it showed,
+  `listings.mileage_max_seen`; `year_raised` 10, newer than the first
+  year shown, `year_first_seen`; both kept by the trigger
+  `listings_track_facts`, never from km read in the text; the page says
+  what it showed before), the text contradicting the ad's fields
   (`text_contradictions`: year 2+ apart (not a year still to come or after
   "até"), more km, imported, no service
   book; 10 each), an A2 (35 kW) version (`power_version` on variant and

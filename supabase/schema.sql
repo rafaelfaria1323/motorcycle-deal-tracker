@@ -491,6 +491,8 @@ CREATE TABLE public.listings (
     last_pct_below_market numeric,
     sold_marked_at timestamp with time zone,
     last_deal_score smallint,
+    mileage_max_seen integer,
+    year_first_seen smallint,
     CONSTRAINT listings_deal_score_check CHECK (((deal_score >= 0) AND (deal_score <= 100))),
     CONSTRAINT listings_duplicate_not_self CHECK (((duplicate_of IS NULL) OR (duplicate_of <> id))),
     CONSTRAINT listings_mileage_check CHECK ((mileage >= 0)),
@@ -546,6 +548,18 @@ COMMENT ON COLUMN public.listings.photos_examined_all_at IS 'When every photo wa
 --
 
 COMMENT ON COLUMN public.listings.sold_marked_at IS 'When the ad''s title or description said it was sold or reserved (sold_in_text); null when it no longer does.';
+
+--
+-- Name: COLUMN listings.mileage_max_seen; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.listings.mileage_max_seen IS 'Highest mileage the ad''s own field has shown (not read from the text); N.62.';
+
+--
+-- Name: COLUMN listings.year_first_seen; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.listings.year_first_seen IS 'The first year the ad showed; N.62.';
 
 --
 -- Name: asking_price(public.listings); Type: FUNCTION; Schema: public; Owner: -
@@ -1627,6 +1641,22 @@ begin
   end loop;
   return v_count;
 end;
+$$;
+
+--
+-- Name: fact_edit_signals(integer, boolean, integer, integer, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fact_edit_signals(p_mileage integer, p_mileage_from_text boolean, p_mileage_max_seen integer, p_year integer, p_year_first_seen integer) RETURNS text[]
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$
+  select array_remove(array[
+    case when p_mileage is not null and not coalesce(p_mileage_from_text, false)
+              and p_mileage_max_seen - p_mileage >= 1000
+         then 'mileage_lowered' end,
+    case when p_year > p_year_first_seen then 'year_raised' end
+  ], null)
 $$;
 
 --
@@ -4250,6 +4280,14 @@ CREATE FUNCTION public.risk_from_signals(p_price numeric, p_market_price numeric
     from unnest(p_text_signals) v
     where v in ('a2_limited', 'a2_unlocked')
     union all
+    -- The seller edited the ad after it was found, in their own favour
+    -- (N.62: listings_track_facts): fewer km, or a newer year.
+    select 'mileage_lowered', 15
+    where 'mileage_lowered' = any(p_text_signals)
+    union all
+    select 'year_raised', 10
+    where 'year_raised' = any(p_text_signals)
+    union all
     -- The ad's field, or the text when the field is empty.
     select 'first_owner', -5
     where p_registrations = 1
@@ -5096,6 +5134,26 @@ CREATE FUNCTION public.text_contradictions(p_description text, p_year integer, p
 $$;
 
 --
+-- Name: track_listing_facts(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.track_listing_facts() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+begin
+  if new.mileage is not null and not coalesce(new.mileage_from_text, false) then
+    new.mileage_max_seen := greatest(new.mileage_max_seen, new.mileage);
+    -- greatest ignores nulls: the first value is kept as it is.
+  end if;
+  if new.year_first_seen is null then
+    new.year_first_seen := new.year;
+  end if;
+  return new;
+end;
+$$;
+
+--
 -- Name: track_price_change(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -5713,14 +5771,14 @@ CREATE VIEW public.listing_risk_scores WITH (security_invoker='true') AS
         CASE
             WHEN (f.comparable_count >= 3) THEN f.fair_price
             ELSE NULL::numeric
-        END, (l.year)::integer, l.mileage, l.description, l.location, ((l.details_checked_at IS NOT NULL) OR (l.source = 'olx'::text)), COALESCE(((l.seller_type)::text = 'private'::text), false), (l.registrations)::integer, l.service_book, l.origin, l.warranty_until, (((l.relisted_from IS NOT NULL))::integer + ((prev.relisted_from IS NOT NULL))::integer), l.relisted_since, (COALESCE(l.text_signals, public.description_signals(l.variant, l.description)) ||
+        END, (l.year)::integer, l.mileage, l.description, l.location, ((l.details_checked_at IS NOT NULL) OR (l.source = 'olx'::text)), COALESCE(((l.seller_type)::text = 'private'::text), false), (l.registrations)::integer, l.service_book, l.origin, l.warranty_until, (((l.relisted_from IS NOT NULL))::integer + ((prev.relisted_from IS NOT NULL))::integer), l.relisted_since, ((COALESCE(l.text_signals, public.description_signals(l.variant, l.description)) ||
         CASE
             WHEN (EXISTS ( SELECT 1
                FROM (public.listing_photo_matches m
                  JOIN public.listings o ON ((o.id = m.other_id)))
               WHERE ((m.listing_id = l.id) AND (o.first_seen_at < l.first_seen_at) AND ((o.motorcycle_id <> l.motorcycle_id) OR ((l.seller_type = 'private'::public.seller_type) AND (o.seller_type = 'dealer'::public.seller_type)))))) THEN ARRAY['photos_reused'::text]
             ELSE '{}'::text[]
-        END)) r(risk_score, reasons))
+        END) || public.fact_edit_signals(l.mileage, l.mileage_from_text, l.mileage_max_seen, (l.year)::integer, (l.year_first_seen)::integer))) r(risk_score, reasons))
   WHERE (l.status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status]));
 
 --
@@ -6645,6 +6703,12 @@ CREATE TRIGGER listings_sold_marked BEFORE INSERT OR UPDATE OF variant, descript
 --
 
 CREATE TRIGGER listings_text_signals BEFORE INSERT OR UPDATE OF variant, description, text_signals, text_extras ON public.listings FOR EACH ROW EXECUTE FUNCTION public.fill_text_signals();
+
+--
+-- Name: listings listings_track_facts; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER listings_track_facts BEFORE INSERT OR UPDATE OF mileage, year, mileage_from_text ON public.listings FOR EACH ROW EXECUTE FUNCTION public.track_listing_facts();
 
 --
 -- Name: listings listings_track_price_change; Type: TRIGGER; Schema: public; Owner: -
@@ -7651,6 +7715,13 @@ REVOKE ALL ON FUNCTION public.expire_bike_value_models() FROM PUBLIC;
 GRANT ALL ON FUNCTION public.expire_bike_value_models() TO service_role;
 
 --
+-- Name: FUNCTION fact_edit_signals(p_mileage integer, p_mileage_from_text boolean, p_mileage_max_seen integer, p_year integer, p_year_first_seen integer); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.fact_edit_signals(p_mileage integer, p_mileage_from_text boolean, p_mileage_max_seen integer, p_year integer, p_year_first_seen integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.fact_edit_signals(p_mileage integer, p_mileage_from_text boolean, p_mileage_max_seen integer, p_year integer, p_year_first_seen integer) TO service_role;
+
+--
 -- Name: FUNCTION fill_listing_colour(); Type: ACL; Schema: public; Owner: -
 --
 
@@ -8440,6 +8511,13 @@ GRANT ALL ON FUNCTION public.text_audit_sample(p_since timestamp with time zone,
 GRANT ALL ON FUNCTION public.text_contradictions(p_description text, p_year integer, p_mileage integer, p_origin text, p_service_book boolean) TO anon;
 GRANT ALL ON FUNCTION public.text_contradictions(p_description text, p_year integer, p_mileage integer, p_origin text, p_service_book boolean) TO authenticated;
 GRANT ALL ON FUNCTION public.text_contradictions(p_description text, p_year integer, p_mileage integer, p_origin text, p_service_book boolean) TO service_role;
+
+--
+-- Name: FUNCTION track_listing_facts(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.track_listing_facts() FROM PUBLIC;
+GRANT ALL ON FUNCTION public.track_listing_facts() TO service_role;
 
 --
 -- Name: FUNCTION track_price_change(); Type: ACL; Schema: public; Owner: -
