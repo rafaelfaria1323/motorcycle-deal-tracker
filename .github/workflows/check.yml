@@ -259,7 +259,10 @@ jobs:
       # make sql-lint runs make db-test first, then checks the database it
       # leaves (plpgsql_check, splinter) and squawk on this PR's new
       # migrations. plpgsql_check goes into the Postgres container (the
-      # official image has the PostgreSQL apt repository).
+      # official image has the PostgreSQL apt repository). Installing it can
+      # also upgrade the server's package to a newer minor release, whose
+      # libraries the running (older) server can't load ("undefined symbol"
+      # in plpgsql.so), so the container is restarted on the new binaries.
       - name: make sql-lint (with make db-test)
         env:
           PGHOST: localhost
@@ -269,6 +272,12 @@ jobs:
         run: |
           docker exec "$POSTGRES_CONTAINER" sh -c \
             'apt-get update -qq && apt-get install -y -qq postgresql-16-plpgsql-check' >/dev/null
+          docker restart "$POSTGRES_CONTAINER" >/dev/null
+          for _ in $(seq 30); do
+            docker exec "$POSTGRES_CONTAINER" pg_isready -U postgres -q && break
+            sleep 1
+          done
+          docker exec "$POSTGRES_CONTAINER" pg_isready -U postgres
           pipx install squawk-cli==2.70.0 >/dev/null
           make sql-lint
 
