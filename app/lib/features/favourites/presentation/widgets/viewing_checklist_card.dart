@@ -42,13 +42,7 @@ class const ViewingChecklistCard({required final Listing listing, super.key})
                   ),
                 ),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => showModalBottomSheet<void>(
-                  context: context,
-                  isScrollControlled: true,
-                  useSafeArea: true,
-                  constraints: const BoxConstraints(maxWidth: 560),
-                  builder: (_) => _ChecklistSheet(listing: listing),
-                ),
+                onTap: () => showViewingChecklist(context, listing),
               ),
               const Divider(height: 1),
               VisitTile(favourite: favourite),
@@ -59,6 +53,17 @@ class const ViewingChecklistCard({required final Listing listing, super.key})
     );
   }
 }
+
+/// The viewing checklist of [listing], a favourite, in a sheet: from its
+/// page or from Favoritos (which works without a connection, N.66).
+Future<void> showViewingChecklist(BuildContext context, Listing listing) =>
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      constraints: const BoxConstraints(maxWidth: 560),
+      builder: (_) => _ChecklistSheet(listing: listing),
+    );
 
 class const _ChecklistSheet({required final Listing listing})
     extends StatelessWidget {
@@ -99,6 +104,22 @@ class const _ChecklistSheet({required final Listing listing})
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
+                  if (state.unsent.contains(listingId)) ...[
+                    const SizedBox(height: 12),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.cloud_off, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            context.strings.checklistKeptOnDevice,
+                            style: theme.textTheme.bodyMedium,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   for (final section in viewingChecklist(
                     language: context.language,
                     listing: listing,
@@ -139,7 +160,8 @@ class const _ChecklistTile({
       mark: mark,
       note: note,
     );
-    if (!saved) {
+    // Kept on this device: the sheet says so.
+    if (saved == ChecklistSave.failed) {
       showMessage(messenger, messageStrings.couldNotSaveTryAgain);
     }
   }

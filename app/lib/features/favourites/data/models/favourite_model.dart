@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import '../../domain/entities/favourite.dart';
 import '../../../listings/data/models/listing_model.dart';
 
@@ -58,4 +60,28 @@ class FavouriteModel {
           'note': ?value.note,
         },
   };
+
+  /// The checklists waiting on this device, as kept there:
+  /// `{"<listing id>": {"tyres": {"mark": "ok"}}}`. Damaged text reads as
+  /// nothing waiting.
+  static Map<String, Map<String, ChecklistEntry>> unsentFromJson(String? text) {
+    if (text == null) return const {};
+    final Object? json;
+    try {
+      json = jsonDecode(text);
+    } on FormatException {
+      return const {};
+    }
+    if (json is! Map) return const {};
+    return {
+      for (final MapEntry(:key, :value) in json.entries)
+        if (key is String) key: checklistFromJson(value),
+    };
+  }
+
+  static String unsentToJson(Map<String, Map<String, ChecklistEntry>> unsent) =>
+      jsonEncode({
+        for (final MapEntry(:key, :value) in unsent.entries)
+          key: checklistToJson(value),
+      });
 }

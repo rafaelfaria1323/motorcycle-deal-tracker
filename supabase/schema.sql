@@ -3330,6 +3330,29 @@ CREATE FUNCTION public.new_bike_ad(p_year integer, p_mileage integer, p_price nu
 $$;
 
 --
+-- Name: olx_copies_to_skip(jsonb); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.olx_copies_to_skip(p_copies jsonb) RETURNS SETOF text
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+  select c.key
+  from jsonb_each_text(coalesce(p_copies, '{}'::jsonb)) as c
+  where c.value in (
+      select substring(l.url from '-(ID[0-9A-Za-z]+)\.html')
+      from public.listings l
+      where l.source = 'standvirtual'
+    )
+    and not exists (
+      select 1
+      from public.listings o
+      where o.source = 'olx'
+        and o.source_listing_id = c.key
+    );
+$$;
+
+--
 -- Name: owner_tracks(uuid, uuid, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -8246,6 +8269,13 @@ GRANT ALL ON FUNCTION public.needs_repair(p_description text) TO service_role;
 
 REVOKE ALL ON FUNCTION public.new_bike_ad(p_year integer, p_mileage integer, p_price numeric, p_seller_type public.seller_type, p_signals text[]) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.new_bike_ad(p_year integer, p_mileage integer, p_price numeric, p_seller_type public.seller_type, p_signals text[]) TO service_role;
+
+--
+-- Name: FUNCTION olx_copies_to_skip(p_copies jsonb); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.olx_copies_to_skip(p_copies jsonb) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.olx_copies_to_skip(p_copies jsonb) TO service_role;
 
 --
 -- Name: FUNCTION owner_tracks(p_user uuid, p_motorcycle_id uuid, p_year integer); Type: ACL; Schema: public; Owner: -

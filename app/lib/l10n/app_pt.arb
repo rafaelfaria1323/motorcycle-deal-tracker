@@ -6554,5 +6554,13 @@
   "couldNotSaveVisit": "Não foi possível guardar a visita. Tente novamente.",
   "@couldNotSaveVisit": {
     "description": "Error when the visit could not be saved."
+  },
+  "checklistKeptOnDevice": "Sem ligação: as marcas ficam guardadas neste aparelho e são enviadas quando houver rede.",
+  "@checklistKeptOnDevice": {
+    "description": "Viewing checklist line when marks wait on the device for a connection."
+  },
+  "favouritesFromDevice": "Sem ligação: a mostrar a última cópia guardada neste aparelho.",
+  "@favouritesFromDevice": {
+    "description": "Favourites page line when the list is the device's last copy."
   }
 }

@@ -11,6 +11,7 @@ import '../../../listings/presentation/cubit/listing_card_preferences_cubit.dart
 import '../favourites_text.dart';
 import '../viewing_checklist.dart';
 import '../widgets/favourite_widgets.dart';
+import '../widgets/viewing_checklist_card.dart';
 import '../../../listings/presentation/widgets/listing_card.dart';
 import '../../../../core/localization/localizations.dart';
 
@@ -75,6 +76,22 @@ class const FavouritesPage({super.key}) extends StatelessWidget {
                             ),
                             style: muted,
                           ),
+                          if (state.fromDevice) ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(Icons.cloud_off, size: 20),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    context.strings.favouritesFromDevice,
+                                    style: theme.textTheme.bodyMedium,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                           if (cards.status ==
                               ListingCardPreferencesStatus.failure)
                             TextButton.icon(
@@ -144,6 +161,21 @@ class const FavouritesPage({super.key}) extends StatelessWidget {
                                       language: context.language,
                                     ),
                                     style: muted,
+                                  ),
+                                  // Here too, not only on the ad's page: at
+                                  // the viewing there may be no connection
+                                  // to open it (N.66).
+                                  TextButton.icon(
+                                    onPressed: () => showViewingChecklist(
+                                      context,
+                                      f.listing!,
+                                    ),
+                                    icon: Icon(
+                                      state.unsent.contains(f.listingId)
+                                          ? Icons.cloud_off
+                                          : Icons.checklist,
+                                    ),
+                                    label: Text(context.strings.forViewing),
                                   ),
                                 ],
                               ),

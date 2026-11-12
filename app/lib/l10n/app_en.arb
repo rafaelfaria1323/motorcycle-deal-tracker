@@ -1149,5 +1149,7 @@
   "visitNotPlanned": "No viewing planned",
   "visitReminderHint": "The day before, we remind you on your devices with notifications on.",
   "cancelVisit": "Cancel the viewing",
-  "couldNotSaveVisit": "Could not save the viewing. Try again."
+  "couldNotSaveVisit": "Could not save the viewing. Try again.",
+  "checklistKeptOnDevice": "No connection: your marks are kept on this device and sent once there is signal.",
+  "favouritesFromDevice": "No connection: showing the last copy kept on this device."
 }

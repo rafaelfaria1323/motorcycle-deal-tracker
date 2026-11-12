@@ -11,6 +11,16 @@ class _Store implements ListingStore {
   List<String>? removedSearches;
   bool? removedIncludeUnkeyed;
 
+  /// The OLX copies whose Standvirtual original is stored (N.70).
+  Set<String> copiesToSkip = const {};
+  Map<String, String>? copiesAsked;
+
+  @override
+  Future<Set<String>> olxCopiesToSkip(Map<String, String> copies) async {
+    copiesAsked = copies;
+    return copiesToSkip;
+  }
+
   @override
   Future<StoreResult> save(List<NormalizedListing> l, Catalog c) async {
     calls.add('save ${l.length}');
@@ -208,6 +218,57 @@ void main() {
       'unmatched "Honda SH 350 ligue …"',
     );
     expect(unmatchedLabel(ad('x' * 80)).length, lessThan(75));
+  });
+
+  group('OLX copies of Standvirtual ads (N.70)', () {
+    MappedRecord copy(String id, String original) => MappedRecord(
+      id,
+      const Rejected('copy of a Standvirtual ad'),
+      liveId: id,
+      copyOf: original,
+      ownAd: Mapped(testListing(id)),
+    );
+    SourceBatch copies() => SourceBatch('olx', const [], [
+      _mapped('a'),
+      copy('found', 'ID8Q0aaa'),
+      copy('missed', 'ID8Q1m16'),
+    ]);
+
+    test('only those whose original is stored are skipped', () async {
+      final store = _Store()..copiesToSkip = {'found'};
+      final out = StringBuffer();
+      await importBatch(copies(), catalog, store: store, out: out);
+
+      expect(store.copiesAsked, {'found': 'ID8Q0aaa', 'missed': 'ID8Q1m16'});
+      expect(store.calls, contains('save 2'));
+      expect(store.calls, contains('markSeen a,missed'));
+      expect(
+        out.toString(),
+        allOf(
+          contains(
+            'Copies of Standvirtual ads: 2, 1 kept (original not '
+            'stored).',
+          ),
+          contains('  ! found: copy of a Standvirtual ad'),
+          contains('Mapped 2, rejected 1.'),
+        ),
+      );
+    });
+
+    test('a dry run keeps skipping them and asks nothing', () async {
+      final out = StringBuffer();
+      await importBatch(copies(), catalog, store: null, out: out);
+
+      expect(out.toString(), contains('Mapped 1, rejected 2.'));
+      expect(out.toString(), isNot(contains('Copies of Standvirtual')));
+    });
+
+    test('without copies the store is not asked', () async {
+      final store = _Store();
+      await importBatch(_batch(), catalog, store: store, out: StringBuffer());
+
+      expect(store.copiesAsked, isNull);
+    });
   });
 
   test('the steps run in order; without --full nothing is removed', () async {

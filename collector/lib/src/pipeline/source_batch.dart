@@ -1,6 +1,7 @@
 import '../adapters/manual/manual_adapter.dart';
 import '../adapters/manual/manual_mapper.dart';
 import '../adapters/olx/olx_mapper.dart';
+import '../adapters/olx/olx_raw_listing.dart';
 import '../adapters/olx/olx_search_adapter.dart';
 import '../adapters/site_model.dart';
 import '../adapters/source_adapter.dart';
@@ -24,7 +25,50 @@ class const MappedRecord(
 
   /// The search that found it, when the input has a [SearchManifest].
   final String? search,
+
+  /// For an OLX copy of a Standvirtual ad (rejected in [outcome]), the
+  /// original's ad code, and [ownAd] the copy mapped as an OLX ad of its
+  /// own: the import uses it when the original isn't stored (N.70).
+  final String? copyOf,
+  final MapOutcome? ownAd,
 });
+
+/// OLX copies of Standvirtual ads, by their OLX listing id: the
+/// original's ad code (N.70). Empty for other sources.
+Map<String, String> standvirtualCopies(SourceBatch batch) => {
+  for (final record in batch.records)
+    if ((record.copyOf, record.ownAd, record.liveId) case (
+      final original?,
+      _?,
+      final id?,
+    ))
+      id: original,
+};
+
+/// [batch] with the copies of Standvirtual ads not in [skip] taken as
+/// OLX ads of their own (N.70): their originals were never found on
+/// Standvirtual, so without them the bike would be missed.
+SourceBatch keepCopies(SourceBatch batch, Set<String> skip) {
+  final copies = standvirtualCopies(batch);
+  return SourceBatch(
+    batch.source,
+    batch.issues,
+    [
+      for (final record in batch.records)
+        if (copies.containsKey(record.liveId) && !skip.contains(record.liveId))
+          MappedRecord(
+            record.ref,
+            record.ownAd!,
+            liveId: record.liveId,
+            search: record.search,
+          )
+        else
+          record,
+    ],
+    manifest: batch.manifest,
+    siteModels: batch.siteModels,
+  );
+}
 
 /// Source ids of every listing the input shows as live, rejected or not.
 /// Null when a rejected record can't be placed, so the input can't be
@@ -198,6 +242,18 @@ const sourceKinds = [
   'olx-search',
 ];
 
+MappedRecord _olxRecord(OlxMapper mapper, OlxRawListing raw, String? search) {
+  final original = OlxMapper.standvirtualOriginal(raw);
+  return MappedRecord(
+    raw.url,
+    mapper.map(raw),
+    liveId: raw.status == 'active' ? OlxMapper.listingId(raw.id) : null,
+    search: search,
+    copyOf: original,
+    ownAd: original == null ? null : mapper.map(raw, keepCopy: true),
+  );
+}
+
 Future<SourceBatch> loadBatch(String kind, String path, Catalog catalog) async {
   switch (kind) {
     case 'manual':
@@ -256,14 +312,7 @@ Future<SourceBatch> loadBatch(String kind, String path, Catalog catalog) async {
         result.issues,
         [
           for (final (i, raw) in result.records.indexed)
-            MappedRecord(
-              raw.url,
-              mapper.map(raw),
-              liveId: raw.status == 'active'
-                  ? OlxMapper.listingId(raw.id)
-                  : null,
-              search: result.recordSearches?[i],
-            ),
+            _olxRecord(mapper, raw, result.recordSearches?[i]),
         ],
         manifest: result.manifest,
         siteModels: result.siteModels,

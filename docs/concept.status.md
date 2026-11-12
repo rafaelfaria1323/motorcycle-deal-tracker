@@ -159,6 +159,8 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 
 ➕ ✅ Visit planning with a reminder (N.65): a favourite's visit day and time, set from "Para a visita" and shown in Favoritos; the day before (the first collection within 24 h, outside quiet hours) a notification names the bike and points to the checklist, or warns that the ad is gone.
 
+➕ ✅ The viewing checklist without a connection (N.66): marks made without signal stay on the device and are sent once there is a connection; Favoritos shows the last copy kept on the device when it can't load, and each favourite opens its checklist from there.
+
 ## 13. Explainable Score ✅
 
 *Each score lists: % and € versus the estimated value for that age and mileage, the estimated value itself, mileage, model year, risk signals, and reassuring facts (first owner, service book, factory warranty).*
@@ -228,7 +230,7 @@ Shown on the detail page. Reference prices are edited in the app; set for the or
 
 ## 20. Deduplication ✅
 
-✅ Within and across sources: mileage, price, location, description, seller. Original links preserved. OLX copies of Standvirtual ads skipped.
+✅ Within and across sources: mileage, price, location, description, seller. Original links preserved. OLX copies of Standvirtual ads skipped when the original is stored, else kept as OLX ads (N.70).
 ✅ Images: photo fingerprints (P.1, no AI) make the same model and year with matching photos and close mileage a duplicate whatever the text, and a relist.
 
 ## 21. Data Quality 🟡

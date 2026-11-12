@@ -184,6 +184,21 @@ class ListingStore(final SupabaseClient _client) {
     return rpcCount(result);
   }
 
+  /// Of the OLX copies of Standvirtual ads ([copies]: OLX listing id ->
+  /// the original's ad code), those to skip: the original is stored and
+  /// the copy isn't (N.70, `olx_copies_to_skip`).
+  Future<Set<String>> olxCopiesToSkip(Map<String, String> copies) async {
+    if (copies.isEmpty) return const {};
+    final result = await _client.rpc<Object?>(
+      'olx_copies_to_skip',
+      params: {'p_copies': copies},
+    );
+    return {
+      if (result is List)
+        for (final id in result) id.toString(),
+    };
+  }
+
   /// Marks listings as seen now (updates last_seen_at); returns how many.
   Future<int> markSeen(String source, List<String> sourceListingIds) async {
     if (sourceListingIds.isEmpty) return 0;

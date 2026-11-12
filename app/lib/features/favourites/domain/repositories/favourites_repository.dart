@@ -28,4 +28,19 @@ abstract interface class FavouritesRepository {
     String listingId,
     Map<String, ChecklistEntry> checklist,
   );
+
+  /// The list last read on this device for the signed-in account (N.66),
+  /// for when there is no connection; null when there is none.
+  Future<List<Favourite>?> lastCopy();
+
+  /// Checklists changed on this device that the database has not taken
+  /// yet (no connection at the viewing), by listing.
+  Future<Map<String, Map<String, ChecklistEntry>>> unsentChecklists();
+
+  /// Keeps a checklist the database has not taken yet, or forgets it
+  /// (null). Throws if this device cannot keep it.
+  Future<void> keepUnsentChecklist(
+    String listingId,
+    Map<String, ChecklistEntry>? checklist,
+  );
 }

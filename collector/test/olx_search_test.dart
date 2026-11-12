@@ -316,6 +316,55 @@ void main() {
     expect(liveIds(batch), ['olx.pt/1']);
   });
 
+  test('a copy names its Standvirtual original; kept, it maps as an OLX ad '
+      '(N.70)', () {
+    const url =
+        'https://www.standvirtual.com/motos/anuncio/honda-cbr-ID8Q1m16.html';
+    final raw = one(ad(partner: 'standvirtual', externalUrl: url));
+
+    expect(OlxMapper.standvirtualOriginal(raw), 'ID8Q1m16');
+    expect(OlxMapper.standvirtualOriginal(one(ad())), isNull);
+    expect(
+      OlxMapper.standvirtualOriginal(one(ad(partner: 'standvirtual'))),
+      isNull,
+    );
+    expect(
+      OlxMapper.standvirtualOriginal(
+        one(ad(partner: 'standvirtual', externalUrl: 'https://x.pt/a')),
+      ),
+      isNull,
+    );
+
+    final kept = mapper.map(raw, keepCopy: true);
+    expect(kept, isA<Mapped>());
+    expect((kept as Mapped).listing.sourceListingId, 'olx.pt/1');
+    expect(kept.listing.source, 'olx');
+  });
+
+  test('copies are only kept when the import says so (N.70)', () {
+    const url = 'https://www.standvirtual.com/motos/anuncio/x-ID8Q0wf4.html';
+    final copyAd = one(ad(id: 2, partner: 'standvirtual', externalUrl: url));
+    final own = one(ad());
+    final batch = SourceBatch('olx', const [], [
+      MappedRecord(own.url, mapper.map(own), liveId: 'olx.pt/1'),
+      MappedRecord(
+        copyAd.url,
+        mapper.map(copyAd),
+        liveId: 'olx.pt/2',
+        copyOf: 'ID8Q0wf4',
+        ownAd: mapper.map(copyAd, keepCopy: true),
+      ),
+    ]);
+
+    expect(standvirtualCopies(batch), {'olx.pt/2': 'ID8Q0wf4'});
+    expect(keepCopies(batch, {'olx.pt/2'}).records[1].outcome, isA<Rejected>());
+    final kept = keepCopies(batch, const {});
+    expect(kept.records[1].outcome, isA<Mapped>());
+    expect(kept.records[1].liveId, 'olx.pt/2');
+    expect(kept.records[0], same(batch.records[0]));
+    expect(liveIds(kept), ['olx.pt/1', 'olx.pt/2']);
+  });
+
   test('a page that is not a search page is a format error', () {
     expect(
       () => adapter.parseSearchPage('<html></html>'),
@@ -424,6 +473,27 @@ void main() {
         final plan = await planFor(ad(id: 2, status: 'removed_by_user'));
 
         expect(plan.searches, isNull);
+      });
+
+      test('a copy of a Standvirtual ad is loaded with its own mapping '
+          '(N.70)', () async {
+        const original =
+            'https://www.standvirtual.com/motos/anuncio/honda-cbr-ID8Q1m16.html';
+        final plan = await planFor(
+          ad(id: 2, partner: 'standvirtual', externalUrl: original),
+        );
+
+        expect(plan.searches, [url]);
+        final batch = await loadBatch(
+          'olx-search',
+          dir.path,
+          Catalog(const [mt07Entry]),
+        );
+        expect(batch.records[0].copyOf, isNull);
+        expect(batch.records[0].ownAd, isNull);
+        expect(batch.records[1].copyOf, 'ID8Q1m16');
+        expect(batch.records[1].ownAd, isA<Mapped>());
+        expect(standvirtualCopies(batch), {'olx.pt/2': 'ID8Q1m16'});
       });
     });
 

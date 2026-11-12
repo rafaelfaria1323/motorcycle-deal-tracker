@@ -42,6 +42,8 @@ class _AppShellState extends State<AppShell> {
       onResume: () {
         _alerts.load();
         _listings.checkForNew();
+        // Checklist marks kept while there was no connection (N.66).
+        _favourites.sendUnsent();
       },
     );
     if (_alerts.state.status == .initial) _alerts.load();
