@@ -1,6 +1,6 @@
 -- The API roles may write only where the app does: anon nowhere, and a
 -- signed-in account its own saved searches, favourites, home, ownership
--- figures, card and language preferences, quiet hours, the invites it deletes, its devices and the read mark of its
+-- figures, card and language preferences, quiet hours, its own bikes, the invites it deletes, its devices and the read mark of its
 -- alerts. Everything else goes through functions or the collector.
 do $$
 declare
@@ -14,6 +14,7 @@ declare
     'listing_card_preferences:insert', 'listing_card_preferences:update',
     'account_languages:insert', 'account_languages:update',
     'quiet_hours:insert', 'quiet_hours:update',
+    'owned_bikes:insert', 'owned_bikes:update', 'owned_bikes:delete',
     'invites:delete', 'push_subscriptions:delete'];
 begin
   for v_table in

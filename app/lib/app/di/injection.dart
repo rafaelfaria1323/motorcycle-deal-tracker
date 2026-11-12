@@ -19,6 +19,9 @@ import '../../features/listings/data/repositories/supabase_listing_card_preferen
 import '../../features/listings/data/repositories/supabase_listings_repository.dart';
 import '../../features/market/data/repositories/supabase_market_behaviour_repository.dart';
 import '../../features/valuation/data/repositories/supabase_ownership_settings_repository.dart';
+import '../../features/valuation/data/repositories/supabase_owned_bikes_repository.dart';
+import '../../features/valuation/domain/repositories/owned_bikes_repository.dart';
+import '../../features/valuation/presentation/cubit/owned_bikes_cubit.dart';
 import '../../features/saved_searches/data/repositories/supabase_saved_searches_repository.dart';
 import '../../features/alerts/data/repositories/supabase_weekly_summary_repository.dart';
 import '../../features/alerts/domain/repositories/alerts_repository.dart';
@@ -165,6 +168,14 @@ void configureDependencies(SharedPreferences preferences) {
     )
     ..registerLazySingleton<OwnershipSettingsRepository>(
       () => SupabaseOwnershipSettingsRepository(getIt<SupabaseClient>()),
+    )
+    ..registerLazySingleton<OwnedBikesRepository>(
+      () => SupabaseOwnedBikesRepository(getIt<SupabaseClient>()),
+    )
+    ..registerLazySingleton(
+      () =>
+          OwnedBikesCubit(getIt<OwnedBikesRepository>(), getIt<SessionCubit>()),
+      dispose: (cubit) => cubit.close(),
     )
     ..registerLazySingleton<CatalogRepository>(
       () => SupabaseCatalogRepository(getIt<SupabaseClient>()),

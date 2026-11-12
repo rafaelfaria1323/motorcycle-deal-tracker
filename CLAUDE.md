@@ -377,13 +377,15 @@ invites; written by the collector on each run).
   weekly summary), `saved_searches`, `favourites` (with the viewing
   checklist), `compare`, `market` (market behaviour, the model's market
   page, time to sale), `valuation` (a bike's value, the import
-  calculator, the cost of ownership), `collector_status`, `settings`
+  calculator, the cost of ownership, "A minha mota": `owned_bikes`,
+  `OwnedBikesCubit`, "Comprei esta" on the ad's Negociar, N.67),
+  `collector_status`, `settings`
   (the "Mais" tab).
 - Text built from data lives in pure functions (`*_text.dart`) with tests.
 - State: flutter_bloc Cubits + Equatable states. DI: get_it. Shared cubits
   (`ListingsCubit`, `SavedSearchesCubit`, `AlertsCubit`, `CollectorStatusCubit`,
   `FavouritesCubit`, `ListingCardPreferencesCubit`, `LanguageCubit`,
-  `HomePlaceCubit`, and `SessionCubit` for the signed-in state: widgets never
+  `HomePlaceCubit`, `OwnedBikesCubit`, and `SessionCubit` for the signed-in state: widgets never
   read Supabase's auth directly) are lazy singletons, provided in routes with
   `BlocProvider.value`. The shell (`AppShell`) loads `AlertsCubit` at start
   and on app resume for the unread badge on Alertas, `FavouritesCubit`
@@ -418,7 +420,7 @@ invites; written by the collector on each run).
   title and Limpar/Aplicar fixed while the choices scroll.
   Switching tabs uses `context.go`; full pages outside the shell
   (`/models`, `/market`, `/worth`, `/import`, `/compare?ids=a,b,c`,
-  `/summary`)
+  `/summary`, `/my-bike`)
   and an ad (`/deals/<id>`, from anywhere) are pushed, so back returns
   where the person was; pushed pages show their own address
   (`GoRouter.optionURLReflectsImperativeAPIs`, set in `main.dart`). The
@@ -657,6 +659,7 @@ invites; written by the collector on each run).
 - Table privileges: anon and authenticated have only `select` on public's
   tables (also tables made later: default privileges); authenticated writes
   only saved_searches, listing_favourites, user_home, ownership_settings,
+  owned_bikes,
   inserts/updates its own listing_card_preferences, account_languages and quiet_hours,
   deletes invites and push_subscriptions, and updates `alerts.read_at`
   (`20261024170000_tighten_api_grants.sql`, `api_grants_test.sql`). A new

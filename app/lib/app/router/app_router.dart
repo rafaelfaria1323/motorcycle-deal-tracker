@@ -11,6 +11,7 @@ import '../../features/saved_searches/presentation/cubit/saved_searches_cubit.da
 import '../../features/compare/presentation/compare_text.dart';
 import '../../features/alerts/presentation/pages/alerts_page.dart';
 import '../../features/valuation/presentation/pages/bike_value_page.dart';
+import '../../features/valuation/presentation/pages/my_bikes_page.dart';
 import '../../features/compare/presentation/pages/compare_page.dart';
 import '../../features/listings/presentation/pages/dashboard_page.dart';
 import '../../features/favourites/presentation/pages/favourites_page.dart';
@@ -182,6 +183,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.summary,
       builder: (context, state) => const WeeklySummaryPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.myBike,
+      builder: (context, state) => const MyBikesPage(),
     ),
     // An invite link (`/#/join?code=…`), opened from a message.
     GoRoute(

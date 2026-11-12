@@ -160,6 +160,7 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 ➕ ✅ Visit planning with a reminder (N.65): a favourite's visit day and time, set from "Para a visita" and shown in Favoritos; the day before (the first collection within 24 h, outside quiet hours) a notification names the bike and points to the checklist, or warns that the ad is gone.
 
 ➕ ✅ The viewing checklist without a connection (N.66): marks made without signal stay on the device and are sent once there is a connection; Favoritos shows the last copy kept on the device when it can't load, and each favourite opens its checklist from there.
+➕ ✅ After the purchase (N.67): "Comprei esta" on the ad keeps the bike in "A minha mota", with its value today against what was paid and the next service and valve check by its estimated km.
 
 ## 13. Explainable Score ✅
 

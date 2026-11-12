@@ -6006,6 +6006,25 @@ CREATE VIEW public.model_price_trend WITH (security_invoker='true') AS
   GROUP BY motorcycle_id, week_start;
 
 --
+-- Name: owned_bikes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.owned_bikes (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid DEFAULT auth.uid() NOT NULL,
+    motorcycle_id uuid NOT NULL,
+    listing_id uuid,
+    year smallint NOT NULL,
+    price_paid integer,
+    mileage_at_purchase integer,
+    bought_on date DEFAULT CURRENT_DATE NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT owned_bikes_mileage_at_purchase_check CHECK (((mileage_at_purchase >= 0) AND (mileage_at_purchase <= 500000))),
+    CONSTRAINT owned_bikes_price_paid_check CHECK (((price_paid >= 0) AND (price_paid <= 200000))),
+    CONSTRAINT owned_bikes_year_check CHECK (((year >= 1950) AND (year <= 2100)))
+);
+
+--
 -- Name: ownership_settings; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -6453,6 +6472,20 @@ ALTER TABLE ONLY public.motorcycles
     ADD CONSTRAINT motorcycles_slug_key UNIQUE (slug);
 
 --
+-- Name: owned_bikes owned_bikes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.owned_bikes
+    ADD CONSTRAINT owned_bikes_pkey PRIMARY KEY (id);
+
+--
+-- Name: owned_bikes owned_bikes_user_listing; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.owned_bikes
+    ADD CONSTRAINT owned_bikes_user_listing UNIQUE (user_id, listing_id);
+
+--
 -- Name: ownership_settings ownership_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6711,6 +6744,18 @@ CREATE INDEX listings_status_idx ON public.listings USING btree (status);
 --
 
 CREATE INDEX listings_year_idx ON public.listings USING btree (year);
+
+--
+-- Name: owned_bikes_listing_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX owned_bikes_listing_id ON public.owned_bikes USING btree (listing_id);
+
+--
+-- Name: owned_bikes_motorcycle_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX owned_bikes_motorcycle_id ON public.owned_bikes USING btree (motorcycle_id);
 
 --
 -- Name: photo_exam_requests_listing_idx; Type: INDEX; Schema: public; Owner: -
@@ -7004,6 +7049,27 @@ ALTER TABLE ONLY public.listings
     ADD CONSTRAINT listings_relisted_from_fkey FOREIGN KEY (relisted_from) REFERENCES public.listings(id) ON DELETE SET NULL;
 
 --
+-- Name: owned_bikes owned_bikes_listing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.owned_bikes
+    ADD CONSTRAINT owned_bikes_listing_id_fkey FOREIGN KEY (listing_id) REFERENCES public.listings(id) ON DELETE SET NULL;
+
+--
+-- Name: owned_bikes owned_bikes_motorcycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.owned_bikes
+    ADD CONSTRAINT owned_bikes_motorcycle_id_fkey FOREIGN KEY (motorcycle_id) REFERENCES public.motorcycles(id) ON DELETE CASCADE;
+
+--
+-- Name: owned_bikes owned_bikes_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.owned_bikes
+    ADD CONSTRAINT owned_bikes_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+--
 -- Name: ownership_settings ownership_settings_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7100,6 +7166,12 @@ ALTER TABLE ONLY public.user_models
 
 ALTER TABLE ONLY public.weekly_summaries
     ADD CONSTRAINT weekly_summaries_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+--
+-- Name: owned_bikes Accounts manage their own bikes; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Accounts manage their own bikes" ON public.owned_bikes TO authenticated USING (((user_id = ( SELECT auth.uid() AS uid)) AND (NOT COALESCE(((( SELECT auth.jwt() AS jwt) ->> 'is_anonymous'::text))::boolean, true)))) WITH CHECK (((user_id = ( SELECT auth.uid() AS uid)) AND (NOT COALESCE(((( SELECT auth.jwt() AS jwt) ->> 'is_anonymous'::text))::boolean, true))));
 
 --
 -- Name: listing_card_preferences Accounts manage their own card preferences; Type: POLICY; Schema: public; Owner: -
@@ -7334,6 +7406,12 @@ ALTER TABLE public.listings ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.motorcycles ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: owned_bikes; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.owned_bikes ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: bike_value_requests owners read their bike value requests; Type: POLICY; Schema: public; Owner: -
@@ -8940,6 +9018,13 @@ GRANT ALL ON TABLE public.model_price_summary TO service_role;
 GRANT SELECT ON TABLE public.model_price_trend TO anon;
 GRANT SELECT ON TABLE public.model_price_trend TO authenticated;
 GRANT ALL ON TABLE public.model_price_trend TO service_role;
+
+--
+-- Name: TABLE owned_bikes; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON TABLE public.owned_bikes TO service_role;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE public.owned_bikes TO authenticated;
 
 --
 -- Name: TABLE ownership_settings; Type: ACL; Schema: public; Owner: -
