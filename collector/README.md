@@ -29,7 +29,10 @@ For each site (Standvirtual, OLX):
    description, place), and mark listings that left the searches read in full
    as removed (`--full`). The brand and model lists in the search pages'
    filters are stored too (`site_models`, for the app's model picker; no
-   extra requests). The log says, per search, the pages it spans (from its
+   extra requests). An OLX copy of a Standvirtual ad is skipped when the
+   original is stored, else kept as an OLX ad (N.70: our Standvirtual
+   searches can miss an ad; "Copies of Standvirtual ads: 8, 1 kept
+   (original not stored)."). The log says, per search, the pages it spans (from its
    first page, kept in `searches.json`) and the pages read, the ads found,
    how many are a followed model and whether it was read in full
    ("Search (olx): yamaha-mt-07 · read 2 of 3 page(s) · 80 ad(s), 9

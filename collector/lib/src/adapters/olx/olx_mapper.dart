@@ -12,13 +12,27 @@ class OlxMapper(final Catalog catalog, {int? currentYear}) {
   /// The id an OLX ad is stored under.
   static String listingId(String adId) => 'olx.pt/$adId';
 
-  MapOutcome map(OlxRawListing raw) {
+  /// The Standvirtual ad an OLX ad copies ("ID8Q1m16", from its
+  /// `externalUrl` ".../honda-cbr-ID8Q1m16.html"); null for an OLX ad of
+  /// its own, or a copy whose address doesn't name the ad.
+  static String? standvirtualOriginal(OlxRawListing raw) {
+    if (raw.partner != 'standvirtual') return null;
+    final url = raw.externalUrl;
+    if (url == null) return null;
+    return RegExp(r'-(ID[0-9A-Za-z]+)\.html').firstMatch(url)?.group(1);
+  }
+
+  /// Maps an OLX ad. A copy of a Standvirtual ad is rejected unless
+  /// [keepCopy]: the import keeps it only when the original isn't stored
+  /// (N.70, `olx_copies_to_skip`).
+  MapOutcome map(OlxRawListing raw, {bool keepCopy = false}) {
     if (raw.status != 'active') {
       return Rejected('listing is not active (${raw.status})');
     }
     // Standvirtual dealers' ads are copied to OLX automatically; the
-    // original is collected from Standvirtual with more detail.
-    if (raw.partner == 'standvirtual') {
+    // original is collected from Standvirtual with more detail, when its
+    // searches find it.
+    if (raw.partner == 'standvirtual' && !keepCopy) {
       return Rejected('copy of a Standvirtual ad (${raw.externalUrl ?? '?'})');
     }
     final price = raw.price;

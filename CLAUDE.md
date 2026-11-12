@@ -896,8 +896,12 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   hold the full description; no listing pages. A search counts as read
   in full by its pages; ads read differing from OLX's count are only
   logged for now (N.56, `fetchSearches`). Ads with
-  `partner.code = 'standvirtual'` are copies of Standvirtual ads and are
-  skipped. Ads without a price are rejected but count as live. `createdTime`
+  `partner.code = 'standvirtual'` are copies of Standvirtual ads: skipped
+  when the original (its ad code, "ID8Q1m16", from `externalUrl`) is
+  stored, else stored as an OLX ad (N.70, `olx_copies_to_skip`,
+  `keepCopies`; a Standvirtual search can miss an ad, "q-650" one titled
+  only "Honda CBR"), and duplicate detection links the two once
+  Standvirtual finds it; a copy stored stays one. Ads without a price are rejected but count as live. `createdTime`
   is stored as `published_at`, `lastRefreshTime` (the date OLX shows) as
   `site_refreshed_at`. A matched ad's title (after the brand, phone-shaped
   numbers removed) is stored as `variant`, as Standvirtual's version, for

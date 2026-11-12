@@ -230,7 +230,7 @@ Shown on the detail page. Reference prices are edited in the app; set for the or
 
 ## 20. Deduplication ✅
 
-✅ Within and across sources: mileage, price, location, description, seller. Original links preserved. OLX copies of Standvirtual ads skipped.
+✅ Within and across sources: mileage, price, location, description, seller. Original links preserved. OLX copies of Standvirtual ads skipped when the original is stored, else kept as OLX ads (N.70).
 ✅ Images: photo fingerprints (P.1, no AI) make the same model and year with matching photos and close mileage a duplicate whatever the text, and a relist.
 
 ## 21. Data Quality 🟡

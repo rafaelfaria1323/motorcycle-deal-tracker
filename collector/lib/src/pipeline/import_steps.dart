@@ -52,6 +52,17 @@ Future<bool> importBatch(
   StringSink? out,
 }) async {
   final log = out ?? stdout;
+  // OLX copies of Standvirtual ads whose original was never found there
+  // are taken as OLX ads, or the bike would be missed (N.70).
+  final copies = standvirtualCopies(batch);
+  if (store != null && copies.isNotEmpty) {
+    final skip = await store.olxCopiesToSkip(copies);
+    batch = keepCopies(batch, skip);
+    log.writeln(
+      'Copies of Standvirtual ads: ${copies.length}, '
+      '${copies.length - skip.length} kept (original not stored).',
+    );
+  }
   report?.addImport(
     batch.source,
     issues: batch.issues,

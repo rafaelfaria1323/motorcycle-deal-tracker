@@ -298,7 +298,13 @@ sellers' names are never read), city, description and up to 30 photo
 links. Phone numbers are never read, and one written in the description
 or title is removed before it is stored (N.43). Ads OLX shows as copies of Standvirtual
 ads (`partner: standvirtual`, 8 of 47 on the first page checked) are
-skipped: the original is collected from Standvirtual.
+skipped when the original is already stored: it is collected from
+Standvirtual with more detail. Our Standvirtual searches can miss an ad
+(the CBR650R search's `q-650` needs "650" in the title, and a dealer's
+"Honda CBR" has none), so a copy whose original (the ad code at the end of
+its `externalUrl`) isn't stored is kept as an OLX ad (N.70, 2026-11-12):
+no extra requests, and duplicate detection links the two if Standvirtual
+finds the original later.
 
 **Not committed.** Saved pages (`collector/samples/olx/`) are in
 `.gitignore`.
