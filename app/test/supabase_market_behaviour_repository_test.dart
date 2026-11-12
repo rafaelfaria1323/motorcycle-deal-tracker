@@ -6,6 +6,7 @@ import 'package:http/testing.dart';
 import 'package:motorcycle_deal_tracker/features/market/data/repositories/supabase_market_behaviour_repository.dart';
 import 'package:motorcycle_deal_tracker/features/valuation/domain/entities/bike_value_request.dart';
 import 'package:motorcycle_deal_tracker/features/market/domain/entities/exit_price.dart';
+import 'package:motorcycle_deal_tracker/features/market/domain/entities/gone_deal.dart';
 import 'package:motorcycle_deal_tracker/features/market/domain/entities/market_behaviour.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -225,6 +226,34 @@ void main() {
       exitPriceFrom({'gone_count': 0, 'median_price': null}),
       const ExitPrice(goneCount: 0),
     );
+  });
+
+  test('getGoneDeals asks gone_deals for the model', () async {
+    reply =
+        '[{"listing_id":"l1","year":2020,"mileage":15000,"price":6100.5,'
+        '"deal_score":84,"days_listed":4,"gone_at":"2026-11-10T08:00:00+00:00"},'
+        '{"listing_id":"l2","year":null,"mileage":null,"price":5000,'
+        '"deal_score":null,"days_listed":30,"gone_at":"2026-11-01T08:00:00+00:00"}]';
+    final gone = await repository.getGoneDeals('m1');
+    expect(requests.single.url.path, endsWith('/rpc/gone_deals'));
+    expect(jsonDecode(requests.single.body), {'p_motorcycle_id': 'm1'});
+    expect(gone, [
+      GoneDeal(
+        listingId: 'l1',
+        year: 2020,
+        mileage: 15000,
+        price: 6100.5,
+        dealScore: 84,
+        daysListed: 4,
+        goneAt: DateTime.utc(2026, 11, 10, 8),
+      ),
+      GoneDeal(
+        listingId: 'l2',
+        price: 5000,
+        daysListed: 30,
+        goneAt: DateTime.utc(2026, 11, 1, 8),
+      ),
+    ]);
   });
 
   test('requestBikeValue asks for the bike and says if it is ready', () async {

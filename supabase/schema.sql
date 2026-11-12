@@ -2092,6 +2092,37 @@ end;
 $$;
 
 --
+-- Name: gone_deals(uuid, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.gone_deals(p_motorcycle_id uuid, p_days integer DEFAULT 90) RETURNS TABLE(listing_id uuid, year integer, mileage integer, price numeric, deal_score integer, days_listed integer, gone_at timestamp with time zone)
+    LANGUAGE sql STABLE
+    SET search_path TO ''
+    AS $$
+  select l.id,
+         l.year::integer,
+         l.mileage,
+         l.price,
+         l.last_deal_score::integer,
+         greatest(
+           floor(extract(epoch from
+             l.last_seen_at
+             - least(l.relisted_since, l.published_at, l.first_seen_at)
+           ) / 86400),
+           0
+         )::integer,
+         l.last_seen_at
+  from public.listings l
+  where l.motorcycle_id = p_motorcycle_id
+    and l.status in ('removed', 'sold')
+    and l.last_seen_at >= now() - make_interval(days => p_days)
+    and l.duplicate_of is null
+    and l.price >= 300
+    and public.exit_kind(l) in ('sold_in_text', 'likely_sold')
+  order by l.last_seen_at desc, l.id;
+$$;
+
+--
 -- Name: in_my_models(public.listings); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -8041,6 +8072,15 @@ GRANT ALL ON FUNCTION public.generate_target_price_alerts() TO service_role;
 REVOKE ALL ON FUNCTION public.github_token_status() FROM PUBLIC;
 GRANT ALL ON FUNCTION public.github_token_status() TO authenticated;
 GRANT ALL ON FUNCTION public.github_token_status() TO service_role;
+
+--
+-- Name: FUNCTION gone_deals(p_motorcycle_id uuid, p_days integer); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.gone_deals(p_motorcycle_id uuid, p_days integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.gone_deals(p_motorcycle_id uuid, p_days integer) TO service_role;
+GRANT ALL ON FUNCTION public.gone_deals(p_motorcycle_id uuid, p_days integer) TO anon;
+GRANT ALL ON FUNCTION public.gone_deals(p_motorcycle_id uuid, p_days integer) TO authenticated;
 
 --
 -- Name: FUNCTION in_my_models(l public.listings); Type: ACL; Schema: public; Owner: -

@@ -6,6 +6,7 @@ import '../../../valuation/domain/entities/bike_value.dart';
 import '../../../valuation/domain/entities/bike_value_request.dart';
 import '../../../listings/domain/entities/listing.dart' show minRealPrice;
 import '../../domain/entities/exit_price.dart';
+import '../../domain/entities/gone_deal.dart';
 import '../../domain/entities/market_behaviour.dart';
 import '../../domain/entities/model_market.dart';
 import '../../domain/repositories/market_behaviour_repository.dart';
@@ -163,6 +164,15 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
     return rows.isEmpty
         ? const ExitPrice(goneCount: 0)
         : exitPriceFrom(rows.first as Map<String, dynamic>);
+  }
+
+  @override
+  Future<List<GoneDeal>> getGoneDeals(String motorcycleId) async {
+    final rows = await _client.rpc<List<dynamic>>(
+      'gone_deals',
+      params: {'p_motorcycle_id': motorcycleId},
+    );
+    return [for (final row in rows) goneDealFrom(row as Map<String, dynamic>)];
   }
 
   @override
@@ -348,6 +358,17 @@ BikeValue bikeValueFrom(Map<String, dynamic> row) => BikeValue(
 ExitPrice exitPriceFrom(Map<String, dynamic> row) => ExitPrice(
   goneCount: (row['gone_count'] as num).toInt(),
   median: (row['median_price'] as num?)?.toDouble(),
+);
+
+/// A row of `gone_deals`.
+GoneDeal goneDealFrom(Map<String, dynamic> row) => GoneDeal(
+  listingId: row['listing_id'] as String,
+  year: (row['year'] as num?)?.toInt(),
+  mileage: (row['mileage'] as num?)?.toInt(),
+  price: (row['price'] as num).toDouble(),
+  dealScore: (row['deal_score'] as num?)?.toInt(),
+  daysListed: (row['days_listed'] as num).toInt(),
+  goneAt: DateTime.parse(row['gone_at'] as String),
 );
 
 /// A row of `bike_value_requests` with its model's names.

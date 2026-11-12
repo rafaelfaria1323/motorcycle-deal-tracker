@@ -1184,6 +1184,13 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   the condition). Shown only: never a score slice or the fair value until
   the weekly score check (`score-check.yml`, `score_check_models` /
   `score_check_bands`, service role only) has compared it for some weeks.
+- Good deals that went fast (N.68): `gone_deals(model, days)` (readable
+  by everyone): the model's gone ads that likely sold in the last 90 days
+  (as `exit_price`, not adjusted), with `last_deal_score` and the days on
+  sale (from the earliest of `relisted_since`, `published_at` and
+  `first_seen_at`). App (`gone_deals_text.dart`): those at Deal Score 80+
+  (`goodDealMinScore`), their median days from 5 (the others' too, from
+  5), and the three quickest, in "Mercado deste modelo". Never a score.
 - Price trends (`model_price_trend`): per model and week (last 12), the ads
   seen that week at their price by its end (no duplicates, none under
   300 €), plain and adjusted median (each price brought to the model's
