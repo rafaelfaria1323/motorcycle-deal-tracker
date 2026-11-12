@@ -1120,5 +1120,11 @@
   "bikeValueReasoning": "How we got there",
   "bikeValueFactors": "Condition adjustments",
   "newBikePriceFromAds": "Median of {count} new bikes for sale at dealers",
-  "fromNewBikeAds": " (median of {count} new bikes at dealers)"
+  "fromNewBikeAds": " (median of {count} new bikes at dealers)",
+  "forA2Licence": "for an A2 licence",
+  "forA2LicenceOrRestrictable": "for an A2 licence (or restrictable)",
+  "a2Ready": "A2-ready",
+  "a2ReadyOrRestrictable": "A2-ready or restrictable to 35 kW",
+  "a2Licence": "A2 licence",
+  "a2LicenceHelp": "From the model's power (restrictable: up to 70 kW). An ad that says it is the A2 version counts too."
 }

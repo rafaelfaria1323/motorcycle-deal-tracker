@@ -2,6 +2,11 @@ import 'package:equatable/equatable.dart';
 
 import 'listing.dart';
 
+/// What the A2 licence filter asks for (`listings.a2`): [ready] for a bike
+/// of 35 kW or less, or an ad that says it is an A2 version; [restrictable]
+/// also takes a bike of 70 kW or less, which can be limited to 35 kW.
+enum A2Fit { ready, restrictable }
+
 class const ListingFilters({
   /// The models asked for (catalog ids); empty: any model.
   final List<String> motorcycleIds = const [],
@@ -31,6 +36,10 @@ class const ListingFilters({
   /// Only listings in the person's favourite colours for their model
   /// (`listings.my_colour`); listings of unknown colour never match.
   final bool onlyMyColours = false,
+
+  /// Only bikes for an A2 licence (`listings.a2`); a model of unknown
+  /// power matches only through an ad that says it is an A2 version.
+  final A2Fit? a2,
   final bool activeOnly = true,
 }) extends Equatable {
   static const empty = ListingFilters();
@@ -50,6 +59,7 @@ class const ListingFilters({
     maxDistanceKm != null,
     extras.isNotEmpty,
     onlyMyColours,
+    a2 != null,
     !activeOnly,
   ].where((applied) => applied).length;
 
@@ -68,6 +78,7 @@ class const ListingFilters({
     maxDistanceKm,
     extras,
     onlyMyColours,
+    a2,
     activeOnly,
   ];
 }

@@ -61,6 +61,12 @@ void main() {
         extras: ['quickshifter', 'exhaust'],
         onlyMyColours: true,
       ),
+      ListingFilters(
+        motorcycleIds: ['cb', 'cbr'],
+        maxPrice: 7500,
+        extras: ['quickshifter', 'exhaust'],
+        a2: A2Fit.ready,
+      ),
       ListingFilters.empty,
     ]) {
       expect(savedSearchLike([saved], other), isNull, reason: '$other');

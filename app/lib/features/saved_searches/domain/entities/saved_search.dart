@@ -72,7 +72,8 @@ extension ListingFiltersCriteria on ListingFilters {
       maxRiskScore != null ||
       maxDistanceKm != null ||
       extras.isNotEmpty ||
-      onlyMyColours;
+      onlyMyColours ||
+      a2 != null;
 
   /// The same criteria without the live-only switch, which is not saved.
   ListingFilters get criteriaOnly => ListingFilters(
@@ -89,6 +90,7 @@ extension ListingFiltersCriteria on ListingFilters {
     maxDistanceKm: maxDistanceKm,
     extras: extras,
     onlyMyColours: onlyMyColours,
+    a2: a2,
   );
 }
 
@@ -113,6 +115,7 @@ ListingFilters _sorted(ListingFilters f) => ListingFilters(
   maxDistanceKm: f.maxDistanceKm,
   extras: [...f.extras]..sort(),
   onlyMyColours: f.onlyMyColours,
+  a2: f.a2,
 );
 
 /// The saved search asking for the same as [filters], other than the one

@@ -89,6 +89,7 @@ String summarizeFilters(
     parts.add(extraFilterLabel(code, language: language));
   }
   if (filters.onlyMyColours) parts.add(onlyMyColoursLabel(language: language));
+  if (filters.a2 case final fit?) parts.add(a2Label(fit, language: language));
 
   return parts.join(' · ');
 }
@@ -140,6 +141,20 @@ String maxDistanceLabel(int km, {AppLanguage language = .portuguese}) =>
 String onlyMyColoursLabel({AppLanguage language = .portuguese}) =>
     language.messages.inYourColours;
 
+/// "para carta A2", "para carta A2 (ou limitável)".
+String a2Label(A2Fit fit, {AppLanguage language = .portuguese}) =>
+    switch (fit) {
+      .ready => language.messages.forA2Licence,
+      .restrictable => language.messages.forA2LicenceOrRestrictable,
+    };
+
+/// The filter's choices: "Pronta para A2", "Pronta ou limitável a 35 kW".
+String a2OptionLabel(A2Fit fit, {AppLanguage language = .portuguese}) =>
+    switch (fit) {
+      .ready => language.messages.a2Ready,
+      .restrictable => language.messages.a2ReadyOrRestrictable,
+    };
+
 /// "com quickshifter".
 String extraFilterLabel(String code, {AppLanguage language = .portuguese}) =>
     language.messages.withExtra(
@@ -171,6 +186,7 @@ List<FilterChipData> filterChips(
     bool distance = true,
     String? withoutExtra,
     bool colours = true,
+    bool a2 = true,
     bool activeOnly = false,
   }) => ListingFilters(
     motorcycleIds: [
@@ -192,6 +208,7 @@ List<FilterChipData> filterChips(
         if (e != withoutExtra) e,
     ],
     onlyMyColours: colours && f.onlyMyColours,
+    a2: a2 ? f.a2 : null,
     activeOnly: activeOnly || f.activeOnly,
   );
 
@@ -270,6 +287,8 @@ List<FilterChipData> filterChips(
         label: onlyMyColoursLabel(language: language),
         without: copy(colours: false),
       ),
+    if (f.a2 case final fit?)
+      (label: a2Label(fit, language: language), without: copy(a2: false)),
     if (!f.activeOnly)
       (
         label: language.messages.includesRemovedListings,
@@ -363,6 +382,8 @@ List<SearchCriterion> searchCriteria(
         [for (final code in filters.extras) labels[code] ?? code].join(', '),
       ),
     if (filters.onlyMyColours) plain(m.colourLabel, m.yourColours),
+    if (filters.a2 case final fit?)
+      plain(m.a2Licence, a2OptionLabel(fit, language: language)),
   ];
 }
 

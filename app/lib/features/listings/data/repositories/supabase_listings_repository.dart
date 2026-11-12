@@ -116,6 +116,15 @@ class SupabaseListingsRepository(final SupabaseClient _client)
     if (filters.onlyMyColours) {
       query = query.eq('my_colour', true);
     }
+    // The computed field `a2`: 'ready', 'restrictable' or null.
+    switch (filters.a2) {
+      case .ready:
+        query = query.eq('a2', 'ready');
+      case .restrictable:
+        query = query.inFilter('a2', ['ready', 'restrictable']);
+      case null:
+        break;
+    }
     if (filters.activeOnly) {
       query = query.inFilter('status', ['active', 'price_changed']);
     }
