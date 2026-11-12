@@ -42,8 +42,8 @@ Unchanged.
 
 ## 5. Sources 🟡
 
-- ✅ Standvirtual (every page of each search, from the first tracked year, + listing pages for details, low-volume personal fetcher).
-- ✅ OLX (search result pages, which hold the full description; Standvirtual copies skipped; each search asks for the engine-size band of its models, so other models' ads aren't read).
+- ✅ Standvirtual (every page of each search, from the first tracked year, + listing pages for details, low-volume personal fetcher; a word search inside a model filter is also read at its models' engine sizes, N.71).
+- ✅ OLX (search result pages, which hold the full description; Standvirtual copies skipped; each search asks for the engine-size band of its models, so other models' ads aren't read; a title naming only the family takes the model from the description's start, N.71).
 - ⬜ Future: CustoJusto, dealerships, European marketplaces, imports.
 
 *robots.txt checked, read once a day and kept up to 24 h (roadmap R.4), the longest matching Allow/Disallow line deciding (RFC 9309, P.5; compared percent-decoded, N.42; phone numbers written in descriptions removed by the database, N.43); same polite rules per site (6-10 s apart, one at a time, 24 h pause on a refusal; since N.22 one retry a minute later after a timeout or a passing server error, never after a refusal); no request caps since 2026-10-22, at most 30 min per site and run, the requests shown per run, day and month. A run that reads no site counts as failed (N.47: from 31 October to 4 November the scheduled runs read nothing and said ok). Fewer requests (roadmap R): each run records each search's pages and ads (R.1, shown in "Estado da recolha"); when a run's time runs out, the listing pages left for the next one are those that matter least (favourites, alerted ads, then by Deal Score first: R.5); light runs (R.2) read each search read in full in the last 12 h newest first and stop at ads already seen, with full runs at 00:00, 08:00, 14:00 and 20:00. One Standvirtual search per brand (R.3) is not possible: its model filter takes one model. Terms of use read on 2026-10-28 (`docs/sources.md`): neither site grants automated collection (Standvirtual names repeated, systematic download; OLX sharing aggregated data with third parties; today only Rafael uses the app), so the basis stays personal use at the owner's risk; the current versions' verbatim clauses and a request for permission or OLX's API are still open.*
@@ -160,6 +160,7 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 ➕ ✅ Visit planning with a reminder (N.65): a favourite's visit day and time, set from "Para a visita" and shown in Favoritos; the day before (the first collection within 24 h, outside quiet hours) a notification names the bike and points to the checklist, or warns that the ad is gone.
 
 ➕ ✅ The viewing checklist without a connection (N.66): marks made without signal stay on the device and are sent once there is a connection; Favoritos shows the last copy kept on the device when it can't load, and each favourite opens its checklist from there.
+➕ ✅ After the purchase (N.67): "Comprei esta" on the ad keeps the bike in "A minha mota", with its value today against what was paid and the next service and valve check by its estimated km.
 
 ## 13. Explainable Score ✅
 

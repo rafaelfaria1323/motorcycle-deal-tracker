@@ -6562,5 +6562,242 @@
   "favouritesFromDevice": "Sem ligação: a mostrar a última cópia guardada neste aparelho.",
   "@favouritesFromDevice": {
     "description": "Favourites page line when the list is the device's last copy."
+  },
+  "boughtOn": "Comprada em {date}",
+  "@boughtOn": {
+    "description": "Purchase line without price.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "boughtOnFor": "Comprada em {date} por {price}",
+  "@boughtOnFor": {
+    "description": "Purchase line with the price paid.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "boughtWithMileage": "{bought}, com {mileage}",
+  "@boughtWithMileage": {
+    "description": "Purchase line with the km at purchase.",
+    "placeholders": {
+      "bought": {
+        "type": "String"
+      },
+      "mileage": {
+        "type": "String"
+      }
+    }
+  },
+  "boughtThis": "Comprou esta mota?",
+  "@boughtThis": {
+    "description": "Title of the ad's card to keep the bike in My bike."
+  },
+  "boughtThisAction": "Comprei esta",
+  "@boughtThisAction": {
+    "description": "Button keeping the ad's bike in My bike."
+  },
+  "boughtThisHint": "Guarde-a em \"A minha mota\": o valor dela ao longo do tempo e as próximas revisões.",
+  "@boughtThisHint": {
+    "description": "Subtitle of the ad's card to keep the bike."
+  },
+  "boughtThisKept": "Está em \"A minha mota\"",
+  "@boughtThisKept": {
+    "description": "Ad card title once the bike is kept."
+  },
+  "boughtThisKeptHint": "Veja o valor de hoje e as próximas revisões.",
+  "@boughtThisKeptHint": {
+    "description": "Ad card subtitle once the bike is kept."
+  },
+  "couldNotDeleteTryAgain": "Não foi possível eliminar. Tente novamente.",
+  "@couldNotDeleteTryAgain": {
+    "description": "Error when a delete failed."
+  },
+  "edit": "Editar",
+  "@edit": {
+    "description": "Menu action editing an item."
+  },
+  "options": "Opções",
+  "@options": {
+    "description": "Tooltip of an item's options menu."
+  },
+  "myBike": "A minha mota",
+  "@myBike": {
+    "description": "Title of the page with the account's own bikes."
+  },
+  "myBikeSubtitle": "O valor da mota que comprou e as próximas revisões",
+  "@myBikeSubtitle": {
+    "description": "Mais tile subtitle and signed-out message of My bike."
+  },
+  "myBikeIntro": "O valor de cada mota vem dos anúncios à venda hoje, para o ano e os km que ela tem agora (pelos km por ano do custo de ter uma mota).",
+  "@myBikeIntro": {
+    "description": "Intro of My bike."
+  },
+  "myBikeAdd": "Adicionar mota",
+  "@myBikeAdd": {
+    "description": "Button adding a bike by hand."
+  },
+  "myBikeAddTitle": "A sua mota",
+  "@myBikeAddTitle": {
+    "description": "Title of the purchase form."
+  },
+  "myBikeModelLabel": "Modelo",
+  "@myBikeModelLabel": {
+    "description": "Purchase form field."
+  },
+  "myBikeYearLabel": "Ano",
+  "@myBikeYearLabel": {
+    "description": "Purchase form field."
+  },
+  "myBikePricePaidLabel": "Preço pago (€)",
+  "@myBikePricePaidLabel": {
+    "description": "Purchase form field."
+  },
+  "myBikeMileageLabel": "Km na compra",
+  "@myBikeMileageLabel": {
+    "description": "Purchase form field."
+  },
+  "myBikeBoughtOnLabel": "Data da compra",
+  "@myBikeBoughtOnLabel": {
+    "description": "Purchase form field."
+  },
+  "myBikeFormInvalid": "Verifique o ano, o preço e os km.",
+  "@myBikeFormInvalid": {
+    "description": "Purchase form error."
+  },
+  "myBikeSaved": "Guardada em \"A minha mota\".",
+  "@myBikeSaved": {
+    "description": "Message after keeping a bike."
+  },
+  "myBikeNoModels": "Não foi possível ler os modelos. Tente novamente.",
+  "@myBikeNoModels": {
+    "description": "Error when the model list could not be read."
+  },
+  "myBikeCouldNotLoad": "Não foi possível carregar as suas motas",
+  "@myBikeCouldNotLoad": {
+    "description": "Error loading My bike."
+  },
+  "myBikeNone": "Ainda não tem nenhuma mota",
+  "@myBikeNone": {
+    "description": "Empty My bike."
+  },
+  "myBikeNoneHint": "Toque em \"Comprei esta\" no anúncio da mota que comprou, ou adicione-a aqui.",
+  "@myBikeNoneHint": {
+    "description": "Empty My bike hint."
+  },
+  "myBikeDeleteTitle": "Eliminar a mota?",
+  "@myBikeDeleteTitle": {
+    "description": "Delete confirmation title."
+  },
+  "myBikeDeleteMessage": "A {name} sai de \"A minha mota\".",
+  "@myBikeDeleteMessage": {
+    "description": "Delete confirmation message.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "myBikeFootnote": "Estimativas pelos preços pedidos e pelas revisões do fabricante ou da cilindrada; nunca entram em nenhuma pontuação.",
+  "@myBikeFootnote": {
+    "description": "Footnote of each bike in My bike."
+  },
+  "myBikeMileageNow": "Cerca de {mileage} hoje",
+  "@myBikeMileageNow": {
+    "description": "Estimated odometer today.",
+    "placeholders": {
+      "mileage": {
+        "type": "String"
+      }
+    }
+  },
+  "myBikeNoValueYet": "Ainda sem anúncios suficientes para dizer quanto vale",
+  "@myBikeNoValueYet": {
+    "description": "No value for the bike yet."
+  },
+  "myBikeValueToday": "Vale hoje cerca de {price}",
+  "@myBikeValueToday": {
+    "description": "The bike's value today.",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "myBikeAboutWhatYouPaid": "Mais ou menos o que pagou",
+  "@myBikeAboutWhatYouPaid": {
+    "description": "Value against price paid, within 1 %."
+  },
+  "myBikeBelowWhatYouPaid": "{amount} ({percent}) abaixo do que pagou",
+  "@myBikeBelowWhatYouPaid": {
+    "description": "Value below price paid.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "myBikeAboveWhatYouPaid": "{amount} ({percent}) acima do que pagou",
+  "@myBikeAboveWhatYouPaid": {
+    "description": "Value above price paid.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "myBikeService": "Revisão",
+  "@myBikeService": {
+    "description": "Maintenance name."
+  },
+  "myBikeValveCheck": "Afinação de válvulas",
+  "@myBikeValveCheck": {
+    "description": "Maintenance name."
+  },
+  "myBikeMaintenanceDueNow": "{name} já aos {at}: cerca de {cost}",
+  "@myBikeMaintenanceDueNow": {
+    "description": "Maintenance due now.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "at": {
+        "type": "String"
+      },
+      "cost": {
+        "type": "String"
+      }
+    }
+  },
+  "myBikeMaintenanceAt": "{name} aos {at} (faltam {left}): cerca de {cost}",
+  "@myBikeMaintenanceAt": {
+    "description": "Next maintenance.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "at": {
+        "type": "String"
+      },
+      "left": {
+        "type": "String"
+      },
+      "cost": {
+        "type": "String"
+      }
+    }
   }
 }

@@ -137,6 +137,18 @@ class _MoreBodyState extends State<_MoreBody> {
                       enabled: signedIn,
                       onTap: () => context.push(AppRoutes.summary),
                     ),
+                    ListTile(
+                      leading: const SettingsIcon(Icons.garage_outlined),
+                      title: Text(context.strings.myBike),
+                      subtitle: Text(
+                        signedIn
+                            ? context.strings.myBikeSubtitle
+                            : context.strings.availableWhenSignedIn,
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      enabled: signedIn,
+                      onTap: () => context.push(AppRoutes.myBike),
+                    ),
                     const HomePlaceTile(),
                     ListingCardPreferencesTile(signedIn: signedIn),
                   ],

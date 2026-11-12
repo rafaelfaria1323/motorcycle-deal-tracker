@@ -141,9 +141,14 @@ void main() {
 
       for (final site in [FetchSite.olx, FetchSite.standvirtual]) {
         final plan = planSearches(catalog, site);
+        // Standvirtual's word search inside the Forza filter is followed by
+        // its engine-size search.
+        final wordSearches = site == FetchSite.olx
+            ? plan.searches
+            : [plan.searches[0], ...plan.searches.skip(2)];
         expect(plan.problems, isEmpty);
-        expect(plan.searches, hasLength(3));
-        expect(plan.searches.map((search) => search.models), [
+        expect(plan.searches, hasLength(site == FetchSite.olx ? 3 : 4));
+        expect(wordSearches.map((search) => search.models), [
           ['Honda Forza 350'],
           ['Norton V4 SV'],
           ['Yamaha Ténéré 700'],
@@ -152,7 +157,7 @@ void main() {
             ? olxYearFrom
             : standvirtualYearFrom;
         expect(
-          plan.searches.map((search) => search.url.queryParameters[yearKey]),
+          wordSearches.map((search) => search.url.queryParameters[yearKey]),
           ['2022', '2020', '2021'],
         );
         for (final search in plan.searches) {
@@ -169,6 +174,14 @@ void main() {
           );
         } else {
           expect(plan.searches.first.url.path, '/motos/honda/forza/q-350');
+          final engine = plan.searches[1];
+          expect(engine.url.path, '/motos/honda/forza');
+          expect(engine.url.queryParameters, {
+            standvirtualEngineFrom: '315',
+            standvirtualEngineTo: '385',
+            standvirtualYearFrom: '2022',
+          });
+          expect(engine.models, ['Honda Forza 350']);
         }
       }
     },
@@ -268,7 +281,10 @@ void main() {
       );
     });
 
-    test('Standvirtual searches are left as they are', () {
+    test('a Standvirtual word search in a model filter also reads the '
+        'engine size', () {
+      // Many CBR650R ads are "Honda CBR" with the version empty: "q-650"
+      // misses them, the engine size doesn't (and misses those without one).
       final plan = planSearches(
         Catalog([
           model(
@@ -277,12 +293,88 @@ void main() {
             standvirtual: 'https://www.standvirtual.com/motos/yamaha/r/q-7',
             cc: 690,
           ),
+          model(
+            'R7 GYTR',
+            2022,
+            standvirtual: 'https://www.standvirtual.com/motos/yamaha/r/q-7',
+            cc: 700,
+          ),
         ]),
         FetchSite.standvirtual,
       );
 
-      expect(plan.searches.single.url.queryParameters.keys, [
-        standvirtualYearFrom,
+      expect(plan.searches, hasLength(2));
+      final [word, engine] = plan.searches;
+      expect(word.url.path, '/motos/yamaha/r/q-7');
+      expect(word.url.queryParameters, {standvirtualYearFrom: '2022'});
+      expect(
+        engine.url.toString(),
+        startsWith('https://www.standvirtual.com/motos/yamaha/r?'),
+      );
+      expect(engine.url.queryParameters, {
+        standvirtualYearFrom: '2022',
+        standvirtualEngineFrom: '680',
+        standvirtualEngineTo: '720',
+      });
+      expect(engine.models, ['Yamaha R7', 'Yamaha R7 GYTR']);
+      expect(urlProblem(engine.url, site: FetchSite.standvirtual), isNull);
+    });
+
+    test('no engine-size search without engine limits or a model filter', () {
+      final plan = planSearches(
+        Catalog([
+          model(
+            'R7',
+            2024,
+            standvirtual: 'https://www.standvirtual.com/motos/yamaha/r/q-7',
+          ),
+          model(
+            'MT-07',
+            2023,
+            standvirtual: 'https://www.standvirtual.com/motos/yamaha/q-mt-07',
+            cc: 690,
+          ),
+          model(
+            'MT-09',
+            2023,
+            standvirtual: 'https://www.standvirtual.com/motos/yamaha/mt-09',
+            cc: 890,
+          ),
+        ]),
+        FetchSite.standvirtual,
+      );
+
+      expect(plan.searches.map((s) => s.url.path), [
+        '/motos/yamaha/r/q-7',
+        '/motos/yamaha/q-mt-07',
+        '/motos/yamaha/mt-09',
+      ]);
+    });
+
+    test('engine-size searches that repeat each other are read once', () {
+      final plan = planSearches(
+        Catalog([
+          model(
+            'CB650R',
+            2023,
+            standvirtual: 'https://www.standvirtual.com/motos/yamaha/cb/q-650',
+            cc: 650,
+          ),
+          model(
+            'CB650R E-Clutch',
+            2023,
+            standvirtual:
+                'https://www.standvirtual.com/motos/yamaha/cb/q-650-e-clutch',
+            cc: 650,
+          ),
+        ]),
+        FetchSite.standvirtual,
+      );
+
+      expect(plan.searches, hasLength(3));
+      expect(plan.searches[1].models, [
+        'Yamaha CB650R',
+        'Yamaha CB650R E-Clutch',
       ]);
     });
   });

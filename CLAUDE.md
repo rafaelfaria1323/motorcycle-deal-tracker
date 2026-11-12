@@ -377,13 +377,15 @@ invites; written by the collector on each run).
   weekly summary), `saved_searches`, `favourites` (with the viewing
   checklist), `compare`, `market` (market behaviour, the model's market
   page, time to sale), `valuation` (a bike's value, the import
-  calculator, the cost of ownership), `collector_status`, `settings`
+  calculator, the cost of ownership, "A minha mota": `owned_bikes`,
+  `OwnedBikesCubit`, "Comprei esta" on the ad's Negociar, N.67),
+  `collector_status`, `settings`
   (the "Mais" tab).
 - Text built from data lives in pure functions (`*_text.dart`) with tests.
 - State: flutter_bloc Cubits + Equatable states. DI: get_it. Shared cubits
   (`ListingsCubit`, `SavedSearchesCubit`, `AlertsCubit`, `CollectorStatusCubit`,
   `FavouritesCubit`, `ListingCardPreferencesCubit`, `LanguageCubit`,
-  `HomePlaceCubit`, and `SessionCubit` for the signed-in state: widgets never
+  `HomePlaceCubit`, `OwnedBikesCubit`, and `SessionCubit` for the signed-in state: widgets never
   read Supabase's auth directly) are lazy singletons, provided in routes with
   `BlocProvider.value`. The shell (`AppShell`) loads `AlertsCubit` at start
   and on app resume for the unread badge on Alertas, `FavouritesCubit`
@@ -418,7 +420,7 @@ invites; written by the collector on each run).
   title and Limpar/Aplicar fixed while the choices scroll.
   Switching tabs uses `context.go`; full pages outside the shell
   (`/models`, `/market`, `/worth`, `/import`, `/compare?ids=a,b,c`,
-  `/summary`)
+  `/summary`, `/my-bike`)
   and an ad (`/deals/<id>`, from anywhere) are pushed, so back returns
   where the person was; pushed pages show their own address
   (`GoRouter.optionURLReflectsImperativeAPIs`, set in `main.dart`). The
@@ -657,6 +659,7 @@ invites; written by the collector on each run).
 - Table privileges: anon and authenticated have only `select` on public's
   tables (also tables made later: default privileges); authenticated writes
   only saved_searches, listing_favourites, user_home, ownership_settings,
+  owned_bikes,
   inserts/updates its own listing_card_preferences, account_languages and quiet_hours,
   deletes invites and push_subscriptions, and updates `alerts.read_at`
   (`20261024170000_tighten_api_grants.sql`, `api_grants_test.sql`). A new
@@ -851,7 +854,15 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   filter is a family ("R", "CB"), a search also asks for the engine-size
   band that holds all its models (`olxEngineBand`, the values of OLX's own
   filter list: up to 50, 51-125, 126-500, 501-1000, over 1000 cc), so other
-  models' ads aren't read; word searches ("q-honda-forza-350") too. Every page of a
+  models' ads aren't read; word searches ("q-honda-forza-350") too. On
+  Standvirtual a word search inside a model filter ("/motos/honda/cbr/q-650")
+  is followed by the same filter at its models' engine sizes
+  (`standvirtualEngineSearch`, `search[filter_float_engine_capacity:from/to]`,
+  N.71): the words miss an ad titled only "Honda CBR", the engine size
+  misses one that leaves it empty, so both are read. On OLX a title naming
+  only the family takes the model the description names right after the
+  brand in its first 12 words, if of the same family (`_fromDescription`).
+  Every page of a
   search is read (OLX 40 listings each, Standvirtual 32, `?page=N`), except
   in light runs (`--light`, R.2; `collect.yml` reads in full at 00, 08, 14
   and 20 h Lisbon time, input `read`): a search read in full in the last

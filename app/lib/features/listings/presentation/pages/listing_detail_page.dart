@@ -29,6 +29,7 @@ import '../widgets/listing_header.dart';
 import '../widgets/listing_status_cards.dart';
 import '../widgets/new_price_card.dart';
 import '../widgets/offer_card.dart';
+import '../../../valuation/presentation/widgets/bought_this_card.dart';
 import '../widgets/photo_gallery.dart';
 import '../widgets/photo_hints_card.dart';
 import '../widgets/price_history_section.dart';
@@ -249,6 +250,7 @@ class _ContentState extends State<_Content> {
         OfferCard(listing: listing),
         SellerMessageCard(listing: listing),
         ViewingChecklistCard(listing: listing),
+        BoughtThisCard(listing: listing),
       ],
       _Section.market => [
         MarketBehaviourSection(listing: listing),

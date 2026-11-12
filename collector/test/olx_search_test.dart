@@ -207,6 +207,68 @@ void main() {
     expect(listing.motorcycleSlug, isNull);
   });
 
+  group('a title naming only the family', () {
+    final mapper = OlxMapper(
+      Catalog(const [
+        CatalogEntry(
+          slug: 'honda-cb650r',
+          brand: 'Honda',
+          model: 'CB650R',
+          minYear: 2023,
+          engineCcMin: 640,
+          engineCcMax: 660,
+        ),
+        CatalogEntry(
+          slug: 'honda-cbr650r',
+          brand: 'Honda',
+          model: 'CBR650R',
+          minYear: 2023,
+          engineCcMin: 640,
+          engineCcMax: 660,
+        ),
+      ]),
+      currentYear: 2026,
+    );
+    String? slug(String description, {String model = 'CBR'}) => (mapper.map(
+      OlxRawListing(
+        id: '1',
+        url: 'https://www.olx.pt/d/anuncio/x.html',
+        status: 'active',
+        title: 'Honda CBR',
+        price: 8000,
+        currency: 'EUR',
+        categoryBrand: 'honda',
+        model: model,
+        year: 2026,
+        description: description,
+      ),
+    ) as Mapped).listing.motorcycleSlug;
+
+    test('takes the model the description names after the brand', () {
+      // Standvirtual's ID8Q1m16, as its copy on OLX shows it (2026-11-12).
+      expect(
+        slug(
+          'VENDE-SE – HONDA CBR650R E-Clutch 2026 FULL POWER Ano: 2026, '
+          'Quilometragem: apenas 200 km',
+        ),
+        'honda-cbr650r',
+      );
+    });
+
+    test('never a model of another family, or one named later on', () {
+      expect(slug('Honda CB650R impecável'), isNull);
+      expect(slug('Vendo Honda CBR, aceito troca por Honda CBR650R'), isNull);
+      expect(
+        slug(
+          'Mota em muito bom estado, revisões feitas, pneus novos, sempre '
+          'em garagem, troco por Honda CBR650R',
+        ),
+        isNull,
+      );
+      expect(slug('Honda CBR650R', model: ''), isNull);
+    });
+  });
+
   group('the brand and the title after it', () {
     final mapper = OlxMapper(
       Catalog(const [
