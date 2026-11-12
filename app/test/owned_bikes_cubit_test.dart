@@ -16,7 +16,7 @@ final _draft = OwnedBikeDraft(
 class _Bikes implements OwnedBikesRepository {
   final stored = <OwnedBike>[];
   var lists = 0;
-  Object? writeError;
+  Error? writeError;
 
   @override
   Future<List<OwnedBike>> list() async {
