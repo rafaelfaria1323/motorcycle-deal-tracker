@@ -50,8 +50,9 @@ void main() {
   });
 
   test('an implausible mileage reads as a negative', () {
-    final lines = ScoreExplainer.explain(listingWith(['suspicious_mileage']))!
-        .lines;
+    final lines = ScoreExplainer.explain(
+      listingWith(['suspicious_mileage']),
+    )!.lines;
 
     expect(lines, hasLength(1));
     expect(lines.single.tone, ExplanationTone.negative);
@@ -72,7 +73,9 @@ void main() {
   });
 
   test('photos reused from another ad read as a negative', () {
-    final lines = ScoreExplainer.explain(listingWith(['photos_reused']))!.lines;
+    final lines = ScoreExplainer.explain(
+      listingWith(['photos_reused']),
+    )!.lines;
 
     expect(lines, hasLength(1));
     expect(lines.single.tone, ExplanationTone.negative);
@@ -104,7 +107,9 @@ void main() {
         'de ${Formatters.mileage(31000)} para ${Formatters.mileage(13000)}',
       ),
     );
-    final year = lines.singleWhere((l) => l.text.contains('de 2020 para 2021'));
+    final year = lines.singleWhere(
+      (l) => l.text.contains('de 2020 para 2021'),
+    );
 
     expect(mileage.tone, ExplanationTone.negative);
     expect(year.tone, ExplanationTone.negative);

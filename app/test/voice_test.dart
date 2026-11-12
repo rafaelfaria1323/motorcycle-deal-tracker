@@ -92,9 +92,9 @@ void main() {
   });
 
   test('Portuguese message resources use "você", not "tu"', () {
-    final messages = jsonDecode(
-      File('lib/l10n/app_pt.arb').readAsStringSync(),
-    ) as Map<String, dynamic>;
+    final messages =
+        jsonDecode(File('lib/l10n/app_pt.arb').readAsStringSync())
+            as Map<String, dynamic>;
     final found = [
       for (final entry in messages.entries)
         if (!entry.key.startsWith('@') && _speaksAsTu(entry.value as String))
