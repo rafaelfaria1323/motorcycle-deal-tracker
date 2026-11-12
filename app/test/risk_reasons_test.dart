@@ -83,7 +83,7 @@ void main() {
   });
 
   test("edits in the seller's favour name what the ad showed before", () {
-    final listing = Listing(
+    const listing = Listing(
       id: '1',
       source: 'olx',
       url: 'https://example.com/1',
@@ -91,13 +91,13 @@ void main() {
       model: 'MT-07',
       status: ListingStatus.active,
       sellerType: SellerType.private,
-      images: const [],
+      images: [],
       dealScore: 60,
       year: 2021,
       mileage: 13000,
       mileageMaxSeen: 31000,
       yearFirstSeen: 2020,
-      scoreBreakdown: const {
+      scoreBreakdown: {
         'risk_reasons': ['mileage_lowered', 'year_raised'],
       },
     );
