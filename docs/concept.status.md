@@ -153,6 +153,8 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 
 ➕ Favourite colours (15.23): each account picks its colours per model (blue MT-07, red CBR650R); a listing in one is marked and explained as a plus, can be filtered ("Só nas suas cores", with the cheapest sort: the best price in that colour) and alerted on by saved searches ("Novo anúncio na sua cor"), but never scored (an older bike or one with more km must not win on colour).
 
+➕ ✅ A2 licence filter (N.63): Ofertas and saved searches can ask for bikes ready for an A2 licence (35 kW or less by the model's power, or an ad that says it is the A2 version) or also those that can be limited to it (up to 70 kW). Never a score.
+
 ## 13. Explainable Score ✅
 
 *Each score lists: % and € versus the estimated value for that age and mileage, the estimated value itself, mileage, model year, risk signals, and reassuring facts (first owner, service book, factory warranty).*

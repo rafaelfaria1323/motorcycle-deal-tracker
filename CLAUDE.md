@@ -1253,6 +1253,13 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   suas cores" (`ListingFilters.onlyMyColours`), saved searches'
   `only_my_colours`, and alerts' "na sua cor" (`pending_notifications.
   my_colour`); never part of any score.
+- A2 licence (N.63): `motorcycles.power_kw` (the maker's figure; models
+  added from the app have none) and the computed field `listings.a2`
+  (`a2_fit`: `ready` at 35 kW or less or when the ad says it is the A2
+  version, `power_version` = `a2_limited`; `restrictable` up to 70 kW,
+  which the law lets be limited to 35 kW; else null). Ofertas' filter
+  (`ListingFilters.a2`, `A2Fit`) and saved searches' `a2` ('restrictable'
+  also takes ready bikes); never part of any score.
 - New-bike price (N.58): `motorcycles.new_price_from_ads` and
   `new_price_ad_count`, the median of the model's live dealer ads for a
   new bike (`new_bike_ad`: this year or last, <= 100 km, 300 € or more,
@@ -1312,7 +1319,8 @@ district,
 several models (`motorcycle_ids`, empty: any; as Ofertas'
 `ListingFilters.motorcycleIds`), a maximum distance from the owner's home, equipment (`extras`, all
 required; `listing_extras` codes) and only the owner's colours of each
-model (`only_my_colours`); all in `saved_search_matches`.
+model (`only_my_colours`) and an A2 licence fit (`a2`); all in
+`saved_search_matches`.
 Quiet hours (`quiet_hours`, one owner-only row per account, none = on,
 23:00 to 08:00 Lisbon time; Mais › "Notificações neste aparelho" ›
 "Horas de silêncio"): `pending_notifications(p_limit, p_at)` leaves out

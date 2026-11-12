@@ -26,6 +26,7 @@ class SavedSearchModel {
         maxDistanceKm: json['max_distance_km'] as int?,
         extras: List<String>.from(json['extras'] as List? ?? const []),
         onlyMyColours: json['only_my_colours'] as bool? ?? false,
+        a2: _a2(json['a2'] as String?),
       ),
       createdAt: DateTime.parse(json['created_at'] as String),
       notifyNewListing: json['notify_new_listing'] as bool? ?? true,
@@ -49,6 +50,7 @@ class SavedSearchModel {
     'max_distance_km': filters.maxDistanceKm,
     'extras': filters.extras,
     'only_my_colours': filters.onlyMyColours,
+    'a2': filters.a2?.name,
   };
 
   /// The row to insert. `user_id` is filled in by the database
@@ -70,6 +72,10 @@ class SavedSearchModel {
       'updated_at': DateTime.now().toUtc().toIso8601String(),
     };
   }
+
+  // An unknown value (a later build's) reads as no criterion.
+  static A2Fit? _a2(String? value) =>
+      A2Fit.values.where((fit) => fit.name == value).firstOrNull;
 
   // In a saved search, null means "any", so "unknown" is the same as null.
   static SellerType? _sellerType(String? value) {

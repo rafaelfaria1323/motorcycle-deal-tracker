@@ -37,6 +37,7 @@ class _FiltersSheetState extends State<FiltersSheet> {
   late final Set<String> _extras = {...widget.initial.extras};
   late bool _onlyMyColours = widget.initial.onlyMyColours;
   late String? _district = widget.initial.district;
+  late A2Fit? _a2 = widget.initial.a2;
 
   late final _year = TextEditingController(
     text: widget.initial.minYear?.toString() ?? '',
@@ -91,6 +92,7 @@ class _FiltersSheetState extends State<FiltersSheet> {
           if (_extras.contains(code)) code,
       ],
       onlyMyColours: _onlyMyColours,
+      a2: _a2,
       activeOnly: _activeOnly,
     );
   }
@@ -186,6 +188,29 @@ class _FiltersSheetState extends State<FiltersSheet> {
                     selected: {_sellerType},
                     onSelectionChanged: (selection) =>
                         setState(() => _sellerType = selection.first),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<A2Fit?>(
+                    initialValue: _a2,
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      labelText: context.strings.a2Licence,
+                      helperText: context.strings.a2LicenceHelp,
+                      helperMaxLines: 3,
+                      border: const OutlineInputBorder(),
+                    ),
+                    items: [
+                      DropdownMenuItem(
+                        value: null,
+                        child: Text(context.strings.any),
+                      ),
+                      for (final fit in A2Fit.values)
+                        DropdownMenuItem(
+                          value: fit,
+                          child: Text(a2OptionLabel(fit, language: language)),
+                        ),
+                    ],
+                    onChanged: (value) => setState(() => _a2 = value),
                   ),
                   const SizedBox(height: 4),
                   CollapsibleSection(

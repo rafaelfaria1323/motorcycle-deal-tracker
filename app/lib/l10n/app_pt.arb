@@ -6399,5 +6399,29 @@
         "type": "int"
       }
     }
+  },
+  "forA2Licence": "para carta A2",
+  "@forA2Licence": {
+    "description": "Interface text in saved_search_summary, a2Label: the search asks only for bikes ready for an A2 licence."
+  },
+  "forA2LicenceOrRestrictable": "para carta A2 (ou limitável)",
+  "@forA2LicenceOrRestrictable": {
+    "description": "Interface text in saved_search_summary, a2Label: ready for an A2 licence, or can be limited to 35 kW."
+  },
+  "a2Ready": "Pronta para A2",
+  "@a2Ready": {
+    "description": "A2 licence filter option: 35 kW or less, or an A2 version."
+  },
+  "a2ReadyOrRestrictable": "Pronta ou limitável a 35 kW",
+  "@a2ReadyOrRestrictable": {
+    "description": "A2 licence filter option: also bikes of up to 70 kW, which can be limited to 35 kW."
+  },
+  "a2Licence": "Carta A2",
+  "@a2Licence": {
+    "description": "The A2 licence filter's label and the saved search criterion's label."
+  },
+  "a2LicenceHelp": "Pela potência do modelo (limitável: até 70 kW). Um anúncio que diz ser a versão A2 também conta.",
+  "@a2LicenceHelp": {
+    "description": "Helper under the A2 licence filter."
   }
 }

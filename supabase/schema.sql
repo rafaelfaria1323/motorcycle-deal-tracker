@@ -51,6 +51,167 @@ CREATE TYPE public.seller_type AS ENUM (
 );
 
 --
+-- Name: listings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.listings (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    source text NOT NULL,
+    source_listing_id text NOT NULL,
+    url text NOT NULL,
+    motorcycle_id uuid,
+    brand text NOT NULL,
+    model text NOT NULL,
+    variant text,
+    year smallint,
+    mileage integer,
+    price numeric(10,2),
+    seller_type public.seller_type DEFAULT 'unknown'::public.seller_type NOT NULL,
+    seller_name text,
+    location text,
+    description text,
+    images text[] DEFAULT '{}'::text[] NOT NULL,
+    status public.listing_status DEFAULT 'active'::public.listing_status NOT NULL,
+    first_seen_at timestamp with time zone DEFAULT now() NOT NULL,
+    last_seen_at timestamp with time zone DEFAULT now() NOT NULL,
+    last_checked_at timestamp with time zone DEFAULT now() NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    deal_score smallint,
+    risk_score smallint,
+    score_breakdown jsonb,
+    scored_at timestamp with time zone,
+    duplicate_of uuid,
+    duplicate_score smallint,
+    initial_price numeric(10,2),
+    excellent_since timestamp with time zone,
+    registrations smallint,
+    service_book boolean,
+    origin text,
+    warranty_until date,
+    dealer_warranty_months smallint,
+    published_at timestamp with time zone,
+    details_checked_at timestamp with time zone,
+    price_before_drop numeric(10,2),
+    search_key text,
+    site_refreshed_at timestamp with time zone,
+    relisted_from uuid,
+    relisted_since timestamp with time zone,
+    relisted_price numeric(10,2),
+    details_failed_at timestamp with time zone,
+    photos_read_at timestamp with time zone,
+    mileage_from_text boolean DEFAULT false NOT NULL,
+    site_colour text,
+    colour text,
+    text_signals text[],
+    text_extras text[],
+    photos_hashed_at timestamp with time zone,
+    photos_examined_at timestamp with time zone,
+    photo_hints jsonb DEFAULT '[]'::jsonb NOT NULL,
+    photo_exam_requested_at timestamp with time zone,
+    photos_examined_all_at timestamp with time zone,
+    last_pct_below_market numeric,
+    sold_marked_at timestamp with time zone,
+    last_deal_score smallint,
+    mileage_max_seen integer,
+    year_first_seen smallint,
+    CONSTRAINT listings_deal_score_check CHECK (((deal_score >= 0) AND (deal_score <= 100))),
+    CONSTRAINT listings_duplicate_not_self CHECK (((duplicate_of IS NULL) OR (duplicate_of <> id))),
+    CONSTRAINT listings_mileage_check CHECK ((mileage >= 0)),
+    CONSTRAINT listings_price_check CHECK ((price >= (0)::numeric)),
+    CONSTRAINT listings_relisted_not_self CHECK (((relisted_from IS NULL) OR (relisted_from <> id))),
+    CONSTRAINT listings_risk_score_check CHECK (((risk_score >= 0) AND (risk_score <= 100)))
+);
+
+--
+-- Name: COLUMN listings.text_signals; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.listings.text_signals IS 'description_signals(variant, description), kept by a trigger';
+
+--
+-- Name: COLUMN listings.text_extras; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.listings.text_extras IS 'listing_extras(variant, description), kept by a trigger';
+
+--
+-- Name: COLUMN listings.photos_hashed_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.listings.photos_hashed_at IS 'When the first photos were fingerprinted (listing_photo_hashes); null: not yet.';
+
+--
+-- Name: COLUMN listings.photos_examined_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.listings.photos_examined_at IS 'When the first photos were shown to the image model (listing_photo_features); null: not yet.';
+
+--
+-- Name: COLUMN listings.photo_hints; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.listings.photo_hints IS 'What the photos may show ([{code, photo, p}], photo_hint_codes): hints only, never part of a score.';
+
+--
+-- Name: COLUMN listings.photo_exam_requested_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.listings.photo_exam_requested_at IS 'When someone first asked for every photo to be examined (request_photo_exam); null once done or never asked.';
+
+--
+-- Name: COLUMN listings.photos_examined_all_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.listings.photos_examined_all_at IS 'When every photo was shown to the image model (P.4); null: only the first ones.';
+
+--
+-- Name: COLUMN listings.sold_marked_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.listings.sold_marked_at IS 'When the ad''s title or description said it was sold or reserved (sold_in_text); null when it no longer does.';
+
+--
+-- Name: COLUMN listings.mileage_max_seen; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.listings.mileage_max_seen IS 'Highest mileage the ad''s own field has shown (not read from the text); N.62.';
+
+--
+-- Name: COLUMN listings.year_first_seen; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.listings.year_first_seen IS 'The first year the ad showed; N.62.';
+
+--
+-- Name: a2(public.listings); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.a2(l public.listings) RETURNS text
+    LANGUAGE sql STABLE
+    SET search_path TO ''
+    AS $$
+  select public.a2_fit(
+    (select m.power_kw from public.motorcycles m where m.id = l.motorcycle_id),
+    coalesce(l.text_signals, array[public.power_version(l.variant, l.description)]))
+$$;
+
+--
+-- Name: a2_fit(numeric, text[]); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.a2_fit(p_power_kw numeric, p_text_signals text[]) RETURNS text
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$
+  select case
+    when 'a2_limited' = any (coalesce(p_text_signals, '{}')) then 'ready'
+    when p_power_kw <= 35 then 'ready'
+    when p_power_kw <= 70 then 'restrictable'
+  end
+$$;
+
+--
 -- Name: account_quiet_at(uuid, timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -427,139 +588,6 @@ begin
   return n;
 end;
 $$;
-
---
--- Name: listings; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.listings (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    source text NOT NULL,
-    source_listing_id text NOT NULL,
-    url text NOT NULL,
-    motorcycle_id uuid,
-    brand text NOT NULL,
-    model text NOT NULL,
-    variant text,
-    year smallint,
-    mileage integer,
-    price numeric(10,2),
-    seller_type public.seller_type DEFAULT 'unknown'::public.seller_type NOT NULL,
-    seller_name text,
-    location text,
-    description text,
-    images text[] DEFAULT '{}'::text[] NOT NULL,
-    status public.listing_status DEFAULT 'active'::public.listing_status NOT NULL,
-    first_seen_at timestamp with time zone DEFAULT now() NOT NULL,
-    last_seen_at timestamp with time zone DEFAULT now() NOT NULL,
-    last_checked_at timestamp with time zone DEFAULT now() NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    deal_score smallint,
-    risk_score smallint,
-    score_breakdown jsonb,
-    scored_at timestamp with time zone,
-    duplicate_of uuid,
-    duplicate_score smallint,
-    initial_price numeric(10,2),
-    excellent_since timestamp with time zone,
-    registrations smallint,
-    service_book boolean,
-    origin text,
-    warranty_until date,
-    dealer_warranty_months smallint,
-    published_at timestamp with time zone,
-    details_checked_at timestamp with time zone,
-    price_before_drop numeric(10,2),
-    search_key text,
-    site_refreshed_at timestamp with time zone,
-    relisted_from uuid,
-    relisted_since timestamp with time zone,
-    relisted_price numeric(10,2),
-    details_failed_at timestamp with time zone,
-    photos_read_at timestamp with time zone,
-    mileage_from_text boolean DEFAULT false NOT NULL,
-    site_colour text,
-    colour text,
-    text_signals text[],
-    text_extras text[],
-    photos_hashed_at timestamp with time zone,
-    photos_examined_at timestamp with time zone,
-    photo_hints jsonb DEFAULT '[]'::jsonb NOT NULL,
-    photo_exam_requested_at timestamp with time zone,
-    photos_examined_all_at timestamp with time zone,
-    last_pct_below_market numeric,
-    sold_marked_at timestamp with time zone,
-    last_deal_score smallint,
-    mileage_max_seen integer,
-    year_first_seen smallint,
-    CONSTRAINT listings_deal_score_check CHECK (((deal_score >= 0) AND (deal_score <= 100))),
-    CONSTRAINT listings_duplicate_not_self CHECK (((duplicate_of IS NULL) OR (duplicate_of <> id))),
-    CONSTRAINT listings_mileage_check CHECK ((mileage >= 0)),
-    CONSTRAINT listings_price_check CHECK ((price >= (0)::numeric)),
-    CONSTRAINT listings_relisted_not_self CHECK (((relisted_from IS NULL) OR (relisted_from <> id))),
-    CONSTRAINT listings_risk_score_check CHECK (((risk_score >= 0) AND (risk_score <= 100)))
-);
-
---
--- Name: COLUMN listings.text_signals; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.listings.text_signals IS 'description_signals(variant, description), kept by a trigger';
-
---
--- Name: COLUMN listings.text_extras; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.listings.text_extras IS 'listing_extras(variant, description), kept by a trigger';
-
---
--- Name: COLUMN listings.photos_hashed_at; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.listings.photos_hashed_at IS 'When the first photos were fingerprinted (listing_photo_hashes); null: not yet.';
-
---
--- Name: COLUMN listings.photos_examined_at; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.listings.photos_examined_at IS 'When the first photos were shown to the image model (listing_photo_features); null: not yet.';
-
---
--- Name: COLUMN listings.photo_hints; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.listings.photo_hints IS 'What the photos may show ([{code, photo, p}], photo_hint_codes): hints only, never part of a score.';
-
---
--- Name: COLUMN listings.photo_exam_requested_at; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.listings.photo_exam_requested_at IS 'When someone first asked for every photo to be examined (request_photo_exam); null once done or never asked.';
-
---
--- Name: COLUMN listings.photos_examined_all_at; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.listings.photos_examined_all_at IS 'When every photo was shown to the image model (P.4); null: only the first ones.';
-
---
--- Name: COLUMN listings.sold_marked_at; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.listings.sold_marked_at IS 'When the ad''s title or description said it was sold or reserved (sold_in_text); null when it no longer does.';
-
---
--- Name: COLUMN listings.mileage_max_seen; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.listings.mileage_max_seen IS 'Highest mileage the ad''s own field has shown (not read from the text); N.62.';
-
---
--- Name: COLUMN listings.year_first_seen; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.listings.year_first_seen IS 'The first year the ad showed; N.62.';
 
 --
 -- Name: asking_price(public.listings); Type: FUNCTION; Schema: public; Owner: -
@@ -3083,6 +3111,7 @@ CREATE TABLE public.motorcycles (
     cylinders smallint,
     service_interval_km integer,
     valve_check_km integer,
+    power_kw numeric(5,1),
     CONSTRAINT motorcycles_both_source_searches CHECK (((olx_search IS NOT NULL) AND (standvirtual_search IS NOT NULL))),
     CONSTRAINT motorcycles_cylinders CHECK (((cylinders >= 1) AND (cylinders <= 6))),
     CONSTRAINT motorcycles_engine_cc_max_check CHECK ((engine_cc_max > 0)),
@@ -3091,6 +3120,7 @@ CREATE TABLE public.motorcycles (
     CONSTRAINT motorcycles_front_tyre_size CHECK ((front_tyre ~ '^[0-9]{2,3}/[0-9]{2}-[0-9]{2}$'::text)),
     CONSTRAINT motorcycles_new_price_reference_check CHECK ((new_price_reference >= (0)::numeric)),
     CONSTRAINT motorcycles_olx_search_check CHECK ((olx_search ~~ 'https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/%'::text)),
+    CONSTRAINT motorcycles_power_kw CHECK (((power_kw > (0)::numeric) AND (power_kw <= (250)::numeric))),
     CONSTRAINT motorcycles_rear_tyre_size CHECK ((rear_tyre ~ '^[0-9]{2,3}/[0-9]{2}-[0-9]{2}$'::text)),
     CONSTRAINT motorcycles_service_interval CHECK (((service_interval_km >= 1000) AND (service_interval_km <= 50000))),
     CONSTRAINT motorcycles_standvirtual_search_check CHECK ((standvirtual_search ~~ 'https://www.standvirtual.com/motos/%'::text)),
@@ -3162,6 +3192,12 @@ COMMENT ON COLUMN public.motorcycles.service_interval_km IS 'The maker''s oil se
 --
 
 COMMENT ON COLUMN public.motorcycles.valve_check_km IS 'The maker''s valve clearance check interval in Europe, km; null unknown.';
+
+--
+-- Name: COLUMN motorcycles.power_kw; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.motorcycles.power_kw IS 'The model''s maximum power in kW (its current generation); the A2 licence (N.63).';
 
 --
 -- Name: my_colours(public.motorcycles); Type: FUNCTION; Schema: public; Owner: -
@@ -6039,6 +6075,8 @@ CREATE TABLE public.saved_searches (
     district text,
     max_year smallint,
     min_price numeric(10,2),
+    a2 text,
+    CONSTRAINT saved_searches_a2_check CHECK ((a2 = ANY (ARRAY['ready'::text, 'restrictable'::text]))),
     CONSTRAINT saved_searches_district_check CHECK ((district = ANY (public.district_names()))),
     CONSTRAINT saved_searches_extras_check CHECK ((extras <@ ARRAY['quickshifter'::text, 'exhaust'::text, 'luggage'::text, 'heated_grips'::text, 'protection'::text, 'new_tyres'::text, 'tail_tidy'::text, 'screen'::text, 'levers'::text, 'mirrors'::text, 'phone_mount'::text, 'alarm'::text, 'steering_damper'::text, 'centre_stand'::text, 'cruise_control'::text, 'suspension'::text, 'led_indicators'::text, 'passenger_grips'::text, 'original_parts'::text])),
     CONSTRAINT saved_searches_max_distance_km_check CHECK (((max_distance_km >= 1) AND (max_distance_km <= 1000))),
@@ -6058,7 +6096,7 @@ CREATE VIEW public.saved_search_matches WITH (security_invoker='true') AS
  SELECT s.id AS saved_search_id,
     l.id AS listing_id
    FROM (public.saved_searches s
-     JOIN public.listings l ON (((l.status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status])) AND (l.duplicate_of IS NULL) AND public.listing_matches_search(l.motorcycle_id, (l.year)::integer, l.price, l.mileage, l.location, l.seller_type, NULL::uuid, (s.min_year)::integer, s.max_price, s.max_mileage, s.location, s.seller_type) AND ((cardinality(s.motorcycle_ids) = 0) OR (l.motorcycle_id = ANY (s.motorcycle_ids))) AND public.owner_tracks(s.user_id, l.motorcycle_id, (l.year)::integer) AND ((s.min_deal_score IS NULL) OR (l.deal_score >= s.min_deal_score)) AND ((s.max_risk_score IS NULL) OR (l.risk_score <= s.max_risk_score)) AND ((s.max_distance_km IS NULL) OR (public.distance_from_home(s.user_id, l.location) <= s.max_distance_km)) AND ((cardinality(s.extras) = 0) OR (COALESCE((l.score_breakdown -> 'extras'::text), '[]'::jsonb) @> to_jsonb(s.extras))) AND ((NOT s.only_my_colours) OR public.likes_colour(s.user_id, l.motorcycle_id, l.colour)) AND ((s.district IS NULL) OR (public.place_district(l.location) = s.district)) AND ((s.max_year IS NULL) OR (l.year <= s.max_year)) AND ((s.min_price IS NULL) OR ((l.price >= (300)::numeric) AND (l.price >= s.min_price))))));
+     JOIN public.listings l ON (((l.status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status])) AND (l.duplicate_of IS NULL) AND public.listing_matches_search(l.motorcycle_id, (l.year)::integer, l.price, l.mileage, l.location, l.seller_type, NULL::uuid, (s.min_year)::integer, s.max_price, s.max_mileage, s.location, s.seller_type) AND ((cardinality(s.motorcycle_ids) = 0) OR (l.motorcycle_id = ANY (s.motorcycle_ids))) AND public.owner_tracks(s.user_id, l.motorcycle_id, (l.year)::integer) AND ((s.min_deal_score IS NULL) OR (l.deal_score >= s.min_deal_score)) AND ((s.max_risk_score IS NULL) OR (l.risk_score <= s.max_risk_score)) AND ((s.max_distance_km IS NULL) OR (public.distance_from_home(s.user_id, l.location) <= s.max_distance_km)) AND ((cardinality(s.extras) = 0) OR (COALESCE((l.score_breakdown -> 'extras'::text), '[]'::jsonb) @> to_jsonb(s.extras))) AND ((NOT s.only_my_colours) OR public.likes_colour(s.user_id, l.motorcycle_id, l.colour)) AND ((s.district IS NULL) OR (public.place_district(l.location) = s.district)) AND ((s.max_year IS NULL) OR (l.year <= s.max_year)) AND ((s.min_price IS NULL) OR ((l.price >= (300)::numeric) AND (l.price >= s.min_price))) AND ((s.a2 IS NULL) OR (public.a2(l.*) = 'ready'::text) OR ((s.a2 = 'restrictable'::text) AND (public.a2(l.*) = 'restrictable'::text))))));
 
 --
 -- Name: saved_search_match_counts; Type: VIEW; Schema: public; Owner: -
@@ -7312,6 +7350,30 @@ GRANT USAGE ON SCHEMA public TO authenticated;
 GRANT USAGE ON SCHEMA public TO service_role;
 
 --
+-- Name: TABLE listings; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT SELECT ON TABLE public.listings TO anon;
+GRANT SELECT ON TABLE public.listings TO authenticated;
+GRANT ALL ON TABLE public.listings TO service_role;
+
+--
+-- Name: FUNCTION a2(l public.listings); Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON FUNCTION public.a2(l public.listings) TO anon;
+GRANT ALL ON FUNCTION public.a2(l public.listings) TO authenticated;
+GRANT ALL ON FUNCTION public.a2(l public.listings) TO service_role;
+
+--
+-- Name: FUNCTION a2_fit(p_power_kw numeric, p_text_signals text[]); Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON FUNCTION public.a2_fit(p_power_kw numeric, p_text_signals text[]) TO anon;
+GRANT ALL ON FUNCTION public.a2_fit(p_power_kw numeric, p_text_signals text[]) TO authenticated;
+GRANT ALL ON FUNCTION public.a2_fit(p_power_kw numeric, p_text_signals text[]) TO service_role;
+
+--
 -- Name: FUNCTION account_quiet_at(p_user uuid, p_at timestamp with time zone); Type: ACL; Schema: public; Owner: -
 --
 
@@ -7397,14 +7459,6 @@ GRANT ALL ON FUNCTION public.apply_price_updates(p_source text, p_prices jsonb) 
 
 REVOKE ALL ON FUNCTION public.apply_prices_before_drop(p_source text, p_prices jsonb) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.apply_prices_before_drop(p_source text, p_prices jsonb) TO service_role;
-
---
--- Name: TABLE listings; Type: ACL; Schema: public; Owner: -
---
-
-GRANT SELECT ON TABLE public.listings TO anon;
-GRANT SELECT ON TABLE public.listings TO authenticated;
-GRANT ALL ON TABLE public.listings TO service_role;
 
 --
 -- Name: FUNCTION asking_price(l public.listings); Type: ACL; Schema: public; Owner: -
@@ -8184,6 +8238,8 @@ GRANT ALL ON FUNCTION public.place_key(p_name text) TO service_role;
 
 REVOKE ALL ON FUNCTION public.power_version(p_variant text, p_description text) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.power_version(p_variant text, p_description text) TO service_role;
+GRANT ALL ON FUNCTION public.power_version(p_variant text, p_description text) TO anon;
+GRANT ALL ON FUNCTION public.power_version(p_variant text, p_description text) TO authenticated;
 
 --
 -- Name: FUNCTION price_score(p_price numeric, p_market_price numeric, p_points_per_percent numeric); Type: ACL; Schema: public; Owner: -
