@@ -2962,13 +2962,23 @@ CREATE TABLE public.motorcycles (
     collected_since timestamp with time zone DEFAULT now(),
     new_price_from_ads numeric(10,2),
     new_price_ad_count smallint,
+    front_tyre text,
+    rear_tyre text,
+    cylinders smallint,
+    service_interval_km integer,
+    valve_check_km integer,
     CONSTRAINT motorcycles_both_source_searches CHECK (((olx_search IS NOT NULL) AND (standvirtual_search IS NOT NULL))),
+    CONSTRAINT motorcycles_cylinders CHECK (((cylinders >= 1) AND (cylinders <= 6))),
     CONSTRAINT motorcycles_engine_cc_max_check CHECK ((engine_cc_max > 0)),
     CONSTRAINT motorcycles_engine_cc_min_check CHECK ((engine_cc_min > 0)),
     CONSTRAINT motorcycles_engine_cc_range CHECK (((engine_cc_min IS NULL) OR (engine_cc_max IS NULL) OR (engine_cc_min <= engine_cc_max))),
+    CONSTRAINT motorcycles_front_tyre_size CHECK ((front_tyre ~ '^[0-9]{2,3}/[0-9]{2}-[0-9]{2}$'::text)),
     CONSTRAINT motorcycles_new_price_reference_check CHECK ((new_price_reference >= (0)::numeric)),
     CONSTRAINT motorcycles_olx_search_check CHECK ((olx_search ~~ 'https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/%'::text)),
-    CONSTRAINT motorcycles_standvirtual_search_check CHECK ((standvirtual_search ~~ 'https://www.standvirtual.com/motos/%'::text))
+    CONSTRAINT motorcycles_rear_tyre_size CHECK ((rear_tyre ~ '^[0-9]{2,3}/[0-9]{2}-[0-9]{2}$'::text)),
+    CONSTRAINT motorcycles_service_interval CHECK (((service_interval_km >= 1000) AND (service_interval_km <= 50000))),
+    CONSTRAINT motorcycles_standvirtual_search_check CHECK ((standvirtual_search ~~ 'https://www.standvirtual.com/motos/%'::text)),
+    CONSTRAINT motorcycles_valve_check CHECK (((valve_check_km >= 5000) AND (valve_check_km <= 100000)))
 );
 
 --
@@ -3012,6 +3022,30 @@ COMMENT ON COLUMN public.motorcycles.new_price_from_ads IS 'Median price of the 
 --
 
 COMMENT ON COLUMN public.motorcycles.new_price_ad_count IS 'How many ads new_price_from_ads is the median of.';
+
+--
+-- Name: COLUMN motorcycles.front_tyre; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.motorcycles.front_tyre IS 'Front tyre size, e.g. 120/70-17; with rear_tyre prices the tyre set.';
+
+--
+-- Name: COLUMN motorcycles.cylinders; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.motorcycles.cylinders IS 'Cylinders: the labour of a service and of a valve clearance check.';
+
+--
+-- Name: COLUMN motorcycles.service_interval_km; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.motorcycles.service_interval_km IS 'The maker''s oil service interval in Europe, km.';
+
+--
+-- Name: COLUMN motorcycles.valve_check_km; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.motorcycles.valve_check_km IS 'The maker''s valve clearance check interval in Europe, km; null unknown.';
 
 --
 -- Name: my_colours(public.motorcycles); Type: FUNCTION; Schema: public; Owner: -

@@ -1,3 +1,4 @@
+import '../../domain/entities/bike_maintenance.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/entities/photo_hint.dart';
 
@@ -42,6 +43,7 @@ class const ListingModel({
   super.newPriceCheckedAt,
   super.newPriceAdCount,
   super.engineCc,
+  super.maintenance,
   super.distanceKm,
   super.colour,
   super.myColour,
@@ -120,6 +122,7 @@ class const ListingModel({
           ? null
           : bike?['new_price_ad_count'] as int?,
       engineCc: engineCcOf(bike),
+      maintenance: maintenanceOf(bike),
       distanceKm: (json['distance_km'] as num?)?.toInt(),
       colour: json['colour'] as String?,
       myColour: json['my_colour'] as bool? ?? false,
@@ -150,6 +153,19 @@ class const ListingModel({
     final max = (bike?['engine_cc_max'] as num?)?.toInt();
     if (min == null || max == null) return min ?? max;
     return ((min + max) / 2).round();
+  }
+
+  /// The model's maintenance figures; null when it has none.
+  static BikeMaintenance? maintenanceOf(Map<String, dynamic>? bike) {
+    if (bike == null) return null;
+    final value = BikeMaintenance(
+      frontTyre: bike['front_tyre'] as String?,
+      rearTyre: bike['rear_tyre'] as String?,
+      cylinders: (bike['cylinders'] as num?)?.toInt(),
+      serviceIntervalKm: (bike['service_interval_km'] as num?)?.toInt(),
+      valveCheckKm: (bike['valve_check_km'] as num?)?.toInt(),
+    );
+    return value == const BikeMaintenance() ? null : value;
   }
 
   /// Shared with `SavedSearchModel`; anything unrecognised is `unknown`.

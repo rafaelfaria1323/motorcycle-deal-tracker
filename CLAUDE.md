@@ -1197,8 +1197,15 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   under 10 €; **check `iucBands` every January**) + the owner's insurance
   (until entered, `insuranceEstimate`: third-party by engine size,
   `insuranceBands`, +30 % for a sports bike, `isSportBike` by brand and
-  model name) + tyres, services and chain kit by engine size (a sports
-  bike's tyres 15 % dearer, 20 % shorter-lived).
+  model name) + tyres, services, valve checks and chain kit
+  (`runningCostsFor`): by the model's own figures where the catalog has
+  them (N.60, `motorcycles.front_tyre` / `rear_tyre` priced by width,
+  `tyrePriceByWidth`, + fitting; `cylinders` for the service's and the
+  valve check's price; the maker's `service_interval_km` and
+  `valve_check_km`; the listing page's query reads them,
+  `Listing.maintenance`), else by engine size (`smallBikeCosts`...);
+  a sports bike's tyres 15 % dearer, 20 % shorter-lived. Models added
+  from the app have none of them until a migration fills them.
   The owner's figures live in `ownership_settings` (one row per account).
 - Favourite colours: `listings.colour` (a code: `colour_code()` of
   Standvirtual's `site_colour`, else `colour_in_text()`: a colour word in

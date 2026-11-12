@@ -2246,7 +2246,43 @@
       }
     }
   },
-  "atPerYearTypicalWorkshopPricesAndRoad": "Com {mileage} por ano. Preços de oficina típicos e IUC de {iucTableYear}; a desvalorização vem dos preços pedidos deste modelo.",
+  "ownershipTyresSized": "Pneus: {price} ({front} e {rear}, um jogo a cada {distance}, pelo menos a cada {tyreMaxYears} anos)",
+  "@ownershipTyresSized": {
+    "description": "Interface text in ownership_cost, ownershipLines.",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "front": {
+        "type": "String"
+      },
+      "rear": {
+        "type": "String"
+      },
+      "distance": {
+        "type": "String"
+      },
+      "tyreMaxYears": {
+        "type": "String"
+      }
+    }
+  },
+  "ownershipValves": "Folga das válvulas: {price} ({cost} a cada {distance})",
+  "@ownershipValves": {
+    "description": "Interface text in ownership_cost, ownershipLines.",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "cost": {
+        "type": "String"
+      },
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "atPerYearTypicalWorkshopPricesAndRoad": "Com {mileage} por ano. Preços de oficina típicos (pelas medidas dos pneus e intervalos do fabricante deste modelo, quando conhecidos) e IUC de {iucTableYear}; a desvalorização vem dos preços pedidos deste modelo.",
   "@atPerYearTypicalWorkshopPricesAndRoad": {
     "description": "Interface text in ownership_cost, ownershipFootnote.",
     "placeholders": {

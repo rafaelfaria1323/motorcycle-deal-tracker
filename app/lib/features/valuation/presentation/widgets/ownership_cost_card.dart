@@ -79,6 +79,7 @@ class _OwnershipCostCardState extends State<OwnershipCostCard> {
           engineCc: listing.engineCc,
           year: listing.year,
           sport: isSportBike(brand: listing.brand, model: listing.model),
+          maintenance: listing.maintenance,
           depreciation: data.$2,
         );
         if (cost == null) return const SizedBox.shrink();

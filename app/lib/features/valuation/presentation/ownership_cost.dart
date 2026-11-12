@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import '../../../core/formatting/formatters.dart';
+import '../../listings/domain/entities/bike_maintenance.dart';
 import '../../market/domain/entities/market_behaviour.dart';
 import '../domain/entities/ownership_settings.dart';
 import '../../../core/localization/localizations.dart';
@@ -36,7 +37,8 @@ double? iucPerYear({int? engineCc, int? year}) {
   return band.euros < iucMinimumCharged ? 0 : band.euros;
 }
 
-/// Typical workshop prices (parts and labour, 2026) by engine size.
+/// Typical workshop prices (parts and labour, 2026) by engine size, or
+/// the model's own figures ([runningCostsFor]).
 class const RunningCostTable({
   required final double tyreSet,
   required final int tyreLifeKm,
@@ -44,6 +46,14 @@ class const RunningCostTable({
   required final int serviceIntervalKm,
   required final double chainKit,
   required final int chainLifeKm,
+
+  /// The valve clearance check (and adjustment when needed).
+  required final double valveCheck,
+  required final int valveCheckKm,
+
+  /// The model's tyre sizes when [tyreSet] was priced from them.
+  final String? frontTyre,
+  final String? rearTyre,
 });
 
 /// Up to 400 cc (CB125R, R3, CB300R).
@@ -54,6 +64,8 @@ const smallBikeCosts = RunningCostTable(
   serviceIntervalKm: 6000,
   chainKit: 140,
   chainLifeKm: 20000,
+  valveCheck: 180,
+  valveCheckKm: 24000,
 );
 
 /// 401 to 800 cc (MT-07, R7, CB650R, CBR500R...); also when the engine
@@ -65,6 +77,8 @@ const middleBikeCosts = RunningCostTable(
   serviceIntervalKm: 10000,
   chainKit: 200,
   chainLifeKm: 20000,
+  valveCheck: 350,
+  valveCheckKm: 30000,
 );
 
 /// Over 800 cc (R1, R9): softer, wider tyres wear faster.
@@ -75,29 +89,83 @@ const largeBikeCosts = RunningCostTable(
   serviceIntervalKm: 10000,
   chainKit: 260,
   chainLifeKm: 20000,
+  valveCheck: 550,
+  valveCheckKm: 30000,
 );
 
 /// Sports bikes' tyres: softer compounds cost more and wear sooner.
 const sportTyrePriceFactor = 1.15;
 const sportTyreLifeFactor = 0.8;
 
-/// The running costs of a bike of [engineCc]; a sports bike's tyres cost
-/// more and last less ([isSportBike]).
-RunningCostTable runningCostsFor(int? engineCc, {bool sport = false}) {
+/// One road tyre of a mid-range brand (Michelin Road, Pirelli Angel, Bridgestone
+/// T32; Portuguese shops, 2026) by its width in mm, the smallest band that
+/// holds it; wider ones cost the last.
+const tyrePriceByWidth = <({int maxWidth, double euros})>[
+  (maxWidth: 110, euros: 85),
+  (maxWidth: 140, euros: 120),
+  (maxWidth: 150, euros: 135),
+  (maxWidth: 160, euros: 155),
+  (maxWidth: 180, euros: 185),
+  (maxWidth: 190, euros: 210),
+  (maxWidth: 999, euros: 230),
+];
+
+/// Fitting and balancing both wheels.
+const tyreFitting = 30.0;
+
+/// A service (oil, filter, checks) by the engine's cylinders: more of them,
+/// more oil and work. Four or more cost the last.
+const serviceByCylinders = <double>[130, 180, 200, 220];
+
+/// A valve clearance check by cylinders: more valves, more hours.
+const valveCheckByCylinders = <double>[180, 350, 450, 550];
+
+final _tyreSize = RegExp(r'^(\d{2,3})/\d{2}-\d{2}$');
+
+/// The price of one tyre of [size] ("180/55-17"); null when unreadable.
+double? tyrePrice(String? size) {
+  final width = int.tryParse(_tyreSize.firstMatch(size ?? '')?.group(1) ?? '');
+  if (width == null) return null;
+  return tyrePriceByWidth.firstWhere((b) => width <= b.maxWidth).euros;
+}
+
+/// The running costs of a bike of [engineCc]: the model's own tyre sizes,
+/// cylinders and maker's intervals ([maintenance]) where known, else the
+/// engine-size table's. A sports bike's tyres cost more and last less
+/// ([isSportBike]).
+RunningCostTable runningCostsFor(
+  int? engineCc, {
+  bool sport = false,
+  BikeMaintenance? maintenance,
+}) {
   final table = switch (engineCc) {
     null => middleBikeCosts,
     <= 400 => smallBikeCosts,
     <= 800 => middleBikeCosts,
     _ => largeBikeCosts,
   };
-  if (!sport) return table;
+  if (!sport && maintenance == null) return table;
+  final front = tyrePrice(maintenance?.frontTyre);
+  final rear = tyrePrice(maintenance?.rearTyre);
+  final sized = front != null && rear != null;
+  final tyreSet = sized ? front + rear + tyreFitting : table.tyreSet;
+  final cylinders = maintenance?.cylinders;
+  double byCylinders(List<double> prices, double fallback) =>
+      cylinders == null ? fallback : prices[min(cylinders, prices.length) - 1];
   return RunningCostTable(
-    tyreSet: table.tyreSet * sportTyrePriceFactor,
-    tyreLifeKm: (table.tyreLifeKm * sportTyreLifeFactor).round(),
-    service: table.service,
-    serviceIntervalKm: table.serviceIntervalKm,
+    tyreSet: sport ? tyreSet * sportTyrePriceFactor : tyreSet,
+    tyreLifeKm: sport
+        ? (table.tyreLifeKm * sportTyreLifeFactor).round()
+        : table.tyreLifeKm,
+    service: byCylinders(serviceByCylinders, table.service),
+    serviceIntervalKm:
+        maintenance?.serviceIntervalKm ?? table.serviceIntervalKm,
     chainKit: table.chainKit,
     chainLifeKm: table.chainLifeKm,
+    valveCheck: byCylinders(valveCheckByCylinders, table.valveCheck),
+    valveCheckKm: maintenance?.valveCheckKm ?? table.valveCheckKm,
+    frontTyre: sized ? maintenance!.frontTyre : null,
+    rearTyre: sized ? maintenance!.rearTyre : null,
   );
 }
 
@@ -185,13 +253,14 @@ class const OwnershipCost({
   required final double tyres,
   required final double services,
   required final double chain,
+  required final double valves,
   required final double depreciation,
   required final int years,
   required final int kmPerYear,
   required final RunningCostTable table,
 }) {
   double get perYear =>
-      (iuc ?? 0) + insurance + tyres + services + chain + depreciation;
+      (iuc ?? 0) + insurance + tyres + services + chain + valves + depreciation;
 
   double get total => perYear * years;
 }
@@ -203,12 +272,17 @@ OwnershipCost? ownershipCost({
   int? engineCc,
   int? year,
   bool sport = false,
+  BikeMaintenance? maintenance,
   Depreciation? depreciation,
 }) {
   if (price == null || price <= 0) return null;
   final km = settings.kmPerYear;
   final years = settings.yearsToKeep;
-  final table = runningCostsFor(engineCc, sport: sport);
+  final table = runningCostsFor(
+    engineCc,
+    sport: sport,
+    maintenance: maintenance,
+  );
   final quote = settings.insurancePerYear?.toDouble();
   final rates = depreciation ?? generalDepreciation;
 
@@ -227,6 +301,7 @@ OwnershipCost? ownershipCost({
     // At least one service a year, however little it is ridden.
     services: table.service * max(km / table.serviceIntervalKm, 1),
     chain: table.chainKit * km / table.chainLifeKm,
+    valves: table.valveCheck * km / table.valveCheckKm,
     depreciation: lost / years,
     years: years,
     kmPerYear: km,
@@ -284,11 +359,20 @@ List<String> ownershipLines(
         : language.messages.insuranceYourFigure(
             price: Formatters.price(c.insurance, language: language),
           ),
-    language.messages.ownershipTyres(
-      price: Formatters.price(c.tyres, language: language),
-      distance: km(t.tyreLifeKm),
-      tyreMaxYears: (tyreMaxYears).toString(),
-    ),
+    if ((t.frontTyre, t.rearTyre) case (final front?, final rear?))
+      language.messages.ownershipTyresSized(
+        price: Formatters.price(c.tyres, language: language),
+        front: front,
+        rear: rear,
+        distance: km(t.tyreLifeKm),
+        tyreMaxYears: (tyreMaxYears).toString(),
+      )
+    else
+      language.messages.ownershipTyres(
+        price: Formatters.price(c.tyres, language: language),
+        distance: km(t.tyreLifeKm),
+        tyreMaxYears: (tyreMaxYears).toString(),
+      ),
     language.messages.ownershipServicing(
       price: Formatters.price(c.services, language: language),
       distance: km(t.serviceIntervalKm),
@@ -296,6 +380,11 @@ List<String> ownershipLines(
     language.messages.ownershipChain(
       price: Formatters.price(c.chain, language: language),
       distance: km(t.chainLifeKm),
+    ),
+    language.messages.ownershipValves(
+      price: Formatters.price(c.valves, language: language),
+      cost: Formatters.price(t.valveCheck, language: language),
+      distance: km(t.valveCheckKm),
     ),
   ];
 }

@@ -1,5 +1,6 @@
 import '../../../core/formatting/formatters.dart';
 import '../../favourites/domain/entities/favourite.dart';
+import '../domain/entities/bike_maintenance.dart';
 import '../domain/entities/listing.dart';
 import '../../market/domain/entities/market_behaviour.dart';
 import '../../market/presentation/market_behaviour_text.dart';
@@ -54,9 +55,15 @@ double? repairCost(String key, RunningCostTable costs) => switch (key) {
 VisitFindings visitFindings(
   Map<String, ChecklistEntry> checklist, {
   int? engineCc,
+  bool sport = false,
+  BikeMaintenance? maintenance,
   AppLanguage language = .portuguese,
 }) {
-  final costs = runningCostsFor(engineCc);
+  final costs = runningCostsFor(
+    engineCc,
+    sport: sport,
+    maintenance: maintenance,
+  );
   final repairs = <VisitRepair>[];
   final blockers = <String>[];
   for (final item in viewingChecklistItems(language: language)) {
@@ -217,6 +224,7 @@ List<String> negotiationArguments(
           runningCostsFor(
             listing.engineCc,
             sport: isSportBike(brand: listing.brand, model: listing.model),
+            maintenance: listing.maintenance,
           ).tyreSet,
           language: language,
         ),
