@@ -3269,6 +3269,38 @@
   "@riskPhotosReused": {
     "description": "Interface text in score_explanation, _riskLines."
   },
+  "riskMileageLowered": "O vendedor baixou os km do anúncio depois de publicado: pergunte porquê e confirme no painel e na última inspeção",
+  "@riskMileageLowered": {
+    "description": "Risk line (N.62): the ad's mileage was edited down after it was found."
+  },
+  "riskMileageLoweredFrom": "O vendedor baixou os km do anúncio depois de publicado (de {before} para {now}): pergunte porquê e confirme no painel e na última inspeção",
+  "@riskMileageLoweredFrom": {
+    "description": "Risk line (N.62) with the earlier and current mileage.",
+    "placeholders": {
+      "before": {
+        "type": "String"
+      },
+      "now": {
+        "type": "String"
+      }
+    }
+  },
+  "riskYearRaised": "O ano do anúncio passou a ser mais recente depois de publicado: confirme no documento único",
+  "@riskYearRaised": {
+    "description": "Risk line (N.62): the ad's year was edited to a newer one."
+  },
+  "riskYearRaisedFrom": "O ano do anúncio passou de {before} para {now} depois de publicado: confirme no documento único",
+  "@riskYearRaisedFrom": {
+    "description": "Risk line (N.62) with the earlier and current year.",
+    "placeholders": {
+      "before": {
+        "type": "String"
+      },
+      "now": {
+        "type": "String"
+      }
+    }
+  },
   "a2Version35KWFullPowerRequiresRemoving": "Versão A2 (35 kW): para ter a potência toda é preciso tirar a limitação e atualizar os documentos",
   "@a2Version35KWFullPowerRequiresRemoving": {
     "description": "Interface text in score_explanation, _riskLines."
@@ -6118,6 +6150,14 @@
   "cardWarningPhotosReused": "Fotos de outro anúncio",
   "@cardWarningPhotosReused": {
     "description": "Card photo warning: the photos were seen in another ad."
+  },
+  "cardWarningMileageLowered": "Km baixados",
+  "@cardWarningMileageLowered": {
+    "description": "Card photo warning (N.62): the seller lowered the mileage."
+  },
+  "cardWarningYearRaised": "Ano alterado",
+  "@cardWarningYearRaised": {
+    "description": "Card photo warning (N.62): the seller made the year newer."
   },
   "cardWarningContradiction": "Texto contradiz o anúncio",
   "@cardWarningContradiction": {

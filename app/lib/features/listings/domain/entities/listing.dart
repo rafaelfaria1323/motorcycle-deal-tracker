@@ -30,6 +30,12 @@ class const Listing({
   /// The ad's mileage field was empty and [mileage] was read from its
   /// description (`mileage_in_text`).
   final bool mileageFromText = false,
+
+  /// The highest mileage the ad's own field has shown, and the first year
+  /// it showed (N.62): an edit below or above them is a risk reason. Only
+  /// loaded on the detail page.
+  final int? mileageMaxSeen,
+  final int? yearFirstSeen,
   final int? dealScore,
   final double? initialPrice,
 

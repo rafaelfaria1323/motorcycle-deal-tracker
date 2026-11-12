@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
+import 'package:motorcycle_deal_tracker/core/localization/app_language.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/score_explanation.dart';
 
@@ -78,6 +80,54 @@ void main() {
     expect(lines, hasLength(1));
     expect(lines.single.tone, ExplanationTone.negative);
     expect(lines.single.text, startsWith('Fotos iguais'));
+  });
+
+  test("edits in the seller's favour name what the ad showed before", () {
+    const listing = Listing(
+      id: '1',
+      source: 'olx',
+      url: 'https://example.com/1',
+      brand: 'Yamaha',
+      model: 'MT-07',
+      status: ListingStatus.active,
+      sellerType: SellerType.private,
+      images: [],
+      dealScore: 60,
+      year: 2021,
+      mileage: 13000,
+      mileageMaxSeen: 31000,
+      yearFirstSeen: 2020,
+      scoreBreakdown: {
+        'risk_reasons': ['mileage_lowered', 'year_raised'],
+      },
+    );
+    final lines = ScoreExplainer.explain(listing)!.lines;
+    final mileage = lines.singleWhere(
+      (l) => l.text.contains(
+        'de ${Formatters.mileage(31000)} para ${Formatters.mileage(13000)}',
+      ),
+    );
+    final year = lines.singleWhere(
+      (l) => l.text.contains('de 2020 para 2021'),
+    );
+
+    expect(mileage.tone, ExplanationTone.negative);
+    expect(year.tone, ExplanationTone.negative);
+    expect(
+      factEditLine('year_raised', listing, language: AppLanguage.english)!.text,
+      contains('from 2020 to 2021'),
+    );
+  });
+
+  test('edits without the earlier values still read as negatives', () {
+    final lines = ScoreExplainer.explain(
+      listingWith(['mileage_lowered', 'year_raised']),
+    )!.lines;
+
+    expect(lines, hasLength(2));
+    expect(lines.first.text, startsWith('O vendedor baixou os km'));
+    expect(lines.last.text, startsWith('O ano do anúncio passou a ser'));
+    expect(factEditLine('photos_reused', listingWith(const [])), isNull);
   });
 
   test('contradictions between the text and the ad read as negatives', () {

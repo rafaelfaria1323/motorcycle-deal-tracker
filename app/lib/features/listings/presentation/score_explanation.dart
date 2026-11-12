@@ -176,6 +176,41 @@ ExplanationLine? mileageForAge(
   );
 }
 
+/// The seller's edits in their own favour (N.62), with what the ad showed
+/// before when it is known: `mileage_lowered`, `year_raised`; null for
+/// any other code.
+ExplanationLine? factEditLine(
+  String code,
+  Listing listing, {
+  AppLanguage language = .portuguese,
+}) {
+  final messages = language.messages;
+  switch (code) {
+    case 'mileage_lowered':
+      final before = listing.mileageMaxSeen;
+      final now = listing.mileage;
+      return ExplanationLine(
+        ExplanationTone.negative,
+        before == null || now == null || before <= now
+            ? messages.riskMileageLowered
+            : messages.riskMileageLoweredFrom(
+                before: Formatters.mileage(before, language: language),
+                now: Formatters.mileage(now, language: language),
+              ),
+      );
+    case 'year_raised':
+      final before = listing.yearFirstSeen;
+      final now = listing.year;
+      return ExplanationLine(
+        ExplanationTone.negative,
+        before == null || now == null || before >= now
+            ? messages.riskYearRaised
+            : messages.riskYearRaisedFrom(before: '$before', now: '$now'),
+      );
+  }
+  return null;
+}
+
 /// Turns the stored score data into human-readable lines.
 /// Only things that actually influence the score are listed.
 abstract final class ScoreExplainer {
@@ -530,6 +565,11 @@ abstract final class ScoreExplainer {
 
     // Risk signals; some are reassuring and read as positives.
     for (final code in (data['risk_reasons'] as List? ?? const [])) {
+      if (factEditLine(code as String, listing, language: language)
+          case final line?) {
+        lines.add(line);
+        continue;
+      }
       final entry = _riskLines(language: language)[code];
       if (entry != null) lines.add(ExplanationLine(entry.$1, entry.$2));
     }
