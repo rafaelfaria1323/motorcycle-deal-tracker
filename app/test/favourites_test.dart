@@ -74,9 +74,14 @@ class _DeferredFavourites extends _FakeFavourites {
 
   Future<List<Favourite>>? loadResult;
 
+  /// Completes once a load is asking (after the unsent checklists, N.66).
+  final loadAsked = Completer<void>();
+
   @override
-  Future<List<Favourite>> getAll() async =>
-      await (loadResult ?? super.getAll());
+  Future<List<Favourite>> getAll() async {
+    if (!loadAsked.isCompleted) loadAsked.complete();
+    return await (loadResult ?? super.getAll());
+  }
 }
 
 class _FakeFavourites implements FavouritesRepository {
@@ -662,6 +667,7 @@ void main() {
         final repo = _DeferredFavourites([])..loadResult = response.future;
         final cubit = _cubit(repo);
         final loading = cubit.load();
+        await repo.loadAsked.future;
         await cubit.close();
 
         if (fails) {
