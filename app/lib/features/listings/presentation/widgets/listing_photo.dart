@@ -9,6 +9,9 @@ class const ListingPhoto({
   /// The photo as the site has it, for zoom; otherwise at most [photoBox]
   /// pixels on its longest side.
   final bool fullSize = false,
+
+  /// The longest side to ask the photo CDN for (a card's [cardPhotoBox]).
+  final int box = photoBox,
   super.key,
 }) extends StatelessWidget {
   @override
@@ -21,7 +24,7 @@ class const ListingPhoto({
     if (url == null) return placeholder;
 
     return Image.network(
-      fullSize ? url! : photoAtSize(url!),
+      fullSize ? url! : photoAtSize(url!, box),
       fit: fit,
       // The photo sites send no CORS headers, so Flutter can't download the
       // photo itself; a plain <img> element shows it. Going straight to it

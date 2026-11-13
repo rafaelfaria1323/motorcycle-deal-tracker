@@ -10,6 +10,7 @@ import '../../../listings/domain/repositories/listings_repository.dart';
 import '../compare_text.dart';
 import '../cubit/compare_cubit.dart';
 import '../widgets/compare_row_view.dart';
+import '../../../listings/presentation/photo_url.dart';
 import '../../../listings/presentation/widgets/listing_photo.dart';
 import '../../../../core/localization/localizations.dart';
 
@@ -156,6 +157,11 @@ class const _Header({
                   aspectRatio: 4 / 3,
                   child: ListingPhoto(
                     url: listing.images.isEmpty ? null : listing.images.first,
+                    // Narrower than a card: the card's size is enough.
+                    box: cardPhotoBox(
+                      MediaQuery.sizeOf(context).width,
+                      MediaQuery.devicePixelRatioOf(context),
+                    ),
                   ),
                 ),
               ),

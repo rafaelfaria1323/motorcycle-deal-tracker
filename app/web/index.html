@@ -205,9 +205,23 @@
     var MODELS = 'motorcycles?select=id,brand,model&tracked_by_me=eq.true' +
       '&order=brand.desc.nullslast,model.desc.nullslast';
     var PHOTOS = 3;
-    // The cards' photo size (photoAtSize, lib/features/listings/
-    // presentation/photo_url.dart; test/photo_url_test.dart).
-    var PHOTO_BOX = 1280;
+    // The cards' photo size, as cardPhotoBox (lib/features/listings/
+    // presentation/photo_url.dart; test/photo_url_test.dart): the card's
+    // width in real pixels, up to the next step.
+    var PHOTO_STEPS = [480, 720, 960, 1280];
+    var CARD_MARGIN = 40;
+    var CARD_MAX_WIDTH = 600;
+    function cardPhotoBox(screenWidth, pixelRatio) {
+      var width = Math.min(Math.max(screenWidth - CARD_MARGIN, 0),
+        CARD_MAX_WIDTH);
+      var needed = width * pixelRatio;
+      for (var i = 0; i < PHOTO_STEPS.length; i++) {
+        if (PHOTO_STEPS[i] >= needed) return PHOTO_STEPS[i];
+      }
+      return PHOTO_STEPS[PHOTO_STEPS.length - 1];
+    }
+    var PHOTO_BOX = cardPhotoBox(window.innerWidth,
+      window.devicePixelRatio || 1);
 
     var meta = document.querySelector('meta[name="database"]');
     if (!meta || !window.fetch || !window.Promise) return;

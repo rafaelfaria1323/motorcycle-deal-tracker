@@ -15,6 +15,7 @@ import '../../domain/entities/alert_filter.dart';
 import '../../domain/entities/listing_alert.dart';
 import '../../../listings/presentation/listing_labels.dart';
 import '../../../listings/presentation/widgets/deal_score_badge.dart';
+import '../../../listings/presentation/photo_url.dart';
 import '../../../listings/presentation/widgets/listing_photo.dart';
 import '../../../listings/presentation/widgets/photo_tag.dart';
 import '../alerts_text.dart';
@@ -418,7 +419,11 @@ class const _AlertTile({
         child: Stack(
           fit: StackFit.expand,
           children: [
-            ListingPhoto(url: listing.images.firstOrNull),
+            // A small square: the smallest size is plenty at 3x.
+            ListingPhoto(
+              url: listing.images.firstOrNull,
+              box: cardPhotoSteps.first,
+            ),
             PositionedDirectional(
               start: 4,
               end: 4,
