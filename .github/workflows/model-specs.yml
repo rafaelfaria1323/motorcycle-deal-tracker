@@ -1,0 +1,39 @@
+name: Model specifications
+
+# N.76: the catalog models whose figures are incomplete (or were never
+# checked) are looked up in API Ninjas' motorcycles API (free tier, a few
+# calls a week). Only empty figures are filled (power, torque, weight,
+# seat height, tank, consumption, tyres, cylinders); the figures the API
+# puts more than 10 % from the typed ones are listed in this run's summary,
+# for fixing the catalog with a migration. Never a score. Without the
+# API_NINJAS_KEY secret it says so and passes.
+#
+# Called by weekly-summary.yml after the Monday summary for everyone;
+# "Run workflow" here runs it now (e.g. after adding a model in the app).
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: model-specs
+  cancel-in-progress: false
+
+jobs:
+  specs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      API_NINJAS_KEY: ${{ secrets.API_NINJAS_KEY }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/collector
+
+      - name: Look up the models' figures
+        run: cd collector && dart run bin/model_specs.dart

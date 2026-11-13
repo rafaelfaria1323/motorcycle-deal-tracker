@@ -50,7 +50,8 @@ never asks for search URLs; aliases sit under "Outros nomes do modelo".
   statistics), except the weekly description check (N.55: Gemini's free
   tier reads a sample of the week's ads; the disagreements with the rules
   are a report for fixing them with tests, never a score; beside it the
-  weekly score check, N.61, without AI). Checks: analyzer rules (`*/analysis_options.yaml`, with Dart
+  weekly score check, N.61, without AI, and the model specifications,
+  N.76: API Ninjas' data, no AI). Checks: analyzer rules (`*/analysis_options.yaml`, with Dart
   3.11-3.13's lints, N.40),
   `make duplication` (jscpd), `make coverage` (floors in the Makefile),
   `make lint-scripts` (actionlint, shellcheck), `make dead-code`
@@ -150,8 +151,8 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   summary of the week, kept for the app and
                                   pushed to its devices (bin/weekly_summary.dart);
                                   input `account`: only that one;
-                                  without one, also calls text-audit.yml
-                                  and score-check.yml
+                                  without one, also calls text-audit.yml,
+                                  score-check.yml and model-specs.yml
 .github/workflows/text-audit.yml  The description check (N.55,
                                   bin/text_audit.dart): up to 60 of the
                                   week's ads (`text_audit_sample`) and 40
@@ -172,6 +173,14 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   audit/score_check.dart flags what looks
                                   off; report in the run's summary;
                                   writes nothing
+.github/workflows/model-specs.yml The catalog's empty figures from API
+                                  Ninjas (N.76, bin/model_specs.dart,
+                                  `API_NINJAS_KEY`; no key: skipped):
+                                  models never asked or missing a figure
+                                  30 days on (`model_specs_to_check`),
+                                  `store_model_specs` fills only empty
+                                  ones; differences from the typed figures
+                                  in the run's summary
 .github/workflows/push-test.yml   A test notification (bin/push_test.dart) to the
                                   devices of whoever asked in the app; input
                                   `kind`: an example of one alert or
@@ -311,6 +320,7 @@ make push-test                 send a test notification to the admins' devices (
 make weekly-summary [ARGS=--dry-run]   make and send (or print) each account's weekly summary
 make text-audit [ARGS=--ads=20]        the description check against Gemini (GEMINI_API_KEY)
 make score-check [ARGS=--days=14]      the estimates and Deal Score against likely sales (N.61)
+make model-specs                the catalog's missing figures from API Ninjas (N.76)
 make mutation PKG=collector|app FILES="lib/..."   mutation testing of those files
                                (needs `dart pub global activate mutation_test`)
 ```
@@ -335,7 +345,8 @@ pooler connection string, `[YOUR-PASSWORD]` left in) and
 (the Firebase project's `google-services.json`, built into the APK) and
 `FIREBASE_SERVICE_ACCOUNT` (its service account key, the collector's
 sender) for the Android app's notifications, `GEMINI_API_KEY` for the
-weekly description check (N.55), and `CLAUDE_CODE_OAUTH_TOKEN`
+weekly description check (N.55), `API_NINJAS_KEY` for the catalog's
+figures (N.76), and `CLAUDE_CODE_OAUTH_TOKEN`
 for the code-quality review. Supabase's Vault holds `github_dispatch_token`
 (starts the scheduled workflows), `telegram_bot_token` /
 `telegram_chat_id` (the watchdog's messages), `vapid_private_key` (Web
@@ -1283,8 +1294,9 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   km / 100 x the maker's `motorcycles.fuel_l_per_100km` (else
   `fuelConsumptionEstimate` by engine size) x the latest national price
   of petrol 95 (`fuel_prices`, `FuelPriceRepository`; no line without
-  one). Models added from the app have none of them until a migration
-  fills them. The owner's figures live in `ownership_settings` (one row
+  one). Models added from the app have none of them until the weekly
+  API Ninjas step (N.76) or a migration fills them (the maintenance
+  intervals: only a migration). The owner's figures live in `ownership_settings` (one row
   per account).
 - Favourite colours: `listings.colour` (a code: `colour_code()` of
   Standvirtual's `site_colour`, else `colour_in_text()`: a colour word in
@@ -1300,7 +1312,8 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   my_colour`); never part of any score.
 - Specifications (N.75): `motorcycles.torque_nm`, `weight_kg` (wet),
   `seat_height_mm`, `tank_l` (the makers' figures, with `power_kw` and
-  `fuel_l_per_100km`; models added from the app have none), read by the
+  `fuel_l_per_100km`; empty ones filled weekly from API Ninjas, N.76,
+  `model-specs.yml`), read by the
   ad's query (`ListingModel.specColumns`, `Listing.specs`): "Ficha
   técnica" in Detalhes (`specFacts`, `bike_specs_text.dart`; range = tank
   at the maker's consumption, `rangeKm`), the comparison's rows (each

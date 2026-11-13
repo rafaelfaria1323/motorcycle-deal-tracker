@@ -89,6 +89,9 @@ weekly-summary: require-collector-env ## Make and send each account's weekly sum
 text-audit: require-collector-env ## The description check (N.55): the rules against Gemini on the week's ads; needs GEMINI_API_KEY: make text-audit [ARGS=--ads=20]
 	cd collector && dart run bin/text_audit.dart $(ARGS)
 
+model-specs: require-collector-env ## The catalog's missing figures from API Ninjas (N.76, API_NINJAS_KEY): make model-specs
+	cd collector && dart run bin/model_specs.dart $(ARGS)
+
 score-check: require-collector-env ## The estimates and Deal Score against likely sales (N.61): make score-check [ARGS=--days=14]
 	cd collector && dart run bin/score_check.dart $(ARGS)
 
