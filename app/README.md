@@ -218,7 +218,11 @@ Screen names below use the Portuguese labels; English provides the same screens.
   (your models side by side: typical asking
   price and its spread, the typical bike, time until leaving the market,
   price drops, depreciation, the price trend of the last weeks adjusted for
-  year and km, with a small chart; cheapest first), "Quanto vale a minha
+  year and km, with a small chart; cheapest first; above them "Comparar
+  dois modelos": two of them picked side by side, with what each of the
+  last five years is worth at normal km, the loss per year and per
+  10 000 km, the time to sale, the drops and the yearly cost of owning the
+  typical bike, the lower loss and cost in green), "Quanto vale a minha
   mota" (a bike of one of your models, or with an account any brand and
   model, collected for the request and answered by a notification after
   the next collection, from its year and km: the price to ask, the

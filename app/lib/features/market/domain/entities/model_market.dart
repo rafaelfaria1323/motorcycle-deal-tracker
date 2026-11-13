@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../listings/domain/entities/bike_maintenance.dart';
 import 'market_behaviour.dart';
 
 /// A tracked model's market, for the comparison of models.
@@ -15,6 +16,12 @@ class const ModelMarket({
   /// The last weeks' asking prices, oldest first; weeks without ads left
   /// out.
   final List<PriceTrendWeek> trend = const [],
+
+  /// The middle of the model's engine range; null when unknown.
+  final int? engineCc,
+
+  /// The maker's figures for the cost of ownership; null when it has none.
+  final BikeMaintenance? maintenance,
 }) extends Equatable {
   String get name => '$brand $model';
 
@@ -26,6 +33,8 @@ class const ModelMarket({
     prices,
     behaviour,
     trend,
+    engineCc,
+    maintenance,
   ];
 }
 

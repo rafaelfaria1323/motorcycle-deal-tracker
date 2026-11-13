@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../valuation/domain/entities/bike_value.dart';
 import '../../../valuation/domain/entities/bike_value_request.dart';
+import '../../../listings/data/models/listing_model.dart';
 import '../../../listings/domain/entities/listing.dart' show minRealPrice;
 import '../../domain/entities/exit_price.dart';
 import '../../domain/entities/gone_deal.dart';
@@ -94,7 +95,10 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
   Future<List<ModelMarket>> getTrackedModels() async {
     final models = await _client
         .from('motorcycles')
-        .select('id, brand, model')
+        .select(
+          'id, brand, model, engine_cc_min, engine_cc_max, '
+          '${ListingModel.maintenanceColumns}',
+        )
         .eq('tracked_by_me', true);
     final ids = [for (final m in models) m['id'] as String];
     if (ids.isEmpty) return const [];
@@ -280,6 +284,8 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
               depreciation == null ? null : _depreciationFrom(depreciation),
             ),
       trend: trend,
+      engineCc: ListingModel.engineCcOf(model),
+      maintenance: ListingModel.maintenanceOf(model),
     );
   }
 

@@ -402,7 +402,9 @@ invites; written by the collector on each run).
   ad, the catalog and "Modelos acompanhados"), `alerts` (Alertas and the
   weekly summary), `saved_searches`, `favourites` (with the viewing
   checklist), `compare`, `market` (market behaviour, the model's market
-  page, time to sale), `valuation` (a bike's value, the import
+  page, time to sale; "Comparar dois modelos" on that page, N.81:
+  `model_comparison_text.dart`, `ModelComparisonCard`, rows shown with the
+  listings comparison's `CompareRowView`), `valuation` (a bike's value, the import
   calculator, the cost of ownership, "A minha mota": `owned_bikes`,
   `OwnedBikesCubit`, "Comprei esta" on the ad's Negociar, N.67; its value
   month by month, `owned_bike_values`, kept and pushed by the Monday
