@@ -8,6 +8,7 @@ import 'package:motorcycle_deal_tracker/features/valuation/domain/entities/bike_
 import 'package:motorcycle_deal_tracker/features/market/domain/entities/exit_price.dart';
 import 'package:motorcycle_deal_tracker/features/market/domain/entities/gone_deal.dart';
 import 'package:motorcycle_deal_tracker/features/market/domain/entities/market_behaviour.dart';
+import 'package:motorcycle_deal_tracker/features/market/domain/entities/price_drop_outlook.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
@@ -167,6 +168,30 @@ void main() {
 
     reply = '[]';
     expect(await repository.getTimeToSale('l2'), isNull);
+  });
+
+  test('getPriceDropOutlook asks for the listing; an empty sample is null', () async {
+    reply =
+        '[{"sample":10,"dropped":4,"gone":2,"unchanged":4,"median_drop":7.5}]';
+    final o = await repository.getPriceDropOutlook('l1');
+    expect(requests.single.url.path, endsWith('/rpc/price_drop_outlook'));
+    expect(jsonDecode(requests.single.body), {'p_listing_id': 'l1'});
+    expect(
+      o,
+      const PriceDropOutlook(
+        sample: 10,
+        dropped: 4,
+        gone: 2,
+        unchanged: 4,
+        medianDrop: 7.5,
+      ),
+    );
+
+    reply =
+        '[{"sample":0,"dropped":0,"gone":0,"unchanged":0,"median_drop":null}]';
+    expect(await repository.getPriceDropOutlook('l2'), isNull);
+    reply = '[]';
+    expect(await repository.getPriceDropOutlook('l3'), isNull);
   });
 
   test('bikeValueFrom reads the row of bike_value', () {

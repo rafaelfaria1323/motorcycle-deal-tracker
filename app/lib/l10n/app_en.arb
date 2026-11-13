@@ -1272,5 +1272,15 @@
   "modelCompareCostFuel": "… fuel",
   "modelCompareCostInsuranceTax": "… insurance and road tax",
   "modelCompareCostMaintenance": "… tyres, services and chain",
-  "modelCompareNote": "Asking prices from the ads, not sale prices. Each year is valued at the normal mileage for its age. The cost of owning is that of each model's typical bike, at the typical asking price, at {km} a year for {years, plural, =1{1 year} other{{years} years}}, as in \"Cost of owning this bike\". In green, what loses or costs less; —, too little data."
+  "modelCompareNote": "Asking prices from the ads, not sale prices. Each year is valued at the normal mileage for its age. The cost of owning is that of each model's typical bike, at the typical asking price, at {km} a year for {years, plural, =1{1 year} other{{years} years}}, as in \"Cost of owning this bike\". In green, what loses or costs less; —, too little data.",
+  "waitOrBuyNow": "Wait or buy now?",
+  "priceDropOutlookIntro": "Listings of this model that had been on sale as long as this one, in the next {days} days:",
+  "priceDropOutlookDropped": "{count} of {sample} lowered their price",
+  "priceDropOutlookDroppedBy": "{count} of {sample} lowered their price (typically by {drop})",
+  "priceDropOutlookGone": "{count} of {sample} left the market without a drop",
+  "priceDropOutlookUnchanged": "{count} of {sample} stayed at the same price",
+  "priceDropOutlookWait": "Many dropped: waiting a few days and offering again may pay, if you accept the risk of another buyer getting there first.",
+  "priceDropOutlookBuyNow": "Many left before dropping: if you want this bike, don't wait for a drop.",
+  "priceDropOutlookNeutral": "Few dropped and few left: the price moves more with your offer than with waiting.",
+  "priceDropOutlookFootnote": "Asking prices from the listings, not sale prices. Not part of any score."
 }

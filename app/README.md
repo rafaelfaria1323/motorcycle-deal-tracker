@@ -172,7 +172,10 @@ Screen names below use the Portuguese labels; English provides the same screens.
     send; problems marked at the visit come off the offer; how keen the
     seller seems ("Pressa do vendedor"); for a dealer, what to ask for
     besides the price, with a message; for a
-    favourite, "O seu preço": an alert when the ad drops to it), "E se
+    favourite, "O seu preço": an alert when the ad drops to it),
+    "Esperar ou comprar já?" (of the model's ads on sale as long as this
+    one, how many dropped their price, left or stayed the same in the next
+    30 days, and whether waiting looks worth it), "E se
     pagar a prestações?" (folded: deposit, term and the quote's TAEG give
     the instalment, the total paid and the interest, and the same loan at
     the most to pay), "Mensagem para o vendedor" (a first message with the

@@ -1203,6 +1203,16 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   `listings_keep_market_position`) keeps a gone ad's last position, since
   its scores are cleared. App: `time_to_sale_text.dart`, in "Mercado
   deste modelo". Never a score slice.
+- Waiting or buying now (N.83): `price_drop_outlook(p_listing_id,
+  p_days = 30)` (security invoker, readable by everyone; a live ad with a
+  model and a real price only): the model's other non-duplicate ads (not
+  this one or what it repeats) still for sale at this ad's age, counted
+  from `first_seen_at`, and followed for the whole window after it; each
+  either dropped 1 %+ to a real price in the window (median drop), else
+  left, else stayed. App: "Esperar ou comprar já?" in Negociar after the
+  offer (`PriceDropOutlookCard`, `price_drop_outlook_text.dart`,
+  `outlookAdvice`: wait from 40 % dropped when more dropped than left,
+  buy now from 40 % left), from 5 ads. Never a score.
 - How a gone ad left (N.61): neither site says a bike sold, so the
   status `sold` is never set and `removed` keeps meaning gone (alerts and
   a relist's return rely on it). `exit_kind(listing)` (computed field,

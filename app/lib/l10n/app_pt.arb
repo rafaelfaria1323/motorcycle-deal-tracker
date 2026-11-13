@@ -7329,5 +7329,85 @@
         "type": "int"
       }
     }
+  },
+  "waitOrBuyNow": "Esperar ou comprar já?",
+  "@waitOrBuyNow": {
+    "description": "Negociar: title of the card about what the model's other ads did after this ad's age (N.83)."
+  },
+  "priceDropOutlookIntro": "Anúncios deste modelo que estavam à venda há tanto tempo como este, nos {days} dias seguintes:",
+  "@priceDropOutlookIntro": {
+    "description": "Negociar: introduces what the model's other ads did in the days after they were this ad's age (N.83).",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "priceDropOutlookDropped": "{count} de {sample} baixaram o preço",
+  "@priceDropOutlookDropped": {
+    "description": "Negociar: how many of the sample dropped their price (N.83).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "sample": {
+        "type": "int"
+      }
+    }
+  },
+  "priceDropOutlookDroppedBy": "{count} de {sample} baixaram o preço (em regra {drop})",
+  "@priceDropOutlookDroppedBy": {
+    "description": "Negociar: how many of the sample dropped their price, and the median drop as a formatted percentage (N.83).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "sample": {
+        "type": "int"
+      },
+      "drop": {
+        "type": "String"
+      }
+    }
+  },
+  "priceDropOutlookGone": "{count} de {sample} saíram do mercado sem baixar",
+  "@priceDropOutlookGone": {
+    "description": "Negociar: how many of the sample left the market without a drop (N.83).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "sample": {
+        "type": "int"
+      }
+    }
+  },
+  "priceDropOutlookUnchanged": "{count} de {sample} continuaram ao mesmo preço",
+  "@priceDropOutlookUnchanged": {
+    "description": "Negociar: how many of the sample stayed at the same price (N.83).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "sample": {
+        "type": "int"
+      }
+    }
+  },
+  "priceDropOutlookWait": "Muitos baixaram: esperar uns dias e voltar a propor pode compensar, se aceitar o risco de outro comprador chegar primeiro.",
+  "@priceDropOutlookWait": {
+    "description": "Negociar: advice when many of the model's ads dropped (N.83)."
+  },
+  "priceDropOutlookBuyNow": "Muitos saíram antes de baixar: se esta mota lhe interessa, não espere por uma descida.",
+  "@priceDropOutlookBuyNow": {
+    "description": "Negociar: advice when many of the model's ads left before dropping (N.83)."
+  },
+  "priceDropOutlookNeutral": "Poucos baixaram e poucos saíram: o preço mexe-se mais com a proposta do que com a espera.",
+  "@priceDropOutlookNeutral": {
+    "description": "Negociar: advice when neither happened often (N.83)."
+  },
+  "priceDropOutlookFootnote": "Preços pedidos nos anúncios, não preços de venda. Não conta para nenhuma pontuação.",
+  "@priceDropOutlookFootnote": {
+    "description": "Negociar: footnote of the wait-or-buy card (N.83)."
   }
 }
