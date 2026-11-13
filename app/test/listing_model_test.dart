@@ -207,7 +207,10 @@ void main() {
         tankLitres: 14,
       ),
     );
-    expect(ListingModel.fromJson(_row({'motorcycles': {}})).specs, isNull);
+    expect(
+      ListingModel.fromJson(_row({'motorcycles': <String, dynamic>{}})).specs,
+      isNull,
+    );
     expect(ListingModel.fromJson(_row({})).specs, isNull);
   });
 

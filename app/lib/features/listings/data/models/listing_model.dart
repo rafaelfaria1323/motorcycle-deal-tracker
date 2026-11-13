@@ -47,6 +47,7 @@ class const ListingModel({
   super.newPriceAdCount,
   super.engineCc,
   super.maintenance,
+  super.specs,
   super.distanceKm,
   super.colour,
   super.myColour,
