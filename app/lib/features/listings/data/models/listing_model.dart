@@ -1,4 +1,5 @@
 import '../../domain/entities/bike_maintenance.dart';
+import '../../domain/entities/bike_specs.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/entities/photo_hint.dart';
 
@@ -46,6 +47,7 @@ class const ListingModel({
   super.newPriceAdCount,
   super.engineCc,
   super.maintenance,
+  super.specs,
   super.distanceKm,
   super.colour,
   super.myColour,
@@ -127,6 +129,7 @@ class const ListingModel({
           : bike?['new_price_ad_count'] as int?,
       engineCc: engineCcOf(bike),
       maintenance: maintenanceOf(bike),
+      specs: specsOf(bike),
       distanceKm: (json['distance_km'] as num?)?.toInt(),
       colour: json['colour'] as String?,
       myColour: json['my_colour'] as bool? ?? false,
@@ -176,6 +179,23 @@ class const ListingModel({
       fuelPer100Km: (bike['fuel_l_per_100km'] as num?)?.toDouble(),
     );
     return value == const BikeMaintenance() ? null : value;
+  }
+
+  /// The columns of `motorcycles` that [specsOf] reads.
+  static const specColumns =
+      'power_kw, torque_nm, weight_kg, seat_height_mm, tank_l';
+
+  /// The model's specifications; null when it has none.
+  static BikeSpecs? specsOf(Map<String, dynamic>? bike) {
+    if (bike == null) return null;
+    final value = BikeSpecs(
+      powerKw: (bike['power_kw'] as num?)?.toDouble(),
+      torqueNm: (bike['torque_nm'] as num?)?.toDouble(),
+      weightKg: (bike['weight_kg'] as num?)?.toInt(),
+      seatHeightMm: (bike['seat_height_mm'] as num?)?.toInt(),
+      tankLitres: (bike['tank_l'] as num?)?.toDouble(),
+    );
+    return value == const BikeSpecs() ? null : value;
   }
 
   /// Shared with `SavedSearchModel`; anything unrecognised is `unknown`.

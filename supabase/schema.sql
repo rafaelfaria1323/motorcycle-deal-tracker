@@ -3198,6 +3198,10 @@ CREATE TABLE public.motorcycles (
     valve_check_km integer,
     power_kw numeric(5,1),
     fuel_l_per_100km numeric(3,1),
+    torque_nm numeric(4,1),
+    weight_kg smallint,
+    seat_height_mm smallint,
+    tank_l numeric(3,1),
     CONSTRAINT motorcycles_both_source_searches CHECK (((olx_search IS NOT NULL) AND (standvirtual_search IS NOT NULL))),
     CONSTRAINT motorcycles_cylinders CHECK (((cylinders >= 1) AND (cylinders <= 6))),
     CONSTRAINT motorcycles_engine_cc_max_check CHECK ((engine_cc_max > 0)),
@@ -3209,9 +3213,13 @@ CREATE TABLE public.motorcycles (
     CONSTRAINT motorcycles_olx_search_check CHECK ((olx_search ~~ 'https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/%'::text)),
     CONSTRAINT motorcycles_power_kw CHECK (((power_kw > (0)::numeric) AND (power_kw <= (250)::numeric))),
     CONSTRAINT motorcycles_rear_tyre_size CHECK ((rear_tyre ~ '^[0-9]{2,3}/[0-9]{2}-[0-9]{2}$'::text)),
+    CONSTRAINT motorcycles_seat_height_mm CHECK (((seat_height_mm >= 500) AND (seat_height_mm <= 1100))),
     CONSTRAINT motorcycles_service_interval CHECK (((service_interval_km >= 1000) AND (service_interval_km <= 50000))),
     CONSTRAINT motorcycles_standvirtual_search_check CHECK ((standvirtual_search ~~ 'https://www.standvirtual.com/motos/%'::text)),
-    CONSTRAINT motorcycles_valve_check CHECK (((valve_check_km >= 5000) AND (valve_check_km <= 100000)))
+    CONSTRAINT motorcycles_tank_l CHECK (((tank_l >= (3)::numeric) AND (tank_l <= (40)::numeric))),
+    CONSTRAINT motorcycles_torque_nm CHECK (((torque_nm > (0)::numeric) AND (torque_nm <= (300)::numeric))),
+    CONSTRAINT motorcycles_valve_check CHECK (((valve_check_km >= 5000) AND (valve_check_km <= 100000))),
+    CONSTRAINT motorcycles_weight_kg CHECK (((weight_kg >= 60) AND (weight_kg <= 450)))
 );
 
 --
@@ -3291,6 +3299,30 @@ COMMENT ON COLUMN public.motorcycles.power_kw IS 'The model''s maximum power in 
 --
 
 COMMENT ON COLUMN public.motorcycles.fuel_l_per_100km IS 'The maker''s WMTC consumption, litres per 100 km; null unknown.';
+
+--
+-- Name: COLUMN motorcycles.torque_nm; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.motorcycles.torque_nm IS 'The maker''s maximum torque in Nm (current generation); null unknown.';
+
+--
+-- Name: COLUMN motorcycles.weight_kg; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.motorcycles.weight_kg IS 'The maker''s wet weight in kg (ready to ride, full tank); null unknown.';
+
+--
+-- Name: COLUMN motorcycles.seat_height_mm; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.motorcycles.seat_height_mm IS 'The maker''s standard seat height in mm; null unknown.';
+
+--
+-- Name: COLUMN motorcycles.tank_l; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.motorcycles.tank_l IS 'The fuel tank in litres; null unknown.';
 
 --
 -- Name: my_colours(public.motorcycles); Type: FUNCTION; Schema: public; Owner: -
@@ -6189,10 +6221,18 @@ CREATE TABLE public.ownership_settings (
     km_per_year integer DEFAULT 5000 NOT NULL,
     years_to_keep smallint DEFAULT 3 NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    rider_height_cm smallint,
     CONSTRAINT ownership_settings_insurance_per_year_check CHECK (((insurance_per_year >= 0) AND (insurance_per_year <= 20000))),
     CONSTRAINT ownership_settings_km_per_year_check CHECK (((km_per_year >= 0) AND (km_per_year <= 100000))),
+    CONSTRAINT ownership_settings_rider_height CHECK (((rider_height_cm >= 120) AND (rider_height_cm <= 220))),
     CONSTRAINT ownership_settings_years_to_keep_check CHECK (((years_to_keep >= 1) AND (years_to_keep <= 15)))
 );
+
+--
+-- Name: COLUMN ownership_settings.rider_height_cm; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.ownership_settings.rider_height_cm IS 'The rider''s height in cm, for the seat height check ("Cabe-me?"); null not given.';
 
 --
 -- Name: photo_classifiers; Type: TABLE; Schema: public; Owner: -

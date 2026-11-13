@@ -1,5 +1,6 @@
 import '../../../core/formatting/formatters.dart';
 import '../../listings/domain/entities/listing.dart';
+import '../../listings/presentation/bike_specs_text.dart';
 import '../../listings/presentation/listing_card_text.dart';
 import '../../listings/presentation/listing_labels.dart';
 import '../../listings/presentation/score_explanation.dart';
@@ -128,6 +129,7 @@ List<CompareRow> compareRows(
       score: (l) => (l.scoreBreakdown?['extras'] as List?)?.length,
       higherIsBetter: true,
     ),
+    ..._specRows(listings, row, language),
     row(language.messages.locationLabel, (l) => l.location ?? '—'),
     row(
       language.messages.seller,
@@ -143,6 +145,76 @@ List<CompareRow> compareRows(
           ? '—'
           : Formatters.daysAgo(l.firstSeenAt!, now: now, language: language),
     ),
+  ];
+}
+
+typedef _Row = CompareRow Function(
+  String label,
+  String Function(Listing) text, {
+  num? Function(Listing)? score,
+  bool higherIsBetter,
+});
+
+/// The model's figures (N.75), each only when some listing has it: more
+/// power and range, less weight and consumption are better; seat height
+/// and tank only inform.
+List<CompareRow> _specRows(
+  List<Listing> listings,
+  _Row row,
+  AppLanguage language,
+) {
+  final m = language.messages;
+  String decimal(num? value, String unit) => value == null
+      ? '—'
+      : '${Formatters.decimal(value.toDouble(), decimals: value % 1 == 0 ? 0 : 1, language: language)} $unit';
+  double? fuel(Listing l) => l.maintenance?.fuelPer100Km;
+  int? range(Listing l) => rangeKm(l.specs?.tankLitres, fuel(l));
+  final specs =
+      <(String, num? Function(Listing), String Function(Listing), bool?)>[
+        (
+          m.specPower,
+          (l) => l.specs?.powerKw,
+          (l) => switch (l.specs?.powerKw) {
+            final kw? => powerText(kw, language: language),
+            null => '—',
+          },
+          true,
+        ),
+        (
+          m.specWeight,
+          (l) => l.specs?.weightKg,
+          (l) => decimal(l.specs?.weightKg, 'kg'),
+          false,
+        ),
+        (
+          m.specSeatHeight,
+          (l) => l.specs?.seatHeightMm,
+          (l) => decimal(l.specs?.seatHeightMm, 'mm'),
+          null,
+        ),
+        (
+          m.specTank,
+          (l) => l.specs?.tankLitres,
+          (l) => decimal(l.specs?.tankLitres, 'l'),
+          null,
+        ),
+        (m.specConsumption, fuel, (l) => decimal(fuel(l), 'l/100 km'), false),
+        (
+          m.specRange,
+          range,
+          (l) => switch (range(l)) {
+            final km? => Formatters.mileage(km, language: language),
+            null => '—',
+          },
+          true,
+        ),
+      ];
+  return [
+    for (final (label, value, text, higherIsBetter) in specs)
+      if (listings.any((l) => value(l) != null))
+        higherIsBetter == null
+            ? row(label, text)
+            : row(label, text, score: value, higherIsBetter: higherIsBetter),
   ];
 }
 

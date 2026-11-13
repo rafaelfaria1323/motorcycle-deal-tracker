@@ -16,23 +16,37 @@ class SupabaseOwnershipSettingsRepository
     // Row-level security returns only the current user's row.
     final row = await _client
         .from(_table)
-        .select('insurance_per_year, km_per_year, years_to_keep')
+        .select(
+          'insurance_per_year, km_per_year, years_to_keep, rider_height_cm',
+        )
         .maybeSingle();
     if (row == null) return const OwnershipSettings();
     return OwnershipSettings(
       insurancePerYear: (row['insurance_per_year'] as num?)?.toInt(),
       kmPerYear: (row['km_per_year'] as num).toInt(),
       yearsToKeep: (row['years_to_keep'] as num).toInt(),
+      riderHeightCm: (row['rider_height_cm'] as num?)?.toInt(),
     );
   }
 
   @override
   Future<void> save(OwnershipSettings settings) async {
-    // The user id defaults to the signed-in user.
+    // The user id defaults to the signed-in user. The upsert changes only
+    // the columns sent, so the rider's height stays.
     await _client.from(_table).upsert({
       'insurance_per_year': settings.insurancePerYear,
       'km_per_year': settings.kmPerYear,
       'years_to_keep': settings.yearsToKeep,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    }, onConflict: 'user_id');
+  }
+
+  @override
+  Future<void> saveRiderHeight(int? centimetres) async {
+    // Only this column (and the date): the cost figures stay, or take
+    // their defaults on a first save.
+    await _client.from(_table).upsert({
+      'rider_height_cm': centimetres,
       'updated_at': DateTime.now().toUtc().toIso8601String(),
     }, onConflict: 'user_id');
   }

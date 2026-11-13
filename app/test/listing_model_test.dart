@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/features/listings/data/models/listing_model.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/entities/bike_specs.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/photo_hint.dart';
 
@@ -182,6 +183,35 @@ void main() {
     expect(listing.newPrice, 8999.0);
     expect(listing.newPriceCheckedAt, DateTime.utc(2026, 10));
     expect(listing.newPriceAdCount, isNull);
+  });
+
+  test('reads the model\'s specifications, none without them (N.75)', () {
+    final listing = ListingModel.fromJson(
+      _row({
+        'motorcycles': {
+          'power_kw': 54,
+          'torque_nm': 67.5,
+          'weight_kg': 184,
+          'seat_height_mm': 805,
+          'tank_l': 14,
+        },
+      }),
+    );
+    expect(
+      listing.specs,
+      const BikeSpecs(
+        powerKw: 54,
+        torqueNm: 67.5,
+        weightKg: 184,
+        seatHeightMm: 805,
+        tankLitres: 14,
+      ),
+    );
+    expect(
+      ListingModel.fromJson(_row({'motorcycles': <String, dynamic>{}})).specs,
+      isNull,
+    );
+    expect(ListingModel.fromJson(_row({})).specs, isNull);
   });
 
   test('the dealers\' new bikes win over the typed price (N.58)', () {

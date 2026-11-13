@@ -149,7 +149,8 @@ class SupabaseListingsRepository(final SupabaseClient _client)
           'motorcycles(new_price_reference, new_price_checked_at, '
           'new_price_from_ads, new_price_ad_count, '
           'engine_cc_min, engine_cc_max, '
-          '${ListingModel.maintenanceColumns})',
+          '${ListingModel.maintenanceColumns}, '
+          '${ListingModel.specColumns})',
         )
         .eq('id', id)
         .maybeSingle();

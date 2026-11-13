@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'bike_maintenance.dart';
+import 'bike_specs.dart';
 import 'photo_hint.dart';
 
 enum ListingStatus { active, priceChanged, removed, sold, unknown }
@@ -88,6 +89,10 @@ class const Listing({
   /// The model's tyre sizes, cylinders and service intervals (N.60), for
   /// the cost of ownership. Only loaded on the detail page.
   final BikeMaintenance? maintenance,
+
+  /// The model's power, torque, weight, seat height and tank (N.75). Only
+  /// loaded on the detail page.
+  final BikeSpecs? specs,
 
   /// Straight-line km from the signed-in person's home (the computed field
   /// `distance_km`); null without a home or a known place.

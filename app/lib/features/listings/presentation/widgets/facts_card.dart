@@ -3,16 +3,19 @@ import 'package:flutter/material.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../listing_detail_text.dart';
 
-/// A titled card of label/value rows ("A mota", "O anúncio").
+/// A titled card of label/value rows ("A mota", "O anúncio", "Ficha
+/// técnica"), with an optional footnote.
 class const FactsCard({
   required final String title,
   required final List<Fact> facts,
+  final String? footnote,
   super.key,
 }) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SectionCard(
       title: title,
+      footnote: footnote,
       children: [
         for (final (i, (label, value)) in facts.indexed) ...[
           if (i > 0) const Divider(height: 1),

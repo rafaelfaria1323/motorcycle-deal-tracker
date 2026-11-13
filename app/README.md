@@ -109,7 +109,8 @@ Screen names below use the Portuguese labels; English provides the same screens.
   you about price drops and its removal.
 - **Comparar:** up to 3 listings side by side ("Comparar" on a card in
   Ofertas, long press the card, or "Comparar" on a listing's page), the best
-  value of each row marked.
+  value of each row marked; the models' power, weight, seat height, tank,
+  consumption and range once any of them has a figure.
 - **Listing page:** photo gallery (full screen on a tap; there pinch, the
   mouse wheel or a double tap zooms; admins also mark each of the first 3
   photos "Problema" or "Bem", which the collector learns from, P.3); in
@@ -143,7 +144,10 @@ Screen names below use the Portuguese labels; English provides the same screens.
     mostrar": a free image model's hints of damage in the photos, and
     "Parecida com fotos marcadas como problema" once the admins' marks
     trained a classifier (a tap opens the photo; never part of a score).
-  - **Detalhes:** the bike's facts, the seller's description, the ad's
+  - **Detalhes:** the bike's facts, "Ficha técnica" (the model's power,
+    torque, weight, seat height, tank, consumption and range on a full
+    tank), "Cabe-me?" (signed-in accounts: the seat height against your
+    height, saved to your account), the seller's description, the ad's
     facts.
   - **Mercado:** market behaviour for the model (with where the asking
     price sits among the model's live listings, what the model's ads

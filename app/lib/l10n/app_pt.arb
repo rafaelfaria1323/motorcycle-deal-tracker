@@ -7042,5 +7042,135 @@
         "type": "int"
       }
     }
+  },
+  "specsTitle": "Ficha técnica",
+  "@specsTitle": {
+    "description": "Interface text in bike_specs_text / bike_specs_card (N.75)."
+  },
+  "specsFootnote": "Valores do fabricante para a geração atual do modelo; anos e versões anteriores podem diferir. A autonomia é a do consumo do fabricante.",
+  "@specsFootnote": {
+    "description": "Interface text in bike_specs_text / bike_specs_card (N.75)."
+  },
+  "specPower": "Potência",
+  "@specPower": {
+    "description": "Interface text in bike_specs_text / bike_specs_card (N.75)."
+  },
+  "specPowerValue": "{kw} kW ({hp} cv)",
+  "@specPowerValue": {
+    "description": "Interface text in bike_specs_text / bike_specs_card (N.75).",
+    "placeholders": {
+      "kw": {
+        "type": "String"
+      },
+      "hp": {
+        "type": "int"
+      }
+    }
+  },
+  "specTorque": "Binário",
+  "@specTorque": {
+    "description": "Interface text in bike_specs_text / bike_specs_card (N.75)."
+  },
+  "specWeight": "Peso",
+  "@specWeight": {
+    "description": "Interface text in bike_specs_text / bike_specs_card (N.75)."
+  },
+  "specWeightValue": "{kg} kg, pronta a andar",
+  "@specWeightValue": {
+    "description": "Interface text in bike_specs_text / bike_specs_card (N.75).",
+    "placeholders": {
+      "kg": {
+        "type": "int"
+      }
+    }
+  },
+  "specSeatHeight": "Altura do banco",
+  "@specSeatHeight": {
+    "description": "Interface text in bike_specs_text / bike_specs_card (N.75)."
+  },
+  "specTank": "Depósito",
+  "@specTank": {
+    "description": "Interface text in bike_specs_text / bike_specs_card (N.75)."
+  },
+  "specConsumption": "Consumo",
+  "@specConsumption": {
+    "description": "Interface text in bike_specs_text / bike_specs_card (N.75)."
+  },
+  "specRange": "Autonomia",
+  "@specRange": {
+    "description": "Interface text in bike_specs_text / bike_specs_card (N.75)."
+  },
+  "specRangeValue": "cerca de {km}",
+  "@specRangeValue": {
+    "description": "Interface text in bike_specs_text / bike_specs_card (N.75).",
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "seatFitTitle": "Cabe-me?",
+  "@seatFitTitle": {
+    "description": "Interface text in bike_specs_text / bike_specs_card (N.75)."
+  },
+  "seatFitFlat": "Com {height}, deve apoiar os dois pés por inteiro no chão.",
+  "@seatFitFlat": {
+    "description": "Interface text in bike_specs_text / bike_specs_card (N.75).",
+    "placeholders": {
+      "height": {
+        "type": "String"
+      }
+    }
+  },
+  "seatFitBalls": "Com {height}, deve chegar ao chão com a planta dos dois pés.",
+  "@seatFitBalls": {
+    "description": "Interface text in bike_specs_text / bike_specs_card (N.75).",
+    "placeholders": {
+      "height": {
+        "type": "String"
+      }
+    }
+  },
+  "seatFitToes": "Com {height}, deve chegar ao chão só com as pontas dos pés.",
+  "@seatFitToes": {
+    "description": "Interface text in bike_specs_text / bike_specs_card (N.75).",
+    "placeholders": {
+      "height": {
+        "type": "String"
+      }
+    }
+  },
+  "seatFitTooHigh": "Com {height}, o banco deve ficar alto demais: pergunte por um banco baixo ou um kit de rebaixamento.",
+  "@seatFitTooHigh": {
+    "description": "Interface text in bike_specs_text / bike_specs_card (N.75).",
+    "placeholders": {
+      "height": {
+        "type": "String"
+      }
+    }
+  },
+  "seatFitFootnote": "Uma estimativa: a entreperna conta como 47 % da altura; a largura do banco e a suspensão também contam. Experimente na visita.",
+  "@seatFitFootnote": {
+    "description": "Interface text in bike_specs_text / bike_specs_card (N.75)."
+  },
+  "seatFitAskHeight": "Indique a sua altura para saber se chega bem ao chão nesta mota.",
+  "@seatFitAskHeight": {
+    "description": "Interface text in bike_specs_text / bike_specs_card (N.75)."
+  },
+  "seatFitSetHeight": "Indicar altura",
+  "@seatFitSetHeight": {
+    "description": "Interface text in bike_specs_text / bike_specs_card (N.75)."
+  },
+  "riderHeightTitle": "A sua altura",
+  "@riderHeightTitle": {
+    "description": "Interface text in bike_specs_text / bike_specs_card (N.75)."
+  },
+  "riderHeightLabel": "Altura",
+  "@riderHeightLabel": {
+    "description": "Interface text in bike_specs_text / bike_specs_card (N.75)."
+  },
+  "riderHeightInvalid": "Indique a altura em cm, entre 120 e 220.",
+  "@riderHeightInvalid": {
+    "description": "Interface text in bike_specs_text / bike_specs_card (N.75)."
   }
 }
