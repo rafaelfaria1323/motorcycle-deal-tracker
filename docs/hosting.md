@@ -195,6 +195,47 @@ a few calls a week).
 3. Actions › "Model specifications" › Run workflow: the run's summary
    lists what was filled and what differs from the typed figures.
 
+### The weekly backup (N.79)
+
+Supabase's free plan keeps no backups. `backup.yml` runs with Monday's
+summary: it dumps the database (`tool/backup.sh`: the schema `public` with
+its data, and the accounts in `auth.users` / `auth.identities`), encrypts
+the dumps with a passphrase (gpg, AES-256; they hold sellers' data, and a
+public repository's artifacts can be downloaded by anyone signed in to
+GitHub), keeps them as the run's artifact `database-backup` for 90 days,
+then proves the copy: decrypts it again and restores it into an empty
+database the migrations made, the same way as below. Not in it: the Vault
+(type the secrets again, see "Replacing secrets") and pg_cron's jobs (the
+migrations make them).
+
+1. Make a long passphrase (e.g. `openssl rand -base64 32` on the Mac) and
+   keep it in your password manager: **without it the backups can't be
+   read**, and GitHub never shows a secret again.
+2. GitHub › Settings › Secrets and variables › Actions → new secret
+   `BACKUP_PASSPHRASE` (16 characters at least).
+3. Actions › "Database backup" › Run workflow: the run's summary says how
+   big the backup is and how the restore check went. Without the secret
+   it says so and passes. Also worth running by hand before a risky
+   migration.
+
+#### Restoring a backup
+
+On the Mac (`brew install gnupg libpq`), into a new Supabase project:
+
+1. Actions › the latest green "Database backup" (or "Weekly summary") run
+   › Artifacts › `database-backup`: unzip it, then
+   `gpg -d backup-<date>.tar.gpg | tar x` (asks for the passphrase) gives
+   the folder `backup`.
+2. In the new project, apply every migration:
+   `tool/apply_migrations.sh "<session pooler URL with the password>"`.
+3. `tool/restore_backup.sh "<the same URL>" backup`: empties the public
+   tables, loads the accounts (the new project's `auth.users` must be
+   empty) and the data with triggers off, and compares each table's rows
+   with the counts taken at the dump.
+4. Point the secrets at the new project (`SUPABASE_URL`, the keys,
+   `SUPABASE_DB_URL`, the app's build) and type the Vault secrets again
+   (table below). Accounts keep their passwords.
+
 ### The description check (Gemini, N.55)
 
 `text-audit.yml` runs with Monday's summary and sends up to 60 of the
@@ -342,6 +383,7 @@ update `collector/.env` if you run the collector there.
 | Firebase service account | Repository secret `FIREBASE_SERVICE_ACCOUNT` | Firebase › Project settings › Service accounts › "Generate new private key", paste it as the secret, delete the file; check with "Enviar notificação de teste" in the Android app; then delete the old key in Google Cloud › IAM › Service accounts › the account › Keys. `FIREBASE_ANDROID_CONFIG` is not a secret worth replacing (it is inside every APK). |
 | Gemini API key | Repository secret `GEMINI_API_KEY` (the description check) | Google AI Studio › API keys › create a new key, put it in the secret, delete the old one there; check with "Description check" › Run workflow. |
 | API Ninjas key | Repository secret `API_NINJAS_KEY` (the model specifications) | api-ninjas.com › My Account › reset the API key, put the new one in the secret; check with "Model specifications" › Run workflow. |
+| Backup passphrase | Repository secret `BACKUP_PASSPHRASE` (the weekly backup) | Never needed: a new one only applies to the next backups. Keep the old one as long as a backup made with it is kept (90 days), or those can no longer be read. |
 | Claude token | Repository secret `CLAUDE_CODE_OAUTH_TOKEN` (backlog passes) | `claude setup-token` on the Mac, paste it as the secret (these tokens last a year, so this one also has its own date). |
 
 Not replaced:

@@ -152,7 +152,8 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   pushed to its devices (bin/weekly_summary.dart);
                                   input `account`: only that one;
                                   without one, also calls text-audit.yml,
-                                  score-check.yml and model-specs.yml
+                                  score-check.yml, model-specs.yml and
+                                  backup.yml
 .github/workflows/text-audit.yml  The description check (N.55,
                                   bin/text_audit.dart): up to 60 of the
                                   week's ads (`text_audit_sample`) and 40
@@ -181,6 +182,17 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   `store_model_specs` fills only empty
                                   ones; differences from the typed figures
                                   in the run's summary
+.github/workflows/backup.yml      The weekly database backup (N.79):
+                                  tool/backup.sh (pg_dump of public and
+                                  the accounts, the database's own
+                                  Postgres version), encrypted with
+                                  `BACKUP_PASSPHRASE` (gpg AES-256), the
+                                  artifact `database-backup` kept 90 days;
+                                  then restored into an empty database
+                                  the migrations made
+                                  (tool/restore_backup.sh, the script a
+                                  real restore uses; docs/hosting.md);
+                                  no secret: skipped
 .github/workflows/push-test.yml   A test notification (bin/push_test.dart) to the
                                   devices of whoever asked in the app; input
                                   `kind`: an example of one alert or
@@ -346,7 +358,8 @@ pooler connection string, `[YOUR-PASSWORD]` left in) and
 `FIREBASE_SERVICE_ACCOUNT` (its service account key, the collector's
 sender) for the Android app's notifications, `GEMINI_API_KEY` for the
 weekly description check (N.55), `API_NINJAS_KEY` for the catalog's
-figures (N.76), and `CLAUDE_CODE_OAUTH_TOKEN`
+figures (N.76), `BACKUP_PASSPHRASE` for the weekly encrypted
+database backup (N.79), and `CLAUDE_CODE_OAUTH_TOKEN`
 for the code-quality review. Supabase's Vault holds `github_dispatch_token`
 (starts the scheduled workflows), `telegram_bot_token` /
 `telegram_chat_id` (the watchdog's messages), `vapid_private_key` (Web

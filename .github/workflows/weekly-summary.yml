@@ -12,8 +12,8 @@ name: Weekly summary
 # account as `account` (start_workflow), for that account only; "Run
 # workflow" here without an account makes everyone's, and then runs the
 # description check (text-audit.yml, N.55), the score check
-# (score-check.yml, N.61) and the model specifications (model-specs.yml,
-# N.76) beside it.
+# (score-check.yml, N.61), the model specifications (model-specs.yml,
+# N.76) and the database backup (backup.yml, N.79) beside it.
 on:
   workflow_dispatch:
     inputs:
@@ -60,4 +60,10 @@ jobs:
     # Weekly with everyone's summary: the catalog's missing figures.
     if: inputs.account == ''
     uses: ./.github/workflows/model-specs.yml
+    secrets: inherit
+
+  backup:
+    # Weekly with everyone's summary: the encrypted database backup.
+    if: inputs.account == ''
+    uses: ./.github/workflows/backup.yml
     secrets: inherit
