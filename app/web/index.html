@@ -52,6 +52,57 @@
     <!-- database-preconnect -->
     <link rel="preconnect" href="https://ireland.apollo.olxcdn.com">
 
+    <!-- The app's and the engine's files (about 2.7 MB) asked for now
+         instead of after flutter_bootstrap.js has downloaded and run (its
+         browser checks, then main.dart.mjs, then main.dart.wasm: about a
+         second later on a phone). The same files and the same requests
+         the loader then makes, so they come from these downloads; its
+         choice is copied (flutter.js in the Flutter SDK: dart2wasm with
+         skwasm on Chromium browsers with WasmGC, else dart2js with
+         CanvasKit; keep in step when upgrading Flutter). The
+         engine's address needs its version: the build's
+         <meta name="flutter-engine"> (tool/web_preconnect.sh); none (a
+         debug run), nothing asked. -->
+    <script>
+      (function () {
+        var meta = document.querySelector('meta[name="flutter-engine"]');
+        if (!meta || !window.WebAssembly) return;
+        var engine = 'https://www.gstatic.com/flutter-canvaskit/' +
+          meta.getAttribute('content') + '/';
+        var blink = navigator.vendor === 'Google Inc.' ||
+          navigator.userAgent.indexOf('Edg/') >= 0;
+        var wasmGc = false;
+        try {
+          wasmGc = WebAssembly.validate(new Uint8Array(
+            [0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 95, 1, 120, 0]));
+        } catch (e) {}
+        var codecs = blink && typeof ImageDecoder !== 'undefined';
+        var breaks = typeof Intl.v8BreakIterator !== 'undefined' &&
+          typeof Intl.Segmenter !== 'undefined';
+        // rel, address, as, cross-origin.
+        function preload(rel, href, as, cors) {
+          var link = document.createElement('link');
+          link.rel = rel;
+          link.href = new URL(href, document.baseURI).toString();
+          if (as) link.as = as;
+          if (cors) link.crossOrigin = 'anonymous';
+          document.head.appendChild(link);
+        }
+        if (blink && wasmGc) {
+          var skwasm = codecs && breaks ? 'skwasm' : 'skwasm_heavy';
+          preload('modulepreload', 'main.dart.mjs');
+          preload('preload', 'main.dart.wasm', 'fetch', true);
+          preload('modulepreload', engine + skwasm + '.js');
+          preload('preload', engine + skwasm + '.wasm', 'fetch', true);
+        } else {
+          var canvasKit = engine + (codecs && breaks ? 'chromium/' : '');
+          preload('preload', 'main.dart.js', 'script');
+          preload('modulepreload', canvasKit + 'canvaskit.js');
+          preload('preload', canvasKit + 'canvaskit.wasm', 'fetch', true);
+        }
+      })();
+    </script>
+
     <!-- Same background before the app has loaded, so nothing flashes. -->
     <style>
       html, body { background-color: #F4F5F7; }

@@ -661,7 +661,11 @@ invites; written by the collector on each run).
 - Hosting: Cloudflare Pages (security headers in `web/_headers`: HSTS,
   nosniff, no framing, referrer and permissions policies; `index.html`
   preconnects to Google's CDN, the database (`tool/web_preconnect.sh`
-  writes its address into the build) and the photos' CDN, and draws a
+  writes its address into the build) and the photos' CDN, preloads the
+  app's and the engine's code at once (N.89: the build Flutter's loader
+  would pick, copied from its flutter.js, keep in step when upgrading;
+  the engine version from `<meta name="flutter-engine">`, written by the
+  same script from `flutter_bootstrap.js`), and draws a
   spinner (`#splash`, the theme's primary, as `Startup`'s) until Flutter's
   first frame; without an account's session it also asks for the first
   page of listings and the model list and starts the first photos while
