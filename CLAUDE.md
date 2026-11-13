@@ -560,7 +560,9 @@ invites; written by the collector on each run).
   (`cardPhotoBox`: steps 480/720/960/1280, N.82), Alertas' squares 480;
   only the full-screen viewer loads the original
   (`ListingPhoto.fullSize`). `web/index.html`'s early photos work out the
-  same address (`cardPhotoBox` there, `photo_url_test.dart`).
+  same address (`cardPhotoBox` there, from the smaller of `innerWidth` and
+  `screen.width`: before Flutter's viewport tag a phone reads 980 px, N.88;
+  `photo_url_test.dart`).
 - Lists load `ListingModel.summaryColumns`, never `*` (descriptions are big);
   the deals list is paged (40 per page, more on scroll). Back in the app
   with a list 30 minutes old or more (`AppShell`'s resume,

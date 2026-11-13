@@ -220,7 +220,11 @@
       }
       return PHOTO_STEPS[PHOTO_STEPS.length - 1];
     }
-    var PHOTO_BOX = cardPhotoBox(window.innerWidth,
+    // The page has no viewport tag until Flutter adds its own, so a
+    // phone lays it out 980 px wide (innerWidth) for now; the screen's
+    // width is the one the app will have.
+    var PHOTO_BOX = cardPhotoBox(
+      Math.min(window.innerWidth, window.screen.width || window.innerWidth),
       window.devicePixelRatio || 1);
 
     var meta = document.querySelector('meta[name="database"]');
