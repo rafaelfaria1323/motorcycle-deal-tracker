@@ -150,6 +150,46 @@ void main() {
     );
   });
 
+  test('reads the recalls, leaving out malformed ones (N.86)', () {
+    final listing = ListingModel.fromJson(
+      _row({
+        'recalls': [
+          {
+            'case_number': 'SR/4/26',
+            'published_on': '2026-03-12',
+            'name': 'Honda CBR650R',
+            'alert_url': 'https://ec.europa.eu/x',
+            'applies': true,
+            'production_dates': '2019-2021',
+            'recall_code': 'MC-1',
+            'danger_en': 'Chain',
+            'danger_pt': 'Corrente',
+            'country_en': 'Spain',
+            'country_pt': 'Espanha',
+          },
+          {
+            'case_number': 'x',
+            'published_on': 'not a date',
+            'name': 'n',
+            'alert_url': 'https://ec.europa.eu/y',
+            'applies': false,
+          },
+          {'case_number': 'y', 'applies': true},
+          'z',
+        ],
+      }),
+    );
+    final recall = listing.recalls.single;
+    expect(recall.caseNumber, 'SR/4/26');
+    expect(recall.publishedOn, DateTime(2026, 3, 12));
+    expect(recall.applies, isTrue);
+    expect(recall.productionDates, '2019-2021');
+    expect(recall.recallCode, 'MC-1');
+    expect(recall.dangerPt, 'Corrente');
+    expect(recall.countryEn, 'Spain');
+    expect(ListingModel.fromJson(_row()).recalls, isEmpty);
+  });
+
   test('unknown seller types and statuses fall back to unknown', () {
     final listing = ListingModel.fromJson(
       _row({'seller_type': 'bot', 'status': 'weird'}),

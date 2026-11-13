@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'bike_maintenance.dart';
 import 'bike_specs.dart';
 import 'photo_hint.dart';
+import 'vehicle_recall.dart';
 
 enum ListingStatus { active, priceChanged, removed, sold, unknown }
 
@@ -123,6 +124,11 @@ class const Listing({
   /// When every photo was shown to the image model (P.4); null: only the
   /// first ones. Only loaded on the detail page.
   final DateTime? photosExaminedAllAt,
+
+  /// The model's recalls from the EU's Safety Gate (N.86, the computed
+  /// field `recalls`), newest first, each saying whether it can cover this
+  /// bike's year. Only loaded on the detail page and in Favoritos.
+  final List<VehicleRecall> recalls = const [],
 }) extends Equatable {
   /// The price changes are measured from: the first price we saw, or a
   /// higher earlier price the site reported.

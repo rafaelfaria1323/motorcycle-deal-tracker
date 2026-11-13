@@ -7422,5 +7422,56 @@
   "notifyMeOfSimilar": "Avisar-me de uma parecida",
   "@notifyMeOfSimilar": {
     "description": "Button on a favourite that left the market: saves a search for a similar bike (N.84), favourites_page."
+  },
+  "recallsTitle": "Recolhas na UE que podem abranger esta mota",
+  "@recallsTitle": {
+    "description": "Detail page card (N.86): Safety Gate recalls of the model whose production dates hold the bike's year."
+  },
+  "recallsNote": "Do Safety Gate, os alertas da Comissão Europeia sobre produtos perigosos. Pergunte num concessionário da marca, com o número de quadro, se esta mota foi chamada e se a intervenção foi feita: é gratuita. Não conta para nenhuma pontuação.",
+  "@recallsNote": {
+    "description": "Footnote of the recalls card."
+  },
+  "otherRecallsTitle": "Recolhas na UE deste modelo noutros anos",
+  "@otherRecallsTitle": {
+    "description": "Card in the detail page's market section (N.86): the model's Safety Gate recalls whose production dates don't hold the bike's year."
+  },
+  "otherRecallsNote": "Do Safety Gate, os alertas da Comissão Europeia sobre produtos perigosos: motas de outros anos de produção que não o desta.",
+  "@otherRecallsNote": {
+    "description": "Footnote of the other recalls card."
+  },
+  "recallUnnamed": "Recolha",
+  "@recallUnnamed": {
+    "description": "Title of a recall without a product name."
+  },
+  "recallProduction": "Produção: {dates}",
+  "@recallProduction": {
+    "description": "Recall facts: the production dates as the Commission wrote them.",
+    "placeholders": {
+      "dates": {
+        "type": "String"
+      }
+    }
+  },
+  "recallCode": "Código {code}",
+  "@recallCode": {
+    "description": "Recall facts: the maker's recall code.",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "checklistRecall": "Recolha {code} feita?",
+  "@checklistRecall": {
+    "description": "Viewing checklist item for an EU recall that may cover the bike (N.86); code is the maker's recall code or the alert's date.",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "checklistRecallHint": "Peça o comprovativo da intervenção, ou pergunte num concessionário da marca com o número de quadro.",
+  "@checklistRecallHint": {
+    "description": "Hint of the recall item."
   }
 }

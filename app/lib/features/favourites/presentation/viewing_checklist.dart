@@ -2,6 +2,7 @@ import '../domain/entities/favourite.dart';
 import '../../../core/formatting/formatters.dart';
 import '../../../core/localization/localizations.dart';
 import '../../listings/domain/entities/listing.dart';
+import '../../listings/presentation/recall_text.dart';
 import '../../valuation/presentation/ownership_cost.dart';
 
 /// One thing to look at when seeing a bike. [key] is what the database
@@ -155,7 +156,8 @@ const valveCheckShare = 0.8;
 /// its ad says, never from a list typed per model: the valve check when the
 /// mileage reaches the model's interval, the model's tyre sizes, a sports
 /// bike's fairings, the A2 version's papers, an import's papers and a
-/// mileage in doubt. Keys never change, as the general items'.
+/// mileage in doubt, and each EU recall that can cover its year (N.86,
+/// `recall:<case number>`). Keys never change, as the general items'.
 List<ChecklistItem> bikeChecklistItems(
   Listing listing, {
   AppLanguage language = .portuguese,
@@ -199,6 +201,13 @@ List<ChecklistItem> bikeChecklistItems(
       ),
     if (reasons.any(_mileageReasons.contains))
       ChecklistItem('odometer', m.checklistOdometer, m.checklistOdometerHint),
+    for (final recall in listing.recalls)
+      if (recall.applies)
+        if (recallChecklistText(recall, language: language) case (
+          :final title,
+          :final hint,
+        ))
+          ChecklistItem('recall:${recall.caseNumber}', title, hint),
   ];
 }
 

@@ -35,6 +35,7 @@ import '../widgets/offer_card.dart';
 import '../../../valuation/presentation/widgets/bought_this_card.dart';
 import '../widgets/photo_gallery.dart';
 import '../widgets/photo_hints_card.dart';
+import '../widgets/recalls_card.dart';
 import '../widgets/price_history_section.dart';
 import '../widgets/score_explanation_card.dart';
 import '../widgets/seat_fit_card.dart';
@@ -246,6 +247,7 @@ class _ContentState extends State<_Content> {
           )
         else
           ScoreExplanationCard(listing: listing),
+        RecallsCard(listing: listing, applying: true),
         PhotoHintsCard(listing: listing),
         AlsoListedSection(listing: listing),
         DealerCard(listing: listing),
@@ -260,6 +262,7 @@ class _ContentState extends State<_Content> {
       ],
       _Section.market => [
         MarketBehaviourSection(listing: listing),
+        RecallsCard(listing: listing, applying: false),
         PriceHistorySection(listing: listing),
         NewPriceCard(listing: listing),
         if (listing.askingPrice case final asking?)

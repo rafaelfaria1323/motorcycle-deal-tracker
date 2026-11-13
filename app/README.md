@@ -136,7 +136,11 @@ Screen names below use the Portuguese labels; English provides the same screens.
   Ofertas, Favoritos, the comparison or another ad opens on the part
   last read; from a notification, an alert or a shared link, on
   Avaliação):
-  - **Avaliação:** why this score (the reasons and the risk), the same bike
+  - **Avaliação:** why this score (the reasons and the risk), the EU
+    recalls of the model that may cover this bike's year ("Recolhas na
+    UE", from the European Commission's Safety Gate: the danger, the
+    maker's code, a tap opens the alert; each also asks "Recolha X
+    feita?" in "Para a visita"), the same bike
     on the other site, "O stand" for dealers (what we have seen of its ads
     on both sites: relists, sharp price changes, missing mileage, repeated
     ads, price drops; from 5 bikes it also counts in the Deal Score, and
@@ -151,7 +155,8 @@ Screen names below use the Portuguese labels; English provides the same screens.
     tank), "Cabe-me?" (signed-in accounts: the seat height against your
     height, saved to your account), the seller's description, the ad's
     facts.
-  - **Mercado:** market behaviour for the model (with where the asking
+  - **Mercado:** the model's EU recalls of other years, market
+    behaviour for the model (with where the asking
     price sits among the model's live listings, what the model's ads
     that left the market in the last 90 days last asked against this
     one's price, and about how many days this ad has left on the market,

@@ -3145,6 +3145,35 @@ CREATE FUNCTION public.mileage_use_score(p_mileage integer, p_year integer, p_km
 $$;
 
 --
+-- Name: model_recalls(uuid, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.model_recalls(p_motorcycle_id uuid, p_year integer DEFAULT NULL::integer) RETURNS jsonb
+    LANGUAGE sql STABLE
+    SET search_path TO ''
+    AS $$
+  select coalesce(jsonb_agg(jsonb_build_object(
+           'case_number', r.case_number,
+           'published_on', r.published_on,
+           'name', concat_ws(' ', nullif(r.product, 'Motorcycle'), r.name),
+           'production_dates', r.production_dates,
+           'from_year', r.from_year,
+           'to_year', r.to_year,
+           'recall_code', r.recall_code,
+           'alert_url', r.alert_url,
+           'danger_en', r.danger_en,
+           'danger_pt', r.danger_pt,
+           'country_en', r.country_en,
+           'country_pt', r.country_pt,
+           'applies', p_year is null or r.from_year is null
+                      or p_year between r.from_year and r.to_year + 1)
+         order by r.published_on desc, r.case_number), '[]'::jsonb)
+  from public.motorcycles m
+  join public.vehicle_recalls r on public.recall_is_of_model(r, m)
+  where m.id = p_motorcycle_id
+$$;
+
+--
 -- Name: model_specs_to_check(integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -4087,6 +4116,116 @@ end;
 $$;
 
 --
+-- Name: vehicle_recalls; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.vehicle_recalls (
+    case_number text NOT NULL,
+    report text NOT NULL,
+    published_on date NOT NULL,
+    brand text,
+    product text,
+    name text,
+    model_type text,
+    production_dates text,
+    from_year smallint,
+    to_year smallint,
+    recall_code text,
+    alert_url text,
+    danger_en text,
+    danger_pt text,
+    country_en text,
+    country_pt text,
+    match_keys text[] DEFAULT '{}'::text[] NOT NULL,
+    CONSTRAINT vehicle_recalls_alert_url_check CHECK ((alert_url ~~ 'https://ec.europa.eu/%'::text))
+);
+
+--
+-- Name: recall_is_of_model(public.vehicle_recalls, public.motorcycles); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.recall_is_of_model(p_recall public.vehicle_recalls, p_bike public.motorcycles) RETURNS boolean
+    LANGUAGE sql STABLE
+    SET search_path TO ''
+    AS $$
+  select position(lower(p_bike.brand) in lower(concat_ws(' ', p_recall.brand, p_recall.product, p_recall.name))) > 0
+     and exists (
+       select
+       from unnest(array_prepend(p_bike.model, p_bike.aliases)) as n(name)
+       cross join lateral (select public.recall_model_key(n.name) as k) key
+       where length(key.k) >= 2
+         and (key.k = any(p_recall.match_keys) or key.k || 'a' = any(p_recall.match_keys))
+     )
+$$;
+
+--
+-- Name: recall_match_keys(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.recall_match_keys(p_text text) RETURNS text[]
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$
+  with words as (
+    select w, n
+    from unnest(regexp_split_to_array(lower(coalesce(p_text, '')), '[^[:alnum:]]+'))
+           with ordinality as t(w, n)
+    where w <> ''
+  ), numbered as (
+    select w, row_number() over (order by n) as i from words
+  )
+  select coalesce(array_agg(distinct k), '{}')
+  from (
+    select a.w as k from numbered a
+    union all
+    select a.w || b.w from numbered a join numbered b on b.i = a.i + 1
+    union all
+    select a.w || b.w || c.w
+    from numbered a
+    join numbered b on b.i = a.i + 1
+    join numbered c on c.i = a.i + 2
+  ) keys
+$$;
+
+--
+-- Name: recall_model_key(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.recall_model_key(p_name text) RETURNS text
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$
+  select nullif(lower(regexp_replace(coalesce(p_name, ''), '[^[:alnum:]]', '', 'g')), '')
+$$;
+
+--
+-- Name: recall_years(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.recall_years(p_text text, OUT from_year smallint, OUT to_year smallint) RETURNS record
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$
+  select min(y)::smallint, max(y)::smallint
+  from (
+    select m[1]::integer as y
+    from regexp_matches(coalesce(p_text, ''), '(?:^|[^0-9])((?:19[5-9]|20[0-9])[0-9])(?![0-9])', 'g') m
+  ) years
+$$;
+
+--
+-- Name: recalls(public.listings); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.recalls(l public.listings) RETURNS jsonb
+    LANGUAGE sql STABLE
+    SET search_path TO ''
+    AS $$
+  select case when l.motorcycle_id is null then '[]'::jsonb
+              else public.model_recalls(l.motorcycle_id, l.year) end
+$$;
+
+--
 -- Name: record_initial_price(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -4446,6 +4585,140 @@ end;
 $$;
 
 --
+-- Name: refresh_vehicle_recalls(interval, double precision); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.refresh_vehicle_recalls(p_budget interval DEFAULT '00:02:00'::interval, p_pause double precision DEFAULT 3) RETURNS integer
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $_$
+declare
+  v_started  timestamptz := clock_timestamp();
+  v_doc      xml;
+  v_report   record;
+  v_read     integer := 0;
+  v_found    integer;
+  v_requests integer := 0;
+begin
+  if (select list_read_at is null or list_read_at < now() - interval '20 hours'
+      from public.safety_gate_state where id) then
+    v_doc := public.safety_gate_get(
+      'https://ec.europa.eu/safety-gate-alerts/api/download/weeklyReport/list/xml/en');
+    v_requests := 1;
+    if v_doc is not null then
+      begin
+        insert into public.safety_gate_reports (reference, url, published_on)
+        select r.reference, r.url, to_date(r.published, 'DD/MM/YYYY')
+        from xmltable('/Safety-Gate/weeklyReport' passing v_doc
+               columns reference text path 'reference',
+                       published text path 'publicationDate',
+                       url       text path 'URL') r
+        where r.reference is not null
+          and r.url like 'https://ec.europa.eu/safety-gate-alerts/api/download/weeklyReport/detail/xml/%'
+          and r.published ~ '^\d{2}/\d{2}/\d{4}$'
+          and to_date(r.published, 'DD/MM/YYYY') >= date '2010-01-01'
+        on conflict (reference) do nothing;
+        update public.safety_gate_state set list_read_at = now() where id;
+      exception when others then
+        raise warning 'Safety Gate list not understood: %', sqlerrm;
+      end;
+    end if;
+  end if;
+
+  for v_report in
+    select reference, url from public.safety_gate_reports
+    where read_at is null
+    order by published_on desc, reference desc
+  loop
+    exit when clock_timestamp() - v_started > p_budget;
+    if v_requests > 0 then perform pg_sleep(p_pause); end if;
+    v_requests := v_requests + 1;
+    v_doc := public.safety_gate_get(v_report.url);
+    exit when v_doc is null;
+
+    begin
+      insert into public.vehicle_recalls (
+        case_number, report, published_on, brand, product, name, model_type,
+        production_dates, from_year, to_year, recall_code, alert_url,
+        danger_en, country_en, match_keys)
+      select n.case_number, v_report.reference,
+             coalesce(to_date(n.published, 'DD-MM-YYYY'), current_date),
+             n.brand, n.product, n.name, n.model_type, n.production_dates,
+             y.from_year, y.to_year, n.recall_code,
+             case when n.alert_url like 'https://ec.europa.eu/%' then n.alert_url end,
+             n.danger, n.country,
+             public.recall_match_keys(concat_ws(' ', n.product, n.name))
+      from xmltable('/Safety-Gate/notifications' passing v_doc
+             columns case_number      text path 'caseNumber',
+                     published        text path 'publicationDate',
+                     category         text path 'category',
+                     product_raw      text path 'product',
+                     brand_raw        text path 'brand',
+                     name_raw         text path 'name',
+                     model_type_raw   text path 'type_numberOfModel',
+                     production_raw   text path 'productionDates',
+                     recall_code_raw  text path 'companyRecallCode',
+                     alert_url_raw    text path 'reference',
+                     danger_raw       text path 'danger',
+                     country_raw      text path 'notifyingCountry') x
+      cross join lateral (
+        select x.case_number, x.published,
+               public.safety_gate_text(x.product_raw) as product,
+               public.safety_gate_text(x.brand_raw) as brand,
+               public.safety_gate_text(x.name_raw) as name,
+               public.safety_gate_text(x.model_type_raw) as model_type,
+               public.safety_gate_text(x.production_raw) as production_dates,
+               public.safety_gate_text(x.recall_code_raw) as recall_code,
+               public.safety_gate_text(x.alert_url_raw) as alert_url,
+               public.safety_gate_text(x.danger_raw) as danger,
+               public.safety_gate_text(x.country_raw) as country
+      ) n
+      cross join lateral public.recall_years(n.production_dates) y
+      where x.case_number is not null
+        and x.category = 'Motor vehicles'
+        and x.product_raw ~* 'motor ?cycle|motorbike|moped|scooter'
+        and (x.published is null or x.published ~ '^\d{2}-\d{2}-\d{4}$')
+      on conflict (case_number) do nothing;
+      get diagnostics v_found = row_count;
+    exception when others then
+      raise warning 'Safety Gate report % not understood: %', v_report.reference, sqlerrm;
+      exit;
+    end;
+
+    -- The same report in Portuguese (Safety Gate's translation), only
+    -- for reports with motorcycle recalls; without it the English stays.
+    if v_found > 0 then
+      perform pg_sleep(p_pause);
+      v_requests := v_requests + 1;
+      v_doc := public.safety_gate_get(replace(v_report.url, 'language=en', 'language=pt'));
+      if v_doc is not null then
+        begin
+          update public.vehicle_recalls r
+          set danger_pt = public.safety_gate_text(x.danger),
+              country_pt = public.safety_gate_text(x.country)
+          from xmltable('/Safety-Gate/notifications' passing v_doc
+                 columns case_number text path 'caseNumber',
+                         danger      text path 'danger',
+                         country     text path 'notifyingCountry') x
+          where r.case_number = x.case_number
+            and r.report = v_report.reference;
+        exception when others then
+          raise warning 'Safety Gate report % (pt) not understood: %', v_report.reference, sqlerrm;
+        end;
+      end if;
+    end if;
+
+    update public.safety_gate_reports
+    set read_at = now(), recalls = v_found
+    where reference = v_report.reference;
+    v_read := v_read + 1;
+  end loop;
+
+  return v_read;
+end;
+$_$;
+
+--
 -- Name: rematch_listings(text, jsonb); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -4801,6 +5074,49 @@ CREATE FUNCTION public.risk_from_signals(p_price numeric, p_market_price numeric
     greatest(0, least(100, coalesce(sum(points), 0)))::smallint,
     coalesce(array_agg(code order by points desc, code), '{}'::text[])
   from signals
+$$;
+
+--
+-- Name: safety_gate_get(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.safety_gate_get(p_url text) RETURNS xml
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+declare
+  v_response extensions.http_response;
+begin
+  perform extensions.http_set_curlopt('CURLOPT_TIMEOUT_MS', '30000');
+  v_response := extensions.http((
+    'GET',
+    p_url,
+    array[extensions.http_header('Accept', 'application/xml'),
+          extensions.http_header('User-Agent',
+            'MotorcycleDealTracker/0.1 (personal project, low volume)')],
+    null,
+    null
+  )::extensions.http_request);
+  if v_response.status <> 200 then
+    raise warning 'Safety Gate not read (%): HTTP %', p_url, v_response.status;
+    return null;
+  end if;
+  return xmlparse(document v_response.content);
+exception when others then
+  raise warning 'Safety Gate not read (%): %', p_url, sqlerrm;
+  return null;
+end;
+$$;
+
+--
+-- Name: safety_gate_text(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.safety_gate_text(p_text text) RETURNS text
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$
+  select nullif(btrim(regexp_replace(coalesce(p_text, ''), '^\s*null\s+', ''), E' \t\r\n'), '')
 $$;
 
 --
@@ -6666,6 +6982,30 @@ CREATE TABLE public.quiet_hours (
 );
 
 --
+-- Name: safety_gate_reports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.safety_gate_reports (
+    reference text NOT NULL,
+    url text NOT NULL,
+    published_on date NOT NULL,
+    read_at timestamp with time zone,
+    recalls smallint,
+    CONSTRAINT safety_gate_reports_recalls_check CHECK ((recalls >= 0)),
+    CONSTRAINT safety_gate_reports_url_check CHECK ((url ~~ 'https://ec.europa.eu/safety-gate-alerts/api/download/weeklyReport/detail/xml/%'::text))
+);
+
+--
+-- Name: safety_gate_state; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.safety_gate_state (
+    id boolean DEFAULT true NOT NULL,
+    list_read_at timestamp with time zone,
+    CONSTRAINT safety_gate_state_id_check CHECK (id)
+);
+
+--
 -- Name: saved_searches; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -7073,6 +7413,20 @@ ALTER TABLE ONLY public.quiet_hours
     ADD CONSTRAINT quiet_hours_pkey PRIMARY KEY (user_id);
 
 --
+-- Name: safety_gate_reports safety_gate_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.safety_gate_reports
+    ADD CONSTRAINT safety_gate_reports_pkey PRIMARY KEY (reference);
+
+--
+-- Name: safety_gate_state safety_gate_state_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.safety_gate_state
+    ADD CONSTRAINT safety_gate_state_pkey PRIMARY KEY (id);
+
+--
 -- Name: saved_searches saved_searches_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7099,6 +7453,13 @@ ALTER TABLE ONLY public.user_home
 
 ALTER TABLE ONLY public.user_models
     ADD CONSTRAINT user_models_pkey PRIMARY KEY (user_id, motorcycle_id);
+
+--
+-- Name: vehicle_recalls vehicle_recalls_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vehicle_recalls
+    ADD CONSTRAINT vehicle_recalls_pkey PRIMARY KEY (case_number);
 
 --
 -- Name: weekly_summaries weekly_summaries_pkey; Type: CONSTRAINT; Schema: public; Owner: -
@@ -7319,6 +7680,12 @@ CREATE INDEX places_name_idx ON public.places USING btree (name);
 CREATE INDEX push_subscriptions_user_id_idx ON public.push_subscriptions USING btree (user_id);
 
 --
+-- Name: safety_gate_reports_unread; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX safety_gate_reports_unread ON public.safety_gate_reports USING btree (published_on DESC) WHERE (read_at IS NULL);
+
+--
 -- Name: saved_searches_motorcycle_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7341,6 +7708,12 @@ CREATE INDEX user_home_place_key_idx ON public.user_home USING btree (place_key)
 --
 
 CREATE INDEX user_models_motorcycle_id_idx ON public.user_models USING btree (motorcycle_id);
+
+--
+-- Name: vehicle_recalls_report; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX vehicle_recalls_report ON public.vehicle_recalls USING btree (report);
 
 --
 -- Name: workflow_starts_recent; Type: INDEX; Schema: public; Owner: -
@@ -7705,6 +8078,13 @@ ALTER TABLE ONLY public.user_models
     ADD CONSTRAINT user_models_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 --
+-- Name: vehicle_recalls vehicle_recalls_report_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vehicle_recalls
+    ADD CONSTRAINT vehicle_recalls_report_fkey FOREIGN KEY (report) REFERENCES public.safety_gate_reports(reference);
+
+--
 -- Name: weekly_summaries weekly_summaries_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7862,6 +8242,12 @@ CREATE POLICY "Users remove their own devices" ON public.push_subscriptions FOR 
 --
 
 CREATE POLICY "Users see whether they are admins" ON public.app_admins FOR SELECT TO authenticated USING ((user_id = ( SELECT auth.uid() AS uid)));
+
+--
+-- Name: vehicle_recalls Vehicle recalls are readable by everyone; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Vehicle recalls are readable by everyone" ON public.vehicle_recalls FOR SELECT TO anon, authenticated USING (true);
 
 --
 -- Name: collector_runs account users read runs; Type: POLICY; Schema: public; Owner: -
@@ -8038,6 +8424,18 @@ ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.quiet_hours ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: safety_gate_reports; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.safety_gate_reports ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: safety_gate_state; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.safety_gate_state ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: saved_searches; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -8060,6 +8458,12 @@ ALTER TABLE public.user_home ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.user_models ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: vehicle_recalls; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.vehicle_recalls ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: weekly_summaries; Type: ROW SECURITY; Schema: public; Owner: -
@@ -8883,6 +9287,15 @@ REVOKE ALL ON FUNCTION public.mileage_use_score(p_mileage integer, p_year intege
 GRANT ALL ON FUNCTION public.mileage_use_score(p_mileage integer, p_year integer, p_km_per_year integer, p_reference numeric) TO service_role;
 
 --
+-- Name: FUNCTION model_recalls(p_motorcycle_id uuid, p_year integer); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.model_recalls(p_motorcycle_id uuid, p_year integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.model_recalls(p_motorcycle_id uuid, p_year integer) TO anon;
+GRANT ALL ON FUNCTION public.model_recalls(p_motorcycle_id uuid, p_year integer) TO authenticated;
+GRANT ALL ON FUNCTION public.model_recalls(p_motorcycle_id uuid, p_year integer) TO service_role;
+
+--
 -- Name: FUNCTION model_specs_to_check(p_days integer); Type: ACL; Schema: public; Owner: -
 --
 
@@ -9099,6 +9512,55 @@ REVOKE ALL ON FUNCTION public.recalculate_deal_scores() FROM PUBLIC;
 GRANT ALL ON FUNCTION public.recalculate_deal_scores() TO service_role;
 
 --
+-- Name: TABLE vehicle_recalls; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT SELECT ON TABLE public.vehicle_recalls TO anon;
+GRANT SELECT ON TABLE public.vehicle_recalls TO authenticated;
+GRANT ALL ON TABLE public.vehicle_recalls TO service_role;
+
+--
+-- Name: FUNCTION recall_is_of_model(p_recall public.vehicle_recalls, p_bike public.motorcycles); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.recall_is_of_model(p_recall public.vehicle_recalls, p_bike public.motorcycles) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.recall_is_of_model(p_recall public.vehicle_recalls, p_bike public.motorcycles) TO anon;
+GRANT ALL ON FUNCTION public.recall_is_of_model(p_recall public.vehicle_recalls, p_bike public.motorcycles) TO authenticated;
+GRANT ALL ON FUNCTION public.recall_is_of_model(p_recall public.vehicle_recalls, p_bike public.motorcycles) TO service_role;
+
+--
+-- Name: FUNCTION recall_match_keys(p_text text); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.recall_match_keys(p_text text) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.recall_match_keys(p_text text) TO service_role;
+
+--
+-- Name: FUNCTION recall_model_key(p_name text); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.recall_model_key(p_name text) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.recall_model_key(p_name text) TO anon;
+GRANT ALL ON FUNCTION public.recall_model_key(p_name text) TO authenticated;
+GRANT ALL ON FUNCTION public.recall_model_key(p_name text) TO service_role;
+
+--
+-- Name: FUNCTION recall_years(p_text text, OUT from_year smallint, OUT to_year smallint); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.recall_years(p_text text, OUT from_year smallint, OUT to_year smallint) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.recall_years(p_text text, OUT from_year smallint, OUT to_year smallint) TO service_role;
+
+--
+-- Name: FUNCTION recalls(l public.listings); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.recalls(l public.listings) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.recalls(l public.listings) TO anon;
+GRANT ALL ON FUNCTION public.recalls(l public.listings) TO authenticated;
+GRANT ALL ON FUNCTION public.recalls(l public.listings) TO service_role;
+
+--
 -- Name: FUNCTION record_initial_price(); Type: ACL; Schema: public; Owner: -
 --
 
@@ -9156,6 +9618,13 @@ GRANT ALL ON FUNCTION public.refresh_photo_hints(p_listings uuid[]) TO service_r
 
 REVOKE ALL ON FUNCTION public.refresh_stock_photos(p_ids uuid[]) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.refresh_stock_photos(p_ids uuid[]) TO service_role;
+
+--
+-- Name: FUNCTION refresh_vehicle_recalls(p_budget interval, p_pause double precision); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.refresh_vehicle_recalls(p_budget interval, p_pause double precision) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.refresh_vehicle_recalls(p_budget interval, p_pause double precision) TO service_role;
 
 --
 -- Name: FUNCTION rematch_listings(p_source text, p_matches jsonb); Type: ACL; Schema: public; Owner: -
@@ -9217,6 +9686,20 @@ GRANT ALL ON FUNCTION public.risk_assessment(p_price numeric, p_market_price num
 
 REVOKE ALL ON FUNCTION public.risk_from_signals(p_price numeric, p_market_price numeric, p_year integer, p_mileage integer, p_description text, p_location text, p_details_known boolean, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_origin text, p_warranty_until date, p_relists integer, p_on_sale_since timestamp with time zone, p_text_signals text[]) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.risk_from_signals(p_price numeric, p_market_price numeric, p_year integer, p_mileage integer, p_description text, p_location text, p_details_known boolean, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_origin text, p_warranty_until date, p_relists integer, p_on_sale_since timestamp with time zone, p_text_signals text[]) TO service_role;
+
+--
+-- Name: FUNCTION safety_gate_get(p_url text); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.safety_gate_get(p_url text) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.safety_gate_get(p_url text) TO service_role;
+
+--
+-- Name: FUNCTION safety_gate_text(p_text text); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.safety_gate_text(p_text text) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.safety_gate_text(p_text text) TO service_role;
 
 --
 -- Name: FUNCTION save_push_subscription(p_endpoint text, p_p256dh text, p_auth text); Type: ACL; Schema: public; Owner: -
@@ -9750,6 +10233,18 @@ GRANT ALL ON TABLE public.push_subscriptions TO service_role;
 
 GRANT ALL ON TABLE public.quiet_hours TO service_role;
 GRANT SELECT,INSERT,UPDATE ON TABLE public.quiet_hours TO authenticated;
+
+--
+-- Name: TABLE safety_gate_reports; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON TABLE public.safety_gate_reports TO service_role;
+
+--
+-- Name: TABLE safety_gate_state; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON TABLE public.safety_gate_state TO service_role;
 
 --
 -- Name: TABLE saved_searches; Type: ACL; Schema: public; Owner: -

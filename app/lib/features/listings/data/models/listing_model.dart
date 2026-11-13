@@ -2,6 +2,7 @@ import '../../domain/entities/bike_maintenance.dart';
 import '../../domain/entities/bike_specs.dart';
 import '../../domain/entities/listing.dart';
 import '../../domain/entities/photo_hint.dart';
+import '../../domain/entities/vehicle_recall.dart';
 
 class const ListingModel({
   required super.id,
@@ -55,6 +56,7 @@ class const ListingModel({
   super.photoHints,
   super.photoExamRequestedAt,
   super.photosExaminedAllAt,
+  super.recalls,
 }) extends Listing {
   /// The columns lists need (cards, alerts, other sources of a bike); the
   /// detail page loads the whole row. `distance_km`, `my_colour` and
@@ -137,8 +139,38 @@ class const ListingModel({
       photoHints: photoHintsOf(json['photo_hints']),
       photoExamRequestedAt: dateOf(json['photo_exam_requested_at']),
       photosExaminedAllAt: dateOf(json['photos_examined_all_at']),
+      recalls: recallsOf(json['recalls']),
     );
   }
+
+  /// `recalls` ([{case_number, published_on, name, alert_url, applies,
+  /// ...}], N.86); entries without those are left out.
+  static List<VehicleRecall> recallsOf(Object? value) => [
+    if (value is List)
+      for (final Object? recall in value)
+        if (recall is Map<String, dynamic>)
+          if (recall case {
+            'case_number': final String caseNumber,
+            'published_on': final String publishedOn,
+            'name': final String name,
+            'alert_url': final String alertUrl,
+            'applies': final bool applies,
+          })
+            if (DateTime.tryParse(publishedOn) case final published?)
+              VehicleRecall(
+                caseNumber: caseNumber,
+                publishedOn: published,
+                name: name,
+                alertUrl: alertUrl,
+                applies: applies,
+                productionDates: recall['production_dates'] as String?,
+                recallCode: recall['recall_code'] as String?,
+                dangerEn: recall['danger_en'] as String?,
+                dangerPt: recall['danger_pt'] as String?,
+                countryEn: recall['country_en'] as String?,
+                countryPt: recall['country_pt'] as String?,
+              ),
+  ];
 
   /// `photo_hints` ([{code, photo, p}]); entries without a code or photo
   /// are left out.

@@ -145,7 +145,7 @@ class SupabaseListingsRepository(final SupabaseClient _client)
     final row = await _client
         .from('listings')
         .select(
-          '*, distance_km, my_colour, market_position, '
+          '*, distance_km, my_colour, market_position, recalls, '
           'motorcycles(new_price_reference, new_price_checked_at, '
           'new_price_from_ads, new_price_ad_count, '
           'engine_cc_min, engine_cc_max, '

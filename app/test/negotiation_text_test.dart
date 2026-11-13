@@ -103,6 +103,12 @@ void main() {
       expect(visitFindings(checklist).isEmpty, isTrue);
     });
 
+    test('a recall not done is a blocker, never a price (N.86)', () {
+      expect(isVisitBlocker('recall:SR/1/26'), isTrue);
+      expect(isVisitBlocker('documents'), isTrue);
+      expect(isVisitBlocker('tyres'), isFalse);
+    });
+
     test('repair prices follow the engine size', () {
       expect(
         visitFindings({'tyres': _issue}, engineCc: 998).total,

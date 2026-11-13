@@ -45,6 +45,12 @@ const visitBlockers = {
   'odometer',
 };
 
+/// Whether a problem marked on [key] stops the offer: a [visitBlockers]
+/// item, or an EU recall not done (N.86, `recall:<case number>`): the
+/// brand's dealer does it for free, so it is no matter of price either.
+bool isVisitBlocker(String key) =>
+    visitBlockers.contains(key) || key.startsWith('recall:');
+
 /// The typical cost of fixing a problem marked on [key] (workshop prices,
 /// 2026), from the bike's running costs where they apply. Null for items
 /// with no fixed price (the blockers).
@@ -84,7 +90,7 @@ VisitFindings visitFindings(
     listing: listing,
   )) {
     if (checklist[item.key]?.mark != .issue) continue;
-    if (visitBlockers.contains(item.key)) {
+    if (isVisitBlocker(item.key)) {
       blockers.add(item.title);
     } else if (repairCost(item.key, costs) case final cost?) {
       repairs.add(VisitRepair(item.title, cost));

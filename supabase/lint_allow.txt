@@ -19,6 +19,11 @@ rls_enabled_no_policy_public_listing_photo_matches
 # collector's store_photo_features() (security definer).
 rls_enabled_no_policy_public_listing_photo_features
 
+# Safety Gate's weekly reports and when the list was read (N.86): no API
+# access, only refresh_vehicle_recalls() (security definer).
+rls_enabled_no_policy_public_safety_gate_reports
+rls_enabled_no_policy_public_safety_gate_state
+
 # The policy already reads the JWT once per query: auth.jwt() sits inside
 # a scalar subquery, (select auth.jwt() ->> 'is_anonymous'). splinter only
 # recognises the form (select auth.jwt()) ->> ...
