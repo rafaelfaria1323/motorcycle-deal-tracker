@@ -229,7 +229,7 @@ Screen names below use the Portuguese labels; English provides the same screens.
   price and its spread, the typical bike, time until leaving the market,
   price drops, depreciation, the price trend of the last weeks adjusted for
   year and km, with a small chart; cheapest first; above them "Comparar
-  dois modelos": two of them picked side by side, with what each of the
+  dois modelos": two of them picked side by side; each model's EU recalls, with what each of the
   last five years is worth at normal km, the loss per year and per
   10 000 km, the time to sale, the drops and the yearly cost of owning the
   typical bike, the lower loss and cost in green), "Quanto vale a minha
@@ -250,7 +250,8 @@ Screen names below use the Portuguese labels; English provides the same screens.
   bought: "Comprei esta" on an ad's Negociar, or added by hand; what each
   is worth today at its estimated km against what you paid, its value
   month by month (also pushed once a month with the change), and the next
-  service and valve check with their cost), the collection in one line (when the last run was and the next is, tinted when the last failed, a site blocked it or it is 12 h old; admins tap it, or Administração's tile, for "Estado da recolha": the last runs with what they found, their requests, errors and how long the scores took, the last 30 days' failures by site and cause, each site's requests today and pause, each search's pages read and ads found in the last run, this month's runs and GitHub minutes, the data quality per site (live listings, unmatched, duplicates, missing year/km/location, when listings were last seen, sudden price changes), the GitHub token's expiry and the database's size against the free plan's 500 MB; "Recolher agora").
+  service and valve check with their cost, and the EU recalls that may
+  cover it, also pushed when a new one is published), the collection in one line (when the last run was and the next is, tinted when the last failed, a site blocked it or it is 12 h old; admins tap it, or Administração's tile, for "Estado da recolha": the last runs with what they found, their requests, errors and how long the scores took, the last 30 days' failures by site and cause, each site's requests today and pause, each search's pages read and ads found in the last run, this month's runs and GitHub minutes, the data quality per site (live listings, unmatched, duplicates, missing year/km/location, when listings were last seen, sudden price changes), the GitHub token's expiry and the database's size against the free plan's 500 MB; "Recolher agora").
 
 ## Running it
 

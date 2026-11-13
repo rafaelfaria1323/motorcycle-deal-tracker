@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import '../../../listings/domain/entities/bike_maintenance.dart';
+import '../../../listings/domain/entities/vehicle_recall.dart';
 
 /// What the owner tells about a bike they bought ("Comprei esta", N.67).
 class const OwnedBikeDraft({
@@ -40,6 +41,10 @@ class const OwnedBike({
 
   /// The values kept once a month, the latest first.
   final List<MonthlyValue> values = const [],
+
+  /// The EU recalls of its model (`owned_bikes.recalls`, N.87), `applies`
+  /// for its year.
+  final List<VehicleRecall> recalls = const [],
 }) extends Equatable {
   String get name => '$brand $model';
 
@@ -52,5 +57,6 @@ class const OwnedBike({
     engineCc,
     maintenance,
     values,
+    recalls,
   ];
 }

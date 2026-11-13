@@ -2,6 +2,7 @@ import '../store/push_store.dart';
 import 'notification_text.dart';
 import 'owned_bike_value_push.dart';
 import 'pending_alert.dart';
+import 'recall_push.dart';
 import 'run_health.dart';
 import 'visit_reminder_push.dart';
 import 'web_push.dart';
@@ -23,8 +24,8 @@ Map<String, Object?> testPushMessage({
 
 /// The kinds of notification the app can ask for an example of
 /// (`start_workflow` checks the same list): the test one, an alert of each
-/// type, the collection's health, a visit's reminder (N.65) and a bike's
-/// monthly value (N.80).
+/// type, the collection's health, a visit's reminder (N.65), a bike's
+/// monthly value (N.80) and an EU recall of a favourite (N.87).
 const pushTestKinds = {
   'test',
   'new_listing',
@@ -38,6 +39,7 @@ const pushTestKinds = {
   'run_recovered',
   'visit_reminder',
   'bike_value_month',
+  'recall',
 };
 
 /// An example of the [kind] notification, built as the real one is (so it
@@ -126,6 +128,28 @@ Map<String, Object?> samplePushMessage(
         ),
         language: language,
       ),
+    );
+  }
+  if (kind == 'recall') {
+    // A made-up recall of the listing's bike, opening its ad.
+    final message = recallPush(
+      RecallNotice(
+        userId: 'push-test',
+        caseNumber: 'push-test',
+        listingId: listing?['id'] as String?,
+        brand: listing?['brand'] as String? ?? 'Yamaha',
+        model: listing?['model'] as String? ?? 'MT-07',
+        year: listing == null ? 2021 : (listing['year'] as num?)?.toInt(),
+        recallCode: '3P0',
+        dangerEn:
+            'The brake hose may leak (${NotificationLanguage.english.example}).',
+        dangerPt:
+            'O tubo do travão pode verter (${NotificationLanguage.portuguese.example}).',
+      ),
+      language: language,
+    );
+    return withNote(
+      listing == null ? {...message, 'url': '/#/deals'} : message,
     );
   }
   if (kind == 'test' || !pushTestKinds.contains(kind)) {

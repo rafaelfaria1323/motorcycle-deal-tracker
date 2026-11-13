@@ -191,6 +191,19 @@ extension NotificationText on NotificationLanguage {
     'The listing is gone: check with the seller before you go.',
   );
 
+  String recallTitle(String bike) =>
+      _text('⚠️ Recolha na UE: $bike', '⚠️ EU recall: $bike');
+  String recallCode(String code) =>
+      _text('Código da marca: $code.', 'Maker\'s code: $code.');
+  String get recallAskDealer => _text(
+    'Peça a um concessionário da marca que verifique pelo número de quadro.',
+    'Ask a dealer of the brand to check it by the frame number.',
+  );
+  String get recallAskSeller => _text(
+    'Pergunte ao vendedor se a recolha já foi feita.',
+    'Ask the seller whether the recall work was done.',
+  );
+
   String ownedBikeValueTitle(String bike, String price) => _text(
     '💶 A sua $bike vale cerca de $price',
     '💶 Your $bike is worth about $price',

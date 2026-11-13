@@ -110,3 +110,7 @@ rls_enabled_no_policy_public_photo_exam_requests
 # request_photo_exam: the app's "Examinar todas as fotos"; require_account,
 # live listings of a collected model only, at most 5 new requests a day.
 authenticated_security_definer_function_executable_public_request_photo_exam_p_listing uuid
+
+# recall_notices (N.87): RLS without policies on purpose; no API access,
+# only the collector's pending_recall_notices / mark_recall_noticed.
+rls_enabled_no_policy_public_recall_notices

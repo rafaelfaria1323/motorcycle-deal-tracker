@@ -247,7 +247,7 @@ class _ContentState extends State<_Content> {
           )
         else
           ScoreExplanationCard(listing: listing),
-        RecallsCard(listing: listing, applying: true),
+        RecallsCard(recalls: listing.recalls, applying: true),
         PhotoHintsCard(listing: listing),
         AlsoListedSection(listing: listing),
         DealerCard(listing: listing),
@@ -262,7 +262,7 @@ class _ContentState extends State<_Content> {
       ],
       _Section.market => [
         MarketBehaviourSection(listing: listing),
-        RecallsCard(listing: listing, applying: false),
+        RecallsCard(recalls: listing.recalls, applying: false),
         PriceHistorySection(listing: listing),
         NewPriceCard(listing: listing),
         if (listing.askingPrice case final asking?)

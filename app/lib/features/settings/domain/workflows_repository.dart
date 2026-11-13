@@ -24,6 +24,7 @@ enum PushTestKind {
   backOnMarket('back_on_market'),
   visitReminder('visit_reminder'),
   bikeValueMonth('bike_value_month'),
+  recall('recall'),
   runFailed('run_failed'),
   runBlocked('run_blocked'),
   runRecovered('run_recovered');

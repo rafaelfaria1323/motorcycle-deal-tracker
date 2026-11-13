@@ -62,7 +62,9 @@ the "Quanto vale a minha mota" requests whose model this run collected
 (`answer_bike_value_requests`) and pushes each value to the asker's
 devices (`notify/bike_value_push.dart`), then reminds each account of
 a favourite's visit due within a day (`pending_visit_reminders`,
-`notify/visit_reminder_push.dart`, N.65).
+`notify/visit_reminder_push.dart`, N.65), and of each new EU recall
+that can cover a bike it owns or a live favourite, once
+(`pending_recall_notices`, `notify/recall_push.dart`, N.87).
 
 After the run is recorded, `bin/photos.dart` (`make photos`, the
 workflow's "Fingerprint photos") hashes the first 3 photos of each new

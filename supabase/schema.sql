@@ -2777,6 +2777,22 @@ end;
 $$;
 
 --
+-- Name: mark_recall_noticed(uuid, text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.mark_recall_noticed(p_user uuid, p_case text) RETURNS boolean
+    LANGUAGE sql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+  with marked as (
+    insert into public.recall_notices (user_id, case_number)
+    values (p_user, p_case)
+    on conflict do nothing
+    returning 1)
+  select exists (select 1 from marked)
+$$;
+
+--
 -- Name: mark_relists(integer, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -3588,6 +3604,45 @@ CREATE FUNCTION public.pending_notifications(p_limit integer DEFAULT 200, p_at t
 $$;
 
 --
+-- Name: pending_recall_notices(timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.pending_recall_notices(p_at timestamp with time zone) RETURNS TABLE(user_id uuid, case_number text, bike_id uuid, listing_id uuid, brand text, model text, year integer, recall_name text, recall_code text, danger_en text, danger_pt text)
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+  with bikes as (
+    select b.user_id, b.id as bike_id, b.listing_id, b.motorcycle_id,
+           b.year::integer as year, b.created_at, 0 as rank
+    from public.owned_bikes b
+    union all
+    select f.user_id, null, f.listing_id, l.motorcycle_id,
+           l.year, f.created_at, 1
+    from public.listing_favourites f
+    join public.listings l on l.id = f.listing_id
+    where l.status in ('active', 'price_changed')
+      and l.motorcycle_id is not null
+  )
+  select distinct on (k.user_id, r.case_number)
+         k.user_id, r.case_number, k.bike_id, k.listing_id,
+         m.brand, m.model, k.year,
+         concat_ws(' ', nullif(r.product, 'Motorcycle'), r.name),
+         r.recall_code, r.danger_en, r.danger_pt
+  from bikes k
+  join auth.users u on u.id = k.user_id and not coalesce(u.is_anonymous, false)
+  join public.motorcycles m on m.id = k.motorcycle_id
+  join public.vehicle_recalls r on public.recall_is_of_model(r, m)
+  where r.stored_at > k.created_at
+    and r.published_on >= (p_at at time zone 'Europe/Lisbon')::date
+                          - public.recall_notice_days()
+    and (r.from_year is null or k.year between r.from_year and r.to_year + 1)
+    and not exists (select 1 from public.recall_notices n
+                    where n.user_id = k.user_id and n.case_number = r.case_number)
+    and not public.account_quiet_at(k.user_id, p_at)
+  order by k.user_id, r.case_number, k.rank, k.created_at desc
+$$;
+
+--
 -- Name: pending_visit_reminders(timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -4137,6 +4192,7 @@ CREATE TABLE public.vehicle_recalls (
     country_en text,
     country_pt text,
     match_keys text[] DEFAULT '{}'::text[] NOT NULL,
+    stored_at timestamp with time zone DEFAULT now(),
     CONSTRAINT vehicle_recalls_alert_url_check CHECK ((alert_url ~~ 'https://ec.europa.eu/%'::text))
 );
 
@@ -4199,6 +4255,15 @@ CREATE FUNCTION public.recall_model_key(p_name text) RETURNS text
 $$;
 
 --
+-- Name: recall_notice_days(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.recall_notice_days() RETURNS integer
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$ select 60 $$;
+
+--
 -- Name: recall_years(text); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -4224,6 +4289,43 @@ CREATE FUNCTION public.recalls(l public.listings) RETURNS jsonb
   select case when l.motorcycle_id is null then '[]'::jsonb
               else public.model_recalls(l.motorcycle_id, l.year) end
 $$;
+
+--
+-- Name: recalls(public.motorcycles); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.recalls(m public.motorcycles) RETURNS jsonb
+    LANGUAGE sql STABLE
+    SET search_path TO ''
+    AS $$ select public.model_recalls(m.id) $$;
+
+--
+-- Name: owned_bikes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.owned_bikes (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid DEFAULT auth.uid() NOT NULL,
+    motorcycle_id uuid NOT NULL,
+    listing_id uuid,
+    year smallint NOT NULL,
+    price_paid integer,
+    mileage_at_purchase integer,
+    bought_on date DEFAULT CURRENT_DATE NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT owned_bikes_mileage_at_purchase_check CHECK (((mileage_at_purchase >= 0) AND (mileage_at_purchase <= 500000))),
+    CONSTRAINT owned_bikes_price_paid_check CHECK (((price_paid >= 0) AND (price_paid <= 200000))),
+    CONSTRAINT owned_bikes_year_check CHECK (((year >= 1950) AND (year <= 2100)))
+);
+
+--
+-- Name: recalls(public.owned_bikes); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.recalls(b public.owned_bikes) RETURNS jsonb
+    LANGUAGE sql STABLE
+    SET search_path TO ''
+    AS $$ select public.model_recalls(b.motorcycle_id, b.year) $$;
 
 --
 -- Name: record_initial_price(); Type: FUNCTION; Schema: public; Owner: -
@@ -5612,7 +5714,7 @@ begin
        'test', 'new_listing', 'price_reduction', 'excellent_opportunity',
        'listing_removed', 'back_on_market', 'target_price_reached',
        'run_failed', 'run_blocked', 'run_recovered', 'visit_reminder',
-       'bike_value_month')) then
+       'bike_value_month', 'recall')) then
     raise exception 'unknown kind %', p_kind using errcode = '22023';
   end if;
 
@@ -6831,25 +6933,6 @@ CREATE TABLE public.owned_bike_values (
 );
 
 --
--- Name: owned_bikes; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.owned_bikes (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    user_id uuid DEFAULT auth.uid() NOT NULL,
-    motorcycle_id uuid NOT NULL,
-    listing_id uuid,
-    year smallint NOT NULL,
-    price_paid integer,
-    mileage_at_purchase integer,
-    bought_on date DEFAULT CURRENT_DATE NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT owned_bikes_mileage_at_purchase_check CHECK (((mileage_at_purchase >= 0) AND (mileage_at_purchase <= 500000))),
-    CONSTRAINT owned_bikes_price_paid_check CHECK (((price_paid >= 0) AND (price_paid <= 200000))),
-    CONSTRAINT owned_bikes_year_check CHECK (((year >= 1950) AND (year <= 2100)))
-);
-
---
 -- Name: ownership_settings; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -6979,6 +7062,16 @@ CREATE TABLE public.quiet_hours (
     end_hour smallint DEFAULT 8 NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     CONSTRAINT quiet_hours_hours CHECK ((((start_hour >= 0) AND (start_hour <= 23)) AND ((end_hour >= 0) AND (end_hour <= 23)) AND (start_hour <> end_hour)))
+);
+
+--
+-- Name: recall_notices; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.recall_notices (
+    user_id uuid NOT NULL,
+    case_number text NOT NULL,
+    noticed_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 --
@@ -7413,6 +7506,13 @@ ALTER TABLE ONLY public.quiet_hours
     ADD CONSTRAINT quiet_hours_pkey PRIMARY KEY (user_id);
 
 --
+-- Name: recall_notices recall_notices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.recall_notices
+    ADD CONSTRAINT recall_notices_pkey PRIMARY KEY (user_id, case_number);
+
+--
 -- Name: safety_gate_reports safety_gate_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7678,6 +7778,12 @@ CREATE INDEX places_name_idx ON public.places USING btree (name);
 --
 
 CREATE INDEX push_subscriptions_user_id_idx ON public.push_subscriptions USING btree (user_id);
+
+--
+-- Name: recall_notices_case_number; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX recall_notices_case_number ON public.recall_notices USING btree (case_number);
 
 --
 -- Name: safety_gate_reports_unread; Type: INDEX; Schema: public; Owner: -
@@ -8034,6 +8140,20 @@ ALTER TABLE ONLY public.push_subscriptions
 
 ALTER TABLE ONLY public.quiet_hours
     ADD CONSTRAINT quiet_hours_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+--
+-- Name: recall_notices recall_notices_case_number_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.recall_notices
+    ADD CONSTRAINT recall_notices_case_number_fkey FOREIGN KEY (case_number) REFERENCES public.vehicle_recalls(case_number) ON DELETE CASCADE;
+
+--
+-- Name: recall_notices recall_notices_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.recall_notices
+    ADD CONSTRAINT recall_notices_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 --
 -- Name: saved_searches saved_searches_motorcycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
@@ -8422,6 +8542,12 @@ ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.quiet_hours ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: recall_notices; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.recall_notices ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: safety_gate_reports; Type: ROW SECURITY; Schema: public; Owner: -
@@ -9206,6 +9332,13 @@ REVOKE ALL ON FUNCTION public.mark_listings_seen(p_source text, p_ids text[]) FR
 GRANT ALL ON FUNCTION public.mark_listings_seen(p_source text, p_ids text[]) TO service_role;
 
 --
+-- Name: FUNCTION mark_recall_noticed(p_user uuid, p_case text); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.mark_recall_noticed(p_user uuid, p_case text) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.mark_recall_noticed(p_user uuid, p_case text) TO service_role;
+
+--
 -- Name: FUNCTION mark_relists(p_threshold integer, p_max_gap_days integer); Type: ACL; Schema: public; Owner: -
 --
 
@@ -9400,6 +9533,13 @@ REVOKE ALL ON FUNCTION public.pending_notifications(p_limit integer, p_at timest
 GRANT ALL ON FUNCTION public.pending_notifications(p_limit integer, p_at timestamp with time zone) TO service_role;
 
 --
+-- Name: FUNCTION pending_recall_notices(p_at timestamp with time zone); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.pending_recall_notices(p_at timestamp with time zone) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.pending_recall_notices(p_at timestamp with time zone) TO service_role;
+
+--
 -- Name: FUNCTION pending_visit_reminders(p_at timestamp with time zone); Type: ACL; Schema: public; Owner: -
 --
 
@@ -9545,6 +9685,13 @@ GRANT ALL ON FUNCTION public.recall_model_key(p_name text) TO authenticated;
 GRANT ALL ON FUNCTION public.recall_model_key(p_name text) TO service_role;
 
 --
+-- Name: FUNCTION recall_notice_days(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.recall_notice_days() FROM PUBLIC;
+GRANT ALL ON FUNCTION public.recall_notice_days() TO service_role;
+
+--
 -- Name: FUNCTION recall_years(p_text text, OUT from_year smallint, OUT to_year smallint); Type: ACL; Schema: public; Owner: -
 --
 
@@ -9559,6 +9706,31 @@ REVOKE ALL ON FUNCTION public.recalls(l public.listings) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.recalls(l public.listings) TO anon;
 GRANT ALL ON FUNCTION public.recalls(l public.listings) TO authenticated;
 GRANT ALL ON FUNCTION public.recalls(l public.listings) TO service_role;
+
+--
+-- Name: FUNCTION recalls(m public.motorcycles); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.recalls(m public.motorcycles) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.recalls(m public.motorcycles) TO anon;
+GRANT ALL ON FUNCTION public.recalls(m public.motorcycles) TO authenticated;
+GRANT ALL ON FUNCTION public.recalls(m public.motorcycles) TO service_role;
+
+--
+-- Name: TABLE owned_bikes; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON TABLE public.owned_bikes TO service_role;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE public.owned_bikes TO authenticated;
+
+--
+-- Name: FUNCTION recalls(b public.owned_bikes); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.recalls(b public.owned_bikes) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.recalls(b public.owned_bikes) TO anon;
+GRANT ALL ON FUNCTION public.recalls(b public.owned_bikes) TO authenticated;
+GRANT ALL ON FUNCTION public.recalls(b public.owned_bikes) TO service_role;
 
 --
 -- Name: FUNCTION record_initial_price(); Type: ACL; Schema: public; Owner: -
@@ -10171,13 +10343,6 @@ GRANT ALL ON TABLE public.owned_bike_values TO service_role;
 GRANT SELECT ON TABLE public.owned_bike_values TO authenticated;
 
 --
--- Name: TABLE owned_bikes; Type: ACL; Schema: public; Owner: -
---
-
-GRANT ALL ON TABLE public.owned_bikes TO service_role;
-GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE public.owned_bikes TO authenticated;
-
---
 -- Name: TABLE ownership_settings; Type: ACL; Schema: public; Owner: -
 --
 
@@ -10233,6 +10398,12 @@ GRANT ALL ON TABLE public.push_subscriptions TO service_role;
 
 GRANT ALL ON TABLE public.quiet_hours TO service_role;
 GRANT SELECT,INSERT,UPDATE ON TABLE public.quiet_hours TO authenticated;
+
+--
+-- Name: TABLE recall_notices; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON TABLE public.recall_notices TO service_role;
 
 --
 -- Name: TABLE safety_gate_reports; Type: ACL; Schema: public; Owner: -

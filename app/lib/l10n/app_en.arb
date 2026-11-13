@@ -1146,6 +1146,7 @@
   "checklistOdometerHint": "This ad's mileage raises doubts: compare the dashboard with the last inspection and the invoices.",
   "pushKindVisitReminder": "Viewing reminder",
   "pushKindBikeValueMonth": "Your bike's value this month",
+  "pushKindRecall": "EU recall",
   "visitToday": "Viewing today at {time}",
   "visitTomorrow": "Viewing tomorrow at {time}",
   "visitOn": "Viewing on {date} at {time}",
@@ -1293,5 +1294,7 @@
   "recallProduction": "Production: {dates}",
   "recallCode": "Code {code}",
   "checklistRecall": "Recall {code} done?",
-  "checklistRecallHint": "Ask for proof the work was done, or ask a brand dealer with the frame number."
+  "checklistRecallHint": "Ask for proof the work was done, or ask a brand dealer with the frame number.",
+  "modelRecallsTitle": "EU recalls",
+  "modelRecallsNote": "From Safety Gate, the European Commission's alerts on dangerous products, for every year of the model: each listing says which may cover that bike."
 }

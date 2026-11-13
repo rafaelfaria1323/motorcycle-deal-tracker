@@ -109,7 +109,7 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
         .from('motorcycles')
         .select(
           'id, brand, model, engine_cc_min, engine_cc_max, '
-          '${ListingModel.maintenanceColumns}',
+          '${ListingModel.maintenanceColumns}, recalls',
         )
         .eq('tracked_by_me', true);
     final ids = [for (final m in models) m['id'] as String];
@@ -298,6 +298,7 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
       trend: trend,
       engineCc: ListingModel.engineCcOf(model),
       maintenance: ListingModel.maintenanceOf(model),
+      recalls: ListingModel.recallsOf(model['recalls']),
     );
   }
 

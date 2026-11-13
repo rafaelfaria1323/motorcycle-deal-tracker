@@ -221,6 +221,49 @@ void main() {
       expect(monthlyValuesFrom(null), isEmpty);
     });
 
+    test('the recalls of its model (N.87)', () {
+      final bike = ownedBikeFrom({
+        'id': 'b1',
+        'motorcycle_id': 'mt07',
+        'year': 2021,
+        'bought_on': '2026-03-04',
+        'motorcycles': {'brand': 'Yamaha', 'model': 'MT-07'},
+        'recalls': [
+          {
+            'case_number': 'A12/001',
+            'published_on': '2026-11-10',
+            'name': 'MT-07',
+            'alert_url': 'https://ec.europa.eu/x',
+            'applies': true,
+            'recall_code': '3P0',
+          },
+          {
+            'case_number': 'A12/002',
+            'published_on': '2026-11-10',
+            'name': 'MT-07',
+            'alert_url': 'https://ec.europa.eu/y',
+            'applies': false,
+          },
+        ],
+      });
+      expect(bike.recalls.map((r) => (r.caseNumber, r.applies)), [
+        ('A12/001', true),
+        ('A12/002', false),
+      ]);
+      expect(bike.recalls.first.recallCode, '3P0');
+      expect(
+        ownedBikeFrom({
+          'id': 'b1',
+          'motorcycle_id': 'mt07',
+          'year': 2021,
+          'bought_on': '2026-03-04',
+          'motorcycles': {'brand': 'Yamaha', 'model': 'MT-07'},
+        }).recalls,
+        isEmpty,
+      );
+      expect(SupabaseOwnedBikesRepository.columns, endsWith(', recalls'));
+    });
+
     test('a draft as a row', () {
       expect(ownedBikeRow(_bike(on: DateTime(2026, 3, 4))), {
         'motorcycle_id': 'mt07',
