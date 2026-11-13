@@ -824,6 +824,63 @@ void main() {
     );
   });
 
+  testWidgets('a gone favourite saves the search for a similar bike', (
+    tester,
+  ) async {
+    final fixture = InterfaceFixture(signedIn: true, emptySearches: true);
+    final live = interfaceListing(0, motorcycleId: 'mt07');
+    final gone = interfaceListing(
+      1,
+      status: ListingStatus.removed,
+      motorcycleId: 'cb650r',
+    );
+    fixture.favouritesRepository.values.addAll([
+      Favourite(
+        listingId: live.id,
+        createdAt: DateTime.utc(2026, 10, 23),
+        listing: live,
+      ),
+      Favourite(
+        listingId: gone.id,
+        createdAt: DateTime.utc(2026, 10, 23),
+        listing: gone,
+      ),
+    ]);
+    await _open(tester, fixture, location: AppRoutes.favourites);
+    // Only the gone one offers it.
+    final similar = find.widgetWithText(
+      TextButton,
+      'Avisar-me de uma parecida',
+    );
+    await _reveal(tester, similar);
+    expect(similar, findsOneWidget);
+    await tester.tap(similar);
+    await tester.pumpAndSettle();
+    expect(find.text('Parecida com Honda CB650R 2023'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Guardar'));
+    await tester.pumpAndSettle();
+    final saved = fixture.searchesRepository.values.single;
+    expect(saved.name, 'Parecida com Honda CB650R 2023');
+    // 6 500 € + 10 %, up to 7 250; 13 000 km + 30 %, up to 17 000.
+    expect(
+      saved.filters,
+      const ListingFilters(
+        motorcycleIds: ['cb650r'],
+        minYear: 2022,
+        maxYear: 2024,
+        maxPrice: 7250,
+        maxMileage: 17000,
+      ),
+    );
+    expect(find.text('Pesquisa guardada'), findsOneWidget);
+
+    // A second tap finds it saved and says so.
+    await tester.tap(similar);
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('a saved search applied in Ofertas shows as saved', (
     tester,
   ) async {

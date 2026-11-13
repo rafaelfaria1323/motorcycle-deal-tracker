@@ -3304,11 +3304,11 @@
   "riskPhotosReused": "Fotos iguais às de um anúncio de outro modelo ou de um stand: confirme que são desta mota",
   "@riskPhotosReused": {
     "description": "Interface text in score_explanation, _riskLines."
-  },  "riskStockPhotos": "Nenhuma foto mostra esta mota: todas aparecem em muitos outros anúncios (fotos de catálogo ou de outras motas). Peça fotos atuais",
+  },
+  "riskStockPhotos": "Nenhuma foto mostra esta mota: todas aparecem em muitos outros anúncios (fotos de catálogo ou de outras motas). Peça fotos atuais",
   "@riskStockPhotos": {
     "description": "Risk line (N.78): every photo of the ad is a stock photo seen in many other ads."
   },
-
   "riskMileageLowered": "O vendedor baixou os km do anúncio depois de publicado: pergunte porquê e confirme no painel e na última inspeção",
   "@riskMileageLowered": {
     "description": "Risk line (N.62): the ad's mileage was edited down after it was found."
@@ -6190,11 +6190,11 @@
   "cardWarningPhotosReused": "Fotos de outro anúncio",
   "@cardWarningPhotosReused": {
     "description": "Card photo warning: the photos were seen in another ad."
-  },  "cardWarningStockPhotos": "Só fotos de catálogo",
+  },
+  "cardWarningStockPhotos": "Só fotos de catálogo",
   "@cardWarningStockPhotos": {
     "description": "Card photo warning (N.78): no photo shows the bike itself."
   },
-
   "cardWarningMileageLowered": "Km baixados",
   "@cardWarningMileageLowered": {
     "description": "Card photo warning (N.62): the seller lowered the mileage."
@@ -7409,5 +7409,18 @@
   "priceDropOutlookFootnote": "Preços pedidos nos anúncios, não preços de venda. Não conta para nenhuma pontuação.",
   "@priceDropOutlookFootnote": {
     "description": "Negociar: footnote of the wait-or-buy card (N.83)."
+  },
+  "similarSearchName": "Parecida com {bike}",
+  "@similarSearchName": {
+    "description": "Suggested name of the saved search made from a gone favourite (N.84), similar_search.",
+    "placeholders": {
+      "bike": {
+        "type": "String"
+      }
+    }
+  },
+  "notifyMeOfSimilar": "Avisar-me de uma parecida",
+  "@notifyMeOfSimilar": {
+    "description": "Button on a favourite that left the market: saves a search for a similar bike (N.84), favourites_page."
   }
 }

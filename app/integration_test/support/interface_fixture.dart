@@ -72,13 +72,20 @@ Future<void> loadInterfaceFonts() async {
 /// The [index]th listing of the fixture. [detail]: as the ad's page loads
 /// it, with the model's engine size and the market position its summary
 /// shows (lists load the position too, but the cards' tests choose it).
-Listing interfaceListing(int index, {bool detail = false}) => Listing(
+/// [status] and [motorcycleId]: a gone ad of a catalog model (N.84).
+Listing interfaceListing(
+  int index, {
+  bool detail = false,
+  ListingStatus status = ListingStatus.active,
+  String? motorcycleId,
+}) => Listing(
   id: '00000000-0000-4000-8000-${index.toString().padLeft(12, '0')}',
   source: index.isEven ? 'standvirtual' : 'olx',
   url: 'https://www.olx.pt/d/anuncio/test-$index.html',
   brand: index.isEven ? 'Yamaha' : 'Honda',
   model: index.isEven ? 'MT-07' : 'CB650R',
-  status: ListingStatus.active,
+  motorcycleId: motorcycleId,
+  status: status,
   sellerType: SellerType.private,
   images: const [],
   year: 2023,

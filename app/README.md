@@ -105,8 +105,10 @@ Screen names below use the Portuguese labels; English provides the same screens.
   the checklist, which keeps its marks on the device without a
   connection and sends them once there is one (the list itself shows the
   last copy kept on the device when it can't load);
-  removed ones stay, marked. A favourite always alerts
-  you about price drops and its removal.
+  removed ones stay, marked, with "Avisar-me de uma parecida": a saved
+  search for the same model, a year either side, up to 10 % dearer and
+  with up to 30 % more km, so the next one like it is an alert. A
+  favourite always alerts you about price drops and its removal.
 - **Comparar:** up to 3 listings side by side ("Comparar" on a card in
   Ofertas, long press the card, or "Comparar" on a listing's page), the best
   value of each row marked; the models' power, weight, seat height, tank,

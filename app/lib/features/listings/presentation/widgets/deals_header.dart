@@ -8,7 +8,6 @@ import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/localization/localizations.dart';
 import '../../../../core/widgets/page_intro.dart';
-import '../../../../core/widgets/show_message.dart';
 import '../../../saved_searches/domain/entities/saved_search.dart';
 import '../../../saved_searches/presentation/cubit/saved_searches_cubit.dart';
 import '../../../saved_searches/presentation/cubit/saved_searches_state.dart';
@@ -43,40 +42,16 @@ class const DealsHeader({required final ListingsState state, super.key})
     if (result != null) unawaited(cubit.applyFilters(result));
   }
 
-  Future<void> _saveSearch(BuildContext context) async {
-    final messageStrings = context.strings;
-    final messageLanguage = context.language;
-
+  Future<void> _saveSearch(BuildContext context) {
     final state = context.read<ListingsCubit>().state;
-    final filters = state.filters;
-    final messenger = ScaffoldMessenger.of(context);
-    final searches = getIt<SavedSearchesCubit>();
-
-    // The list loads with the Pesquisas tab: without it the same search
-    // could be saved again.
-    if (searches.state.status != .success) {
-      await searches.load();
-    }
-    if (savedSearchLike(searches.state.searches, filters) case final same?) {
-      showMessage(messenger, alreadySavedText(same, language: messageLanguage));
-      return;
-    }
-    if (!context.mounted) return;
-
-    final name = await showSaveSearchDialog(
+    return saveSearchWithName(
       context,
+      state.filters,
       suggestion: summarizeFilters(
-        filters,
+        state.filters,
         state.motorcycles,
-        language: messageLanguage,
+        language: context.language,
       ),
-    );
-    if (name == null) return;
-
-    final saved = await searches.create(name, filters);
-    showMessage(
-      messenger,
-      saved ? messageStrings.searchSaved : messageStrings.couldNotSaveSearch,
     );
   }
 
