@@ -6,6 +6,8 @@
 #
 # Uses the usual libpq variables (PGHOST, PGUSER, PGPASSWORD, ...); the
 # database DB_TEST_NAME (default mdt_test) is dropped and recreated.
+# DB_TEST_MIGRATIONS_ONLY=1 stops after the migrations (the backup's
+# restore check, tool/restore_backup.sh, restores into that database).
 set -euo pipefail
 
 root=$(cd "$(dirname "$0")/.." && pwd)
@@ -24,6 +26,7 @@ for f in "$root"/supabase/migrations/*.sql; do
 done
 migrations=("$root"/supabase/migrations/*.sql)
 echo "Applied ${#migrations[@]} migrations"
+[ -n "${DB_TEST_MIGRATIONS_ONLY:-}" ] && exit 0
 
 shopt -s nullglob
 err=$(mktemp)

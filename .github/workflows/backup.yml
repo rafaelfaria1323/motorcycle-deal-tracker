@@ -1,0 +1,131 @@
+name: Database backup
+
+# N.79: Supabase's free plan keeps no backups, so a bad migration or a lost
+# project would take the history with it (prices, time on sale, relists,
+# dealer figures, accounts' lists). Once a week the database is dumped
+# (tool/backup.sh: the schema public with its data, and the accounts),
+# encrypted with the BACKUP_PASSPHRASE secret (gpg, AES-256: the dumps hold
+# sellers' data, and a public repository's artifacts can be downloaded by
+# anyone signed in to GitHub) and kept as this run's artifact for 90 days.
+# Then the backup is proven: decrypted again and restored into an empty
+# database the migrations made (tool/restore_backup.sh, the same script a
+# real restore uses; docs/hosting.md, "Restoring a backup"). Without the
+# secret it says so and passes.
+#
+# Called by weekly-summary.yml after the Monday summary for everyone;
+# "Run workflow" here makes one now (e.g. before a risky migration).
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+
+    steps:
+      - name: Check the passphrase
+        id: secret
+        run: |
+          if [ -z "$BACKUP_PASSPHRASE" ]; then
+            echo "::warning::No backup: set the BACKUP_PASSPHRASE secret (docs/hosting.md)."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          elif [ ${#BACKUP_PASSPHRASE} -lt 16 ]; then
+            echo "::error::BACKUP_PASSPHRASE is shorter than 16 characters."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+        if: steps.secret.outputs.skip != 'true'
+
+      # pg_dump and the restore check use the database's own major version.
+      - name: Install Postgres
+        if: steps.secret.outputs.skip != 'true'
+        id: pg
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          db_url=$(python3 tool/db_url.py) || exit 1
+          echo "::add-mask::$db_url"
+          major=$(psql "$db_url" -X -At -c "select current_setting('server_version_num')::int / 10000")
+          echo "The database runs Postgres $major."
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y >/dev/null
+          sudo apt-get install -y -qq "postgresql-$major" >/dev/null
+          echo "bin=/usr/lib/postgresql/$major/bin" >> "$GITHUB_OUTPUT"
+
+      - name: Dump the database
+        if: steps.secret.outputs.skip != 'true'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          PG_BIN: ${{ steps.pg.outputs.bin }}
+        run: |
+          db_url=$(python3 tool/db_url.py) || exit 1
+          echo "::add-mask::$db_url"
+          PATH="$PG_BIN:$PATH" tool/backup.sh "$db_url" "$RUNNER_TEMP/backup"
+
+      - name: Encrypt
+        if: steps.secret.outputs.skip != 'true'
+        id: file
+        run: |
+          name="backup-$(date -u +%Y-%m-%d).tar.gpg"
+          tar -C "$RUNNER_TEMP" -cf - backup \
+            | gpg --batch --yes --pinentry-mode loopback \
+                --passphrase-file <(printf '%s' "$BACKUP_PASSPHRASE") \
+                --symmetric --cipher-algo AES256 --compress-algo none \
+                --s2k-digest-algo SHA512 --s2k-count 65011712 \
+                --output "$RUNNER_TEMP/$name"
+          # Proven before it is kept: decrypts with the passphrase into the same files.
+          mkdir "$RUNNER_TEMP/check"
+          gpg --batch --quiet --pinentry-mode loopback \
+              --passphrase-file <(printf '%s' "$BACKUP_PASSPHRASE") \
+              --decrypt "$RUNNER_TEMP/$name" | tar -C "$RUNNER_TEMP/check" -xf -
+          diff -r "$RUNNER_TEMP/backup" "$RUNNER_TEMP/check/backup"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v7
+        if: steps.secret.outputs.skip != 'true'
+        with:
+          name: database-backup
+          path: ${{ runner.temp }}/${{ steps.file.outputs.name }}
+          retention-days: 90
+          compression-level: 0
+          if-no-files-found: error
+
+      # An empty Postgres of the same version, the migrations, then the
+      # backup's data: what a real restore does (without the accounts: the
+      # check's stand-in auth.users has other columns).
+      - name: Restore check
+        if: steps.secret.outputs.skip != 'true'
+        env:
+          PG_BIN: ${{ steps.pg.outputs.bin }}
+          PGHOST: ${{ runner.temp }}
+          PGPORT: "5499"
+          PGUSER: postgres
+          FILE: ${{ steps.file.outputs.name }}
+        run: |
+          export PATH="$PG_BIN:$PATH"
+          initdb -D "$RUNNER_TEMP/pg" -U postgres --auth=trust >/dev/null
+          pg_ctl -D "$RUNNER_TEMP/pg" -o "-p $PGPORT -k $RUNNER_TEMP -c listen_addresses=''" -w start >/dev/null
+          DB_TEST_NAME=restore_check DB_TEST_MIGRATIONS_ONLY=1 tool/db_test.sh
+          result=$(tool/restore_backup.sh \
+            "postgresql:///restore_check?host=$RUNNER_TEMP&port=$PGPORT&user=postgres" \
+            "$RUNNER_TEMP/check/backup" --public-only)
+          echo "$result"
+          {
+            echo "### Database backup"
+            echo
+            echo "Kept as this run's artifact \`database-backup\` ($FILE, $(du -h "$RUNNER_TEMP/$FILE" | cut -f1), 90 days)."
+            echo
+            echo "Restore check: ${result##*$'\n'}"
+          } >> "$GITHUB_STEP_SUMMARY"
