@@ -89,6 +89,40 @@ String valueChangeText(ValueChange c, {AppLanguage language = .portuguese}) {
       : strings.myBikeAboveWhatYouPaid(amount: amount, percent: percent);
 }
 
+/// How many months "Valor mês a mês" shows.
+const monthsShown = 6;
+
+/// "11/2026: cerca de 5 430 € (−120 €)": the latest [monthsShown] months'
+/// values (N.80), each with its change from the month before it when
+/// that is known and not under 10 €.
+List<String> monthlyValueLines(
+  List<MonthlyValue> values, {
+  AppLanguage language = .portuguese,
+}) {
+  final strings = language.messages;
+  final lines = <String>[];
+  for (var i = 0; i < values.length && i < monthsShown; i++) {
+    final v = values[i];
+    final month = '${v.month.month.toString().padLeft(2, '0')}/${v.month.year}';
+    final price = roughPrice(v.value, language: language);
+    final change = i + 1 < values.length
+        ? ((v.value - values[i + 1].value) / 10).round() * 10
+        : 0;
+    lines.add(
+      change == 0
+          ? strings.myBikeMonthValue(month: month, price: price)
+          : strings.myBikeMonthValueChange(
+              month: month,
+              price: price,
+              change:
+                  '${change < 0 ? '−' : '+'}'
+                  '${Formatters.price(change.abs().toDouble(), language: language)}',
+            ),
+    );
+  }
+  return lines;
+}
+
 /// What the maker's schedule asks for by the odometer.
 enum MaintenanceKind { service, valveCheck }
 

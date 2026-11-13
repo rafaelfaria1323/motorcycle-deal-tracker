@@ -23,6 +23,7 @@ enum PushTestKind {
   listingRemoved('listing_removed'),
   backOnMarket('back_on_market'),
   visitReminder('visit_reminder'),
+  bikeValueMonth('bike_value_month'),
   runFailed('run_failed'),
   runBlocked('run_blocked'),
   runRecovered('run_recovered');

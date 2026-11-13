@@ -234,7 +234,8 @@ Screen names below use the Portuguese labels; English provides the same screens.
   Germany: its price there plus vehicle tax (ISV), legalisation and
   transport, against its value here), "A minha mota" (the bikes you
   bought: "Comprei esta" on an ad's Negociar, or added by hand; what each
-  is worth today at its estimated km against what you paid, and the next
+  is worth today at its estimated km against what you paid, its value
+  month by month (also pushed once a month with the change), and the next
   service and valve check with their cost), the collection in one line (when the last run was and the next is, tinted when the last failed, a site blocked it or it is 12 h old; admins tap it, or Administração's tile, for "Estado da recolha": the last runs with what they found, their requests, errors and how long the scores took, the last 30 days' failures by site and cause, each site's requests today and pause, each search's pages read and ads found in the last run, this month's runs and GitHub minutes, the data quality per site (live listings, unmatched, duplicates, missing year/km/location, when listings were last seen, sudden price changes), the GitHub token's expiry and the database's size against the free plan's 500 MB; "Recolher agora").
 
 ## Running it

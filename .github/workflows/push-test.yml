@@ -32,6 +32,7 @@ on:
           - run_blocked
           - run_recovered
           - visit_reminder
+          - bike_value_month
 
 permissions:
   contents: read

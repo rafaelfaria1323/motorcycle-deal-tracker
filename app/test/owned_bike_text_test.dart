@@ -201,6 +201,26 @@ void main() {
       expect(bike.purchase, _bike(km: null, on: DateTime(2026, 3, 4)));
     });
 
+    test('the monthly values, the latest first', () {
+      final bike = ownedBikeFrom({
+        'id': 'b1',
+        'motorcycle_id': 'mt07',
+        'year': 2021,
+        'bought_on': '2026-03-04',
+        'motorcycles': {'brand': 'Yamaha', 'model': 'MT-07'},
+        'owned_bike_values': [
+          {'month': '2026-10-01', 'value': 5550},
+          {'month': '2026-11-01', 'value': 5432.5},
+        ],
+      });
+      expect(bike.values.map((v) => v.month), [
+        DateTime(2026, 11, 1),
+        DateTime(2026, 10, 1),
+      ]);
+      expect(bike.values.first.value, 5432.5);
+      expect(monthlyValuesFrom(null), isEmpty);
+    });
+
     test('a draft as a row', () {
       expect(ownedBikeRow(_bike(on: DateTime(2026, 3, 4))), {
         'motorcycle_id': 'mt07',
@@ -210,6 +230,40 @@ void main() {
         'mileage_at_purchase': 12000,
         'bought_on': '2026-03-04',
       });
+    });
+  });
+
+  group('monthlyValueLines', () {
+    MonthlyValue month(int m, double value) =>
+        (month: DateTime(2026, m, 1), value: value);
+
+    test('each month with its change from the month before', () {
+      expect(monthlyValueLines([month(11, 5432), month(10, 5550)]), [
+        '11/2026: cerca de ${_price(5430)} (−${_price(120)})',
+        '10/2026: cerca de ${_price(5550)}',
+      ]);
+      expect(
+        monthlyValueLines([month(11, 5600), month(10, 5550)]).first,
+        '11/2026: cerca de ${_price(5600)} (+${_price(50)})',
+      );
+    });
+
+    test('no change under 10 €, and English', () {
+      expect(
+        monthlyValueLines([
+          month(11, 5552),
+          month(10, 5550),
+        ], language: .english).first,
+        '11/2026: about ${Formatters.price(5550, language: .english)}',
+      );
+    });
+
+    test('only the latest six months', () {
+      expect(
+        monthlyValueLines([for (var m = 12; m >= 1; m--) month(m, 5000.0 + m)]),
+        hasLength(monthsShown),
+      );
+      expect(monthlyValueLines(const []), isEmpty);
     });
   });
 }

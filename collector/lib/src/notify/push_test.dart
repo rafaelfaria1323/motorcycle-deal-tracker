@@ -1,5 +1,6 @@
 import '../store/push_store.dart';
 import 'notification_text.dart';
+import 'owned_bike_value_push.dart';
 import 'pending_alert.dart';
 import 'run_health.dart';
 import 'visit_reminder_push.dart';
@@ -22,7 +23,8 @@ Map<String, Object?> testPushMessage({
 
 /// The kinds of notification the app can ask for an example of
 /// (`start_workflow` checks the same list): the test one, an alert of each
-/// type, the collection's health and a visit's reminder (N.65).
+/// type, the collection's health, a visit's reminder (N.65) and a bike's
+/// monthly value (N.80).
 const pushTestKinds = {
   'test',
   'new_listing',
@@ -35,6 +37,7 @@ const pushTestKinds = {
   'run_blocked',
   'run_recovered',
   'visit_reminder',
+  'bike_value_month',
 };
 
 /// An example of the [kind] notification, built as the real one is (so it
@@ -104,6 +107,25 @@ Map<String, Object?> samplePushMessage(
     );
     return withNote(
       listing == null ? {...message, 'url': '/#/deals'} : message,
+    );
+  }
+  if (kind == 'bike_value_month') {
+    // The listing's bike, worth its price now and 2 % more last month.
+    final price = (listing?['price'] as num?)?.toDouble() ?? 6500;
+    return withNote(
+      ownedBikeValuePush(
+        OwnedBikeValue(
+          userId: 'push-test',
+          bikeId: 'push-test',
+          brand: listing?['brand'] as String? ?? 'Yamaha',
+          model: listing?['model'] as String? ?? 'MT-07',
+          year: (listing?['year'] as num?)?.toInt() ?? 2021,
+          value: price,
+          previousValue: price * 1.02,
+          previousMonth: DateTime.utc(2026, 10),
+        ),
+        language: language,
+      ),
     );
   }
   if (kind == 'test' || !pushTestKinds.contains(kind)) {

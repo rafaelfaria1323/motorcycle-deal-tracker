@@ -177,6 +177,19 @@ class PushStore(final SupabaseClient _client) {
     ];
   }
 
+  /// Keeps this month's value of the accounts' own bikes at [at] and
+  /// returns the ones kept (`record_owned_bike_values`, N.80).
+  Future<List<OwnedBikeValue>> recordOwnedBikeValues(DateTime at) async {
+    final rows = await _client.rpc<List<dynamic>>(
+      'record_owned_bike_values',
+      params: {'p_at': at.toUtc().toIso8601String()},
+    );
+    return [
+      for (final row in rows)
+        OwnedBikeValue.fromRow(row as Map<String, dynamic>),
+    ];
+  }
+
   /// Marks [visit] reminded, unless it was moved meanwhile
   /// (`mark_visit_reminded`).
   Future<void> markVisitReminded(VisitReminder visit) async {

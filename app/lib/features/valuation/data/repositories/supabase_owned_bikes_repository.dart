@@ -14,7 +14,8 @@ class SupabaseOwnedBikesRepository implements OwnedBikesRepository {
   static const columns =
       'id, motorcycle_id, listing_id, year, price_paid, '
       'mileage_at_purchase, bought_on, motorcycles(brand, model, '
-      'engine_cc_min, engine_cc_max, ${ListingModel.maintenanceColumns})';
+      'engine_cc_min, engine_cc_max, ${ListingModel.maintenanceColumns}), '
+      'owned_bike_values(month, value)';
 
   @override
   Future<List<OwnedBike>> list() async {
@@ -81,5 +82,15 @@ OwnedBike ownedBikeFrom(Map<String, dynamic> row) {
     model: model['model'] as String,
     engineCc: ListingModel.engineCcOf(model),
     maintenance: ListingModel.maintenanceOf(model),
+    values: monthlyValuesFrom(row['owned_bike_values'] as List<dynamic>?),
   );
 }
+
+/// The embedded `owned_bike_values` rows, the latest month first.
+List<MonthlyValue> monthlyValuesFrom(List<dynamic>? rows) => [
+  for (final row in (rows ?? const []).cast<Map<String, dynamic>>())
+    (
+      month: DateTime.parse(row['month'] as String),
+      value: (row['value'] as num).toDouble(),
+    ),
+]..sort((a, b) => b.month.compareTo(a.month));

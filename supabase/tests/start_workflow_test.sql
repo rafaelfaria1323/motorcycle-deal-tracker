@@ -163,8 +163,8 @@ begin
   exception when sqlstate '22023' then null;
   end;
   -- Another account's start a moment ago doesn't hold this one back.
-  -- (The visit reminder, N.65, is one of the kinds.)
-  assert public.start_workflow('push-test.yml', 'visit_reminder') = now();
+  -- (The monthly bike value, N.80, is one of the kinds.)
+  assert public.start_workflow('push-test.yml', 'bike_value_month') = now();
   begin
     perform public.start_workflow('push-test.yml', 'run_failed');
     assert false, 'push test started twice by the same account';
@@ -176,7 +176,7 @@ reset role;
 do $$
 begin
   assert (select content::jsonb -> 'inputs' from extensions.http_calls)
-    = '{"account": "00000000-0000-0000-0000-0000000000a1", "kind": "visit_reminder"}'::jsonb;
+    = '{"account": "00000000-0000-0000-0000-0000000000a1", "kind": "bike_value_month"}'::jsonb;
 end $$;
 
 -- The weekly summary waits 2 minutes per account too: another account's

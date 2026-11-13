@@ -3495,6 +3495,31 @@ CREATE FUNCTION public.olx_copies_to_skip(p_copies jsonb) RETURNS SETOF text
 $$;
 
 --
+-- Name: owned_bike_mileage(integer, date, integer, date); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.owned_bike_mileage(p_mileage_at_purchase integer, p_bought_on date, p_km_per_year integer, p_day date) RETURNS integer
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$
+  select case
+    when p_mileage_at_purchase is null then null
+    when p_day <= p_bought_on then p_mileage_at_purchase
+    else (round((p_mileage_at_purchase
+                 + p_km_per_year * (p_day - p_bought_on) / 365.25) / 100) * 100)::integer
+  end
+$$;
+
+--
+-- Name: owned_bike_value_min_comparables(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.owned_bike_value_min_comparables() RETURNS integer
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$ select 3 $$;
+
+--
 -- Name: owner_tracks(uuid, uuid, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -4010,6 +4035,59 @@ begin
     values (new.id, new.price, coalesce(new.first_seen_at, now()));
   end if;
   return new;
+end;
+$$;
+
+--
+-- Name: record_owned_bike_values(timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.record_owned_bike_values(p_at timestamp with time zone DEFAULT now()) RETURNS TABLE(user_id uuid, bike_id uuid, brand text, model text, year integer, value numeric, mileage integer, previous_value numeric, previous_month date)
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+declare
+  v_day   date := (p_at at time zone 'Europe/Lisbon')::date;
+  v_month date := date_trunc('month', v_day)::date;
+begin
+  return query
+  with due as (
+    select b.id, b.user_id, b.motorcycle_id, b.year::integer as year,
+           public.owned_bike_mileage(b.mileage_at_purchase, b.bought_on,
+                                     coalesce(s.km_per_year, 5000), v_day) as km
+    from public.owned_bikes b
+    join auth.users u on u.id = b.user_id and not coalesce(u.is_anonymous, false)
+    left join public.ownership_settings s on s.user_id = b.user_id
+    where b.bought_on <= v_day
+      and not exists (select 1 from public.owned_bike_values v
+                      where v.bike_id = b.id and v.month = v_month)
+  ),
+  valued as (
+    select d.id, d.km, bv.fair_price, bv.comparable_count
+    from due d
+    cross join lateral public.bike_value(d.motorcycle_id, d.year, d.km) bv
+    where bv.comparable_count >= public.owned_bike_value_min_comparables()
+      and bv.fair_price > 0
+  ),
+  kept as (
+    insert into public.owned_bike_values as v
+      (bike_id, month, value, mileage, comparables, recorded_at)
+    select x.id, v_month, x.fair_price, x.km, x.comparable_count, p_at
+    from valued x
+    on conflict on constraint owned_bike_values_pkey do nothing
+    returning v.bike_id, v.value, v.mileage
+  )
+  select b.user_id, k.bike_id, m.brand::text, m.model::text, b.year::integer,
+         k.value, k.mileage, p.value, p.month
+  from kept k
+  join public.owned_bikes b on b.id = k.bike_id
+  join public.motorcycles m on m.id = b.motorcycle_id
+  left join lateral (
+    select e.value, e.month from public.owned_bike_values e
+    where e.bike_id = k.bike_id and e.month < v_month
+    order by e.month desc limit 1
+  ) p on true
+  order by b.user_id, k.bike_id;
 end;
 $$;
 
@@ -5152,7 +5230,8 @@ begin
   if p_kind is not null and (p_workflow <> 'push-test.yml' or p_kind not in (
        'test', 'new_listing', 'price_reduction', 'excellent_opportunity',
        'listing_removed', 'back_on_market', 'target_price_reached',
-       'run_failed', 'run_blocked', 'run_recovered', 'visit_reminder')) then
+       'run_failed', 'run_blocked', 'run_recovered', 'visit_reminder',
+       'bike_value_month')) then
     raise exception 'unknown kind %', p_kind using errcode = '22023';
   end if;
 
@@ -6356,6 +6435,21 @@ CREATE VIEW public.model_price_trend WITH (security_invoker='true') AS
   GROUP BY motorcycle_id, week_start;
 
 --
+-- Name: owned_bike_values; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.owned_bike_values (
+    bike_id uuid NOT NULL,
+    month date NOT NULL,
+    value numeric(10,2) NOT NULL,
+    mileage integer,
+    comparables integer NOT NULL,
+    recorded_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT owned_bike_values_month_check CHECK ((month = (date_trunc('month'::text, (month)::timestamp with time zone))::date)),
+    CONSTRAINT owned_bike_values_value_check CHECK ((value > (0)::numeric))
+);
+
+--
 -- Name: owned_bikes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -6835,6 +6929,13 @@ ALTER TABLE ONLY public.motorcycles
 
 ALTER TABLE ONLY public.motorcycles
     ADD CONSTRAINT motorcycles_slug_key UNIQUE (slug);
+
+--
+-- Name: owned_bike_values owned_bike_values_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.owned_bike_values
+    ADD CONSTRAINT owned_bike_values_pkey PRIMARY KEY (bike_id, month);
 
 --
 -- Name: owned_bikes owned_bikes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
@@ -7420,6 +7521,13 @@ ALTER TABLE ONLY public.listings
     ADD CONSTRAINT listings_relisted_from_fkey FOREIGN KEY (relisted_from) REFERENCES public.listings(id) ON DELETE SET NULL;
 
 --
+-- Name: owned_bike_values owned_bike_values_bike_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.owned_bike_values
+    ADD CONSTRAINT owned_bike_values_bike_id_fkey FOREIGN KEY (bike_id) REFERENCES public.owned_bikes(id) ON DELETE CASCADE;
+
+--
 -- Name: owned_bikes owned_bikes_listing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7561,6 +7669,14 @@ CREATE POLICY "Accounts manage their own language" ON public.account_languages T
 --
 
 CREATE POLICY "Accounts manage their own quiet hours" ON public.quiet_hours TO authenticated USING (((user_id = ( SELECT auth.uid() AS uid)) AND (NOT COALESCE(((( SELECT auth.jwt() AS jwt) ->> 'is_anonymous'::text))::boolean, true)))) WITH CHECK (((user_id = ( SELECT auth.uid() AS uid)) AND (NOT COALESCE(((( SELECT auth.jwt() AS jwt) ->> 'is_anonymous'::text))::boolean, true))));
+
+--
+-- Name: owned_bike_values Accounts read their own bikes' values; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Accounts read their own bikes' values" ON public.owned_bike_values FOR SELECT TO authenticated USING (((EXISTS ( SELECT 1
+   FROM public.owned_bikes b
+  WHERE ((b.id = owned_bike_values.bike_id) AND (b.user_id = ( SELECT auth.uid() AS uid))))) AND (NOT COALESCE(((( SELECT auth.jwt() AS jwt) ->> 'is_anonymous'::text))::boolean, true))));
 
 --
 -- Name: invites Admins delete invites; Type: POLICY; Schema: public; Owner: -
@@ -7789,6 +7905,12 @@ ALTER TABLE public.listings ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.motorcycles ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: owned_bike_values; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.owned_bike_values ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: owned_bikes; Type: ROW SECURITY; Schema: public; Owner: -
@@ -8771,6 +8893,20 @@ REVOKE ALL ON FUNCTION public.olx_copies_to_skip(p_copies jsonb) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.olx_copies_to_skip(p_copies jsonb) TO service_role;
 
 --
+-- Name: FUNCTION owned_bike_mileage(p_mileage_at_purchase integer, p_bought_on date, p_km_per_year integer, p_day date); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.owned_bike_mileage(p_mileage_at_purchase integer, p_bought_on date, p_km_per_year integer, p_day date) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.owned_bike_mileage(p_mileage_at_purchase integer, p_bought_on date, p_km_per_year integer, p_day date) TO service_role;
+
+--
+-- Name: FUNCTION owned_bike_value_min_comparables(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.owned_bike_value_min_comparables() FROM PUBLIC;
+GRANT ALL ON FUNCTION public.owned_bike_value_min_comparables() TO service_role;
+
+--
 -- Name: FUNCTION owner_tracks(p_user uuid, p_motorcycle_id uuid, p_year integer); Type: ACL; Schema: public; Owner: -
 --
 
@@ -8895,6 +9031,13 @@ GRANT ALL ON FUNCTION public.recalculate_deal_scores() TO service_role;
 GRANT ALL ON FUNCTION public.record_initial_price() TO anon;
 GRANT ALL ON FUNCTION public.record_initial_price() TO authenticated;
 GRANT ALL ON FUNCTION public.record_initial_price() TO service_role;
+
+--
+-- Name: FUNCTION record_owned_bike_values(p_at timestamp with time zone); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.record_owned_bike_values(p_at timestamp with time zone) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.record_owned_bike_values(p_at timestamp with time zone) TO service_role;
 
 --
 -- Name: FUNCTION redeem_invite(p_code text, p_email text, p_password text); Type: ACL; Schema: public; Owner: -
@@ -9462,6 +9605,13 @@ GRANT ALL ON TABLE public.model_price_summary TO service_role;
 GRANT SELECT ON TABLE public.model_price_trend TO anon;
 GRANT SELECT ON TABLE public.model_price_trend TO authenticated;
 GRANT ALL ON TABLE public.model_price_trend TO service_role;
+
+--
+-- Name: TABLE owned_bike_values; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON TABLE public.owned_bike_values TO service_role;
+GRANT SELECT ON TABLE public.owned_bike_values TO authenticated;
 
 --
 -- Name: TABLE owned_bikes; Type: ACL; Schema: public; Owner: -

@@ -7,7 +7,9 @@ import 'package:collector/collector.dart';
 /// listings, price drops, listings gone and the best deals now), keeps it
 /// for the app's "Resumo da semana" and sends it to the account's devices
 /// (Web Push). `SUMMARY_ACCOUNT` (the account that asked in the app) makes
-/// only that account's; empty, every account's. `--dry-run` prints them
+/// only that account's; empty, every account's, and then also keeps this
+/// month's value of each account's own bikes and tells their owners (N.80,
+/// once a month: the first Monday). `--dry-run` prints the summaries
 /// instead.
 Future<void> main(List<String> args) async {
   final options = readCommandLine(
@@ -55,5 +57,16 @@ Future<void> main(List<String> args) async {
       'Weekly summary made for ${result.accounts} account(s), sent to '
       '${result.sent} of ${result.devices} device(s).',
     );
+    if (account == null || account.isEmpty) {
+      final bikes = await sendOwnedBikeValues(
+        pushes,
+        push,
+        DateTime.now().toUtc(),
+      );
+      stdout.writeln(
+        "This month's value kept for ${bikes.valued} bike(s), "
+        'sent to ${bikes.sent} device(s).',
+      );
+    }
   });
 }
