@@ -9,14 +9,17 @@ import '../cubit/favourites_cubit.dart';
 import '../cubit/favourites_state.dart';
 import '../../../listings/presentation/cubit/listing_card_preferences_cubit.dart';
 import '../favourites_text.dart';
+import '../similar_search.dart';
 import '../viewing_checklist.dart';
 import '../widgets/favourite_widgets.dart';
 import '../widgets/viewing_checklist_card.dart';
 import '../../../listings/presentation/widgets/listing_card.dart';
+import '../../../saved_searches/presentation/widgets/save_search_dialog.dart';
 import '../../../../core/localization/localizations.dart';
 
 /// The shortlist: the listings the user starred, newest first, each with
-/// their note. Removed ones stay, marked "Removido".
+/// their note. Removed ones stay, marked "Removido", with "Avisar-me de
+/// uma parecida": a saved search for the next bike like it (N.84).
 class const FavouritesPage({super.key}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -177,6 +180,26 @@ class const FavouritesPage({super.key}) extends StatelessWidget {
                                     ),
                                     label: Text(context.strings.forViewing),
                                   ),
+                                  // Gone from the market: the search for
+                                  // the next one like it (N.84).
+                                  if (similarSearchFilters(f.listing!)
+                                      case final similar?)
+                                    TextButton.icon(
+                                      onPressed: () => saveSearchWithName(
+                                        context,
+                                        similar,
+                                        suggestion: similarSearchName(
+                                          f.listing!,
+                                          language: context.language,
+                                        ),
+                                      ),
+                                      icon: const Icon(
+                                        Icons.notifications_active_outlined,
+                                      ),
+                                      label: Text(
+                                        context.strings.notifyMeOfSimilar,
+                                      ),
+                                    ),
                                 ],
                               ),
                             ),

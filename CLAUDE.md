@@ -1484,7 +1484,11 @@ RLS) alert their owner without a saved search (`saved_search_id` null):
 `listing_removed` after the listing became a favourite; a unique index
 keeps one alert per price change, and a removal already alerted to the
 person since the listing was last seen isn't alerted again, when a saved
-search also covers it. A favourite also holds the viewing checklist's marks
+search also covers it. A gone favourite offers "Avisar-me de uma parecida"
+(N.84, `similarSearchFilters`, `favourites/presentation/similar_search.dart`):
+a saved search for the same model, a year either side, up to 10 % dearer
+and 30 % (at least 3 000) more km, through Ofertas' save flow
+(`saveSearchWithName`, `save_search_dialog.dart`). A favourite also holds the viewing checklist's marks
 (`checklist jsonb`, `{"tyres": {"mark": "ok"|"issue", "note": ...}}`); the
 items live in the app (`viewing_checklist.dart`), keys never change: 12
 for every bike plus "Nesta mota" (`bikeChecklistItems`, N.64, from the

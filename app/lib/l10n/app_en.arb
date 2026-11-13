@@ -1282,5 +1282,7 @@
   "priceDropOutlookWait": "Many dropped: waiting a few days and offering again may pay, if you accept the risk of another buyer getting there first.",
   "priceDropOutlookBuyNow": "Many left before dropping: if you want this bike, don't wait for a drop.",
   "priceDropOutlookNeutral": "Few dropped and few left: the price moves more with your offer than with waiting.",
-  "priceDropOutlookFootnote": "Asking prices from the listings, not sale prices. Not part of any score."
+  "priceDropOutlookFootnote": "Asking prices from the listings, not sale prices. Not part of any score.",
+  "similarSearchName": "Like {bike}",
+  "notifyMeOfSimilar": "Tell me about a similar one"
 }

@@ -1,6 +1,47 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/di/injection.dart';
 import '../../../../core/localization/localizations.dart';
+import '../../../../core/widgets/show_message.dart';
+import '../../../listings/domain/entities/listing_filters.dart';
+import '../../domain/entities/saved_search.dart';
+import '../cubit/saved_searches_cubit.dart';
+import '../saved_search_summary.dart';
+
+/// Saves [filters] as a search after asking for its name ([suggestion]
+/// first), unless one like it is saved already; says how it went. Shared
+/// by Ofertas' "Guardar pesquisa" and Favoritos' "Avisar-me de uma
+/// parecida" (N.84).
+Future<void> saveSearchWithName(
+  BuildContext context,
+  ListingFilters filters, {
+  required String suggestion,
+}) async {
+  final messageStrings = context.strings;
+  final messageLanguage = context.language;
+  final messenger = ScaffoldMessenger.of(context);
+  final searches = getIt<SavedSearchesCubit>();
+
+  // The list loads with the Pesquisas tab: without it the same search
+  // could be saved again.
+  if (searches.state.status != .success) {
+    await searches.load();
+  }
+  if (savedSearchLike(searches.state.searches, filters) case final same?) {
+    showMessage(messenger, alreadySavedText(same, language: messageLanguage));
+    return;
+  }
+  if (!context.mounted) return;
+
+  final name = await showSaveSearchDialog(context, suggestion: suggestion);
+  if (name == null) return;
+
+  final saved = await searches.create(name, filters);
+  showMessage(
+    messenger,
+    saved ? messageStrings.searchSaved : messageStrings.couldNotSaveSearch,
+  );
+}
 
 /// Asks for a name; returns null if cancelled.
 Future<String?> showSaveSearchDialog(
