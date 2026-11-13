@@ -18,6 +18,7 @@ import '../../features/favourites/data/repositories/supabase_favourites_reposito
 import '../../features/listings/data/repositories/supabase_listing_card_preferences_repository.dart';
 import '../../features/listings/data/repositories/supabase_listings_repository.dart';
 import '../../features/market/data/repositories/supabase_market_behaviour_repository.dart';
+import '../../features/valuation/data/repositories/supabase_fuel_price_repository.dart';
 import '../../features/valuation/data/repositories/supabase_ownership_settings_repository.dart';
 import '../../features/valuation/data/repositories/supabase_owned_bikes_repository.dart';
 import '../../features/valuation/domain/repositories/owned_bikes_repository.dart';
@@ -33,6 +34,7 @@ import '../../features/favourites/domain/repositories/favourites_repository.dart
 import '../../features/listings/domain/repositories/listing_card_preferences_repository.dart';
 import '../../features/listings/domain/repositories/listings_repository.dart';
 import '../../features/market/domain/repositories/market_behaviour_repository.dart';
+import '../../features/valuation/domain/repositories/fuel_price_repository.dart';
 import '../../features/valuation/domain/repositories/ownership_settings_repository.dart';
 import '../../features/saved_searches/domain/repositories/saved_searches_repository.dart';
 import '../../features/alerts/domain/repositories/weekly_summary_repository.dart';
@@ -168,6 +170,9 @@ void configureDependencies(SharedPreferences preferences) {
     )
     ..registerLazySingleton<OwnershipSettingsRepository>(
       () => SupabaseOwnershipSettingsRepository(getIt<SupabaseClient>()),
+    )
+    ..registerLazySingleton<FuelPriceRepository>(
+      () => SupabaseFuelPriceRepository(getIt<SupabaseClient>()),
     )
     ..registerLazySingleton<OwnedBikesRepository>(
       () => SupabaseOwnedBikesRepository(getIt<SupabaseClient>()),

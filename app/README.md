@@ -157,7 +157,8 @@ Screen names below use the Portuguese labels; English provides the same screens.
     price), "Custo de ter esta mota" (yearly cost:
     depreciation, IUC, your insurance or its estimate by engine size
     (more for a sports bike), tyres (priced by the model's sizes), services
-    and valve checks (by its cylinders and the maker's intervals), chain; "Alterar"
+    and valve checks (by its cylinders and the maker's intervals), chain,
+    fuel (the maker's consumption at DGEG's national price of petrol 95); "Alterar"
     sets your insurance, km per year and years to keep, saved to your
     account).
   - **Negociar:** "Quanto oferecer" (where to start, a second offer if

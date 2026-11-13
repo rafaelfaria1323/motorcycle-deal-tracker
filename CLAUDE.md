@@ -748,6 +748,12 @@ invites; written by the collector on each run).
   expiry from GitHub's `github-authentication-token-expiration` header);
   refused or ending within 14 days tells Telegram once a day. Admins see
   it in "Estado da recolha" (`github_token_status`, checks again).
+- Fuel prices (N.74): pg_cron job `refresh-fuel-prices` (`41 9 * * *`)
+  runs `refresh_fuel_prices()`: one GET through `http` to DGEG's public
+  API (precoscombustiveis.dgeg.gov.pt, no key, `docs/sources.md`) for the
+  last week's national daily average of "Gasolina simples 95" (id 3201),
+  upserted into `fuel_prices` (readable by everyone; over 400 days old
+  deleted); a failure only warns, the app keeps the last price.
 - Watchdog: pg_cron job `collection-watchdog` (`20 * * * *`) runs
   `check_collection_runs()`: no run recorded for 9 h sends a Telegram
   message (`send_telegram()`, pg_net, Vault secrets `telegram_bot_token`
@@ -1273,9 +1279,13 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   valve check's price; the maker's `service_interval_km` and
   `valve_check_km`; the listing page's query reads them,
   `Listing.maintenance`), else by engine size (`smallBikeCosts`...);
-  a sports bike's tyres 15 % dearer, 20 % shorter-lived. Models added
-  from the app have none of them until a migration fills them.
-  The owner's figures live in `ownership_settings` (one row per account).
+  a sports bike's tyres 15 % dearer, 20 % shorter-lived; + fuel (N.74):
+  km / 100 x the maker's `motorcycles.fuel_l_per_100km` (else
+  `fuelConsumptionEstimate` by engine size) x the latest national price
+  of petrol 95 (`fuel_prices`, `FuelPriceRepository`; no line without
+  one). Models added from the app have none of them until a migration
+  fills them. The owner's figures live in `ownership_settings` (one row
+  per account).
 - Favourite colours: `listings.colour` (a code: `colour_code()` of
   Standvirtual's `site_colour`, else `colour_in_text()`: a colour word in
   the variant before "com", or after "cor" in the description; trigger

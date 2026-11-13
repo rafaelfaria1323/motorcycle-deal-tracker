@@ -2282,6 +2282,42 @@
       }
     }
   },
+  "ownershipFuel": "Combustível: {price} ({litres} l/100 km do fabricante, gasolina 95 a {perLitre} €/l, média nacional de {day})",
+  "@ownershipFuel": {
+    "description": "Interface text in ownership_cost, ownershipLines.",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "litres": {
+        "type": "String"
+      },
+      "perLitre": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "ownershipFuelEstimated": "Combustível: {price} (cerca de {litres} l/100 km pela cilindrada, gasolina 95 a {perLitre} €/l, média nacional de {day})",
+  "@ownershipFuelEstimated": {
+    "description": "Interface text in ownership_cost, ownershipLines.",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "litres": {
+        "type": "String"
+      },
+      "perLitre": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      }
+    }
+  },
   "atPerYearTypicalWorkshopPricesAndRoad": "Com {mileage} por ano. Preços de oficina típicos (pelas medidas dos pneus e intervalos do fabricante deste modelo, quando conhecidos) e IUC de {iucTableYear}; a desvalorização vem dos preços pedidos deste modelo.",
   "@atPerYearTypicalWorkshopPricesAndRoad": {
     "description": "Interface text in ownership_cost, ownershipFootnote.",

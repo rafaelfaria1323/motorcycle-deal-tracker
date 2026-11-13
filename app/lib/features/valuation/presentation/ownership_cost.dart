@@ -3,6 +3,7 @@ import 'dart:math';
 import '../../../core/formatting/formatters.dart';
 import '../../listings/domain/entities/bike_maintenance.dart';
 import '../../market/domain/entities/market_behaviour.dart';
+import '../domain/entities/fuel_price.dart';
 import '../domain/entities/ownership_settings.dart';
 import '../../../core/localization/localizations.dart';
 
@@ -237,6 +238,26 @@ const generalDepreciation = Depreciation(
   per1000Km: 0.005,
 );
 
+/// Litres per 100 km by engine size, for a model without the maker's
+/// figure (WMTC figures of the 2026 models: about 2 for a 125, 3 to 3.5 up
+/// to 350 cc, 3.5 to 4 up to 550, 4 to 5 up to 800, 5 to 7 above).
+const fuelConsumptionBands = <({int? maxCc, double litres})>[
+  (maxCc: 150, litres: 2.2),
+  (maxCc: 350, litres: 3.2),
+  (maxCc: 550, litres: 3.8),
+  (maxCc: 800, litres: 4.6),
+  (maxCc: null, litres: 6.0),
+];
+
+/// The litres per 100 km a bike of [engineCc] typically uses; the middle
+/// band's when unknown.
+double fuelConsumptionEstimate(int? engineCc) {
+  final cc = engineCc ?? 700;
+  return fuelConsumptionBands
+      .firstWhere((b) => b.maxCc == null || cc <= b.maxCc!)
+      .litres;
+}
+
 /// What a bike costs per year, in euros. Running costs are the same every
 /// year; depreciation is the average over the years kept.
 class const OwnershipCost({
@@ -258,9 +279,25 @@ class const OwnershipCost({
   required final int years,
   required final int kmPerYear,
   required final RunningCostTable table,
+
+  /// Null without a fuel price.
+  final double? fuel,
+
+  /// The litres per 100 km [fuel] used: the maker's, else
+  /// [fuelConsumptionEstimate] ([fuelEstimated]).
+  final double? fuelPer100Km,
+  final bool fuelEstimated = false,
+  final FuelPrice? fuelPrice,
 }) {
   double get perYear =>
-      (iuc ?? 0) + insurance + tyres + services + chain + valves + depreciation;
+      (iuc ?? 0) +
+      insurance +
+      tyres +
+      services +
+      chain +
+      valves +
+      (fuel ?? 0) +
+      depreciation;
 
   double get total => perYear * years;
 }
@@ -274,6 +311,7 @@ OwnershipCost? ownershipCost({
   bool sport = false,
   BikeMaintenance? maintenance,
   Depreciation? depreciation,
+  FuelPrice? fuelPrice,
 }) {
   if (price == null || price <= 0) return null;
   final km = settings.kmPerYear;
@@ -290,6 +328,10 @@ OwnershipCost? ownershipCost({
   // and per 1000 km.
   final yearlyRate = rates.perYear + rates.per1000Km * km / 1000;
   final lost = price * (1 - exp(-yearlyRate * years));
+  final makers = maintenance?.fuelPer100Km;
+  final litres = fuelPrice == null
+      ? null
+      : makers ?? fuelConsumptionEstimate(engineCc);
 
   return OwnershipCost(
     iuc: iucPerYear(engineCc: engineCc, year: year),
@@ -306,6 +348,10 @@ OwnershipCost? ownershipCost({
     years: years,
     kmPerYear: km,
     table: table,
+    fuel: litres == null ? null : km / 100 * litres * fuelPrice!.perLitre,
+    fuelPer100Km: litres,
+    fuelEstimated: litres != null && makers == null,
+    fuelPrice: fuelPrice,
   );
 }
 
@@ -386,7 +432,46 @@ List<String> ownershipLines(
       cost: Formatters.price(t.valveCheck, language: language),
       distance: km(t.valveCheckKm),
     ),
+    if ((c.fuel, c.fuelPer100Km, c.fuelPrice) case (
+      final fuel?,
+      final litres?,
+      final pump?,
+    ))
+      _fuelLine(fuel, litres, pump, estimated: c.fuelEstimated, language),
   ];
+}
+
+/// "Combustível: 412 € (4,2 l/100 km do fabricante, gasolina 95 a
+/// 1,911 €/l, média nacional de 11/11/2026)".
+String _fuelLine(
+  double fuel,
+  double litres,
+  FuelPrice pump,
+  AppLanguage language, {
+  required bool estimated,
+}) {
+  final m = language.messages;
+  final price = Formatters.price(fuel, language: language);
+  final consumption = Formatters.decimal(litres, language: language);
+  final perLitre = Formatters.decimal(
+    pump.perLitre,
+    decimals: 3,
+    language: language,
+  );
+  final day = Formatters.date(pump.day);
+  return estimated
+      ? m.ownershipFuelEstimated(
+          price: price,
+          litres: consumption,
+          perLitre: perLitre,
+          day: day,
+        )
+      : m.ownershipFuel(
+          price: price,
+          litres: consumption,
+          perLitre: perLitre,
+          day: day,
+        );
 }
 
 /// "Seguro: cerca de 300 € (estimativa contra terceiros, desportiva de 401

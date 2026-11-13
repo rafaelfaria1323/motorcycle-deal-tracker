@@ -6,30 +6,39 @@ import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../../../listings/domain/entities/listing.dart';
 import '../../../market/domain/entities/market_behaviour.dart';
+import '../../domain/entities/fuel_price.dart';
 import '../../domain/entities/ownership_settings.dart';
 import '../../../market/domain/repositories/market_behaviour_repository.dart';
+import '../../domain/repositories/fuel_price_repository.dart';
 import '../../domain/repositories/ownership_settings_repository.dart';
 import '../ownership_cost.dart';
 import '../../../../core/localization/localizations.dart';
 
 /// "Custo de ter esta mota": the yearly cost (depreciation, IUC, the
-/// owner's insurance or its estimate, tyres, services, chain) and the total for the years
-/// the owner plans to keep it. "Alterar" edits the owner's figures.
+/// owner's insurance or its estimate, tyres, services, chain, valves and,
+/// once DGEG's price is stored, fuel) and the total for the years the
+/// owner plans to keep it. "Alterar" edits the owner's figures.
 class const OwnershipCostCard({required final Listing listing, super.key})
     extends StatefulWidget {
   @override
   State<OwnershipCostCard> createState() => _OwnershipCostCardState();
 }
 
+typedef _Loaded = ({
+  OwnershipSettings settings,
+  Depreciation? depreciation,
+  FuelPrice? fuel,
+});
+
 class _OwnershipCostCardState extends State<OwnershipCostCard> {
-  late final Future<(OwnershipSettings, Depreciation?)> _loaded = _load();
+  late final Future<_Loaded> _loaded = _load();
   OwnershipSettings? _edited;
 
-  Future<(OwnershipSettings, Depreciation?)> _load() async {
+  Future<_Loaded> _load() async {
     final id = widget.listing.motorcycleId;
-    // Either can fail on its own: the defaults and the general rates still
-    // give an estimate.
-    final (settings, market) = await (
+    // Each can fail on its own: the defaults, the general rates and no
+    // fuel line still give an estimate.
+    final (settings, market, fuel) = await (
       getIt<OwnershipSettingsRepository>().get().catchError(
         (Object _) => const OwnershipSettings(),
       ),
@@ -38,8 +47,9 @@ class _OwnershipCostCardState extends State<OwnershipCostCard> {
           : getIt<MarketBehaviourRepository>()
                 .getForModel(id)
                 .catchError((Object _) => null),
+      getIt<FuelPriceRepository>().latest().catchError((Object _) => null),
     ).wait;
-    return (settings, market?.depreciation);
+    return (settings: settings, depreciation: market?.depreciation, fuel: fuel);
   }
 
   Future<void> _edit(OwnershipSettings current) async {
@@ -67,12 +77,12 @@ class _OwnershipCostCardState extends State<OwnershipCostCard> {
       return const SizedBox.shrink();
     }
 
-    return FutureBuilder<(OwnershipSettings, Depreciation?)>(
+    return FutureBuilder<_Loaded>(
       future: _loaded,
       builder: (context, snapshot) {
         final data = snapshot.data;
         if (data == null) return const SizedBox.shrink();
-        final settings = _edited ?? data.$1;
+        final settings = _edited ?? data.settings;
         final cost = ownershipCost(
           price: listing.price,
           settings: settings,
@@ -80,7 +90,8 @@ class _OwnershipCostCardState extends State<OwnershipCostCard> {
           year: listing.year,
           sport: isSportBike(brand: listing.brand, model: listing.model),
           maintenance: listing.maintenance,
-          depreciation: data.$2,
+          depreciation: data.depreciation,
+          fuelPrice: data.fuel,
         );
         if (cost == null) return const SizedBox.shrink();
 
