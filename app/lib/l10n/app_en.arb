@@ -339,6 +339,8 @@
   "ownershipChain": "Chain and sprocket kit: {price} (every {distance})",
   "ownershipTyresSized": "Tyres: {price} ({front} and {rear}, a set every {distance}, at least every {tyreMaxYears} years)",
   "ownershipValves": "Valve clearance check: {price} ({cost} every {distance})",
+  "ownershipFuel": "Fuel: {price} ({litres} l/100 km, the maker's figure; petrol 95 at {perLitre} €/l, national average on {day})",
+  "ownershipFuelEstimated": "Fuel: {price} (about {litres} l/100 km by engine size; petrol 95 at {perLitre} €/l, national average on {day})",
   "atPerYearTypicalWorkshopPricesAndRoad": "At {mileage} per year. Typical workshop prices (by this model's tyre sizes and maker's intervals, when known) and {iucTableYear} road tax (IUC); depreciation comes from this model's asking prices.",
   "couldNotLoadThisAlertSSearch": "Could not load this alert's search",
   "thisAlertSSearchNoLongerExists": "This alert's search no longer exists",

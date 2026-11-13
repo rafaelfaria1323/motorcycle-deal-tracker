@@ -4,6 +4,8 @@ import 'package:motorcycle_deal_tracker/core/localization/localizations.dart';
 import 'package:motorcycle_deal_tracker/features/listings/data/models/listing_model.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/bike_maintenance.dart';
 import 'package:motorcycle_deal_tracker/features/market/domain/entities/market_behaviour.dart';
+import 'package:motorcycle_deal_tracker/features/valuation/data/repositories/supabase_fuel_price_repository.dart';
+import 'package:motorcycle_deal_tracker/features/valuation/domain/entities/fuel_price.dart';
 import 'package:motorcycle_deal_tracker/features/valuation/domain/entities/ownership_settings.dart';
 import 'package:motorcycle_deal_tracker/features/valuation/presentation/ownership_cost.dart';
 
@@ -479,5 +481,93 @@ void main() {
     expect(ListingModel.engineCcOf({'engine_cc_max': 700}), 700);
     expect(ListingModel.engineCcOf({}), isNull);
     expect(ListingModel.engineCcOf(null), isNull);
+  });
+
+  group('fuel (N.74)', () {
+    final pump = FuelPrice(perLitre: 1.9, day: DateTime(2026, 11, 11));
+    const settings = OwnershipSettings(insurancePerYear: 250);
+
+    test('the maker\'s figure at the national price', () {
+      final c = ownershipCost(
+        price: 6000,
+        settings: settings,
+        engineCc: 695,
+        maintenance: const BikeMaintenance(fuelPer100Km: 4.2),
+        fuelPrice: pump,
+      )!;
+      // 5 000 km at 4.2 l/100 km = 210 l at 1.9 €.
+      expect(c.fuel, closeTo(399, 1e-9));
+      expect(c.fuelPer100Km, 4.2);
+      expect(c.fuelEstimated, isFalse);
+      final without = ownershipCost(
+        price: 6000,
+        settings: settings,
+        engineCc: 695,
+        maintenance: const BikeMaintenance(fuelPer100Km: 4.2),
+      )!;
+      expect(c.perYear - without.perYear, closeTo(399, 1e-9));
+      expect(
+        ownershipLines(c).last,
+        'Combustível: ${Formatters.price(399)} (4,2 l/100 km do fabricante, '
+        'gasolina 95 a 1,900 €/l, média nacional de 11/11/2026)',
+      );
+      expect(
+        ownershipLines(c, language: AppLanguage.english).last,
+        'Fuel: ${Formatters.price(399, language: AppLanguage.english)} '
+        "(4.2 l/100 km, the maker's figure; petrol 95 at 1.900 €/l, "
+        'national average on 11/11/2026)',
+      );
+    });
+
+    test('estimated by engine size without the maker\'s figure', () {
+      final c = ownershipCost(
+        price: 3000,
+        settings: const OwnershipSettings(kmPerYear: 10000),
+        engineCc: 125,
+        fuelPrice: pump,
+      )!;
+      expect(c.fuelPer100Km, 2.2);
+      expect(c.fuelEstimated, isTrue);
+      expect(c.fuel, closeTo(418, 1e-9));
+      expect(ownershipLines(c).last, startsWith('Combustível: '));
+      expect(ownershipLines(c).last, contains('cerca de 2,2 l/100 km'));
+    });
+
+    test('no fuel line without a price', () {
+      final c = ownershipCost(
+        price: 6000,
+        settings: settings,
+        engineCc: 695,
+        maintenance: const BikeMaintenance(fuelPer100Km: 4.2),
+      )!;
+      expect(c.fuel, isNull);
+      expect(c.fuelPer100Km, isNull);
+      expect(ownershipLines(c).last, startsWith('Folga das válvulas'));
+    });
+
+    test('consumption bands by engine size', () {
+      expect(fuelConsumptionEstimate(125), 2.2);
+      expect(fuelConsumptionEstimate(150), 2.2);
+      expect(fuelConsumptionEstimate(151), 3.2);
+      expect(fuelConsumptionEstimate(321), 3.2);
+      expect(fuelConsumptionEstimate(471), 3.8);
+      expect(fuelConsumptionEstimate(695), 4.6);
+      expect(fuelConsumptionEstimate(800), 4.6);
+      expect(fuelConsumptionEstimate(998), 6.0);
+      expect(fuelConsumptionEstimate(null), 4.6);
+    });
+
+    test('read from the catalog row and fuel_prices', () {
+      expect(
+        ListingModel.maintenanceOf({'fuel_l_per_100km': 4.2}),
+        const BikeMaintenance(fuelPer100Km: 4.2),
+      );
+      expect(
+        fuelPriceOf({'price': 1.911, 'day': '2026-11-11'}),
+        FuelPrice(perLitre: 1.911, day: DateTime(2026, 11, 11)),
+      );
+      expect(fuelPriceOf({'price': null, 'day': '2026-11-11'}), isNull);
+      expect(fuelPriceOf({'price': 1.9, 'day': 'x'}), isNull);
+    });
   });
 }

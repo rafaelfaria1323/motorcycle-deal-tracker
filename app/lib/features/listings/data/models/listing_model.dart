@@ -161,7 +161,8 @@ class const ListingModel({
 
   /// The columns of `motorcycles` that [maintenanceOf] reads.
   static const maintenanceColumns =
-      'front_tyre, rear_tyre, cylinders, service_interval_km, valve_check_km';
+      'front_tyre, rear_tyre, cylinders, service_interval_km, valve_check_km, '
+      'fuel_l_per_100km';
 
   /// The model's maintenance figures; null when it has none.
   static BikeMaintenance? maintenanceOf(Map<String, dynamic>? bike) {
@@ -172,6 +173,7 @@ class const ListingModel({
       cylinders: (bike['cylinders'] as num?)?.toInt(),
       serviceIntervalKm: (bike['service_interval_km'] as num?)?.toInt(),
       valveCheckKm: (bike['valve_check_km'] as num?)?.toInt(),
+      fuelPer100Km: (bike['fuel_l_per_100km'] as num?)?.toDouble(),
     );
     return value == const BikeMaintenance() ? null : value;
   }

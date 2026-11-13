@@ -5,6 +5,24 @@ here. Robots.txt is not permission; the source's terms of use decide.
 
 ## Decision log
 
+### 2026-11-12: fuel prices from DGEG's public API (N.74)
+
+**Why.** The cost of ownership needs the price of a litre of petrol.
+
+**Source.** DGEG (Direção-Geral de Energia e Geologia), the State's fuel
+price portal, https://precoscombustiveis.dgeg.gov.pt/, built for the
+public to read. Its API (`/api/PrecoComb/PMD?idsTiposComb=3201&dataIni=…&dataFim=…`)
+needs no key and returns JSON: per day, the national average price
+("PrecoMedio", "1,911 €"), the stations counted and the range. Robots.txt
+disallows only /media and /files. Only national averages, no personal
+data.
+
+**Decision.** The database reads it, not the collector: once a day
+(pg_cron `refresh-fuel-prices`, `refresh_fuel_prices()`), one request for
+the last week of "Gasolina simples 95" (id 3201), 20 s timeout, an honest
+user agent, stored in `fuel_prices`. A failure only warns; the app keeps
+the last price with its date. Nothing about the listing sites changes.
+
 ### 2026-11-12: Standvirtual read at the engine size too (N.71)
 
 **Why.** A CBR650R Rafael's father found (ID8Q1m16, "Honda CBR", the
@@ -450,3 +468,4 @@ URL on every listing.
 - OLX Portugal developer portal: https://developer.olx.pt/
 - Standvirtual robots.txt: https://www.standvirtual.com/robots.txt
 - Standvirtual terms (help centre): https://ajuda.standvirtual.com/standvirtualhelp/s/topic/0TO09000000kiW2GAI/novos-termos-e-condi%C3%A7%C3%B5es
+- DGEG fuel prices (portal and API): https://precoscombustiveis.dgeg.gov.pt/

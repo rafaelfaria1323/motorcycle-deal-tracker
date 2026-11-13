@@ -1800,6 +1800,20 @@ end;
 $$;
 
 --
+-- Name: fuel_price_from_text(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fuel_price_from_text(p_text text) RETURNS numeric
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $_$
+  select case
+    when p_text ~ '^\s*[0-9]+([.,][0-9]+)?\s*(€)?\s*$'
+    then replace(regexp_replace(p_text, '[^0-9,.]', '', 'g'), ',', '.')::numeric
+  end
+$_$;
+
+--
 -- Name: generate_alerts(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -3183,12 +3197,14 @@ CREATE TABLE public.motorcycles (
     service_interval_km integer,
     valve_check_km integer,
     power_kw numeric(5,1),
+    fuel_l_per_100km numeric(3,1),
     CONSTRAINT motorcycles_both_source_searches CHECK (((olx_search IS NOT NULL) AND (standvirtual_search IS NOT NULL))),
     CONSTRAINT motorcycles_cylinders CHECK (((cylinders >= 1) AND (cylinders <= 6))),
     CONSTRAINT motorcycles_engine_cc_max_check CHECK ((engine_cc_max > 0)),
     CONSTRAINT motorcycles_engine_cc_min_check CHECK ((engine_cc_min > 0)),
     CONSTRAINT motorcycles_engine_cc_range CHECK (((engine_cc_min IS NULL) OR (engine_cc_max IS NULL) OR (engine_cc_min <= engine_cc_max))),
     CONSTRAINT motorcycles_front_tyre_size CHECK ((front_tyre ~ '^[0-9]{2,3}/[0-9]{2}-[0-9]{2}$'::text)),
+    CONSTRAINT motorcycles_fuel_consumption CHECK (((fuel_l_per_100km >= (1)::numeric) AND (fuel_l_per_100km <= (15)::numeric))),
     CONSTRAINT motorcycles_new_price_reference_check CHECK ((new_price_reference >= (0)::numeric)),
     CONSTRAINT motorcycles_olx_search_check CHECK ((olx_search ~~ 'https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/%'::text)),
     CONSTRAINT motorcycles_power_kw CHECK (((power_kw > (0)::numeric) AND (power_kw <= (250)::numeric))),
@@ -3269,6 +3285,12 @@ COMMENT ON COLUMN public.motorcycles.valve_check_km IS 'The maker''s valve clear
 --
 
 COMMENT ON COLUMN public.motorcycles.power_kw IS 'The model''s maximum power in kW (its current generation); the A2 licence (N.63).';
+
+--
+-- Name: COLUMN motorcycles.fuel_l_per_100km; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.motorcycles.fuel_l_per_100km IS 'The maker''s WMTC consumption, litres per 100 km; null unknown.';
 
 --
 -- Name: my_colours(public.motorcycles); Type: FUNCTION; Schema: public; Owner: -
@@ -4038,6 +4060,72 @@ begin
   end if;
 end;
 $$;
+
+--
+-- Name: refresh_fuel_prices(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.refresh_fuel_prices() RETURNS integer
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $_$
+declare
+  v_response extensions.http_response;
+  v_count    integer;
+begin
+  begin
+    perform extensions.http_set_curlopt('CURLOPT_TIMEOUT_MS', '20000');
+    v_response := extensions.http((
+      'GET',
+      'https://precoscombustiveis.dgeg.gov.pt/api/PrecoComb/PMD'
+        || '?idsTiposComb=3201'
+        || '&dataIni=' || to_char(current_date - 7, 'YYYY-MM-DD')
+        || '&dataFim=' || to_char(current_date, 'YYYY-MM-DD')
+        || '&qtdPorPagina=10&pagina=1&orderDesc=1',
+      array[extensions.http_header('Accept', 'application/json'),
+            extensions.http_header('User-Agent',
+              'MotorcycleDealTracker/0.1 (personal project, low volume)')],
+      null,
+      null
+    )::extensions.http_request);
+  exception when others then
+    raise warning 'Fuel prices not read: %', sqlerrm;
+    return null;
+  end;
+
+  if v_response.status <> 200 then
+    raise warning 'Fuel prices not read: HTTP %', v_response.status;
+    return null;
+  end if;
+
+  begin
+    insert into public.fuel_prices (fuel, day, price, stations)
+    select 'petrol_95', r.day, r.price, r.stations
+    from (
+      select (e ->> 'Data')::date as day,
+             public.fuel_price_from_text(e ->> 'PrecoMedio') as price,
+             case when e ->> 'NumPostos' ~ '^[0-9]+$'
+                  then (e ->> 'NumPostos')::integer end as stations
+      from jsonb_array_elements(
+             case when jsonb_typeof(v_response.content::jsonb -> 'resultado') = 'array'
+                  then v_response.content::jsonb -> 'resultado'
+                  else '[]'::jsonb end) e
+    ) r
+    where r.day is not null and r.price > 0 and r.price < 10
+    on conflict (fuel, day) do update
+      set price = excluded.price,
+          stations = excluded.stations,
+          fetched_at = now();
+    get diagnostics v_count = row_count;
+  exception when others then
+    raise warning 'Fuel prices not understood: %', sqlerrm;
+    return null;
+  end;
+
+  delete from public.fuel_prices where day < current_date - 400;
+  return v_count;
+end;
+$_$;
 
 --
 -- Name: refresh_new_prices_from_ads(); Type: FUNCTION; Schema: public; Owner: -
@@ -5650,6 +5738,21 @@ CREATE VIEW public.dealer_reliability WITH (security_invoker='true') AS
   GROUP BY d.dealer_key;
 
 --
+-- Name: fuel_prices; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.fuel_prices (
+    fuel text NOT NULL,
+    day date NOT NULL,
+    price numeric(5,3) NOT NULL,
+    stations integer,
+    fetched_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT fuel_prices_fuel_check CHECK ((fuel = 'petrol_95'::text)),
+    CONSTRAINT fuel_prices_price_check CHECK (((price > (0)::numeric) AND (price < (10)::numeric))),
+    CONSTRAINT fuel_prices_stations_check CHECK ((stations >= 0))
+);
+
+--
 -- Name: invites; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -6431,6 +6534,13 @@ ALTER TABLE ONLY public.collection_watchdog
 
 ALTER TABLE ONLY public.collector_runs
     ADD CONSTRAINT collector_runs_pkey PRIMARY KEY (id);
+
+--
+-- Name: fuel_prices fuel_prices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.fuel_prices
+    ADD CONSTRAINT fuel_prices_pkey PRIMARY KEY (fuel, day);
 
 --
 -- Name: github_token_check github_token_check_pkey; Type: CONSTRAINT; Schema: public; Owner: -
@@ -7274,6 +7384,12 @@ CREATE POLICY "Catalog is readable by everyone" ON public.motorcycles FOR SELECT
 CREATE POLICY "Everyone reads the push key" ON public.push_config FOR SELECT TO anon, authenticated USING (true);
 
 --
+-- Name: fuel_prices Fuel prices are readable by everyone; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Fuel prices are readable by everyone" ON public.fuel_prices FOR SELECT TO anon, authenticated USING (true);
+
+--
 -- Name: listings Listings are readable by everyone; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -7404,6 +7520,12 @@ ALTER TABLE public.collection_watchdog ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.collector_runs ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: fuel_prices; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.fuel_prices ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: github_token_check; Type: ROW SECURITY; Schema: public; Owner: -
@@ -8046,6 +8168,13 @@ REVOKE ALL ON FUNCTION public.finish_photo_exams(p_listings uuid[]) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.finish_photo_exams(p_listings uuid[]) TO service_role;
 
 --
+-- Name: FUNCTION fuel_price_from_text(p_text text); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.fuel_price_from_text(p_text text) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.fuel_price_from_text(p_text text) TO service_role;
+
+--
 -- Name: FUNCTION generate_alerts(); Type: ACL; Schema: public; Owner: -
 --
 
@@ -8574,6 +8703,13 @@ REVOKE ALL ON FUNCTION public.refresh_collected_model(p_motorcycle_id uuid) FROM
 GRANT ALL ON FUNCTION public.refresh_collected_model(p_motorcycle_id uuid) TO service_role;
 
 --
+-- Name: FUNCTION refresh_fuel_prices(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.refresh_fuel_prices() FROM PUBLIC;
+GRANT ALL ON FUNCTION public.refresh_fuel_prices() TO service_role;
+
+--
 -- Name: FUNCTION refresh_new_prices_from_ads(); Type: ACL; Schema: public; Owner: -
 --
 
@@ -8981,6 +9117,14 @@ GRANT ALL ON TABLE public.listing_price_history TO service_role;
 GRANT SELECT ON TABLE public.dealer_reliability TO anon;
 GRANT SELECT ON TABLE public.dealer_reliability TO authenticated;
 GRANT ALL ON TABLE public.dealer_reliability TO service_role;
+
+--
+-- Name: TABLE fuel_prices; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT SELECT ON TABLE public.fuel_prices TO anon;
+GRANT SELECT ON TABLE public.fuel_prices TO authenticated;
+GRANT ALL ON TABLE public.fuel_prices TO service_role;
 
 --
 -- Name: TABLE invites; Type: ACL; Schema: public; Owner: -
