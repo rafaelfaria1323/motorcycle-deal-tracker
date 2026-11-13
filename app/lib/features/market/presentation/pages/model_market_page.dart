@@ -8,6 +8,7 @@ import '../market_behaviour_text.dart';
 import '../model_market_text.dart';
 import '../../../listings/presentation/widgets/icon_line.dart';
 import '../../../listings/presentation/widgets/tracked_models_builder.dart';
+import '../widgets/model_comparison_card.dart';
 import '../widgets/price_trend_sparkline.dart';
 import '../../../../core/localization/localizations.dart';
 
@@ -39,6 +40,7 @@ class _ModelMarketPageState extends State<ModelMarketPage> {
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
             children: [
+              if (models.length >= 2) ModelComparisonCard(models: models),
               for (final model in models) _ModelCard(model: model),
               Padding(
                 padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),

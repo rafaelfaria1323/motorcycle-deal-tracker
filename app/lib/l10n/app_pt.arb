@@ -7215,5 +7215,119 @@
   "riderHeightInvalid": "Indique a altura em cm, entre 120 e 220.",
   "@riderHeightInvalid": {
     "description": "Interface text in bike_specs_text / bike_specs_card (N.75)."
+  },
+  "modelCompareTitle": "Comparar dois modelos",
+  "@modelCompareTitle": {
+    "description": "Heading of the comparison of two models in Mercado (N.81)."
+  },
+  "modelCompareFirst": "Primeiro modelo",
+  "@modelCompareFirst": {
+    "description": "Picker label: the first model compared."
+  },
+  "modelCompareSecond": "Segundo modelo",
+  "@modelCompareSecond": {
+    "description": "Picker label: the second model compared."
+  },
+  "modelCompareLiveAds": "Anúncios à venda",
+  "@modelCompareLiveAds": {
+    "description": "Comparison row: live ads of the model."
+  },
+  "modelCompareTypicalPrice": "Preço pedido típico",
+  "@modelCompareTypicalPrice": {
+    "description": "Comparison row: median asking price."
+  },
+  "modelCompareTypicalBike": "Mota típica",
+  "@modelCompareTypicalBike": {
+    "description": "Comparison row: median year and mileage."
+  },
+  "modelCompareValueOf": "Valor de uma {year} com {km}",
+  "@modelCompareValueOf": {
+    "description": "Comparison row: estimated value of a bike of that year at normal mileage.",
+    "placeholders": {
+      "year": {
+        "type": "String"
+      },
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "modelCompareLossPerYear": "Perda de valor por ano",
+  "@modelCompareLossPerYear": {
+    "description": "Comparison row: yearly depreciation."
+  },
+  "modelCompareLossPer10000Km": "Perda de valor por 10 000 km",
+  "@modelCompareLossPer10000Km": {
+    "description": "Comparison row: depreciation per 10 000 km."
+  },
+  "modelCompareGeneralRule": "{rate} (regra geral)",
+  "@modelCompareGeneralRule": {
+    "description": "A depreciation rate from the general rule, too few ads for the model's own.",
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "modelCompareTimeToGone": "Tempo típico até sair do mercado",
+  "@modelCompareTimeToGone": {
+    "description": "Comparison row: median days until ads leave."
+  },
+  "modelCompareDays": "{days, plural, =1{1 dia} other{{days} dias}}",
+  "@modelCompareDays": {
+    "description": "A number of days.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "modelCompareSellersDropped": "Vendedores que baixaram o preço",
+  "@modelCompareSellersDropped": {
+    "description": "Comparison row: share of sellers who dropped the price."
+  },
+  "modelCompareDroppedBy": "{share}, em {drop}",
+  "@modelCompareDroppedBy": {
+    "description": "Share of sellers who dropped, and by how much typically, e.g. 40 %, em 5,2 %.",
+    "placeholders": {
+      "share": {
+        "type": "String"
+      },
+      "drop": {
+        "type": "String"
+      }
+    }
+  },
+  "modelCompareCostPerYear": "Custo de a ter, por ano",
+  "@modelCompareCostPerYear": {
+    "description": "Comparison row: yearly cost of owning the typical bike."
+  },
+  "modelCompareCostDepreciation": "… desvalorização",
+  "@modelCompareCostDepreciation": {
+    "description": "Comparison row: part of the yearly cost."
+  },
+  "modelCompareCostFuel": "… combustível",
+  "@modelCompareCostFuel": {
+    "description": "Comparison row: part of the yearly cost."
+  },
+  "modelCompareCostInsuranceTax": "… seguro e IUC",
+  "@modelCompareCostInsuranceTax": {
+    "description": "Comparison row: part of the yearly cost."
+  },
+  "modelCompareCostMaintenance": "… pneus, revisões e corrente",
+  "@modelCompareCostMaintenance": {
+    "description": "Comparison row: part of the yearly cost."
+  },
+  "modelCompareNote": "Preços pedidos nos anúncios, não preços de venda. Cada ano é avaliado aos quilómetros normais para a idade. O custo de a ter é o da mota típica de cada modelo, ao preço pedido típico, com {km} por ano durante {years, plural, =1{1 ano} other{{years} anos}}, como em «Custo de ter esta mota». A verde, o que perde ou custa menos; —, poucos dados.",
+  "@modelCompareNote": {
+    "description": "Note under the comparison of two models.",
+    "placeholders": {
+      "km": {
+        "type": "String"
+      },
+      "years": {
+        "type": "int"
+      }
+    }
   }
 }

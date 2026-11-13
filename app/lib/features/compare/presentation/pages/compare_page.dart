@@ -3,13 +3,13 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
-import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/page_back_button.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../../listings/domain/entities/listing.dart';
 import '../../../listings/domain/repositories/listings_repository.dart';
 import '../compare_text.dart';
 import '../cubit/compare_cubit.dart';
+import '../widgets/compare_row_view.dart';
 import '../../../listings/presentation/widgets/listing_photo.dart';
 import '../../../../core/localization/localizations.dart';
 
@@ -101,9 +101,6 @@ class const _Table({
 }) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = AppColors.of(context);
-    final muted = theme.colorScheme.onSurfaceVariant;
     final rows = compareRows(listings, language: context.language);
 
     return ListView(
@@ -123,45 +120,7 @@ class const _Table({
         const SizedBox(height: 8),
         for (final row in rows) ...[
           const Divider(height: 16),
-          Text(
-            row.label,
-            style: theme.textTheme.labelMedium?.copyWith(color: muted),
-          ),
-          const SizedBox(height: 4),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (final (i, value) in row.values.indexed) ...[
-                if (i > 0) const SizedBox(width: 8),
-                Expanded(
-                  child: Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          value,
-                          style: row.best.contains(i)
-                              ? theme.textTheme.bodyMedium?.copyWith(
-                                  color: colors.positive,
-                                  fontWeight: FontWeight.w700,
-                                )
-                              : theme.textTheme.bodyMedium,
-                        ),
-                      ),
-                      if (row.best.contains(i))
-                        Padding(
-                          padding: const EdgeInsets.only(left: 4),
-                          child: Icon(
-                            Icons.check_circle,
-                            size: 14,
-                            color: colors.positive,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ],
-          ),
+          CompareRowView(row),
         ],
       ],
     );
