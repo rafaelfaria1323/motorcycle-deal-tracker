@@ -151,7 +151,9 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   summary of the week, kept for the app and
                                   pushed to its devices (bin/weekly_summary.dart);
                                   input `account`: only that one;
-                                  without one, also calls text-audit.yml,
+                                  without one, also keeps the month's value
+                                  of each owned bike and pushes it (N.80,
+                                  `record_owned_bike_values`), and calls text-audit.yml,
                                   score-check.yml, model-specs.yml and
                                   backup.yml
 .github/workflows/text-audit.yml  The description check (N.55,
@@ -402,7 +404,9 @@ invites; written by the collector on each run).
   checklist), `compare`, `market` (market behaviour, the model's market
   page, time to sale), `valuation` (a bike's value, the import
   calculator, the cost of ownership, "A minha mota": `owned_bikes`,
-  `OwnedBikesCubit`, "Comprei esta" on the ad's Negociar, N.67),
+  `OwnedBikesCubit`, "Comprei esta" on the ad's Negociar, N.67; its value
+  month by month, `owned_bike_values`, kept and pushed by the Monday
+  summary, N.80),
   `collector_status`, `settings`
   (the "Mais" tab).
 - Text built from data lives in pure functions (`*_text.dart`) with tests.

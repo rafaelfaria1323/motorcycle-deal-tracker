@@ -191,6 +191,70 @@ extension NotificationText on NotificationLanguage {
     'The listing is gone: check with the seller before you go.',
   );
 
+  String ownedBikeValueTitle(String bike, String price) => _text(
+    '💶 A sua $bike vale cerca de $price',
+    '💶 Your $bike is worth about $price',
+  );
+  String ownedBikeValueFirst(String mileage) => _text(
+    'Com $mileage. A partir de agora diz-lhe todos os meses quanto mudou.',
+    'At $mileage. From now on you\'ll hear each month how much it changed.',
+  );
+  String get ownedBikeValueFirstNoMileage => _text(
+    'A partir de agora diz-lhe todos os meses quanto mudou.',
+    'From now on you\'ll hear each month how much it changed.',
+  );
+  String ownedBikeValueSame(String month) => _text(
+    'Mais ou menos o mesmo que em $month.',
+    'About the same as in $month.',
+  );
+  String ownedBikeValueDown(String amount, String percent, String month) =>
+      _text(
+        'Menos $amount ($percent) do que em $month.',
+        '$amount ($percent) less than in $month.',
+      );
+  String ownedBikeValueUp(String amount, String percent, String month) => _text(
+    'Mais $amount ($percent) do que em $month.',
+    '$amount ($percent) more than in $month.',
+  );
+
+  /// "outubro" / "October".
+  String monthName(int month) => switch (this) {
+    .portuguese => const [
+      'janeiro',
+      'fevereiro',
+      'março',
+      'abril',
+      'maio',
+      'junho',
+      'julho',
+      'agosto',
+      'setembro',
+      'outubro',
+      'novembro',
+      'dezembro',
+    ][month - 1],
+    .english => const [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ][month - 1],
+  };
+
+  /// "2,4 %" / "2.4%", one decimal.
+  String percent(double value) {
+    final text = value.toStringAsFixed(1);
+    return _text('${text.replaceAll('.', ',')} %', '$text%');
+  }
+
   String number(int value) {
     final digits = value.abs().toString();
     final out = StringBuffer(value < 0 ? '-' : '');

@@ -29,6 +29,7 @@ export 'src/notify/bike_value_push.dart';
 export 'src/notify/fcm.dart';
 export 'src/notify/notify_pending.dart';
 export 'src/notify/notification_text.dart';
+export 'src/notify/owned_bike_value_push.dart';
 export 'src/notify/pending_alert.dart';
 export 'src/notify/photo_exam_push.dart';
 export 'src/notify/push_test.dart';

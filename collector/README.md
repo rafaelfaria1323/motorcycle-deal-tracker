@@ -152,7 +152,11 @@ best live deals with a Risk Score below 50. It keeps it in
 `weekly_summaries` (the app's "Resumo da semana") and sends it to the
 account's devices (Web Push; a tap opens that page). Asked for in the app,
 the workflow gets the account as its input (`SUMMARY_ACCOUNT`) and makes
-only that one. It only reads the listings.
+only that one. It only reads the listings. Run for everyone, it then keeps
+this month's value of every bike in "A minha mota" (N.80,
+`record_owned_bike_values`: the first Monday of a month, with 3 comparables
+or more) and pushes each to its owner with the change since the month before
+(`notify/owned_bike_value_push.dart`).
 
 Beside it, `bin/text_audit.dart` (workflow `text-audit.yml`, N.55) checks
 the description rules: up to 60 ads of the week (`text_audit_sample`) go to

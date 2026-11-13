@@ -24,6 +24,10 @@ class const OwnedBikeDraft({
   ];
 }
 
+/// A month's value of a bike (`owned_bike_values`, N.80): [month] is the
+/// month's first day.
+typedef MonthlyValue = ({DateTime month, double value});
+
 /// A bike of the account's own (`owned_bikes`), with its model's names
 /// and the facts "A minha mota" values and services it by.
 class const OwnedBike({
@@ -33,6 +37,9 @@ class const OwnedBike({
   required final String model,
   final int? engineCc,
   final BikeMaintenance? maintenance,
+
+  /// The values kept once a month, the latest first.
+  final List<MonthlyValue> values = const [],
 }) extends Equatable {
   String get name => '$brand $model';
 
@@ -44,5 +51,6 @@ class const OwnedBike({
     model,
     engineCc,
     maintenance,
+    values,
   ];
 }

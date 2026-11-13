@@ -254,6 +254,18 @@ class _OwnedBikeCardState extends State<_OwnedBikeCard> {
                   ],
                   if (change != null)
                     Text(valueChangeText(change, language: language)),
+                  if (bike.values.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      context.strings.myBikeValueByMonth,
+                      style: AppTheme.groupLabel(context),
+                    ),
+                    for (final line in monthlyValueLines(
+                      bike.values,
+                      language: language,
+                    ))
+                      Text(line, style: muted),
+                  ],
                   if (km != null) ...[
                     const SizedBox(height: 8),
                     for (final due in nextMaintenance(km, costs))

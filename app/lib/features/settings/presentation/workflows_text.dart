@@ -36,6 +36,7 @@ String pushTestKindText(
   PushTestKind.listingRemoved => language.messages.listingRemoved,
   PushTestKind.backOnMarket => language.messages.pushKindBackOnMarket,
   PushTestKind.visitReminder => language.messages.pushKindVisitReminder,
+  PushTestKind.bikeValueMonth => language.messages.pushKindBikeValueMonth,
   PushTestKind.runFailed => language.messages.collectionFailedAdministrators,
   PushTestKind.runBlocked =>
     language.messages.siteRefusedCollectionAdministrators,

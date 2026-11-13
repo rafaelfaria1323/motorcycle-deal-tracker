@@ -28,6 +28,7 @@ void main() {
       'listing_removed',
       'back_on_market',
       'visit_reminder',
+      'bike_value_month',
       'run_failed',
       'run_blocked',
       'run_recovered',
