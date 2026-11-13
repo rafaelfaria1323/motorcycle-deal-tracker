@@ -12,13 +12,16 @@ filter need each model's figures; models added from the app had none.
 
 **Source.** API Ninjas' motorcycles API
 (https://api-ninjas.com/api/motorcycles), a paid service with a free
-tier; Rafael created the account (2026-11-13). Per model year it gives
+tier (3 000 calls a month); Rafael created the account (2026-11-13). Per model year it gives
 the makers' figures as text with units (power, torque, weights, seat
 height, tank, consumption, tyres, engine layout). No personal data.
 
 **Decision.** The collector asks it weekly (`model-specs.yml`), only about
 models missing a figure or never checked (a few calls a week), one call
 at a time, with the key in a header from the secret `API_NINJAS_KEY`.
+The first run used 19 calls (every model once); after it, a model is
+asked again only while it still misses a figure, once every 30 days (about
+2-3 calls a month today), plus one or two per model added from the app.
 Only empty catalog figures are filled; typed ones stay and differences are
 reported. Nothing about the listing sites changes.
 
