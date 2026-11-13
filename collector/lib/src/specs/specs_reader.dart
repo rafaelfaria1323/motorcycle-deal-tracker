@@ -76,15 +76,18 @@ int? cylindersOf(String? engine) {
 /// name holds one of the model's names as whole words (its spelling's
 /// letters and digits; "YZF-R7" holds "R7", "MT-07 ABS" holds "MT-07",
 /// "YZF-R1M" doesn't hold "R1"), none of its excluded words, and an engine
-/// size within its range (+-10 %) when both are known. Each figure comes
-/// from the newest year that has it, within 6 years of the newest found.
+/// size within its range (+-10 %) when both are known, and the number of
+/// cylinders when both are known ("CBR 500 R Four" isn't the twin
+/// CBR500R). Entries named just the model ("CB650R", not "CB 650 R
+/// E-Clutch") are used alone when there are any. Each figure comes from
+/// the newest year that has it, within 6 years of the newest found.
 SpecsMatch? matchSpecs(SpecsModel model, List<Map<String, Object?>> entries) {
   final names = {for (final n in model.names) _compact(n)}..remove('');
   final excluded = {for (final w in model.excludedWords) _compact(w)}
     ..remove('');
   final low = model.engineCcMin == null ? null : model.engineCcMin! * 0.9;
   final high = model.engineCcMax == null ? null : model.engineCcMax! * 1.1;
-  final found = <({int year, String name, ModelSpecs specs})>[];
+  final found = <({int year, String name, bool exact, ModelSpecs specs})>[];
   for (final entry in entries) {
     final name = '${entry['model'] ?? ''}';
     final words = _words(name);
@@ -95,9 +98,22 @@ SpecsMatch? matchSpecs(SpecsModel model, List<Map<String, Object?>> entries) {
         ((low != null && cc < low) || (high != null && cc > high))) {
       continue;
     }
+    final specs = specsFromEntry(entry);
+    final cylinders = model.specs.cylinders;
+    if (cylinders != null &&
+        specs.cylinders != null &&
+        specs.cylinders != cylinders) {
+      continue;
+    }
     final year = int.tryParse('${entry['year'] ?? ''}') ?? 0;
-    found.add((year: year, name: name, specs: specsFromEntry(entry)));
+    found.add((
+      year: year,
+      name: name,
+      exact: names.contains(_compact(name)),
+      specs: specs,
+    ));
   }
+  if (found.any((f) => f.exact)) found.retainWhere((f) => f.exact);
   if (found.isEmpty) return null;
   found.sort((a, b) => b.year.compareTo(a.year));
   final newest = found.first.year;

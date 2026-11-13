@@ -88,10 +88,42 @@ void main() {
         _entry(model: 'MT-07 Tracer', year: '2024'),
         _entry(year: '2022', weight: '182 kg'),
       ])!;
+      expect(m.name, 'MT-07', reason: 'named just the model: used alone');
+      expect(m.year, 2022);
+      expect(m.entries, 1);
+      expect(m.specs.weightKg, 182);
+    });
+
+    test('without an entry named just the model, the newest has each', () {
+      final m = matchSpecs(_mt07, [
+        _entry(model: 'MT-07 ABS', weight: null),
+        _entry(model: 'MT-07 Pure', year: '2022', weight: '182 kg'),
+      ])!;
       expect(m.name, 'MT-07 ABS');
       expect(m.year, 2023);
       expect(m.entries, 2);
       expect(m.specs.weightKg, 182, reason: 'the newest year that has it');
+    });
+
+    test('another number of cylinders is another bike', () {
+      const cbr = SpecsModel(
+        id: 'c',
+        brand: 'Honda',
+        model: 'CBR500R',
+        engineCcMin: 470,
+        engineCcMax: 510,
+        specs: ModelSpecs(cylinders: 2),
+      );
+      final four = Map.of(
+        _entry(model: 'CBR 500 R Four', year: '2026', displacement: '499 ccm'),
+      )..['engine'] = 'In-line four, four-stroke';
+      final twin = _entry(
+        model: 'CBR 500 R E-Clutch',
+        year: '2025',
+        displacement: '471 ccm',
+      );
+      expect(matchSpecs(cbr, [four, twin])?.name, 'CBR 500 R E-Clutch');
+      expect(matchSpecs(cbr, [four]), isNull);
     });
 
     test('another model sharing letters is not the model', () {
