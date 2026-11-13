@@ -3164,13 +3164,13 @@ CREATE FUNCTION public.model_recalls(p_motorcycle_id uuid, p_year integer DEFAUL
            'danger_en', r.danger_en,
            'danger_pt', r.danger_pt,
            'country_en', r.country_en,
-           'country_pt', r.country_pt)
+           'country_pt', r.country_pt,
+           'applies', p_year is null or r.from_year is null
+                      or p_year between r.from_year and r.to_year + 1)
          order by r.published_on desc, r.case_number), '[]'::jsonb)
   from public.motorcycles m
   join public.vehicle_recalls r on public.recall_is_of_model(r, m)
   where m.id = p_motorcycle_id
-    and (p_year is null or r.from_year is null
-         or p_year between r.from_year and r.to_year + 1)
 $$;
 
 --

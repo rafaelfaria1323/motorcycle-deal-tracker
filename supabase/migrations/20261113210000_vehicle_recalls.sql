@@ -345,10 +345,10 @@ revoke all on function public.refresh_vehicle_recalls(interval, double precision
   from public, anon, authenticated;
 
 -- A model's recalls, newest first, as the app shows them (security
--- invoker: the catalog and the recalls are readable by everyone); with p_year
--- only those whose years of production may include it (a year after the
--- last, for a bike made late and registered the next year; all when the
--- recall names no years).
+-- invoker: the catalog and the recalls are readable by everyone). With
+-- p_year, `applies` says whether the years of production may include it
+-- (up to a year after the last, for a bike made late and registered the
+-- next year; always when the recall names no years); without, all apply.
 create function public.model_recalls(p_motorcycle_id uuid, p_year integer default null)
 returns jsonb
 language sql
@@ -367,19 +367,19 @@ as $$
            'danger_en', r.danger_en,
            'danger_pt', r.danger_pt,
            'country_en', r.country_en,
-           'country_pt', r.country_pt)
+           'country_pt', r.country_pt,
+           'applies', p_year is null or r.from_year is null
+                      or p_year between r.from_year and r.to_year + 1)
          order by r.published_on desc, r.case_number), '[]'::jsonb)
   from public.motorcycles m
   join public.vehicle_recalls r on public.recall_is_of_model(r, m)
   where m.id = p_motorcycle_id
-    and (p_year is null or r.from_year is null
-         or p_year between r.from_year and r.to_year + 1)
 $$;
 revoke all on function public.model_recalls(uuid, integer) from public;
 grant execute on function public.model_recalls(uuid, integer) to anon, authenticated;
 
--- The computed field `listings.recalls`: the recalls of the ad's model
--- that may apply to its year (select it explicitly, never part of `*`).
+-- The computed field `listings.recalls`: the recalls of the ad's model,
+-- `applies` for its year (select it explicitly, never part of `*`).
 create function public.recalls(l public.listings)
 returns jsonb
 language sql

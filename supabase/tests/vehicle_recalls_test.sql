@@ -169,12 +169,13 @@ begin
     (select id from public.motorcycles where slug = 'honda-cbr650r'))) = 0;
 
   -- By year: made 2024-2025, so 2024 to 2026 may have it.
-  assert jsonb_array_length(public.model_recalls(v_mt07, 2023)) = 0;
-  assert jsonb_array_length(public.model_recalls(v_mt07, 2024)) = 1;
-  assert jsonb_array_length(public.model_recalls(v_mt07, 2026)) = 1;
-  assert jsonb_array_length(public.model_recalls(v_mt07, 2027)) = 0;
+  assert (v_json -> 0 ->> 'applies')::boolean;
+  assert not (public.model_recalls(v_mt07, 2023) -> 0 ->> 'applies')::boolean;
+  assert (public.model_recalls(v_mt07, 2024) -> 0 ->> 'applies')::boolean;
+  assert (public.model_recalls(v_mt07, 2026) -> 0 ->> 'applies')::boolean;
+  assert not (public.model_recalls(v_mt07, 2027) -> 0 ->> 'applies')::boolean;
   -- No years named: every year.
-  assert jsonb_array_length(public.model_recalls(v_cb, 2012)) = 1;
+  assert (public.model_recalls(v_cb, 2012) -> 0 ->> 'applies')::boolean;
 end $$;
 
 -- A report that can't be read waits and stops the run.
@@ -212,7 +213,7 @@ begin
   assert (select list_read_at from public.safety_gate_state) is null;
 end $$;
 
--- The computed field on a listing: its model's recalls for its year.
+-- The computed field on a listing: its model's recalls, marked for its year.
 do $$
 declare
   v_listing uuid;
@@ -221,9 +222,9 @@ begin
   values ('manual', 'recall-1', 'https://example.com/recall-1', 'Yamaha', 'MT-07',
           (select id from public.motorcycles where slug = 'yamaha-mt-07'), 2025, 6500)
   returning id into v_listing;
-  assert (select jsonb_array_length(public.recalls(l)) from public.listings l where id = v_listing) = 1;
+  assert (select public.recalls(l) -> 0 ->> 'applies' from public.listings l where id = v_listing) = 'true';
   update public.listings set year = 2020 where id = v_listing;
-  assert (select jsonb_array_length(public.recalls(l)) from public.listings l where id = v_listing) = 0;
+  assert (select public.recalls(l) -> 0 ->> 'applies' from public.listings l where id = v_listing) = 'false';
   update public.listings set motorcycle_id = null where id = v_listing;
   assert (select public.recalls(l) from public.listings l where id = v_listing) = '[]';
 end $$;
