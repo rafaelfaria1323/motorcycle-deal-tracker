@@ -20,18 +20,16 @@ the database schema, secrets or workflows goes to "Needs Rafael".
 
 ## Needs Rafael
 
-- Profile `mark_duplicates` and `mark_relists` before reducing their
-  write churn (current definitions:
-  `supabase/migrations/20261028170000_photo_fingerprints.sql`). Each run
-  clears live markings and writes the matches back even when unchanged.
-  If significant, compute final assignments first and write only rows
-  `IS DISTINCT FROM` them, in a new migration with chain-collapse,
-  removal and photo-based matching regressions; compare elapsed time
-  and rows updated on representative data. Do not edit the live migration
-  or trade away duplicate/relist semantics.
 
 ## Done
 
+- 2026-11-13: `mark_duplicates` and `mark_relists` write only the rows
+  whose marks change (`20261114090000_duplicate_marks_changed_only.sql`):
+  each live listing's marks are worked out first (chains collapsed in one
+  recursive step), then updated where `is distinct from`. On 400 local
+  listings with copies, chains and relists: identical marks; a run with
+  nothing new 20-30 s and 100 rows rewritten before, 0.4 s and none now.
+  Test: `duplicate_marks_changed_only_test.sql` (roadmap N.88).
 - 2026-10-31: The weekly summary reads only what its accounts need
   (`loadWeeklySummaries`, `send_weekly_summaries.dart`): the follows first
   (`followedModels(account:)` filters on the account that asked), then

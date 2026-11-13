@@ -74,7 +74,8 @@ void main() {
     expect(
       html,
       contains(
-        'var PHOTO_BOX = cardPhotoBox(window.innerWidth,\n'
+        'var PHOTO_BOX = cardPhotoBox(\n'
+        '      Math.min(window.innerWidth, window.screen.width || window.innerWidth),\n'
         '      window.devicePixelRatio || 1);',
       ),
     );

@@ -2688,11 +2688,7 @@ CREATE FUNCTION public.mark_duplicates(p_threshold integer DEFAULT 70) RETURNS i
 declare
   n integer;
 begin
-  update public.listings
-  set duplicate_of = null, duplicate_score = null
-  where status in ('active', 'price_changed')
-    and (duplicate_of is not null or duplicate_score is not null);
-  with live as (
+  with recursive live as (
     select * from public.listings
     where status in ('active', 'price_changed')
   ),
@@ -2726,16 +2722,40 @@ begin
     from pairs
     where score >= p_threshold
     order by dup_id, original_seen, original_id
+  ),
+  -- Chains: if C duplicates B and B duplicates A, C points at A. An
+  -- original is always seen before its copy, so a chain never loops.
+  chain (dup_id, root_id, score, depth) as (
+    select dup_id, original_id, score, 0 from best
+    union all
+    select c.dup_id, b.original_id, c.score, c.depth + 1
+    from chain c
+    join best b on b.dup_id = c.root_id
+  ),
+  resolved as (
+    select distinct on (dup_id) dup_id, root_id, score
+    from chain
+    order by dup_id, depth desc
+  ),
+  wanted as (
+    select l.id, r.root_id, r.score
+    from live l
+    left join resolved r on r.dup_id = l.id
+  ),
+  changed as (
+    update public.listings l
+    set duplicate_of = w.root_id,
+        duplicate_score = w.score
+    from wanted w
+    where l.id = w.id
+      and (l.duplicate_of, l.duplicate_score)
+          is distinct from (w.root_id, w.score)
+    returning 1
   )
-  update public.listings l
-  set duplicate_of = best.original_id,
-      duplicate_score = best.score
-  from best
-  where l.id = best.dup_id;
+  select count(*) into n from best;
 
-  get diagnostics n = row_count;
-
-  -- Chains: if C duplicates B and B duplicates A, C should point at A.
+  -- A gone listing keeps its mark; one that points at a listing that is
+  -- now itself a copy follows it to the first.
   for i in 1..5 loop
     update public.listings c
     set duplicate_of = p.duplicate_of
@@ -2803,11 +2823,6 @@ CREATE FUNCTION public.mark_relists(p_threshold integer DEFAULT 70, p_max_gap_da
 declare
   n integer;
 begin
-  update public.listings
-  set relisted_from = null, relisted_since = null, relisted_price = null
-  where status in ('active', 'price_changed')
-    and relisted_from is not null;
-
   with pairs as (
     select distinct on (b.id)
       b.id,
@@ -2837,15 +2852,26 @@ begin
                 a.description, b.description, a.seller_name, b.seller_name
               ) >= p_threshold)
     order by b.id, a.last_seen_at desc, a.id
+  ),
+  wanted as (
+    select b.id, p.previous_id, p.since, p.price
+    from public.listings b
+    left join pairs p on p.id = b.id
+    where b.status in ('active', 'price_changed')
+  ),
+  changed as (
+    update public.listings l
+    set relisted_from  = w.previous_id,
+        relisted_since = w.since,
+        relisted_price = w.price
+    from wanted w
+    where l.id = w.id
+      and (l.relisted_from, l.relisted_since, l.relisted_price)
+          is distinct from (w.previous_id, w.since, w.price)
+    returning 1
   )
-  update public.listings l
-  set relisted_from  = p.previous_id,
-      relisted_since = p.since,
-      relisted_price = p.price
-  from pairs p
-  where l.id = p.id;
+  select count(*) into n from pairs;
 
-  get diagnostics n = row_count;
   return n;
 end;
 $$;
