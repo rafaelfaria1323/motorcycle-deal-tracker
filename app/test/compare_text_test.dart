@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/entities/bike_maintenance.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/entities/bike_specs.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
 import 'package:motorcycle_deal_tracker/features/compare/presentation/compare_text.dart';
 
@@ -13,6 +15,8 @@ Listing listing(
   int? owners,
   bool? serviceBook,
   double? initialPrice,
+  BikeSpecs? specs,
+  double? fuel,
 }) => Listing(
   id: id,
   source: 'olx',
@@ -32,6 +36,8 @@ Listing listing(
   serviceBook: serviceBook,
   scoreBreakdown: pctBelow == null ? null : {'pct_below_market': pctBelow},
   firstSeenAt: DateTime.utc(2026, 10, 10),
+  specs: specs,
+  maintenance: fuel == null ? null : BikeMaintenance(fuelPer100Km: fuel),
 );
 
 CompareRow rowOf(List<CompareRow> rows, String label) =>
@@ -144,5 +150,42 @@ void main() {
     expect(parseCompareIds('a,b,a,c,d'), ['a', 'b', 'c']);
     expect(parseCompareIds(' a , ,b'), ['a', 'b']);
     expect(parseCompareIds(null), isEmpty);
+  });
+
+  test('the model\'s figures, only those some listing has (N.75)', () {
+    final rows = compareRows([
+      listing(
+        'a',
+        specs: const BikeSpecs(
+          powerKw: 54,
+          weightKg: 184,
+          seatHeightMm: 805,
+          tankLitres: 14,
+        ),
+        fuel: 4.2,
+      ),
+      listing(
+        'b',
+        specs: const BikeSpecs(
+          powerKw: 70,
+          weightKg: 209,
+          seatHeightMm: 810,
+          tankLitres: 15.4,
+        ),
+        fuel: 4.4,
+      ),
+    ]);
+    expect(rowOf(rows, 'Potência').best, {1});
+    expect(rowOf(rows, 'Peso').values, ['184 kg', '209 kg']);
+    expect(rowOf(rows, 'Peso').best, {0});
+    expect(rowOf(rows, 'Altura do banco').best, isEmpty);
+    expect(rowOf(rows, 'Depósito').values, ['14 l', '15,4 l']);
+    expect(rowOf(rows, 'Consumo').best, {0});
+    expect(rowOf(rows, 'Autonomia').values, ['330 km', '350 km']);
+    expect(rowOf(rows, 'Autonomia').best, {1});
+
+    final plain = compareRows([listing('a'), listing('b')]);
+    expect(plain.where((r) => r.label == 'Potência'), isEmpty);
+    expect(plain.where((r) => r.label == 'Autonomia'), isEmpty);
   });
 }

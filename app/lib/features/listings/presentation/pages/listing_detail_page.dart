@@ -16,6 +16,7 @@ import '../../../valuation/presentation/widgets/financing_card.dart';
 import '../../../valuation/presentation/widgets/import_cost_card.dart';
 import '../../../valuation/presentation/widgets/ownership_cost_card.dart';
 import '../../domain/entities/listing.dart';
+import '../bike_specs_text.dart';
 import '../cubit/listing_detail_cubit.dart';
 import '../cubit/listing_detail_state.dart';
 import '../listing_card_text.dart';
@@ -35,6 +36,7 @@ import '../widgets/photo_gallery.dart';
 import '../widgets/photo_hints_card.dart';
 import '../widgets/price_history_section.dart';
 import '../widgets/score_explanation_card.dart';
+import '../widgets/seat_fit_card.dart';
 import '../widgets/seller_message_card.dart';
 
 class const ListingDetailPage({
@@ -274,6 +276,21 @@ class _ContentState extends State<_Content> {
         FactsCard(
           title: context.strings.bike,
           facts: bikeFacts(listing, language: context.language),
+        ),
+        if (specFacts(
+              listing.specs,
+              listing.maintenance,
+              language: context.language,
+            )
+            case final specs when specs.isNotEmpty)
+          FactsCard(
+            title: context.strings.specsTitle,
+            facts: specs,
+            footnote: context.strings.specsFootnote,
+          ),
+        SeatFitCard(
+          key: ValueKey(listing.id),
+          seatHeightMm: listing.specs?.seatHeightMm,
         ),
         if (description != null && description.isNotEmpty)
           DescriptionCard(description: description),

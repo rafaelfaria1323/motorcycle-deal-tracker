@@ -1298,6 +1298,16 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   suas cores" (`ListingFilters.onlyMyColours`), saved searches'
   `only_my_colours`, and alerts' "na sua cor" (`pending_notifications.
   my_colour`); never part of any score.
+- Specifications (N.75): `motorcycles.torque_nm`, `weight_kg` (wet),
+  `seat_height_mm`, `tank_l` (the makers' figures, with `power_kw` and
+  `fuel_l_per_100km`; models added from the app have none), read by the
+  ad's query (`ListingModel.specColumns`, `Listing.specs`): "Ficha
+  técnica" in Detalhes (`specFacts`, `bike_specs_text.dart`; range = tank
+  at the maker's consumption, `rangeKm`), the comparison's rows (each
+  only when some listing has it) and "Cabe-me?" (`SeatFitCard`, signed-in
+  accounts: `seatReach`, the inside leg as 47 % of the height;
+  `ownership_settings.rider_height_cm`, saved only by `saveRiderHeight`,
+  never by `save`). Never part of any score.
 - A2 licence (N.63): `motorcycles.power_kw` (the maker's figure; models
   added from the app have none) and the computed field `listings.a2`
   (`a2_fit`: `ready` at 35 kW or less or when the ad says it is the A2
