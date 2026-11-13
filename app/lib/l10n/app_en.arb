@@ -1284,5 +1284,14 @@
   "priceDropOutlookNeutral": "Few dropped and few left: the price moves more with your offer than with waiting.",
   "priceDropOutlookFootnote": "Asking prices from the listings, not sale prices. Not part of any score.",
   "similarSearchName": "Like {bike}",
-  "notifyMeOfSimilar": "Tell me about a similar one"
+  "notifyMeOfSimilar": "Tell me about a similar one",
+  "recallsTitle": "EU recalls that may cover this bike",
+  "recallsNote": "From Safety Gate, the European Commission's alerts on dangerous products. Ask a brand dealer, with the frame number, whether this bike was called in and the work done: it is free. Not part of any score.",
+  "otherRecallsTitle": "EU recalls of this model in other years",
+  "otherRecallsNote": "From Safety Gate, the European Commission's alerts on dangerous products: bikes of other production years than this one.",
+  "recallUnnamed": "Recall",
+  "recallProduction": "Production: {dates}",
+  "recallCode": "Code {code}",
+  "checklistRecall": "Recall {code} done?",
+  "checklistRecallHint": "Ask for proof the work was done, or ask a brand dealer with the frame number."
 }

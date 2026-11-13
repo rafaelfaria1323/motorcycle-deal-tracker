@@ -7,11 +7,11 @@ class FavouriteModel {
   const FavouriteModel._();
 
   /// The columns `fromJson` reads, with the listing embedded and its
-  /// model's maintenance figures (the viewing checklist's points of the
-  /// bike, N.64).
+  /// model's maintenance figures and recalls (the viewing checklist's
+  /// points of the bike, N.64, N.86).
   static const columns =
       'listing_id, note, checklist, target_price, visit_at, created_at, '
-      'listings(${ListingModel.summaryColumns}, '
+      'listings(${ListingModel.summaryColumns}, recalls, '
       'motorcycles(${ListingModel.maintenanceColumns}))';
 
   /// Expects the row with its listing embedded (`select(columns)`).

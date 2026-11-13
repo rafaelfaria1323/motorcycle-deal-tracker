@@ -4,6 +4,7 @@ import 'package:motorcycle_deal_tracker/features/favourites/domain/entities/favo
 import 'package:motorcycle_deal_tracker/features/favourites/presentation/viewing_checklist.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/bike_maintenance.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/entities/vehicle_recall.dart';
 
 const _ok = ChecklistEntry(mark: ChecklistMark.ok);
 const _issue = ChecklistEntry(mark: ChecklistMark.issue);
@@ -13,6 +14,7 @@ Listing _bike({
   int? mileage,
   BikeMaintenance? maintenance,
   List<String> riskReasons = const [],
+  List<VehicleRecall> recalls = const [],
 }) => Listing(
   id: 'a',
   source: 'olx',
@@ -25,6 +27,7 @@ Listing _bike({
   mileage: mileage,
   maintenance: maintenance,
   riskReasons: riskReasons,
+  recalls: recalls,
 );
 
 const _figures = BikeMaintenance(
@@ -136,6 +139,26 @@ void main() {
       expect(keys(_bike(riskReasons: ['not_legalised'])), ['import_papers']);
       expect(keys(_bike(riskReasons: ['mileage_lowered'])), ['odometer']);
       expect(keys(_bike(riskReasons: ['no_service_book'])), isEmpty);
+    });
+
+    test('a recall that may cover the bike asks whether it was done', () {
+      VehicleRecall recall(String caseNumber, {required bool applies}) =>
+          VehicleRecall(
+            caseNumber: caseNumber,
+            publishedOn: DateTime(2026, 3, 12),
+            name: 'Yamaha MT-07',
+            alertUrl: 'https://ec.europa.eu/x',
+            applies: applies,
+            recallCode: 'R-$caseNumber',
+          );
+      final bike = _bike(
+        recalls: [
+          recall('SR/1/26', applies: true),
+          recall('SR/2/26', applies: false),
+        ],
+      );
+      expect(keys(bike), ['recall:SR/1/26']);
+      expect(bikeChecklistItems(bike).single.title, 'Recolha R-SR/1/26 feita?');
     });
 
     test('they join the list as their own section and count', () {

@@ -788,6 +788,19 @@ invites; written by the collector on each run).
   last week's national daily average of "Gasolina simples 95" (id 3201),
   upserted into `fuel_prices` (readable by everyone; over 400 days old
   deleted); a failure only warns, the app keeps the last price.
+- Recalls (N.86): pg_cron job `refresh-vehicle-recalls` (`13 * * * *`)
+  runs `refresh_vehicle_recalls()`: the EU Safety Gate's weekly XML
+  reports (ec.europa.eu, no key, `docs/sources.md`; the list at most every
+  20 h, unread reports newest first, 3 s apart, 2 minutes a run, read once
+  each: `safety_gate_reports`, `safety_gate_state`, no API access) ->
+  `vehicle_recalls` (motorcycles, mopeds and scooters only, en and pt
+  text; readable by everyone). `recall_is_of_model`: brand named, model
+  or alias among the alert's words or joined neighbours (+ "a"). The
+  computed field `listings.recalls` (`model_recalls`: all of the model's,
+  `applies` = the bike's year within the production years + 1, or none
+  given; select it explicitly). App: `RecallsCard` (Avaliação: those that
+  apply; Mercado: the others), `recall_text.dart`, and the checklist item
+  `recall:<case number>` (a visit blocker, `isVisitBlocker`). Never a score.
 - Watchdog: pg_cron job `collection-watchdog` (`20 * * * *`) runs
   `check_collection_runs()`: no run recorded for 9 h sends a Telegram
   message (`send_telegram()`, pg_net, Vault secrets `telegram_bot_token`
@@ -1496,7 +1509,8 @@ items live in the app (`viewing_checklist.dart`), keys never change: 12
 for every bike plus "Nesta mota" (`bikeChecklistItems`, N.64, from the
 model's figures and the ad's risk reasons: valve check from 80 % of the
 interval, tyre sizes, a sports bike's fairings, A2 papers, import papers,
-odometer); Favoritos embeds the model's `maintenanceColumns` for them.
+odometer, each EU recall that applies, N.86); Favoritos embeds the
+model's `maintenanceColumns` and the listing's `recalls` for them.
 Without a connection (N.66) a checklist save that fails for any reason
 but a `StateError` (refused) stays on the device (SharedPreferences
 `unsent_checklists:<account id>`, `ChecklistSave.kept`) and is sent

@@ -5,6 +5,37 @@ here. Robots.txt is not permission; the source's terms of use decide.
 
 ## Decision log
 
+### 2026-11-13: motorcycle recalls from the EU's Safety Gate (N.86)
+
+**Why.** A used bike may have been called in by its maker (a chain, a
+brake hose, a fuel pump) and never taken to the dealer; the buyer should
+ask. Nothing in the listings says so.
+
+**Source.** Safety Gate, the European Commission's rapid alert system
+for dangerous non-food products
+(https://ec.europa.eu/safety-gate-alerts/), built for the public to read.
+Its weekly reports are published as XML: the list
+(`/safety-gate-alerts/api/download/weeklyReport/list/xml/en`) and each
+report (the list's address, `language=en`, or `pt` for the Portuguese
+text). No key. Each alert names the product, brand, model, type, production
+dates, the maker's recall code, the danger and the notifying country. No
+personal data. The Commission's content may be reused with
+acknowledgement of the source (Decision 2011/833/EU, the Commission's
+reuse policy); the app's cards say they come from Safety Gate, the
+Commission's alerts, and link each alert.
+
+**Decision.** The database reads it, not the collector (pg_cron
+`refresh-vehicle-recalls`, every hour at :13, `refresh_vehicle_recalls()`):
+the list at most once every 20 hours, then the reports not yet read,
+newest first, one request at a time 3 s apart, at most 2 minutes a run,
+30 s timeout, an honest user agent; a failure stops the run and warns.
+Reports from 2010 on (some 850 to read once, over a few days; then
+one a week). Only the alerts in "Motor vehicles" whose product is a
+motorcycle, moped or scooter are kept (`vehicle_recalls`), and only for
+those the Portuguese report is read too. Matched to the catalog by brand
+and model name (or alias), with the production years against the bike's.
+Nothing about the listing sites changes.
+
 ### 2026-11-13: model specifications from API Ninjas (N.76)
 
 **Why.** "Ficha técnica", "Cabe-me?", the cost of ownership and the A2
@@ -490,3 +521,4 @@ URL on every listing.
 - Standvirtual terms (help centre): https://ajuda.standvirtual.com/standvirtualhelp/s/topic/0TO09000000kiW2GAI/novos-termos-e-condi%C3%A7%C3%B5es
 - DGEG fuel prices (portal and API): https://precoscombustiveis.dgeg.gov.pt/
 - API Ninjas motorcycles API: https://api-ninjas.com/api/motorcycles
+- Safety Gate (EU alerts on dangerous products): https://ec.europa.eu/safety-gate-alerts/
