@@ -4,6 +4,7 @@ import '../entities/exit_price.dart';
 import '../entities/gone_deal.dart';
 import '../entities/market_behaviour.dart';
 import '../entities/model_market.dart';
+import '../entities/price_drop_outlook.dart';
 
 abstract interface class MarketBehaviourRepository {
   /// Null when the model has no listings.
@@ -12,6 +13,11 @@ abstract interface class MarketBehaviourRepository {
   /// How long the listing is likely to stay on the market; null when it
   /// has no model.
   Future<TimeToSale?> getTimeToSale(String listingId);
+
+  /// What the model's other ads did in the 30 days after they were as old
+  /// as this listing (N.83); null when it has no model, is gone or has no
+  /// real price.
+  Future<PriceDropOutlook?> getPriceDropOutlook(String listingId);
 
   /// Asking prices of the model's live listings (duplicates left out), by
   /// listing id.

@@ -10,6 +10,7 @@ import '../../domain/entities/exit_price.dart';
 import '../../domain/entities/gone_deal.dart';
 import '../../domain/entities/market_behaviour.dart';
 import '../../domain/entities/model_market.dart';
+import '../../domain/entities/price_drop_outlook.dart';
 import '../../domain/repositories/market_behaviour_repository.dart';
 
 class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
@@ -74,6 +75,17 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
     return rows.isEmpty
         ? null
         : timeToSaleFrom(rows.first as Map<String, dynamic>);
+  }
+
+  @override
+  Future<PriceDropOutlook?> getPriceDropOutlook(String listingId) async {
+    final rows = await _client.rpc<List<dynamic>>(
+      'price_drop_outlook',
+      params: {'p_listing_id': listingId},
+    );
+    return rows.isEmpty
+        ? null
+        : priceDropOutlookFrom(rows.first as Map<String, dynamic>);
   }
 
   @override
@@ -351,6 +363,20 @@ TimeToSale timeToSaleFrom(Map<String, dynamic> row) => TimeToSale(
   typicalDays: (row['typical_days'] as num?)?.toInt(),
   remainingDays: (row['remaining_days'] as num?)?.toInt(),
 );
+
+/// The row of `price_drop_outlook`; null when no ad was followed (a gone
+/// listing or one without a real price gives an empty sample).
+PriceDropOutlook? priceDropOutlookFrom(Map<String, dynamic> row) {
+  final sample = (row['sample'] as num?)?.toInt() ?? 0;
+  if (sample == 0) return null;
+  return PriceDropOutlook(
+    sample: sample,
+    dropped: (row['dropped'] as num).toInt(),
+    gone: (row['gone'] as num).toInt(),
+    unchanged: (row['unchanged'] as num).toInt(),
+    medianDrop: (row['median_drop'] as num?)?.toDouble(),
+  );
+}
 
 /// The row of `bike_value`.
 BikeValue bikeValueFrom(Map<String, dynamic> row) => BikeValue(
