@@ -33,7 +33,7 @@ class _PriceDropOutlookCardState extends State<PriceDropOutlookCard> {
   }
 
   // An error leaves the snapshot without data: the card stays hidden.
-  Future<PriceDropOutlook?> _load() async =>
+  Future<PriceDropOutlook?> _load() =>
       getIt<MarketBehaviourRepository>().getPriceDropOutlook(widget.listing.id);
 
   @override
