@@ -355,8 +355,9 @@ email login in front of the whole site if that is ever needed.
 
 The API keys (publishable key) can only read, apart from the app's own
 writes on the caller's rows (roadmap S.1); `app/web/_headers` makes Pages
-send HSTS, `nosniff`, a no-framing policy, a referrer policy and a
-permissions policy (no camera, microphone, location or payment).
+send HSTS, `nosniff`, a no-framing policy, a referrer policy, a
+permissions policy (no camera, microphone, location or payment) and
+cross-origin isolation (COOP `same-origin`, COEP `credentialless`, N.85).
 
 ## Replacing secrets
 

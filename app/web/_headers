@@ -1,12 +1,18 @@
 # Cloudflare Pages response headers (copied into build/web by flutter build).
 # No full Content-Security-Policy: Flutter's WebAssembly build, the bundled
 # fonts and the listing photos' CDNs would each need an exception; only
-# framing is refused. No cross-origin isolation headers (they would block
-# the listing photos).
+# framing is refused. Cross-origin isolated (N.85): Flutter's skwasm renderer
+# then draws on its own thread, so the page's main thread is free sooner.
+# `credentialless`, not `require-corp`: the listing photos' CDN sends no
+# Cross-Origin-Resource-Policy header, and credentialless still lets an
+# <img> load them (without cookies, which they don't need). Browsers that
+# don't know credentialless (Safari) just stay single-threaded as before.
 /*
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: credentialless
   Content-Security-Policy: frame-ancestors 'none'
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
