@@ -82,6 +82,15 @@ void main() {
     expect(lines.single.text, startsWith('Fotos iguais'));
   });
 
+  test('stock photos only read as a negative', () {
+    final line = ScoreExplainer.explain(
+      listingWith(['stock_photos']),
+    )!.lines.single;
+
+    expect(line.tone, ExplanationTone.negative);
+    expect(line.text, startsWith('Nenhuma foto mostra esta mota'));
+  });
+
   test("edits in the seller's favour name what the ad showed before", () {
     const listing = Listing(
       id: '1',

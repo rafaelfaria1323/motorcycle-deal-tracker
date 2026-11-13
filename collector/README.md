@@ -70,7 +70,8 @@ listing (dHash, `photos/photo_hash.dart`, no AI) from the photo CDN only,
 one at a time 2-3 s apart, at most 5 minutes; its requests are logged as
 "Photo requests:", apart from the sites'. The database
 (`store_photo_hashes`) links listings with the same photos, which the
-next run's duplicates, relists and Risk Score (`photos_reused`) use.
+next run's duplicates, relists and Risk Score (`photos_reused`; `stock_photos`
+when every photo is in many other ads, N.78) use.
 The same photos, from memory, go to a free image model (P.2: CLIP
 ViT-B/32, `tool/photo_examine.py` with onnxruntime, its own process): it
 says how much each looks like a crash, a fall, scratches, broken or
