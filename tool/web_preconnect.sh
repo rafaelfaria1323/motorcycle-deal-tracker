@@ -6,6 +6,9 @@
 # Both come from the build's secrets, not the repository, so
 # app/web/index.html holds only a marker. The publishable key is public
 # (the app carries it anyway; row-level security guards the data).
+# Also the Flutter engine's version, from the build's flutter_bootstrap.js
+# beside it, as <meta name="flutter-engine">: index.html's preloads ask for
+# the engine's files on Google's CDN with it.
 #
 #   tool/web_preconnect.sh app/build/web/index.html "$SUPABASE_URL" "$SUPABASE_PUBLISHABLE_KEY"
 set -euo pipefail
@@ -22,6 +25,15 @@ fi
 tags="<link rel=\"preconnect\" href=\"$url\" crossorigin>"
 if [ -n "$key" ]; then
   tags="$tags<meta name=\"database\" content=\"$url\" data-key=\"$key\">"
+fi
+bootstrap="$(dirname "$file")/flutter_bootstrap.js"
+if [ -f "$bootstrap" ]; then
+  engine=$(grep -o '"engineRevision":"[0-9a-f]*"' "$bootstrap" | head -n 1 | cut -d '"' -f 4 || true)
+  if [ -z "$engine" ]; then
+    echo "No engineRevision in $bootstrap" >&2
+    exit 1
+  fi
+  tags="$tags<meta name=\"flutter-engine\" content=\"$engine\">"
 fi
 html=$(<"$file")
 printf '%s\n' "${html/"$marker"/$tags}" >"$file"

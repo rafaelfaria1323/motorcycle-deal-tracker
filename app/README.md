@@ -334,7 +334,13 @@ in `pubspec.yaml`. Only the weights the app uses are bundled.
 The start (`lib/app/startup.dart`) asks for the first listings while it
 signs in, and `web/index.html` opens the connections it needs early
 (Google's CDN for the engine, the photos' CDN, and the database, whose
-address the deploy writes in with `tool/web_preconnect.sh`). For a
+address the deploy writes in with `tool/web_preconnect.sh`). It also
+asks at once for the app's and the engine's code (`main.dart.wasm` and
+skwasm on Chromium browsers with WasmGC, else `main.dart.js` and
+CanvasKit, the choice Flutter's loader makes), instead of after
+`flutter_bootstrap.js` has run; the engine's address uses the build's
+`<meta name="flutter-engine">`, which the same script writes from
+`flutter_bootstrap.js` (N.89; `tool/test_web_preconnect.py`). For a
 visitor without an account's session, `web/index.html` also asks for the
 first page of listings and the model list while the app downloads, and
 starts the first cards' photos; the start takes that answer
