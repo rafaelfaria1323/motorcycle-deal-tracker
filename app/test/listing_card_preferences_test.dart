@@ -831,6 +831,14 @@ void main() {
       cardWarnings(const ['possible_accident'], language: AppLanguage.english),
       ['Accident mentioned'],
     );
+    expect(cardWarnings(const ['mileage_lowered', 'stock_photos']), [
+      'Só fotos de catálogo',
+      'Km baixados',
+    ]);
+    expect(
+      cardWarnings(const ['stock_photos'], language: AppLanguage.english),
+      ['Stock photos only'],
+    );
     expect(cardWarnings(const ['year_raised', 'mileage_lowered']), [
       'Km baixados',
       'Ano alterado',

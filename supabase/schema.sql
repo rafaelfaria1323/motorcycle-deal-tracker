@@ -115,6 +115,7 @@ CREATE TABLE public.listings (
     last_deal_score smallint,
     mileage_max_seen integer,
     year_first_seen smallint,
+    stock_photos boolean DEFAULT false NOT NULL,
     CONSTRAINT listings_deal_score_check CHECK (((deal_score >= 0) AND (deal_score <= 100))),
     CONSTRAINT listings_duplicate_not_self CHECK (((duplicate_of IS NULL) OR (duplicate_of <> id))),
     CONSTRAINT listings_mileage_check CHECK ((mileage >= 0)),
@@ -182,6 +183,12 @@ COMMENT ON COLUMN public.listings.mileage_max_seen IS 'Highest mileage the ad''s
 --
 
 COMMENT ON COLUMN public.listings.year_first_seen IS 'The first year the ad showed; N.62.';
+
+--
+-- Name: COLUMN listings.stock_photos; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.listings.stock_photos IS 'Every fingerprinted photo is in 5+ other ads of 3+ other bikes (refresh_stock_photos); N.78.';
 
 --
 -- Name: a2(public.listings); Type: FUNCTION; Schema: public; Owner: -
@@ -4253,6 +4260,49 @@ CREATE FUNCTION public.refresh_photo_hints(p_listings uuid[]) RETURNS void
 $$;
 
 --
+-- Name: refresh_stock_photos(uuid[]); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.refresh_stock_photos(p_ids uuid[]) RETURNS integer
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+declare
+  n integer;
+begin
+  with per_photo as (
+    select h.listing_id,
+           count(distinct o.listing_id) as others,
+           count(distinct (ol.year, ol.mileage / 1000))
+             filter (where (ol.year, ol.mileage / 1000)
+                           is distinct from (l.year, l.mileage / 1000)) as other_bikes
+    from public.listing_photo_hashes h
+    join public.listings l on l.id = h.listing_id
+    left join public.listing_photo_hashes o
+      on o.bands && h.bands
+     and o.listing_id <> h.listing_id
+     and bit_count((o.hash # h.hash)::bit(64)) <= 5
+    left join public.listings ol on ol.id = o.listing_id
+    where h.listing_id = any(p_ids)
+    group by h.listing_id, h.position
+  ),
+  per_listing as (
+    select listing_id, bool_and(others >= 5 and other_bikes >= 3) as stock
+    from per_photo
+    group by listing_id
+  )
+  update public.listings l
+  set stock_photos = coalesce(p.stock, false)
+  from (select unnest(p_ids) as id) ids
+  left join per_listing p on p.listing_id = ids.id
+  where l.id = ids.id
+    and l.stock_photos is distinct from coalesce(p.stock, false);
+  get diagnostics n = row_count;
+  return n;
+end;
+$$;
+
+--
 -- Name: rematch_listings(text, jsonb); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -4522,6 +4572,9 @@ CREATE FUNCTION public.risk_from_signals(p_price numeric, p_market_price numeric
     union all
     select 'photos_reused', 10
     where 'photos_reused' = any(p_text_signals)
+    union all
+    select 'stock_photos', 10
+    where 'stock_photos' = any(p_text_signals)
     union all
     select 'no_mileage', 15 where p_mileage is null
     union all
@@ -5365,6 +5418,18 @@ begin
   ) both_ways
   group by a, b;
 
+  perform public.refresh_stock_photos(array(
+    select unnest(v_ids)
+    union
+    select o.listing_id
+    from public.listing_photo_hashes m
+    join public.listing_photo_hashes o
+      on o.bands && m.bands
+     and o.listing_id <> m.listing_id
+    where m.listing_id = any(v_ids)
+      and bit_count((m.hash # o.hash)::bit(64)) <= 5
+  ));
+
   return n;
 end;
 $$;
@@ -6172,12 +6237,16 @@ CREATE VIEW public.listing_risk_scores WITH (security_invoker='true') AS
         CASE
             WHEN (f.comparable_count >= 3) THEN f.fair_price
             ELSE NULL::numeric
-        END, (l.year)::integer, l.mileage, l.description, l.location, ((l.details_checked_at IS NOT NULL) OR (l.source = 'olx'::text)), COALESCE(((l.seller_type)::text = 'private'::text), false), (l.registrations)::integer, l.service_book, l.origin, l.warranty_until, (((l.relisted_from IS NOT NULL))::integer + ((prev.relisted_from IS NOT NULL))::integer), l.relisted_since, ((COALESCE(l.text_signals, public.description_signals(l.variant, l.description)) ||
+        END, (l.year)::integer, l.mileage, l.description, l.location, ((l.details_checked_at IS NOT NULL) OR (l.source = 'olx'::text)), COALESCE(((l.seller_type)::text = 'private'::text), false), (l.registrations)::integer, l.service_book, l.origin, l.warranty_until, (((l.relisted_from IS NOT NULL))::integer + ((prev.relisted_from IS NOT NULL))::integer), l.relisted_since, (((COALESCE(l.text_signals, public.description_signals(l.variant, l.description)) ||
         CASE
             WHEN (EXISTS ( SELECT 1
                FROM (public.listing_photo_matches m
                  JOIN public.listings o ON ((o.id = m.other_id)))
               WHERE ((m.listing_id = l.id) AND (o.first_seen_at < l.first_seen_at) AND ((o.motorcycle_id <> l.motorcycle_id) OR ((l.seller_type = 'private'::public.seller_type) AND (o.seller_type = 'dealer'::public.seller_type)))))) THEN ARRAY['photos_reused'::text]
+            ELSE '{}'::text[]
+        END) ||
+        CASE
+            WHEN (l.stock_photos AND (NOT ((l.seller_type = 'dealer'::public.seller_type) AND (l.mileage <= 100)))) THEN ARRAY['stock_photos'::text]
             ELSE '{}'::text[]
         END) || public.fact_edit_signals(l.mileage, l.mileage_from_text, l.mileage_max_seen, (l.year)::integer, (l.year_first_seen)::integer))) r(risk_score, reasons))
   WHERE (l.status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status]));
@@ -8863,6 +8932,13 @@ GRANT ALL ON FUNCTION public.refresh_new_prices_from_ads() TO service_role;
 
 REVOKE ALL ON FUNCTION public.refresh_photo_hints(p_listings uuid[]) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.refresh_photo_hints(p_listings uuid[]) TO service_role;
+
+--
+-- Name: FUNCTION refresh_stock_photos(p_ids uuid[]); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.refresh_stock_photos(p_ids uuid[]) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.refresh_stock_photos(p_ids uuid[]) TO service_role;
 
 --
 -- Name: FUNCTION rematch_listings(p_source text, p_matches jsonb); Type: ACL; Schema: public; Owner: -

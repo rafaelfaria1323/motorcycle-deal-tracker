@@ -138,7 +138,7 @@ All fields exist. ➕ Added: `initial_price`, `price_before_drop`, `duplicate_of
 
 Initial price, current price, every change with date, percentage, and time online are tracked and shown; the listing page charts the price over real time, with the site's earlier price when it reported one.
 
-## 12. Deal Score 🟡
+## 12. Deal Score ✅
 
 | Factor | Weight | Status |
 |---|---:|---|
@@ -173,7 +173,7 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 
 *Each score lists: % and € versus the estimated value for that age and mileage, the estimated value itself, mileage, model year, risk signals, and reassuring facts (first owner, service book, factory warranty).*
 
-## 14. Risk Score 🟡
+## 14. Risk Score ✅
 
 - ✅ Price significantly below market.
 - ✅ Suspicious mileage. *Under 100 km on a bike three or more years old (a placeholder), or more than 25 000 km a year.*
@@ -181,13 +181,13 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 - ✅ Inconsistent description. *Accident, repair and scratch wording, and the text contradicting the ad's fields (15.6, above).*
 - ✅ Missing information.
 - ✅ Possible accident. *Accident, fall and knock wording (15.24: "teve um toque", "caiu", "foi ao chão"), with denials left out; repairs and missing or broken parts (`needs_repair`, 20) and scratches (`cosmetic_damage`, 5) too. An accident or repair in the text: the price is judged against the estimate less a repair allowance (15.34: accident 15 %, repair 10 %, both 20 %) and the Deal Score is at most 79.*
-- 🟡 Duplicate listing. *Detected (across sources too) and excluded from scoring, not a risk signal.*
+- ➖ Duplicate listing. *Left out on purpose: a duplicate is the same bike, detected across sources too (text, photos) and merged into the earlier ad, which alone is scored; what is suspicious about a repeat, the same bike put up again, is the relist risk reason (15.5).*
 - ✅ Suspicious seller behaviour. *Relisted ads are detected (the same bike taken down and listed again), shown with the first date on sale and the earlier price, and count as risk (15.5): 5 points, 10 when relisted twice or on sale for over 90 days counting the earlier ads. Each dealer's figures (relisted, sharp price changes, missing mileage, repeated ads, price drops) are shown on its listings (15.7) and score the Deal Score's seller slice. Photo fingerprints (P.1, no AI) find the same photos across ads: a duplicate or relist whatever the text, and a risk reason when an earlier ad of another model or a dealer's has them. A free local image model (P.2, CLIP) points out photos that may show a crash, a fall, scratches, broken or missing parts or rust: "O que as fotos podem mostrar" on the listing page, hints only, never a score. Admins' marks on those photos ("Problema" / "Bem", P.3) train a small classifier in plain Dart on the model's stored embeddings, which adds "Parecida com fotos marcadas como problema". Any account can ask for every photo of an ad to be examined, not only the first 3 ("Examinar todas as fotos", P.4; 5 a day): the request starts the photo step at once and the account is told on its devices when it is done (P.7). The photo step warns on the run's page when it fails (P.6).*
 - ✅ Unclear ownership/history. *3+ owners, no service book, imported.*
 - ➕ ✅ The seller edits the ad in their favour (N.62). *Fewer km (1 000 or more under the highest the ad's own field showed: 15 points) or a newer year than first shown (10), kept from the moment the ad is found; the page names the earlier value ("de 31 000 km para 13 000 km") and the card warns "Km baixados" / "Ano alterado". More km or an older year is a correction against the seller and counts nothing.*
 - ➕ ✅ Not yet legalised in Portugal (N.52). *"Por legalizar", "proceder à legalização" or a foreign registration not said to be legalised: 15 points (20 from outside the EU), in place of imported; the price is judged against the estimate less what legalising costs (ISV, fees; duty and VAT from outside the EU, VAT on a nearly new bike from the EU) and the Deal Score is at most 79.*
 - ➕ ✅ A2 version (15.22). *An A2 (35 kW) bike still held back (15 points: the full power needs the kit off and the papers changed) or unlocked (10: check the papers show the full power); read from the variant (Standvirtual's version, OLX's title) and description, ads that only say it can be held back count nothing. Also an argument in "Quanto oferecer".*
-- 🟡 Excessively edited or reused images. *Reused ✅: photo fingerprints (P.1) find the same photos in an earlier ad of another model or a dealer's (`photos_reused`, 10). Edited ⬜.*
+- ✅ Excessively edited or reused images. *Reused ✅: photo fingerprints (P.1) find the same photos in an earlier ad of another model or a dealer's (`photos_reused`, 10), and an ad whose every photo is in 5 or more other ads of 3 or more other bikes shows nothing of its own bike (`stock_photos`, 10, N.78: catalogue photos or other bikes'; not for a dealer's new bike, where press photos are normal); the card warns "Só fotos de catálogo". Edited ➖: the photo CDN strips the files' metadata (the editing software's name), and telling a retouched photo apart without it needs an image model trained for that; the damage hints (P.2) and the admins' marks (P.3) already look at what the photos show.*
 
 ➕ Reassuring facts lower risk: first owner (the ad's field, or the text when the field is empty: "primeiro / único dono", "1ª mão", "first owner"), service book, factory warranty.
 
@@ -232,18 +232,18 @@ All four types, each at most once per event, only for events after the search wa
 
 *F.4: once the heading scrolls away the title bar names the bike, with its year and price; a share button beside "Ver no …" sends the app's link to the ad with the bike, its km, its price and the seller's ad (copied where there is no share sheet); an ad opened from a list keeps the part last read, any other way in (a notification, an alert, a shared link) opens on Avaliação; in Mercado, "E se a comprar no estrangeiro?" is one closed line until tapped.*
 
-## 19. New Motorcycle Comparison 🟡
+## 19. New Motorcycle Comparison ✅
 
-Shown on the detail page. Reference prices are edited in the app; set for the original 4 models (need checking), not set for the newer models.
+Shown on the detail page and in "Modelos acompanhados". The new-bike price is the median of the model's live dealer ads for a new bike (this year or last, 100 km or less) once there are 3 (N.58), refreshed with every scoring, so every model, the newer ones included, gets one from the market; until then the price admins type in the app, with the date it was checked. A nearly new bike is also priced against it in the Deal Score (N.51); a model with neither hides the comparison.
 
 ## 20. Deduplication ✅
 
 ✅ Within and across sources: mileage, price, location, description, seller. Original links preserved. OLX copies of Standvirtual ads skipped when the original is stored, else kept as OLX ads (N.70).
 ✅ Images: photo fingerprints (P.1, no AI) make the same model and year with matching photos and close mileage a duplicate whatever the text, and a relist.
 
-## 21. Data Quality 🟡
+## 21. Data Quality ✅
 
-✅ Collection runs and blocks are tracked. ✅ Requests used per run, run duration, next run and monthly usage shown in the app (since F.5 to admins in "Estado da recolha"; everyone else sees one line in Mais: when the last run was and the next is, tinted when it failed, was blocked or is old). ✅ Per site, in "Estado da recolha" since F.5: live listings, tracked/unmatched/duplicate shares, missing year, mileage and location, Standvirtual pages still to read, when listings were last seen on each site (warns after 24 h) and sudden price changes of 50 % or more in the last 30 days (view `source_data_quality`). ⬜ Per-field confidence. ✅ Each run's log says, per search, how many of the ads it read are a followed model (9.10c), so searches that spend requests on other bikes show up; unmatched ads are logged with their brand and model. ✅ Near the free plan's limit (400 of 500 MB), old gone listings of models nobody follows are deleted (9.10d).
+✅ Collection runs and blocks are tracked. ✅ Requests used per run, run duration, next run and monthly usage shown in the app (since F.5 to admins in "Estado da recolha"; everyone else sees one line in Mais: when the last run was and the next is, tinted when it failed, was blocked or is old). ✅ Per site, in "Estado da recolha" since F.5: live listings, tracked/unmatched/duplicate shares, missing year, mileage and location, Standvirtual pages still to read, when listings were last seen on each site (warns after 24 h) and sudden price changes of 50 % or more in the last 30 days (view `source_data_quality`). ➖ Per-field confidence: left out on purpose; the facts come from the sites' own fields, and the guessed ones say so where they are shown (mileage read from the description: "(lido na descrição)"; a colour read from the text is only a plus, never a score). ✅ Each run's log says, per search, how many of the ads it read are a followed model (9.10c), so searches that spend requests on other bikes show up; unmatched ads are logged with their brand and model. ✅ Near the free plan's limit (400 of 500 MB), old gone listings of models nobody follows are deleted (9.10d).
 
 ✅ The description rules are checked every week against a free LLM (Gemini, N.55): a sample of the week's ads is read by both, and the disagreements (and unmatched titles of a followed model) are a report on the run's page for fixing the rules with tests; the LLM never feeds a score. The first run's misses are fixed (mileage formats, extras, "danos de queda", brakes needed, "PCX" titles).
 
@@ -255,9 +255,9 @@ Shown on the detail page. Reference prices are edited in the app; set for the or
 
 Private sellers' names and all phone numbers are never stored; saved pages and fetch state are no longer committed. The repo stays public (Rafael, 2026-10-21: the free pipeline is worth more); old saved pages with phone numbers remain in its git history. The API roles may write only where the app does, and the site sends security headers (roadmap S.1); anonymous users idle for 30 days are deleted (S.2); personal data is owner-only by row level security and encrypted at rest by Supabase. How to replace each secret, and when, is written down in `docs/hosting.md` (roadmap S.4). The Android app keeps its session encrypted with a Keystore key and its data out of backups (S.5).
 
-## 23. Future Features ⬜
+## 23. Future Features 🟡
 
-Comparison ✅ (listings side by side), buying assistant, checklists, cost calculators, price prediction, weekly ranking ✅ (the weekly summary's best deals, 14.4d), smart alerts, model price history, imports, dealer integration. ➕ Depreciation tracking ✅ (per-model rates fitted from data). ➕ Time to sale per listing ✅ (10.4: survival of the model's ads at a similar price, from this ad's age; a first step of price prediction).
+Comparison ✅ (listings side by side), buying assistant ✅ (15.2, 15.19), checklists ✅ (15.3, N.64), cost calculators ✅ (15.4, financing N.69), price prediction 🟡 (time to sale, last asking prices before leaving the market), weekly ranking ✅ (the weekly summary's best deals, 14.4d), smart alerts ✅ (saved searches with scores, equipment, colours, distance, quiet hours; target price), model price history ✅ (15.8), imports ✅ (the import calculator, 16.10), dealer integration 🟡 (each dealer's page and figures, N.72; no feed from dealers). ➕ Depreciation tracking ✅ (per-model rates fitted from data). ➕ Time to sale per listing ✅ (10.4: survival of the model's ads at a similar price, from this ad's age; a first step of price prediction).
 
 Planned in roadmap Sprint 15 ("Deciding and buying"): ➕ favourites with private notes ✅ (15.1; a favourite always alerts on price drops and removal), price to offer (buying assistant, 15.2; more room for a bike with damage in its text, 15.26) ✅, ➕ negotiation arguments, visit repairs off the offer, messages per step and a target price alert (15.19) ✅, ➕ "back on the market" alert for followed bikes (15.14) ✅, ➕ message to the seller (15.12) ✅, viewing checklist (15.3) ✅, cost of ownership (cost calculator, 15.4; insurance estimated by engine size and sports bikes, N.59; tyres, services and valve checks by the model's sizes, cylinders and maker's intervals, N.60; fuel at DGEG's national price, N.74) ✅, relists as a risk signal (15.5) ✅, text contradictions as risk signals (15.6) ✅, dealer reliability (15.7) ✅ (figures shown and scored), price trends (model price history, 15.8) ✅, more sources and imports (15.9) ⬜, web push (15.10) ✅.
 

@@ -296,6 +296,10 @@ abstract final class ScoreExplainer {
         ExplanationTone.negative,
         language.messages.riskPhotosReused,
       ),
+      'stock_photos': (
+        ExplanationTone.negative,
+        language.messages.riskStockPhotos,
+      ),
       'a2_limited': (
         ExplanationTone.negative,
         language.messages.a2Version35KWFullPowerRequiresRemoving,
