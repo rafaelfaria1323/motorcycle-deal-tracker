@@ -112,8 +112,10 @@ never asks for search URLs; aliases sit under "Outros nomes do modelo".
   app can be tested with plain Dart (`package:test`) on copies of the
   files. The deploy runs `flutter test`
   and `flutter build web --wasm` (WebAssembly where the browser supports
-  it, JavaScript otherwise; no cross-origin isolation headers, which would
-  block the listing photos).
+  it, JavaScript otherwise). `web/_headers` makes the page cross-origin
+  isolated with COEP `credentialless` (N.85: skwasm draws on its own
+  thread; `require-corp` would block the listing photos, whose CDN sends no
+  CORP header; `tool/test_web_headers.py`).
 
 ## Layout
 
