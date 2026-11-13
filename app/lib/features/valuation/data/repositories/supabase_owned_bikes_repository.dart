@@ -15,7 +15,7 @@ class SupabaseOwnedBikesRepository implements OwnedBikesRepository {
       'id, motorcycle_id, listing_id, year, price_paid, '
       'mileage_at_purchase, bought_on, motorcycles(brand, model, '
       'engine_cc_min, engine_cc_max, ${ListingModel.maintenanceColumns}), '
-      'owned_bike_values(month, value)';
+      'owned_bike_values(month, value), recalls';
 
   @override
   Future<List<OwnedBike>> list() async {
@@ -83,6 +83,7 @@ OwnedBike ownedBikeFrom(Map<String, dynamic> row) {
     engineCc: ListingModel.engineCcOf(model),
     maintenance: ListingModel.maintenanceOf(model),
     values: monthlyValuesFrom(row['owned_bike_values'] as List<dynamic>?),
+    recalls: ListingModel.recallsOf(row['recalls']),
   );
 }
 

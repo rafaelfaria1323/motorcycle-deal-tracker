@@ -801,6 +801,15 @@ invites; written by the collector on each run).
   given; select it explicitly). App: `RecallsCard` (Avaliação: those that
   apply; Mercado: the others), `recall_text.dart`, and the checklist item
   `recall:<case number>` (a visit blocker, `isVisitBlocker`). Never a score.
+  N.87: computed fields `recalls(owned_bikes)` (those that apply, "A minha
+  mota") and `recalls(motorcycles)` (all, "Mercado por modelo"'s cards,
+  `RecallTile`); `finishRun`'s last step (`noticeRecalls`,
+  `notify/recall_push.dart`) pushes each account once per recall of an
+  owned bike or a live favourite (`pending_recall_notices(p_at)`: stored
+  after the bike was bought or made a favourite, `vehicle_recalls.stored_at`,
+  published within `recall_notice_days()` = 60, outside quiet hours;
+  `mark_recall_noticed`, `recall_notices`, RLS, no API access; marked when
+  a device took it or there is none). Push-test kind `recall`.
 - Watchdog: pg_cron job `collection-watchdog` (`20 * * * *`) runs
   `check_collection_runs()`: no run recorded for 9 h sends a Telegram
   message (`send_telegram()`, pg_net, Vault secrets `telegram_bot_token`
@@ -833,7 +842,7 @@ save → markSeen → rematch → applyListingFacts → applyPriceChanges → se
 listing waiting for them (`enrichDetails`) with the same fetcher. Then once for all sites
 (`finishRun`): markDuplicates → recalculateScores → generateAlerts →
 notifications (Web Push) → bike values answered (`answer_bike_value_requests`,
-pushed to the asker's devices) → visit reminders (N.65, `remindVisits`). The single-step commands (`fetch.dart`,
+pushed to the asker's devices) → visit reminders (N.65, `remindVisits`) → recall notices (N.87, `noticeRecalls`). The single-step commands (`fetch.dart`,
 `collector.dart`, `enrich.dart`, `searches.dart`) reuse the same library
 functions for manual work. Every command reads its options with package
 `args` (`readCommandLine`, `cli/command.dart`): `--help` lists them, an

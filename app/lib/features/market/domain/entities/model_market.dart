@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import '../../../listings/domain/entities/bike_maintenance.dart';
+import '../../../listings/domain/entities/vehicle_recall.dart';
 import 'market_behaviour.dart';
 
 /// A tracked model's market, for the comparison of models.
@@ -22,6 +23,9 @@ class const ModelMarket({
 
   /// The maker's figures for the cost of ownership; null when it has none.
   final BikeMaintenance? maintenance,
+
+  /// The model's EU recalls, every year (`motorcycles.recalls`, N.87).
+  final List<VehicleRecall> recalls = const [],
 }) extends Equatable {
   String get name => '$brand $model';
 
@@ -35,6 +39,7 @@ class const ModelMarket({
     trend,
     engineCc,
     maintenance,
+    recalls,
   ];
 }
 

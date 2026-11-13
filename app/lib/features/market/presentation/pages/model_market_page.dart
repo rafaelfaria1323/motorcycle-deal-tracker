@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/di/injection.dart';
+import '../../../../app/theme/app_theme.dart';
 import '../../../../core/widgets/page_back_button.dart';
 import '../../domain/entities/model_market.dart';
 import '../../domain/repositories/market_behaviour_repository.dart';
 import '../market_behaviour_text.dart';
 import '../model_market_text.dart';
+import '../../../listings/presentation/recall_text.dart';
 import '../../../listings/presentation/widgets/icon_line.dart';
+import '../../../listings/presentation/widgets/recalls_card.dart';
 import '../../../listings/presentation/widgets/tracked_models_builder.dart';
 import '../widgets/model_comparison_card.dart';
 import '../widgets/price_trend_sparkline.dart';
@@ -66,6 +69,11 @@ class const _ModelCard({required final ModelMarket model})
     final theme = Theme.of(context);
     final behaviour = model.behaviour;
     final trend = trendWeeksWithData(model.trend);
+    // Every year's (N.87): none is about one bike here.
+    final recalls = [
+      for (final recall in model.recalls)
+        recallLine(recall, language: context.language),
+    ];
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -95,6 +103,21 @@ class const _ModelCard({required final ModelMarket model})
                 language: context.language,
               ))
                 IconLine(icon: Icons.insights_outlined, text: line),
+            if (recalls.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                context.strings.modelRecallsTitle,
+                style: AppTheme.groupLabel(context),
+              ),
+              for (final line in recalls)
+                RecallTile(line: line, warning: false),
+              Text(
+                context.strings.modelRecallsNote,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
           ],
         ),
       ),

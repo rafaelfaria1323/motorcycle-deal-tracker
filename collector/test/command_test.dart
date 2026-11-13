@@ -34,6 +34,7 @@ Future<({int code, String log, int stored})> _import({
       case '/rest/v1/rpc/push_keys':
       case '/rest/v1/rpc/pending_notifications':
       case '/rest/v1/rpc/pending_visit_reminders':
+      case '/rest/v1/rpc/pending_recall_notices':
         response = <Object>[];
       case '/rest/v1/listings':
         final rows = jsonDecode(body) as List<dynamic>;

@@ -138,6 +138,7 @@ void main() {
       'push_keys',
       'answer_bike_value_requests',
       'pending_visit_reminders',
+      'pending_recall_notices',
       'record_owned_bike_values',
       'text_audit_sample',
       'unmatched_title_sample',
@@ -222,6 +223,15 @@ void main() {
     await pushes.markNotified(['alert']);
     await pushes.pendingVisitReminders(DateTime.utc(2026, 11, 12, 10));
     await pushes.recordOwnedBikeValues(DateTime.utc(2026, 11, 2, 8, 52));
+    await pushes.pendingRecallNotices(DateTime.utc(2026, 11, 13, 12));
+    await pushes.markRecallNoticed(
+      const RecallNotice(
+        userId: 'u1',
+        caseNumber: 'A12/001',
+        brand: 'Yamaha',
+        model: 'MT-07',
+      ),
+    );
     await pushes.markVisitReminded(
       VisitReminder(
         userId: 'u1',
@@ -284,6 +294,13 @@ void main() {
       'p_user': 'u1',
       'p_listing': 'l1',
       'p_visit_at': '2026-11-13T10:00:00.000Z',
+    });
+    expect(bodyOf('pending_recall_notices'), {
+      'p_at': '2026-11-13T12:00:00.000Z',
+    });
+    expect(bodyOf('mark_recall_noticed'), {
+      'p_user': 'u1',
+      'p_case': 'A12/001',
     });
     expect(bodyOf('record_owned_bike_values'), {
       'p_at': '2026-11-02T08:52:00.000Z',

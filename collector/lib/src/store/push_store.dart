@@ -177,6 +177,27 @@ class PushStore(final SupabaseClient _client) {
     ];
   }
 
+  /// The EU recalls to tell accounts of at [at] (`pending_recall_notices`,
+  /// N.87: of their own bikes or live favourites, outside quiet hours, not
+  /// told yet).
+  Future<List<RecallNotice>> pendingRecallNotices(DateTime at) async {
+    final rows = await _client.rpc<List<dynamic>>(
+      'pending_recall_notices',
+      params: {'p_at': at.toUtc().toIso8601String()},
+    );
+    return [
+      for (final row in rows) RecallNotice.fromRow(row as Map<String, dynamic>),
+    ];
+  }
+
+  /// Marks [notice] told to its account (`mark_recall_noticed`).
+  Future<void> markRecallNoticed(RecallNotice notice) async {
+    await _client.rpc<Object?>(
+      'mark_recall_noticed',
+      params: {'p_user': notice.userId, 'p_case': notice.caseNumber},
+    );
+  }
+
   /// Keeps this month's value of the accounts' own bikes at [at] and
   /// returns the ones kept (`record_owned_bike_values`, N.80).
   Future<List<OwnedBikeValue>> recordOwnedBikeValues(DateTime at) async {

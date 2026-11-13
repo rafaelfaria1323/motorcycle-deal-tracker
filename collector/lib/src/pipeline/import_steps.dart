@@ -6,6 +6,7 @@ import '../normalized/normalized_listing.dart';
 import '../notify/bike_value_push.dart';
 import '../notify/notify_pending.dart';
 import '../notify/fcm.dart';
+import '../notify/recall_push.dart';
 import '../notify/visit_reminder_push.dart';
 import '../notify/web_push.dart';
 import '../store/listing_store.dart';
@@ -265,6 +266,14 @@ Future<void> finishRun(
   if (visits.reminded > 0) {
     log.writeln(
       'Visits reminded: ${visits.reminded} (${visits.sent} to devices)',
+    );
+  }
+
+  // 10. EU recalls of the accounts' own bikes and favourites (N.87).
+  final recalls = await noticeRecalls(pushes, push, DateTime.now());
+  if (recalls.noticed > 0) {
+    log.writeln(
+      'Recalls noticed: ${recalls.noticed} (${recalls.sent} to devices)',
     );
   }
 }

@@ -14,6 +14,8 @@ import '../../../../core/widgets/page_intro.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
+import '../../../listings/presentation/recall_text.dart';
+import '../../../listings/presentation/widgets/recalls_card.dart';
 import '../../../market/domain/repositories/market_behaviour_repository.dart';
 import '../../domain/entities/bike_value.dart';
 import '../../domain/entities/owned_bike.dart';
@@ -198,6 +200,12 @@ class _OwnedBikeCardState extends State<_OwnedBikeCard> {
   Widget build(BuildContext context) {
     final bike = widget.bike;
     final language = context.language;
+    // The EU recalls that can cover its year (N.87).
+    final recalls = recallLines(
+      bike.recalls,
+      applying: true,
+      language: language,
+    );
     final theme = Theme.of(context);
     final muted = theme.textTheme.bodyMedium?.copyWith(
       color: theme.colorScheme.onSurfaceVariant,
@@ -275,6 +283,15 @@ class _OwnedBikeCardState extends State<_OwnedBikeCard> {
               );
             },
           ),
+          if (recalls.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              context.strings.recallsTitle,
+              style: AppTheme.groupLabel(context),
+            ),
+            for (final line in recalls) RecallTile(line: line),
+            Text(context.strings.recallsNote, style: muted),
+          ],
         ],
       ),
     );
