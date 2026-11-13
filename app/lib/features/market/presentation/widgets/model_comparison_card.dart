@@ -61,10 +61,7 @@ class _ModelComparisonCardState extends State<ModelComparisonCard> {
                 .then<BikeValue?>((v) => v)
                 .catchError((Object _) => null),
         ]);
-        return {
-          for (final (i, value) in found.indexed)
-            if (value != null) years[i]: value,
-        };
+        return {for (final (i, value) in found.indexed) years[i]: ?value};
       });
 
   @override
