@@ -424,6 +424,37 @@ void main() {
     });
   });
 
+  group('an "i" after the digits (injection, 2026-11-12)', () {
+    final resolver = ModelResolver(
+      Catalog(const [
+        CatalogEntry(
+          slug: 'honda-forza-300',
+          brand: 'Honda',
+          model: 'Forza 300',
+          minYear: 2018,
+          engineCcMin: 270,
+          engineCcMax: 300,
+        ),
+        CatalogEntry(
+          slug: 'honda-cb650r',
+          brand: 'Honda',
+          model: 'CB650R',
+          minYear: 2023,
+        ),
+      ]),
+    );
+    String? slug(String text) =>
+        resolver.resolve(brand: 'Honda', family: '', text: text)?.slug;
+
+    test('"Forza 300i" is the Forza 300', () {
+      expect(slug('Forza 300i (2019)'), 'honda-forza-300');
+    });
+
+    test('only after a digit: a name ending in a letter takes no "i"', () {
+      expect(slug('CB650Ri'), isNull);
+    });
+  });
+
   group('boundaries', () {
     final resolver = ModelResolver(Catalog.mvp());
 

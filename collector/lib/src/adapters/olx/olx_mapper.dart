@@ -92,7 +92,9 @@ class OlxMapper(final Catalog catalog, {int? currentYear}) {
   /// YZF-R7" -> "YZF-R7", "Vendo mota Honda Forza 350" -> "Forza 350"), so
   /// the model sits at the start where the resolver looks for it. The brand
   /// counts as the second word at most, or later when every word before it
-  /// is [_saleWords]: "R7 troca Yamaha" keeps its model.
+  /// is [_saleWords]: "R7 troca Yamaha" keeps its model. A title laid out
+  /// as a form loses its label and the brand named again ("Honda •
+  /// Modelo: Honda PCX 125 DX" -> "PCX 125 DX").
   static String _withoutBrand(String title, String brand) {
     final whole = title.trim();
     final words = whole.split(RegExp(r'\s+'));
@@ -103,9 +105,25 @@ class OlxMapper(final Catalog catalog, {int? currentYear}) {
         !words.take(at).every((w) => _saleWords.contains(w.toLowerCase()))) {
       return whole;
     }
-    final rest = words.sublist(at + 1).join(' ');
+    var start = at + 1;
+    while (start < words.length && _isLeadIn(words[start], key)) {
+      start++;
+    }
+    final rest = words.sublist(start).join(' ');
     return rest.isEmpty ? whole : rest;
   }
+
+  /// A word before the model that names nothing: a bullet or dash, a
+  /// form's label ("Modelo:", "Marca:") or the brand again.
+  static bool _isLeadIn(String word, String brandKey) {
+    final letters = normalizeKey(word);
+    return letters.isEmpty ||
+        letters == brandKey ||
+        (word.endsWith(':') && _labels.contains(letters));
+  }
+
+  /// Labels of titles laid out as a form.
+  static const _labels = {'modelo', 'marca', 'model'};
 
   /// The model the description names after the brand near its start
   /// ("VENDE-SE – HONDA CBR650R E-Clutch 2026", under a title of only

@@ -330,6 +330,18 @@ void main() {
     test('a title that is only the brand stays whole', () {
       expect(map('Yamaha', model: 'XJ6').model, 'Yamaha');
     });
+
+    test('a form-like title drops its label and the brand again', () {
+      // From the run of 2026-11-12 22:00: a PCX filed under OLX's
+      // "Outros modelos" pushed the model past the first three words.
+      final listing = map(
+        'Honda • Modelo: Honda CB650R E-Clutch • Data da Matrícula: 2025',
+        category: 'honda',
+        model: 'Outros modelos',
+      );
+      expect(listing.model, 'CB650R');
+      expect(listing.variant, 'CB650R E-Clutch • Data da Matrícula: 2025');
+    });
   });
 
   test("a private seller's name is never read", () {

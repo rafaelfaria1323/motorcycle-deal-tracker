@@ -939,8 +939,9 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   and families once per resolver, grouped by brand: model name and
   `aliases` spelled within the first three
   words (also without closing letters: "CBR 650" = CBR650R), Honda code
-  suffixes (A, AC), per-model `excluded_words` ("tracer" for the MT-07,
-  "650f", "125f"), on OLX the title read after the brand (also after sale words: "Vendo mota Honda ..."), `engine_cc_min/max` as tiebreaker and guard (a model
+  suffixes (A, AC), an "i" after a name ending in a digit ("Forza 300i",
+  N.77), per-model `excluded_words` ("tracer" for the MT-07,
+  "650f", "125f"), on OLX the title read after the brand (also after sale words: "Vendo mota Honda ...", and past a form's label or the brand again: "Honda • Modelo: Honda ..."), `engine_cc_min/max` as tiebreaker and guard (a model
   without limits is never picked by engine size alone; "350cc" reads as
   "350"); a brand's other lines rule a model out whatever its own rules
   (`relatedModelWords`, N.53: Yamaha tracer, trecer, xsr, niken, tenere;

@@ -110,6 +110,7 @@ class _ModelRule(final CatalogEntry entry) {
   static const _codeSuffixes = ['', 'a', 'ac'];
   static final _familySuffix = RegExp(r'[0-9].*$');
   static final _closingLetters = RegExp(r'(?<=[0-9])[a-z]+$');
+  static final _endsInDigit = RegExp(r'[0-9]$');
 
   static Set<String> _acceptedNames(CatalogEntry entry) {
     final names = <String>{};
@@ -118,6 +119,8 @@ class _ModelRule(final CatalogEntry entry) {
       names.addAll([
         for (final suffix in _codeSuffixes) '$key$suffix',
         key.replaceFirst(_closingLetters, ''),
+        // Fuel injection after the engine size: "Forza 300i", "SH 125i".
+        if (_endsInDigit.hasMatch(key)) '${key}i',
       ]);
     }
     return names;
