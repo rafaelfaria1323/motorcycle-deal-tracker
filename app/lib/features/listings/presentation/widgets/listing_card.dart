@@ -7,6 +7,7 @@ import '../../domain/entities/listing_card_preferences.dart';
 import '../listing_card_text.dart';
 import '../listing_detail_text.dart';
 import '../listing_labels.dart';
+import '../photo_url.dart';
 import 'deal_score_badge.dart';
 import 'listing_photo.dart';
 import 'photo_tag.dart';
@@ -147,6 +148,10 @@ class const _CardPhoto({
         children: [
           ListingPhoto(
             url: listing.images.isEmpty ? null : listing.images.first,
+            box: cardPhotoBox(
+              MediaQuery.sizeOf(context).width,
+              MediaQuery.devicePixelRatioOf(context),
+            ),
           ),
           if (showSource || published != null)
             Positioned(

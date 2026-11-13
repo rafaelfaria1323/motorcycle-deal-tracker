@@ -37,10 +37,46 @@ void main() {
     }
   });
 
-  test("index.html's early photos ask for the same box", () {
+  test('a card asks for its width in real pixels, up to the next step', () {
+    // Lighthouse's phone: 412 px at 1.75x -> 372 x 1.75 = 651.
+    expect(cardPhotoBox(412, 1.75), 720);
+    // An iPhone at 3x: 350 x 3 = 1050.
+    expect(cardPhotoBox(390, 3), 1280);
+    expect(cardPhotoBox(360, 1), 480);
+    expect(cardPhotoBox(520, 1), 480, reason: 'exactly a step');
+    // Wide screens count at most 600 px of card.
+    expect(cardPhotoBox(1440, 1), 720);
+    expect(cardPhotoBox(1440, 2), 1280);
+    expect(cardPhotoBox(1440, 4), photoBox, reason: 'never above the box');
+    expect(cardPhotoBox(20, 2), 480, reason: 'a tiny window');
+    expect(
+      photoAtSize('$_cdn;s=4000x3000', cardPhotoBox(412, 1.75)),
+      '$_cdn;s=720x540',
+    );
+  });
+
+  test("index.html's early photos ask for the cards' size", () {
     final html = File('web/index.html').readAsStringSync();
-    final box = RegExp(r'var PHOTO_BOX = (\d+);').firstMatch(html);
-    expect(box, isNotNull, reason: 'no PHOTO_BOX in index.html');
-    expect(int.parse(box![1]!), photoBox);
+    int constant(String name) {
+      final match = RegExp('var $name = (\\d+);').firstMatch(html);
+      expect(match, isNotNull, reason: 'no $name in index.html');
+      return int.parse(match![1]!);
+    }
+
+    final steps = RegExp(r'var PHOTO_STEPS = \[([\d, ]+)\];').firstMatch(html);
+    expect(steps, isNotNull, reason: 'no PHOTO_STEPS in index.html');
+    expect(
+      steps![1]!.split(',').map((step) => int.parse(step.trim())),
+      cardPhotoSteps,
+    );
+    expect(constant('CARD_MARGIN'), cardPhotoMargin);
+    expect(constant('CARD_MAX_WIDTH'), cardPhotoMaxWidth);
+    expect(
+      html,
+      contains(
+        'var PHOTO_BOX = cardPhotoBox(window.innerWidth,\n'
+        '      window.devicePixelRatio || 1);',
+      ),
+    );
   });
 }
