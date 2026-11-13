@@ -180,6 +180,18 @@ a model whose likely sales sat more than 7 % from the estimate, or a
 higher band selling less often than a lower one (each from 5). It writes
 nothing.
 
+And `bin/model_specs.dart` (workflow `model-specs.yml`, N.76, no AI) fills
+the catalog's empty figures from API Ninjas' motorcycles API (env
+`API_NINJAS_KEY`; skipped without it): `model_specs_to_check` gives the
+models never asked or missing a figure 30 days after the last ask
+(`--days`); `specs/api_ninjas.dart` asks by brand and each of the model's
+names in turn, `specs/specs_reader.dart` reads the figures by their units
+from the entries that are the model (whole-word name, no excluded word,
+engine within range), `store_model_specs` fills only the empty ones, and
+`specs/specs_step.dart` reports what was filled and the typed figures the
+API puts more than 10 % away (stdout and the run's summary). A refused key
+or an exhausted month fails the run.
+
 ## Notification languages
 
 `notify/notification_text.dart` contains bundled Portuguese/English copy and
@@ -212,6 +224,7 @@ remain operational messages. There is no translation service or AI.
 | `make weekly-summary [ARGS=--dry-run]` | Make and send (or print) each account's summary of the week |
 | `make text-audit [ARGS=--ads=20]` | The description check against Gemini (needs `GEMINI_API_KEY`) |
 | `make score-check [ARGS=--days=14]` | The estimates and Deal Score against likely sales (N.61) |
+| `make model-specs` | The catalog's missing figures from API Ninjas (needs `API_NINJAS_KEY`, N.76) |
 | `make collector-check` | Format check, analyze and test |
 
 Secrets go in `collector/.env` (gitignored): `SUPABASE_URL`,
@@ -220,7 +233,7 @@ Secrets go in `collector/.env` (gitignored): `SUPABASE_URL`,
 ## Code layout
 
 ```text
-bin/        entry points (refresh, fetch, collector, enrich, photos, searches, report_run, push_test, weekly_summary, text_audit, score_check;
+bin/        entry points (refresh, fetch, collector, enrich, photos, searches, report_run, push_test, weekly_summary, text_audit, score_check, model_specs;
             `--help` lists each one's options, package args)
 lib/        fetcher, site adapters and mappers, model matching, store, run steps
 test/       unit tests

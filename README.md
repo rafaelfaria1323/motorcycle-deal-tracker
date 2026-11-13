@@ -108,7 +108,7 @@ and `ANDROID_KEYSTORE_PASSWORD` for the Android app's signing key,
 `SUPABASE_DB_URL` and `SUPABASE_DB_PASSWORD` for the migrations,
 `FIREBASE_ANDROID_CONFIG` and `FIREBASE_SERVICE_ACCOUNT` for the Android
 app's notifications, `GEMINI_API_KEY` for the weekly description check
-(N.55), and `CLAUDE_CODE_OAUTH_TOKEN`
+(N.55), `API_NINJAS_KEY` for the catalog's figures (N.76), and `CLAUDE_CODE_OAUTH_TOKEN`
 for the code-quality review. Supabase's Vault holds `github_dispatch_token`,
 which the scheduled jobs use to start the workflows (`docs/hosting.md`).
 Database changes: `make db-new

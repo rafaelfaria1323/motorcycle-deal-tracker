@@ -183,6 +183,18 @@ Check it with `select public.send_telegram('Teste');` (the message arrives
 on the phone). If pg_cron itself stops, this check stops too; the app's
 warning is then the only sign.
 
+### The model specifications (API Ninjas, N.76)
+
+`model-specs.yml` runs with Monday's summary and fills the catalog's empty
+figures from API Ninjas (only the models missing one, or never checked;
+a few calls a week).
+
+1. api-ninjas.com › sign up (free tier) › "My Account" › copy the API key.
+2. GitHub › Settings › Secrets and variables › Actions → new secret
+   `API_NINJAS_KEY`.
+3. Actions › "Model specifications" › Run workflow: the run's summary
+   lists what was filled and what differs from the typed figures.
+
 ### The description check (Gemini, N.55)
 
 `text-audit.yml` runs with Monday's summary and sends up to 60 of the
@@ -329,6 +341,7 @@ update `collector/.env` if you run the collector there.
 | Cloudflare API token | Repository secret `CLOUDFLARE_API_TOKEN` | Cloudflare › My Profile › API Tokens › the token › "Roll", then the repository secret; check with "Deploy web app" › Run workflow. |
 | Firebase service account | Repository secret `FIREBASE_SERVICE_ACCOUNT` | Firebase › Project settings › Service accounts › "Generate new private key", paste it as the secret, delete the file; check with "Enviar notificação de teste" in the Android app; then delete the old key in Google Cloud › IAM › Service accounts › the account › Keys. `FIREBASE_ANDROID_CONFIG` is not a secret worth replacing (it is inside every APK). |
 | Gemini API key | Repository secret `GEMINI_API_KEY` (the description check) | Google AI Studio › API keys › create a new key, put it in the secret, delete the old one there; check with "Description check" › Run workflow. |
+| API Ninjas key | Repository secret `API_NINJAS_KEY` (the model specifications) | api-ninjas.com › My Account › reset the API key, put the new one in the secret; check with "Model specifications" › Run workflow. |
 | Claude token | Repository secret `CLAUDE_CODE_OAUTH_TOKEN` (backlog passes) | `claude setup-token` on the Mac, paste it as the secret (these tokens last a year, so this one also has its own date). |
 
 Not replaced:

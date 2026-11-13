@@ -5,6 +5,23 @@ here. Robots.txt is not permission; the source's terms of use decide.
 
 ## Decision log
 
+### 2026-11-13: model specifications from API Ninjas (N.76)
+
+**Why.** "Ficha técnica", "Cabe-me?", the cost of ownership and the A2
+filter need each model's figures; models added from the app had none.
+
+**Source.** API Ninjas' motorcycles API
+(https://api-ninjas.com/api/motorcycles), a paid service with a free
+tier; Rafael created the account (2026-11-13). Per model year it gives
+the makers' figures as text with units (power, torque, weights, seat
+height, tank, consumption, tyres, engine layout). No personal data.
+
+**Decision.** The collector asks it weekly (`model-specs.yml`), only about
+models missing a figure or never checked (a few calls a week), one call
+at a time, with the key in a header from the secret `API_NINJAS_KEY`.
+Only empty catalog figures are filled; typed ones stay and differences are
+reported. Nothing about the listing sites changes.
+
 ### 2026-11-12: fuel prices from DGEG's public API (N.74)
 
 **Why.** The cost of ownership needs the price of a litre of petrol.
@@ -469,3 +486,4 @@ URL on every listing.
 - Standvirtual robots.txt: https://www.standvirtual.com/robots.txt
 - Standvirtual terms (help centre): https://ajuda.standvirtual.com/standvirtualhelp/s/topic/0TO09000000kiW2GAI/novos-termos-e-condi%C3%A7%C3%B5es
 - DGEG fuel prices (portal and API): https://precoscombustiveis.dgeg.gov.pt/
+- API Ninjas motorcycles API: https://api-ninjas.com/api/motorcycles
