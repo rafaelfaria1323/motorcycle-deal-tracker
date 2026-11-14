@@ -4,12 +4,38 @@ import '../../../core/formatting/formatters.dart';
 import '../domain/entities/market_behaviour.dart';
 import '../../../core/localization/localizations.dart';
 
-/// Below this many listings a figure is not shown as a fact.
-const minMarketData = 5;
+export '../domain/entities/market_behaviour.dart' show minMarketData;
 
 /// Listings a model needs before its own depreciation is fitted (the same
 /// threshold as the model_depreciation view).
 const minDepreciationData = 30;
+
+/// "Tempo típico até sair do mercado", naming the similar models whose
+/// ads count too (N.106b).
+String typicalTimeToGoneLine({
+  required int toGone,
+  required int goneCount,
+  List<String> similarModels = const [],
+  AppLanguage language = .portuguese,
+}) => similarModels.isEmpty
+    ? language.messages.typicalTimeToGone(
+        toGone: toGone.toString(),
+        goneCount: goneCount.toString(),
+      )
+    : language.messages.typicalTimeToGoneSimilar(
+        toGone: toGone.toString(),
+        goneCount: goneCount.toString(),
+        models: similarModels.join(', '),
+      );
+
+/// "Inclui anúncios de motas semelhantes: ..." (N.106b); null when only
+/// the model's own ads count.
+String? similarModelsNote(
+  List<String> similarModels, {
+  AppLanguage language = .portuguese,
+}) => similarModels.isEmpty
+    ? null
+    : language.messages.similarModelsCounted(models: similarModels.join(', '));
 
 /// [daysListed] counts from the site's publication date, or from the day
 /// the collector first saw the listing when the site gave none
@@ -28,9 +54,11 @@ List<String> marketLines(
   final enoughGone = m.goneCount >= minMarketData && toGone != null;
   if (enoughGone) {
     lines.add(
-      language.messages.typicalTimeToGone(
-        toGone: (toGone).toString(),
-        goneCount: m.goneCount.toString(),
+      typicalTimeToGoneLine(
+        toGone: toGone,
+        goneCount: m.goneCount,
+        similarModels: m.similarModels,
+        language: language,
       ),
     );
   } else {

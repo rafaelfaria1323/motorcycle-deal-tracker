@@ -420,4 +420,71 @@ void main() {
     expect(url.queryParameters['select'], contains('motorcycles(brand,model)'));
     expect(url.queryParameters['select'], contains('ad_url,ad_listing'));
   });
+
+  test('marketBehaviourFrom: too few gone ads borrow the similar models\' '
+      '(N.106b)', () {
+    final own = {
+      'live_count': 9,
+      'gone_count': 7,
+      'median_days_to_gone': 30,
+      'priced_count': 9,
+      'dropped_count': 3,
+      'median_drop_pct': 4.5,
+      'similar_gone_count': 20,
+      'similar_median_days_to_gone': 25,
+      'similar_models': ['R7'],
+    };
+    final enough = marketBehaviourFrom(own, null);
+    expect(enough.goneCount, 7);
+    expect(enough.medianDaysToGone, 30);
+    expect(enough.similarModels, isEmpty);
+
+    final few = marketBehaviourFrom({
+      ...own,
+      'gone_count': 2,
+      'median_days_to_gone': null,
+    }, null);
+    expect(few.goneCount, 20);
+    expect(few.medianDaysToGone, 25);
+    expect(few.similarModels, ['R7']);
+    expect(few.liveCount, 9, reason: 'the live and price figures stay its own');
+    expect(few.droppedCount, 3);
+
+    final groupFew = marketBehaviourFrom({
+      ...own,
+      'gone_count': 2,
+      'median_days_to_gone': null,
+      'similar_gone_count': 4,
+    }, null);
+    expect(groupFew.goneCount, 2);
+    expect(groupFew.medianDaysToGone, isNull);
+    expect(groupFew.similarModels, isEmpty);
+
+    // A view without the columns (an older database) reads as its own.
+    final older = marketBehaviourFrom({'gone_count': 1}, null);
+    expect(older.goneCount, 1);
+    expect(older.similarModels, isEmpty);
+  });
+
+  test('the similar models of the time to sale and the outlook', () {
+    expect(
+      timeToSaleFrom({
+        'gone_count': 6,
+        'live_count': 1,
+        'days_listed': 3,
+        'similar_models': ['R7', 'Tracer 7'],
+      }).similarModels,
+      ['R7', 'Tracer 7'],
+    );
+    expect(
+      priceDropOutlookFrom({
+        'sample': 6,
+        'dropped': 1,
+        'gone': 2,
+        'unchanged': 3,
+        'similar_models': ['R7'],
+      })!.similarModels,
+      ['R7'],
+    );
+  });
 }

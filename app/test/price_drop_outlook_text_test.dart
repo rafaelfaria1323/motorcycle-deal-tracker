@@ -71,4 +71,24 @@ void main() {
       OutlookAdvice.wait,
     );
   });
+
+  test('the last line names the similar models followed (N.106b)', () {
+    final text = priceDropOutlookText(
+      const PriceDropOutlook(
+        sample: 6,
+        dropped: 2,
+        gone: 1,
+        unchanged: 3,
+        similarModels: ['R7', 'Tracer 7'],
+      ),
+    )!;
+    expect(
+      text.lines.last,
+      'Inclui anúncios de motas semelhantes: R7, Tracer 7',
+    );
+    expect(
+      priceDropOutlookText(outlook(dropped: 2, unchanged: 3))!.lines,
+      hasLength(3),
+    );
+  });
 }

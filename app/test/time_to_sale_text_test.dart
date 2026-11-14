@@ -63,4 +63,23 @@ void main() {
       '8 left, 15 still for sale)',
     );
   });
+
+  test('says when similar models\' ads count too (N.106b)', () {
+    const t = TimeToSale(
+      goneCount: 6,
+      liveCount: 2,
+      daysListed: 9,
+      typicalDays: 30,
+      remainingDays: 20,
+      similarModels: ['R7'],
+    );
+    expect(
+      timeToSaleLine(t, live: true),
+      endsWith('ainda à venda). Inclui anúncios de motas semelhantes: R7'),
+    );
+    expect(
+      timeToSaleLine(t, live: true, language: AppLanguage.english),
+      endsWith('. Includes listings of similar bikes: R7'),
+    );
+  });
 }

@@ -13,6 +13,10 @@ class const PriceDropOutlook({
   /// The median drop of those that dropped, in %; null when none did.
   final double? medianDrop,
   final int days = 30,
+
+  /// The other models whose ads were followed too, when this model's own
+  /// were too few (N.106b); empty: only its own.
+  final List<String> similarModels = const [],
 }) extends Equatable {
   @override
   List<Object?> get props => [
@@ -22,5 +26,6 @@ class const PriceDropOutlook({
     unchanged,
     medianDrop,
     days,
+    similarModels,
   ];
 }

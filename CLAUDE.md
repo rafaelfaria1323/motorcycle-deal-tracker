@@ -1277,6 +1277,17 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   poucos dados" below 5 data points. These three time-on-market figures
   (this, `listing_time_to_sale`, `price_drop_outlook`) leave out the gone
   ads one run saw (under an hour between first and last seen, N.93).
+  Similar models (N.106b): `motorcycles.similar_group` (the same
+  platform: Yamaha CP2 MT-07/R7/Tracer 7/XSR700, CP3, MT-03/R3, Honda's
+  650 four and 500 twin; empty for models added from the app),
+  `similar_motorcycle_ids()` (the model first): with under 5 gone ads of
+  its own (`minMarketData`, `market_behaviour.dart`), these three figures
+  use the group's ads (the view's `similar_gone_count`,
+  `similar_median_days_to_gone`; `listing_time_to_sale` and
+  `price_drop_outlook`, through `price_drop_outlook_among`, fall back
+  themselves) and return `similar_models`, named in the app's line.
+  Prices never borrow: fair value, exit prices and gone deals stay the
+  model's own.
 - Time to sale per listing (`listing_time_to_sale`, 10.4; security
   invoker, readable by everyone): Kaplan-Meier over the model's other
   non-duplicate ads (gone = removed/sold after its days, live = lasted at

@@ -199,9 +199,11 @@ List<BikeValueLine> bikeValueLines(
     (
       kind: BikeValueLineKind.time,
       text: gone >= minMarketData && toGone != null
-          ? messages.typicalTimeToGone(
-              toGone: toGone.toString(),
-              goneCount: gone.toString(),
+          ? typicalTimeToGoneLine(
+              toGone: toGone,
+              goneCount: gone,
+              similarModels: market?.similarModels ?? const [],
+              language: language,
             )
           : messages.timeToGoneFewData(goneCount: gone),
     ),
