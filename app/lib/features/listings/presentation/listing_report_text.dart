@@ -68,8 +68,8 @@ List<String> _bike(Listing listing, AppLanguage language) => [
     ...heroSpecs(listing, language: language),
     listing.priceLabel(language: language),
   ].join(' · '),
-  if (sellerText(listing, language: language) case final seller?) seller,
-  if (placeText(listing, language: language) case final place?) place,
+  ?sellerText(listing, language: language),
+  ?placeText(listing, language: language),
   if (listing.isRemoved || listing.status == .sold)
     '${language.messages.listingStatus}: '
         '${listing.status.label(language: language)}',
