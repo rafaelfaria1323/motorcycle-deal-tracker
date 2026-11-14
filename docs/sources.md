@@ -5,6 +5,44 @@ here. Robots.txt is not permission; the source's terms of use decide.
 
 ## Decision log
 
+### 2026-11-14: candidate sources' robots.txt read (15.9)
+
+For 15.9 (one European site for imports, or more Portuguese ones), the
+robots.txt of the likely candidates was read once each on 2026-11-14,
+by hand, with an honest user agent; nothing else was fetched and nothing
+was stored. What each says for a crawler like ours (`User-agent: *`):
+
+- **leboncoin.fr**: "It's forbidden to use search robots or other
+  automatic methods to access Leboncoin.fr. Access is only permitted with
+  special permission". Ruled out.
+- **subito.it**: answered 403 to the robots.txt itself. Ruled out.
+- **lacentrale.fr**: `Disallow: /` for named crawlers; cars more than
+  motorcycles. Not worth asking.
+- **milanuncios.com**: search results disallowed (`/*?s=`, `/*pagina=`,
+  `/*?pag`, `/listing/`...). Ruled out: no search pages to read.
+- **mobile.de** (suchen.mobile.de): search and result pages
+  (`/fahrzeuge/search.html`, `searchresults.html`, `*pageNumber=`,
+  `/consumer/api/`) and ad pages (`/*inserat/`) disallowed. Ruled out.
+- **AutoScout24** (autoscout24.com): result lists disallowed (`/lst?`,
+  `/lst-moto?`); autoscout24.pt reset the connection. Ruled out.
+- **moto.it**: its searches disallowed (`/*/ricerca?`). Ruled out.
+- **wallapop** (es.wallapop.com): `/search` and every address with a
+  query (`/*?`) disallowed; its results come from an app API. Ruled out.
+- **motos.net** (now motos.coches.net): ad pages (`/Detail/`,
+  `/Vehiculo.aspx*`) and pages from 7 on (`/*pg=7*`...) disallowed.
+  Ruled out: ads can't be read, nor a search followed to its end.
+- **autouncle.pt** (an aggregator of other sites' ads): allows most of
+  the site, but its ads are Standvirtual's and OLX's, which are read
+  already, plus others it gathers under its own terms. Not worth it.
+
+Decision: no new source now. Every European marketplace a buyer would
+import from refuses automated reading of its searches, so the import
+side stays the calculator with a price the person types (16.10,
+"Comprar no estrangeiro"). Left in 15.9: Portuguese dealers' own sites
+with their stock, each only after Rafael reads its terms, and only with
+the fetching rules (robots.txt, 6-10 s apart, never parallel). Rafael
+can name a dealer to look at; nothing is built without that.
+
 ### 2026-11-14: CustoJusto not used (N.98)
 
 Rafael asked for CustoJusto (custojusto.pt) as a third source. Its
@@ -534,3 +572,9 @@ URL on every listing.
 - API Ninjas motorcycles API: https://api-ninjas.com/api/motorcycles
 - Safety Gate (EU alerts on dangerous products): https://ec.europa.eu/safety-gate-alerts/
 - CustoJusto robots.txt (not used, N.98): https://www.custojusto.pt/robots.txt
+- Candidates read for 15.9 (not used): https://www.leboncoin.fr/robots.txt,
+  https://www.subito.it/robots.txt, https://www.lacentrale.fr/robots.txt,
+  https://www.milanuncios.com/robots.txt, https://suchen.mobile.de/robots.txt,
+  https://www.autoscout24.com/robots.txt, https://www.moto.it/robots.txt,
+  https://es.wallapop.com/robots.txt, https://motos.coches.net/robots.txt,
+  https://www.autouncle.pt/robots.txt
