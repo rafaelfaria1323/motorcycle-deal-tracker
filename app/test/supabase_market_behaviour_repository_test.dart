@@ -312,6 +312,40 @@ void main() {
     );
   });
 
+  test('requestAdCheck sends the link and says if the ad is ready', () async {
+    reply = '[{"request_id":"r1","listing_id":"l1"}]';
+    final asked = await repository.requestAdCheck(
+      'https://www.olx.pt/d/anuncio/z650-IDHk3aB.html',
+      motorcycleId: 'm1',
+      year: 2019,
+    );
+    expect(requests.single.url.path, endsWith('/rpc/request_ad_check'));
+    expect(jsonDecode(requests.single.body), {
+      'p_url': 'https://www.olx.pt/d/anuncio/z650-IDHk3aB.html',
+      'p_motorcycle_id': 'm1',
+      'p_year': 2019,
+      'p_mileage': null,
+    });
+    expect(asked, (requestId: 'r1', listingId: 'l1'));
+
+    status = 400;
+    reply = '{"code":"54000","message":"3 requests waiting today"}';
+    await expectLater(
+      repository.requestAdCheck('x', motorcycleId: 'm1', year: 2019),
+      throwsA(isA<BikeValueRequestLimit>()),
+    );
+  });
+
+  test('listingForAd asks for the stored listing of a link', () async {
+    reply = '"l1"';
+    expect(await repository.listingForAd('https://x'), 'l1');
+    expect(requests.single.url.path, endsWith('/rpc/listing_for_ad'));
+    expect(jsonDecode(requests.single.body), {'p_url': 'https://x'});
+
+    reply = 'null';
+    expect(await repository.listingForAd('https://x'), isNull);
+  });
+
   test('bikeValueModel sends the make, model and searches', () async {
     reply = '"m9"';
     final id = await repository.bikeValueModel(
@@ -358,6 +392,22 @@ void main() {
     });
     expect(answered.waiting, isFalse);
     expect(answered.mileage, 30000);
+    expect(answered.isAd, isFalse);
+
+    final ad = bikeValueRequestFrom({
+      'id': 'r3',
+      'motorcycle_id': 'm1',
+      'year': 2019,
+      'mileage': null,
+      'requested_at': '2026-10-28T09:00:00Z',
+      'answered_at': null,
+      'ad_url': 'https://www.olx.pt/d/anuncio/z650-IDHk3aB.html',
+      'ad_listing': 'l1',
+      'motorcycles': {'brand': 'Kawasaki', 'model': 'Z650'},
+    });
+    expect(ad.isAd, isTrue);
+    expect(ad.adUrl, 'https://www.olx.pt/d/anuncio/z650-IDHk3aB.html');
+    expect(ad.adListingId, 'l1');
   });
 
   test('getBikeValueRequests reads the newest 20 with their models', () async {
@@ -368,5 +418,6 @@ void main() {
     expect(url.queryParameters['order'], 'requested_at.desc.nullslast');
     expect(url.queryParameters['limit'], '20');
     expect(url.queryParameters['select'], contains('motorcycles(brand,model)'));
+    expect(url.queryParameters['select'], contains('ad_url,ad_listing'));
   });
 }

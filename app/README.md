@@ -253,7 +253,11 @@ Screen names below use the Portuguese labels; English provides the same screens.
   and likely sold last asked ("Último preço pedido antes de sair": not
   those that expired, came back or are still on the other site) and the
   time to sell; your last
-  requests below), "Comprar no
+  requests below), "Avaliar um anúncio" (paste an OLX or Standvirtual
+  ad's link and say its model, year and km: a stored ad opens at once;
+  otherwise its model is collected and a notification gives the ad's
+  Deal Score and Risk Score once a collection finds it, or a day on the
+  value of a bike of that year), "Comprar no
   estrangeiro" (the same form for a bike seen in Spain, France or
   Germany: its price there plus vehicle tax (ISV), legalisation and
   transport, against its value here), "A minha mota" (the bikes you

@@ -175,6 +175,10 @@ final appRouter = GoRouter(
       builder: (context, state) => const BikeValuePage(importing: true),
     ),
     GoRoute(
+      path: AppRoutes.checkAd,
+      builder: (context, state) => const BikeValuePage(checkingAd: true),
+    ),
+    GoRoute(
       path: AppRoutes.accounts,
       builder: (context, state) => const AccountsPage(),
     ),

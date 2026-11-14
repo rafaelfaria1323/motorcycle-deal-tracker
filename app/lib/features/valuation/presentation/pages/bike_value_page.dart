@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../../app/di/injection.dart';
+import '../../../../app/router/app_routes.dart';
 import '../../../../core/auth/session_cubit.dart';
 import '../../../../core/localization/localizations.dart';
 import '../../../../core/widgets/page_back_button.dart';
@@ -16,6 +18,7 @@ import '../../../market/domain/entities/market_behaviour.dart';
 import '../../../market/domain/entities/model_market.dart';
 import '../../../listings/domain/repositories/catalog_repository.dart';
 import '../../../market/domain/repositories/market_behaviour_repository.dart';
+import '../ad_link.dart';
 import '../bike_value_text.dart';
 import '../../../listings/presentation/widgets/add_model_sheet.dart';
 import '../widgets/bike_condition_fields.dart';
@@ -31,13 +34,19 @@ import '../../../listings/presentation/widgets/tracked_models_builder.dart';
 /// answered with a notification ([requestId] opens that answer).
 /// With [importing] ("Comprar no estrangeiro", `/import`) the same value
 /// is what a bike seen abroad is weighed against ([ImportCostCard], shown
-/// first).
+/// first). With [checkingAd] ("Avaliar um anúncio", `/check-ad`, N.102)
+/// the form also takes an ad's link: a stored ad opens at once, else the
+/// request collects the model and the run that finds the ad pushes its
+/// scores.
 class const BikeValuePage({
   /// The request to show (`/worth?request=<id>`, from the notification).
   final String? requestId,
 
   /// Whether the page is "Comprar no estrangeiro".
   final bool importing = false,
+
+  /// Whether the page is "Avaliar um anúncio".
+  final bool checkingAd = false,
   super.key,
 }) extends StatefulWidget {
   /// The oldest year the form takes (as request_bike_value).
@@ -48,8 +57,11 @@ class const BikeValuePage({
 }
 
 /// What "Calcular" gave: the value, or null while the request waits for a
-/// collection.
+/// collection ([ad]: an ad check waiting for its ad; [signIn]: an ad not
+/// stored, asked by an anonymous session, which can't wait for it).
 typedef _Outcome = ({
+  bool ad,
+  bool signIn,
   String name,
   int year,
   int? mileage,
@@ -69,6 +81,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
   final _form = GlobalKey<FormState>();
   final _year = TextEditingController();
   final _mileage = TextEditingController();
+  final _link = TextEditingController();
   String? _motorcycleId;
 
   /// What the owner says of the bike; it adjusts the value shown, at once,
@@ -82,8 +95,9 @@ class _BikeValuePageState extends State<BikeValuePage> {
   /// Models added through "Outra marca ou modelo…" on this visit.
   final _added = <String, String>{};
 
-  /// What was asked and its value, once "Calcular" was pressed.
-  Future<_Outcome>? _outcome;
+  /// What was asked and its value, once "Calcular" was pressed (null when
+  /// it opened the ad).
+  Future<_Outcome?>? _outcome;
   String? _shownRequest;
 
   Future<List<ModelMarket>> _loadModels() async {
@@ -121,6 +135,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
   void dispose() {
     _year.dispose();
     _mileage.dispose();
+    _link.dispose();
     super.dispose();
   }
 
@@ -160,8 +175,14 @@ class _BikeValuePageState extends State<BikeValuePage> {
     }
   }
 
-  /// Fills the form with [request] and shows its value or that it waits.
+  /// Fills the form with [request] and shows its value or that it waits;
+  /// an ad check whose ad was found opens the ad.
   void _show(BikeValueRequest request) {
+    if (request.adListingId case final listing? when !request.waiting) {
+      unawaited(context.push(AppRoutes.listingDetail(listing)));
+      return;
+    }
+    if (request.adUrl case final url?) _link.text = url;
     _year.text = '${request.year}';
     _mileage.text = request.mileage?.toString() ?? '';
     setState(() {
@@ -173,6 +194,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
         year: request.year,
         mileage: request.mileage,
         waiting: request.waiting,
+        ad: request.isAd,
       );
     });
   }
@@ -183,9 +205,13 @@ class _BikeValuePageState extends State<BikeValuePage> {
     required int year,
     required int? mileage,
     bool waiting = false,
+    bool ad = false,
+    bool signIn = false,
   }) async {
-    if (waiting) {
+    if (waiting || signIn) {
       return (
+        ad: ad,
+        signIn: signIn,
         name: name,
         year: year,
         mileage: mileage,
@@ -203,6 +229,8 @@ class _BikeValuePageState extends State<BikeValuePage> {
           .then<ExitPrice?>((e) => e, onError: (Object _) => null),
     ).wait;
     return (
+      ad: false,
+      signIn: false,
       name: name,
       year: year,
       mileage: mileage,
@@ -236,17 +264,68 @@ class _BikeValuePageState extends State<BikeValuePage> {
     );
   }
 
+  /// "Avaliar": the stored ad opens at once (null outcome); else the
+  /// request waits for the collection (an anonymous session is asked to
+  /// sign in: it can't be told when the ad is found).
+  Future<_Outcome?> _checkAd(
+    String url,
+    String motorcycleId,
+    String name, {
+    required int year,
+    required int? mileage,
+  }) async {
+    String? listing;
+    var waiting = true;
+    if (_signedIn) {
+      final asked = await _repository.requestAdCheck(
+        url,
+        motorcycleId: motorcycleId,
+        year: year,
+        mileage: mileage,
+      );
+      listing = asked.listingId;
+      await _loadRequests();
+    } else {
+      listing = await _repository.listingForAd(url);
+      waiting = false;
+    }
+    if (listing != null) {
+      if (mounted) unawaited(context.push(AppRoutes.listingDetail(listing)));
+      return null;
+    }
+    return await _valueOf(
+      motorcycleId,
+      name,
+      year: year,
+      mileage: mileage,
+      waiting: waiting,
+      ad: true,
+      signIn: !waiting,
+    );
+  }
+
   void _calculate(Map<String, String> choices) {
     if (!_form.currentState!.validate()) return;
     final id = _motorcycleId!;
+    final year = int.parse(_year.text.trim());
+    final mileage = _mileage.text.trim().isEmpty ? null : _mileageValue();
+    if (widget.checkingAd) {
+      final url = adLinkOf(_link.text)!;
+      setState(() {
+        _added.putIfAbsent(id, () => choices[id]!);
+        _outcome = _checkAd(
+          url,
+          id,
+          choices[id]!,
+          year: year,
+          mileage: mileage,
+        );
+      });
+      return;
+    }
     setState(() {
       _added.putIfAbsent(id, () => choices[id]!);
-      _outcome = _ask(
-        id,
-        choices[id]!,
-        year: int.parse(_year.text.trim()),
-        mileage: _mileage.text.trim().isEmpty ? null : _mileageValue(),
-      );
+      _outcome = _ask(id, choices[id]!, year: year, mileage: mileage);
     });
   }
 
@@ -301,10 +380,13 @@ class _BikeValuePageState extends State<BikeValuePage> {
             children: [
               PageIntro(
                 eyebrow: context.strings.bikeValueTools,
-                title: widget.importing
+                title: widget.checkingAd
+                    ? context.strings.checkAdTitle
+                    : widget.importing
                     ? context.strings.importPageTitle
                     : context.strings.bikeValueTitle,
                 description: switch ((widget.importing, _signedIn)) {
+                  _ when widget.checkingAd => context.strings.checkAdIntro,
                   (true, _) => context.strings.importPageIntro,
                   (false, true) => context.strings.bikeValueIntroAnyModel,
                   (false, false) => context.strings.bikeValueIntro,
@@ -336,6 +418,21 @@ class _BikeValuePageState extends State<BikeValuePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (widget.checkingAd) ...[
+            TextFormField(
+              controller: _link,
+              keyboardType: TextInputType.url,
+              decoration: InputDecoration(
+                labelText: strings.checkAdLink,
+                hintText: strings.checkAdLinkHint,
+                border: const OutlineInputBorder(),
+              ),
+              validator: (text) => adLinkOf(text ?? '') == null
+                  ? strings.checkAdLinkInvalid
+                  : null,
+            ),
+            const SizedBox(height: 12),
+          ],
           DropdownButtonFormField<String>(
             // Rebuilt when a model is picked from outside the dropdown.
             key: ValueKey((_motorcycleId, _resets)),
@@ -406,8 +503,16 @@ class _BikeValuePageState extends State<BikeValuePage> {
           const SizedBox(height: 12),
           FilledButton.icon(
             onPressed: () => _calculate(choices),
-            icon: const Icon(Icons.calculate_outlined),
-            label: Text(strings.bikeValueCalculate),
+            icon: Icon(
+              widget.checkingAd
+                  ? Icons.manage_search
+                  : Icons.calculate_outlined,
+            ),
+            label: Text(
+              widget.checkingAd
+                  ? strings.checkAdButton
+                  : strings.bikeValueCalculate,
+            ),
           ),
         ],
       ),
@@ -415,7 +520,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
   }
 
   Widget _result(BuildContext context, Map<String, String> choices) {
-    return FutureBuilder<_Outcome>(
+    return FutureBuilder<_Outcome?>(
       future: _outcome,
       builder: (context, snapshot) {
         final strings = context.strings;
@@ -433,9 +538,21 @@ class _BikeValuePageState extends State<BikeValuePage> {
             onAction: () => _calculate(choices),
           );
         }
-        final outcome = snapshot.data;
-        if (outcome == null) {
+        if (snapshot.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
+        }
+        // The ad opened: nothing to show under the form.
+        final outcome = snapshot.data;
+        if (outcome == null) return const SizedBox.shrink();
+        if (outcome.signIn) {
+          return StateMessage(icon: Icons.login, title: strings.checkAdSignIn);
+        }
+        if (outcome.ad && outcome.value == null) {
+          return StateMessage(
+            icon: Icons.hourglass_top,
+            title: strings.checkAdWaitingTitle,
+            message: strings.checkAdWaitingBody,
+          );
         }
         final value = outcome.value;
         final card = BikeValueCard(

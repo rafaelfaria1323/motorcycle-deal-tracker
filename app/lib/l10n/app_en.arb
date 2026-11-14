@@ -1370,5 +1370,18 @@
   "shareLinkOwn": "This is your own list.",
   "csvDownloaded": "File downloaded: {file}",
   "csvCopied": "Can't download here: the CSV text was copied. Paste it into a spreadsheet.",
-  "csvFileName": "favourites.csv"
+  "csvFileName": "favourites.csv",
+  "checkAdTitle": "Check an ad",
+  "checkAdSubtitle": "Paste the link of an OLX or Standvirtual ad",
+  "checkAdIntro": "Paste the link of an OLX or Standvirtual ad and choose the bike's model, year and mileage. If we already have it, it opens now with its Deal Score. If not, we collect every ad of that model in the next collections: one ad alone gives no score, it needs the others to compare with. We'll tell you once it's scored.",
+  "checkAdLink": "Ad link",
+  "checkAdLinkHint": "https://www.olx.pt/d/anuncio/…",
+  "checkAdLinkInvalid": "Paste the link of a motorcycle ad on OLX or Standvirtual.",
+  "checkAdButton": "Check",
+  "checkAdSignIn": "We don't have this ad yet. Sign in to an account to ask for it: we'll tell you once it's scored.",
+  "checkAdWaitingTitle": "We'll look for the ad",
+  "checkAdWaitingBody": "The next collection reads every ad of this model on both sites. When it finds this one, we send you its Deal Score; if it doesn't find it within a day, we send the value of a bike of that year.",
+  "adCheckWaiting": "Looking for the ad",
+  "adCheckFound": "Ad checked",
+  "adCheckNotFound": "Ad not found"
 }

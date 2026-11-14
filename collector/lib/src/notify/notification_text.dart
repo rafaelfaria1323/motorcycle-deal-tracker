@@ -160,6 +160,23 @@ extension NotificationText on NotificationLanguage {
     'There aren\'t enough listings for an estimate yet.',
   );
 
+  String get adCheckTitle =>
+      _text('🔎 O anúncio já foi avaliado', '🔎 The ad has been evaluated');
+  String adCheckDealScore(int score) =>
+      _text('Deal Score $score/100', 'Deal Score $score/100');
+  String adCheckRiskScore(int score) =>
+      _text('Risco $score/100', 'Risk $score/100');
+  String get adCheckNoScore => _text(
+    'Ainda sem pontuação: veja o anúncio na app.',
+    'No score yet: see the ad in the app.',
+  );
+  String get adCheckNotFoundTitle =>
+      _text('🔎 Não encontrámos o anúncio', '🔎 We couldn\'t find the ad');
+  String get adCheckNotFound => _text(
+    'As pesquisas do modelo não o mostraram (saiu, ou é de outro modelo ou ano).',
+    'The model\'s searches didn\'t show it (gone, or another model or year).',
+  );
+
   String get photoExamTitle => _text(
     '📷 Todas as fotos foram examinadas',
     '📷 Every photo was examined',

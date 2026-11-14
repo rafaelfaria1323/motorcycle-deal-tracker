@@ -239,12 +239,45 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
   }
 
   @override
+  Future<({String requestId, String? listingId})> requestAdCheck(
+    String url, {
+    required String motorcycleId,
+    required int year,
+    int? mileage,
+  }) async {
+    try {
+      final rows = await _client.rpc<List<dynamic>>(
+        'request_ad_check',
+        params: {
+          'p_url': url,
+          'p_motorcycle_id': motorcycleId,
+          'p_year': year,
+          'p_mileage': mileage,
+        },
+      );
+      final row = rows.first as Map<String, dynamic>;
+      return (
+        requestId: row['request_id'] as String,
+        listingId: row['listing_id'] as String?,
+      );
+    } on PostgrestException catch (e) {
+      // The same cap as request_bike_value's.
+      if (e.code == '54000') throw const BikeValueRequestLimit();
+      rethrow;
+    }
+  }
+
+  @override
+  Future<String?> listingForAd(String url) =>
+      _client.rpc<String?>('listing_for_ad', params: {'p_url': url});
+
+  @override
   Future<List<BikeValueRequest>> getBikeValueRequests() async {
     final rows = await _client
         .from('bike_value_requests')
         .select(
           'id, motorcycle_id, year, mileage, requested_at, answered_at, '
-          'motorcycles(brand, model)',
+          'ad_url, ad_listing, motorcycles(brand, model)',
         )
         .order('requested_at', ascending: false)
         .limit(20);
@@ -417,5 +450,7 @@ BikeValueRequest bikeValueRequestFrom(Map<String, dynamic> row) {
     mileage: (row['mileage'] as num?)?.toInt(),
     requestedAt: DateTime.parse(row['requested_at'] as String),
     answeredAt: answered == null ? null : DateTime.parse(answered),
+    adUrl: row['ad_url'] as String?,
+    adListingId: row['ad_listing'] as String?,
   );
 }

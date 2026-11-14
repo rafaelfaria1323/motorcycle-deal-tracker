@@ -264,6 +264,65 @@ CREATE FUNCTION public.account_quiet_at(p_user uuid, p_at timestamp with time zo
 $$;
 
 --
+-- Name: ad_link_code(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.ad_link_code(p_url text) RETURNS text
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$
+  select case when public.ad_link_source(p_url) is not null
+    then substring(p_url from '-(ID[0-9A-Za-z]+)\.html')
+  end
+$$;
+
+--
+-- Name: ad_link_source(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.ad_link_source(p_url text) RETURNS text
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$
+  select case
+    when p_url ~* '^https?://(www\.|m\.)?olx\.pt/d/(pt/)?anuncio/[^?#]*-ID[0-9A-Za-z]+\.html'
+      then 'olx'
+    when p_url ~* '^https?://(www\.|m\.)?standvirtual\.com/motos/anuncio/[^?#]*-ID[0-9A-Za-z]+\.html'
+      then 'standvirtual'
+  end
+$$;
+
+--
+-- Name: bike_value_requests; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.bike_value_requests (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid DEFAULT auth.uid() NOT NULL,
+    motorcycle_id uuid NOT NULL,
+    year integer NOT NULL,
+    mileage integer,
+    requested_at timestamp with time zone DEFAULT now() NOT NULL,
+    waited boolean NOT NULL,
+    answered_at timestamp with time zone,
+    ad_url text,
+    CONSTRAINT bike_value_requests_ad_url_check CHECK (((ad_url IS NULL) OR (public.ad_link_source(ad_url) IS NOT NULL))),
+    CONSTRAINT bike_value_requests_mileage_check CHECK ((mileage >= 0)),
+    CONSTRAINT bike_value_requests_year_check CHECK (((year >= 1990) AND (year <= 2100)))
+);
+
+--
+-- Name: ad_listing(public.bike_value_requests); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.ad_listing(r public.bike_value_requests) RETURNS uuid
+    LANGUAGE sql STABLE
+    SET search_path TO ''
+    AS $$
+  select case when r.ad_url is not null then public.listing_for_ad(r.ad_url) end
+$$;
+
+--
 -- Name: add_catalog_model(text, text, integer, text, text, text[], integer, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -390,7 +449,7 @@ $$;
 -- Name: answer_bike_value_requests(timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.answer_bike_value_requests(p_started_at timestamp with time zone) RETURNS TABLE(id uuid, user_id uuid, brand text, model text, year integer, mileage integer, comparable_count integer, fair_price numeric)
+CREATE FUNCTION public.answer_bike_value_requests(p_started_at timestamp with time zone) RETURNS TABLE(id uuid, user_id uuid, brand text, model text, year integer, mileage integer, comparable_count integer, fair_price numeric, is_ad boolean, listing_id uuid, deal_score smallint, risk_score smallint)
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO ''
     AS $$
@@ -406,16 +465,24 @@ begin
       and m.collected_since <= p_started_at
       and m.min_year <= greatest(r.year - 3, 1990)
       and (r.requested_at < now() - interval '1 day'
-           or exists (select 1 from public.listings l
-                      where l.motorcycle_id = m.id
-                        and l.last_seen_at >= p_started_at))
-    returning r.id, r.user_id, r.motorcycle_id, r.year, r.mileage
+           or (r.ad_url is null
+               and exists (select 1 from public.listings l
+                           where l.motorcycle_id = m.id
+                             and l.last_seen_at >= p_started_at))
+           or (r.ad_url is not null
+               and exists (select 1 from public.listings l
+                           where l.id = public.listing_for_ad(r.ad_url)
+                             and l.last_seen_at >= p_started_at)))
+    returning r.id, r.user_id, r.motorcycle_id, r.year, r.mileage, r.ad_url
   )
   select a.id, a.user_id, m.brand, m.model, a.year, a.mileage,
-         v.comparable_count, v.fair_price
+         v.comparable_count, v.fair_price,
+         a.ad_url is not null, l.id, l.deal_score, l.risk_score
   from answered a
   join public.motorcycles m on m.id = a.motorcycle_id
   cross join lateral public.bike_value(a.motorcycle_id, a.year, a.mileage) v
+  left join public.listings l
+    on a.ad_url is not null and l.id = public.listing_for_ad(a.ad_url)
   order by a.id;
 end;
 $$;
@@ -2534,6 +2601,22 @@ CREATE FUNCTION public.listing_extras(p_variant text, p_description text) RETURN
   select coalesce(array_agg(r.code order by r.code), '{}'::text[])
   from rules r, t
   where t.text ~ r.pattern
+$$;
+
+--
+-- Name: listing_for_ad(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.listing_for_ad(p_url text) RETURNS uuid
+    LANGUAGE sql STABLE
+    SET search_path TO ''
+    AS $$
+  select l.id
+  from public.listings l
+  where l.source = public.ad_link_source(p_url)
+    and substring(l.url from '-(ID[0-9A-Za-z]+)\.html') = public.ad_link_code(p_url)
+  order by (l.status = 'active') desc, l.last_seen_at desc
+  limit 1
 $$;
 
 --
@@ -5043,6 +5126,75 @@ end;
 $$;
 
 --
+-- Name: request_ad_check(text, uuid, integer, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.request_ad_check(p_url text, p_motorcycle_id uuid, p_year integer, p_mileage integer DEFAULT NULL::integer) RETURNS TABLE(request_id uuid, listing_id uuid)
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $_$
+declare
+  v_url text := btrim(p_url);
+  v_listing uuid;
+  v_id uuid;
+begin
+  perform public.require_account();
+
+  if public.ad_link_source(v_url) is null then
+    raise exception 'Not an OLX or Standvirtual ad link' using errcode = '22023';
+  end if;
+  -- Kept without the query and fragment (tracking, the site's own state).
+  v_url := regexp_replace(v_url, '[?#].*$', '');
+  if not exists (select 1 from public.motorcycles m where m.id = p_motorcycle_id) then
+    raise exception 'Unknown model %', p_motorcycle_id using errcode = 'P0002';
+  end if;
+  if p_year < 1990 or p_year > extract(year from now())::integer + 1 then
+    raise exception 'Year % is out of range', p_year using errcode = '22023';
+  end if;
+  if p_mileage < 0 then
+    raise exception 'Mileage % is invalid', p_mileage using errcode = '22023';
+  end if;
+
+  select l.id into v_listing
+  from public.listings l
+  where l.id = public.listing_for_ad(v_url)
+    and l.scored_at is not null;
+
+  if v_listing is null then
+    select r.id into v_id
+    from public.bike_value_requests r
+    where r.user_id = auth.uid()
+      and public.ad_link_source(r.ad_url) = public.ad_link_source(v_url)
+      and public.ad_link_code(r.ad_url) = public.ad_link_code(v_url)
+      and r.answered_at is null
+    limit 1;
+    if v_id is not null then
+      return query select v_id, null::uuid;
+      return;
+    end if;
+
+    if (select count(*) from public.bike_value_requests r
+        where r.user_id = auth.uid() and r.waited
+          and r.requested_at > now() - interval '1 day') >= 3 then
+      raise exception 'At most 3 requests that wait for a collection a day'
+        using errcode = '54000';
+    end if;
+  end if;
+
+  insert into public.bike_value_requests
+    (motorcycle_id, year, mileage, waited, answered_at, ad_url)
+  values
+    (p_motorcycle_id, p_year, p_mileage, v_listing is null,
+     case when v_listing is not null then now() end, v_url)
+  returning id into v_id;
+
+  perform public.refresh_collected_model(p_motorcycle_id);
+
+  return query select v_id, v_listing;
+end;
+$_$;
+
+--
 -- Name: request_bike_value(uuid, integer, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -6625,23 +6777,6 @@ COMMENT ON TABLE public.api_usage IS 'Requests made to outside APIs per Lisbon d
 CREATE TABLE public.app_admins (
     user_id uuid NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
---
--- Name: bike_value_requests; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.bike_value_requests (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    user_id uuid DEFAULT auth.uid() NOT NULL,
-    motorcycle_id uuid NOT NULL,
-    year integer NOT NULL,
-    mileage integer,
-    requested_at timestamp with time zone DEFAULT now() NOT NULL,
-    waited boolean NOT NULL,
-    answered_at timestamp with time zone,
-    CONSTRAINT bike_value_requests_mileage_check CHECK ((mileage >= 0)),
-    CONSTRAINT bike_value_requests_year_check CHECK (((year >= 1990) AND (year <= 2100)))
 );
 
 --
@@ -8995,6 +9130,39 @@ REVOKE ALL ON FUNCTION public.account_quiet_at(p_user uuid, p_at timestamp with 
 GRANT ALL ON FUNCTION public.account_quiet_at(p_user uuid, p_at timestamp with time zone) TO service_role;
 
 --
+-- Name: FUNCTION ad_link_code(p_url text); Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON FUNCTION public.ad_link_code(p_url text) TO anon;
+GRANT ALL ON FUNCTION public.ad_link_code(p_url text) TO authenticated;
+GRANT ALL ON FUNCTION public.ad_link_code(p_url text) TO service_role;
+
+--
+-- Name: FUNCTION ad_link_source(p_url text); Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON FUNCTION public.ad_link_source(p_url text) TO anon;
+GRANT ALL ON FUNCTION public.ad_link_source(p_url text) TO authenticated;
+GRANT ALL ON FUNCTION public.ad_link_source(p_url text) TO service_role;
+
+--
+-- Name: TABLE bike_value_requests; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT SELECT ON TABLE public.bike_value_requests TO anon;
+GRANT SELECT ON TABLE public.bike_value_requests TO authenticated;
+GRANT ALL ON TABLE public.bike_value_requests TO service_role;
+
+--
+-- Name: FUNCTION ad_listing(r public.bike_value_requests); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.ad_listing(r public.bike_value_requests) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.ad_listing(r public.bike_value_requests) TO anon;
+GRANT ALL ON FUNCTION public.ad_listing(r public.bike_value_requests) TO authenticated;
+GRANT ALL ON FUNCTION public.ad_listing(r public.bike_value_requests) TO service_role;
+
+--
 -- Name: FUNCTION add_catalog_model(p_brand text, p_model text, p_min_year integer, p_olx_search text, p_standvirtual_search text, p_aliases text[], p_engine_cc_min integer, p_engine_cc_max integer); Type: ACL; Schema: public; Owner: -
 --
 
@@ -9629,6 +9797,15 @@ GRANT ALL ON FUNCTION public.listing_extras(p_variant text, p_description text) 
 GRANT ALL ON FUNCTION public.listing_extras(p_variant text, p_description text) TO service_role;
 
 --
+-- Name: FUNCTION listing_for_ad(p_url text); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.listing_for_ad(p_url text) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.listing_for_ad(p_url text) TO anon;
+GRANT ALL ON FUNCTION public.listing_for_ad(p_url text) TO authenticated;
+GRANT ALL ON FUNCTION public.listing_for_ad(p_url text) TO service_role;
+
+--
 -- Name: FUNCTION listing_matches_search(l_motorcycle_id uuid, l_year integer, l_price numeric, l_mileage integer, l_location text, l_seller_type public.seller_type, s_motorcycle_id uuid, s_min_year integer, s_max_price numeric, s_max_mileage integer, s_location text, s_seller_type public.seller_type); Type: ACL; Schema: public; Owner: -
 --
 
@@ -10199,6 +10376,14 @@ GRANT ALL ON FUNCTION public.remove_account(p_user uuid) TO authenticated;
 GRANT ALL ON FUNCTION public.remove_account(p_user uuid) TO service_role;
 
 --
+-- Name: FUNCTION request_ad_check(p_url text, p_motorcycle_id uuid, p_year integer, p_mileage integer); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.request_ad_check(p_url text, p_motorcycle_id uuid, p_year integer, p_mileage integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.request_ad_check(p_url text, p_motorcycle_id uuid, p_year integer, p_mileage integer) TO service_role;
+GRANT ALL ON FUNCTION public.request_ad_check(p_url text, p_motorcycle_id uuid, p_year integer, p_mileage integer) TO authenticated;
+
+--
 -- Name: FUNCTION request_bike_value(p_motorcycle_id uuid, p_year integer, p_mileage integer); Type: ACL; Schema: public; Owner: -
 --
 
@@ -10597,14 +10782,6 @@ GRANT ALL ON TABLE public.api_usage TO service_role;
 GRANT SELECT ON TABLE public.app_admins TO anon;
 GRANT SELECT ON TABLE public.app_admins TO authenticated;
 GRANT ALL ON TABLE public.app_admins TO service_role;
-
---
--- Name: TABLE bike_value_requests; Type: ACL; Schema: public; Owner: -
---
-
-GRANT SELECT ON TABLE public.bike_value_requests TO anon;
-GRANT SELECT ON TABLE public.bike_value_requests TO authenticated;
-GRANT ALL ON TABLE public.bike_value_requests TO service_role;
 
 --
 -- Name: TABLE collection_watchdog; Type: ACL; Schema: public; Owner: -

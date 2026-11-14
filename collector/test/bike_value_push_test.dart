@@ -117,6 +117,107 @@ void main() {
     });
   });
 
+  group('ad checks (N.102)', () {
+    const found = BikeValueAnswer(
+      id: 'r4',
+      userId: 'u1',
+      brand: 'Kawasaki',
+      model: 'Z650',
+      year: 2019,
+      comparableCount: 12,
+      fairPrice: 5250,
+      isAd: true,
+      listingId: 'l1',
+      dealScore: 81,
+      riskScore: 12,
+    );
+
+    test('found: the scores, and a tap opens the ad', () {
+      expect(bikeValuePush(found), {
+        'title': '🔎 O anúncio já foi avaliado',
+        'body': 'Kawasaki Z650 2019\nDeal Score 81/100 · Risco 12/100',
+        'url': '/#/deals/l1',
+        'tag': 'bike-value-r4',
+        'language': 'pt',
+      });
+      expect(
+        bikeValuePush(found, language: NotificationLanguage.english)['body'],
+        'Kawasaki Z650 2019\nDeal Score 81/100 · Risk 12/100',
+      );
+    });
+
+    test('found but not scored: says to open it', () {
+      const unscored = BikeValueAnswer(
+        id: 'r5',
+        userId: 'u1',
+        brand: 'Kawasaki',
+        model: 'Z650',
+        year: 2019,
+        comparableCount: 0,
+        isAd: true,
+        listingId: 'l2',
+      );
+      expect(
+        bikeValuePush(unscored)['body'],
+        'Kawasaki Z650 2019\nAinda sem pontuação: veja o anúncio na app.',
+      );
+    });
+
+    test('not found: the value of a bike of that year, opens the request', () {
+      const missing = BikeValueAnswer(
+        id: 'r6',
+        userId: 'u1',
+        brand: 'Kawasaki',
+        model: 'Z650',
+        year: 2019,
+        mileage: 30000,
+        comparableCount: 12,
+        fairPrice: 5250,
+        isAd: true,
+      );
+      final message = bikeValuePush(missing);
+      expect(message['title'], '🔎 Não encontrámos o anúncio');
+      expect(
+        message['body'],
+        'Kawasaki Z650 2019 30 000 km\n'
+        'As pesquisas do modelo não o mostraram '
+        '(saiu, ou é de outro modelo ou ano).\n'
+        'Cerca de 5 250 € (de 12 anúncios)',
+      );
+      expect(message['url'], '/#/worth?request=r6');
+    });
+
+    test('read from the database row', () {
+      final a = BikeValueAnswer.fromRow({
+        'id': 'r7',
+        'user_id': 'u1',
+        'brand': 'Honda',
+        'model': 'CB650R',
+        'year': 2020,
+        'comparable_count': 5,
+        'fair_price': 6000,
+        'is_ad': true,
+        'listing_id': 'l3',
+        'deal_score': 70,
+        'risk_score': 20,
+      });
+      expect(
+        (a.isAd, a.listingId, a.dealScore, a.riskScore),
+        (true, 'l3', 70, 20),
+      );
+      expect(
+        BikeValueAnswer.fromRow({
+          'id': 'r8',
+          'user_id': 'u1',
+          'brand': 'Honda',
+          'model': 'CB650R',
+          'year': 2020,
+        }).isAd,
+        isFalse,
+      );
+    });
+  });
+
   group('answerBikeValues', () {
     test('each answer goes to its own account, in its language', () async {
       final store = _Store([

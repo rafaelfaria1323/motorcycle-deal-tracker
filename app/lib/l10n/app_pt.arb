@@ -7917,5 +7917,57 @@
   "csvFileName": "favoritos.csv",
   "@csvFileName": {
     "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "checkAdTitle": "Avaliar um anúncio",
+  "@checkAdTitle": {
+    "description": "Interface text for checking an ad (N.102)."
+  },
+  "checkAdSubtitle": "Cole o link de um anúncio do OLX ou do Standvirtual",
+  "@checkAdSubtitle": {
+    "description": "Interface text for checking an ad (N.102)."
+  },
+  "checkAdIntro": "Cole o link de um anúncio do OLX ou do Standvirtual e escolha o modelo, o ano e os quilómetros da mota. Se já o temos, abre já com o Deal Score. Se não, vamos recolher todos os anúncios desse modelo nas próximas recolhas: um anúncio sozinho não dá pontuação, precisa dos outros para comparar. Avisamos quando estiver avaliado.",
+  "@checkAdIntro": {
+    "description": "Interface text for checking an ad (N.102)."
+  },
+  "checkAdLink": "Link do anúncio",
+  "@checkAdLink": {
+    "description": "Interface text for checking an ad (N.102)."
+  },
+  "checkAdLinkHint": "https://www.olx.pt/d/anuncio/…",
+  "@checkAdLinkHint": {
+    "description": "Interface text for checking an ad (N.102)."
+  },
+  "checkAdLinkInvalid": "Cole o link de um anúncio de mota do OLX ou do Standvirtual.",
+  "@checkAdLinkInvalid": {
+    "description": "Interface text for checking an ad (N.102)."
+  },
+  "checkAdButton": "Avaliar",
+  "@checkAdButton": {
+    "description": "Interface text for checking an ad (N.102)."
+  },
+  "checkAdSignIn": "Ainda não temos este anúncio. Inicie sessão numa conta para o pedir: avisamos quando estiver avaliado.",
+  "@checkAdSignIn": {
+    "description": "Interface text for checking an ad (N.102)."
+  },
+  "checkAdWaitingTitle": "Vamos procurar o anúncio",
+  "@checkAdWaitingTitle": {
+    "description": "Interface text for checking an ad (N.102)."
+  },
+  "checkAdWaitingBody": "A próxima recolha lê todos os anúncios deste modelo nos dois sites. Quando encontrar este, enviamos-lhe o Deal Score; se não o encontrar num dia, enviamos o valor de uma mota desse ano.",
+  "@checkAdWaitingBody": {
+    "description": "Interface text for checking an ad (N.102)."
+  },
+  "adCheckWaiting": "À procura do anúncio",
+  "@adCheckWaiting": {
+    "description": "Interface text for checking an ad (N.102)."
+  },
+  "adCheckFound": "Anúncio avaliado",
+  "@adCheckFound": {
+    "description": "Interface text for checking an ad (N.102)."
+  },
+  "adCheckNotFound": "Anúncio não encontrado",
+  "@adCheckNotFound": {
+    "description": "Interface text for checking an ad (N.102)."
   }
 }
