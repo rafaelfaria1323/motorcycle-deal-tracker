@@ -7485,5 +7485,36 @@
   "modelRecallsNote": "Do Safety Gate, os alertas da Comissão Europeia sobre produtos perigosos, de todos os anos do modelo: cada anúncio diz quais podem abranger essa mota.",
   "@modelRecallsNote": {
     "description": "Note under a model's EU recalls on the market page (N.87)."
+  },
+  "seeCheaperSimilar": "{count, plural, =1{Ver essa mota} other{Ver as {count} motas}}",
+  "@seeCheaperSimilar": {
+    "description": "Button under the cheaper-similar argument in Negociar: opens the list of those ads (N.94).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "compareWithCheaper": "{count, plural, =1{Comparar as duas} other{Comparar com as 2 mais baratas}}",
+  "@compareWithCheaper": {
+    "description": "Button under the cheaper-similar argument: opens the comparison of this ad and the cheapest others (N.94); count = how many cheaper ads there are.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cheaperSimilarTitle": "{model} mais baratas",
+  "@cheaperSimilarTitle": {
+    "description": "Title of the sheet listing cheaper ads of the same model (N.94).",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "cheaperSimilarIntro": "Ainda à venda, de ano parecido (um ano de diferença no máximo) e sem mais km; da mais barata à mais cara. Toque num anúncio para o abrir, ou marque \"Comparar\" para o juntar à comparação.",
+  "@cheaperSimilarIntro": {
+    "description": "Intro of the sheet listing cheaper ads of the same model (N.94)."
   }
 }

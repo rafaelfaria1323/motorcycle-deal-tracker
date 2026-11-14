@@ -204,7 +204,7 @@ class SupabaseListingsRepository(final SupabaseClient _client)
     if (listing.mileage case final km?) {
       query = query.lte('mileage', km);
     }
-    final rows = await query.order('price').limit(3);
+    final rows = await query.order('price').limit(cheaperSimilarLimit);
     return rows.map<Listing>(ListingModel.fromJson).toList();
   }
 

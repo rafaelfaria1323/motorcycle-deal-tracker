@@ -33,8 +33,13 @@ abstract interface class ListingsRepository {
 
   Future<List<PricePoint>> getPriceHistory(String listingId);
 
-  /// Up to three live listings of the same model that cost less, of a year
-  /// at most one apart and with no more km (cheapest first): arguments to
-  /// negotiate with. Empty without a model or a price.
+  /// The live listings of the same model that cost less, of a year at
+  /// most one apart and with no more km (cheapest first, at most
+  /// [cheaperSimilarLimit]): arguments to negotiate with, listed in
+  /// Negociar (N.94). Empty without a model or a price.
   Future<List<Listing>> getCheaperSimilar(Listing listing);
 }
+
+/// How many cheaper ads of the same model Negociar reads (N.94): all of
+/// them in practice, so the argument counts them and its sheet lists them.
+const cheaperSimilarLimit = 50;

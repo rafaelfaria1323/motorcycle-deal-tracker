@@ -1310,8 +1310,10 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   second offer, propose halfway up to the ceiling, above it offer the
   ceiling and walk away) with the message to send. Arguments to quote
   (`negotiation_text.dart`, strongest first): problems marked at the visit,
-  price above the estimate, up to 3 cheaper live ads of the same model
-  (year +-1, no more km: `getCheaperSimilar`), km above normal, risk
+  price above the estimate, the cheaper live ads of the same model
+  (year +-1, no more km: `getCheaperSimilar`, up to 50; under it "Ver as
+  N motas", a sheet of their cards, and "Comparar com as 2 mais
+  baratas", `compareWithCheaper`, N.94), km above normal, risk
   reasons, long on sale, an earlier drop, tyres of a 5+ year-old bike.
   Visit: a checklist item marked "Problema" takes its repair cost
   (`repairCost`, tyres/chain/service/valve check from the running costs)

@@ -10,6 +10,7 @@ import 'package:motorcycle_deal_tracker/features/listings/presentation/offer_tex
 final _today = DateTime(2026, 10, 20);
 
 Listing _listing({
+  String id = 'l1',
   double? price = 7000,
   double? initialPrice,
   int? year = 2022,
@@ -20,9 +21,9 @@ Listing _listing({
   DateTime? publishedAt,
   DateTime? siteRefreshedAt,
 }) => Listing(
-  id: 'l1',
+  id: id,
   source: 'olx',
-  url: 'https://example.com/l1',
+  url: 'https://example.com/$id',
   brand: 'Yamaha',
   model: 'MT-07',
   status: ListingStatus.active,
@@ -198,6 +199,18 @@ void main() {
           cheaper: [_listing(price: 6600), _listing(price: 6400)],
         ).single,
         contains('Há 2 MT-07'),
+      );
+    });
+
+    test('the cheaper argument is the one Negociar adds its actions to', () {
+      final cheaper = [_listing(id: 'a', price: 6600)];
+      expect(argue(_listing(), cheaper: cheaper), [
+        cheaperSimilarArgument(_listing(), cheaper),
+      ]);
+      expect(cheaperSimilarArgument(_listing(), const []), isNull);
+      expect(
+        cheaperSimilarArgument(_listing(), [_listing(id: 'a', price: null)]),
+        isNull,
       );
     });
 
@@ -441,5 +454,33 @@ void main() {
       expect(message, contains(Formatters.price(6800)));
       expect(message, contains('- o registo de propriedade pago por eles;'));
     });
+  });
+
+  group('compareWithCheaper', () {
+    test('this ad first, then the two cheapest', () {
+      expect(
+        compareWithCheaper(_listing(id: 'me'), [
+          _listing(id: 'b', price: 6800),
+          _listing(id: 'a', price: 6200),
+          _listing(id: 'c', price: 6500),
+        ]),
+        ['me', 'a', 'c'],
+      );
+    });
+
+    test(
+      'one cheaper ad makes a pair; itself and no-price ads never count',
+      () {
+        expect(
+          compareWithCheaper(_listing(id: 'me'), [
+            _listing(id: 'me', price: 1000),
+            _listing(id: 'x', price: null),
+            _listing(id: 'a', price: 6200),
+          ]),
+          ['me', 'a'],
+        );
+        expect(compareWithCheaper(_listing(id: 'me'), const []), ['me']);
+      },
+    );
   });
 }

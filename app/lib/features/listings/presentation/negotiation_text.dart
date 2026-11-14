@@ -1,4 +1,5 @@
 import '../../../core/formatting/formatters.dart';
+import '../../compare/presentation/compare_text.dart';
 import '../../favourites/domain/entities/favourite.dart';
 import '../domain/entities/bike_maintenance.dart';
 import '../domain/entities/listing.dart';
@@ -9,6 +10,39 @@ import '../../valuation/presentation/ownership_cost.dart';
 import 'score_explanation.dart';
 import '../../favourites/presentation/viewing_checklist.dart';
 import '../../../core/localization/localizations.dart';
+
+/// The comparison opened from the cheaper-similar argument (N.94): this
+/// ad first, then the cheapest of the others, [maxCompared] at most.
+List<String> compareWithCheaper(Listing listing, List<Listing> cheaper) {
+  final others = [
+    for (final other in cheaper)
+      if (other.id != listing.id && other.askingPrice != null) other,
+  ]..sort((a, b) => a.askingPrice!.compareTo(b.askingPrice!));
+  return [
+    listing.id,
+    for (final other in others.take(maxCompared - 1)) other.id,
+  ];
+}
+
+/// "Há 3 MT-07 de ano parecido, sem mais km, mais baratas: desde
+/// 7 200 €", or null without cheaper ads. Negociar puts the ads' list and
+/// the comparison under it (N.94).
+String? cheaperSimilarArgument(
+  Listing listing,
+  List<Listing> cheaper, {
+  AppLanguage language = .portuguese,
+}) {
+  final cheapest = cheaper
+      .map((l) => l.price)
+      .whereType<double>()
+      .fold<double?>(null, (a, b) => a == null || b < a ? b : a);
+  if (cheapest == null) return null;
+  return language.messages.cheaperSimilarListings(
+    count: cheaper.length,
+    model: listing.model,
+    price: Formatters.price(cheapest, language: language),
+  );
+}
 
 /// A problem marked at the visit and what fixing it typically costs.
 class const VisitRepair(final String title, final double cost);
@@ -179,20 +213,9 @@ List<String> negotiationArguments(
     );
   }
 
-  if (cheaper.isNotEmpty) {
-    final cheapest = cheaper
-        .map((l) => l.price)
-        .whereType<double>()
-        .fold<double?>(null, (a, b) => a == null || b < a ? b : a);
-    if (cheapest != null) {
-      arguments.add(
-        language.messages.cheaperSimilarListings(
-          count: cheaper.length,
-          model: listing.model,
-          price: Formatters.price(cheapest, language: language),
-        ),
-      );
-    }
+  if (cheaperSimilarArgument(listing, cheaper, language: language)
+      case final argument?) {
+    arguments.add(argument);
   }
 
   final km = listing.mileage;
