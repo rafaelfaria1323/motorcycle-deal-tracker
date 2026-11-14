@@ -37,6 +37,7 @@ OutlookAdvice outlookAdvice(PriceDropOutlook o) {
   if (o.sample < minMarketData) return null;
   final messages = language.messages;
   final drop = o.medianDrop;
+  final note = similarModelsNote(o.similarModels, language: language);
   return (
     intro: messages.priceDropOutlookIntro(days: o.days),
     lines: [
@@ -50,6 +51,7 @@ OutlookAdvice outlookAdvice(PriceDropOutlook o) {
         messages.priceDropOutlookDropped(count: o.dropped, sample: o.sample),
       messages.priceDropOutlookGone(count: o.gone, sample: o.sample),
       messages.priceDropOutlookUnchanged(count: o.unchanged, sample: o.sample),
+      ?note,
     ],
     advice: switch (outlookAdvice(o)) {
       .wait => messages.priceDropOutlookWait,

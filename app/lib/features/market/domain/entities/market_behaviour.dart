@@ -1,5 +1,8 @@
 import 'package:equatable/equatable.dart';
 
+/// Below this many listings a figure is not shown as a fact.
+const minMarketData = 5;
+
 class const MarketBehaviour({
   required final int liveCount,
 
@@ -11,6 +14,11 @@ class const MarketBehaviour({
   final int? medianDaysListedLive,
   final double? medianDropPct,
   final Depreciation? depreciation,
+
+  /// The other models whose ads [goneCount] and [medianDaysToGone] also
+  /// count, when this model's own gone ads were too few (N.106b); empty:
+  /// only its own.
+  final List<String> similarModels = const [],
 }) extends Equatable {
   @override
   List<Object?> get props => [
@@ -22,6 +30,7 @@ class const MarketBehaviour({
     medianDaysListedLive,
     medianDropPct,
     depreciation,
+    similarModels,
   ];
 }
 
@@ -63,6 +72,10 @@ class const TimeToSale({
   /// Days until half the ads that lasted as long as this one left; null
   /// when too few did, or the listing is no longer live.
   final int? remainingDays,
+
+  /// The other models whose ads count too, when this model's own gone ads
+  /// were too few (N.106b); empty: only its own.
+  final List<String> similarModels = const [],
 }) extends Equatable {
   @override
   List<Object?> get props => [
@@ -72,5 +85,6 @@ class const TimeToSale({
     daysListed,
     typicalDays,
     remainingDays,
+    similarModels,
   ];
 }

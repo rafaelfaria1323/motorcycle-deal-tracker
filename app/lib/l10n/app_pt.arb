@@ -1368,6 +1368,30 @@
       }
     }
   },
+  "typicalTimeToGoneSimilar": "Tempo típico até sair do mercado: {toGone} dias ({goneCount} anúncios, com motas semelhantes: {models})",
+  "@typicalTimeToGoneSimilar": {
+    "description": "Interface text in market_behaviour_text, marketLines. The model's own gone ads were too few, so the ads of models on the same platform (e.g. R7 and Tracer 7 for an MT-07) count too; models is their names.",
+    "placeholders": {
+      "toGone": {
+        "type": "String"
+      },
+      "goneCount": {
+        "type": "String"
+      },
+      "models": {
+        "type": "String"
+      }
+    }
+  },
+  "similarModelsCounted": "Inclui anúncios de motas semelhantes: {models}",
+  "@similarModelsCounted": {
+    "description": "Interface text in time_to_sale_text and price_drop_outlook_text. The model's own ads were too few, so those of models on the same platform count too; models is their names.",
+    "placeholders": {
+      "models": {
+        "type": "String"
+      }
+    }
+  },
   "timeToGoneFewData": "Tempo até sair do mercado: ainda poucos dados ({goneCount, plural, =0{0 anúncios saíram} =1{1 anúncio saiu} other{{goneCount} anúncios saíram}})",
   "@timeToGoneFewData": {
     "description": "Interface text in market_behaviour_text, marketLines.",

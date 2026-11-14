@@ -2675,7 +2675,7 @@ $$;
 -- Name: listing_time_to_sale(uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.listing_time_to_sale(p_listing_id uuid) RETURNS TABLE(band text, gone_count integer, live_count integer, days_listed integer, typical_days integer, remaining_days integer)
+CREATE FUNCTION public.listing_time_to_sale(p_listing_id uuid) RETURNS TABLE(band text, gone_count integer, live_count integer, days_listed integer, typical_days integer, remaining_days integer, similar_models text[])
     LANGUAGE plpgsql STABLE
     SET search_path TO ''
     AS $$
@@ -2686,6 +2686,8 @@ declare
   use_band boolean;
   days numeric[];
   gone boolean[];
+  models uuid[];
+  group_gone integer;
 begin
   select * into l from public.listings where id = p_listing_id;
   if l.id is null or l.motorcycle_id is null then
@@ -2695,40 +2697,66 @@ begin
   age := greatest(0, extract(epoch from
            now() - coalesce(l.published_at, l.first_seen_at)) / 86400);
   my_band := public.market_band(l.last_pct_below_market);
+  models := array[l.motorcycle_id];
+  similar_models := '{}';
 
-  -- A gone ad's band is where it was when last scored. A gone ad one run
-  -- saw tells nothing of how long ads last (N.93).
-  with sample as (
-    select greatest(0, extract(epoch from
-             case when o.status in ('removed', 'sold') then o.last_seen_at
-                  else now() end
-             - coalesce(o.published_at, o.first_seen_at)) / 86400) as days,
-           o.status in ('removed', 'sold') as gone,
-           public.market_band(o.last_pct_below_market) as band
+  -- The model's own gone ads first; under 5, its group's when they are
+  -- more (N.106b). A gone ad one run saw tells nothing (N.93).
+  for attempt in 1..2 loop
+    with sample as (
+      select greatest(0, extract(epoch from
+               case when o.status in ('removed', 'sold') then o.last_seen_at
+                    else now() end
+               - coalesce(o.published_at, o.first_seen_at)) / 86400) as days,
+             o.status in ('removed', 'sold') as gone,
+             public.market_band(o.last_pct_below_market) as band
+      from public.listings o
+      where o.motorcycle_id = any(models)
+        and o.duplicate_of is null
+        and o.id <> l.id
+        and o.id is distinct from l.duplicate_of
+        and not (o.status in ('removed', 'sold')
+                 and o.last_seen_at - o.first_seen_at < interval '1 hour')
+    ),
+    chosen as (
+      select s.*,
+             my_band is not null
+             and count(*) filter (where s.gone and s.band = my_band)
+                 over () >= 5 as by_band
+      from sample s
+    )
+    select bool_or(c.by_band),
+           array_agg(c.days), array_agg(c.gone),
+           count(*) filter (where c.gone), count(*) filter (where not c.gone)
+    into use_band, days, gone, gone_count, live_count
+    from chosen c
+    where not c.by_band or c.band = my_band;
+
+    gone_count := coalesce(gone_count, 0);
+    exit when attempt = 2 or gone_count >= 5;
+
+    -- Would the group give more?
+    select count(*) into group_gone
     from public.listings o
-    where o.motorcycle_id = l.motorcycle_id
+    where o.motorcycle_id = any(public.similar_motorcycle_ids(l.motorcycle_id))
+      and o.motorcycle_id <> l.motorcycle_id
       and o.duplicate_of is null
-      and o.id <> l.id
-      and o.id is distinct from l.duplicate_of
-      and not (o.status in ('removed', 'sold')
-               and o.last_seen_at - o.first_seen_at < interval '1 hour')
-  ),
-  chosen as (
-    select s.*,
-           my_band is not null
-           and count(*) filter (where s.gone and s.band = my_band)
-               over () >= 5 as by_band
-    from sample s
-  )
-  select bool_or(c.by_band),
-         array_agg(c.days), array_agg(c.gone),
-         count(*) filter (where c.gone), count(*) filter (where not c.gone)
-  into use_band, days, gone, gone_count, live_count
-  from chosen c
-  where not c.by_band or c.band = my_band;
+      and o.status in ('removed', 'sold')
+      and o.last_seen_at - o.first_seen_at >= interval '1 hour';
+    exit when group_gone = 0;
+    select array_agg(m.model order by m.model) into similar_models
+    from public.motorcycles m
+    where m.id = any(public.similar_motorcycle_ids(l.motorcycle_id))
+      and m.id <> l.motorcycle_id
+      and exists (select 1 from public.listings o
+                  where o.motorcycle_id = m.id
+                    and o.duplicate_of is null
+                    and o.status in ('removed', 'sold')
+                    and o.last_seen_at - o.first_seen_at >= interval '1 hour');
+    models := public.similar_motorcycle_ids(l.motorcycle_id);
+  end loop;
 
   band := case when use_band then my_band end;
-  gone_count := coalesce(gone_count, 0);
   live_count := coalesce(live_count, 0);
   days_listed := floor(age)::integer;
   if gone_count >= 5 then
@@ -3519,6 +3547,7 @@ CREATE TABLE public.motorcycles (
     tank_l numeric(3,1),
     specs_checked_at timestamp with time zone,
     generation_years smallint[] DEFAULT '{}'::smallint[] NOT NULL,
+    similar_group text,
     CONSTRAINT motorcycles_both_source_searches CHECK (((olx_search IS NOT NULL) AND (standvirtual_search IS NOT NULL))),
     CONSTRAINT motorcycles_cylinders CHECK (((cylinders >= 1) AND (cylinders <= 6))),
     CONSTRAINT motorcycles_engine_cc_max_check CHECK ((engine_cc_max > 0)),
@@ -4121,7 +4150,59 @@ $$;
 -- Name: price_drop_outlook(uuid, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.price_drop_outlook(p_listing_id uuid, p_days integer DEFAULT 30) RETURNS TABLE(sample integer, dropped integer, gone integer, unchanged integer, median_drop numeric)
+CREATE FUNCTION public.price_drop_outlook(p_listing_id uuid, p_days integer DEFAULT 30) RETURNS TABLE(sample integer, dropped integer, gone integer, unchanged integer, median_drop numeric, similar_models text[])
+    LANGUAGE plpgsql STABLE
+    SET search_path TO ''
+    AS $$
+declare
+  v_model uuid := (select l.motorcycle_id from public.listings l
+                   where l.id = p_listing_id);
+  v_group uuid[];
+  v_own integer;
+  o record;
+  g record;
+begin
+  if v_model is null then
+    return;
+  end if;
+  select * into o
+  from public.price_drop_outlook_among(p_listing_id, p_days, array[v_model]);
+  v_own := coalesce(o.sample, 0);
+  similar_models := '{}';
+
+  -- Under 5 ads followed: the group's, when they are more (N.106b).
+  v_group := public.similar_motorcycle_ids(v_model);
+  if v_own < 5 and cardinality(v_group) > 1 then
+    select * into g
+    from public.price_drop_outlook_among(p_listing_id, p_days, v_group);
+    if g.sample > v_own then
+      o := g;
+      -- The other models whose ads were followed.
+      select coalesce(array_agg(m.model order by m.model), '{}')
+      into similar_models
+      from public.motorcycles m
+      where m.id = any(v_group) and m.id <> v_model
+        and (select s.sample
+             from public.price_drop_outlook_among(p_listing_id, p_days,
+                                                  array[v_model, m.id]) s)
+            > v_own;
+    end if;
+  end if;
+
+  sample := o.sample;
+  dropped := o.dropped;
+  gone := o.gone;
+  unchanged := o.unchanged;
+  median_drop := o.median_drop;
+  return next;
+end;
+$$;
+
+--
+-- Name: price_drop_outlook_among(uuid, integer, uuid[]); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.price_drop_outlook_among(p_listing_id uuid, p_days integer, p_models uuid[]) RETURNS TABLE(sample integer, dropped integer, gone integer, unchanged integer, median_drop numeric)
     LANGUAGE sql STABLE
     SET search_path TO ''
     AS $$
@@ -4142,7 +4223,7 @@ CREATE FUNCTION public.price_drop_outlook(p_listing_id uuid, p_days integer DEFA
            o.first_seen_at + me.age as starts,
            o.first_seen_at + me.age + make_interval(days => p_days) as ends
     from me
-    join public.listings o on o.motorcycle_id = me.motorcycle_id
+    join public.listings o on o.motorcycle_id = any(p_models)
     where o.duplicate_of is null
       and o.id <> me.id
       and o.id is distinct from me.duplicate_of
@@ -6067,6 +6148,23 @@ CREATE FUNCTION public.shared_favourites(p_owner uuid) RETURNS SETOF public.list
 $$;
 
 --
+-- Name: similar_motorcycle_ids(uuid); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.similar_motorcycle_ids(p_motorcycle_id uuid) RETURNS uuid[]
+    LANGUAGE sql STABLE
+    SET search_path TO ''
+    AS $$
+  select array[p_motorcycle_id] || coalesce((
+    select array_agg(o.id order by o.model, o.id)
+    from public.motorcycles me
+    join public.motorcycles o
+      on o.similar_group = me.similar_group and o.id <> me.id
+    where me.id = p_motorcycle_id
+  ), '{}')
+$$;
+
+--
 -- Name: single_owner_in_text(text, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -7291,17 +7389,50 @@ CREATE VIEW public.model_market_behaviour WITH (security_invoker='true') AS
                 END - COALESCE(l.published_at, l.first_seen_at))) / (86400)::numeric)) AS days
            FROM public.listings l
           WHERE ((l.motorcycle_id IS NOT NULL) AND (l.duplicate_of IS NULL) AND (NOT ((l.status = ANY (ARRAY['removed'::public.listing_status, 'sold'::public.listing_status])) AND ((l.last_seen_at - l.first_seen_at) < '01:00:00'::interval))))
+        ), own AS (
+         SELECT base.motorcycle_id,
+            count(*) FILTER (WHERE (base.status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status]))) AS live_count,
+            count(*) FILTER (WHERE base.gone) AS gone_count,
+            round(public.median_days_remaining(array_agg(base.days) FILTER (WHERE (base.gone OR (base.status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status])))), array_agg(base.gone) FILTER (WHERE (base.gone OR (base.status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status])))), (0)::numeric)) AS median_days_to_gone,
+            round((percentile_cont((0.5)::double precision) WITHIN GROUP (ORDER BY (((EXTRACT(epoch FROM (now() - base.listed_at)) / (86400)::numeric))::double precision)) FILTER (WHERE (base.status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status]))))::numeric, 0) AS median_days_listed_live,
+            count(*) FILTER (WHERE (base.initial_price IS NOT NULL)) AS priced_count,
+            count(*) FILTER (WHERE ((base.initial_price IS NOT NULL) AND (base.price < base.initial_price))) AS dropped_count,
+            round((percentile_cont((0.5)::double precision) WITHIN GROUP (ORDER BY (((((base.initial_price - base.price) / base.initial_price) * (100)::numeric))::double precision)) FILTER (WHERE ((base.initial_price IS NOT NULL) AND (base.price < base.initial_price))))::numeric, 1) AS median_drop_pct
+           FROM base
+          GROUP BY base.motorcycle_id
+        ), grouped AS (
+         SELECT m_1.similar_group,
+            count(*) FILTER (WHERE b.gone) AS gone_count,
+            round(public.median_days_remaining(array_agg(b.days) FILTER (WHERE (b.gone OR (b.status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status])))), array_agg(b.gone) FILTER (WHERE (b.gone OR (b.status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status])))), (0)::numeric)) AS median_days_to_gone,
+            array_agg(DISTINCT b.motorcycle_id) AS ids
+           FROM (base b
+             JOIN public.motorcycles m_1 ON ((m_1.id = b.motorcycle_id)))
+          WHERE (m_1.similar_group IS NOT NULL)
+          GROUP BY m_1.similar_group
         )
- SELECT motorcycle_id,
-    count(*) FILTER (WHERE (status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status]))) AS live_count,
-    count(*) FILTER (WHERE gone) AS gone_count,
-    round(public.median_days_remaining(array_agg(days) FILTER (WHERE (gone OR (status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status])))), array_agg(gone) FILTER (WHERE (gone OR (status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status])))), (0)::numeric)) AS median_days_to_gone,
-    round((percentile_cont((0.5)::double precision) WITHIN GROUP (ORDER BY (((EXTRACT(epoch FROM (now() - listed_at)) / (86400)::numeric))::double precision)) FILTER (WHERE (status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status]))))::numeric, 0) AS median_days_listed_live,
-    count(*) FILTER (WHERE (initial_price IS NOT NULL)) AS priced_count,
-    count(*) FILTER (WHERE ((initial_price IS NOT NULL) AND (price < initial_price))) AS dropped_count,
-    round((percentile_cont((0.5)::double precision) WITHIN GROUP (ORDER BY (((((initial_price - price) / initial_price) * (100)::numeric))::double precision)) FILTER (WHERE ((initial_price IS NOT NULL) AND (price < initial_price))))::numeric, 1) AS median_drop_pct
-   FROM base
-  GROUP BY motorcycle_id;
+ SELECT o.motorcycle_id,
+    o.live_count,
+    o.gone_count,
+    o.median_days_to_gone,
+    o.median_days_listed_live,
+    o.priced_count,
+    o.dropped_count,
+    o.median_drop_pct,
+        CASE
+            WHEN (s.names IS NOT NULL) THEN g.gone_count
+            ELSE NULL::bigint
+        END AS similar_gone_count,
+        CASE
+            WHEN (s.names IS NOT NULL) THEN g.median_days_to_gone
+            ELSE NULL::numeric
+        END AS similar_median_days_to_gone,
+    COALESCE(s.names, '{}'::text[]) AS similar_models
+   FROM (((own o
+     JOIN public.motorcycles m ON ((m.id = o.motorcycle_id)))
+     LEFT JOIN grouped g ON ((g.similar_group = m.similar_group)))
+     LEFT JOIN LATERAL ( SELECT array_agg(m2.model ORDER BY m2.model) AS names
+           FROM public.motorcycles m2
+          WHERE ((m2.id = ANY (g.ids)) AND (m2.id <> o.motorcycle_id))) s ON (true));
 
 --
 -- Name: model_market_stats; Type: VIEW; Schema: public; Owner: -
@@ -10231,6 +10362,15 @@ GRANT ALL ON FUNCTION public.price_drop_outlook(p_listing_id uuid, p_days intege
 GRANT ALL ON FUNCTION public.price_drop_outlook(p_listing_id uuid, p_days integer) TO service_role;
 
 --
+-- Name: FUNCTION price_drop_outlook_among(p_listing_id uuid, p_days integer, p_models uuid[]); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.price_drop_outlook_among(p_listing_id uuid, p_days integer, p_models uuid[]) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.price_drop_outlook_among(p_listing_id uuid, p_days integer, p_models uuid[]) TO anon;
+GRANT ALL ON FUNCTION public.price_drop_outlook_among(p_listing_id uuid, p_days integer, p_models uuid[]) TO authenticated;
+GRANT ALL ON FUNCTION public.price_drop_outlook_among(p_listing_id uuid, p_days integer, p_models uuid[]) TO service_role;
+
+--
 -- Name: FUNCTION price_score(p_price numeric, p_market_price numeric, p_points_per_percent numeric); Type: ACL; Schema: public; Owner: -
 --
 
@@ -10632,6 +10772,15 @@ GRANT ALL ON TABLE public.listing_favourites TO service_role;
 REVOKE ALL ON FUNCTION public.shared_favourites(p_owner uuid) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.shared_favourites(p_owner uuid) TO authenticated;
 GRANT ALL ON FUNCTION public.shared_favourites(p_owner uuid) TO service_role;
+
+--
+-- Name: FUNCTION similar_motorcycle_ids(p_motorcycle_id uuid); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.similar_motorcycle_ids(p_motorcycle_id uuid) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.similar_motorcycle_ids(p_motorcycle_id uuid) TO anon;
+GRANT ALL ON FUNCTION public.similar_motorcycle_ids(p_motorcycle_id uuid) TO authenticated;
+GRANT ALL ON FUNCTION public.similar_motorcycle_ids(p_motorcycle_id uuid) TO service_role;
 
 --
 -- Name: FUNCTION single_owner_in_text(p_variant text, p_description text); Type: ACL; Schema: public; Owner: -

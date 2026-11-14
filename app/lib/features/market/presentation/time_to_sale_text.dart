@@ -1,5 +1,6 @@
 import '../../../core/localization/localizations.dart';
 import '../domain/entities/market_behaviour.dart';
+import 'market_behaviour_text.dart';
 
 /// The line about how much longer the listing is likely to stay on the
 /// market (10.4). Null when there is nothing to say: too few ads of the
@@ -11,11 +12,14 @@ String? timeToSaleLine(
 }) {
   if (!live || t.typicalDays == null) return null;
   final remaining = t.remainingDays;
-  if (remaining == null) return language.messages.timeToSaleBeyondData;
-  return language.messages.timeToSaleEstimate(
-    days: remaining,
-    band: t.band?.name ?? 'model',
-    goneCount: t.goneCount,
-    liveCount: t.liveCount,
-  );
+  final line = remaining == null
+      ? language.messages.timeToSaleBeyondData
+      : language.messages.timeToSaleEstimate(
+          days: remaining,
+          band: t.band?.name ?? 'model',
+          goneCount: t.goneCount,
+          liveCount: t.liveCount,
+        );
+  final note = similarModelsNote(t.similarModels, language: language);
+  return note == null ? line : '$line. $note';
 }

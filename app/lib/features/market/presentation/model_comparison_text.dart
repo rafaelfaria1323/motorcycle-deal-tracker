@@ -11,7 +11,6 @@ import '../../valuation/domain/entities/ownership_settings.dart';
 import '../../valuation/presentation/ownership_cost.dart';
 import '../domain/entities/market_behaviour.dart';
 import '../domain/entities/model_market.dart';
-import 'market_behaviour_text.dart';
 
 /// How many model years the comparison of two models prices (N.81).
 const comparedYears = 5;

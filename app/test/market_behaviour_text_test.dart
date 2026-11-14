@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:motorcycle_deal_tracker/core/localization/localizations.dart';
 import 'package:motorcycle_deal_tracker/features/market/domain/entities/market_behaviour.dart';
 import 'package:motorcycle_deal_tracker/features/market/presentation/market_behaviour_text.dart';
 
@@ -157,5 +158,36 @@ void main() {
     );
 
     expect(lines[lines.length - 2], startsWith('Desvalorização deste modelo'));
+  });
+
+  test('the typical time names the similar models it counts (N.106b)', () {
+    final lines = marketLines(
+      const MarketBehaviour(
+        liveCount: 3,
+        goneCount: 9,
+        pricedCount: 0,
+        droppedCount: 0,
+        medianDaysToGone: 24,
+        similarModels: ['R7', 'Tracer 7'],
+      ),
+    );
+    expect(
+      lines,
+      contains(
+        'Tempo típico até sair do mercado: 24 dias (9 anúncios, com motas '
+        'semelhantes: R7, Tracer 7)',
+      ),
+    );
+    expect(
+      typicalTimeToGoneLine(
+        toGone: 24,
+        goneCount: 9,
+        similarModels: const ['R7'],
+        language: AppLanguage.english,
+      ),
+      'Typical time until leaving the market: 24 days (9 listings, with '
+      'similar bikes: R7)',
+    );
+    expect(similarModelsNote(const []), isNull);
   });
 }

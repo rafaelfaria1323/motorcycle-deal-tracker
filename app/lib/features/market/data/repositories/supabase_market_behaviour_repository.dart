@@ -60,7 +60,7 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
     ).wait;
     return row == null
         ? null
-        : _behaviourFrom(
+        : marketBehaviourFrom(
             row,
             depreciation == null ? null : _depreciationFrom(depreciation),
           );
@@ -324,7 +324,7 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
             ),
       behaviour: behaviour == null
           ? null
-          : _behaviourFrom(
+          : marketBehaviourFrom(
               behaviour,
               depreciation == null ? null : _depreciationFrom(depreciation),
             ),
@@ -332,24 +332,6 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
       engineCc: ListingModel.engineCcOf(model),
       maintenance: ListingModel.maintenanceOf(model),
       recalls: ListingModel.recallsOf(model['recalls']),
-    );
-  }
-
-  MarketBehaviour _behaviourFrom(
-    Map<String, dynamic> row,
-    Depreciation? depreciation,
-  ) {
-    int count(String key) => (row[key] as num?)?.toInt() ?? 0;
-
-    return MarketBehaviour(
-      liveCount: count('live_count'),
-      goneCount: count('gone_count'),
-      pricedCount: count('priced_count'),
-      droppedCount: count('dropped_count'),
-      medianDaysToGone: (row['median_days_to_gone'] as num?)?.toInt(),
-      medianDaysListedLive: (row['median_days_listed_live'] as num?)?.toInt(),
-      medianDropPct: (row['median_drop_pct'] as num?)?.toDouble(),
-      depreciation: depreciation,
     );
   }
 
@@ -375,6 +357,40 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
           .maybeSingle();
 }
 
+/// A row of `model_market_behaviour`. With fewer than [minMarketData]
+/// gone ads of its own, the model's similar models' figures stand in for
+/// the time on the market, when they reach it (N.106b).
+MarketBehaviour marketBehaviourFrom(
+  Map<String, dynamic> row,
+  Depreciation? depreciation,
+) {
+  int count(String key) => (row[key] as num?)?.toInt() ?? 0;
+  final ownGone = count('gone_count');
+  final similarGone = count('similar_gone_count');
+  final similar = ownGone < minMarketData && similarGone >= minMarketData;
+
+  return MarketBehaviour(
+    liveCount: count('live_count'),
+    goneCount: similar ? similarGone : ownGone,
+    pricedCount: count('priced_count'),
+    droppedCount: count('dropped_count'),
+    medianDaysToGone:
+        (row[similar ? 'similar_median_days_to_gone' : 'median_days_to_gone']
+                as num?)
+            ?.toInt(),
+    medianDaysListedLive: (row['median_days_listed_live'] as num?)?.toInt(),
+    medianDropPct: (row['median_drop_pct'] as num?)?.toDouble(),
+    depreciation: depreciation,
+    similarModels: similar ? similarModelsOf(row) : const [],
+  );
+}
+
+/// The `similar_models` of a row; none when absent.
+List<String> similarModelsOf(Map<String, dynamic> row) => [
+  for (final m in (row['similar_models'] as List<dynamic>?) ?? const [])
+    m as String,
+];
+
 /// A row of `model_price_trend`.
 PriceTrendWeek priceTrendWeekFrom(Map<String, dynamic> row) => PriceTrendWeek(
   weekStart: DateTime.parse(row['week_start'] as String),
@@ -396,6 +412,7 @@ TimeToSale timeToSaleFrom(Map<String, dynamic> row) => TimeToSale(
   daysListed: (row['days_listed'] as num).toInt(),
   typicalDays: (row['typical_days'] as num?)?.toInt(),
   remainingDays: (row['remaining_days'] as num?)?.toInt(),
+  similarModels: similarModelsOf(row),
 );
 
 /// The row of `price_drop_outlook`; null when no ad was followed (a gone
@@ -409,6 +426,7 @@ PriceDropOutlook? priceDropOutlookFrom(Map<String, dynamic> row) {
     gone: (row['gone'] as num).toInt(),
     unchanged: (row['unchanged'] as num).toInt(),
     medianDrop: (row['median_drop'] as num?)?.toDouble(),
+    similarModels: similarModelsOf(row),
   );
 }
 
