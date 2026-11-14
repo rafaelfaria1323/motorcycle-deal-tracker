@@ -1115,8 +1115,11 @@ the bike and how many kinds of hint were found (a tap opens the ad).
 ## Scoring model
 
 - Fair value per listing (`listing_fair_prices`): median of the OTHER live
-  listings of the same model (only those within 3 years of the listing's
-  when there are at least 5 of them; ads under 300 € never count), each
+  listings of the same model (only those of the same generation within 3
+  years when there are at least 5 of them, else those within 3 years when
+  at least 5, else all; `motorcycles.generation_years`, the first model
+  year of each, `model_generation()`, N.106; empty: no generations; the
+  same tiers in `bike_value` and `exit_price`; ads under 300 € never count), each
   adjusted with `age_mileage_factor` (x0.35-2.5) using
   the model's own rates (`model_depreciation`): least-squares fit of
   ln(price) on year and mileage over its live listings (ads under 300 € left out), from 30 listings,
@@ -1135,10 +1138,13 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   the value, app only and not part of the request: an accident -15 %, a
   fall with cosmetic damage -5 %, first owner +3 %, 3+ owners -5 %, no
   service book -5 %, factory warranty +3 %, `ConditionFactor`). Signed-in accounts can value any brand and model:
-  `bike_value_model` finds or adds it (followed by nobody, both sites'
+  `bike_value_model` finds it (also by letters and digits or an alias,
+  `name_key`: "MT07" is the MT-07) or adds it (followed by nobody, both sites'
   searches), `request_bike_value` (table `bike_value_requests`, owner
   reads only; at most 3 waiting a day) answers at once when the model is
-  already collected for that year, else collects it from the year minus 3
+  already collected for that year (its years reach the year minus 3, or 5+
+  live ads within 3 years are stored: `near_comparable_count`, N.106),
+  else collects it from the year minus 3
   (`collected_since`) and waits for the next scheduled collection (no
   extra dispatch); `finishRun` answers it and pushes the value
   (`bike_value_push.dart`, opens `/worth?request=<id>`). pg_cron

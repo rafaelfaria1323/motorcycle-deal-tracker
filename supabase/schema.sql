@@ -463,7 +463,8 @@ begin
       and m.id = r.motorcycle_id
       and m.is_active
       and m.collected_since <= p_started_at
-      and m.min_year <= greatest(r.year - 3, 1990)
+      and (m.min_year <= greatest(r.year - 3, 1990)
+           or public.near_comparable_count(m.id, r.year) >= 5)
       and (r.requested_at < now() - interval '1 day'
            or (r.ad_url is null
                and exists (select 1 from public.listings l
@@ -775,10 +776,18 @@ CREATE FUNCTION public.bike_value(p_motorcycle_id uuid, p_year integer, p_mileag
     LANGUAGE sql STABLE
     SET search_path TO ''
     AS $$
-  with comparables as (
+  with generations as (
+    select m.generation_years as years
+    from public.motorcycles m where m.id = p_motorcycle_id
+  ),
+  comparables as (
     select c.year, c.mileage, c.price,
-           p_year is not null and abs(p_year - c.year) <= 3 as near
+           p_year is not null and abs(p_year - c.year) <= 3 as near,
+           p_year is not null and abs(p_year - c.year) <= 3
+             and public.model_generation(g.years, c.year)
+                 = public.model_generation(g.years, p_year) as same_generation
     from public.listings c
+    cross join generations g
     where c.motorcycle_id = p_motorcycle_id
       and c.status in ('active', 'price_changed')
       and c.duplicate_of is null
@@ -789,8 +798,12 @@ CREATE FUNCTION public.bike_value(p_motorcycle_id uuid, p_year integer, p_mileag
   chosen as (
     select c.*
     from comparables c
-    where c.near
-       or (select count(*) from comparables n where n.near) < 5
+    where case
+      when (select count(*) from comparables n where n.same_generation) >= 5
+        then c.same_generation
+      when (select count(*) from comparables n where n.near) >= 5 then c.near
+      else true
+    end
   ),
   adjusted as (
     select ch.price * public.age_mileage_factor(
@@ -840,11 +853,17 @@ begin
   v_slug := btrim(regexp_replace(lower(v_brand || '-' || v_model),
                                  '[^a-z0-9]+', '-', 'g'), '-');
 
+  -- The same brand and the same name or an alias, by letters and digits.
   select m.id into v_id
   from public.motorcycles m
-  where (lower(m.brand) = lower(v_brand) and lower(m.model) = lower(v_model))
-     or m.slug = v_slug
-  order by m.is_active desc, m.created_at
+  where m.slug = v_slug
+     or (public.name_key(m.brand) = public.name_key(v_brand)
+         and (public.name_key(m.model) = public.name_key(v_model)
+              or exists (select 1 from unnest(m.aliases) a
+                         where public.name_key(a) = public.name_key(v_model))))
+  order by m.is_active desc,
+           (public.name_key(m.model) = public.name_key(v_model)) desc,
+           m.created_at
   limit 1;
   if v_id is not null then
     return v_id;
@@ -881,7 +900,8 @@ CREATE FUNCTION public.bike_value_ready(p_motorcycle_id uuid, p_year integer) RE
     from public.motorcycles m
     where m.id = p_motorcycle_id
       and m.is_active
-      and m.min_year <= greatest(p_year - 3, 1990)
+      and (m.min_year <= greatest(p_year - 3, 1990)
+           or public.near_comparable_count(m.id, p_year) >= 5)
       and exists (select 1 from public.collector_runs r
                   where r.started_at >= m.collected_since
                     and r.status in ('ok', 'partial'))
@@ -1738,10 +1758,18 @@ CREATE FUNCTION public.exit_price(p_motorcycle_id uuid, p_year integer, p_mileag
     from public.listings e
     where e.id = p_except
   ),
+  generations as (
+    select m.generation_years as years
+    from public.motorcycles m where m.id = p_motorcycle_id
+  ),
   gone as (
     select c.year, c.mileage, c.price,
-           p_year is not null and abs(p_year - c.year) <= 3 as near
+           p_year is not null and abs(p_year - c.year) <= 3 as near,
+           p_year is not null and abs(p_year - c.year) <= 3
+             and public.model_generation(g.years, c.year)
+                 = public.model_generation(g.years, p_year) as same_generation
     from public.listings c
+    cross join generations g
     where c.motorcycle_id = p_motorcycle_id
       and c.status in ('removed', 'sold')
       and c.last_seen_at >= now() - interval '90 days'
@@ -1758,8 +1786,12 @@ CREATE FUNCTION public.exit_price(p_motorcycle_id uuid, p_year integer, p_mileag
   chosen as (
     select g.*
     from gone g
-    where g.near
-       or (select count(*) from gone n where n.near) < 5
+    where case
+      when (select count(*) from gone n where n.same_generation) >= 5
+        then g.same_generation
+      when (select count(*) from gone n where n.near) >= 5 then g.near
+      else true
+    end
   ),
   adjusted as (
     select ch.price * public.age_mileage_factor(
@@ -3359,6 +3391,17 @@ CREATE FUNCTION public.mileage_use_score(p_mileage integer, p_year integer, p_km
 $$;
 
 --
+-- Name: model_generation(smallint[], integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.model_generation(p_generation_years smallint[], p_year integer) RETURNS integer
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$
+  select max(g)::integer from unnest(p_generation_years) g where g <= p_year
+$$;
+
+--
 -- Name: model_recalls(uuid, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -3475,6 +3518,7 @@ CREATE TABLE public.motorcycles (
     seat_height_mm smallint,
     tank_l numeric(3,1),
     specs_checked_at timestamp with time zone,
+    generation_years smallint[] DEFAULT '{}'::smallint[] NOT NULL,
     CONSTRAINT motorcycles_both_source_searches CHECK (((olx_search IS NOT NULL) AND (standvirtual_search IS NOT NULL))),
     CONSTRAINT motorcycles_cylinders CHECK (((cylinders >= 1) AND (cylinders <= 6))),
     CONSTRAINT motorcycles_engine_cc_max_check CHECK ((engine_cc_max > 0)),
@@ -3658,6 +3702,34 @@ CREATE FUNCTION public.my_photo_marks(p_listing uuid) RETURNS TABLE(photo intege
   from public.photo_marks m
   where m.user_id = auth.uid() and m.listing_id = p_listing and public.is_admin()
   order by m.photo
+$$;
+
+--
+-- Name: name_key(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.name_key(p_name text) RETURNS text
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$
+  select regexp_replace(lower(normalize(coalesce(p_name, ''), NFC)), '[^[:alnum:]]+', '', 'g')
+$$;
+
+--
+-- Name: near_comparable_count(uuid, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.near_comparable_count(p_motorcycle_id uuid, p_year integer) RETURNS integer
+    LANGUAGE sql STABLE
+    SET search_path TO ''
+    AS $$
+  select count(*)::integer
+  from public.listings c
+  where c.motorcycle_id = p_motorcycle_id
+    and c.status in ('active', 'price_changed')
+    and c.duplicate_of is null
+    and c.price >= 300
+    and abs(p_year - c.year) <= 3
 $$;
 
 --
@@ -7035,50 +7107,14 @@ CREATE VIEW public.model_depreciation WITH (security_invoker='true') AS
 CREATE VIEW public.listing_fair_prices WITH (security_invoker='true') AS
  WITH live AS (
          SELECT l.id,
-            l.source,
-            l.source_listing_id,
-            l.url,
             l.motorcycle_id,
-            l.brand,
-            l.model,
-            l.variant,
             l.year,
             l.mileage,
             l.price,
-            l.seller_type,
-            l.seller_name,
-            l.location,
-            l.description,
-            l.images,
-            l.status,
-            l.first_seen_at,
-            l.last_seen_at,
-            l.last_checked_at,
-            l.created_at,
-            l.updated_at,
-            l.deal_score,
-            l.risk_score,
-            l.score_breakdown,
-            l.scored_at,
-            l.duplicate_of,
-            l.duplicate_score,
-            l.initial_price,
-            l.excellent_since,
-            l.registrations,
-            l.service_book,
-            l.origin,
-            l.warranty_until,
-            l.dealer_warranty_months,
-            l.published_at,
-            l.details_checked_at,
-            l.price_before_drop,
-            l.search_key,
-            l.site_refreshed_at,
-            l.relisted_from,
-            l.relisted_since,
-            l.relisted_price
-           FROM public.listings l
-          WHERE ((l.motorcycle_id IS NOT NULL) AND (l.status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status])) AND (l.duplicate_of IS NULL) AND (l.price >= (300)::numeric))
+            public.model_generation(m.generation_years, (l.year)::integer) AS generation
+           FROM (public.listings l
+             JOIN public.motorcycles m ON ((m.id = l.motorcycle_id)))
+          WHERE ((l.status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status])) AND (l.duplicate_of IS NULL) AND (l.price >= (300)::numeric))
         ), pairs AS (
          SELECT l.id,
             l.year AS l_year,
@@ -7088,7 +7124,8 @@ CREATE VIEW public.listing_fair_prices WITH (security_invoker='true') AS
             c.year AS c_year,
             c.mileage AS c_mileage,
             c.price AS c_price,
-            (abs((l.year - c.year)) <= 3) AS near
+            (abs((l.year - c.year)) <= 3) AS near,
+            ((abs((l.year - c.year)) <= 3) AND (l.generation = c.generation)) AS same_generation
            FROM (live l
              JOIN live c ON (((c.motorcycle_id = l.motorcycle_id) AND (c.id <> l.id) AND ((l.year IS NULL) OR (c.year IS NOT NULL)) AND ((l.mileage IS NULL) OR (c.mileage IS NOT NULL)))))
         ), chosen AS (
@@ -7101,6 +7138,8 @@ CREATE VIEW public.listing_fair_prices WITH (security_invoker='true') AS
             p.c_mileage,
             p.c_price,
             p.near,
+            p.same_generation,
+            (count(*) FILTER (WHERE p.same_generation) OVER (PARTITION BY p.id) >= 5) AS use_generation,
             (count(*) FILTER (WHERE p.near) OVER (PARTITION BY p.id) >= 5) AS use_near
            FROM pairs p
         )
@@ -7109,7 +7148,12 @@ CREATE VIEW public.listing_fair_prices WITH (security_invoker='true') AS
     round((percentile_cont((0.5)::double precision) WITHIN GROUP (ORDER BY (((ch.c_price * public.age_mileage_factor(((ch.l_year - ch.c_year))::integer, (ch.l_mileage - ch.c_mileage), d.per_year, d.per_1000km)))::double precision)))::numeric, 2) AS fair_price
    FROM (chosen ch
      JOIN public.model_depreciation d ON ((d.motorcycle_id = ch.motorcycle_id)))
-  WHERE ((NOT ch.use_near) OR ch.near)
+  WHERE
+        CASE
+            WHEN ch.use_generation THEN ch.same_generation
+            WHEN ch.use_near THEN ch.near
+            ELSE true
+        END
   GROUP BY ch.id;
 
 --
@@ -9967,6 +10011,15 @@ REVOKE ALL ON FUNCTION public.mileage_use_score(p_mileage integer, p_year intege
 GRANT ALL ON FUNCTION public.mileage_use_score(p_mileage integer, p_year integer, p_km_per_year integer, p_reference numeric) TO service_role;
 
 --
+-- Name: FUNCTION model_generation(p_generation_years smallint[], p_year integer); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.model_generation(p_generation_years smallint[], p_year integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.model_generation(p_generation_years smallint[], p_year integer) TO anon;
+GRANT ALL ON FUNCTION public.model_generation(p_generation_years smallint[], p_year integer) TO authenticated;
+GRANT ALL ON FUNCTION public.model_generation(p_generation_years smallint[], p_year integer) TO service_role;
+
+--
 -- Name: FUNCTION model_recalls(p_motorcycle_id uuid, p_year integer); Type: ACL; Schema: public; Owner: -
 --
 
@@ -10036,6 +10089,20 @@ GRANT ALL ON FUNCTION public.my_min_year(m public.motorcycles) TO service_role;
 REVOKE ALL ON FUNCTION public.my_photo_marks(p_listing uuid) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.my_photo_marks(p_listing uuid) TO authenticated;
 GRANT ALL ON FUNCTION public.my_photo_marks(p_listing uuid) TO service_role;
+
+--
+-- Name: FUNCTION name_key(p_name text); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.name_key(p_name text) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.name_key(p_name text) TO service_role;
+
+--
+-- Name: FUNCTION near_comparable_count(p_motorcycle_id uuid, p_year integer); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.near_comparable_count(p_motorcycle_id uuid, p_year integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.near_comparable_count(p_motorcycle_id uuid, p_year integer) TO service_role;
 
 --
 -- Name: FUNCTION needs_repair(p_description text); Type: ACL; Schema: public; Owner: -
