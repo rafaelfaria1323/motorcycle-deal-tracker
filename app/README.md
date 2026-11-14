@@ -256,7 +256,8 @@ Screen names below use the Portuguese labels; English provides the same screens.
   those that expired, came back or are still on the other site) and the
   time to sell; your last
   requests below), "Avaliar um anúncio" (paste an OLX or Standvirtual
-  ad's link and say its model, year and km: a stored ad opens at once;
+  ad's link and say its year and km, and its model unless the link's
+  words already chose it: a stored ad opens at once;
   otherwise its model is collected and a notification gives the ad's
   Deal Score and Risk Score once a collection finds it, or a day on the
   value of a bike of that year), "Comprar no
