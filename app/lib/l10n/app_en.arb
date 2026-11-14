@@ -1296,5 +1296,9 @@
   "checklistRecall": "Recall {code} done?",
   "checklistRecallHint": "Ask for proof the work was done, or ask a brand dealer with the frame number.",
   "modelRecallsTitle": "EU recalls",
-  "modelRecallsNote": "From Safety Gate, the European Commission's alerts on dangerous products, for every year of the model: each listing says which may cover that bike."
+  "modelRecallsNote": "From Safety Gate, the European Commission's alerts on dangerous products, for every year of the model: each listing says which may cover that bike.",
+  "seeCheaperSimilar": "{count, plural, =1{See that bike} other{See all {count} bikes}}",
+  "compareWithCheaper": "{count, plural, =1{Compare the two} other{Compare with the 2 cheapest}}",
+  "cheaperSimilarTitle": "Cheaper {model} bikes",
+  "cheaperSimilarIntro": "Still for sale, of a similar year (at most a year apart) and with no more mileage; cheapest first. Tap a listing to open it, or tick \"Compare\" to add it to the comparison."
 }

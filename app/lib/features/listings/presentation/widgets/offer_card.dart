@@ -15,6 +15,7 @@ import '../../../favourites/presentation/cubit/favourites_state.dart';
 import '../../../favourites/presentation/widgets/target_price_tile.dart';
 import '../negotiation_text.dart';
 import '../offer_text.dart';
+import 'cheaper_similar_sheet.dart';
 import 'counter_offer_reply.dart';
 import '../../../../core/localization/localizations.dart';
 
@@ -100,6 +101,7 @@ class _OfferCardState extends State<OfferCard> {
               afterVisit(planned, visit, language: context.language),
               visit,
               arguments,
+              cheaper,
               favourite,
               sellerUrgency(
                 listing,
@@ -119,10 +121,16 @@ class _OfferCardState extends State<OfferCard> {
     OfferSuggestion offer,
     VisitFindings visit,
     List<String> arguments,
+    List<Listing> cheaper,
     Favourite? favourite,
     SellerUrgency urgency,
   ) {
     final listing = widget.listing;
+    final cheaperArgument = cheaperSimilarArgument(
+      listing,
+      cheaper,
+      language: context.language,
+    );
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final muted = theme.textTheme.bodySmall?.copyWith(
@@ -156,8 +164,11 @@ class _OfferCardState extends State<OfferCard> {
           const SizedBox(height: 16),
           Text(context.strings.arguments, style: theme.textTheme.titleSmall),
           const SizedBox(height: 4),
-          for (final argument in arguments)
+          for (final argument in arguments) ...[
             BulletLine(argument, icon: Icons.chat_bubble_outline),
+            if (argument == cheaperArgument)
+              CheaperSimilarActions(listing: listing, cheaper: cheaper),
+          ],
         ],
         if (listing.sellerType == .dealer) ...[
           const SizedBox(height: 16),
