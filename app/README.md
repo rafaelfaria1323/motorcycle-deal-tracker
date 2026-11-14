@@ -336,9 +336,9 @@ signs in, and `web/index.html` opens the connections it needs early
 (Google's CDN for the engine, the photos' CDN, and the database, whose
 address the deploy writes in with `tool/web_preconnect.sh`). It also
 asks at once for the app's and the engine's code (`main.dart.wasm` and
-skwasm where the browser has dart2wasm's WebAssembly features: Chromium,
-Safari 26.2+ and Firefox 147+, which `web/flutter_bootstrap.js` allows,
-N.90; else `main.dart.js` and CanvasKit, the choice Flutter's loader
+skwasm where the browser has dart2wasm's WebAssembly features: Chromium
+and Firefox 147+, which `web/flutter_bootstrap.js` allows, N.90; not
+Safari, N.91; else `main.dart.js` and CanvasKit, the choice Flutter's loader
 makes), instead of after `flutter_bootstrap.js` has run; the engine's address uses the build's
 `<meta name="flutter-engine">`, which the same script writes from
 `flutter_bootstrap.js` (N.89; `tool/test_web_preconnect.py`). For a

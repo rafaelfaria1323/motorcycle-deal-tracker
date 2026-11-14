@@ -112,10 +112,10 @@ never asks for search URLs; aliases sit under "Outros nomes do modelo".
   app can be tested with plain Dart (`package:test`) on copies of the
   files. The deploy runs `flutter test`
   and `flutter build web --wasm --no-deprecated-js-interop` (WebAssembly
-  where the browser supports it, on Chromium, Safari 26.2+ and Firefox
-  147+: `web/flutter_bootstrap.js`'s `wasmAllowList`, N.90; JavaScript
-  otherwise; the build fails on `dart:html`/`dart:js_util`/`package:js`;
-  Safari has no `credentialless`, so its skwasm draws on one thread).
+  where the browser supports it, on Chromium and Firefox 147+:
+  `web/flutter_bootstrap.js`'s `wasmAllowList`, N.90; not Safari, which
+  never got past the spinner with it, N.91; JavaScript otherwise; the
+  build fails on `dart:html`/`dart:js_util`/`package:js`).
   Flutter 3.50 deprecated `package:flutter/material.dart`: the app imports
   `package:material_ui/material_ui.dart` (never flutter's material or
   cupertino) and its localizations come from `appLocalizationsDelegates`

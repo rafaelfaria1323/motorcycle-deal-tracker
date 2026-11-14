@@ -59,8 +59,8 @@
          the loader then makes, so they come from these downloads; its
          choice is copied (flutter.js in the Flutter SDK 3.50: dart2wasm
          with skwasm where the browser has the WebAssembly features
-         dart2wasm needs, on every engine flutter_bootstrap.js allows, not
-         Firefox before 147; else dart2js with CanvasKit; keep in step when
+         dart2wasm needs, on the engines flutter_bootstrap.js allows (not
+         Safari's), not Firefox before 147; else dart2js with CanvasKit; keep in step when
          upgrading Flutter). The
          engine's address needs its version: the build's
          <meta name="flutter-engine"> (tool/web_preconnect.sh); none (a
@@ -76,6 +76,8 @@
         var firefox = navigator.vendor === '' &&
           navigator.userAgent.indexOf('Firefox') >= 0;
         var firefoxVersion = navigator.userAgent.match(/firefox\/(\d+)/i);
+        // flutter.js's webkit: every browser on the iPhone, and Safari.
+        var webkit = navigator.vendor === 'Apple Computer, Inc.';
         // supports_dart2wasm.js: WasmGC, SIMD, js-string builtins, try_table.
         var dart2wasm = false;
         try {
@@ -97,6 +99,8 @@
         if (firefox && (firefoxVersion ? +firefoxVersion[1] : -1) < 147) {
           dart2wasm = false;
         }
+        // flutter_bootstrap.js leaves webkit out of wasmAllowList (N.91).
+        if (webkit) dart2wasm = false;
         var codecs = blink && typeof ImageDecoder !== 'undefined';
         var breaks = typeof Intl.v8BreakIterator !== 'undefined' &&
           typeof Intl.Segmenter !== 'undefined';
