@@ -2,12 +2,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/localization/localizations.dart';
 import '../../../../core/widgets/page_back_button.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../../compare/presentation/widgets/compare_button.dart';
+import '../../../favourites/domain/entities/favourite.dart';
+import '../../../favourites/presentation/cubit/favourites_cubit.dart';
+import '../../../favourites/presentation/favourites_text.dart';
 import '../../../favourites/presentation/widgets/favourite_widgets.dart';
 import '../../../favourites/presentation/widgets/viewing_checklist_card.dart';
 import '../../../market/presentation/widgets/market_behaviour_section.dart';
@@ -186,9 +190,19 @@ class _ContentState extends State<_Content> {
 
   Listing get listing => widget.listing;
 
+  /// How the ad was when last opened as a favourite, kept before this
+  /// opening is recorded, so the page says what changed since (N.97).
+  late final FavouriteSeen? _seenBefore;
+
   @override
   void initState() {
     super.initState();
+    final favourites = getIt<FavouritesCubit>();
+    _seenBefore = favourites.state.favouriteOf(listing.id)?.seen;
+    // After the frame: the favourites' widgets rebuild on it.
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => favourites.markSeen(listing),
+    );
     _lastSection = _section;
     _scroll.addListener(_scheduleCheck);
   }
@@ -344,6 +358,16 @@ class _ContentState extends State<_Content> {
                           ListingHeader(listing: listing, nameKey: _nameKey),
                           const SizedBox(height: 16),
                           ListingStatusCards(listing: listing),
+                          if (favouriteChangesText(
+                                _seenBefore,
+                                listing,
+                                language: context.language,
+                              )
+                              case final changes?)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: FavouriteChangesLine(text: changes),
+                            ),
                           FavouriteNoteCard(listingId: listing.id),
                         ],
                       );

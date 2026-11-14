@@ -22,6 +22,11 @@ abstract interface class FavouritesRepository {
   /// the listing is not a favourite.
   Future<void> saveVisit(String listingId, DateTime? visitAt);
 
+  /// Records that the user opened the listing now (N.97): the database
+  /// keeps the ad as it is, to tell what changes after. Throws if the
+  /// listing is not a favourite.
+  Future<void> markSeen(String listingId);
+
   /// Saves the viewing checklist of a favourite (all of it). Throws if the
   /// listing is not a favourite.
   Future<void> saveChecklist(

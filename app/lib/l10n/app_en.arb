@@ -1306,5 +1306,12 @@
   "riskHigher": "higher risk",
   "riskLower": "lower risk",
   "fartherAway": "{mileage} further away",
-  "closerBy": "{mileage} closer"
+  "closerBy": "{mileage} closer",
+  "changesSinceSeen": "Since you last opened it: {changes}",
+  "changeGone": "gone from the market",
+  "changeBack": "back on the market",
+  "changePriceDown": "down {price}",
+  "changePriceUp": "up {price}",
+  "changeMileage": "mileage: {from} → {to}",
+  "changeRenewed": "renewed on the site"
 }

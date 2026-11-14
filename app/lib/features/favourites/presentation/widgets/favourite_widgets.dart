@@ -151,6 +151,25 @@ class const FavouriteNoteCard({required final String listingId, super.key})
   }
 }
 
+/// What changed since the favourite was last opened (N.97,
+/// `favouriteChangesText`): in Favoritos under the card, and on the ad's
+/// page the first time it is opened after.
+class const FavouriteChangesLine({required final String text, super.key})
+    extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(Icons.update, size: 20, color: theme.colorScheme.primary),
+        const SizedBox(width: 8),
+        Expanded(child: Text(text, style: theme.textTheme.titleSmall)),
+      ],
+    );
+  }
+}
+
 /// Edits a note; returns the text, or null if cancelled.
 class const NoteDialog({
   required final String title,

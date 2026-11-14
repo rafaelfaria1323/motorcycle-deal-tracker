@@ -97,7 +97,8 @@ Screen names below use the Portuguese labels; English provides the same screens.
   The grid grows to three columns; phone and enlarged-text layouts use
   naturally sized cards.
 - **Favoritos** (a tab): the listings you starred (star on a listing's
-  page), newest first, each with
+  page), newest first, each with what changed since you last opened it
+  (a drop, gone or back, the mileage, a renewal on the site; N.97),
   your private note, the problems found on the viewing checklist and the
   planned visit ("Para a visita" on the ad: a day and time, reminded on
   your devices the day before, and "Adicionar ao calendário": the Android

@@ -7560,5 +7560,56 @@
         "type": "String"
       }
     }
+  },
+  "changesSinceSeen": "Desde a última vez que o abriu: {changes}",
+  "@changesSinceSeen": {
+    "description": "In Favoritos and on the ad's page, what changed since the favourite was last opened (N.97).",
+    "placeholders": {
+      "changes": {
+        "type": "String"
+      }
+    }
+  },
+  "changeGone": "saiu do mercado",
+  "@changeGone": {
+    "description": "In Favoritos and on the ad's page, what changed since the favourite was last opened (N.97)."
+  },
+  "changeBack": "voltou ao mercado",
+  "@changeBack": {
+    "description": "In Favoritos and on the ad's page, what changed since the favourite was last opened (N.97)."
+  },
+  "changePriceDown": "baixou {price}",
+  "@changePriceDown": {
+    "description": "In Favoritos and on the ad's page, what changed since the favourite was last opened (N.97).",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "changePriceUp": "subiu {price}",
+  "@changePriceUp": {
+    "description": "In Favoritos and on the ad's page, what changed since the favourite was last opened (N.97).",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "changeMileage": "quilómetros: {from} → {to}",
+  "@changeMileage": {
+    "description": "In Favoritos and on the ad's page, what changed since the favourite was last opened (N.97).",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "changeRenewed": "renovado no site",
+  "@changeRenewed": {
+    "description": "In Favoritos and on the ad's page, what changed since the favourite was last opened (N.97)."
   }
 }

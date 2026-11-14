@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
 import 'package:motorcycle_deal_tracker/core/localization/app_language.dart';
 import 'package:motorcycle_deal_tracker/features/favourites/data/models/favourite_model.dart';
 import 'package:motorcycle_deal_tracker/features/listings/data/models/listing_model.dart';
@@ -105,6 +106,12 @@ class _FakeFavourites implements FavouritesRepository {
 
   @override
   Future<List<Favourite>?> lastCopy() async => copy;
+
+  @override
+  Future<void> markSeen(String listingId) async {
+    if (fail || failWrites) throw StateError('offline');
+    calls.add('seen $listingId');
+  }
 
   @override
   Future<Map<String, Map<String, ChecklistEntry>>> unsentChecklists() async =>
@@ -747,5 +754,158 @@ void main() {
       ]),
       '3 anúncios, 2 já removidos',
     );
+  });
+
+  group('what changed since it was last opened (N.97)', () {
+    Listing bike({
+      double? price = 6500,
+      int? mileage = 12000,
+      String status = 'active',
+      String? renewed,
+    }) => ListingModel.fromJson({
+      ..._listingRow('l1', status: status),
+      'price': price,
+      'mileage': mileage,
+      'site_refreshed_at': ?renewed,
+    });
+    final seenAt = DateTime.utc(2026, 11, 10, 12);
+    FavouriteSeen seen({
+      double? price = 6500,
+      int? mileage = 12000,
+      ListingStatus? status = ListingStatus.active,
+    }) => FavouriteSeen(
+      at: seenAt,
+      price: price,
+      mileage: mileage,
+      status: status,
+    );
+
+    test('nothing changed, or how it was is unknown', () {
+      expect(favouriteChangesText(seen(), bike()), isNull);
+      expect(favouriteChangesText(null, bike(price: 5000)), isNull);
+      // A renewal before it was seen is old news.
+      expect(
+        favouriteChangesText(seen(), bike(renewed: '2026-11-09T10:00:00Z')),
+        isNull,
+      );
+    });
+
+    test('price, mileage and renewal, in that order', () {
+      final down = Formatters.price(500);
+      expect(
+        favouriteChangesText(
+          seen(),
+          bike(price: 6000, mileage: 9000, renewed: '2026-11-12T10:00:00Z'),
+        ),
+        'Desde a última vez que o abriu: baixou $down · quilómetros: '
+        '${Formatters.mileage(12000)} → ${Formatters.mileage(9000)} · '
+        'renovado no site',
+      );
+      expect(
+        favouriteChangesText(
+          seen(),
+          bike(price: 6800),
+          language: AppLanguage.english,
+        ),
+        'Since you last opened it: up '
+        '${Formatters.price(300, language: AppLanguage.english)}',
+      );
+    });
+
+    test('placeholder prices and missing figures say nothing', () {
+      expect(favouriteChangesText(seen(price: 1), bike()), isNull);
+      expect(favouriteChangesText(seen(), bike(price: 1)), isNull);
+      expect(favouriteChangesText(seen(price: null), bike()), isNull);
+      expect(favouriteChangesText(seen(mileage: null), bike()), isNull);
+      expect(favouriteChangesText(seen(), bike(mileage: null)), isNull);
+    });
+
+    test('gone, or back on the market', () {
+      expect(
+        favouriteChangesText(
+          seen(),
+          bike(status: 'removed', renewed: '2026-11-12T10:00:00Z'),
+        ),
+        'Desde a última vez que o abriu: saiu do mercado',
+      );
+      expect(
+        favouriteChangesText(
+          seen(status: ListingStatus.removed),
+          bike(status: 'price_changed'),
+        ),
+        'Desde a última vez que o abriu: voltou ao mercado',
+      );
+      expect(
+        favouriteChangesText(
+          seen(status: ListingStatus.removed),
+          bike(status: 'sold'),
+        ),
+        isNull,
+      );
+      expect(
+        favouriteChangesText(seen(status: null), bike(status: 'removed')),
+        isNull,
+      );
+    });
+
+    test('read from the database', () {
+      final favourite = FavouriteModel.fromJson({
+        'listing_id': 'l1',
+        'created_at': '2026-10-15T12:00:00Z',
+        'seen_at': '2026-11-10T12:00:00Z',
+        'seen_price': 6500,
+        'seen_mileage': 12000,
+        'seen_status': 'price_changed',
+      });
+      expect(
+        favourite.seen,
+        FavouriteSeen(
+          at: DateTime.utc(2026, 11, 10, 12).toLocal(),
+          price: 6500,
+          mileage: 12000,
+          status: ListingStatus.priceChanged,
+        ),
+      );
+      expect(
+        FavouriteModel.fromJson({
+          'listing_id': 'l1',
+          'created_at': '2026-10-15T12:00:00Z',
+        }).seen,
+        isNull,
+      );
+    });
+
+    test('opening the ad marks it seen as it is now', () async {
+      final at = DateTime(2026, 11, 14, 9);
+      final repo = _FakeFavourites([
+        _favourite('l1').withSeen(seen(price: 7000)),
+      ]);
+      final cubit = _cubit(repo, clock: () => at);
+      await cubit.load();
+      final now = bike(price: 6000);
+      expect(
+        favouriteChangesText(cubit.state.favouriteOf('l1')?.seen, now),
+        isNotNull,
+      );
+
+      await cubit.markSeen(now);
+      expect(cubit.state.favouriteOf('l1')?.seen, FavouriteSeen.of(now, at));
+      expect(
+        favouriteChangesText(cubit.state.favouriteOf('l1')?.seen, now),
+        isNull,
+      );
+      // Not a favourite: nothing is sent.
+      await cubit.markSeen(_listing('l9'));
+      expect(repo.calls, ['seen l1']);
+
+      // A failed save keeps it seen here; the next load tells it again.
+      final failing = _cubit(
+        _FakeFavourites([_favourite('l1')], failWrites: true),
+        clock: () => at,
+      );
+      await failing.load();
+      await failing.markSeen(now);
+      expect(failing.state.favouriteOf('l1')?.seen, FavouriteSeen.of(now, at));
+    });
   });
 }

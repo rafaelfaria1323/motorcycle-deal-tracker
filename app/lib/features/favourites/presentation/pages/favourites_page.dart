@@ -125,6 +125,15 @@ class const FavouritesPage({super.key}) extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  if (favouriteChangesText(
+                                        f.seen,
+                                        f.listing!,
+                                        language: context.language,
+                                      )
+                                      case final changes?) ...[
+                                    FavouriteChangesLine(text: changes),
+                                    const SizedBox(height: 4),
+                                  ],
                                   if (f.note != null) ...[
                                     Text(
                                       f.note!,

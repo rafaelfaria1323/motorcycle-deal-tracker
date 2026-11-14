@@ -11,6 +11,7 @@ class FavouriteModel {
   /// points of the bike, N.64, N.86).
   static const columns =
       'listing_id, note, checklist, target_price, visit_at, created_at, '
+      'seen_at, seen_price, seen_mileage, seen_status, '
       'listings(${ListingModel.summaryColumns}, recalls, '
       'motorcycles(${ListingModel.maintenanceColumns}))';
 
@@ -25,6 +26,18 @@ class FavouriteModel {
       targetPrice: (json['target_price'] as num?)?.toDouble(),
       visitAt: switch (json['visit_at']) {
         final String at => DateTime.parse(at).toLocal(),
+        _ => null,
+      },
+      seen: switch (json['seen_at']) {
+        final String at => FavouriteSeen(
+          at: DateTime.parse(at).toLocal(),
+          price: (json['seen_price'] as num?)?.toDouble(),
+          mileage: (json['seen_mileage'] as num?)?.toInt(),
+          status: switch (json['seen_status']) {
+            final String status => ListingModel.statusOf(status),
+            _ => null,
+          },
+        ),
         _ => null,
       },
       listing: listing == null ? null : ListingModel.fromJson(listing),

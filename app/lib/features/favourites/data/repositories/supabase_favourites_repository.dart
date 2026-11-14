@@ -153,6 +153,20 @@ class SupabaseFavouritesRepository(
   }
 
   @override
+  Future<void> markSeen(String listingId) async {
+    // The database puts its own time and the ad's price, mileage and
+    // status with it (stamp_favourite_seen).
+    final updated = await _client
+        .from(_table)
+        .update({'seen_at': DateTime.now().toUtc().toIso8601String()})
+        .eq('listing_id', listingId)
+        .select('listing_id');
+    if (updated.isEmpty) {
+      throw StateError('Favourite $listingId was not marked seen.');
+    }
+  }
+
+  @override
   Future<void> saveChecklist(
     String listingId,
     Map<String, ChecklistEntry> checklist,
