@@ -1264,7 +1264,8 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   live duplicate of it, or of what it repeats), `expired` (private ads
   only: gone 28-31 days, or a multiple of 30 +-2, after publication or
   the last renewal, `ended_at_expiry`; both sites run an ad 30 days),
-  else `likely_sold`. `listings.last_deal_score` (trigger
+  `seen_once` (under an hour between first and last seen: one run saw
+  it, N.92), else `likely_sold`. `listings.last_deal_score` (trigger
   `listings_keep_last_deal_score`) keeps a gone ad's last Deal Score.
 - Exit prices (`exit_price(model, year, km, except)`, F.11; readable by
   everyone): the median last price of the model's ads gone in the last 90
@@ -1275,7 +1276,9 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   the ad's price compares) and in "Quanto vale a minha mota" (adjusted to
   the condition). Shown only: never a score slice or the fair value until
   the weekly score check (`score-check.yml`, `score_check_models` /
-  `score_check_bands`, service role only) has compared it for some weeks.
+  `score_check_bands`, service role only; the bands only ads first seen
+  since `p_since`, when last Deal Scores began to be kept) has compared
+  it for some weeks.
 - Good deals that went fast (N.68): `gone_deals(model, days)` (readable
   by everyone): the model's gone ads that likely sold in the last 90 days
   (as `exit_price`, not adjusted), with `last_deal_score` and the days on

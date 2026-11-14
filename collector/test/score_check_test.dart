@@ -13,6 +13,7 @@ ModelCheck _model({
   relisted: 2,
   stillListed: 1,
   expired: 1,
+  seenOnce: 3,
   soldWithPosition: withPosition,
   soldPosition: position,
   liveWithPosition: 20,
@@ -31,6 +32,7 @@ void main() {
       'relisted': 1,
       'still_listed': 1,
       'expired': 1,
+      'seen_once': 4,
       'sold_with_position': 5,
       'sold_position': '-8.5',
       'live_with_position': 11,
@@ -39,6 +41,7 @@ void main() {
       'sold_days': 30,
     });
     expect(m.sales, 6);
+    expect(m.seenOnce, 4);
     expect(m.soldPosition, -8.5);
     expect(m.livePosition, 1.25);
     expect(m.soldDropPct, isNull);
@@ -100,11 +103,12 @@ void main() {
     expect(
       report,
       contains(
-        '| Yamaha MT-07 | 12 | 8 (1) | 1 | 2 | 1 | +2.0 % (n=6) | '
+        '| Yamaha MT-07 | 12 | 8 (1) | 1 | 2 | 1 | 3 | +2.0 % (n=6) | '
         '-1.5 % (n=20) | 3.0 % | 21 |',
       ),
     );
     expect(report, contains('between 60 and 14 days ago'));
+    expect(report, contains('not before 12 Nov 2026'));
     expect(report, contains('| 80-100 | 10 | 4 | 40.0 % |'));
     expect(report, contains('- Honda CB650R: likely sales asked 9.0 % above'));
     expect(report, contains('- Deal Score 80-100 sold less often'));
@@ -136,6 +140,7 @@ void main() {
           relisted: 1,
           stillListed: 0,
           expired: 0,
+          seenOnce: 0,
           soldWithPosition: 0,
           liveWithPosition: 0,
         ),
@@ -147,7 +152,7 @@ void main() {
     );
     expect(
       report,
-      contains('| Honda CBR650R | 1 | 0 (0) | 0 | 1 | 0 | – | – | – | – |'),
+      contains('| Honda CBR650R | 1 | 0 (0) | 0 | 1 | 0 | 0 | – | – | – | – |'),
     );
     expect(report, contains('| 40-59 | 0 | 0 | – |'));
   });

@@ -176,12 +176,14 @@ refuses it), and after 10 minutes (`--minutes`) no new request starts.
 Also beside it, `bin/score_check.dart` (workflow `score-check.yml`, N.61,
 no AI) checks the estimates and the Deal Score against the ads that likely
 sold (`exit_kind`: gone without expiring, coming back or staying on the
-other site, or "vendida" in their text). `score_check_models` gives, per
+other site, or "vendida" in their text; not an ad only one run saw,
+`seen_once`, N.92). `score_check_models` gives, per
 model, how its ads of the last 28 days (`--days`) left and the median
 market position of the likely sales against the live ads';
 `score_check_bands` gives, per Deal Score band (the last score,
 `last_deal_score`), how many ads first seen 14 to 60 days ago
-(`--horizon`, `--band-days`) sold within 14 days. `audit/score_check.dart`
+(`--horizon`, `--band-days`), and not before 12 Nov 2026 when those
+scores began to be kept, sold within 14 days. `audit/score_check.dart`
 writes the report (stdout and the run's summary) and lists what looks off:
 a model whose likely sales sat more than 7 % from the estimate, or a
 higher band selling less often than a lower one (each from 5). It writes
