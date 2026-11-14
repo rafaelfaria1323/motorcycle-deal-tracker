@@ -134,8 +134,10 @@ begin
     format('the kinds: %s', r);
   assert r.sold_with_position = 3 and r.sold_position = -2.0,
     format('the sales'' median position: %s', r);
-  -- Drops: 1 - 7000/7500 = 6.7 %, then 0 and 0.
-  assert r.sold_drop_pct = 0.0, format('median drop: %s', r.sold_drop_pct);
+  -- Drops: 1 - 7000/7500 = 6.7 %, then 0 and 0: one dropped, and the
+  -- median is of that one (over all three it was 0, N.95).
+  assert r.sold_dropped = 1, format('one dropped: %s', r.sold_dropped);
+  assert r.sold_drop_pct = 6.7, format('median drop: %s', r.sold_drop_pct);
   assert r.sold_days = 30, format('median days up: %s', r.sold_days);
 end $$;
 

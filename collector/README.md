@@ -179,7 +179,9 @@ sold (`exit_kind`: gone without expiring, coming back or staying on the
 other site, or "vendida" in their text; not an ad only one run saw,
 `seen_once`, N.92). `score_check_models` gives, per
 model, how its ads of the last 28 days (`--days`) left and the median
-market position of the likely sales against the live ads';
+market position of the likely sales against the live ads', and how
+many of them dropped their price 1 % or more, by how much on the median
+(N.95);
 `score_check_bands` gives, per Deal Score band (the last score,
 `last_deal_score`), how many ads first seen 14 to 60 days ago
 (`--horizon`, `--band-days`), and not before 12 Nov 2026 when those

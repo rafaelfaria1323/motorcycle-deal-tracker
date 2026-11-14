@@ -35,7 +35,9 @@ class const ModelCheck({
   required final int liveWithPosition,
   final double? livePosition,
 
-  /// Median drop from the highest price seen, percent, of the likely sales.
+  /// Likely sales whose last price was 1 % or more below the highest seen,
+  /// and their median drop (percent; null when none dropped).
+  required final int soldDropped,
   final double? soldDropPct,
 
   /// Median days on sale of the likely sales.
@@ -54,6 +56,7 @@ class const ModelCheck({
     soldPosition: _double(row['sold_position']),
     liveWithPosition: _int(row['live_with_position']),
     livePosition: _double(row['live_position']),
+    soldDropped: _int(row['sold_dropped']),
     soldDropPct: _double(row['sold_drop_pct']),
     soldDays: _double(row['sold_days']),
   );
@@ -135,6 +138,8 @@ String scoreCheckReport({
       'A likely sale: the text said so, or it did not expire (private '
       'ads, 30 days on the site), come back or stay on the other site, '
       'and more than one run saw it. '
+      'Dropped: likely sales whose last price was 1 % or more below the '
+      'highest seen, with their median drop. '
       'Position: percent below the estimate when last seen (damaged and '
       'unlegalised bikes left out); negative is above it.',
     )
@@ -147,7 +152,7 @@ String scoreCheckReport({
     out
       ..writeln(
         '| Model | Gone | Likely sold (text) | Expired | Relisted | '
-        'Still listed | Seen once | Sales position | Live position | Drop | '
+        'Still listed | Seen once | Sales position | Live position | Dropped | '
         'Days |',
       )
       ..writeln('|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|');
@@ -157,7 +162,7 @@ String scoreCheckReport({
         '${m.expired} | ${m.relisted} | ${m.stillListed} | ${m.seenOnce} | '
         '${_median(m.soldPosition, m.soldWithPosition)} | '
         '${_median(m.livePosition, m.liveWithPosition)} | '
-        '${_value(m.soldDropPct, _pct)} | '
+        '${_dropped(m)} | '
         '${_value(m.soldDays, (d) => d.round().toString())} |',
       );
     }
@@ -206,6 +211,14 @@ String scoreCheckReport({
     }
   }
   return out.toString();
+}
+
+/// "2 of 8, -6.5 %": how many likely sales dropped, and by how much.
+String _dropped(ModelCheck m) {
+  if (m.sales == 0) return '–';
+  final drop = m.soldDropPct;
+  return '${m.soldDropped} of ${m.sales}'
+      '${drop == null ? '' : ', -${_pct(drop)}'}';
 }
 
 String _median(double? value, int count) =>
