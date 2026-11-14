@@ -12,13 +12,17 @@ MotorcycleOption motorcycleOptionFromJson(Map<String, dynamic> row) =>
       model: row['model'] as String,
     );
 
-/// Reads `index.html`'s answer (`{"listings": [...], "motorcycles": [...]}`,
-/// the rows the app's own queries return); null when there is none or it
-/// can't be read, so the app asks the database itself.
-FirstPage? firstPageFromJson(String? text) {
+/// Reads `index.html`'s answer (`{"user": ..., "listings": [...],
+/// "motorcycles": [...]}`, the rows the app's own queries return, asked as
+/// `user`: an account's id, or null without one); null when there is
+/// none, it can't be read or it was asked for another than [account] (the
+/// account the app starts with; null for none or an anonymous session),
+/// so the app asks the database itself.
+FirstPage? firstPageFromJson(String? text, {String? account}) {
   if (text == null) return null;
   try {
     final json = jsonDecode(text) as Map<String, dynamic>;
+    if ((json['user'] as String?) != account) return null;
     return FirstPage(
       listings: [
         for (final row in json['listings'] as List)

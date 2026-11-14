@@ -97,6 +97,25 @@ void main() {
     expect(page.motorcycles.single.model, 'MT-07');
   });
 
+  test("an account's answer is taken only by that account", () {
+    String answer(Object? user) => jsonEncode({
+      'user': user,
+      'listings': <Object>[],
+      'motorcycles': [
+        {'id': 'm1', 'brand': 'Yamaha', 'model': 'MT-07'},
+      ],
+    });
+
+    expect(firstPageFromJson(answer('u1'), account: 'u1'), isNotNull);
+    expect(firstPageFromJson(answer(null)), isNotNull);
+    // Asked for another account, or for none, while the app starts with
+    // an account; or asked for an account while it starts without one.
+    expect(firstPageFromJson(answer('u2'), account: 'u1'), isNull);
+    expect(firstPageFromJson(answer(null), account: 'u1'), isNull);
+    expect(firstPageFromJson(answer('u1')), isNull);
+    expect(firstPageFromJson(answer(1)), isNull);
+  });
+
   test('no answer, or one it cannot read, is none', () {
     expect(firstPageFromJson(null), isNull);
     expect(firstPageFromJson('not json'), isNull);

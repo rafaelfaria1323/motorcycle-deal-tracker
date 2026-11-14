@@ -351,9 +351,10 @@ and Firefox 147+, which `web/flutter_bootstrap.js` allows, N.90; not
 Safari, N.91; else `main.dart.js` and CanvasKit, the choice Flutter's loader
 makes), instead of after `flutter_bootstrap.js` has run; the engine's address uses the build's
 `<meta name="flutter-engine">`, which the same script writes from
-`flutter_bootstrap.js` (N.89; `tool/test_web_preconnect.py`). For a
-visitor without an account's session, `web/index.html` also asks for the
-first page of listings and the model list while the app downloads, and
+`flutter_bootstrap.js` (N.89; `tool/test_web_preconnect.py`). `web/index.html` also asks for the
+first page of listings (for a signed-in account with its stored token,
+while that has two minutes or more left; the start takes the answer only
+for the account it starts with, N.100) and the model list while the app downloads, and
 starts the first cards' photos; on a phone it draws those first cards in
 plain HTML under the spinner until Flutter's first frame (N.99). The start takes that answer
 (`core/platform/first_page.dart`) instead of asking again. Its queries

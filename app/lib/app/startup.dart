@@ -73,9 +73,19 @@ class _StartupState extends State<Startup> {
     // collected model), so a first visit doesn't wait for its sign-in;
     // a stored session goes with the request as usual. In the browser
     // index.html may already have asked (while the app downloaded).
+    // For an account, only its own (index.html asks with its token while
+    // it is fresh).
     final listings = getIt<ListingsCubit>();
     if (listings.state.status == .initial) {
-      unawaited(listings.load(early: takeFirstPage().then(firstPageFromJson)));
+      final user = Supabase.instance.client.auth.currentUser;
+      final account = user == null || user.isAnonymous ? null : user.id;
+      unawaited(
+        listings.load(
+          early: takeFirstPage().then(
+            (text) => firstPageFromJson(text, account: account),
+          ),
+        ),
+      );
     }
     // Browsing works without a session, so a slow sign-in doesn't hold
     // the app (it is tried again on the next start).

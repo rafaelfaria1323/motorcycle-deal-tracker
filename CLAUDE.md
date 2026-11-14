@@ -676,9 +676,11 @@ invites; written by the collector on each run).
   the engine version from `<meta name="flutter-engine">`, written by the
   same script from `flutter_bootstrap.js`), and draws a
   spinner (`#splash`, the theme's primary, as `Startup`'s) until Flutter's
-  first frame; without an account's session it also asks for the first
+  first frame; it also asks for the first
   page of listings and the model list and starts the first photos while
-  the app downloads, and on a phone (under 840 px) draws them as plain
+  the app downloads (for an account with its stored token, only while it
+  has 2+ minutes left; `Startup` takes the answer only for the account it
+  starts with, N.100), and on a phone (under 840 px) draws them as plain
   cards under the spinner (`#preview`, N.99; gone with the splash; the
   page's own viewport tag, which Flutter replaces)
   (`window.dealTrackerFirstPage`, taken by `Startup`
