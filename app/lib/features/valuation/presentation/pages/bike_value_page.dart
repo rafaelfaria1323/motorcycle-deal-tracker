@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/auth/session_cubit.dart';
+import '../../../../core/formatting/formatters.dart';
 import '../../../../core/localization/localizations.dart';
 import '../../../../core/widgets/page_back_button.dart';
 import '../../../../core/widgets/page_intro.dart';
@@ -16,12 +17,16 @@ import '../../domain/entities/bike_value_request.dart';
 import '../../../market/domain/entities/exit_price.dart';
 import '../../../market/domain/entities/market_behaviour.dart';
 import '../../../market/domain/entities/model_market.dart';
+import '../../../listings/domain/entities/listing.dart';
 import '../../../listings/domain/repositories/catalog_repository.dart';
 import '../../../market/domain/repositories/market_behaviour_repository.dart';
 import '../ad_link.dart';
 import '../ad_link_model.dart';
 import '../bike_value_text.dart';
+import '../typed_ad.dart';
 import '../../../listings/presentation/widgets/add_model_sheet.dart';
+import '../../../listings/presentation/widgets/offer_card.dart';
+import '../../../listings/presentation/widgets/seller_message_card.dart';
 import '../widgets/bike_condition_fields.dart';
 import '../widgets/bike_value_card.dart';
 import '../widgets/bike_value_requests.dart';
@@ -39,6 +44,9 @@ import '../../../listings/presentation/widgets/tracked_models_builder.dart';
 /// the form also takes an ad's link: a stored ad opens at once, else the
 /// request collects the model and the run that finds the ad pushes its
 /// scores. The link's words choose the model when they name one (N.104).
+/// An ad on another site (Facebook Marketplace, CustoJusto…; N.105) is
+/// typed instead: its price and seller with the rest give its value, the
+/// cheaper ads we have, the offer plan and the message to the seller.
 class const BikeValuePage({
   /// The request to show (`/worth?request=<id>`, from the notification).
   final String? requestId,
@@ -63,10 +71,12 @@ class const BikeValuePage({
 
 /// What "Calcular" gave: the value, or null while the request waits for a
 /// collection ([ad]: an ad check waiting for its ad; [signIn]: an ad not
-/// stored, asked by an anonymous session, which can't wait for it).
+/// stored, asked by an anonymous session, which can't wait for it;
+/// [typed]: the ad typed by hand, N.105).
 typedef _Outcome = ({
   bool ad,
   bool signIn,
+  _TypedAd? typed,
   String name,
   int year,
   int? mileage,
@@ -74,6 +84,9 @@ typedef _Outcome = ({
   MarketBehaviour? market,
   ExitPrice? exit,
 });
+
+/// The model, price and seller of an ad typed by hand.
+typedef _TypedAd = ({String motorcycleId, double price, SellerType seller});
 
 /// The dropdown's entry that opens the make and model form.
 const _otherModel = '';
@@ -87,7 +100,16 @@ class _BikeValuePageState extends State<BikeValuePage> {
   final _year = TextEditingController();
   final _mileage = TextEditingController();
   final _link = TextEditingController();
+  final _price = TextEditingController();
   String? _motorcycleId;
+
+  /// "O anúncio é de outro site": the ad is typed, not linked (N.105).
+  bool _otherSite = false;
+  SellerType _seller = SellerType.private;
+
+  /// The typed ad's listing, kept while the outcome and condition stay, so
+  /// its cards keep what they loaded.
+  (_Outcome, BikeCondition, Listing)? _typedListing;
 
   /// What the owner says of the bike; it adjusts the value shown, at once,
   /// and is not part of the request.
@@ -210,6 +232,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
     _year.dispose();
     _mileage.dispose();
     _link.dispose();
+    _price.dispose();
     super.dispose();
   }
 
@@ -219,6 +242,15 @@ class _BikeValuePageState extends State<BikeValuePage> {
   int? _mileageValue() {
     final digits = _mileage.text.replaceAll(RegExp(r'[\s.]'), '');
     return RegExp(r'^\d+$').hasMatch(digits) ? int.parse(digits) : null;
+  }
+
+  /// The typed ad's price, at least [minRealPrice].
+  double? _priceValue() {
+    final price = Formatters.parsePrice(
+      _price.text,
+      language: context.language,
+    );
+    return price != null && price >= minRealPrice ? price : null;
   }
 
   /// The models to choose from: the collected ones, those of the account's
@@ -281,11 +313,13 @@ class _BikeValuePageState extends State<BikeValuePage> {
     bool waiting = false,
     bool ad = false,
     bool signIn = false,
+    _TypedAd? typed,
   }) async {
     if (waiting || signIn) {
       return (
         ad: ad,
         signIn: signIn,
+        typed: typed,
         name: name,
         year: year,
         mileage: mileage,
@@ -305,6 +339,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
     return (
       ad: false,
       signIn: false,
+      typed: typed,
       name: name,
       year: year,
       mileage: mileage,
@@ -319,9 +354,16 @@ class _BikeValuePageState extends State<BikeValuePage> {
     String name, {
     required int year,
     required int? mileage,
+    _TypedAd? typed,
   }) async {
     if (!_signedIn) {
-      return await _valueOf(motorcycleId, name, year: year, mileage: mileage);
+      return await _valueOf(
+        motorcycleId,
+        name,
+        year: year,
+        mileage: mileage,
+        typed: typed,
+      );
     }
     final asked = await _repository.requestBikeValue(
       motorcycleId,
@@ -335,6 +377,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
       year: year,
       mileage: mileage,
       waiting: !asked.ready,
+      typed: typed,
     );
   }
 
@@ -383,6 +426,20 @@ class _BikeValuePageState extends State<BikeValuePage> {
     final id = _motorcycleId!;
     final year = int.parse(_year.text.trim());
     final mileage = _mileage.text.trim().isEmpty ? null : _mileageValue();
+    if (widget.checkingAd && _otherSite) {
+      final typed = (motorcycleId: id, price: _priceValue()!, seller: _seller);
+      setState(() {
+        _added.putIfAbsent(id, () => choices[id]!);
+        _outcome = _ask(
+          id,
+          choices[id]!,
+          year: year,
+          mileage: mileage,
+          typed: typed,
+        );
+      });
+      return;
+    }
     if (widget.checkingAd) {
       final url = adLinkOf(_link.text)!;
       setState(() {
@@ -493,6 +550,16 @@ class _BikeValuePageState extends State<BikeValuePage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (widget.checkingAd) ...[
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(strings.checkAdOtherSite),
+              subtitle: Text(strings.checkAdOtherSiteHint),
+              value: _otherSite,
+              onChanged: (value) => setState(() => _otherSite = value),
+            ),
+            const SizedBox(height: 8),
+          ],
+          if (widget.checkingAd && !_otherSite) ...[
             TextFormField(
               controller: _link,
               keyboardType: TextInputType.url,
@@ -575,6 +642,36 @@ class _BikeValuePageState extends State<BikeValuePage> {
                 ? null
                 : strings.bikeValueMileageInvalid,
           ),
+          if (widget.checkingAd && _otherSite) ...[
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _price,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: strings.askingPriceLabel,
+                suffixText: '€',
+                border: const OutlineInputBorder(),
+              ),
+              validator: (_) =>
+                  _priceValue() == null ? strings.checkAdPriceInvalid : null,
+            ),
+            const SizedBox(height: 12),
+            SegmentedButton<SellerType>(
+              segments: [
+                ButtonSegment(
+                  value: SellerType.private,
+                  label: Text(strings.private),
+                ),
+                ButtonSegment(
+                  value: SellerType.dealer,
+                  label: Text(strings.checkAdDealer),
+                ),
+              ],
+              selected: {_seller},
+              onSelectionChanged: (picked) =>
+                  setState(() => _seller = picked.single),
+            ),
+          ],
           const SizedBox(height: 20),
           BikeConditionFields(
             condition: _condition,
@@ -635,6 +732,9 @@ class _BikeValuePageState extends State<BikeValuePage> {
           );
         }
         final value = outcome.value;
+        if (outcome.typed case final typed? when value != null) {
+          return _typedResult(outcome, typed, value);
+        }
         final card = BikeValueCard(
           name: outcome.name,
           year: outcome.year,
@@ -657,6 +757,45 @@ class _BikeValuePageState extends State<BikeValuePage> {
           ],
         );
       },
+    );
+  }
+
+  /// The typed ad (N.105): what to offer and the message to the seller,
+  /// as on a stored ad's Negociar, then the value it comes from.
+  Widget _typedResult(_Outcome outcome, _TypedAd typed, BikeValue value) {
+    final kept = _typedListing;
+    final Listing listing;
+    if (kept != null && kept.$1 == outcome && kept.$2 == _condition) {
+      listing = kept.$3;
+    } else {
+      listing = typedAdListing(
+        motorcycleId: typed.motorcycleId,
+        name: outcome.name,
+        year: outcome.year,
+        mileage: outcome.mileage,
+        price: typed.price,
+        sellerType: typed.seller,
+        value: value,
+        condition: _condition,
+      );
+      _typedListing = (outcome, _condition, listing);
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        OfferCard(key: ObjectKey(listing), listing: listing),
+        const SizedBox(height: 16),
+        SellerMessageCard(key: ObjectKey(listing), listing: listing),
+        const SizedBox(height: 16),
+        BikeValueCard(
+          name: outcome.name,
+          year: outcome.year,
+          value: value,
+          market: outcome.market,
+          condition: _condition,
+          exit: outcome.exit,
+        ),
+      ],
     );
   }
 }

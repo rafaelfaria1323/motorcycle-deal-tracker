@@ -7962,6 +7962,22 @@
   "@checkAdWaitingBody": {
     "description": "Interface text for checking an ad (N.102)."
   },
+  "checkAdOtherSite": "O anúncio é de outro site",
+  "@checkAdOtherSite": {
+    "description": "Interface text for checking an ad typed by hand (N.105)."
+  },
+  "checkAdOtherSiteHint": "Facebook Marketplace, CustoJusto…: escreva o preço e o vendedor. Comparamos com os anúncios que temos e sugerimos a proposta e a mensagem.",
+  "@checkAdOtherSiteHint": {
+    "description": "Interface text for checking an ad typed by hand (N.105)."
+  },
+  "checkAdPriceInvalid": "Escreva o preço pedido (300 € ou mais).",
+  "@checkAdPriceInvalid": {
+    "description": "Interface text for checking an ad typed by hand (N.105)."
+  },
+  "checkAdDealer": "Stand",
+  "@checkAdDealer": {
+    "description": "Interface text for checking an ad typed by hand (N.105)."
+  },
   "adCheckWaiting": "À procura do anúncio",
   "@adCheckWaiting": {
     "description": "Interface text for checking an ad (N.102)."

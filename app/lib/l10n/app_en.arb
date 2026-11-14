@@ -1382,6 +1382,10 @@
   "checkAdSignIn": "We don't have this ad yet. Sign in to an account to ask for it: we'll tell you once it's scored.",
   "checkAdWaitingTitle": "We'll look for the ad",
   "checkAdWaitingBody": "The next collection reads every ad of this model on both sites. When it finds this one, we send you its Deal Score; if it doesn't find it within a day, we send the value of a bike of that year.",
+  "checkAdOtherSite": "The ad is on another site",
+  "checkAdOtherSiteHint": "Facebook Marketplace, CustoJusto…: type its price and seller. We compare it with the ads we have and suggest the offer and the message.",
+  "checkAdPriceInvalid": "Type the asking price (300 € or more).",
+  "checkAdDealer": "Dealer",
   "adCheckWaiting": "Looking for the ad",
   "adCheckFound": "Ad checked",
   "adCheckNotFound": "Ad not found"

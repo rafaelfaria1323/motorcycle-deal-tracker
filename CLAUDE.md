@@ -1155,6 +1155,12 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   saw the ad (`answer_bike_value_requests`' `is_ad`, `listing_id`,
   `deal_score`, `risk_score`; push opens `/deals/<id>`) or a day on as not
   found (the value, `/worth?request=<id>`); computed field `ad_listing`.
+  An ad on another site (N.105, the switch "O anúncio é de outro site":
+  Facebook Marketplace, CustoJusto) is typed instead: its price, seller
+  and condition answers, then the value and Negociar's `OfferCard` and
+  `SellerMessageCard` on a listing built in the app (`typedAdListing`,
+  `typed_ad.dart`, source `typed`, `Listing.isTyped`: no favourite, a
+  comparison of the stored ads only), never stored.
   No ad page is ever read. Mais › "Comprar no estrangeiro"
   (`/import`, the same page with `importing`): the same value, then the
   import calculator above it; also on every listing with a price, in

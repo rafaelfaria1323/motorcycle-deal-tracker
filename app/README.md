@@ -260,7 +260,10 @@ Screen names below use the Portuguese labels; English provides the same screens.
   words already chose it: a stored ad opens at once;
   otherwise its model is collected and a notification gives the ad's
   Deal Score and Risk Score once a collection finds it, or a day on the
-  value of a bike of that year), "Comprar no
+  value of a bike of that year; an ad on Facebook Marketplace or another
+  site: "O anúncio é de outro site", then its price, seller and condition
+  give the value, the offer plan with the cheaper stored ads and the
+  message to the seller), "Comprar no
   estrangeiro" (the same form for a bike seen in Spain, France or
   Germany: its price there plus vehicle tax (ISV), legalisation and
   transport, against its value here), "A minha mota" (the bikes you

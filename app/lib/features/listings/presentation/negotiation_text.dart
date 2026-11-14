@@ -18,6 +18,10 @@ List<String> compareWithCheaper(Listing listing, List<Listing> cheaper) {
     for (final other in cheaper)
       if (other.id != listing.id && other.askingPrice != null) other,
   ]..sort((a, b) => a.askingPrice!.compareTo(b.askingPrice!));
+  // An ad typed by hand can't be compared: its cheaper ads fill the table.
+  if (listing.isTyped) {
+    return [for (final other in others.take(maxCompared)) other.id];
+  }
   return [
     listing.id,
     for (final other in others.take(maxCompared - 1)) other.id,
