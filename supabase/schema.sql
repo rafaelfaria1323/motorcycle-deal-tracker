@@ -3740,7 +3740,8 @@ CREATE FUNCTION public.pending_recall_notices(p_at timestamp with time zone) RET
   where r.stored_at > k.created_at
     and r.published_on >= (p_at at time zone 'Europe/Lisbon')::date
                           - public.recall_notice_days()
-    and (r.from_year is null or k.year between r.from_year and r.to_year + 1)
+    and (k.year is null or r.from_year is null
+         or k.year between r.from_year and r.to_year + 1)
     and not exists (select 1 from public.recall_notices n
                     where n.user_id = k.user_id and n.case_number = r.case_number)
     and not public.account_quiet_at(k.user_id, p_at)
