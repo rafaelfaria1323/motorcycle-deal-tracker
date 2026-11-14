@@ -5,6 +5,17 @@ here. Robots.txt is not permission; the source's terms of use decide.
 
 ## Decision log
 
+### 2026-11-14: CustoJusto not used (N.98)
+
+Rafael asked for CustoJusto (custojusto.pt) as a third source. Its
+robots.txt, read once on 2026-11-14, begins: "It is expressly forbidden to
+use spiders or other automated methods to access CustoJusto.pt. Only if
+custojusto.pt has given special permit such access is allowed." It also
+disallows every results page after the first (`/*?o=*`, `/*&o=*`), so even
+what it lets a crawler read would be one page per search: not enough to
+follow ads or see them go. Not built; nothing was stored. Only with the
+site's written permission would this be looked at again.
+
 ### 2026-11-13: motorcycle recalls from the EU's Safety Gate (N.86)
 
 **Why.** A used bike may have been called in by its maker (a chain, a
@@ -522,3 +533,4 @@ URL on every listing.
 - DGEG fuel prices (portal and API): https://precoscombustiveis.dgeg.gov.pt/
 - API Ninjas motorcycles API: https://api-ninjas.com/api/motorcycles
 - Safety Gate (EU alerts on dangerous products): https://ec.europa.eu/safety-gate-alerts/
+- CustoJusto robots.txt (not used, N.98): https://www.custojusto.pt/robots.txt
