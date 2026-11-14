@@ -255,9 +255,9 @@ Screen names below use the Portuguese labels; English provides the same screens.
 
 ## Running it
 
-Use **Flutter 3.47.8 / Dart 3.13.7**. The root `.fvmrc` pins the SDK for
+Use **Flutter 3.50.0 / Dart 3.14.0**. The root `.fvmrc` pins the SDK for
 FVM and all app workflows (checks, smoke, preview, web/Android builds and
-mutation testing). With FVM, run `fvm use 3.47.8` from the repository root
+mutation testing). With FVM, run `fvm use 3.50.0` from the repository root
 and put `.fvm/flutter_sdk/bin` first on `PATH` for the `make` commands.
 
 ```sh
@@ -336,9 +336,10 @@ signs in, and `web/index.html` opens the connections it needs early
 (Google's CDN for the engine, the photos' CDN, and the database, whose
 address the deploy writes in with `tool/web_preconnect.sh`). It also
 asks at once for the app's and the engine's code (`main.dart.wasm` and
-skwasm on Chromium browsers with WasmGC, else `main.dart.js` and
-CanvasKit, the choice Flutter's loader makes), instead of after
-`flutter_bootstrap.js` has run; the engine's address uses the build's
+skwasm where the browser has dart2wasm's WebAssembly features: Chromium,
+Safari 26.2+ and Firefox 147+, which `web/flutter_bootstrap.js` allows,
+N.90; else `main.dart.js` and CanvasKit, the choice Flutter's loader
+makes), instead of after `flutter_bootstrap.js` has run; the engine's address uses the build's
 `<meta name="flutter-engine">`, which the same script writes from
 `flutter_bootstrap.js` (N.89; `tool/test_web_preconnect.py`). For a
 visitor without an account's session, `web/index.html` also asks for the
