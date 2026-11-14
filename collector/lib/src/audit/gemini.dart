@@ -57,6 +57,10 @@ class GeminiClient({
   bool _thinkingOff = true;
   int _current = 0;
 
+  /// The requests sent so far, retries included (N.101: stored as the
+  /// run's usage).
+  int requests = 0;
+
   /// The model asked now.
   String get model => models[_current];
 
@@ -140,6 +144,7 @@ class GeminiClient({
   });
 
   Future<http.Response> _post(String body) async {
+    requests++;
     try {
       return await httpClient
           .post(

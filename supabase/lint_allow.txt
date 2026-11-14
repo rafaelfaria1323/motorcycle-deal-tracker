@@ -10,6 +10,10 @@ rls_enabled_no_policy_public_collection_watchdog
 # reads and writes it.
 rls_enabled_no_policy_public_github_token_check
 
+# The outside APIs' request counts (N.101): no API access, only the
+# collector's record_api_usage() and the admins' api_usage().
+rls_enabled_no_policy_public_api_usage
+
 # Photo fingerprints and the listings sharing photos: no API access, only
 # the collector's store_photo_hashes() and the scoring (security definer).
 rls_enabled_no_policy_public_listing_photo_hashes
@@ -91,6 +95,10 @@ authenticated_security_definer_function_executable_public_github_token_status_
 # (else 42501) and says only the database's size and its 5 biggest tables'
 # names and sizes (pg_database_size needs a role allowed to connect).
 authenticated_security_definer_function_executable_public_database_usage_
+
+# "Estado da recolha" (admins): api_usage calls require_admin() first
+# (else 42501) and says only how many requests each outside API was sent.
+authenticated_security_definer_function_executable_public_api_usage_
 
 # The admins' photo marks and the classifier trained on them (P.3): no API
 # access, only set_photo_mark / my_photo_marks (admins) and the collector's

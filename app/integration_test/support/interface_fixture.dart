@@ -12,10 +12,12 @@ import 'package:motorcycle_deal_tracker/features/alerts/domain/entities/listing_
 import 'package:motorcycle_deal_tracker/features/alerts/domain/repositories/alerts_repository.dart';
 import 'package:motorcycle_deal_tracker/features/alerts/presentation/cubit/alerts_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/alerts/presentation/pages/alerts_page.dart';
+import 'package:motorcycle_deal_tracker/features/collector_status/data/api_usage_repository.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/data/collector_runs_repository.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/data/database_usage_repository.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/data/github_token_repository.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/data/source_quality_repository.dart';
+import 'package:motorcycle_deal_tracker/features/collector_status/domain/api_usage.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/domain/collector_run.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/domain/database_usage.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/domain/github_token.dart';
@@ -203,6 +205,7 @@ class InterfaceFixture {
     getIt.registerSingleton<SourceQualityRepository>(_Quality());
     getIt.registerSingleton<GithubTokenRepository>(_Token());
     getIt.registerSingleton<DatabaseUsageRepository>(_Usage());
+    getIt.registerSingleton<ApiUsageRepository>(_ApiUsage());
     getIt.registerSingleton<HomeRepository>(home);
     getIt.registerSingleton<HomePlaceCubit>(
       HomePlaceCubit(home, session),
@@ -646,6 +649,19 @@ class _Usage implements DatabaseUsageRepository {
   @override
   Future<DatabaseUsage> get() async =>
       const DatabaseUsage(bytes: 120 * 1024 * 1024, tables: []);
+}
+
+class _ApiUsage implements ApiUsageRepository {
+  @override
+  Future<List<ApiUsage>> get() async => [
+    ApiUsage(
+      service: 'api_ninjas',
+      monthRequests: 12,
+      lastMonthRequests: 30,
+      lastUsedOn: DateTime(2026, 11, 9),
+    ),
+    const ApiUsage(service: 'gemini', monthRequests: 0, lastMonthRequests: 0),
+  ];
 }
 
 /// No home until one is saved.

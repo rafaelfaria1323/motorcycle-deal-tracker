@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/core/localization/app_language.dart';
+import 'package:motorcycle_deal_tracker/features/collector_status/domain/api_usage.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/domain/collector_run.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/domain/database_usage.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/domain/github_token.dart';
@@ -372,6 +373,77 @@ void main() {
           bytes: 2048,
           tables: [(name: 'listings', bytes: 1024)],
         ),
+      );
+    });
+  });
+
+  group('outside APIs (N.101)', () {
+    test('this month, last month and the last day used', () {
+      final usage = ApiUsage(
+        service: 'api_ninjas',
+        monthRequests: 1,
+        lastMonthRequests: 30,
+        lastUsedOn: DateTime(2026, 11, 9),
+      );
+      expect(
+        apiUsageText(usage),
+        'API Ninjas: 1 pedido este mês, 30 no mês passado; o último a '
+        '09/11/2026',
+      );
+      expect(
+        apiUsageText(usage, language: .english),
+        'API Ninjas: 1 request this month, 30 last month; the last on '
+        '09/11/2026',
+      );
+      expect(
+        apiUsageText(
+          ApiUsage(
+            service: 'gemini',
+            monthRequests: 0,
+            lastMonthRequests: 4,
+            lastUsedOn: DateTime(2026, 10, 12),
+          ),
+        ),
+        'Gemini: 0 pedidos este mês, 4 no mês passado; o último a 12/10/2026',
+      );
+    });
+
+    test('never used', () {
+      const usage = ApiUsage(
+        service: 'gemini',
+        monthRequests: 0,
+        lastMonthRequests: 0,
+      );
+      expect(apiUsageText(usage), 'Gemini: ainda sem pedidos');
+      expect(
+        apiUsageText(usage, language: .english),
+        'Gemini: no requests yet',
+      );
+    });
+
+    test('reads the database function\'s rows', () {
+      expect(
+        ApiUsage.fromJson(const {
+          'service': 'api_ninjas',
+          'month_requests': 12,
+          'last_month_requests': 0,
+          'last_used_on': '2026-11-09',
+        }),
+        ApiUsage(
+          service: 'api_ninjas',
+          monthRequests: 12,
+          lastMonthRequests: 0,
+          lastUsedOn: DateTime(2026, 11, 9),
+        ),
+      );
+      expect(
+        ApiUsage.fromJson(const {
+          'service': 'gemini',
+          'month_requests': 0,
+          'last_month_requests': 0,
+          'last_used_on': null,
+        }).lastUsedOn,
+        isNull,
       );
     });
   });

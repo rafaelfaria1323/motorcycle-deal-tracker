@@ -176,7 +176,8 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   Flash-Lite then Flash);
                                   audit/text_audit.dart compares with the
                                   rules, report in the run's summary;
-                                  writes nothing; no key: skipped
+                                  writes only its request count
+                                  (N.101); no key: skipped
 .github/workflows/score-check.yml The score check (N.61, bin/score_check.dart,
                                   no AI): per model, how its gone ads left
                                   and where the likely sales sat against
@@ -783,7 +784,10 @@ invites; written by the collector on each run).
   and cause, `failureHistoryText`, this month's runs and GitHub minutes,
   and the data quality), with the database's size against the
   free plan's 500 MB and its 5 biggest tables (`database_usage`, admins;
-  red from 80 %).
+  red from 80 %), and "Serviços externos": the requests the weekly steps
+  sent to API Ninjas and Gemini this month and last (N.101: each client's
+  `requests`, stored by `record_api_usage` per Lisbon day in `api_usage`,
+  RLS, no API access; read by `api_usage()`, admins; `apiUsageText`).
 - Schedules live in Supabase, not in the workflows (GitHub's scheduler never
   started `collect.yml`): pg_cron jobs `collect-listings` (`0 * * * *`,
   `dispatch_collection()`: only at the Lisbon hours 0, 8, 10, 12, 14, 16,

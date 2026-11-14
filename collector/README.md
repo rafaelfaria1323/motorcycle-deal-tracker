@@ -201,7 +201,9 @@ from the entries that are the model (whole-word name, no excluded word,
 engine within range), `store_model_specs` fills only the empty ones, and
 `specs/specs_step.dart` reports what was filled and the typed figures the
 API puts more than 10 % away (stdout and the run's summary). A refused key
-or an exhausted month fails the run.
+or an exhausted month fails the run. Both it and `bin/text_audit.dart`
+store the requests they sent (`record_api_usage`, table `api_usage`, per
+Lisbon day; N.101), which admins see in "Estado da recolha".
 
 ## Notification languages
 

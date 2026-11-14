@@ -52,6 +52,7 @@ export 'src/specs/api_ninjas.dart';
 export 'src/specs/model_specs.dart';
 export 'src/specs/specs_reader.dart';
 export 'src/specs/specs_step.dart';
+export 'src/store/api_usage_store.dart';
 export 'src/store/audit_store.dart';
 export 'src/store/catalog_loader.dart';
 export 'src/store/listing_store.dart';
