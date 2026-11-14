@@ -59,6 +59,7 @@ void main() {
         expect(waits, isEmpty, reason: 'the first request waits for nothing');
         await client.generateJson('p', {});
         expect(waits, [const Duration(seconds: 15)]);
+        expect(client.requests, 2);
       },
     );
 
@@ -93,6 +94,7 @@ void main() {
           null,
           null,
         ], reason: 'asked once with it, then never again');
+        expect(client.requests, 3, reason: 'the retry counts as a request');
         final sent = <Object?>[];
         final other = GeminiClient(
           apiKey: 'k',

@@ -215,7 +215,7 @@
   },
   "countingRequests": "A contar os pedidos…",
   "@countingRequests": {
-    "description": "Interface text in collection_status_page, build."
+    "description": "Interface text in collection_status_page, the outside APIs section."
   },
   "noRequestsRecordedYet": "Ainda sem pedidos registados.",
   "@noRequestsRecordedYet": {
@@ -321,6 +321,54 @@
     "description": "Interface text in collection_status_text, biggestTablesText.",
     "placeholders": {
       "tables": {
+        "type": "String"
+      }
+    }
+  },
+  "outsideServices": "Serviços externos",
+  "@outsideServices": {
+    "description": "Interface text in collection_status_page, the outside APIs section."
+  },
+  "outsideServicesNote": "Pedidos contados pelos próprios passos semanais: o API Ninjas para as fichas técnicas dos modelos, o Gemini para a verificação das descrições. O limite de cada plano gratuito está no site do fornecedor.",
+  "@outsideServicesNote": {
+    "description": "Interface text in collection_status_page, the outside APIs section."
+  },
+  "couldNotCountRequests": "Não foi possível ler os pedidos aos serviços externos.",
+  "@couldNotCountRequests": {
+    "description": "Interface text in collection_status_page, the outside APIs section."
+  },
+  "apiNeverUsed": "{name}: ainda sem pedidos",
+  "@apiNeverUsed": {
+    "description": "Interface text in collection_status_text, apiUsageText.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "apiRequests": "{count, plural, =0{0 pedidos} =1{1 pedido} other{{count} pedidos}}",
+  "@apiRequests": {
+    "description": "Interface text in collection_status_text, apiUsageText.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "apiUsageLine": "{name}: {requests} este mês, {lastMonth} no mês passado; o último a {date}",
+  "@apiUsageLine": {
+    "description": "Interface text in collection_status_text, apiUsageText.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "requests": {
+        "type": "String"
+      },
+      "lastMonth": {
+        "type": "int"
+      },
+      "date": {
         "type": "String"
       }
     }

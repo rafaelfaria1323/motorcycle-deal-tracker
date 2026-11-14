@@ -1,5 +1,6 @@
 import '../../../core/formatting/formatters.dart';
 import '../domain/collector_run.dart';
+import '../domain/api_usage.dart';
 import '../domain/database_usage.dart';
 import '../domain/github_token.dart';
 import '../../../core/localization/localizations.dart';
@@ -94,6 +95,24 @@ String? biggestTablesText(
       '${t.name} ${megabytes(t.bytes, language: language)}',
   ];
   return language.messages.largestTables(tables: tables.join(', '));
+}
+
+/// The outside APIs' names (`api_usage.service`); never translated.
+const apiServiceNames = {'api_ninjas': 'API Ninjas', 'gemini': 'Gemini'};
+
+/// "API Ninjas: 12 pedidos este mês, 30 no mês passado; o último a
+/// 09/11/2026", or "Gemini: ainda sem pedidos" (N.101).
+String apiUsageText(ApiUsage usage, {AppLanguage language = .portuguese}) {
+  final messages = language.messages;
+  final name = apiServiceNames[usage.service] ?? usage.service;
+  final lastUsedOn = usage.lastUsedOn;
+  if (lastUsedOn == null) return messages.apiNeverUsed(name: name);
+  return messages.apiUsageLine(
+    name: name,
+    requests: messages.apiRequests(count: usage.monthRequests),
+    lastMonth: usage.lastMonthRequests,
+    date: Formatters.date(lastUsedOn),
+  );
 }
 
 const siteNames = {'standvirtual': 'Standvirtual', 'olx': 'OLX'};

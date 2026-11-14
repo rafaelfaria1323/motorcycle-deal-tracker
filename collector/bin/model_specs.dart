@@ -9,7 +9,8 @@ import 'package:http/http.dart' as http;
 /// `API_NINJAS_KEY`); only empty figures are filled, and the figures the
 /// API puts more than 10 % from the typed ones are reported, to stdout and
 /// the run's summary (`GITHUB_STEP_SUMMARY`). Without a key it says so and
-/// stops (exit 0). A refused key or an exhausted month fails the run.
+/// stops (exit 0). A refused key or an exhausted month fails the run. The
+/// requests sent are stored as the day's usage (N.101).
 Future<void> main(List<String> args) async {
   final options = readCommandLine(
     ArgParser()..addOption(
@@ -34,8 +35,8 @@ Future<void> main(List<String> args) async {
   await withServiceClient((client) async {
     final store = SpecsStore(client);
     final httpClient = http.Client();
+    final api = ApiNinjasClient(apiKey: apiKey, httpClient: httpClient);
     try {
-      final api = ApiNinjasClient(apiKey: apiKey, httpClient: httpClient);
       final outcomes = await lookUpSpecs(
         await store.modelsToCheck(int.parse(options.option('days')!)),
         ask: api.motorcycles,
@@ -50,6 +51,8 @@ Future<void> main(List<String> args) async {
       if (outcomes.any((o) => o.error != null)) exitCode = 1;
     } finally {
       httpClient.close();
+      stdout.writeln('API Ninjas requests: ${api.requests}');
+      await recordApiUsage(client, .apiNinjas, api.requests);
     }
   });
 }

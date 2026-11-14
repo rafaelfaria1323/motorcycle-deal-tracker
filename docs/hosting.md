@@ -187,7 +187,8 @@ warning is then the only sign.
 
 `model-specs.yml` runs with Monday's summary and fills the catalog's empty
 figures from API Ninjas (only the models missing one, or never checked;
-a few calls a week).
+a few calls a week; how many, this month and last, is in the app's
+"Estado da recolha" › "Serviços externos", N.101).
 
 1. api-ninjas.com › sign up (free tier) › "My Account" › copy the API key.
 2. GitHub › Settings › Secrets and variables › Actions → new secret

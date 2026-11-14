@@ -421,6 +421,31 @@ end;
 $$;
 
 --
+-- Name: api_usage(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.api_usage() RETURNS TABLE(service text, month_requests integer, last_month_requests integer, last_used_on date)
+    LANGUAGE plpgsql STABLE SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+declare
+  v_month date := date_trunc('month', now() at time zone 'Europe/Lisbon')::date;
+begin
+  perform public.require_admin();
+  return query
+  select s.service,
+         coalesce(sum(u.requests) filter (where u.day >= v_month), 0)::integer,
+         coalesce(sum(u.requests) filter (
+           where u.day >= v_month - interval '1 month' and u.day < v_month), 0)::integer,
+         max(u.day)
+  from unnest(array['api_ninjas', 'gemini']) s(service)
+  left join public.api_usage u on u.service = s.service
+  group by s.service
+  order by s.service;
+end;
+$$;
+
+--
 -- Name: apply_listing_dates(text, jsonb); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -4437,6 +4462,28 @@ CREATE FUNCTION public.recalls(b public.owned_bikes) RETURNS jsonb
     AS $$ select public.model_recalls(b.motorcycle_id, b.year) $$;
 
 --
+-- Name: record_api_usage(text, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.record_api_usage(p_service text, p_requests integer) RETURNS void
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+declare
+  v_today date := (now() at time zone 'Europe/Lisbon')::date;
+begin
+  if p_requests is null or p_requests <= 0 then
+    return;
+  end if;
+  insert into public.api_usage (service, day, requests)
+  values (p_service, v_today, p_requests)
+  on conflict (service, day) do update
+    set requests = public.api_usage.requests + excluded.requests;
+  delete from public.api_usage where day < v_today - interval '13 months';
+end;
+$$;
+
+--
 -- Name: record_initial_price(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -6554,6 +6601,24 @@ CREATE TABLE public.alerts (
 );
 
 --
+-- Name: api_usage; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.api_usage (
+    service text NOT NULL,
+    day date NOT NULL,
+    requests integer NOT NULL,
+    CONSTRAINT api_usage_requests_check CHECK ((requests >= 0)),
+    CONSTRAINT api_usage_service_check CHECK ((service = ANY (ARRAY['api_ninjas'::text, 'gemini'::text])))
+);
+
+--
+-- Name: TABLE api_usage; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.api_usage IS 'Requests made to outside APIs per Lisbon day (N.101). No API access: record_api_usage (collector), api_usage (admins).';
+
+--
 -- Name: app_admins; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -7515,6 +7580,13 @@ ALTER TABLE ONLY public.account_languages
 
 ALTER TABLE ONLY public.alerts
     ADD CONSTRAINT alerts_pkey PRIMARY KEY (id);
+
+--
+-- Name: api_usage api_usage_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.api_usage
+    ADD CONSTRAINT api_usage_pkey PRIMARY KEY (service, day);
 
 --
 -- Name: app_admins app_admins_pkey; Type: CONSTRAINT; Schema: public; Owner: -
@@ -8642,6 +8714,12 @@ ALTER TABLE public.account_languages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.alerts ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: api_usage; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.api_usage ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: app_admins; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -8960,6 +9038,14 @@ GRANT ALL ON FUNCTION public.age_score(p_year integer, p_points_per_year numeric
 
 REVOKE ALL ON FUNCTION public.answer_bike_value_requests(p_started_at timestamp with time zone) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.answer_bike_value_requests(p_started_at timestamp with time zone) TO service_role;
+
+--
+-- Name: FUNCTION api_usage(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.api_usage() FROM PUBLIC;
+GRANT ALL ON FUNCTION public.api_usage() TO authenticated;
+GRANT ALL ON FUNCTION public.api_usage() TO service_role;
 
 --
 -- Name: FUNCTION apply_listing_dates(p_source text, p_dates jsonb); Type: ACL; Schema: public; Owner: -
@@ -10025,6 +10111,13 @@ GRANT ALL ON FUNCTION public.recalls(b public.owned_bikes) TO authenticated;
 GRANT ALL ON FUNCTION public.recalls(b public.owned_bikes) TO service_role;
 
 --
+-- Name: FUNCTION record_api_usage(p_service text, p_requests integer); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.record_api_usage(p_service text, p_requests integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.record_api_usage(p_service text, p_requests integer) TO service_role;
+
+--
 -- Name: FUNCTION record_initial_price(); Type: ACL; Schema: public; Owner: -
 --
 
@@ -10490,6 +10583,12 @@ GRANT ALL ON TABLE public.alerts TO service_role;
 --
 
 GRANT UPDATE(read_at) ON TABLE public.alerts TO authenticated;
+
+--
+-- Name: TABLE api_usage; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON TABLE public.api_usage TO service_role;
 
 --
 -- Name: TABLE app_admins; Type: ACL; Schema: public; Owner: -

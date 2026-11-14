@@ -28,6 +28,9 @@ class ApiNinjasClient({
 }) {
   bool _first = true;
 
+  /// The requests sent so far (N.101: stored as the run's usage).
+  int requests = 0;
+
   /// The entries whose make is [make] and whose model name contains
   /// [model] (the API's own partial match); throws [ApiNinjasFailure].
   Future<List<Map<String, Object?>>> motorcycles(
@@ -41,6 +44,7 @@ class ApiNinjasClient({
       'model': model,
     });
     final http.Response response;
+    requests++;
     try {
       response = await httpClient
           .get(uri, headers: {'X-Api-Key': apiKey})

@@ -17,7 +17,7 @@ const titlesPerRequest = 40;
 /// single owner, legalisation, extras, km in the text) and places titles no
 /// model matched; the report of the disagreements goes to stdout and to the
 /// run's summary (`GITHUB_STEP_SUMMARY`). It changes nothing in the
-/// database. Without a key it says so and stops (exit 0).
+/// database but the count of requests sent (N.101). Without a key it says so and stops (exit 0).
 Future<void> main(List<String> args) async {
   final options = readCommandLine(
     ArgParser()
@@ -135,6 +135,8 @@ Future<void> main(List<String> args) async {
       }
     } finally {
       httpClient.close();
+      stdout.writeln('Gemini requests: ${gemini.requests}');
+      await recordApiUsage(client, .gemini, gemini.requests);
     }
 
     final report = auditReport(

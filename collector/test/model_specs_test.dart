@@ -268,6 +268,7 @@ void main() {
       expect(waits, isEmpty);
       await api.motorcycles('Yamaha', 'R7');
       expect(waits, [const Duration(seconds: 1)]);
+      expect(api.requests, 2);
     });
 
     test('a refusal says whether it stops the run', () async {
@@ -297,6 +298,7 @@ void main() {
         httpClient: MockClient((_) async => throw http.ClientException('x')),
       );
       expect(() => api.motorcycles('Y', 'M'), throwsA(isA<ApiNinjasFailure>()));
+      expect(api.requests, 1, reason: 'a failed request still counts');
     });
   });
 

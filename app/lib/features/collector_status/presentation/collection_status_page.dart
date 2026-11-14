@@ -9,10 +9,12 @@ import '../../../core/formatting/formatters.dart';
 import '../../../core/widgets/page_back_button.dart';
 import '../../../core/widgets/section_card.dart';
 import '../../../core/widgets/state_message.dart';
+import '../data/api_usage_repository.dart';
 import '../data/collector_runs_repository.dart';
 import '../data/database_usage_repository.dart';
 import '../data/github_token_repository.dart';
 import '../data/source_quality_repository.dart';
+import '../domain/api_usage.dart';
 import '../domain/collector_run.dart';
 import '../domain/database_usage.dart';
 import '../domain/github_token.dart';
@@ -23,7 +25,8 @@ import 'data_quality_details.dart';
 import '../../../core/localization/localizations.dart';
 
 /// "Estado da recolha" (admins, from Mais): whether the GitHub token still
-/// starts the runs, how much database space is used, each site's requests
+/// starts the runs, how much database space is used, the requests sent to
+/// the outside APIs this month and last (N.101), each site's requests
 /// today and pause, the searches read, the requests of each of the last 7
 /// days, this month's runs and GitHub minutes, the last 30 days' failures
 /// by site and cause, each site's data quality, and the last runs with
@@ -42,6 +45,7 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
   late Future<List<CollectorRun>> _thisMonth;
   late Future<GithubToken?> _token;
   late Future<DatabaseUsage?> _usage;
+  late Future<List<ApiUsage>?> _apis;
   late Future<List<SourceQuality>?> _quality;
 
   @override
@@ -68,6 +72,10 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
       (u) => u,
       onError: (Object _) => null,
     );
+    _apis = getIt<ApiUsageRepository>().get().then<List<ApiUsage>?>(
+      (u) => u,
+      onError: (Object _) => null,
+    );
     _quality = getIt<SourceQualityRepository>()
         .getAll()
         .then<List<SourceQuality>?>((q) => q, onError: (Object _) => null);
@@ -75,7 +83,7 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
 
   Future<void> _reload() async {
     setState(_load);
-    await (_recent, _month, _thisMonth, _token, _usage, _quality).wait;
+    await (_recent, _month, _thisMonth, _token, _usage, _apis, _quality).wait;
   }
 
   @override
@@ -124,6 +132,12 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
                   footnote:
                       context.strings.freeSupabasePlanAllows500MBAboveThat,
                   children: [_UsageLines(usage: _usage)],
+                ),
+                const SizedBox(height: 12),
+                SectionCard(
+                  title: context.strings.outsideServices,
+                  footnote: context.strings.outsideServicesNote,
+                  children: [_ApiUsageLines(usage: _apis)],
                 ),
                 const SizedBox(height: 12),
                 SectionCard(
@@ -333,6 +347,32 @@ class const _UsageLines({required final Future<DatabaseUsage?> usage})
           children: [
             _WarningLine(databaseUsageText(usage, language: context.language)),
             if (tables != null) BulletLine(tables),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class const _ApiUsageLines({required final Future<List<ApiUsage>?> usage})
+    extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<ApiUsage>?>(
+      future: usage,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != .done) {
+          return BulletLine(context.strings.countingRequests);
+        }
+        final usage = snapshot.data;
+        if (usage == null) {
+          return BulletLine(context.strings.couldNotCountRequests);
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final u in usage)
+              BulletLine(apiUsageText(u, language: context.language)),
           ],
         );
       },
