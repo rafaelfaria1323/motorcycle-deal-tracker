@@ -34,4 +34,4 @@ jobs:
       - uses: ./.github/actions/collector
 
       - name: Check the scores against likely sales
-        run: cd collector && dart run bin/score_check.dart
+        run: cd collector && dart run bin/score_diag.dart
