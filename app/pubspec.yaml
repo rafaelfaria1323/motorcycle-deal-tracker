@@ -58,6 +58,9 @@ dependencies:
   # A planned visit to the Android calendar (no Dart code, N.73).
   calendar_event:
     path: packages/calendar_event
+  # Ads shared to the Android app from other apps (no Dart code, N.103).
+  share_receiver:
+    path: packages/share_receiver
 
 dev_dependencies:
   flutter_test:

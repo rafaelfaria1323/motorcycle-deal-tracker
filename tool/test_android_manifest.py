@@ -10,7 +10,11 @@ TEMPLATE = """<manifest xmlns:android="http://schemas.android.com/apk/res/androi
         android:label="motorcycle_deal_tracker"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
-        <activity android:name=".MainActivity" android:exported="true"/>
+        <activity android:name=".MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+            </intent-filter>
+        </activity>
     </application>
 </manifest>
 """
@@ -44,12 +48,7 @@ class FitManifestTest(unittest.TestCase):
             fit_manifest(TEMPLATE.replace('android:label="motorcycle_deal_tracker"', ""))
 
     def test_the_web_address_becomes_an_app_link(self):
-        template = TEMPLATE.replace(
-            'android:exported="true"/>',
-            'android:exported="true">\n            <intent-filter>\n'
-            '                <action android:name="android.intent.action.MAIN"/>\n'
-            '            </intent-filter>\n        </activity>')
-        xml = fit_manifest(template, "deal.example.pages.dev")
+        xml = fit_manifest(TEMPLATE, "deal.example.pages.dev")
         self.assertIn('<intent-filter android:autoVerify="true">', xml)
         self.assertIn(
             '<data android:scheme="https" android:host="deal.example.pages.dev"/>', xml)
@@ -60,9 +59,26 @@ class FitManifestTest(unittest.TestCase):
         self.assertLess(xml.index("action.VIEW"), xml.index("</activity>"))
         self.assertEqual(fit_manifest(xml, "deal.example.pages.dev"), xml)
         # Without an address the manifest has no link.
-        self.assertNotIn("autoVerify", fit_manifest(template))
+        self.assertNotIn("autoVerify", fit_manifest(TEMPLATE))
+
+    def test_the_activity_is_a_share_target(self):
+        xml = fit_manifest(TEMPLATE)
+        self.assertIn('<action android:name="android.intent.action.SEND"/>', xml)
+        self.assertIn('<data android:mimeType="text/plain"/>', xml)
+        self.assertLess(xml.index("action.MAIN"), xml.index("action.SEND"))
+        self.assertLess(xml.index("action.SEND"), xml.index("</activity>"))
+        self.assertEqual(xml.count("action.SEND"), 1)
+        self.assertEqual(fit_manifest(xml), xml)
+
+    def test_an_activity_without_a_body_fails_loudly(self):
+        bare = TEMPLATE.replace(
+            TEMPLATE[TEMPLATE.index('android:exported="true">'):
+                     TEMPLATE.index("</activity>") + len("</activity>")],
+            'android:exported="true"/>')
         with self.assertRaises(ManifestError):
-            fit_manifest(TEMPLATE, "deal.example.pages.dev")
+            fit_manifest(bare)
+        with self.assertRaises(ManifestError):
+            fit_manifest(bare, "deal.example.pages.dev")
 
     def test_only_an_https_host_is_taken(self):
         self.assertEqual(web_host("https://deal.example.pages.dev"), "deal.example.pages.dev")

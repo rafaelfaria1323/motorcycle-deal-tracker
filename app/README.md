@@ -12,7 +12,9 @@ its notifications through Firebase Cloud Messaging (the in-repo plugin
 `packages/android_push`); a tap opens the page in the app. Links to the web
 app (a shared ad) open in the Android app too (App Links). A planned
 visit goes to the phone's calendar through the in-repo plugin
-`packages/calendar_event` (no calendar permission). It keeps the
+`packages/calendar_event` (no calendar permission). An ad shared from the
+OLX or Standvirtual app (Share › Deal Tracker) opens "Avaliar um anúncio"
+with its link filled in (the in-repo plugin `packages/share_receiver`). It keeps the
 sign-in encrypted with a key in the Android Keystore
 (`flutter_secure_storage`) and leaves its data out of Android's backups.
 

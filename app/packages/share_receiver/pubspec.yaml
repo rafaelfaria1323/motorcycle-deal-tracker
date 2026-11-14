@@ -1,0 +1,21 @@
+name: share_receiver
+description: Takes text shared to the Android app from other apps (Deal Tracker only).
+publish_to: 'none'
+version: 1.0.0
+
+environment:
+  sdk: ^3.9.2
+  flutter: ">=3.35.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+# Android only, no Dart code: the app calls the channel itself
+# (lib/core/platform/shared_text_stub.dart).
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: io.github.rafaelfaria1323.share_receiver
+        pluginClass: ShareReceiverPlugin

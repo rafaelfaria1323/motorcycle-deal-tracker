@@ -460,7 +460,7 @@ invites; written by the collector on each run).
   line says what is chosen (`chosenSummary`); the filters sheet keeps its
   title and Limpar/Aplicar fixed while the choices scroll.
   Switching tabs uses `context.go`; full pages outside the shell
-  (`/models`, `/market`, `/worth`, `/import`, `/check-ad`, `/compare?ids=a,b,c`,
+  (`/models`, `/market`, `/worth`, `/import`, `/check-ad` (`?link=`), `/compare?ids=a,b,c`,
   `/summary`, `/my-bike`, `/dealer?name=…`, `/shared-favourites?owner=…`)
   and an ad (`/deals/<id>`, from anywhere) are pushed, so back returns
   where the person was; pushed pages show their own address
@@ -557,7 +557,14 @@ invites; written by the collector on each run).
   the signing key's SHA-256 from keytool; upload-artifact with
   `include-hidden-files`), and go_router's redirect turns the address
   Android hands over (`/#/deals/<id>`) into that page (`appLinkLocation`,
-  `notification_link.dart`). The seller's ad opens through `openAd`
+  `notification_link.dart`). Share › Deal Tracker in another app (N.103):
+  the manifest's `ACTION_SEND` text/plain filter (`tool/android_manifest.py`),
+  the in-repo plugin `app/packages/share_receiver` (Java, channel
+  `deal_tracker/shared_text`: `initialText` once, `shared` while running),
+  `core/platform/shared_text.dart` (no-op on the web) and `openSharedText`
+  (`app/router/shared_text_open.dart`): `/check-ad?link=…` with the ad's
+  link (`adLinkOf`), or the text as it came, `BikeValuePage.initialLink`.
+  The seller's ad opens through `openAd`
   (`core/platform/open_ad.dart`): in the iPhone's home-screen app it goes
   to Safari (`x-safari-https:`, `_top`), since its in-app sheet stayed
   blank behind the OLX app.
