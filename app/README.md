@@ -110,6 +110,11 @@ Screen names below use the Portuguese labels; English provides the same screens.
   search for the same model, a year either side, up to 10 % dearer and
   with up to 30 % more km, so the next one like it is an alert. A
   favourite always alerts you about price drops and its removal.
+  Its menu: "Partilhar a lista" (accounts) sends a link that shows your
+  favourites, with notes, visits and checklist, to one more account,
+  read only (the people icon opens a list shared with you; "Deixar de
+  ver" leaves it), and "Exportar (CSV)" downloads them for a
+  spreadsheet (copied in the Android app). Both free (16.11).
 - **Comparar:** up to 3 listings side by side ("Comparar" on a card in
   Ofertas, long press the card, or "Comparar" on a listing's page), the best
   value of each row marked; the models' power, weight, seat height, tank,

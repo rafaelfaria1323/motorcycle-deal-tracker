@@ -171,6 +171,10 @@ feature; the permission and invited-account rules above still apply.
   want a second opinion. Built free for every account as a text to
   share (roadmap 16.8, 2026-11-14: Negociar › "Relatório do anúncio");
   listed here only as a possible paid feature.
+- **Shared list and export.** Favourites, notes, visits and checklist
+  shown to one more account, read only, and exported as CSV. Built free
+  for every account (roadmap 16.11, 2026-11-14: Favoritos' menu); listed
+  here only as a possible Pro feature.
 - **Follow any ad by its link.** Paste a Standvirtual or OLX link; it is
   read once and followed even outside one's models. Roadmap "Next" 2
   already plans updating such ads.

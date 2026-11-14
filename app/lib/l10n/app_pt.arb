@@ -7692,5 +7692,182 @@
   "shareReport": "Partilhar relatório",
   "@shareReport": {
     "description": "Interface text in listing_report_text / ListingReportCard: the report of one ad (16.8)."
+  },
+  "favouritesSeenBy": "Vê a sua lista: {email}",
+  "@favouritesSeenBy": {
+    "description": "Interface text for shared favourites and their export (16.11).",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "favouritesLinkWaiting": "Ligação à espera de ser aberta, válida até {date}.",
+  "@favouritesLinkWaiting": {
+    "description": "Interface text for shared favourites and their export (16.11).",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "favouritesNotShared": "A sua lista não está partilhada.",
+  "@favouritesNotShared": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "csvBike": "Mota",
+  "@csvBike": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "csvYear": "Ano",
+  "@csvYear": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "csvMileage": "Km",
+  "@csvMileage": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "csvPrice": "Preço (€)",
+  "@csvPrice": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "csvDealScore": "Deal Score",
+  "@csvDealScore": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "csvRiskScore": "Risk Score",
+  "@csvRiskScore": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "csvStatus": "Estado",
+  "@csvStatus": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "csvPlace": "Local",
+  "@csvPlace": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "csvNote": "Nota",
+  "@csvNote": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "csvVisit": "Visita",
+  "@csvVisit": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "csvChecklist": "Verificação",
+  "@csvChecklist": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "csvAd": "Anúncio",
+  "@csvAd": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "csvAppLink": "Na app",
+  "@csvAppLink": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "shareFavouritesList": "Partilhar a lista",
+  "@shareFavouritesList": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "exportFavouritesCsv": "Exportar (CSV)",
+  "@exportFavouritesCsv": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "shareFavouritesBody": "Mostre os seus favoritos, com as notas, as visitas e a verificação, a mais uma conta: quem for ver a mota consigo, um mecânico. Essa conta só pode ver; pode deixar de partilhar quando quiser.",
+  "@shareFavouritesBody": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "createShareLink": "Criar ligação",
+  "@createShareLink": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "newShareLink": "Nova ligação",
+  "@newShareLink": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "sendShareLink": "Enviar ligação",
+  "@sendShareLink": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "stopSharing": "Deixar de partilhar",
+  "@stopSharing": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "couldNotShareFavourites": "Não foi possível partilhar a lista. Verifique a ligação e tente novamente.",
+  "@couldNotShareFavourites": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "favouritesShareText": "Veja os meus favoritos no {app}:",
+  "@favouritesShareText": {
+    "description": "Interface text for shared favourites and their export (16.11).",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "favouritesListOf": "Favoritos de {email}",
+  "@favouritesListOf": {
+    "description": "Interface text for shared favourites and their export (16.11).",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "sharedListsWithYou": "Listas partilhadas consigo",
+  "@sharedListsWithYou": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "leaveSharedList": "Deixar de ver",
+  "@leaveSharedList": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "sharedListUnavailable": "Esta lista já não está partilhada consigo.",
+  "@sharedListUnavailable": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "sharedListEmpty": "Ainda não há favoritos nesta lista.",
+  "@sharedListEmpty": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "couldNotLoadSharedList": "Não foi possível carregar a lista.",
+  "@couldNotLoadSharedList": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "sharedListTitle": "Lista partilhada",
+  "@sharedListTitle": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "signInToSeeSharedList": "Entre na sua conta para ver esta lista (Mais › Conta).",
+  "@signInToSeeSharedList": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "shareLinkUnavailable": "Esta ligação já foi usada, expirou ou não existe. Peça uma nova.",
+  "@shareLinkUnavailable": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "shareLinkOwn": "Esta é a sua própria lista.",
+  "@shareLinkOwn": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "csvDownloaded": "Ficheiro descarregado: {file}",
+  "@csvDownloaded": {
+    "description": "Interface text for shared favourites and their export (16.11).",
+    "placeholders": {
+      "file": {
+        "type": "String"
+      }
+    }
+  },
+  "csvCopied": "Não é possível descarregar aqui: o texto CSV foi copiado. Cole-o numa folha de cálculo.",
+  "@csvCopied": {
+    "description": "Interface text for shared favourites and their export (16.11)."
+  },
+  "csvFileName": "favoritos.csv",
+  "@csvFileName": {
+    "description": "Interface text for shared favourites and their export (16.11)."
   }
 }

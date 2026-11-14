@@ -14,6 +14,7 @@ import '../../features/listings/data/repositories/supabase_catalog_repository.da
 import '../../features/listings/data/repositories/supabase_dealer_repository.dart';
 import '../../features/listings/data/repositories/supabase_photo_exams_repository.dart';
 import '../../features/listings/data/repositories/supabase_photo_marks_repository.dart';
+import '../../features/favourites/data/repositories/supabase_favourite_shares_repository.dart';
 import '../../features/favourites/data/repositories/supabase_favourites_repository.dart';
 import '../../features/listings/data/repositories/supabase_listing_card_preferences_repository.dart';
 import '../../features/listings/data/repositories/supabase_listings_repository.dart';
@@ -30,6 +31,7 @@ import '../../features/listings/domain/repositories/catalog_repository.dart';
 import '../../features/listings/domain/repositories/dealer_repository.dart';
 import '../../features/listings/domain/repositories/photo_exams_repository.dart';
 import '../../features/listings/domain/repositories/photo_marks_repository.dart';
+import '../../features/favourites/domain/repositories/favourite_shares_repository.dart';
 import '../../features/favourites/domain/repositories/favourites_repository.dart';
 import '../../features/listings/domain/repositories/listing_card_preferences_repository.dart';
 import '../../features/listings/domain/repositories/listings_repository.dart';
@@ -94,6 +96,9 @@ void configureDependencies(SharedPreferences preferences) {
     )
     ..registerLazySingleton<FavouritesRepository>(
       () => SupabaseFavouritesRepository(getIt<SupabaseClient>(), preferences),
+    )
+    ..registerLazySingleton<FavouriteSharesRepository>(
+      () => SupabaseFavouriteSharesRepository(getIt<SupabaseClient>()),
     )
     ..registerLazySingleton<FavouritesCubit>(
       () =>

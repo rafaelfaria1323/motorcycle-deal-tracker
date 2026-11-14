@@ -15,6 +15,8 @@ abstract final class AppRoutes {
   static const summary = '/summary';
   static const myBike = '/my-bike';
   static const dealerPath = '/dealer';
+  static const share = '/share';
+  static const sharedFavouritesPath = '/shared-favourites';
 
   static String listingDetail(String id) => '$deals/$id';
 
@@ -27,6 +29,10 @@ abstract final class AppRoutes {
   /// A dealer's page (N.72), by the name its ads give.
   static String dealer(String name) =>
       '$dealerPath?name=${Uri.encodeQueryComponent(name)}';
+
+  /// Another account's favourites shown to this one (16.11).
+  static String sharedFavourites(String owner) =>
+      '$sharedFavouritesPath?owner=${Uri.encodeQueryComponent(owner)}';
 
   static String listingPhotos(String id) => '$deals/$id/photos';
 
