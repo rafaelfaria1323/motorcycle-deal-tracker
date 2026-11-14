@@ -23,6 +23,10 @@ Listing listing({
   newPriceAdCount: adCount,
 );
 
+const _papers =
+    'Os stands costumam anunciar uma nova sem as despesas de registo e '
+    'matrícula: pergunte quanto acrescentam';
+
 void main() {
   final checked = DateTime(2026, 10, 13);
   final now = DateTime(2026, 10, 19);
@@ -46,6 +50,7 @@ void main() {
       'Preço de uma nova: ${Formatters.price(8250)}',
       '${Formatters.price(1250)} abaixo de uma nova (15 %)',
       'Preço de uma nova verificado em 13/10/2026',
+      _papers,
     ]);
   });
 
@@ -66,6 +71,7 @@ void main() {
       'Custa o mesmo que uma nova',
       'Não é mais barata do que uma nova: confirme os extras incluídos '
           'ou se o preço está certo',
+      _papers,
     ]);
   });
 
@@ -82,7 +88,8 @@ void main() {
       now: DateTime(2027, 6, 1),
     );
 
-    expect(lines.last, endsWith(': pode estar desatualizado'));
+    expect(lines[lines.length - 2], endsWith(': pode estar desatualizado'));
+    expect(lines.last, _papers);
   });
 
   test('a price from the dealers\' new bikes says how many (N.58)', () {
@@ -92,6 +99,10 @@ void main() {
     );
 
     expect(lines.first, 'Preço de uma nova: ${Formatters.price(8400)}');
-    expect(lines.last, 'Mediana de 4 motas novas à venda nos stands');
+    expect(
+      lines[lines.length - 2],
+      'Mediana de 4 motas novas à venda nos stands',
+    );
+    expect(lines.last, _papers);
   });
 }

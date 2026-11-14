@@ -9,6 +9,10 @@ enum ListingStatus { active, priceChanged, removed, sold, unknown }
 
 enum SellerType { private, dealer, unknown }
 
+/// The source of an ad typed by hand in "Avaliar um anúncio" (N.105: one
+/// on Facebook or another site the collector doesn't read); never stored.
+const typedAdSource = 'typed';
+
 /// Asking prices below this are placeholders ("1 €", "consulte"); the
 /// database leaves them out of the comparables, its price sorts and its
 /// maximum prices too (`asking_price`).
@@ -173,6 +177,9 @@ class const Listing({
   String get nameAndYear => year == null ? name : '$name · $year';
 
   bool get isRemoved => status == .removed;
+
+  /// An ad typed by hand ([typedAdSource]): no page, history or favourite.
+  bool get isTyped => source == typedAdSource;
 
   /// Still on sale, as the database's live statuses.
   bool get isLive => status == .active || status == .priceChanged;

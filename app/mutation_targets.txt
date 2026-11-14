@@ -7,6 +7,7 @@ lib/features/collector_status/presentation/collection_status_text.dart
 lib/features/valuation/presentation/ownership_cost.dart
 lib/features/collector_status/presentation/collection_text.dart
 lib/features/valuation/presentation/bike_value_text.dart
+lib/features/valuation/presentation/typed_ad.dart
 lib/features/favourites/presentation/viewing_checklist.dart
 lib/features/listings/presentation/listing_detail_text.dart
 lib/features/compare/presentation/compare_text.dart

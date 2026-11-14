@@ -181,10 +181,12 @@ class _OfferCardState extends State<OfferCard> {
         const SizedBox(height: 16),
         CounterOfferReply(offer: offer, controller: _counter),
         const SizedBox(height: 8),
-        if (favourite == null)
-          Text(context.strings.addItToFavouritesStarToSetYour, style: muted)
-        else
-          TargetPriceTile(favourite: favourite, suggested: offer.opening),
+        // An ad typed by hand can't be a favourite.
+        if (!listing.isTyped)
+          if (favourite == null)
+            Text(context.strings.addItToFavouritesStarToSetYour, style: muted)
+          else
+            TargetPriceTile(favourite: favourite, suggested: offer.opening),
         Align(
           alignment: Alignment.centerLeft,
           child: TextButton(

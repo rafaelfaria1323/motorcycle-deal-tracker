@@ -11,8 +11,9 @@ const smallDiscountPct = 10;
 
 /// Lines comparing the listing's price with a new bike of the same model,
 /// ending with where that price comes from (the dealers' new bikes, N.58,
-/// or the list price and when it was checked); empty when either price is
-/// unknown (or a placeholder).
+/// or the list price and when it was checked) and a reminder that dealers
+/// quote it without the papers; empty when either price is unknown (or a
+/// placeholder).
 List<String> newPriceLines(
   Listing listing, {
   DateTime? now,
@@ -73,5 +74,6 @@ List<String> newPriceLines(
       ),
     );
   }
+  lines.add(language.messages.newBikePriceWithoutPapers);
   return lines;
 }
