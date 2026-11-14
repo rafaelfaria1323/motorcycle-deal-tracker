@@ -18,6 +18,7 @@ ModelCheck _model({
   soldPosition: position,
   liveWithPosition: 20,
   livePosition: -1.5,
+  soldDropped: 2,
   soldDropPct: 3.0,
   soldDays: 21.4,
 );
@@ -37,6 +38,7 @@ void main() {
       'sold_position': '-8.5',
       'live_with_position': 11,
       'live_position': 1.25,
+      'sold_dropped': 0,
       'sold_drop_pct': null,
       'sold_days': 30,
     });
@@ -44,6 +46,7 @@ void main() {
     expect(m.seenOnce, 4);
     expect(m.soldPosition, -8.5);
     expect(m.livePosition, 1.25);
+    expect(m.soldDropped, 0);
     expect(m.soldDropPct, isNull);
     expect(m.soldDays, 30.0);
 
@@ -104,7 +107,7 @@ void main() {
       report,
       contains(
         '| Yamaha MT-07 | 12 | 8 (1) | 1 | 2 | 1 | 3 | +2.0 % (n=6) | '
-        '-1.5 % (n=20) | 3.0 % | 21 |',
+        '-1.5 % (n=20) | 2 of 8, -3.0 % | 21 |',
       ),
     );
     expect(report, contains('between 60 and 14 days ago'));
@@ -129,6 +132,30 @@ void main() {
     expect(report, isNot(contains('|---|')));
   });
 
+  test('sales that never dropped say so, not a 0 % median', () {
+    const m = ModelCheck(
+      model: 'Honda CB650R',
+      gone: 6,
+      soldInText: 0,
+      likelySold: 5,
+      relisted: 0,
+      stillListed: 0,
+      expired: 1,
+      seenOnce: 0,
+      soldWithPosition: 0,
+      liveWithPosition: 0,
+      soldDropped: 0,
+    );
+    final report = scoreCheckReport(
+      models: const [m],
+      bands: const [],
+      days: 28,
+      bandDays: 60,
+      horizon: 14,
+    );
+    expect(report, contains('| – | – | 0 of 5 | – |'));
+  });
+
   test('a missing figure shows a dash', () {
     final report = scoreCheckReport(
       models: [
@@ -143,6 +170,7 @@ void main() {
           seenOnce: 0,
           soldWithPosition: 0,
           liveWithPosition: 0,
+          soldDropped: 0,
         ),
       ],
       bands: const [BandCheck(band: '40-59', ads: 0, soldWithin: 0)],

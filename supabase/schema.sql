@@ -5348,7 +5348,7 @@ $$;
 -- Name: score_check_models(integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.score_check_models(p_days integer DEFAULT 28) RETURNS TABLE(model text, gone integer, sold_in_text integer, likely_sold integer, relisted integer, still_listed integer, expired integer, seen_once integer, sold_with_position integer, sold_position numeric, live_with_position integer, live_position numeric, sold_drop_pct numeric, sold_days numeric)
+CREATE FUNCTION public.score_check_models(p_days integer DEFAULT 28) RETURNS TABLE(model text, gone integer, sold_in_text integer, likely_sold integer, relisted integer, still_listed integer, expired integer, seen_once integer, sold_with_position integer, sold_position numeric, live_with_position integer, live_position numeric, sold_dropped integer, sold_drop_pct numeric, sold_days numeric)
     LANGUAGE sql STABLE SECURITY DEFINER
     SET search_path TO ''
     AS $$
@@ -5392,8 +5392,11 @@ CREATE FUNCTION public.score_check_models(p_days integer DEFAULT 28) RETURNS TAB
            round((percentile_cont(0.5) within group (order by g.position)
                   filter (where g.kind in ('sold_in_text', 'likely_sold')))::numeric, 1)
              as sold_position,
+           count(*) filter (where g.kind in ('sold_in_text', 'likely_sold')
+                              and g.drop_pct >= 1)::integer as sold_dropped,
            round((percentile_cont(0.5) within group (order by g.drop_pct)
-                  filter (where g.kind in ('sold_in_text', 'likely_sold')))::numeric, 1)
+                  filter (where g.kind in ('sold_in_text', 'likely_sold')
+                            and g.drop_pct >= 1))::numeric, 1)
              as sold_drop_pct,
            round((percentile_cont(0.5) within group (order by g.days)
                   filter (where g.kind in ('sold_in_text', 'likely_sold')))::numeric, 0)
@@ -5413,7 +5416,7 @@ CREATE FUNCTION public.score_check_models(p_days integer DEFAULT 28) RETURNS TAB
          g.gone, g.sold_in_text, g.likely_sold, g.relisted, g.still_listed,
          g.expired, g.seen_once, g.sold_with_position, g.sold_position,
          coalesce(v.live_with_position, 0), v.live_position,
-         g.sold_drop_pct, g.sold_days
+         g.sold_dropped, g.sold_drop_pct, g.sold_days
   from per_gone g
   join public.motorcycles m on m.id = g.motorcycle_id
   left join per_live v on v.motorcycle_id = g.motorcycle_id
