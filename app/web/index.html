@@ -17,6 +17,9 @@
     <base href="$FLUTTER_BASE_HREF">
 
     <meta charset="UTF-8">
+    <!-- So the loading preview below is laid out at the phone's width;
+         Flutter puts its own in its place when it starts. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta content="IE=Edge" http-equiv="X-UA-Compatible">
     <meta name="description"
           content="Acompanhe o mercado de motas usadas em Portugal e encontre as melhores ofertas.">
@@ -184,6 +187,51 @@
         stroke-dasharray: 1 200;
         animation: splash-arc 1.4s ease-in-out infinite;
       }
+      /* While the first listings are known: the spinner in a disc over
+         the first cards (#preview, drawn by the first-page script). */
+      #splash.previewing svg {
+        position: relative;
+        z-index: 1;
+        padding: 10px;
+        border-radius: 50%;
+        background: #FFFFFF;
+        border: 1px solid #E1E4E9;
+      }
+      #preview {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        padding: 16px 20px;
+        box-sizing: border-box;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        color: #14181E;
+      }
+      .preview-card {
+        max-width: 600px;
+        margin: 0 auto 16px;
+        border: 1px solid #E1E4E9;
+        border-radius: 12px;
+        background: #FFFFFF;
+        overflow: hidden;
+      }
+      .preview-card img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: cover;
+        background: #EDEFF2;
+      }
+      .preview-card div { padding: 12px 16px 14px; }
+      .preview-card b { display: block; font-size: 18px; }
+      .preview-card span { display: block; margin-top: 2px; font-size: 14px; color: #5A626D; }
+      .preview-card strong { display: block; margin-top: 8px; font-size: 22px; font-variant-numeric: tabular-nums; }
+      @media (prefers-color-scheme: dark) {
+        #splash.previewing svg { background: #171A20; border-color: #272C34; }
+        #preview { color: #ECEEF1; }
+        .preview-card { background: #171A20; border-color: #272C34; }
+        .preview-card img { background: #1C2027; }
+        .preview-card span { color: #9AA3AE; }
+      }
       @keyframes splash-turn { to { transform: rotate(360deg); } }
       @keyframes splash-arc {
         0% { stroke-dasharray: 1 200; stroke-dashoffset: 0; }
@@ -258,7 +306,10 @@
 <script>
   // The first listings and the model list, asked for while the app
   // downloads instead of after it, and the first cards' photos started:
-  // the largest paint of the page is the first photo. The app takes the
+  // the largest paint of the page is the first photo. On a phone the
+  // first cards are also drawn here, under the spinner (preview, N.99),
+  // so the photo shows long before Flutter's first frame, which removes
+  // them with the splash. The app takes the
   // answer once (takeFirstPage, lib/core/platform/first_page_web.dart)
   // for its first page (ListingsCubit.load). Only without a session or
   // with an anonymous one, which see every collected model; an account
@@ -296,9 +347,8 @@
       }
       return PHOTO_STEPS[PHOTO_STEPS.length - 1];
     }
-    // The page has no viewport tag until Flutter adds its own, so a
-    // phone lays it out 980 px wide (innerWidth) for now; the screen's
-    // width is the one the app will have.
+    // The screen's width is the one the app will have (innerWidth too,
+    // with the viewport tag; the smaller in case a browser ignores it).
     var PHOTO_BOX = cardPhotoBox(
       Math.min(window.innerWidth, window.screen.width || window.innerWidth),
       window.devicePixelRatio || 1);
@@ -348,19 +398,76 @@
       kept.push('s=' + width + 'x' + height);
       return kept.join(';');
     }
+    // Numbers as the app's Formatters (pt-PT: a space between thousands).
+    function grouped(value) {
+      return String(Math.round(value)).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0');
+    }
+    // Below the app's "1 €" / "consultar" prices (minRealPrice): no price.
+    var MIN_REAL_PRICE = 300;
+    // Phones only: one column, as the app's list there (wider screens
+    // load fast and lay the cards out in a grid).
+    var PREVIEW_MAX_WIDTH = 840;
+    // The first cards, drawn at once under the spinner while the app
+    // downloads (the slow part on a phone); they go with the spinner on
+    // Flutter's first frame. Only figures and names: nothing to translate.
+    function preview(listings) {
+      var splash = document.getElementById('splash');
+      if (!splash || !splash.parentNode) return;
+      if (window.innerWidth >= PREVIEW_MAX_WIDTH) return;
+      var box = document.createElement('div');
+      box.id = 'preview';
+      box.setAttribute('aria-hidden', 'true');
+      listings.forEach(function (listing) {
+        var card = document.createElement('div');
+        card.className = 'preview-card';
+        var photo = photos[listing.id];
+        if (photo) {
+          photo.alt = '';
+          card.appendChild(photo);
+        }
+        var text = document.createElement('div');
+        var name = document.createElement('b');
+        name.textContent = listing.brand + ' ' + listing.model;
+        text.appendChild(name);
+        var facts = [];
+        if (listing.year) facts.push(String(listing.year));
+        if (listing.mileage != null) facts.push(grouped(listing.mileage) + ' km');
+        if (facts.length) {
+          var line = document.createElement('span');
+          line.textContent = facts.join(' · ');
+          text.appendChild(line);
+        }
+        if (listing.price >= MIN_REAL_PRICE) {
+          var price = document.createElement('strong');
+          price.textContent = grouped(listing.price) + '\u00a0€';
+          text.appendChild(price);
+        }
+        card.appendChild(text);
+        box.appendChild(card);
+      });
+      splash.appendChild(box);
+      splash.className = 'previewing';
+    }
     // Kept, so a photo isn't dropped before it arrives.
-    var photos = [];
+    var photos = {};
     window.dealTrackerFirstPage = Promise.all([get(LISTINGS), get(MODELS)])
       .then(function (texts) {
-        JSON.parse(texts[0]).slice(0, PHOTOS).forEach(function (listing) {
+        var first = JSON.parse(texts[0]).slice(0, PHOTOS);
+        first.forEach(function (listing, index) {
           if (!listing.images || !listing.images.length) return;
           // The same address as the card's <img>, so it comes from the
-          // browser's cache; low priority, the app's files go first.
+          // browser's cache. The first one at once (the preview shows
+          // it); the rest after the app's files.
           var photo = new Image();
-          photo.fetchPriority = 'low';
+          if (index > 0) photo.fetchPriority = 'low';
           photo.src = sized(listing.images[0]);
-          photos.push(photo);
+          photos[listing.id] = photo;
         });
+        try {
+          preview(first);
+        } catch (e) {
+          // Only a preview: the app draws the list itself.
+        }
         return '{"listings":' + texts[0] + ',"motorcycles":' + texts[1] + '}';
       })
       .catch(function () {

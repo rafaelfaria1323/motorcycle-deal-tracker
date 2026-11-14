@@ -678,7 +678,10 @@ invites; written by the collector on each run).
   spinner (`#splash`, the theme's primary, as `Startup`'s) until Flutter's
   first frame; without an account's session it also asks for the first
   page of listings and the model list and starts the first photos while
-  the app downloads (`window.dealTrackerFirstPage`, taken by `Startup`
+  the app downloads, and on a phone (under 840 px) draws them as plain
+  cards under the spinner (`#preview`, N.99; gone with the splash; the
+  page's own viewport tag, which Flutter replaces)
+  (`window.dealTrackerFirstPage`, taken by `Startup`
   through `core/platform/first_page.dart`; the script's queries must stay
   the repository's own, `test/first_page_test.dart`; the address and
   publishable key come from `<meta name="database">`, written by the same
