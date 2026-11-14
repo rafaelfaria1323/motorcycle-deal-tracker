@@ -7611,5 +7611,86 @@
   "changeRenewed": "renovado no site",
   "@changeRenewed": {
     "description": "In Favoritos and on the ad's page, what changed since the favourite was last opened (N.97)."
+  },
+  "reportTitle": "Relatório: {bike}",
+  "@reportTitle": {
+    "description": "Interface text in listing_report_text / ListingReportCard: the report of one ad (16.8).",
+    "placeholders": {
+      "bike": {
+        "type": "String"
+      }
+    }
+  },
+  "reportMadeOn": "Feito a {date} no {app}, a partir dos preços pedidos nos anúncios.",
+  "@reportMadeOn": {
+    "description": "Interface text in listing_report_text / ListingReportCard: the report of one ad (16.8).",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "reportNotScored": "Deal Score: ainda sem pontuação",
+  "@reportNotScored": {
+    "description": "Interface text in listing_report_text / ListingReportCard: the report of one ad (16.8)."
+  },
+  "reportDealScore": "Deal Score: {score}/100 ({band})",
+  "@reportDealScore": {
+    "description": "Interface text in listing_report_text / ListingReportCard: the report of one ad (16.8).",
+    "placeholders": {
+      "score": {
+        "type": "int"
+      },
+      "band": {
+        "type": "String"
+      }
+    }
+  },
+  "reportRiskScore": "Risk Score: {score}/100 ({band})",
+  "@reportRiskScore": {
+    "description": "Interface text in listing_report_text / ListingReportCard: the report of one ad (16.8).",
+    "placeholders": {
+      "score": {
+        "type": "int"
+      },
+      "band": {
+        "type": "String"
+      }
+    }
+  },
+  "reportMarket": "Mercado",
+  "@reportMarket": {
+    "description": "Interface text in listing_report_text / ListingReportCard: the report of one ad (16.8)."
+  },
+  "reportArguments": "Argumentos para negociar",
+  "@reportArguments": {
+    "description": "Interface text in listing_report_text / ListingReportCard: the report of one ad (16.8)."
+  },
+  "reportVisit": "Na visita",
+  "@reportVisit": {
+    "description": "Interface text in listing_report_text / ListingReportCard: the report of one ad (16.8)."
+  },
+  "reportRecalls": "Chamadas à oficina (UE) que podem abranger esta mota",
+  "@reportRecalls": {
+    "description": "Interface text in listing_report_text / ListingReportCard: the report of one ad (16.8)."
+  },
+  "reportAskingPricesNote": "Estimativas a partir de preços pedidos, não de vendas: confirme sempre a mota ao vivo.",
+  "@reportAskingPricesNote": {
+    "description": "Interface text in listing_report_text / ListingReportCard: the report of one ad (16.8)."
+  },
+  "listingReport": "Relatório do anúncio",
+  "@listingReport": {
+    "description": "Interface text in listing_report_text / ListingReportCard: the report of one ad (16.8)."
+  },
+  "listingReportBody": "Toda a análise deste anúncio num texto: as pontuações, o mercado, quanto oferecer, as suas notas da visita e as chamadas à oficina. Envie-o a um mecânico ou a quem for ver a mota consigo.",
+  "@listingReportBody": {
+    "description": "Interface text in listing_report_text / ListingReportCard: the report of one ad (16.8)."
+  },
+  "shareReport": "Partilhar relatório",
+  "@shareReport": {
+    "description": "Interface text in listing_report_text / ListingReportCard: the report of one ad (16.8)."
   }
 }

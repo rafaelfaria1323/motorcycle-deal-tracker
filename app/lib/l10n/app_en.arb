@@ -1313,5 +1313,18 @@
   "changePriceDown": "down {price}",
   "changePriceUp": "up {price}",
   "changeMileage": "mileage: {from} → {to}",
-  "changeRenewed": "renewed on the site"
+  "changeRenewed": "renewed on the site",
+  "reportTitle": "Report: {bike}",
+  "reportMadeOn": "Made on {date} in {app}, from the asking prices in the ads.",
+  "reportNotScored": "Deal Score: not scored yet",
+  "reportDealScore": "Deal Score: {score}/100 ({band})",
+  "reportRiskScore": "Risk Score: {score}/100 ({band})",
+  "reportMarket": "Market",
+  "reportArguments": "Arguments for negotiating",
+  "reportVisit": "At the viewing",
+  "reportRecalls": "EU recalls that may cover this bike",
+  "reportAskingPricesNote": "Estimates come from asking prices, not sales: always check the bike in person.",
+  "listingReport": "Report of this ad",
+  "listingReportBody": "This ad's whole analysis as text: the scores, the market, how much to offer, your viewing notes and the recalls. Send it to a mechanic or to whoever goes to see the bike with you.",
+  "shareReport": "Share report"
 }

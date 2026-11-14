@@ -7,13 +7,11 @@ import '../../../../core/widgets/section_card.dart';
 import '../../../../core/widgets/show_message.dart';
 import '../../../favourites/domain/entities/favourite.dart';
 import '../../domain/entities/listing.dart';
-import '../../../market/domain/entities/market_behaviour.dart';
-import '../../domain/repositories/listings_repository.dart';
-import '../../../market/domain/repositories/market_behaviour_repository.dart';
 import '../../../favourites/presentation/cubit/favourites_cubit.dart';
 import '../../../favourites/presentation/cubit/favourites_state.dart';
 import '../../../favourites/presentation/widgets/target_price_tile.dart';
 import '../negotiation_text.dart';
+import '../offer_context.dart';
 import '../offer_text.dart';
 import 'cheaper_similar_sheet.dart';
 import 'counter_offer_reply.dart';
@@ -31,7 +29,7 @@ class const OfferCard({required final Listing listing, super.key})
 }
 
 class _OfferCardState extends State<OfferCard> {
-  late final Future<(MarketBehaviour?, List<Listing>)> _data = _load();
+  late final Future<OfferContext> _data = offerContextOf(widget.listing);
   final _counter = TextEditingController();
   var _showReasons = false;
 
@@ -39,21 +37,6 @@ class _OfferCardState extends State<OfferCard> {
   void dispose() {
     _counter.dispose();
     super.dispose();
-  }
-
-  Future<(MarketBehaviour?, List<Listing>)> _load() async {
-    final listing = widget.listing;
-    final id = listing.motorcycleId;
-    // The suggestion and the arguments still work without either.
-    final market = id == null
-        ? Future<MarketBehaviour?>.value()
-        : getIt<MarketBehaviourRepository>()
-              .getForModel(id)
-              .then<MarketBehaviour?>((m) => m, onError: (Object _) => null);
-    final cheaper = getIt<ListingsRepository>()
-        .getCheaperSimilar(listing)
-        .then((l) => l, onError: (Object _) => const <Listing>[]);
-    return (await market, await cheaper);
   }
 
   @override
@@ -64,7 +47,7 @@ class _OfferCardState extends State<OfferCard> {
       return const SizedBox.shrink();
     }
 
-    return FutureBuilder<(MarketBehaviour?, List<Listing>)>(
+    return FutureBuilder<OfferContext>(
       future: _data,
       builder: (context, snapshot) {
         if (snapshot.connectionState != .done) {
