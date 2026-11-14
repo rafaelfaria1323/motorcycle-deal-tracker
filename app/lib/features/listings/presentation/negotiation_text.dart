@@ -4,7 +4,6 @@ import '../../favourites/domain/entities/favourite.dart';
 import '../domain/entities/bike_maintenance.dart';
 import '../domain/entities/listing.dart';
 import '../../market/domain/entities/market_behaviour.dart';
-import '../../market/presentation/market_behaviour_text.dart';
 import 'offer_text.dart';
 import '../../valuation/presentation/ownership_cost.dart';
 import 'score_explanation.dart';

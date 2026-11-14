@@ -3,7 +3,6 @@ import 'dart:math';
 import '../../../core/formatting/formatters.dart';
 import '../domain/entities/listing.dart';
 import '../../market/domain/entities/market_behaviour.dart';
-import '../../market/presentation/market_behaviour_text.dart';
 import 'negotiation_text.dart';
 import '../../../core/localization/localizations.dart';
 
