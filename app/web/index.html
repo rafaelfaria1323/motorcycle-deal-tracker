@@ -357,15 +357,29 @@
     if (!meta || !window.fetch || !window.Promise) return;
     var base = meta.getAttribute('content');
     var key = meta.getAttribute('data-key');
+    // Without a session, or an anonymous one, the database answers with
+    // the public key (every collected model). An account's own list needs
+    // its token: only while it has more than two minutes left, since the
+    // app refreshes an older one itself and a second refresh here could
+    // race it (the refresh token is used once). The app takes the answer
+    // only for the account it starts with (`user`).
+    var token = key;
+    var user = null;
     try {
       // Where Supabase keeps the session in the browser.
       var stored = localStorage.getItem(
         'sb-' + new URL(base).hostname.split('.')[0] + '-auth-token');
-      if (stored && !JSON.parse(stored).user.is_anonymous) return;
+      var session = stored && JSON.parse(stored);
+      if (session && !session.user.is_anonymous) {
+        if (!(session.expires_at * 1000 > Date.now() + 120000)) return;
+        token = session.access_token;
+        user = session.user.id;
+        if (typeof token !== 'string' || typeof user !== 'string') return;
+      }
     } catch (e) {
       return;
     }
-    var headers = { apikey: key, Authorization: 'Bearer ' + key };
+    var headers = { apikey: key, Authorization: 'Bearer ' + token };
     function get(query) {
       return fetch(base + '/rest/v1/' + query, { headers: headers })
         .then(function (response) {
@@ -468,7 +482,8 @@
         } catch (e) {
           // Only a preview: the app draws the list itself.
         }
-        return '{"listings":' + texts[0] + ',"motorcycles":' + texts[1] + '}';
+        return '{"user":' + JSON.stringify(user) + ',"listings":' + texts[0] +
+          ',"motorcycles":' + texts[1] + '}';
       })
       .catch(function () {
         return null;
