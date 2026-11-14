@@ -1,7 +1,8 @@
 /// The weekly check of the estimates and the Deal Score against the ads
 /// that likely sold (N.61). Neither site says a bike was sold, so a gone
 /// ad counts as a likely sale only when it did not expire, come back or
-/// stay on the other site (`exit_kind`), or when its text said "vendida".
+/// stay on the other site (`exit_kind`), or when its text said "vendida";
+/// an ad only one run saw (`seen_once`, N.92) is no sale either.
 /// A report for deciding by hand; it changes nothing and feeds no score.
 library;
 
@@ -21,6 +22,9 @@ class const ModelCheck({
   required final int relisted,
   required final int stillListed,
   required final int expired,
+
+  /// Gone ads only one run saw: how they left is unknown (N.92).
+  required final int seenOnce,
 
   /// Likely sales with a known market position, and their median position
   /// (percent below the estimate; negative is above).
@@ -45,6 +49,7 @@ class const ModelCheck({
     relisted: _int(row['relisted']),
     stillListed: _int(row['still_listed']),
     expired: _int(row['expired']),
+    seenOnce: _int(row['seen_once']),
     soldWithPosition: _int(row['sold_with_position']),
     soldPosition: _double(row['sold_position']),
     liveWithPosition: _int(row['live_with_position']),
@@ -128,7 +133,8 @@ String scoreCheckReport({
     ..writeln(
       'Ads gone in the last $days days (not duplicates, 300 € or more). '
       'A likely sale: the text said so, or it did not expire (private '
-      'ads, 30 days on the site), come back or stay on the other site. '
+      'ads, 30 days on the site), come back or stay on the other site, '
+      'and more than one run saw it. '
       'Position: percent below the estimate when last seen (damaged and '
       'unlegalised bikes left out); negative is above it.',
     )
@@ -141,13 +147,14 @@ String scoreCheckReport({
     out
       ..writeln(
         '| Model | Gone | Likely sold (text) | Expired | Relisted | '
-        'Still listed | Sales position | Live position | Drop | Days |',
+        'Still listed | Seen once | Sales position | Live position | Drop | '
+        'Days |',
       )
-      ..writeln('|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|');
+      ..writeln('|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|');
     for (final m in models) {
       out.writeln(
         '| ${m.model} | ${m.gone} | ${m.sales} (${m.soldInText}) | '
-        '${m.expired} | ${m.relisted} | ${m.stillListed} | '
+        '${m.expired} | ${m.relisted} | ${m.stillListed} | ${m.seenOnce} | '
         '${_median(m.soldPosition, m.soldWithPosition)} | '
         '${_median(m.livePosition, m.liveWithPosition)} | '
         '${_value(m.soldDropPct, _pct)} | '
@@ -161,8 +168,9 @@ String scoreCheckReport({
     ..writeln('## Deal Score against sales')
     ..writeln()
     ..writeln(
-      'Ads first seen between $bandDays and $horizon days ago, by their last '
-      'Deal Score: how many likely sold within $horizon days of being '
+      'Ads first seen between $bandDays and $horizon days ago, and not '
+      'before 12 Nov 2026, when last Deal Scores began to be kept, by their '
+      'last Deal Score: how many likely sold within $horizon days of being '
       'found.',
     )
     ..writeln();

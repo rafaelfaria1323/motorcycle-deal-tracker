@@ -1599,6 +1599,7 @@ CREATE FUNCTION public.exit_kind(l public.listings) RETURNS text
     when l.seller_type <> 'dealer'
      and public.ended_at_expiry(l.published_at, l.site_refreshed_at, l.last_seen_at)
     then 'expired'
+    when l.last_seen_at - l.first_seen_at < interval '1 hour' then 'seen_once'
     else 'likely_sold'
   end
 $$;
@@ -5300,10 +5301,10 @@ end;
 $$;
 
 --
--- Name: score_check_bands(integer, integer); Type: FUNCTION; Schema: public; Owner: -
+-- Name: score_check_bands(integer, integer, timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.score_check_bands(p_days integer DEFAULT 60, p_horizon integer DEFAULT 14) RETURNS TABLE(band text, ads integer, sold_within integer, share numeric)
+CREATE FUNCTION public.score_check_bands(p_days integer DEFAULT 60, p_horizon integer DEFAULT 14, p_since timestamp with time zone DEFAULT '2026-11-12 13:10:00+00'::timestamp with time zone) RETURNS TABLE(band text, ads integer, sold_within integer, share numeric)
     LANGUAGE sql STABLE SECURITY DEFINER
     SET search_path TO ''
     AS $$
@@ -5320,6 +5321,7 @@ CREATE FUNCTION public.score_check_bands(p_days integer DEFAULT 60, p_horizon in
     from public.listings l
     where l.first_seen_at >= now() - make_interval(days => p_days)
       and l.first_seen_at <= now() - make_interval(days => p_horizon)
+      and l.first_seen_at >= p_since
       and (l.published_at is null
            or l.published_at >= l.first_seen_at - interval '2 days')
       and l.duplicate_of is null
@@ -5340,7 +5342,7 @@ $$;
 -- Name: score_check_models(integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.score_check_models(p_days integer DEFAULT 28) RETURNS TABLE(model text, gone integer, sold_in_text integer, likely_sold integer, relisted integer, still_listed integer, expired integer, sold_with_position integer, sold_position numeric, live_with_position integer, live_position numeric, sold_drop_pct numeric, sold_days numeric)
+CREATE FUNCTION public.score_check_models(p_days integer DEFAULT 28) RETURNS TABLE(model text, gone integer, sold_in_text integer, likely_sold integer, relisted integer, still_listed integer, expired integer, seen_once integer, sold_with_position integer, sold_position numeric, live_with_position integer, live_position numeric, sold_drop_pct numeric, sold_days numeric)
     LANGUAGE sql STABLE SECURITY DEFINER
     SET search_path TO ''
     AS $$
@@ -5378,6 +5380,7 @@ CREATE FUNCTION public.score_check_models(p_days integer DEFAULT 28) RETURNS TAB
            count(*) filter (where g.kind = 'relisted')::integer as relisted,
            count(*) filter (where g.kind = 'still_listed')::integer as still_listed,
            count(*) filter (where g.kind = 'expired')::integer as expired,
+           count(*) filter (where g.kind = 'seen_once')::integer as seen_once,
            count(g.position) filter (where g.kind in ('sold_in_text', 'likely_sold'))::integer
              as sold_with_position,
            round((percentile_cont(0.5) within group (order by g.position)
@@ -5402,7 +5405,7 @@ CREATE FUNCTION public.score_check_models(p_days integer DEFAULT 28) RETURNS TAB
   )
   select m.brand || ' ' || m.model,
          g.gone, g.sold_in_text, g.likely_sold, g.relisted, g.still_listed,
-         g.expired, g.sold_with_position, g.sold_position,
+         g.expired, g.seen_once, g.sold_with_position, g.sold_position,
          coalesce(v.live_with_position, 0), v.live_position,
          g.sold_drop_pct, g.sold_days
   from per_gone g
@@ -9915,11 +9918,11 @@ REVOKE ALL ON FUNCTION public.saved_search_single_model() FROM PUBLIC;
 GRANT ALL ON FUNCTION public.saved_search_single_model() TO service_role;
 
 --
--- Name: FUNCTION score_check_bands(p_days integer, p_horizon integer); Type: ACL; Schema: public; Owner: -
+-- Name: FUNCTION score_check_bands(p_days integer, p_horizon integer, p_since timestamp with time zone); Type: ACL; Schema: public; Owner: -
 --
 
-REVOKE ALL ON FUNCTION public.score_check_bands(p_days integer, p_horizon integer) FROM PUBLIC;
-GRANT ALL ON FUNCTION public.score_check_bands(p_days integer, p_horizon integer) TO service_role;
+REVOKE ALL ON FUNCTION public.score_check_bands(p_days integer, p_horizon integer, p_since timestamp with time zone) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.score_check_bands(p_days integer, p_horizon integer, p_since timestamp with time zone) TO service_role;
 
 --
 -- Name: FUNCTION score_check_models(p_days integer); Type: ACL; Schema: public; Owner: -

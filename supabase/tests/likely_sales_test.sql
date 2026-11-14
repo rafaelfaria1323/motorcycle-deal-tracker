@@ -63,12 +63,13 @@ end $$;
 -- Gone ads of the MT-07, one of each kind, and a live one.
 insert into public.listings (source, source_listing_id, url, motorcycle_id, brand, model,
                              variant, year, mileage, price, status, seller_type,
-                             published_at, last_seen_at)
+                             published_at, first_seen_at, last_seen_at)
 select 'olx', v.sid, 'https://x/' || v.sid, m.id, m.brand, m.model, v.variant,
        2020, 20000, v.price, v.status::public.listing_status,
        v.seller::public.seller_type,
        now() - make_interval(days => v.published),
-       now() - interval '5 days'
+       now() - make_interval(days => v.published),
+       now() - make_interval(days => least(v.published, 5))
 from public.motorcycles m,
      (values ('ls-sold', 'MT-07 Vendida', 7000, 'removed', 'private', 40),
              ('ls-gone', 'MT-07', 6000, 'removed', 'private', 20),
@@ -76,7 +77,8 @@ from public.motorcycles m,
              ('ls-expired', 'MT-07', 9000, 'removed', 'private', 35),
              ('ls-back', 'MT-07', 9000, 'removed', 'private', 20),
              ('ls-twin', 'MT-07', 9000, 'removed', 'private', 20),
-             ('ls-live', 'MT-07', 6500, 'active', 'private', 3)
+             ('ls-live', 'MT-07', 6500, 'active', 'private', 3),
+             ('ls-once', 'MT-07', 3000, 'removed', 'private', 0)
      ) v(sid, variant, price, status, seller, published)
 where m.slug = 'yamaha-mt-07';
 -- ls-back came back; ls-twin is still on sale on the other site.
@@ -105,6 +107,7 @@ begin
   assert kinds ->> 'ls-expired' = 'expired', format('expired: %s', kinds);
   assert kinds ->> 'ls-back' = 'relisted', format('relisted: %s', kinds);
   assert kinds ->> 'ls-twin' = 'still_listed', format('elsewhere: %s', kinds);
+  assert kinds ->> 'ls-once' = 'seen_once', format('one run saw it: %s', kinds);
   assert kinds -> 'ls-live' = 'null'::jsonb, format('live: %s', kinds);
 
   -- Exit prices count only the likely sales: 6000, 6400 and 7000.
@@ -125,9 +128,10 @@ declare
   r record;
 begin
   select * into r from public.score_check_models(28) where model = 'Yamaha MT-07';
-  assert r.gone = 6, format('six gone, got %s', r.gone);
+  assert r.gone = 7, format('seven gone, got %s', r.gone);
   assert r.sold_in_text = 1 and r.likely_sold = 2 and r.relisted = 1
-     and r.still_listed = 1 and r.expired = 1, format('the kinds: %s', r);
+     and r.still_listed = 1 and r.expired = 1 and r.seen_once = 1,
+    format('the kinds: %s', r);
   assert r.sold_with_position = 3 and r.sold_position = -2.0,
     format('the sales'' median position: %s', r);
   -- Drops: 1 - 7000/7500 = 6.7 %, then 0 and 0.
@@ -158,10 +162,14 @@ declare
 begin
   assert (select last_deal_score from public.listings where source_listing_id = 'lb-fast') = 85,
     'the last Deal Score is kept';
-  select * into r from public.score_check_bands(60, 14) where band = '80-100';
+  select * into r from public.score_check_bands(60, 14, '-infinity') where band = '80-100';
   assert r.ads = 3 and r.sold_within = 1 and r.share = 33.3, format('top band: %s', r);
-  select * into r from public.score_check_bands(60, 14) where band = '0-39';
+  select * into r from public.score_check_bands(60, 14, '-infinity') where band = '0-39';
   assert r.ads = 1 and r.sold_within = 0, format('bottom band: %s', r);
+  -- Ads found before last Deal Scores were kept are left out (N.92).
+  assert not exists (
+    select 1 from public.score_check_bands(60, 14, now() - interval '19 days')),
+    'only ads found since p_since';
 end $$;
 
 set local role authenticated;

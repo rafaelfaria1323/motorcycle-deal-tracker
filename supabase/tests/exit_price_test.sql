@@ -2,9 +2,10 @@
 -- last price of a model's ads gone in the last 90 days, adjusted to a
 -- year and mileage as bike_value is.
 insert into public.listings (source, source_listing_id, url, motorcycle_id, brand, model,
-                             year, mileage, price, status, last_seen_at)
+                             year, mileage, price, status, first_seen_at, last_seen_at)
 select 'olx', 'ex' || g, 'https://x/ex' || g, m.id, m.brand, m.model,
-       2020, 20000, 6000 + g * 100, 'removed', now() - interval '10 days'
+       2020, 20000, 6000 + g * 100, 'removed', now() - interval '40 days',
+       now() - interval '10 days'
 from public.motorcycles m, generate_series(1, 5) g
 where m.slug = 'yamaha-mt-07';
 -- Left out: a live ad, one gone 120 days ago, a 1 € ad, one relisted
