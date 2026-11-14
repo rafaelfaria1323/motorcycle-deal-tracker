@@ -245,7 +245,7 @@ jobs:
         if: steps.key.outputs.ready == 'true'
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
       - uses: subosito/flutter-action@v2
         if: steps.key.outputs.ready == 'true'
