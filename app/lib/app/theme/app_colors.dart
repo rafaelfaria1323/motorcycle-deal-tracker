@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Colours with a meaning (good/bad, score bands) that Material's colour
 /// scheme has no slot for. Read with `AppColors.of(context)`.

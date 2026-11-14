@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The one card layout of the detail page: a title (with an optional action
 /// on the right), the content, and an optional muted footnote. Every card

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Centered icon + title (+ message and action) for empty, error and
 /// not-found states.

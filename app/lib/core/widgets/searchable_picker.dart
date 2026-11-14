@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../formatting/name_search.dart';
 import '../localization/localizations.dart';

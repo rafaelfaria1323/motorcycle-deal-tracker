@@ -1,27 +1,27 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:motorcycle_deal_tracker/app/di/injection.dart';
 import 'package:motorcycle_deal_tracker/app/router/app_routes.dart';
 import 'package:motorcycle_deal_tracker/app/theme/app_theme.dart';
 import 'package:motorcycle_deal_tracker/core/widgets/section_card.dart';
 import 'package:motorcycle_deal_tracker/core/widgets/state_message.dart';
+import 'package:motorcycle_deal_tracker/features/alerts/domain/entities/listing_alert.dart';
+import 'package:motorcycle_deal_tracker/features/alerts/presentation/pages/alerts_page.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/domain/collector_run.dart';
 import 'package:motorcycle_deal_tracker/features/favourites/domain/entities/favourite.dart';
+import 'package:motorcycle_deal_tracker/features/favourites/presentation/pages/favourites_page.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
-import 'package:motorcycle_deal_tracker/features/alerts/domain/entities/listing_alert.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_card_preferences.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_filters.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_sort.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/listing_card_preferences_cubit.dart';
-import 'package:motorcycle_deal_tracker/features/alerts/presentation/pages/alerts_page.dart';
-import 'package:motorcycle_deal_tracker/features/favourites/presentation/pages/favourites_page.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/listing_detail_page.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/listing_card_text.dart';
+import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/listing_detail_page.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/photo_viewer_args.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/deal_score_badge.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/listing_card.dart';
@@ -288,7 +288,7 @@ void main() {
           await tester.pumpWidget(
             MaterialApp(
               locale: AppLanguage.portuguese.locale,
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              localizationsDelegates: appLocalizationsDelegates,
               supportedLocales: appLocales,
               theme: AppTheme.light,
               home: Scaffold(
@@ -566,7 +566,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           locale: AppLanguage.portuguese.locale,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: appLocales,
           theme: AppTheme.light,
           home: Scaffold(
@@ -2064,7 +2064,7 @@ void main() {
           await tester.pumpWidget(
             MaterialApp(
               locale: AppLanguage.portuguese.locale,
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              localizationsDelegates: appLocalizationsDelegates,
               supportedLocales: appLocales,
               theme: AppTheme.light,
               home: Scaffold(
@@ -2196,7 +2196,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         locale: AppLanguage.portuguese.locale,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationsDelegates,
         supportedLocales: appLocales,
         theme: AppTheme.light,
         builder: (context, child) => MediaQuery(
@@ -2229,7 +2229,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         locale: AppLanguage.portuguese.locale,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationsDelegates,
         supportedLocales: appLocales,
         theme: AppTheme.light,
         home: MediaQuery(

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A number typed into one of the calculators (import cost, financing):
 /// outlined, with its unit as a suffix and an optional hint under it;

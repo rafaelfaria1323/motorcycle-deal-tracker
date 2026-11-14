@@ -1,13 +1,17 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:motorcycle_deal_tracker/app/di/injection.dart';
 import 'package:motorcycle_deal_tracker/app/router/app_routes.dart';
 import 'package:motorcycle_deal_tracker/app/shell/app_shell.dart';
 import 'package:motorcycle_deal_tracker/app/theme/app_theme.dart';
 import 'package:motorcycle_deal_tracker/core/auth/session_cubit.dart';
 import 'package:motorcycle_deal_tracker/core/localization/localizations.dart';
+import 'package:motorcycle_deal_tracker/features/alerts/domain/entities/listing_alert.dart';
+import 'package:motorcycle_deal_tracker/features/alerts/domain/repositories/alerts_repository.dart';
+import 'package:motorcycle_deal_tracker/features/alerts/presentation/cubit/alerts_cubit.dart';
+import 'package:motorcycle_deal_tracker/features/alerts/presentation/pages/alerts_page.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/data/collector_runs_repository.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/data/database_usage_repository.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/data/github_token_repository.dart';
@@ -18,31 +22,27 @@ import 'package:motorcycle_deal_tracker/features/collector_status/domain/github_
 import 'package:motorcycle_deal_tracker/features/collector_status/domain/source_quality.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/presentation/collection_status_page.dart';
 import 'package:motorcycle_deal_tracker/features/collector_status/presentation/collector_status_cubit.dart';
+import 'package:motorcycle_deal_tracker/features/compare/presentation/cubit/compare_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/favourites/domain/entities/favourite.dart';
+import 'package:motorcycle_deal_tracker/features/favourites/domain/repositories/favourites_repository.dart';
+import 'package:motorcycle_deal_tracker/features/favourites/presentation/cubit/favourites_cubit.dart';
+import 'package:motorcycle_deal_tracker/features/favourites/presentation/pages/favourites_page.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_card_preferences.dart';
-import 'package:motorcycle_deal_tracker/features/alerts/domain/entities/listing_alert.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_filters.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_sort.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/motorcycle_option.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/price_point.dart';
-import 'package:motorcycle_deal_tracker/features/saved_searches/domain/entities/saved_search.dart';
-import 'package:motorcycle_deal_tracker/features/alerts/domain/repositories/alerts_repository.dart';
-import 'package:motorcycle_deal_tracker/features/favourites/domain/repositories/favourites_repository.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/repositories/listing_card_preferences_repository.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/repositories/listings_repository.dart';
-import 'package:motorcycle_deal_tracker/features/saved_searches/domain/repositories/saved_searches_repository.dart';
-import 'package:motorcycle_deal_tracker/features/alerts/presentation/cubit/alerts_cubit.dart';
-import 'package:motorcycle_deal_tracker/features/compare/presentation/cubit/compare_cubit.dart';
-import 'package:motorcycle_deal_tracker/features/favourites/presentation/cubit/favourites_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/listing_card_preferences_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/listing_detail_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/listings_cubit.dart';
-import 'package:motorcycle_deal_tracker/features/saved_searches/presentation/cubit/saved_searches_cubit.dart';
-import 'package:motorcycle_deal_tracker/features/alerts/presentation/pages/alerts_page.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/dashboard_page.dart';
-import 'package:motorcycle_deal_tracker/features/favourites/presentation/pages/favourites_page.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/listing_detail_page.dart';
+import 'package:motorcycle_deal_tracker/features/saved_searches/domain/entities/saved_search.dart';
+import 'package:motorcycle_deal_tracker/features/saved_searches/domain/repositories/saved_searches_repository.dart';
+import 'package:motorcycle_deal_tracker/features/saved_searches/presentation/cubit/saved_searches_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/saved_searches/presentation/pages/saved_searches_page.dart';
 import 'package:motorcycle_deal_tracker/features/settings/domain/accounts_repository.dart';
 import 'package:motorcycle_deal_tracker/features/settings/domain/home_repository.dart';
@@ -51,8 +51,8 @@ import 'package:motorcycle_deal_tracker/features/settings/domain/place.dart';
 import 'package:motorcycle_deal_tracker/features/settings/domain/push_repository.dart';
 import 'package:motorcycle_deal_tracker/features/settings/domain/quiet_hours.dart';
 import 'package:motorcycle_deal_tracker/features/settings/presentation/home_place_cubit.dart';
-import 'package:motorcycle_deal_tracker/features/settings/presentation/more_page.dart';
 import 'package:motorcycle_deal_tracker/features/settings/presentation/language_cubit.dart';
+import 'package:motorcycle_deal_tracker/features/settings/presentation/more_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'language_fixture.dart';
@@ -300,7 +300,7 @@ Widget interfaceApp(
 }) {
   Widget app(AppLanguage language) => MaterialApp.router(
     locale: language.locale,
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    localizationsDelegates: appLocalizationsDelegates,
     supportedLocales: appLocales,
     debugShowCheckedModeBanner: false,
     theme: AppTheme.light,

@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:motorcycle_deal_tracker/app/di/injection.dart';
 import 'package:motorcycle_deal_tracker/app/router/app_routes.dart';
 import 'package:motorcycle_deal_tracker/core/localization/app_language.dart';

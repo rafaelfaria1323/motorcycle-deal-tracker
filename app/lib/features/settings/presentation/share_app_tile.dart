@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../core/platform/app_build.dart';
 import '../../../core/widgets/share_or_copy.dart';

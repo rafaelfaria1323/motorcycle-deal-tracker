@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:motorcycle_deal_tracker/app/theme/app_theme.dart';
+import 'package:motorcycle_deal_tracker/core/widgets/searchable_picker.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/site_model.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/repositories/catalog_repository.dart';
-import 'package:motorcycle_deal_tracker/core/widgets/searchable_picker.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/add_model_sheet.dart';
 
 import '../integration_test/support/interface_fixture.dart';
@@ -57,7 +57,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         locale: AppLanguage.portuguese.locale,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: appLocalizationsDelegates,
         supportedLocales: appLocales,
         theme: AppTheme.light,
         builder: (context, child) => MediaQuery(
