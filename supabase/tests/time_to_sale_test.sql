@@ -52,6 +52,18 @@ begin
          case when g <= 6 then 15 else 0 end
   from generate_series(1, 12) g;
 
+  -- Five cheap ads gone before a second run saw them (N.93): left out,
+  -- or the cheap band's typical time would be 0 days.
+  insert into public.listings (source, source_listing_id, url, motorcycle_id,
+                               brand, model, year, mileage, price, status,
+                               first_seen_at, last_seen_at,
+                               last_pct_below_market)
+  select 'olx', 'tts-once' || g, 'https://x/tts-once' || g, mt, 'Yamaha',
+         'MT-07', 2020, 20000, 6000, 'removed',
+         now() - interval '50 days',
+         now() - interval '50 days' + interval '30 minutes', 15
+  from generate_series(1, 5) g;
+
   -- This ad: live for 2 days, cheap.
   insert into public.listings (source, source_listing_id, url, motorcycle_id,
                                brand, model, year, mileage, price,

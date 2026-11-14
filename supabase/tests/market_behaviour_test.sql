@@ -13,6 +13,17 @@ select 'olx', 'mb' || d, 'https://x/mb' || d, m.id, m.brand, m.model,
 from public.motorcycles m, unnest(array[10, 20, 30, 300, 301]) d
 where m.slug = 'yamaha-r7';
 
+-- Three ads gone before a second run saw them (N.93): left out, or the
+-- typical time would fall to 10 days.
+insert into public.listings (source, source_listing_id, url, motorcycle_id, brand, model,
+                             year, mileage, price, status,
+                             first_seen_at, last_seen_at)
+select 'olx', 'mb-once' || g, 'https://x/mb-once' || g, m.id, m.brand, m.model,
+       2020, 20000, 6000, 'removed',
+       now() - interval '100 days', now() - interval '100 days'
+from public.motorcycles m, generate_series(1, 3) g
+where m.slug = 'yamaha-r7';
+
 do $$
 declare b record;
 begin

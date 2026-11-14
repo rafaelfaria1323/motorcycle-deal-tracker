@@ -1231,7 +1231,9 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   `median_days_remaining`; null until half have gone; the offer's and the
   seller urgency's "typical time"), share and size of price drops (measured from the higher of the
   first price seen and `price_before_drop`), depreciation rates. Show "ainda
-  poucos dados" below 5 data points.
+  poucos dados" below 5 data points. These three time-on-market figures
+  (this, `listing_time_to_sale`, `price_drop_outlook`) leave out the gone
+  ads one run saw (under an hour between first and last seen, N.93).
 - Time to sale per listing (`listing_time_to_sale`, 10.4; security
   invoker, readable by everyone): Kaplan-Meier over the model's other
   non-duplicate ads (gone = removed/sold after its days, live = lasted at

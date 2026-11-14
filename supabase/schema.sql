@@ -2496,7 +2496,8 @@ begin
            now() - coalesce(l.published_at, l.first_seen_at)) / 86400);
   my_band := public.market_band(l.last_pct_below_market);
 
-  -- A gone ad's band is where it was when last scored.
+  -- A gone ad's band is where it was when last scored. A gone ad one run
+  -- saw tells nothing of how long ads last (N.93).
   with sample as (
     select greatest(0, extract(epoch from
              case when o.status in ('removed', 'sold') then o.last_seen_at
@@ -2509,6 +2510,8 @@ begin
       and o.duplicate_of is null
       and o.id <> l.id
       and o.id is distinct from l.duplicate_of
+      and not (o.status in ('removed', 'sold')
+               and o.last_seen_at - o.first_seen_at < interval '1 hour')
   ),
   chosen as (
     select s.*,
@@ -3887,6 +3890,9 @@ CREATE FUNCTION public.price_drop_outlook(p_listing_id uuid, p_days integer DEFA
     where o.duplicate_of is null
       and o.id <> me.id
       and o.id is distinct from me.duplicate_of
+      -- A gone ad one run saw (N.93).
+      and not (o.status in ('removed', 'sold')
+               and o.last_seen_at - o.first_seen_at < interval '1 hour')
   ),
   followed as (
     select w.*,
@@ -6861,7 +6867,7 @@ CREATE VIEW public.model_market_behaviour WITH (security_invoker='true') AS
                     ELSE now()
                 END - COALESCE(l.published_at, l.first_seen_at))) / (86400)::numeric)) AS days
            FROM public.listings l
-          WHERE ((l.motorcycle_id IS NOT NULL) AND (l.duplicate_of IS NULL))
+          WHERE ((l.motorcycle_id IS NOT NULL) AND (l.duplicate_of IS NULL) AND (NOT ((l.status = ANY (ARRAY['removed'::public.listing_status, 'sold'::public.listing_status])) AND ((l.last_seen_at - l.first_seen_at) < '01:00:00'::interval))))
         )
  SELECT motorcycle_id,
     count(*) FILTER (WHERE (status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status]))) AS live_count,
