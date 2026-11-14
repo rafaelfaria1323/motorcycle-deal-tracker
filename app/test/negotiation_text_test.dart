@@ -20,6 +20,9 @@ Listing _listing({
   Map<String, dynamic>? breakdown,
   DateTime? publishedAt,
   DateTime? siteRefreshedAt,
+  int? dealScore,
+  int? riskScore,
+  int? distanceKm,
 }) => Listing(
   id: id,
   source: 'olx',
@@ -36,6 +39,9 @@ Listing _listing({
   engineCc: engineCc,
   publishedAt: publishedAt,
   siteRefreshedAt: siteRefreshedAt,
+  dealScore: dealScore,
+  riskScore: riskScore,
+  distanceKm: distanceKm,
   scoreBreakdown:
       breakdown ?? const {'market_price': 7000, 'market_listing_count': 8},
 );
@@ -482,5 +488,52 @@ void main() {
         expect(compareWithCheaper(_listing(id: 'me'), const []), ['me']);
       },
     );
+  });
+
+  group('cheaperVersusText', () {
+    final me = _listing(dealScore: 70, riskScore: 20, distanceKm: 30);
+
+    test('the price gap, then the scores and the distance', () {
+      expect(
+        cheaperVersusText(
+          me,
+          _listing(price: 5700, dealScore: 76, riskScore: 35, distanceKm: 70),
+        ),
+        '${Formatters.price(1300)} mais barata · Deal Score +6 · '
+        'risco mais alto · ${Formatters.mileage(40)} mais longe',
+      );
+      expect(
+        cheaperVersusText(
+          me,
+          _listing(price: 6500, dealScore: 62, riskScore: 5, distanceKm: 5),
+          language: .english,
+        ),
+        '${Formatters.price(500, language: .english)} cheaper · '
+        'Deal Score -8 · lower risk · '
+        '${Formatters.mileage(25, language: .english)} closer',
+      );
+    });
+
+    test('small gaps and missing figures are left out', () {
+      expect(
+        cheaperVersusText(
+          me,
+          _listing(price: 6900, dealScore: 70, riskScore: 29, distanceKm: 39),
+        ),
+        '${Formatters.price(100)} mais barata',
+      );
+      final thousand = '${Formatters.price(1000)} mais barata';
+      expect(cheaperVersusText(me, _listing(price: 6000)), thousand);
+      expect(
+        cheaperVersusText(_listing(), _listing(price: 6000, dealScore: 90)),
+        thousand,
+      );
+    });
+
+    test('nothing without two prices or when it is not cheaper', () {
+      expect(cheaperVersusText(me, _listing(price: null)), isNull);
+      expect(cheaperVersusText(_listing(price: null), _listing()), isNull);
+      expect(cheaperVersusText(me, _listing(price: 7000)), isNull);
+    });
   });
 }

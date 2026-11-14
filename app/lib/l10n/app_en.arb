@@ -1300,5 +1300,11 @@
   "seeCheaperSimilar": "{count, plural, =1{See that bike} other{See all {count} bikes}}",
   "compareWithCheaper": "{count, plural, =1{Compare the two} other{Compare with the 2 cheapest}}",
   "cheaperSimilarTitle": "Cheaper {model} bikes",
-  "cheaperSimilarIntro": "Still for sale, of a similar year (at most a year apart) and with no more mileage; cheapest first. Tap a listing to open it, or tick \"Compare\" to add it to the comparison."
+  "cheaperSimilarIntro": "Still for sale, of a similar year (at most a year apart) and with no more mileage; cheapest first, each with how it compares with this one. Tap a listing to open it, or tick \"Compare\" to add it to the comparison.",
+  "cheaperBy": "{price} cheaper",
+  "dealScoreGap": "Deal Score {gap}",
+  "riskHigher": "higher risk",
+  "riskLower": "lower risk",
+  "fartherAway": "{mileage} further away",
+  "closerBy": "{mileage} closer"
 }

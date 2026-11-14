@@ -1312,7 +1312,8 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   (`negotiation_text.dart`, strongest first): problems marked at the visit,
   price above the estimate, the cheaper live ads of the same model
   (year +-1, no more km: `getCheaperSimilar`, up to 50; under it "Ver as
-  N motas", a sheet of their cards, and "Comparar com as 2 mais
+  N motas", a sheet of their cards, each under its gap to this ad,
+  `cheaperVersusText`, N.96, and "Comparar com as 2 mais
   baratas", `compareWithCheaper`, N.94), km above normal, risk
   reasons, long on sale, an earlier drop, tyres of a 5+ year-old bike.
   Visit: a checklist item marked "Problema" takes its repair cost
