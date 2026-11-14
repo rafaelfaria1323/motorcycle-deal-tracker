@@ -43,6 +43,7 @@ import '../widgets/recalls_card.dart';
 import '../widgets/price_history_section.dart';
 import '../widgets/score_explanation_card.dart';
 import '../widgets/seat_fit_card.dart';
+import '../widgets/listing_report_card.dart';
 import '../widgets/seller_message_card.dart';
 
 class const ListingDetailPage({
@@ -272,6 +273,7 @@ class _ContentState extends State<_Content> {
         FinancingCard(key: ValueKey(listing.id), listing: listing),
         SellerMessageCard(listing: listing),
         ViewingChecklistCard(listing: listing),
+        ListingReportCard(listing: listing),
         BoughtThisCard(listing: listing),
       ],
       _Section.market => [

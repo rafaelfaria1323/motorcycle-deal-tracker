@@ -189,7 +189,11 @@ Screen names below use the Portuguese labels; English provides the same screens.
     the most to pay), "Mensagem para o vendedor" (a first message with the
     questions the ad leaves open, optionally with the suggested offer; one
     tap copies it), "Para a visita" for favourites (12 points to check when
-    seeing the bike, each "Está bem" or "Problema" with a note).
+    seeing the bike, each "Está bem" or "Problema" with a note),
+    "Relatório do anúncio" (the whole analysis as one text to share or
+    copy: the scores and their reasons, the market, the offer plan, the
+    checklist's marks and notes, the recalls; for a mechanic or whoever
+    goes to see the bike).
 - **Pesquisas** (its own tab, between Favoritos and Alertas; F.12):
   saved searches as Stitch's cards (UI.3): "PESQUISA 1", the name and
   "N anúncios encontrados", the alert types in a tinted box (a tap edits

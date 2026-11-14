@@ -1311,7 +1311,12 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   halfway ("Se recusar") and the ceiling as the last, each with a message
   to copy; "O vendedor pediu" answers a counter-offer (accept up to the
   second offer, propose halfway up to the ceiling, above it offer the
-  ceiling and walk away) with the message to send. Arguments to quote
+  ceiling and walk away) with the message to send. The whole analysis of
+  one ad as text to share ("Relatório do anúncio", 16.8, after the
+  checklist: `listing_report_text.dart`, `ListingReportCard`, through
+  `shareOrCopy`; the market figures and cheaper ads come from
+  `offerContextOf`, `offer_context.dart`, shared with `OfferCard`, so the
+  tap shares at once; never the private note). Arguments to quote
   (`negotiation_text.dart`, strongest first): problems marked at the visit,
   price above the estimate, the cheaper live ads of the same model
   (year +-1, no more km: `getCheaperSimilar`, up to 50; under it "Ver as
