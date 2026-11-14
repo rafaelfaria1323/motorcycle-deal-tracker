@@ -176,7 +176,10 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: AppRoutes.checkAd,
-      builder: (context, state) => const BikeValuePage(checkingAd: true),
+      builder: (context, state) => BikeValuePage(
+        checkingAd: true,
+        initialLink: state.uri.queryParameters['link'],
+      ),
     ),
     GoRoute(
       path: AppRoutes.accounts,

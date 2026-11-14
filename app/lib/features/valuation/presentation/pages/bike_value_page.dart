@@ -47,6 +47,10 @@ class const BikeValuePage({
 
   /// Whether the page is "Avaliar um anúncio".
   final bool checkingAd = false,
+
+  /// The link the form opens with (`/check-ad?link=…`: an ad shared to
+  /// the Android app from the OLX or Standvirtual app, N.103).
+  final String? initialLink,
   super.key,
 }) extends StatefulWidget {
   /// The oldest year the form takes (as request_bike_value).
@@ -108,6 +112,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
   @override
   void initState() {
     super.initState();
+    _link.text = widget.initialLink ?? '';
     unawaited(_loadRequests());
   }
 
@@ -129,6 +134,9 @@ class _BikeValuePageState extends State<BikeValuePage> {
   void didUpdateWidget(BikeValuePage old) {
     super.didUpdateWidget(old);
     if (widget.requestId != old.requestId) unawaited(_loadRequests());
+    if (widget.initialLink case final link? when link != old.initialLink) {
+      _link.text = link;
+    }
   }
 
   @override

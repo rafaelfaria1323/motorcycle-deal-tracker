@@ -13,7 +13,10 @@ matches the runner's Flutter), then runs this on its main manifest:
 - with the web app's address, an App Link for it: a shared link
   (https://<host>/#/deals/<id>) opens the app, not the browser, once
   Android has checked the site's /.well-known/assetlinks.json
-  (tool/asset_links.py, written by the deploy).
+  (tool/asset_links.py, written by the deploy);
+- a share target (N.103): Share › Deal Tracker in another app (OLX,
+  Standvirtual) hands its text to the app (packages/share_receiver),
+  which opens "Avaliar um anúncio" with the ad's link.
 
 Usage: python3 tool/android_manifest.py app/android/app/src/main/AndroidManifest.xml [web app URL]
 """
@@ -52,10 +55,23 @@ def app_link_filter(host):
         """
 
 
+SHARE_FILTER = """<intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
+            </intent-filter>
+        """
+
+
 def fit_manifest(xml, host=None):
-    """The manifest with the permission, the label, no backups and, with
-    [host], the App Link for it; fails when the template changed so that
-    they can't be placed."""
+    """The manifest with the permission, the label, no backups, the share
+    target and, with [host], the App Link for it; fails when the template
+    changed so that they can't be placed."""
+    if "android.intent.action.SEND" not in xml:
+        closing = xml.find("</activity>")
+        if closing < 0:
+            raise ManifestError("no </activity> to put the share target in")
+        xml = xml[:closing] + SHARE_FILTER + xml[closing:]
     if host and f'android:host="{host}"' not in xml:
         closing = xml.find("</activity>")
         if closing < 0:

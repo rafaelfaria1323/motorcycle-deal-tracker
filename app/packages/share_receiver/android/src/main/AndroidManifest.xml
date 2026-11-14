@@ -1,0 +1,6 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- No permission. The share target itself (an ACTION_SEND
+         intent-filter on the app's MainActivity) is added by
+         tool/android_manifest.py: a library can't add filters to the
+         app's own activity. -->
+</manifest>

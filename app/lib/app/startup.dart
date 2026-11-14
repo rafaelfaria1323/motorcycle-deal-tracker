@@ -10,6 +10,7 @@ import '../core/platform/document_language.dart';
 import '../core/platform/first_page.dart';
 import '../core/platform/push.dart';
 import '../core/platform/session_storage.dart';
+import '../core/platform/shared_text.dart';
 import '../core/widgets/state_message.dart';
 import '../features/listings/data/models/first_page_model.dart';
 import '../features/listings/presentation/cubit/listings_cubit.dart';
@@ -18,6 +19,7 @@ import '../features/settings/presentation/language_cubit.dart';
 import 'app.dart';
 import 'di/injection.dart';
 import 'router/notification_taps.dart';
+import 'router/shared_text_open.dart';
 import 'theme/app_theme.dart';
 
 const _supabaseUrl = String.fromEnvironment('SUPABASE_URL');
@@ -91,11 +93,13 @@ class _StartupState extends State<Startup> {
     // the app (it is tried again on the next start).
     await ensureSession(Supabase.instance.client)
         .timeout(_startTimeout, onTimeout: () {});
-    // The Android app: a tapped notification opens its page, once the
-    // app's router is on screen.
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => unawaited(DevicePush.listenToTaps(openNotification)),
-    );
+    // The Android app: a tapped notification opens its page, and an ad
+    // shared from the OLX or Standvirtual app opens "Avaliar um anúncio"
+    // (N.103), once the app's router is on screen.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(DevicePush.listenToTaps(openNotification));
+      unawaited(listenToSharedText(openSharedText));
+    });
   }
 
   static Future<void> _initializeSupabase() async {
