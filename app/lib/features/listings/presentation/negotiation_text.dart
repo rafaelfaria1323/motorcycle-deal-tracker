@@ -44,6 +44,52 @@ String? cheaperSimilarArgument(
   );
 }
 
+/// A Risk Score this far apart reads as higher or lower risk.
+const riskGapToMention = 10;
+
+/// Homes this far apart (km) read as further away or closer.
+const distanceGapToMention = 10;
+
+/// How [other], one of the cheaper ads, compares with [listing] on the
+/// sheet (N.96): "1 300 € mais barata · Deal Score +6 · risco mais alto ·
+/// 40 km mais longe". A figure either ad lacks is left out, and so is a
+/// small gap in risk or distance; null without both prices.
+String? cheaperVersusText(
+  Listing listing,
+  Listing other, {
+  AppLanguage language = .portuguese,
+}) {
+  final price = listing.askingPrice;
+  final otherPrice = other.askingPrice;
+  if (price == null || otherPrice == null || otherPrice >= price) return null;
+  final messages = language.messages;
+  final parts = [
+    messages.cheaperBy(
+      price: Formatters.price(price - otherPrice, language: language),
+    ),
+  ];
+  if ((listing.dealScore, other.dealScore) case (final a?, final b?)
+      when a != b) {
+    parts.add(
+      messages.dealScoreGap(gap: '${b > a ? '+' : '-'}${(b - a).abs()}'),
+    );
+  }
+  if ((listing.riskScore, other.riskScore) case (final a?, final b?)) {
+    if (b - a >= riskGapToMention) parts.add(messages.riskHigher);
+    if (a - b >= riskGapToMention) parts.add(messages.riskLower);
+  }
+  if ((listing.distanceKm, other.distanceKm) case (final a?, final b?)) {
+    final gap = Formatters.mileage((b - a).abs(), language: language);
+    if (b - a >= distanceGapToMention) {
+      parts.add(messages.fartherAway(mileage: gap));
+    }
+    if (a - b >= distanceGapToMention) {
+      parts.add(messages.closerBy(mileage: gap));
+    }
+  }
+  return parts.join(' · ');
+}
+
 /// A problem marked at the visit and what fixing it typically costs.
 class const VisitRepair(final String title, final double cost);
 

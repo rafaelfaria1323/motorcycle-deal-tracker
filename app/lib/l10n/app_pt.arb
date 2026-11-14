@@ -7513,8 +7513,52 @@
       }
     }
   },
-  "cheaperSimilarIntro": "Ainda à venda, de ano parecido (um ano de diferença no máximo) e sem mais km; da mais barata à mais cara. Toque num anúncio para o abrir, ou marque \"Comparar\" para o juntar à comparação.",
+  "cheaperSimilarIntro": "Ainda à venda, de ano parecido (um ano de diferença no máximo) e sem mais km; da mais barata à mais cara, cada uma com a diferença para este anúncio. Toque num anúncio para o abrir, ou marque \"Comparar\" para o juntar à comparação.",
   "@cheaperSimilarIntro": {
     "description": "Intro of the sheet listing cheaper ads of the same model (N.94)."
+  },
+  "cheaperBy": "{price} mais barata",
+  "@cheaperBy": {
+    "description": "On the sheet of cheaper ads (N.96), how one compares with the ad being negotiated.",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "dealScoreGap": "Deal Score {gap}",
+  "@dealScoreGap": {
+    "description": "On the sheet of cheaper ads (N.96), how one compares with the ad being negotiated.",
+    "placeholders": {
+      "gap": {
+        "type": "String"
+      }
+    }
+  },
+  "riskHigher": "risco mais alto",
+  "@riskHigher": {
+    "description": "On the sheet of cheaper ads (N.96), how one compares with the ad being negotiated."
+  },
+  "riskLower": "risco mais baixo",
+  "@riskLower": {
+    "description": "On the sheet of cheaper ads (N.96), how one compares with the ad being negotiated."
+  },
+  "fartherAway": "{mileage} mais longe",
+  "@fartherAway": {
+    "description": "On the sheet of cheaper ads (N.96), how one compares with the ad being negotiated.",
+    "placeholders": {
+      "mileage": {
+        "type": "String"
+      }
+    }
+  },
+  "closerBy": "{mileage} mais perto",
+  "@closerBy": {
+    "description": "On the sheet of cheaper ads (N.96), how one compares with the ad being negotiated.",
+    "placeholders": {
+      "mileage": {
+        "type": "String"
+      }
+    }
   }
 }

@@ -54,7 +54,9 @@ class const _CompareButton({
 }
 
 /// The cheaper ads of [listing]'s model, cheapest first, as Ofertas'
-/// cards: a tap opens one, its "Comparar" adds it to the comparison.
+/// cards, each under how it compares with [listing] (N.96: the price gap,
+/// Deal Score, risk and distance): a tap opens one, its "Comparar" adds
+/// it to the comparison.
 Future<void> showCheaperSimilar(
   BuildContext context,
   Listing listing,
@@ -107,9 +109,27 @@ class const _CheaperSimilarSheet({
                 for (final ad in cheaper)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16),
-                    child: DealsListItem(
-                      listing: ad,
-                      preferences: cards.preferences,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (cheaperVersusText(
+                              listing,
+                              ad,
+                              language: context.language,
+                            )
+                            case final versus?)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: Text(
+                              versus,
+                              style: theme.textTheme.titleSmall,
+                            ),
+                          ),
+                        DealsListItem(
+                          listing: ad,
+                          preferences: cards.preferences,
+                        ),
+                      ],
                     ),
                   ),
               ],
