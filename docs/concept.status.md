@@ -59,7 +59,7 @@ Unchanged.
 
 - Frontend: Flutter Web, Dart ✅ *Flutter 3.50.0 and its bundled Dart
   3.14.0 are pinned for local FVM use and CI (`.fvmrc`, `.dart-version`;
-  roadmap N.33, N.35, N.90; the collector written with 3.13's primary
+  roadmap N.33, N.35, N.90, N.91 (Safari kept on JavaScript); the collector written with 3.13's primary
   constructors and dot shorthands, N.36; the app too, N.38; and its dot shorthands, N.39; both on the 3.11-3.13 lints, N.40; both lockfiles enforced in CI, N.41), not floating stable releases. The collector/database PR
   job uses standalone Dart and the production setup/startup smoke, with
   no full Flutter installation or duplicate setup job.*
