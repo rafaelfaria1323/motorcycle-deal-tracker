@@ -10,7 +10,7 @@ import '../cubit/favourites_state.dart';
 import '../../../listings/presentation/cubit/listing_card_preferences_cubit.dart';
 import '../favourites_text.dart';
 import '../similar_search.dart';
-import '../viewing_checklist.dart';
+import '../widgets/favourite_sharing.dart';
 import '../widgets/favourite_widgets.dart';
 import '../widgets/viewing_checklist_card.dart';
 import '../../../listings/presentation/widgets/listing_card.dart';
@@ -26,7 +26,21 @@ class const FavouritesPage({super.key}) extends StatelessWidget {
     final cubit = getIt<FavouritesCubit>();
     return Scaffold(
       // A tab since F.9: no back arrow.
-      appBar: AppBar(title: Text(context.strings.favourites)),
+      appBar: AppBar(
+        title: Text(context.strings.favourites),
+        actions: [
+          const SharedListsButton(),
+          BlocBuilder<FavouritesCubit, FavouritesState>(
+            bloc: cubit,
+            builder: (context, state) => FavouritesMenu(
+              favourites: [
+                for (final f in state.favourites)
+                  if (f.listing != null) f,
+              ],
+            ),
+          ),
+        ],
+      ),
       body: BlocBuilder<FavouritesCubit, FavouritesState>(
         bloc: cubit,
         builder: (context, state) {
@@ -134,46 +148,7 @@ class const FavouritesPage({super.key}) extends StatelessWidget {
                                     FavouriteChangesLine(text: changes),
                                     const SizedBox(height: 4),
                                   ],
-                                  if (f.note != null) ...[
-                                    Text(
-                                      f.note!,
-                                      style: theme.textTheme.bodyMedium,
-                                    ),
-                                    const SizedBox(height: 4),
-                                  ],
-                                  if (f.visitAt case final visit?) ...[
-                                    Text(
-                                      visitText(
-                                        visit,
-                                        language: context.language,
-                                      ),
-                                      style: theme.textTheme.bodyMedium,
-                                    ),
-                                    const SizedBox(height: 4),
-                                  ],
-                                  if (f.checklist.isNotEmpty) ...[
-                                    Text(
-                                      checklistIssuesText(
-                                            f.checklist,
-                                            language: context.language,
-                                            listing: f.listing,
-                                          ) ??
-                                          checklistSummaryText(
-                                            f.checklist,
-                                            language: context.language,
-                                            listing: f.listing,
-                                          ),
-                                      style: theme.textTheme.bodyMedium,
-                                    ),
-                                    const SizedBox(height: 4),
-                                  ],
-                                  Text(
-                                    favouriteSinceText(
-                                      f,
-                                      language: context.language,
-                                    ),
-                                    style: muted,
-                                  ),
+                                  FavouriteFacts(favourite: f),
                                   // Here too, not only on the ad's page: at
                                   // the viewing there may be no connection
                                   // to open it (N.66).

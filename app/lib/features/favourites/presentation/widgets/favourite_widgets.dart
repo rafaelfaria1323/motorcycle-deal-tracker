@@ -4,6 +4,9 @@ import 'package:material_ui/material_ui.dart';
 import '../../../../app/di/injection.dart';
 import '../../../../core/widgets/show_message.dart';
 import '../../../listings/domain/entities/listing.dart';
+import '../../domain/entities/favourite.dart';
+import '../favourites_text.dart';
+import '../viewing_checklist.dart';
 import '../cubit/favourites_cubit.dart';
 import '../cubit/favourites_state.dart';
 import '../../../../core/localization/localizations.dart';
@@ -219,6 +222,54 @@ class _NoteDialogState extends State<NoteDialog> {
         FilledButton(
           onPressed: () => Navigator.of(context).pop(_controller.text),
           child: Text(context.strings.save),
+        ),
+      ],
+    );
+  }
+}
+
+/// Under a favourite's card, in Favoritos and in a list shared with the
+/// account (16.11): its note, the planned visit, the checklist and since
+/// when it is a favourite.
+class const FavouriteFacts({required final Favourite favourite, super.key})
+    extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final body = theme.textTheme.bodyMedium;
+    final f = favourite;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (f.note != null) ...[
+          Text(f.note!, style: body),
+          const SizedBox(height: 4),
+        ],
+        if (f.visitAt case final visit?) ...[
+          Text(visitText(visit, language: context.language), style: body),
+          const SizedBox(height: 4),
+        ],
+        if (f.checklist.isNotEmpty) ...[
+          Text(
+            checklistIssuesText(
+                  f.checklist,
+                  language: context.language,
+                  listing: f.listing,
+                ) ??
+                checklistSummaryText(
+                  f.checklist,
+                  language: context.language,
+                  listing: f.listing,
+                ),
+            style: body,
+          ),
+          const SizedBox(height: 4),
+        ],
+        Text(
+          favouriteSinceText(f, language: context.language),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
         ),
       ],
     );

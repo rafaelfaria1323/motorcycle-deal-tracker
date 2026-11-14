@@ -114,3 +114,15 @@ authenticated_security_definer_function_executable_public_request_photo_exam_p_l
 # recall_notices (N.87): RLS without policies on purpose; no API access,
 # only the collector's pending_recall_notices / mark_recall_noticed.
 rls_enabled_no_policy_public_recall_notices
+
+# favourite_shares (16.11): RLS without policies on purpose; no API
+# access, only these functions, each limited to the caller's own share or
+# a list shared with the caller (favourite_shares_test.sql).
+rls_enabled_no_policy_public_favourite_shares
+authenticated_security_definer_function_executable_public_share_favourites_
+authenticated_security_definer_function_executable_public_my_favourite_share_
+authenticated_security_definer_function_executable_public_stop_sharing_favourites_
+authenticated_security_definer_function_executable_public_accept_favourite_share_p_code text
+authenticated_security_definer_function_executable_public_favourites_shared_with_me_
+authenticated_security_definer_function_executable_public_leave_shared_favourites_p_owner uuid
+authenticated_security_definer_function_executable_public_shared_favourites_p_owner uuid

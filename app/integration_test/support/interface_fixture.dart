@@ -24,6 +24,8 @@ import 'package:motorcycle_deal_tracker/features/collector_status/presentation/c
 import 'package:motorcycle_deal_tracker/features/collector_status/presentation/collector_status_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/compare/presentation/cubit/compare_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/favourites/domain/entities/favourite.dart';
+import 'package:motorcycle_deal_tracker/features/favourites/domain/entities/favourite_share.dart';
+import 'package:motorcycle_deal_tracker/features/favourites/domain/repositories/favourite_shares_repository.dart';
 import 'package:motorcycle_deal_tracker/features/favourites/domain/repositories/favourites_repository.dart';
 import 'package:motorcycle_deal_tracker/features/favourites/presentation/cubit/favourites_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/favourites/presentation/pages/favourites_page.dart';
@@ -159,6 +161,7 @@ class InterfaceFixture {
   late final alerts = AlertsCubit(alertsRepository, session);
   final favouritesRepository = InterfaceFavourites();
   late final favourites = FavouritesCubit(favouritesRepository, session);
+  final shares = InterfaceShares();
   final compare = CompareCubit();
   late final languageRepository = LanguageFixture(device: language)
     ..accounts['interface-user'] = language
@@ -179,6 +182,7 @@ class InterfaceFixture {
       favourites,
       dispose: (c) => c.close(),
     );
+    getIt.registerSingleton<FavouriteSharesRepository>(shares);
     getIt.registerSingleton<CompareCubit>(compare, dispose: (c) => c.close());
     getIt.registerSingleton<SessionCubit>(session, dispose: (c) => c.close());
     getIt.registerSingleton<LanguageRepository>(languageRepository);
@@ -577,6 +581,43 @@ class InterfaceFavourites implements FavouritesRepository {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Nothing shared until a test says so.
+class InterfaceShares implements FavouriteSharesRepository {
+  final lists = <SharedList>[];
+  final shared = <String, List<Favourite>>{};
+  FavouriteShare current = FavouriteShare.none;
+
+  @override
+  Future<String> share() async {
+    current = FavouriteShare(
+      viewerEmail: current.viewerEmail,
+      code: 'code',
+      codeExpiresAt: DateTime(2026, 12),
+    );
+    return 'code';
+  }
+
+  @override
+  Future<FavouriteShare> mine() async => current;
+
+  @override
+  Future<void> stop() async => current = FavouriteShare.none;
+
+  @override
+  Future<String> accept(String code) async => lists.first.ownerId;
+
+  @override
+  Future<List<SharedList>> sharedWithMe() async => List.of(lists);
+
+  @override
+  Future<void> leave(String ownerId) async =>
+      lists.removeWhere((list) => list.ownerId == ownerId);
+
+  @override
+  Future<List<Favourite>> favouritesOf(String ownerId) async =>
+      shared[ownerId] ?? const [];
 }
 
 class _Runs(final CollectorRun? latest) implements CollectorRunsRepository {

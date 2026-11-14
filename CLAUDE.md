@@ -460,7 +460,7 @@ invites; written by the collector on each run).
   title and Limpar/Aplicar fixed while the choices scroll.
   Switching tabs uses `context.go`; full pages outside the shell
   (`/models`, `/market`, `/worth`, `/import`, `/compare?ids=a,b,c`,
-  `/summary`, `/my-bike`, `/dealer?name=…`)
+  `/summary`, `/my-bike`, `/dealer?name=…`, `/shared-favourites?owner=…`)
   and an ad (`/deals/<id>`, from anywhere) are pushed, so back returns
   where the person was; pushed pages show their own address
   (`GoRouter.optionURLReflectsImperativeAPIs`, set in `main.dart`). The
@@ -713,7 +713,8 @@ invites; written by the collector on each run).
   only saved_searches, listing_favourites, user_home, ownership_settings,
   owned_bikes,
   inserts/updates its own listing_card_preferences, account_languages and quiet_hours,
-  deletes invites and push_subscriptions, and updates `alerts.read_at`
+  deletes invites and push_subscriptions, and updates `alerts.read_at`;
+  `favourite_shares` has no API access (its RPCs)
   (`20261024170000_tighten_api_grants.sql`, `api_grants_test.sql`). A new
   table the app writes needs its own `grant` (RLS still limits the rows);
   everything else goes through security definer functions.
@@ -1564,6 +1565,19 @@ What changed since a favourite was last opened (N.97): `listing_favourites.seen_
 database's time); opening the ad marks it (`FavouritesCubit.markSeen`, after the
 first frame); `favouriteChangesText` (`FavouriteChangesLine`) under the card in
 Favoritos and once on the ad's page.
+Shared list (16.11): Favoritos' menu (`FavouritesMenu`,
+`favourite_sharing.dart`) "Partilhar a lista" makes a link
+(`share_favourites`, `/#/share?code=…`, `AcceptSharePage`; 14 days, once)
+for one more account (`favourite_shares`, one row per owner, RLS without
+policies, no API access; `accept_favourite_share`, `my_favourite_share`,
+`stop_sharing_favourites`, `favourites_shared_with_me`,
+`leave_shared_favourites`), which reads the list read only
+(`shared_favourites(p_owner)`: rows of `listing_favourites`, the listing
+embedded; `/shared-favourites?owner=…`, `SharedFavouritesPage`,
+`SharedListsButton`). "Exportar (CSV)" (`favouritesCsv`,
+`favourite_share_text.dart`: ";" in Portuguese, BOM, formula guard)
+downloads through `core/platform/download.dart` (also the visit's .ics),
+or copies in the Android app.
 A favourite's planned visit (N.65, `listing_favourites.visit_at`, set
 under "Para a visita", `VisitTile`, shown in Favoritos by `visitText`):
 `finishRun`'s last step (`remindVisits`, `notify/visit_reminder_push.dart`)

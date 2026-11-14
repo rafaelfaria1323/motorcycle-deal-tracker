@@ -219,6 +219,35 @@ CREATE FUNCTION public.a2_fit(p_power_kw numeric, p_text_signals text[]) RETURNS
 $$;
 
 --
+-- Name: accept_favourite_share(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.accept_favourite_share(p_code text) RETURNS uuid
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+declare
+  v_owner uuid;
+begin
+  perform public.require_account();
+  select owner_id into v_owner
+  from public.favourite_shares
+  where code = p_code and code_expires_at > now()
+  for update;
+  if v_owner is null then
+    raise exception 'This link is not valid any more' using errcode = 'P0002';
+  end if;
+  if v_owner = auth.uid() then
+    raise exception 'This is your own list' using errcode = '22023';
+  end if;
+  update public.favourite_shares
+     set viewer_id = auth.uid(), code = null, code_expires_at = null
+   where owner_id = v_owner;
+  return v_owner;
+end;
+$$;
+
+--
 -- Name: account_quiet_at(uuid, timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -1717,6 +1746,21 @@ CREATE FUNCTION public.fact_edit_signals(p_mileage integer, p_mileage_from_text 
 $$;
 
 --
+-- Name: favourites_shared_with_me(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.favourites_shared_with_me() RETURNS TABLE(owner_id uuid, owner_email text)
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+  select s.owner_id, u.email::text
+  from public.favourite_shares s
+  join auth.users u on u.id = s.owner_id
+  where s.viewer_id = auth.uid()
+  order by u.email
+$$;
+
+--
 -- Name: fill_listing_colour(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -2265,6 +2309,22 @@ begin
   new.last_pct_below_market :=
     (new.score_breakdown ->> 'pct_below_market')::numeric;
   return new;
+end;
+$$;
+
+--
+-- Name: leave_shared_favourites(uuid); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.leave_shared_favourites(p_owner uuid) RETURNS void
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+begin
+  perform public.require_account();
+  update public.favourite_shares
+     set viewer_id = null
+   where owner_id = p_owner and viewer_id = auth.uid();
 end;
 $$;
 
@@ -3447,6 +3507,21 @@ CREATE FUNCTION public.my_colours(m public.motorcycles) RETURNS text[]
     (select u.colours from public.user_models u
      where u.user_id = (select auth.uid()) and u.motorcycle_id = m.id),
     '{}')
+$$;
+
+--
+-- Name: my_favourite_share(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.my_favourite_share() RETURNS TABLE(viewer_email text, code text, code_expires_at timestamp with time zone)
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+  select u.email::text, s.code,
+         case when s.code_expires_at > now() then s.code_expires_at end
+  from public.favourite_shares s
+  left join auth.users u on u.id = s.viewer_id
+  where s.owner_id = auth.uid()
 $$;
 
 --
@@ -5646,6 +5721,80 @@ end;
 $$;
 
 --
+-- Name: share_favourites(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.share_favourites() RETURNS text
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+declare
+  v_code text := translate(encode(uuid_send(gen_random_uuid()), 'base64'), '+/=', '-_');
+begin
+  perform public.require_account();
+  insert into public.favourite_shares (owner_id, code, code_expires_at)
+  values (auth.uid(), v_code, now() + interval '14 days')
+  on conflict (owner_id) do update
+    set code = excluded.code, code_expires_at = excluded.code_expires_at;
+  return v_code;
+end;
+$$;
+
+--
+-- Name: listing_favourites; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.listing_favourites (
+    user_id uuid DEFAULT auth.uid() NOT NULL,
+    listing_id uuid NOT NULL,
+    note text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    checklist jsonb DEFAULT '{}'::jsonb NOT NULL,
+    target_price numeric(10,2),
+    target_set_at timestamp with time zone,
+    visit_at timestamp with time zone,
+    visit_reminded_at timestamp with time zone,
+    seen_at timestamp with time zone,
+    seen_price numeric(10,2),
+    seen_mileage integer,
+    seen_status public.listing_status,
+    CONSTRAINT listing_favourites_checklist_object CHECK (((jsonb_typeof(checklist) = 'object'::text) AND (octet_length((checklist)::text) <= 32000))),
+    CONSTRAINT listing_favourites_note_check CHECK ((char_length(note) <= 2000)),
+    CONSTRAINT listing_favourites_target_price_check CHECK ((target_price > (0)::numeric))
+);
+
+--
+-- Name: COLUMN listing_favourites.checklist; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.listing_favourites.checklist IS 'Viewing checklist marks per item key: {"mark": "ok"|"issue", "note": text}.';
+
+--
+-- Name: COLUMN listing_favourites.seen_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.listing_favourites.seen_at IS 'When the owner last opened the ad (N.97); seen_price, seen_mileage and seen_status are the ad then.';
+
+--
+-- Name: shared_favourites(uuid); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.shared_favourites(p_owner uuid) RETURNS SETOF public.listing_favourites
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+  select f.*
+  from public.listing_favourites f
+  where f.user_id = p_owner
+    and exists (
+      select 1 from public.favourite_shares s
+      where s.owner_id = p_owner and s.viewer_id = auth.uid()
+    )
+  order by f.created_at desc
+$$;
+
+--
 -- Name: single_owner_in_text(text, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -5826,6 +5975,20 @@ begin
   values (p_workflow, auth.uid())
   returning started_at into v_at;
   return v_at;
+end;
+$$;
+
+--
+-- Name: stop_sharing_favourites(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.stop_sharing_favourites() RETURNS void
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+begin
+  perform public.require_account();
+  delete from public.favourite_shares where owner_id = auth.uid();
 end;
 $$;
 
@@ -6547,6 +6710,26 @@ CREATE VIEW public.dealer_reliability WITH (security_invoker='true') AS
   GROUP BY d.dealer_key;
 
 --
+-- Name: favourite_shares; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.favourite_shares (
+    owner_id uuid NOT NULL,
+    viewer_id uuid,
+    code text,
+    code_expires_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT favourite_shares_code_expires CHECK (((code IS NULL) = (code_expires_at IS NULL))),
+    CONSTRAINT favourite_shares_not_self CHECK ((viewer_id <> owner_id))
+);
+
+--
+-- Name: TABLE favourite_shares; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.favourite_shares IS 'One account''s favourites shown to one more account, read only (16.11). No API access: through the functions below.';
+
+--
 -- Name: fuel_prices; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -6727,42 +6910,6 @@ CREATE VIEW public.listing_fair_prices WITH (security_invoker='true') AS
      JOIN public.model_depreciation d ON ((d.motorcycle_id = ch.motorcycle_id)))
   WHERE ((NOT ch.use_near) OR ch.near)
   GROUP BY ch.id;
-
---
--- Name: listing_favourites; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.listing_favourites (
-    user_id uuid DEFAULT auth.uid() NOT NULL,
-    listing_id uuid NOT NULL,
-    note text,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    checklist jsonb DEFAULT '{}'::jsonb NOT NULL,
-    target_price numeric(10,2),
-    target_set_at timestamp with time zone,
-    visit_at timestamp with time zone,
-    visit_reminded_at timestamp with time zone,
-    seen_at timestamp with time zone,
-    seen_price numeric(10,2),
-    seen_mileage integer,
-    seen_status public.listing_status,
-    CONSTRAINT listing_favourites_checklist_object CHECK (((jsonb_typeof(checklist) = 'object'::text) AND (octet_length((checklist)::text) <= 32000))),
-    CONSTRAINT listing_favourites_note_check CHECK ((char_length(note) <= 2000)),
-    CONSTRAINT listing_favourites_target_price_check CHECK ((target_price > (0)::numeric))
-);
-
---
--- Name: COLUMN listing_favourites.checklist; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.listing_favourites.checklist IS 'Viewing checklist marks per item key: {"mark": "ok"|"issue", "note": text}.';
-
---
--- Name: COLUMN listing_favourites.seen_at; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.listing_favourites.seen_at IS 'When the owner last opened the ad (N.97); seen_price, seen_mileage and seen_status are the ad then.';
 
 --
 -- Name: listing_new_price_comparison; Type: VIEW; Schema: public; Owner: -
@@ -7397,6 +7544,20 @@ ALTER TABLE ONLY public.collector_runs
     ADD CONSTRAINT collector_runs_pkey PRIMARY KEY (id);
 
 --
+-- Name: favourite_shares favourite_shares_code_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.favourite_shares
+    ADD CONSTRAINT favourite_shares_code_key UNIQUE (code);
+
+--
+-- Name: favourite_shares favourite_shares_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.favourite_shares
+    ADD CONSTRAINT favourite_shares_pkey PRIMARY KEY (owner_id);
+
+--
 -- Name: fuel_prices fuel_prices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7718,6 +7879,12 @@ CREATE INDEX bike_value_requests_pending ON public.bike_value_requests USING btr
 --
 
 CREATE INDEX bike_value_requests_user ON public.bike_value_requests USING btree (user_id, requested_at DESC);
+
+--
+-- Name: favourite_shares_viewer_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX favourite_shares_viewer_idx ON public.favourite_shares USING btree (viewer_id);
 
 --
 -- Name: invites_created_by_idx; Type: INDEX; Schema: public; Owner: -
@@ -8044,6 +8211,20 @@ ALTER TABLE ONLY public.bike_value_requests
 
 ALTER TABLE ONLY public.bike_value_requests
     ADD CONSTRAINT bike_value_requests_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+--
+-- Name: favourite_shares favourite_shares_owner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.favourite_shares
+    ADD CONSTRAINT favourite_shares_owner_id_fkey FOREIGN KEY (owner_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+--
+-- Name: favourite_shares favourite_shares_viewer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.favourite_shares
+    ADD CONSTRAINT favourite_shares_viewer_id_fkey FOREIGN KEY (viewer_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 --
 -- Name: invites invites_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
@@ -8484,6 +8665,12 @@ ALTER TABLE public.collection_watchdog ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.collector_runs ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: favourite_shares; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.favourite_shares ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: fuel_prices; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -8712,6 +8899,14 @@ GRANT ALL ON FUNCTION public.a2(l public.listings) TO service_role;
 GRANT ALL ON FUNCTION public.a2_fit(p_power_kw numeric, p_text_signals text[]) TO anon;
 GRANT ALL ON FUNCTION public.a2_fit(p_power_kw numeric, p_text_signals text[]) TO authenticated;
 GRANT ALL ON FUNCTION public.a2_fit(p_power_kw numeric, p_text_signals text[]) TO service_role;
+
+--
+-- Name: FUNCTION accept_favourite_share(p_code text); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.accept_favourite_share(p_code text) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.accept_favourite_share(p_code text) TO authenticated;
+GRANT ALL ON FUNCTION public.accept_favourite_share(p_code text) TO service_role;
 
 --
 -- Name: FUNCTION account_quiet_at(p_user uuid, p_at timestamp with time zone); Type: ACL; Schema: public; Owner: -
@@ -9125,6 +9320,14 @@ REVOKE ALL ON FUNCTION public.fact_edit_signals(p_mileage integer, p_mileage_fro
 GRANT ALL ON FUNCTION public.fact_edit_signals(p_mileage integer, p_mileage_from_text boolean, p_mileage_max_seen integer, p_year integer, p_year_first_seen integer) TO service_role;
 
 --
+-- Name: FUNCTION favourites_shared_with_me(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.favourites_shared_with_me() FROM PUBLIC;
+GRANT ALL ON FUNCTION public.favourites_shared_with_me() TO authenticated;
+GRANT ALL ON FUNCTION public.favourites_shared_with_me() TO service_role;
+
+--
 -- Name: FUNCTION fill_listing_colour(); Type: ACL; Schema: public; Owner: -
 --
 
@@ -9292,6 +9495,14 @@ GRANT ALL ON FUNCTION public.keep_last_deal_score() TO service_role;
 
 REVOKE ALL ON FUNCTION public.keep_market_position() FROM PUBLIC;
 GRANT ALL ON FUNCTION public.keep_market_position() TO service_role;
+
+--
+-- Name: FUNCTION leave_shared_favourites(p_owner uuid); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.leave_shared_favourites(p_owner uuid) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.leave_shared_favourites(p_owner uuid) TO authenticated;
+GRANT ALL ON FUNCTION public.leave_shared_favourites(p_owner uuid) TO service_role;
 
 --
 -- Name: FUNCTION legalisation_cap(p_reasons text[]); Type: ACL; Schema: public; Owner: -
@@ -9537,6 +9748,14 @@ GRANT ALL ON TABLE public.motorcycles TO service_role;
 GRANT ALL ON FUNCTION public.my_colours(m public.motorcycles) TO anon;
 GRANT ALL ON FUNCTION public.my_colours(m public.motorcycles) TO authenticated;
 GRANT ALL ON FUNCTION public.my_colours(m public.motorcycles) TO service_role;
+
+--
+-- Name: FUNCTION my_favourite_share(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.my_favourite_share() FROM PUBLIC;
+GRANT ALL ON FUNCTION public.my_favourite_share() TO authenticated;
+GRANT ALL ON FUNCTION public.my_favourite_share() TO service_role;
 
 --
 -- Name: FUNCTION my_min_year(m public.motorcycles); Type: ACL; Schema: public; Owner: -
@@ -10045,6 +10264,30 @@ REVOKE ALL ON FUNCTION public.set_search_keys(p_source text, p_keys jsonb) FROM 
 GRANT ALL ON FUNCTION public.set_search_keys(p_source text, p_keys jsonb) TO service_role;
 
 --
+-- Name: FUNCTION share_favourites(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.share_favourites() FROM PUBLIC;
+GRANT ALL ON FUNCTION public.share_favourites() TO authenticated;
+GRANT ALL ON FUNCTION public.share_favourites() TO service_role;
+
+--
+-- Name: TABLE listing_favourites; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT SELECT ON TABLE public.listing_favourites TO anon;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE public.listing_favourites TO authenticated;
+GRANT ALL ON TABLE public.listing_favourites TO service_role;
+
+--
+-- Name: FUNCTION shared_favourites(p_owner uuid); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.shared_favourites(p_owner uuid) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.shared_favourites(p_owner uuid) TO authenticated;
+GRANT ALL ON FUNCTION public.shared_favourites(p_owner uuid) TO service_role;
+
+--
 -- Name: FUNCTION single_owner_in_text(p_variant text, p_description text); Type: ACL; Schema: public; Owner: -
 --
 
@@ -10086,6 +10329,14 @@ GRANT ALL ON FUNCTION public.stamp_favourite_visit() TO service_role;
 REVOKE ALL ON FUNCTION public.start_workflow(p_workflow text, p_kind text) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.start_workflow(p_workflow text, p_kind text) TO authenticated;
 GRANT ALL ON FUNCTION public.start_workflow(p_workflow text, p_kind text) TO service_role;
+
+--
+-- Name: FUNCTION stop_sharing_favourites(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.stop_sharing_favourites() FROM PUBLIC;
+GRANT ALL ON FUNCTION public.stop_sharing_favourites() TO authenticated;
+GRANT ALL ON FUNCTION public.stop_sharing_favourites() TO service_role;
 
 --
 -- Name: FUNCTION store_model_specs(p_id uuid, p_specs jsonb); Type: ACL; Schema: public; Owner: -
@@ -10294,6 +10545,12 @@ GRANT SELECT ON TABLE public.dealer_reliability TO authenticated;
 GRANT ALL ON TABLE public.dealer_reliability TO service_role;
 
 --
+-- Name: TABLE favourite_shares; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON TABLE public.favourite_shares TO service_role;
+
+--
 -- Name: TABLE fuel_prices; Type: ACL; Schema: public; Owner: -
 --
 
@@ -10331,14 +10588,6 @@ GRANT ALL ON TABLE public.model_depreciation TO service_role;
 GRANT SELECT ON TABLE public.listing_fair_prices TO anon;
 GRANT SELECT ON TABLE public.listing_fair_prices TO authenticated;
 GRANT ALL ON TABLE public.listing_fair_prices TO service_role;
-
---
--- Name: TABLE listing_favourites; Type: ACL; Schema: public; Owner: -
---
-
-GRANT SELECT ON TABLE public.listing_favourites TO anon;
-GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE public.listing_favourites TO authenticated;
-GRANT ALL ON TABLE public.listing_favourites TO service_role;
 
 --
 -- Name: TABLE listing_new_price_comparison; Type: ACL; Schema: public; Owner: -

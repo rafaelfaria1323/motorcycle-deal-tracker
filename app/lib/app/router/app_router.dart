@@ -15,7 +15,9 @@ import '../../features/valuation/presentation/pages/my_bikes_page.dart';
 import '../../features/compare/presentation/pages/compare_page.dart';
 import '../../features/listings/presentation/pages/dashboard_page.dart';
 import '../../features/listings/presentation/pages/dealer_page.dart';
+import '../../features/favourites/presentation/pages/accept_share_page.dart';
 import '../../features/favourites/presentation/pages/favourites_page.dart';
+import '../../features/favourites/presentation/pages/shared_favourites_page.dart';
 import '../../features/listings/presentation/pages/listing_detail_page.dart';
 import '../../features/market/presentation/pages/model_market_page.dart';
 import '../../features/saved_searches/presentation/pages/saved_searches_page.dart';
@@ -199,6 +201,18 @@ final appRouter = GoRouter(
       path: AppRoutes.join,
       builder: (context, state) =>
           JoinPage(code: state.uri.queryParameters['code'] ?? ''),
+    ),
+    // A shared list's link (`/#/share?code=…`, 16.11), from a message.
+    GoRoute(
+      path: AppRoutes.share,
+      builder: (context, state) =>
+          AcceptSharePage(code: state.uri.queryParameters['code'] ?? ''),
+    ),
+    GoRoute(
+      path: AppRoutes.sharedFavouritesPath,
+      builder: (context, state) => SharedFavouritesPage(
+        ownerId: state.uri.queryParameters['owner'] ?? '',
+      ),
     ),
     GoRoute(
       path: AppRoutes.comparePath,
