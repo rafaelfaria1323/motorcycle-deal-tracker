@@ -79,6 +79,16 @@ begin
          and r.listing_id = (select id from public.listings where source_listing_id = 'rn1'),
     'e2 hears of its favourite';
 
+  -- An ad without a year hears of every recall of its model, as the app
+  -- shows them (both 2026 ones; not the old one or the one stored before).
+  update public.listings set year = null where source_listing_id = 'rn1';
+  assert (select array_agg(case_number order by case_number)
+          from public.pending_recall_notices(at) where user_id = e2)
+         = array['A12/001', 'A12/002'], 'no year: every recall applies';
+  assert (select bool_and(year is null) from public.pending_recall_notices(at)
+          where user_id = e2), 'no year told';
+  update public.listings set year = 2021 where source_listing_id = 'rn1';
+
   -- A gone favourite tells nothing.
   update public.listings set status = 'removed' where source_listing_id = 'rn1';
   assert not exists (select 1 from public.pending_recall_notices(at) where user_id = e2),
