@@ -73,6 +73,25 @@ begin
   assert r.dropped = 0 and r.gone = 0, 'nothing in 5 days';
   assert r.median_drop is null, 'no drops, no median';
 
+  -- A gone ad one run saw is left out (N.93): this ad 10 minutes old,
+  -- the other gone after 20 minutes would otherwise count as leaving.
+  update public.listings set first_seen_at = now() - interval '10 minutes'
+  where id = me;
+  select * into r from public.price_drop_outlook(me);
+  insert into public.listings (source, source_listing_id, url, motorcycle_id,
+                               brand, model, year, mileage, price, status,
+                               first_seen_at, last_seen_at)
+  values ('olx', 'pdo-once', 'https://x/pdo-once', mt, 'Yamaha', 'MT-07',
+          2020, 20000, 6000, 'removed', now() - interval '100 days',
+          now() - interval '100 days' + interval '20 minutes');
+  assert (select (o.sample, o.gone) = (r.sample, r.gone)
+          from public.price_drop_outlook(me) o), 'seen once counted';
+  update public.listings
+  set last_seen_at = now() - interval '100 days' + interval '2 hours'
+  where source_listing_id = 'pdo-once';
+  assert (select o.gone = r.gone + 1 from public.price_drop_outlook(me) o),
+    'seen by two runs: it left';
+
   -- A gone ad, or one without a real price, gets nothing.
   update public.listings set price = 1 where id = me;
   assert (select sample from public.price_drop_outlook(me)) = 0,

@@ -249,7 +249,7 @@ Shown on the detail page and in "Modelos acompanhados". The new-bike price is th
 
 ✅ The collector survives a lost connection to the database (one more try, then only that site fails), and an OLX ad's photos follow the seller's edits (N.56). A run's status comes from a report the run writes, not from the wording of its log, and notifications go only to the browsers' own push services (N.57).
 
-✅ Gone ads are told apart (N.61): expired (private ads at 30 days), relisted, still on the other site, said "vendida" in the text, or likely sold. Only likely sales count for "Último preço pedido antes de sair", and every Monday a report on the run's page (no AI) compares the estimates and the Deal Score with them: where each model's sales sat against the estimate, and whether higher scores sold sooner. An ad only one run saw is no sale (N.92), and the bands count only ads found since last Deal Scores were kept (12 Nov).
+✅ Gone ads are told apart (N.61): expired (private ads at 30 days), relisted, still on the other site, said "vendida" in the text, or likely sold. Only likely sales count for "Último preço pedido antes de sair", and every Monday a report on the run's page (no AI) compares the estimates and the Deal Score with them: where each model's sales sat against the estimate, and whether higher scores sold sooner. An ad only one run saw is no sale (N.92) and counts in no time on the market (N.93), and the bands count only ads found since last Deal Scores were kept (12 Nov).
 
 ## 22. Privacy 🟡
 
