@@ -1160,7 +1160,9 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   and condition answers, then the value and Negociar's `OfferCard` and
   `SellerMessageCard` on a listing built in the app (`typedAdListing`,
   `typed_ad.dart`, source `typed`, `Listing.isTyped`: no favourite, a
-  comparison of the stored ads only), never stored.
+  comparison of the stored ads only; the model's new-bike price from
+  `CatalogRepository.getModels` for `NewPriceCard`), never stored. The
+  message to a private seller also asks about a reservation of ownership.
   No ad page is ever read. Mais › "Comprar no estrangeiro"
   (`/import`, the same page with `importing`): the same value, then the
   import calculator above it; also on every listing with a price, in

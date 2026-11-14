@@ -3644,6 +3644,10 @@
   "@isItRegisteredInYourName": {
     "description": "Interface text in seller_message_text, sellerMessage."
   },
+  "isThereReservationOfOwnership": "Tem reserva de propriedade (crédito por pagar)?",
+  "@isThereReservationOfOwnership": {
+    "description": "Interface text in seller_message_text, sellerMessage: asked of private sellers (N.105)."
+  },
   "whenAndWhereCanISeeIt": "Quando e onde a posso ver?",
   "@whenAndWhereCanISeeIt": {
     "description": "Interface text in seller_message_text, sellerMessage."
@@ -6473,6 +6477,10 @@
   "bikeValueFactors": "Ajustes ao estado",
   "@bikeValueFactors": {
     "description": "Interface text in bike_value_card (Quanto vale a minha mota): label of the box with what each condition answer moves the value by (shown in capitals)."
+  },
+  "newBikePriceWithoutPapers": "Os stands costumam anunciar uma nova sem as despesas de registo e matrícula: pergunte quanto acrescentam",
+  "@newBikePriceWithoutPapers": {
+    "description": "Interface text in new_price_text, newPriceLines: the last line (N.105)."
   },
   "newBikePriceFromAds": "Mediana de {count} motas novas à venda nos stands",
   "@newBikePriceFromAds": {

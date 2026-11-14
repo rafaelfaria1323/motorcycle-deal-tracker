@@ -1,3 +1,4 @@
+import '../../listings/domain/entities/catalog_model.dart';
 import '../../listings/domain/entities/listing.dart';
 import '../domain/entities/bike_condition.dart';
 import '../domain/entities/bike_value.dart';
@@ -12,7 +13,10 @@ const typedAdId = '00000000-0000-0000-0000-000000000000';
 /// so Negociar's offer, arguments and message to the seller work on it
 /// as on a stored ad. Its estimate is the bike's [value] adjusted for
 /// what the ad says of its [condition] (as "Quanto vale a minha mota");
-/// what the ad already says is not asked again in the message.
+/// what the ad already says is not asked again in the message. The
+/// model's new-bike price ([catalog]: the dealers' new bikes, else the
+/// list price, as on a stored ad's page) is what a nearly new bike is
+/// compared with.
 Listing typedAdListing({
   required String motorcycleId,
   required String name,
@@ -22,7 +26,9 @@ Listing typedAdListing({
   required SellerType sellerType,
   required BikeValue value,
   BikeCondition condition = const BikeCondition(),
+  CatalogModel? catalog,
 }) {
+  final fromAds = catalog?.newPriceFromAds;
   final estimate = conditionEstimate(value, condition);
   final space = name.indexOf(' ');
   return Listing(
@@ -57,5 +63,8 @@ Listing typedAdListing({
       .yes => true,
       .no => false,
     },
+    newPrice: fromAds ?? catalog?.newPrice,
+    newPriceCheckedAt: fromAds == null ? catalog?.newPriceCheckedAt : null,
+    newPriceAdCount: fromAds == null ? null : catalog?.newPriceAdCount,
   );
 }

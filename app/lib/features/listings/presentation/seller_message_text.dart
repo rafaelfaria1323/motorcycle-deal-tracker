@@ -32,8 +32,11 @@ String sellerMessage(
     if (listing.origin == null)
       language.messages.wasItOriginallyRegisteredInPortugal,
     language.messages.hasItEverBeenDroppedOrInvolvedIn,
-    if (listing.sellerType == .private)
+    if (listing.sellerType == .private) ...[
       language.messages.isItRegisteredInYourName,
+      // A bike bought on credit can be the lender's until it is paid.
+      language.messages.isThereReservationOfOwnership,
+    ],
     language.messages.whenAndWhereCanISeeIt,
   ];
 

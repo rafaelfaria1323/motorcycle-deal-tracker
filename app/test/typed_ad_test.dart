@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/core/localization/localizations.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/entities/catalog_model.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/negotiation_text.dart';
+import 'package:motorcycle_deal_tracker/features/listings/presentation/new_price_text.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/offer_text.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/seller_message_text.dart';
 import 'package:motorcycle_deal_tracker/features/valuation/domain/entities/bike_condition.dart';
@@ -23,6 +25,7 @@ Listing _typed({
   SellerType seller = SellerType.private,
   BikeValue value = _value,
   BikeCondition condition = const BikeCondition(),
+  CatalogModel? catalog,
 }) => typedAdListing(
   motorcycleId: 'mt07',
   name: name,
@@ -32,6 +35,24 @@ Listing _typed({
   sellerType: seller,
   value: value,
   condition: condition,
+  catalog: catalog,
+);
+
+CatalogModel _catalog({
+  double? listPrice,
+  DateTime? checkedAt,
+  double? fromAds,
+  int? adCount,
+}) => CatalogModel(
+  id: 'mt07',
+  brand: 'Yamaha',
+  model: 'MT-07',
+  minYear: 2018,
+  isTracked: true,
+  newPrice: listPrice,
+  newPriceCheckedAt: checkedAt,
+  newPriceFromAds: fromAds,
+  newPriceAdCount: adCount,
 );
 
 void main() {
@@ -99,6 +120,36 @@ void main() {
       );
     });
 
+    test('takes the model\'s new-bike price as a stored ad\'s page does', () {
+      expect(_typed().newPrice, isNull);
+      expect(newPriceLines(_typed()), isEmpty);
+
+      final checked = DateTime(2026, 10, 1);
+      final listed = _typed(
+        catalog: _catalog(listPrice: 8250, checkedAt: checked),
+      );
+      expect(listed.newPrice, 8250);
+      expect(listed.newPriceCheckedAt, checked);
+      expect(listed.newPriceAdCount, isNull);
+
+      // The dealers' new bikes win over the typed list price.
+      final fromAds = _typed(
+        catalog: _catalog(
+          listPrice: 8250,
+          checkedAt: checked,
+          fromAds: 8400,
+          adCount: 4,
+        ),
+      );
+      expect(fromAds.newPrice, 8400);
+      expect(fromAds.newPriceAdCount, 4);
+      expect(fromAds.newPriceCheckedAt, isNull);
+      expect(
+        newPriceLines(_typed(price: 7500, catalog: _catalog(listPrice: 8250))),
+        contains(startsWith('Menos de 10 % abaixo de uma nova')),
+      );
+    });
+
     test('below 3 comparables there is no estimate and no offer', () {
       final listing = _typed(
         value: const BikeValue(comparableCount: 2, estimate: 7000),
@@ -122,6 +173,7 @@ void main() {
       expect(open, contains(language.messages.whatIsItsMileage));
       expect(open, contains(language.messages.howManyOwnersHasItHad));
       expect(open, contains(language.messages.isItRegisteredInYourName));
+      expect(open, contains(language.messages.isThereReservationOfOwnership));
       expect(open, isNot(contains('OLX')));
       expect(open, isNot(contains('Standvirtual')));
 
@@ -143,6 +195,10 @@ void main() {
       expect(
         known,
         isNot(contains(language.messages.isItRegisteredInYourName)),
+      );
+      expect(
+        known,
+        isNot(contains(language.messages.isThereReservationOfOwnership)),
       );
     });
 

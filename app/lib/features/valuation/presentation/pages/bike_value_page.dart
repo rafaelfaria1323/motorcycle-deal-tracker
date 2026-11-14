@@ -17,6 +17,7 @@ import '../../domain/entities/bike_value_request.dart';
 import '../../../market/domain/entities/exit_price.dart';
 import '../../../market/domain/entities/market_behaviour.dart';
 import '../../../market/domain/entities/model_market.dart';
+import '../../../listings/domain/entities/catalog_model.dart';
 import '../../../listings/domain/entities/listing.dart';
 import '../../../listings/domain/repositories/catalog_repository.dart';
 import '../../../market/domain/repositories/market_behaviour_repository.dart';
@@ -25,6 +26,8 @@ import '../ad_link_model.dart';
 import '../bike_value_text.dart';
 import '../typed_ad.dart';
 import '../../../listings/presentation/widgets/add_model_sheet.dart';
+import '../../../listings/presentation/new_price_text.dart';
+import '../../../listings/presentation/widgets/new_price_card.dart';
 import '../../../listings/presentation/widgets/offer_card.dart';
 import '../../../listings/presentation/widgets/seller_message_card.dart';
 import '../widgets/bike_condition_fields.dart';
@@ -72,7 +75,8 @@ class const BikeValuePage({
 /// What "Calcular" gave: the value, or null while the request waits for a
 /// collection ([ad]: an ad check waiting for its ad; [signIn]: an ad not
 /// stored, asked by an anonymous session, which can't wait for it;
-/// [typed]: the ad typed by hand, N.105).
+/// [typed]: the ad typed by hand, N.105, with its model's catalog row
+/// [catalog] for the new-bike price).
 typedef _Outcome = ({
   bool ad,
   bool signIn,
@@ -83,6 +87,7 @@ typedef _Outcome = ({
   BikeValue? value,
   MarketBehaviour? market,
   ExitPrice? exit,
+  CatalogModel? catalog,
 });
 
 /// The model, price and seller of an ad typed by hand.
@@ -326,15 +331,23 @@ class _BikeValuePageState extends State<BikeValuePage> {
         value: null,
         market: null,
         exit: null,
+        catalog: null,
       );
     }
-    final (value, market, exit) = await (
+    final (value, market, exit, catalog) = await (
       _repository.getBikeValue(motorcycleId, year: year, mileage: mileage),
       _repository.getForModel(motorcycleId),
       // Extra: without it the value still shows.
       _repository
           .getExitPrice(motorcycleId, year: year, mileage: mileage)
           .then<ExitPrice?>((e) => e, onError: (Object _) => null),
+      // The typed ad's new-bike price; extra too.
+      typed == null
+          ? Future<CatalogModel?>.value()
+          : getIt<CatalogRepository>().getModels().then<CatalogModel?>(
+              (models) => models.where((m) => m.id == motorcycleId).firstOrNull,
+              onError: (Object _) => null,
+            ),
     ).wait;
     return (
       ad: false,
@@ -346,6 +359,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
       value: value,
       market: market,
       exit: exit,
+      catalog: catalog,
     );
   }
 
@@ -777,6 +791,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
         sellerType: typed.seller,
         value: value,
         condition: _condition,
+        catalog: outcome.catalog,
       );
       _typedListing = (outcome, _condition, listing);
     }
@@ -787,6 +802,10 @@ class _BikeValuePageState extends State<BikeValuePage> {
         const SizedBox(height: 16),
         SellerMessageCard(key: ObjectKey(listing), listing: listing),
         const SizedBox(height: 16),
+        if (newPriceLines(listing, language: context.language).isNotEmpty) ...[
+          NewPriceCard(listing: listing),
+          const SizedBox(height: 16),
+        ],
         BikeValueCard(
           name: outcome.name,
           year: outcome.year,

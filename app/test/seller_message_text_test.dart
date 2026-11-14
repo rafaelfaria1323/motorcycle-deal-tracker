@@ -42,6 +42,7 @@ void main() {
       '- É de origem nacional?\n'
       '- Já teve alguma queda ou acidente?\n'
       '- O registo está em seu nome?\n'
+      '- Tem reserva de propriedade (crédito por pagar)?\n'
       '- Quando e onde a posso ver?\n'
       '\n'
       'Obrigado.',
