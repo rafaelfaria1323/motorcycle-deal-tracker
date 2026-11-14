@@ -160,6 +160,9 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 ➕ ✅ Visit planning with a reminder (N.65): a favourite's visit day and time, set from "Para a visita" and shown in Favoritos; the day before (the first collection within 24 h, outside quiet hours) a notification names the bike and points to the checklist, or warns that the ad is gone.
 
 ➕ ✅ The viewing checklist without a connection (N.66): marks made without signal stay on the device and are sent once there is a connection; Favoritos shows the last copy kept on the device when it can't load, and each favourite opens its checklist from there.
+
+➕ ✅ What changed since a favourite was last opened (N.97): under each favourite and on its page, a drop or rise, gone or back on the market, the mileage edited and a renewal on the site, until the ad is opened again.
+
 ➕ ✅ After the purchase (N.67): "Comprei esta" on the ad keeps the bike in "A minha mota", with its value today against what was paid and the next service and valve check by its estimated km; once a month its value is kept and pushed with the change since the month before (N.80), and the card lists the last 6 months.
 ➕ ✅ Good deals that went fast (N.68): the ad's market card says how long the model's good deals (Deal Score 80+) that likely sold in the last 90 days stayed on sale, against its other sales, and lists the three quickest to go, each opening its ad. Never a score.
 ➕ ✅ A dealer's page (N.72): "O stand" on a dealer's ad opens every ad of that dealer we have seen on both sites, those for sale first and then the gone ones, under its figures, so a dealer that keeps relisting is easy to see.

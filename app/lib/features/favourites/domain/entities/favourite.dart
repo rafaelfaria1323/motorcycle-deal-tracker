@@ -24,6 +24,10 @@ class const Favourite({
   /// when no visit is planned.
   final DateTime? visitAt,
 
+  /// The ad as it was when the user last opened it (N.97): what has
+  /// changed since is told in Favoritos and on its page. Null when unknown.
+  final FavouriteSeen? seen,
+
   /// The listing itself, when it was loaded with the favourite.
   final Listing? listing,
 }) extends Equatable {
@@ -34,6 +38,7 @@ class const Favourite({
     checklist: checklist,
     targetPrice: targetPrice,
     visitAt: visitAt,
+    seen: seen,
     listing: listing,
   );
 
@@ -44,6 +49,7 @@ class const Favourite({
     checklist: checklist,
     targetPrice: targetPrice,
     visitAt: visitAt,
+    seen: seen,
     listing: listing,
   );
 
@@ -54,6 +60,18 @@ class const Favourite({
     checklist: checklist,
     targetPrice: targetPrice,
     visitAt: visitAt,
+    seen: seen,
+    listing: listing,
+  );
+
+  Favourite withSeen(FavouriteSeen? seen) => Favourite(
+    listingId: listingId,
+    createdAt: createdAt,
+    note: note,
+    checklist: checklist,
+    targetPrice: targetPrice,
+    visitAt: visitAt,
+    seen: seen,
     listing: listing,
   );
 
@@ -64,6 +82,7 @@ class const Favourite({
     checklist: checklist,
     targetPrice: targetPrice,
     visitAt: visitAt,
+    seen: seen,
     listing: listing,
   );
 
@@ -75,8 +94,29 @@ class const Favourite({
     checklist,
     targetPrice,
     visitAt,
+    seen,
     listing,
   ];
+}
+
+/// How a favourite's ad was when its owner last opened it (N.97), kept by
+/// the database from the listing.
+class const FavouriteSeen({
+  required final DateTime at,
+  final double? price,
+  final int? mileage,
+  final ListingStatus? status,
+}) extends Equatable {
+  /// [listing] as it is now, seen [at].
+  factory FavouriteSeen.of(Listing listing, DateTime at) => FavouriteSeen(
+    at: at,
+    price: listing.price,
+    mileage: listing.mileage,
+    status: listing.status,
+  );
+
+  @override
+  List<Object?> get props => [at, price, mileage, status];
 }
 
 enum ChecklistMark { ok, issue }

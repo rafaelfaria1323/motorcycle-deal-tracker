@@ -573,6 +573,9 @@ class InterfaceFavourites implements FavouritesRepository {
   ) async {}
 
   @override
+  Future<void> markSeen(String listingId) async {}
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

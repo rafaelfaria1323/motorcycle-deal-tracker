@@ -1550,6 +1550,12 @@ before the next load, after the next save that works and on resume;
 each load keeps `favourites_copy:<account id>`, shown when a load fails
 with nothing on screen (`FavouritesState.fromDevice`). The web app
 still needs a connection to start.
+What changed since a favourite was last opened (N.97): `listing_favourites.seen_at`,
+`seen_price`, `seen_mileage`, `seen_status`, the ad then, filled by the trigger
+`listing_favourites_seen_stamp` (adding it, or the app writing `seen_at`; the
+database's time); opening the ad marks it (`FavouritesCubit.markSeen`, after the
+first frame); `favouriteChangesText` (`FavouriteChangesLine`) under the card in
+Favoritos and once on the ad's page.
 A favourite's planned visit (N.65, `listing_favourites.visit_at`, set
 under "Para a visita", `VisitTile`, shown in Favoritos by `visitText`):
 `finishRun`'s last step (`remindVisits`, `notify/visit_reminder_push.dart`)

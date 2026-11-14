@@ -5695,6 +5695,24 @@ CREATE FUNCTION public.sold_in_text(p_variant text, p_description text) RETURNS 
 $_$;
 
 --
+-- Name: stamp_favourite_seen(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.stamp_favourite_seen() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+begin
+  new.seen_at := now();
+  select l.price, l.mileage, l.status
+    into new.seen_price, new.seen_mileage, new.seen_status
+    from public.listings l
+   where l.id = new.listing_id;
+  return new;
+end;
+$$;
+
+--
 -- Name: stamp_favourite_target(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -6725,6 +6743,10 @@ CREATE TABLE public.listing_favourites (
     target_set_at timestamp with time zone,
     visit_at timestamp with time zone,
     visit_reminded_at timestamp with time zone,
+    seen_at timestamp with time zone,
+    seen_price numeric(10,2),
+    seen_mileage integer,
+    seen_status public.listing_status,
     CONSTRAINT listing_favourites_checklist_object CHECK (((jsonb_typeof(checklist) = 'object'::text) AND (octet_length((checklist)::text) <= 32000))),
     CONSTRAINT listing_favourites_note_check CHECK ((char_length(note) <= 2000)),
     CONSTRAINT listing_favourites_target_price_check CHECK ((target_price > (0)::numeric))
@@ -6735,6 +6757,12 @@ CREATE TABLE public.listing_favourites (
 --
 
 COMMENT ON COLUMN public.listing_favourites.checklist IS 'Viewing checklist marks per item key: {"mark": "ok"|"issue", "note": text}.';
+
+--
+-- Name: COLUMN listing_favourites.seen_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.listing_favourites.seen_at IS 'When the owner last opened the ad (N.97); seen_price, seen_mileage and seen_status are the ad then.';
 
 --
 -- Name: listing_new_price_comparison; Type: VIEW; Schema: public; Owner: -
@@ -7864,6 +7892,12 @@ CREATE INDEX vehicle_recalls_report ON public.vehicle_recalls USING btree (repor
 --
 
 CREATE INDEX workflow_starts_recent ON public.workflow_starts USING btree (workflow, started_at DESC);
+
+--
+-- Name: listing_favourites listing_favourites_seen_stamp; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER listing_favourites_seen_stamp BEFORE INSERT OR UPDATE OF seen_at ON public.listing_favourites FOR EACH ROW EXECUTE FUNCTION public.stamp_favourite_seen();
 
 --
 -- Name: listing_favourites listing_favourites_target_stamp; Type: TRIGGER; Schema: public; Owner: -
@@ -10023,6 +10057,13 @@ GRANT ALL ON FUNCTION public.single_owner_in_text(p_variant text, p_description 
 
 REVOKE ALL ON FUNCTION public.sold_in_text(p_variant text, p_description text) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.sold_in_text(p_variant text, p_description text) TO service_role;
+
+--
+-- Name: FUNCTION stamp_favourite_seen(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.stamp_favourite_seen() FROM PUBLIC;
+GRANT ALL ON FUNCTION public.stamp_favourite_seen() TO service_role;
 
 --
 -- Name: FUNCTION stamp_favourite_target(); Type: ACL; Schema: public; Owner: -

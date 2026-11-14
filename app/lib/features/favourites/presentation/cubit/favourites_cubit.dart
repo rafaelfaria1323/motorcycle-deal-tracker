@@ -255,6 +255,28 @@ class FavouritesCubit extends AccountScopedCubit<FavouritesState> {
     }
   }
 
+  /// The ad's page was opened (N.97): if [listing] is a favourite, it is
+  /// seen as it is now, so what changed since its last opening stops being
+  /// told. Nothing is undone when saving fails: the next load tells it
+  /// again, which is right then.
+  Future<void> markSeen(Listing listing) async {
+    final account = accountGeneration;
+    if (!isCurrentAccount(account)) return;
+    if (!state.isFavourite(listing.id)) return;
+    final seen = FavouriteSeen.of(listing, _clock());
+    emit(
+      state.copyWith(
+        favourites: [
+          for (final f in state.favourites)
+            f.listingId == listing.id ? f.withSeen(seen) : f,
+        ],
+      ),
+    );
+    try {
+      await _repository.markSeen(listing.id);
+    } catch (_) {}
+  }
+
   /// Saves one item of a favourite's viewing checklist: its mark (null:
   /// not looked at) and note (trimmed; empty clears it). Without a
   /// connection the change stays and is kept on this device

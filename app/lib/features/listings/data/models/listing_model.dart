@@ -107,7 +107,7 @@ class const ListingModel({
       location: json['location'] as String?,
       description: json['description'] as String?,
       images: List<String>.from(json['images'] as List? ?? const []),
-      status: _status(json['status'] as String?),
+      status: statusOf(json['status'] as String?),
       firstSeenAt: dateOf(json['first_seen_at']),
       lastSeenAt: dateOf(json['last_seen_at']),
       registrations: json['registrations'] as int?,
@@ -237,7 +237,8 @@ class const ListingModel({
     _ => SellerType.unknown,
   };
 
-  static ListingStatus _status(String? value) => switch (value) {
+  /// The database's `listing_status`; anything else reads as unknown.
+  static ListingStatus statusOf(String? value) => switch (value) {
     'active' => ListingStatus.active,
     'price_changed' => ListingStatus.priceChanged,
     'removed' => ListingStatus.removed,
