@@ -49,7 +49,7 @@ app-smoke: ## Offline Chrome smoke test (needs matching ChromeDriver on PATH)
 	bash tool/app_smoke.sh
 
 app-build: ## Release web build
-	cd app && flutter build web --wasm --dart-define-from-file=env/dev.json
+	cd app && flutter build web --wasm --no-deprecated-js-interop --dart-define-from-file=env/dev.json
 
 app-serve: app-build ## Serve the release build on http://localhost:8080 (PWA test)
 	cd app/build/web && python3 -m http.server 8080

@@ -53,13 +53,15 @@
     <link rel="preconnect" href="https://ireland.apollo.olxcdn.com">
 
     <!-- The app's and the engine's files (about 2.7 MB) asked for now
-         instead of after flutter_bootstrap.js has downloaded and run (its
+         instead of after flutter_bootstrap.js (web/flutter_bootstrap.js) has downloaded and run (its
          browser checks, then main.dart.mjs, then main.dart.wasm: about a
          second later on a phone). The same files and the same requests
          the loader then makes, so they come from these downloads; its
-         choice is copied (flutter.js in the Flutter SDK: dart2wasm with
-         skwasm on Chromium browsers with WasmGC, else dart2js with
-         CanvasKit; keep in step when upgrading Flutter). The
+         choice is copied (flutter.js in the Flutter SDK 3.50: dart2wasm
+         with skwasm where the browser has the WebAssembly features
+         dart2wasm needs, on every engine flutter_bootstrap.js allows, not
+         Firefox before 147; else dart2js with CanvasKit; keep in step when
+         upgrading Flutter). The
          engine's address needs its version: the build's
          <meta name="flutter-engine"> (tool/web_preconnect.sh); none (a
          debug run), nothing asked. -->
@@ -71,11 +73,30 @@
           meta.getAttribute('content') + '/';
         var blink = navigator.vendor === 'Google Inc.' ||
           navigator.userAgent.indexOf('Edg/') >= 0;
-        var wasmGc = false;
+        var firefox = navigator.vendor === '' &&
+          navigator.userAgent.indexOf('Firefox') >= 0;
+        var firefoxVersion = navigator.userAgent.match(/firefox\/(\d+)/i);
+        // supports_dart2wasm.js: WasmGC, SIMD, js-string builtins, try_table.
+        var dart2wasm = false;
         try {
-          wasmGc = WebAssembly.validate(new Uint8Array(
-            [0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 95, 1, 120, 0]));
+          var valid = function (bytes, options) {
+            return WebAssembly.validate(new Uint8Array(bytes), options);
+          };
+          dart2wasm =
+            valid([0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 95, 1, 120, 0]) &&
+            valid([0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 96, 0, 1, 123, 3,
+              2, 1, 0, 10, 10, 1, 8, 0, 65, 0, 253, 15, 253, 98, 11]) &&
+            !valid([0, 97, 115, 109, 1, 0, 0, 0, 1, 4, 1, 96, 0, 0, 2, 23,
+              1, 14, 119, 97, 115, 109, 58, 106, 115, 45, 115, 116, 114,
+              105, 110, 103, 4, 99, 97, 115, 116, 0, 0],
+              { builtins: ['js-string'] }) &&
+            valid([0, 97, 115, 109, 1, 0, 0, 0, 1, 4, 1, 96, 0, 0, 3, 2, 1,
+              0, 10, 13, 1, 11, 0, 2, 64, 31, 64, 1, 2, 0, 11, 11, 11]);
         } catch (e) {}
+        // Firefox before 147 miscompiles dart2wasm (flutter#186619).
+        if (firefox && (firefoxVersion ? +firefoxVersion[1] : -1) < 147) {
+          dart2wasm = false;
+        }
         var codecs = blink && typeof ImageDecoder !== 'undefined';
         var breaks = typeof Intl.v8BreakIterator !== 'undefined' &&
           typeof Intl.Segmenter !== 'undefined';
@@ -88,7 +109,7 @@
           if (cors) link.crossOrigin = 'anonymous';
           document.head.appendChild(link);
         }
-        if (blink && wasmGc) {
+        if (dart2wasm) {
           var skwasm = codecs && breaks ? 'skwasm' : 'skwasm_heavy';
           preload('modulepreload', 'main.dart.mjs');
           preload('preload', 'main.dart.wasm', 'fetch', true);

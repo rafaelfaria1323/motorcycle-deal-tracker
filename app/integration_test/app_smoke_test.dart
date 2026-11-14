@@ -1,17 +1,17 @@
 import 'dart:js_interop';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:motorcycle_deal_tracker/app/app.dart';
 import 'package:motorcycle_deal_tracker/app/di/injection.dart';
 import 'package:motorcycle_deal_tracker/app/router/app_router.dart';
 import 'package:motorcycle_deal_tracker/app/router/app_routes.dart';
 import 'package:motorcycle_deal_tracker/core/localization/app_language.dart';
 import 'package:motorcycle_deal_tracker/features/alerts/presentation/alerts_text.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/listing_detail_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/alerts/presentation/pages/alerts_page.dart';
+import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/listing_detail_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/dashboard_page.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/listing_detail_page.dart';
 import 'package:motorcycle_deal_tracker/features/saved_searches/presentation/saved_search_summary.dart';

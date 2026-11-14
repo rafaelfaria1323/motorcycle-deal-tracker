@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 import 'app_language.dart';
@@ -21,6 +21,16 @@ final _messages = {
 };
 
 const appLocales = [Locale('pt', 'PT'), Locale('en', 'GB')];
+
+/// The app's own strings, then the Material, Cupertino and widgets strings
+/// of `material_ui` (back, close, date pickers...). The generated
+/// [AppLocalizations.localizationsDelegates] still lists the SDK's
+/// deprecated `flutter_localizations` ones, which the `material_ui` widgets
+/// don't read (N.90).
+const appLocalizationsDelegates = <LocalizationsDelegate<Object?>>[
+  AppLocalizations.delegate,
+  ...GlobalMaterialLocalizations.delegates,
+];
 
 extension LocalizationContext on BuildContext {
   AppLocalizations get strings => AppLocalizations.of(this);

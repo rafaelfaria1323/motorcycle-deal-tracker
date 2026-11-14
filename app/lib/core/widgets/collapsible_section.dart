@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A titled part of a sheet or a form that opens on a tap, so long lists
 /// of choices (chips, switches) stay out of the way until asked for. The

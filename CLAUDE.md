@@ -100,8 +100,8 @@ never asks for search URLs; aliases sit under "Outros nomes do modelo".
   must stay clean: fix a splinter finding, or allow it in
   `supabase/lint_allow.txt` with the reason.
 - Flutter is not installed in the sandbox and must not be downloaded: Rafael
-  tests the app. The project pins Flutter 3.47.8 (`.fvmrc`, FVM and every
-  Flutter workflow) and its bundled Dart 3.13.7 (`.dart-version`, standalone
+  tests the app. The project pins Flutter 3.50.0 (`.fvmrc`, FVM and every
+  Flutter workflow) and its bundled Dart 3.14.0 (`.dart-version`, standalone
   collector jobs and the cloud session hook). Keep both aligned when
   upgrading; app and collector SDK minimums match. The collector uses
   Dart 3.13's primary constructors (`class const X({required final T a})`,
@@ -111,8 +111,16 @@ never asks for search URLs; aliases sit under "Outros nomes do modelo".
   with a typed value, the `AppLanguage` defaults). Pure Dart logic in the
   app can be tested with plain Dart (`package:test`) on copies of the
   files. The deploy runs `flutter test`
-  and `flutter build web --wasm` (WebAssembly where the browser supports
-  it, JavaScript otherwise). `web/_headers` makes the page cross-origin
+  and `flutter build web --wasm --no-deprecated-js-interop` (WebAssembly
+  where the browser supports it, on Chromium, Safari 26.2+ and Firefox
+  147+: `web/flutter_bootstrap.js`'s `wasmAllowList`, N.90; JavaScript
+  otherwise; the build fails on `dart:html`/`dart:js_util`/`package:js`;
+  Safari has no `credentialless`, so its skwasm draws on one thread).
+  Flutter 3.50 deprecated `package:flutter/material.dart`: the app imports
+  `package:material_ui/material_ui.dart` (never flutter's material or
+  cupertino) and its localizations come from `appLocalizationsDelegates`
+  (`core/localization/localizations.dart`), not the generated list.
+  `web/_headers` makes the page cross-origin
   isolated with COEP `credentialless` (N.85: skwasm draws on its own
   thread; `require-corp` would block the listing photos, whose CDN sends no
   CORP header; `tool/test_web_headers.py`).
@@ -663,7 +671,8 @@ invites; written by the collector on each run).
   preconnects to Google's CDN, the database (`tool/web_preconnect.sh`
   writes its address into the build) and the photos' CDN, preloads the
   app's and the engine's code at once (N.89: the build Flutter's loader
-  would pick, copied from its flutter.js, keep in step when upgrading;
+  would pick, copied from its flutter.js 3.50 with the allow-list of
+  `web/flutter_bootstrap.js`, keep in step when upgrading;
   the engine version from `<meta name="flutter-engine">`, written by the
   same script from `flutter_bootstrap.js`), and draws a
   spinner (`#splash`, the theme's primary, as `Startup`'s) until Flutter's

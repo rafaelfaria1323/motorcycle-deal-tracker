@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A settings row's icon in a rounded tinted square, after the Stitch
 /// design of Mais (UI.6); [strong] fills it with the primary colour for
