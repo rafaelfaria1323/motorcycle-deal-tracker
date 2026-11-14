@@ -70,6 +70,21 @@ abstract interface class MarketBehaviourRepository {
     int? mileage,
   });
 
+  /// Asks for the evaluation of the ad at [url] (N.102), a bike of
+  /// [motorcycleId] and [year]: [listingId] when the ad is stored and
+  /// scored (open it now), else the request waits for the collection of
+  /// the model, which pushes the ad's scores. Throws
+  /// [BikeValueRequestLimit] past the day's waiting requests.
+  Future<({String requestId, String? listingId})> requestAdCheck(
+    String url, {
+    required String motorcycleId,
+    required int year,
+    int? mileage,
+  });
+
+  /// The stored listing of the ad at [url], or null.
+  Future<String?> listingForAd(String url);
+
   /// The account's requests, newest first.
   Future<List<BikeValueRequest>> getBikeValueRequests();
 }

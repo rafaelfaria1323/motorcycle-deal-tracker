@@ -238,7 +238,8 @@ bool askingRoomFromModel(MarketBehaviour? market) =>
 double _roundDown(double value) => (value / offerStep).floor() * offerStep;
 
 /// A request in "Os seus pedidos": "2019 · 30 000 km · À espera da
-/// recolha" (the mileage left out when not given).
+/// recolha" (the mileage left out when not given). An ad check says
+/// whether its ad was found (N.102).
 String bikeValueRequestLine(
   BikeValueRequest request, {
   AppLanguage language = .portuguese,
@@ -248,8 +249,13 @@ String bikeValueRequestLine(
     '${request.year}',
     if (request.mileage != null)
       Formatters.mileage(request.mileage, language: language),
-    request.waiting
-        ? messages.bikeValueRequestWaiting
-        : messages.bikeValueRequestReady,
+    switch (request) {
+      BikeValueRequest(isAd: true, waiting: true) => messages.adCheckWaiting,
+      BikeValueRequest(isAd: true, adListingId: null) =>
+        messages.adCheckNotFound,
+      BikeValueRequest(isAd: true) => messages.adCheckFound,
+      BikeValueRequest(waiting: true) => messages.bikeValueRequestWaiting,
+      _ => messages.bikeValueRequestReady,
+    },
   ].join(' · ');
 }

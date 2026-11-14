@@ -2,7 +2,9 @@ import 'package:equatable/equatable.dart';
 
 /// An account's request for a bike's value (`bike_value_requests`): a
 /// model nobody collected yet waits for the next collection, which reads
-/// its listings and answers it with a notification.
+/// its listings and answers it with a notification. An ad check ("Avaliar
+/// um anúncio", N.102) is one with the ad's link ([adUrl]): answered once a
+/// run found the ad ([adListingId]) or, a day on, as not found.
 class const BikeValueRequest({
   required final String id,
   required final String motorcycleId,
@@ -14,8 +16,16 @@ class const BikeValueRequest({
 
   /// Null while it waits for a collection.
   final DateTime? answeredAt,
+
+  /// The ad's link, for an ad check.
+  final String? adUrl,
+
+  /// The ad's stored listing, once the collection found it.
+  final String? adListingId,
 }) extends Equatable {
   String get name => '$brand $model';
+
+  bool get isAd => adUrl != null;
 
   bool get waiting => answeredAt == null;
 
@@ -29,6 +39,8 @@ class const BikeValueRequest({
     mileage,
     requestedAt,
     answeredAt,
+    adUrl,
+    adListingId,
   ];
 }
 

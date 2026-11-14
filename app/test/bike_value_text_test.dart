@@ -121,7 +121,9 @@ void main() {
     // 6000 x 0.85.
     expect(
       lines[2].text,
-      startsWith('Último preço pedido antes de sair: cerca de ${price(5100)}, '),
+      startsWith(
+        'Último preço pedido antes de sair: cerca de ${price(5100)}, ',
+      ),
     );
 
     // Too few gone ads: no line.
@@ -265,6 +267,34 @@ void main() {
       expect(
         bikeValueRequestLine(answered, language: AppLanguage.english),
         '2019 · Value ready',
+      );
+    });
+
+    test('an ad check says whether its ad was found (N.102)', () {
+      BikeValueRequest ad({DateTime? answeredAt, String? listing}) =>
+          BikeValueRequest(
+            id: 'r3',
+            motorcycleId: 'm1',
+            brand: 'Kawasaki',
+            model: 'Z650',
+            year: 2019,
+            requestedAt: DateTime.utc(2026, 10, 28, 9),
+            answeredAt: answeredAt,
+            adUrl: 'https://www.olx.pt/d/anuncio/z650-IDHk3aB.html',
+            adListingId: listing,
+          );
+      final answered = DateTime.utc(2026, 10, 28, 10);
+      expect(bikeValueRequestLine(ad()), '2019 · À procura do anúncio');
+      expect(
+        bikeValueRequestLine(ad(answeredAt: answered)),
+        '2019 · Anúncio não encontrado',
+      );
+      expect(
+        bikeValueRequestLine(
+          ad(answeredAt: answered, listing: 'l1'),
+          language: AppLanguage.english,
+        ),
+        '2019 · Ad checked',
       );
     });
   });

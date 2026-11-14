@@ -174,6 +174,13 @@ class _MoreBodyState extends State<_MoreBody> {
                       onTap: () => context.push(AppRoutes.bikeValue),
                     ),
                     ListTile(
+                      leading: const SettingsIcon(Icons.manage_search),
+                      title: Text(context.strings.checkAdTitle),
+                      subtitle: Text(context.strings.checkAdSubtitle),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push(AppRoutes.checkAd),
+                    ),
+                    ListTile(
                       leading: const SettingsIcon(
                         Icons.local_shipping_outlined,
                       ),

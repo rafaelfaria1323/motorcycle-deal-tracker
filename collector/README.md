@@ -60,7 +60,9 @@ account in its quiet hours (23:00 to 08:00 Lisbon time unless it changed
 them) wait for the first run after. Last, it answers
 the "Quanto vale a minha mota" requests whose model this run collected
 (`answer_bike_value_requests`) and pushes each value to the asker's
-devices (`notify/bike_value_push.dart`), then reminds each account of
+devices (`notify/bike_value_push.dart`; for "Avaliar um anúncio", N.102,
+the ad's Deal Score and Risk Score once this run found it, or a day on
+that it wasn't found), then reminds each account of
 a favourite's visit due within a day (`pending_visit_reminders`,
 `notify/visit_reminder_push.dart`, N.65), and of each new EU recall
 that can cover a bike it owns or a live favourite, once

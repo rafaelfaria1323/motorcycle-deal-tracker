@@ -460,7 +460,7 @@ invites; written by the collector on each run).
   line says what is chosen (`chosenSummary`); the filters sheet keeps its
   title and Limpar/Aplicar fixed while the choices scroll.
   Switching tabs uses `context.go`; full pages outside the shell
-  (`/models`, `/market`, `/worth`, `/import`, `/compare?ids=a,b,c`,
+  (`/models`, `/market`, `/worth`, `/import`, `/check-ad`, `/compare?ids=a,b,c`,
   `/summary`, `/my-bike`, `/dealer?name=…`, `/shared-favourites?owner=…`)
   and an ad (`/deals/<id>`, from anywhere) are pushed, so back returns
   where the person was; pushed pages show their own address
@@ -1136,7 +1136,17 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   extra dispatch); `finishRun` answers it and pushes the value
   (`bike_value_push.dart`, opens `/worth?request=<id>`). pg_cron
   `expire-bike-value-models` (`29 3 * * *`) stops collecting such models
-  30 days after the last request. Mais › "Comprar no estrangeiro"
+  30 days after the last request. Mais › "Avaliar um anúncio" (N.102,
+  `/check-ad`, the same page with `checkingAd`): an OLX or Standvirtual
+  ad's link (`adLinkOf`, `ad_link.dart` = `ad_link_source` /
+  `ad_link_code`) with model, year and km; a stored, scored ad opens at
+  once (`listing_for_ad`: site + ad code, also for anonymous sessions),
+  else `request_ad_check` makes a bike value request with `ad_url` (same
+  cap; the same ad again is the same request), answered by the run that
+  saw the ad (`answer_bike_value_requests`' `is_ad`, `listing_id`,
+  `deal_score`, `risk_score`; push opens `/deals/<id>`) or a day on as not
+  found (the value, `/worth?request=<id>`); computed field `ad_listing`.
+  No ad page is ever read. Mais › "Comprar no estrangeiro"
   (`/import`, the same page with `importing`): the same value, then the
   import calculator above it; also on every listing with a price, in
   Mercado, against its asking price, the engine size filled in

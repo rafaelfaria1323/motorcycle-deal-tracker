@@ -5,7 +5,9 @@ import 'web_push.dart';
 
 /// A valuation the collector answered ("Quanto vale a minha mota" for a
 /// model or year the collection didn't reach yet): the request and the
-/// value worked out once the run read the model.
+/// value worked out once the run read the model. An ad check ("Avaliar um
+/// anúncio", N.102, [isAd]) also carries the ad's listing and scores once
+/// the run found it ([listingId] null: not found a day on).
 class const BikeValueAnswer({
   required final String id,
   required final String userId,
@@ -15,6 +17,10 @@ class const BikeValueAnswer({
   final int? mileage,
   required final int comparableCount,
   final double? fairPrice,
+  final bool isAd = false,
+  final String? listingId,
+  final int? dealScore,
+  final int? riskScore,
 }) {
   /// A row of `answer_bike_value_requests`.
   factory BikeValueAnswer.fromRow(Map<String, dynamic> row) => BikeValueAnswer(
@@ -26,6 +32,10 @@ class const BikeValueAnswer({
     mileage: (row['mileage'] as num?)?.toInt(),
     comparableCount: (row['comparable_count'] as num?)?.toInt() ?? 0,
     fairPrice: (row['fair_price'] as num?)?.toDouble(),
+    isAd: row['is_ad'] as bool? ?? false,
+    listingId: row['listing_id'] as String?,
+    dealScore: (row['deal_score'] as num?)?.toInt(),
+    riskScore: (row['risk_score'] as num?)?.toInt(),
   );
 }
 
@@ -48,10 +58,45 @@ Map<String, Object?> bikeValuePush(
           language.currency(price),
           answer.comparableCount,
         );
+  if (answer.isAd) return _adCheckPush(answer, bike, value, language);
   return {
     'title': language.bikeValueTitle,
     'body': '$bike\n$value',
     'url': '/#/worth?request=${answer.id}',
+    'tag': 'bike-value-${answer.id}',
+    'language': language.code,
+  };
+}
+
+/// An ad check's notification: the ad's scores and a tap opens it; not
+/// found, the value of a bike of that year and a tap opens the request.
+Map<String, Object?> _adCheckPush(
+  BikeValueAnswer answer,
+  String bike,
+  String value,
+  NotificationLanguage language,
+) {
+  final listingId = answer.listingId;
+  if (listingId == null) {
+    return {
+      'title': language.adCheckNotFoundTitle,
+      'body': '$bike\n${language.adCheckNotFound}\n$value',
+      'url': '/#/worth?request=${answer.id}',
+      'tag': 'bike-value-${answer.id}',
+      'language': language.code,
+    };
+  }
+  final scores = [
+    if (answer.dealScore case final deal?) language.adCheckDealScore(deal),
+    if (answer.riskScore case final risk?) language.adCheckRiskScore(risk),
+  ];
+  return {
+    'title': language.adCheckTitle,
+    'body': [
+      bike,
+      if (scores.isEmpty) language.adCheckNoScore else scores.join(' · '),
+    ].join('\n'),
+    'url': '/#/deals/$listingId',
     'tag': 'bike-value-${answer.id}',
     'language': language.code,
   };
