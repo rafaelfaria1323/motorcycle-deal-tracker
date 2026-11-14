@@ -29,7 +29,7 @@ Favourite _favourite(
     'location': 'Braga',
     'deal_score': 82,
     'risk_score': 10,
-    'images': <String>[],
+    'images': const <String>[],
     'first_seen_at': '2026-10-10T10:00:00Z',
     'last_seen_at': '2026-10-18T10:00:00Z',
     ...listing,

@@ -202,7 +202,7 @@ class _SharingSheetState extends State<_SharingSheet> {
 
 /// The lists other accounts share with this one, beside Favoritos' menu:
 /// nothing without any; a tap opens the one, or picks among several.
-class const SharedListsButton() extends StatefulWidget {
+class const SharedListsButton({super.key}) extends StatefulWidget {
   @override
   State<SharedListsButton> createState() => _SharedListsButtonState();
 }
@@ -246,7 +246,10 @@ class _SharedListsButtonState extends State<SharedListsButton> {
   }
 
   Future<void> _pick() async {
-    if (_lists case [final only]) return _open(only.ownerId);
+    if (_lists case [final only]) {
+      await _open(only.ownerId);
+      return;
+    }
     final owner = await showModalBottomSheet<String>(
       context: context,
       useRootNavigator: true,
