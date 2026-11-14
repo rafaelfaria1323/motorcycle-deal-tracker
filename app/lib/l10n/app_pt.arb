@@ -7942,6 +7942,10 @@
   "@checkAdLinkInvalid": {
     "description": "Interface text for checking an ad (N.102)."
   },
+  "checkAdModelFromLink": "Escolhido pelo link do anúncio. Confirme que é este.",
+  "@checkAdModelFromLink": {
+    "description": "Helper under the model when the ad's link named it (N.104)."
+  },
   "checkAdButton": "Avaliar",
   "@checkAdButton": {
     "description": "Interface text for checking an ad (N.102)."

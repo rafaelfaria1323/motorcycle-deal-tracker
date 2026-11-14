@@ -19,6 +19,7 @@ import '../../../market/domain/entities/model_market.dart';
 import '../../../listings/domain/repositories/catalog_repository.dart';
 import '../../../market/domain/repositories/market_behaviour_repository.dart';
 import '../ad_link.dart';
+import '../ad_link_model.dart';
 import '../bike_value_text.dart';
 import '../../../listings/presentation/widgets/add_model_sheet.dart';
 import '../widgets/bike_condition_fields.dart';
@@ -37,7 +38,7 @@ import '../../../listings/presentation/widgets/tracked_models_builder.dart';
 /// first). With [checkingAd] ("Avaliar um anúncio", `/check-ad`, N.102)
 /// the form also takes an ad's link: a stored ad opens at once, else the
 /// request collects the model and the run that finds the ad pushes its
-/// scores.
+/// scores. The link's words choose the model when they name one (N.104).
 class const BikeValuePage({
   /// The request to show (`/worth?request=<id>`, from the notification).
   final String? requestId,
@@ -99,6 +100,13 @@ class _BikeValuePageState extends State<BikeValuePage> {
   /// Models added through "Outra marca ou modelo…" on this visit.
   final _added = <String, String>{};
 
+  /// The ad link whose model was looked for, so each link is read once.
+  String? _guessedLink;
+
+  /// The model the link named (N.104); a model the person chose
+  /// themselves is never replaced.
+  String? _guessedModel;
+
   /// What was asked and its value, once "Calcular" was pressed (null when
   /// it opened the ad).
   Future<_Outcome?>? _outcome;
@@ -114,6 +122,63 @@ class _BikeValuePageState extends State<BikeValuePage> {
     super.initState();
     _link.text = widget.initialLink ?? '';
     unawaited(_loadRequests());
+    unawaited(_guessModel());
+  }
+
+  /// Chooses the model the ad's link names: a collected one, else (an
+  /// account) one of the sites' lists, found or added as "Outra marca ou
+  /// modelo…" does. Nothing fits, or it fails: the choice stays open.
+  Future<void> _guessModel() async {
+    if (!widget.checkingAd) return;
+    final link = adLinkOf(_link.text);
+    if (link == null || link == _guessedLink) return;
+    _guessedLink = link;
+    bool mayChoose() =>
+        mounted &&
+        _guessedLink == link &&
+        (_motorcycleId == null || _motorcycleId == _guessedModel);
+    if (!mayChoose()) return;
+    final words = adLinkWords(link);
+    try {
+      final tracked = modelInWords(
+        words,
+        await _models,
+        brand: (m) => m.brand,
+        model: (m) => m.model,
+      );
+      var guess = tracked == null
+          ? null
+          : (id: tracked.motorcycleId, name: tracked.name);
+      if (guess == null && _signedIn) {
+        final catalog = getIt<CatalogRepository>();
+        final make = makeInWords(words, await catalog.getSiteMakes());
+        final site = make == null
+            ? null
+            : siteModelInWords(
+                words,
+                make,
+                await catalog.getSiteModels(make.id),
+              );
+        if (site != null && mayChoose()) {
+          final id = await _repository.bikeValueModel(
+            brand: site.brand,
+            model: site.model,
+            olxSearch: site.olxSearch,
+            standvirtualSearch: site.standvirtualSearch,
+          );
+          guess = (id: id, name: '${site.brand} ${site.model}');
+        }
+      }
+      if (guess == null || !mayChoose()) return;
+      final (:id, :name) = guess;
+      setState(() {
+        _added.putIfAbsent(id, () => name);
+        _motorcycleId = id;
+        _guessedModel = id;
+      });
+    } catch (_) {
+      // The model is chosen by hand, as before.
+    }
   }
 
   /// The account's requests; a failed read leaves the list as it was (it
@@ -136,6 +201,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
     if (widget.requestId != old.requestId) unawaited(_loadRequests());
     if (widget.initialLink case final link? when link != old.initialLink) {
       _link.text = link;
+      unawaited(_guessModel());
     }
   }
 
@@ -438,6 +504,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
               validator: (text) => adLinkOf(text ?? '') == null
                   ? strings.checkAdLinkInvalid
                   : null,
+              onChanged: (_) => unawaited(_guessModel()),
             ),
             const SizedBox(height: 12),
           ],
@@ -448,6 +515,11 @@ class _BikeValuePageState extends State<BikeValuePage> {
             isExpanded: true,
             decoration: InputDecoration(
               labelText: strings.model,
+              helperText:
+                  _motorcycleId != null && _motorcycleId == _guessedModel
+                  ? strings.checkAdModelFromLink
+                  : null,
+              helperMaxLines: 2,
               border: const OutlineInputBorder(),
             ),
             items: [

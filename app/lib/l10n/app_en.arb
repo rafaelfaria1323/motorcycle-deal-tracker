@@ -1377,6 +1377,7 @@
   "checkAdLink": "Ad link",
   "checkAdLinkHint": "https://www.olx.pt/d/anuncio/…",
   "checkAdLinkInvalid": "Paste the link of a motorcycle ad on OLX or Standvirtual.",
+  "checkAdModelFromLink": "Chosen from the ad's link. Check that it's this one.",
   "checkAdButton": "Check",
   "checkAdSignIn": "We don't have this ad yet. Sign in to an account to ask for it: we'll tell you once it's scored.",
   "checkAdWaitingTitle": "We'll look for the ad",

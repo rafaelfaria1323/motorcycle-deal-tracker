@@ -1146,7 +1146,9 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   30 days after the last request. Mais › "Avaliar um anúncio" (N.102,
   `/check-ad`, the same page with `checkingAd`): an OLX or Standvirtual
   ad's link (`adLinkOf`, `ad_link.dart` = `ad_link_source` /
-  `ad_link_code`) with model, year and km; a stored, scored ad opens at
+  `ad_link_code`) with model, year and km (the model chosen from the
+  link's title words when they name one, `ad_link_model.dart`, N.104:
+  the collected models, else the sites' lists through `bike_value_model`); a stored, scored ad opens at
   once (`listing_for_ad`: site + ad code, also for anonymous sessions),
   else `request_ad_check` makes a bike value request with `ad_url` (same
   cap; the same ad again is the same request), answered by the run that
