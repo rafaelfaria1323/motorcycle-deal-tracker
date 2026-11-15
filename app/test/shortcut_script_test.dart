@@ -40,4 +40,11 @@ void main() {
     expect(version, isNotNull);
     expect(int.parse(version!.group(1)!), sharedAdScriptVersion);
   });
+
+  test('the shared shortcut opens from an iCloud link', () {
+    final link = Uri.parse(sharedAdShortcutLink);
+    expect(link.scheme, 'https');
+    expect(link.host, 'www.icloud.com');
+    expect(link.path, matches(RegExp(r'^/shortcuts/[0-9a-f]{32}$')));
+  });
 }
