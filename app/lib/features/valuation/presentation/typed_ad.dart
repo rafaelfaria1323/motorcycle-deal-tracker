@@ -105,6 +105,8 @@ Listing typedAdListing({
       .yes => true,
       .no => false,
     },
+    // B.6: said imported; otherwise unknown, as the ad doesn't say.
+    origin: condition.imported ? 'imported' : null,
     newPrice: fromAds ?? catalog?.newPrice,
     newPriceCheckedAt: fromAds == null ? catalog?.newPriceCheckedAt : null,
     newPriceAdCount: fromAds == null ? null : catalog?.newPriceAdCount,

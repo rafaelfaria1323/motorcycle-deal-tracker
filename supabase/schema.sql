@@ -4840,6 +4840,7 @@ declare
   v_version integer;
   v_lines text[];
   v_photos text[];
+  v_left_out integer;
   v_text text;
   v_id uuid;
   v_message text;
@@ -4856,6 +4857,9 @@ begin
     raise exception 'Chave desconhecida: crie uma nova no Deal Tracker (Mais › Atalho do iPhone). / Unknown key: make a new one in Deal Tracker (More › iPhone shortcut).'
       using errcode = '28000';
   end if;
+  -- One share of the account at a time, so two at once can't both pass
+  -- the limits below.
+  perform pg_advisory_xact_lock(hashtextextended('shared_ads:' || v_user::text, 0));
   v_en := exists (select 1 from public.account_languages l
                   where l.user_id = v_user and l.language = 'en');
 
@@ -4907,7 +4911,19 @@ begin
                     else '[]' end) with ordinality as e (value, n)
         where e.n <= 60) t
   where t.line <> '';
-  -- Each address once, in the page's order, the first 12.
+  -- Each address once, in the page's order, the first 12, only from the
+  -- hosts the sites serve photos from (B.6).
+  with sent as (
+    select distinct btrim(e.value #>> '{}') as photo
+    from jsonb_array_elements(
+           case when jsonb_typeof(p_ad -> 'photos') = 'array' then p_ad -> 'photos'
+                else '[]' end) e
+    where jsonb_typeof(e.value) = 'string'
+  )
+  select count(*) filter (where s.photo ~ '^https://[^\s]+$'
+                            and not public.shared_photo_host_allowed(s.photo))::integer
+  into v_left_out
+  from sent s;
   v_photos := array(
     select d.photo from (
       select distinct on (x.photo) x.photo, x.n
@@ -4917,6 +4933,7 @@ begin
                         else '[]' end) with ordinality as e (value, n)
             where jsonb_typeof(e.value) = 'string') x
       where x.photo ~ '^https://[^\s]+$' and length(x.photo) <= 2000
+        and public.shared_photo_host_allowed(x.photo)
       order by x.photo, x.n) d
     order by d.n
     limit 12);
@@ -4946,6 +4963,11 @@ begin
                 coalesce(v_title, 'ad'), cardinality(v_photos))
     else format('Enviado para o Deal Tracker: %s (%s fotos).',
                 coalesce(v_title, 'anúncio'), cardinality(v_photos)) end;
+  if v_left_out > 0 then
+    v_message := v_message || case when v_en
+      then format(' Photos from other sites left out: %s.', v_left_out)
+      else format(' Fotos de outros sites deixadas de fora: %s.', v_left_out) end;
+  end if;
   if v_version < public.shared_ad_script_version() then
     v_message := v_message || case when v_en
       then ' The shortcut has a new version: install it again from More › iPhone shortcut.'
@@ -6484,6 +6506,17 @@ CREATE FUNCTION public.shared_favourites(p_owner uuid) RETURNS SETOF public.list
 $$;
 
 --
+-- Name: shared_photo_host_allowed(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.shared_photo_host_allowed(p_url text) RETURNS boolean
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$
+  select coalesce(p_url ~* '^https://([a-z0-9-]+\.)*(fbcdn\.net|custojusto\.pt|olxcdn\.com)(:443)?/', false)
+$$;
+
+--
 -- Name: similar_group_of(text, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -7161,10 +7194,10 @@ CREATE FUNCTION public.tracked_by_me(m public.motorcycles) RETURNS boolean
 $$;
 
 --
--- Name: typed_ad_score(uuid, integer, integer, numeric, boolean, integer, boolean, boolean, text, text, integer, integer, text); Type: FUNCTION; Schema: public; Owner: -
+-- Name: typed_ad_score(uuid, integer, integer, numeric, boolean, integer, boolean, boolean, text, text, integer, integer, text, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer DEFAULT NULL::integer, p_service_book boolean DEFAULT NULL::boolean, p_warranty boolean DEFAULT false, p_damage text DEFAULT NULL::text, p_description text DEFAULT NULL::text, p_from_year integer DEFAULT NULL::integer, p_to_year integer DEFAULT NULL::integer, p_variant text DEFAULT NULL::text) RETURNS TABLE(deal_score smallint, risk_score smallint, breakdown jsonb)
+CREATE FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer DEFAULT NULL::integer, p_service_book boolean DEFAULT NULL::boolean, p_warranty boolean DEFAULT false, p_damage text DEFAULT NULL::text, p_description text DEFAULT NULL::text, p_from_year integer DEFAULT NULL::integer, p_to_year integer DEFAULT NULL::integer, p_variant text DEFAULT NULL::text, p_origin text DEFAULT NULL::text) RETURNS TABLE(deal_score smallint, risk_score smallint, breakdown jsonb)
     LANGUAGE sql STABLE SECURITY DEFINER
     SET search_path TO ''
     SET jit TO 'off'
@@ -7205,7 +7238,8 @@ CREATE FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mi
       i.description is not null,
       coalesce(p_private_seller, false),
       p_registrations, p_service_book,
-      null,
+      -- The person says it was imported (B.6): the stored ads' sign.
+      case when p_origin = 'imported' then 'imported' end,
       case when p_warranty then current_date + 1 end,
       0, null,
       i.signals) r
@@ -11492,6 +11526,13 @@ GRANT ALL ON FUNCTION public.shared_favourites(p_owner uuid) TO authenticated;
 GRANT ALL ON FUNCTION public.shared_favourites(p_owner uuid) TO service_role;
 
 --
+-- Name: FUNCTION shared_photo_host_allowed(p_url text); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.shared_photo_host_allowed(p_url text) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.shared_photo_host_allowed(p_url text) TO service_role;
+
+--
 -- Name: FUNCTION similar_group_of(p_brand text, p_model text); Type: ACL; Schema: public; Owner: -
 --
 
@@ -11646,13 +11687,13 @@ GRANT ALL ON FUNCTION public.tracked_by_me(m public.motorcycles) TO authenticate
 GRANT ALL ON FUNCTION public.tracked_by_me(m public.motorcycles) TO service_role;
 
 --
--- Name: FUNCTION typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer, p_variant text); Type: ACL; Schema: public; Owner: -
+-- Name: FUNCTION typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer, p_variant text, p_origin text); Type: ACL; Schema: public; Owner: -
 --
 
-REVOKE ALL ON FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer, p_variant text) FROM PUBLIC;
-GRANT ALL ON FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer, p_variant text) TO service_role;
-GRANT ALL ON FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer, p_variant text) TO anon;
-GRANT ALL ON FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer, p_variant text) TO authenticated;
+REVOKE ALL ON FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer, p_variant text, p_origin text) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer, p_variant text, p_origin text) TO service_role;
+GRANT ALL ON FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer, p_variant text, p_origin text) TO anon;
+GRANT ALL ON FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer, p_variant text, p_origin text) TO authenticated;
 
 --
 -- Name: FUNCTION unmatched_title_sample(p_since timestamp with time zone, p_limit integer); Type: ACL; Schema: public; Owner: -

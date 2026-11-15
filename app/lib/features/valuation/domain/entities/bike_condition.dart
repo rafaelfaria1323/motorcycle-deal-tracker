@@ -19,19 +19,26 @@ class const BikeCondition({
 
   /// Still under the factory's warranty.
   final bool warranty = false,
+
+  /// Brought from abroad (B.6): asked only for an ad typed from another
+  /// site, where it gives the score the imported sign; the value doesn't
+  /// change.
+  final bool imported = false,
 }) extends Equatable {
   BikeCondition copyWith({
     BikeDamage? damage,
     BikeOwners? owners,
     BikeServiceBook? serviceBook,
     bool? warranty,
+    bool? imported,
   }) => BikeCondition(
     damage: damage ?? this.damage,
     owners: owners ?? this.owners,
     serviceBook: serviceBook ?? this.serviceBook,
     warranty: warranty ?? this.warranty,
+    imported: imported ?? this.imported,
   );
 
   @override
-  List<Object?> get props => [damage, owners, serviceBook, warranty];
+  List<Object?> get props => [damage, owners, serviceBook, warranty, imported];
 }

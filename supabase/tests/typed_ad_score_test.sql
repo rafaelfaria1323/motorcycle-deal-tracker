@@ -89,13 +89,21 @@ begin
   assert not r.breakdown->'risk_reasons' ? 'a2_limited',
     format('a blank title reads nothing: %s', r.breakdown);
 
+  -- B.6: an imported bike the person reports gets the imported sign.
+  select * into r from public.typed_ad_score(mt, 2021, 20000, 7000, true, null, null,
+    false, null, 'Mota em bom estado.', p_origin => 'imported');
+  assert r.breakdown->'risk_reasons' ? 'imported', format('imported: %s', r.breakdown);
+  select * into r from public.typed_ad_score(mt, 2021, 20000, 7000, true, null, null,
+    false, null, 'Mota em bom estado.');
+  assert not r.breakdown->'risk_reasons' ? 'imported', format('not imported: %s', r.breakdown);
+
   assert not exists (select from public.typed_ad_score(mt, 2021, 20000, 1, true)),
     'a placeholder price';
   assert not exists (select from public.typed_ad_score(gen_random_uuid(), 2021, 20000, 7000, true)),
     'an unknown model';
 
   assert has_function_privilege('anon',
-           'public.typed_ad_score(uuid, integer, integer, numeric, boolean, integer, boolean, boolean, text, text, integer, integer, text)',
+           'public.typed_ad_score(uuid, integer, integer, numeric, boolean, integer, boolean, boolean, text, text, integer, integer, text, text)',
            'execute'),
     'visitors can score a typed ad';
 end;

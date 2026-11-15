@@ -4,10 +4,12 @@ import '../../../../core/localization/localizations.dart';
 import '../../domain/entities/bike_condition.dart';
 
 /// What the owner says of the bike (damage, owners, service book,
-/// warranty); each answer adjusts the value shown at once.
+/// warranty); each answer adjusts the value shown at once. With
+/// [askImported], also whether the bike was imported (a typed ad's score).
 class const BikeConditionFields({
   required final BikeCondition condition,
   required final ValueChanged<BikeCondition> onChanged,
+  final bool askImported = false,
   super.key,
 }) extends StatelessWidget {
   @override
@@ -66,6 +68,15 @@ class const BikeConditionFields({
           onChanged: (warranty) =>
               onChanged(condition.copyWith(warranty: warranty)),
         ),
+        if (askImported)
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(strings.bikeValueImported),
+            subtitle: Text(strings.bikeValueImportedHint),
+            value: condition.imported,
+            onChanged: (imported) =>
+                onChanged(condition.copyWith(imported: imported)),
+          ),
       ],
     );
   }

@@ -42,7 +42,7 @@ What was checked and found right (no finding):
    `:205`, `:385`). *Proposal:* add `p_variant text default null` (a new
    migration replacing the function) and send the shared ad's title, or
    a "Título do anúncio" field when the person types the ad by hand.
-2. **P3 [data] An imported bike typed by hand never gets the
+2. ✅ (B.6) **P3 [data] An imported bike typed by hand never gets the
    `imported` sign.** `typed_ad_score` passes `p_origin` as null
    (`risk_from_signals`, argument 11). Only the text's "por legalizar"
    reaches the score. *Proposal:* add an "Importada" answer to
@@ -111,13 +111,13 @@ What was checked and found right (no finding):
    `regexp_replace(v_url, '[?#].*$', '')`). Keep the query only for a
    site whose ad id lives in it: Facebook's `/marketplace/item/<id>/`
    doesn't need one.
-2. **P3 [code] The hourly and daily limits aren't held against two
+2. ✅ (B.6) **P3 [code] The hourly and daily limits aren't held against two
    shares at once.** The `count(*)` checks (`:76`, `:78`, `:88`) read
    without a lock, so two calls in the same instant could both pass at
    20. One person's shortcut can't realistically do that. *Proposal:*
    only if it is ever needed, `pg_advisory_xact_lock` on the user's id
    before the counts.
-3. **P3 [code] Photo addresses from any https host.** `receive_shared_ad`
+3. ✅ (B.6) **P3 [code] Photo addresses from any https host.** `receive_shared_ad`
    keeps any `https://` photo (`:117`), and the app then loads them. The
    only sender is the account's own key, so the risk is low (a request
    to a host of their choice). *Proposal:* keep the photos of the hosts
@@ -134,5 +134,5 @@ What was checked and found right (no finding):
 4. ✅ B.4: similar groups for models added later (3.1).
 5. ✅ B.5: the index for `listing_for_ad` (2.1) and the same count for
    value coverage (2.2), in one migration.
-6. B.6, when convenient: origin for typed ads (1.2), share limits and
+6. ✅ B.6: origin for typed ads (1.2), share limits and
    photo hosts (4.2, 4.3).
