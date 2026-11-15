@@ -1322,7 +1322,8 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   ads one run saw (under an hour between first and last seen, N.93).
   Similar models (N.106b): `motorcycles.similar_group` (the same
   platform: Yamaha CP2 MT-07/R7/Tracer 7/XSR700, CP3, MT-03/R3, Honda's
-  650 four and 500 twin; empty for models added from the app),
+  650 four and 500 twin; by brand and name, `similar_group_of`, also for
+  models added later: trigger `motorcycles_similar_group`, B.4),
   `similar_motorcycle_ids()` (the model first): with under 5 gone ads of
   its own (`minMarketData`, `market_behaviour.dart`), these three figures
   use the group's ads (the view's `similar_gone_count`,

@@ -1979,6 +1979,21 @@ end;
 $$;
 
 --
+-- Name: fill_similar_group(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.fill_similar_group() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+begin
+  new.similar_group := coalesce(new.similar_group,
+                                public.similar_group_of(new.brand, new.model));
+  return new;
+end;
+$$;
+
+--
 -- Name: fill_sold_marked(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -6468,6 +6483,45 @@ CREATE FUNCTION public.shared_favourites(p_owner uuid) RETURNS SETOF public.list
 $$;
 
 --
+-- Name: similar_group_of(text, text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.similar_group_of(p_brand text, p_model text) RETURNS text
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$
+  select v.grp
+  from (values
+    ('yamaha', 'mt07',       'yamaha-cp2'),
+    ('yamaha', 'r7',         'yamaha-cp2'),
+    ('yamaha', 'yzfr7',      'yamaha-cp2'),
+    ('yamaha', 'tracer7',    'yamaha-cp2'),
+    ('yamaha', 'tracer700',  'yamaha-cp2'),
+    ('yamaha', 'xsr700',     'yamaha-cp2'),
+    ('yamaha', 'mt09',       'yamaha-cp3'),
+    ('yamaha', 'r9',         'yamaha-cp3'),
+    ('yamaha', 'yzfr9',      'yamaha-cp3'),
+    ('yamaha', 'tracer9',    'yamaha-cp3'),
+    ('yamaha', 'tracer9gt',  'yamaha-cp3'),
+    ('yamaha', 'xsr900',     'yamaha-cp3'),
+    ('yamaha', 'mt03',       'yamaha-321'),
+    ('yamaha', 'r3',         'yamaha-321'),
+    ('yamaha', 'yzfr3',      'yamaha-321'),
+    ('honda',  'cb650r',     'honda-650-four'),
+    ('honda',  'cbr650r',    'honda-650-four'),
+    ('honda',  'cb650f',     'honda-650-four'),
+    ('honda',  'cbr650f',    'honda-650-four'),
+    ('honda',  'cbr500r',    'honda-500-twin'),
+    ('honda',  'cb500f',     'honda-500-twin'),
+    ('honda',  'cb500x',     'honda-500-twin'),
+    ('honda',  'cb500hornet','honda-500-twin'),
+    ('honda',  'nx500',      'honda-500-twin')
+  ) as v(brand_key, model_key, grp)
+  where v.brand_key = public.name_key(p_brand)
+    and v.model_key = public.name_key(p_model)
+$$;
+
+--
 -- Name: similar_motorcycle_ids(uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -9058,6 +9112,12 @@ CREATE TRIGGER listings_track_price_change BEFORE UPDATE OF price ON public.list
 CREATE TRIGGER motorcycles_ensure_searches BEFORE INSERT OR UPDATE OF brand, model, olx_search, standvirtual_search ON public.motorcycles FOR EACH ROW EXECUTE FUNCTION public.ensure_model_searches();
 
 --
+-- Name: motorcycles motorcycles_similar_group; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER motorcycles_similar_group BEFORE INSERT ON public.motorcycles FOR EACH ROW EXECUTE FUNCTION public.fill_similar_group();
+
+--
 -- Name: saved_searches saved_searches_single_model; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -10354,6 +10414,13 @@ REVOKE ALL ON FUNCTION public.fill_mileage_from_text() FROM PUBLIC;
 GRANT ALL ON FUNCTION public.fill_mileage_from_text() TO service_role;
 
 --
+-- Name: FUNCTION fill_similar_group(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.fill_similar_group() FROM PUBLIC;
+GRANT ALL ON FUNCTION public.fill_similar_group() TO service_role;
+
+--
 -- Name: FUNCTION fill_sold_marked(); Type: ACL; Schema: public; Owner: -
 --
 
@@ -11416,6 +11483,13 @@ GRANT ALL ON TABLE public.listing_favourites TO service_role;
 REVOKE ALL ON FUNCTION public.shared_favourites(p_owner uuid) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.shared_favourites(p_owner uuid) TO authenticated;
 GRANT ALL ON FUNCTION public.shared_favourites(p_owner uuid) TO service_role;
+
+--
+-- Name: FUNCTION similar_group_of(p_brand text, p_model text); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.similar_group_of(p_brand text, p_model text) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.similar_group_of(p_brand text, p_model text) TO service_role;
 
 --
 -- Name: FUNCTION similar_motorcycle_ids(p_motorcycle_id uuid); Type: ACL; Schema: public; Owner: -
