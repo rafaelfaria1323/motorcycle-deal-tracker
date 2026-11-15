@@ -8026,11 +8026,11 @@
   "@checkAdDaysListed": {
     "description": "Field of a typed ad: how long the site says it has been on sale."
   },
-  "checkAdDaysListedHelper": "Em dias, ou como o site diz: «5 semanas», «2 meses». Conta para a pressa do vendedor e para a oferta.",
+  "checkAdDaysListedHelper": "Em dias, ou como o site diz: «há 5 semanas», «2 meses», «1 ano». Conta para a pressa do vendedor e para a oferta.",
   "@checkAdDaysListedHelper": {
     "description": "Helper of the time-on-sale field of a typed ad."
   },
-  "checkAdDaysListedInvalid": "Escreva os dias (por exemplo 35), ou semanas ou meses («5 semanas»), até 10 anos.",
+  "checkAdDaysListedInvalid": "Escreva os dias (por exemplo 35), ou como o site diz («há 5 semanas», «1 ano»), até 10 anos.",
   "@checkAdDaysListedInvalid": {
     "description": "Error when the time on sale of a typed ad can't be read."
   },

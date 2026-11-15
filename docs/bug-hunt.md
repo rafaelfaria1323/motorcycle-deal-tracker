@@ -48,7 +48,7 @@ What was checked and found right (no finding):
    reaches the score. *Proposal:* add an "Importada" answer to
    `BikeConditionFields`, passed as `'imported'`, and say what it
    changes. Low priority: the text rules already catch most of these.
-3. **P3 [ux] The time on sale doesn't read the sites' own words.**
+3. ✅ (B.3) **P3 [ux] The time on sale doesn't read the sites' own words.**
    `typedAdDaysValue` (`typed_ad_history.dart:12`) takes "5 semanas"
    but not what Facebook and CustoJusto show:
    - "há 5 semanas" and "5 weeks ago";
@@ -130,7 +130,7 @@ What was checked and found right (no finding):
 
 1. ✅ B.1: typed ad's title read for signals and equipment (1.1).
 2. ✅ B.2: shared ad addresses without tracking (4.1).
-3. B.3: time on sale in the sites' words (1.3).
+3. ✅ B.3: time on sale in the sites' words (1.3).
 4. B.4: similar groups for models added later (3.1).
 5. B.5: the index for `listing_for_ad` (2.1) and the same count for
    value coverage (2.2), in one migration.
