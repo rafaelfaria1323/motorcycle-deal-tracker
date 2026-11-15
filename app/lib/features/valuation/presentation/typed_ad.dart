@@ -1,4 +1,6 @@
 import '../../listings/domain/entities/catalog_model.dart';
+import '../../market/domain/repositories/market_behaviour_repository.dart'
+    show TypedAdScore;
 import '../../listings/domain/entities/listing.dart';
 import '../domain/entities/bike_condition.dart';
 import '../domain/entities/bike_value.dart';
@@ -17,6 +19,12 @@ const typedAdId = '00000000-0000-0000-0000-000000000000';
 /// model's new-bike price ([catalog]: the dealers' new bikes, else the
 /// list price, as on a stored ad's page) is what a nearly new bike is
 /// compared with.
+///
+/// With its [score] (N.107, `typed_ad_score`: what a stored ad with the
+/// same facts would get) the listing carries the Deal Score, the Risk
+/// Score and their breakdown, and the offer is worked out from that
+/// breakdown as on a stored ad (against the damaged value for an
+/// accident); without it, from the value adjusted for the condition.
 Listing typedAdListing({
   required String motorcycleId,
   required String name,
@@ -27,9 +35,16 @@ Listing typedAdListing({
   required BikeValue value,
   BikeCondition condition = const BikeCondition(),
   CatalogModel? catalog,
+  TypedAdScore? score,
+  String? description,
 }) {
   final fromAds = catalog?.newPriceFromAds;
   final estimate = conditionEstimate(value, condition);
+  final breakdown = score?.breakdown;
+  final reasons = [
+    for (final reason in breakdown?['risk_reasons'] as List? ?? const [])
+      '$reason',
+  ];
   final space = name.indexOf(' ');
   return Listing(
     id: typedAdId,
@@ -45,11 +60,23 @@ Listing typedAdListing({
     year: year,
     mileage: mileage,
     price: price,
-    scoreBreakdown: {
-      'market_price': ?estimate,
-      'market_listing_count': value.comparableCount,
+    description: switch (description?.trim()) {
+      final text? when text.isNotEmpty => text,
+      _ => null,
     },
-    marketPosition: estimate == null || price < minRealPrice
+    dealScore: score?.dealScore,
+    riskScore: score?.riskScore,
+    riskReasons: reasons,
+    hasFirstOwnerSignal: reasons.contains('first_owner'),
+    scoreBreakdown:
+        breakdown ??
+        {
+          'market_price': ?estimate,
+          'market_listing_count': value.comparableCount,
+        },
+    marketPosition: breakdown != null
+        ? typedMarketPosition(breakdown)
+        : estimate == null || price < minRealPrice
         ? null
         : (estimate - price) / estimate * 100,
     registrations: switch (condition.owners) {
@@ -67,4 +94,20 @@ Listing typedAdListing({
     newPriceCheckedAt: fromAds == null ? catalog?.newPriceCheckedAt : null,
     newPriceAdCount: fromAds == null ? null : catalog?.newPriceAdCount,
   );
+}
+
+/// The market position of a scored typed ad, as the computed field
+/// `market_position` reads a stored ad's breakdown: against the legalised
+/// or the damaged value when there is one; null below 3 comparables.
+double? typedMarketPosition(Map<String, dynamic> breakdown) {
+  final count = (breakdown['market_listing_count'] as num?)?.toInt() ?? 0;
+  if (count < 3) return null;
+  final legalised = breakdown['legalisation_cost'] != null
+      ? breakdown['pct_below_legalised_value'] as num?
+      : null;
+  final damaged = breakdown['damage_allowance'] != null
+      ? breakdown['pct_below_damaged_value'] as num?
+      : null;
+  final pct = legalised ?? damaged ?? breakdown['pct_below_market'] as num?;
+  return pct == null ? null : (pct * 10).round() / 10;
 }

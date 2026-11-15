@@ -28,7 +28,10 @@ import '../typed_ad.dart';
 import '../../../listings/presentation/widgets/add_model_sheet.dart';
 import '../../../listings/presentation/new_price_text.dart';
 import '../../../listings/presentation/widgets/new_price_card.dart';
+import '../../../listings/presentation/widgets/listing_header.dart'
+    show ListingScoreTiles;
 import '../../../listings/presentation/widgets/offer_card.dart';
+import '../../../listings/presentation/widgets/score_explanation_card.dart';
 import '../../../listings/presentation/widgets/seller_message_card.dart';
 import '../widgets/bike_condition_fields.dart';
 import '../widgets/bike_value_card.dart';
@@ -76,10 +79,12 @@ class const BikeValuePage({
 /// collection ([ad]: an ad check waiting for its ad; [signIn]: an ad not
 /// stored, asked by an anonymous session, which can't wait for it;
 /// [typed]: the ad typed by hand, N.105, with its model's catalog row
-/// [catalog] for the new-bike price).
+/// [catalog] for the new-bike price; [waiting]: its model is still being
+/// collected for that year, so the value comes from the ads stored so far).
 typedef _Outcome = ({
   bool ad,
   bool signIn,
+  bool waiting,
   _TypedAd? typed,
   String name,
   int year,
@@ -90,8 +95,13 @@ typedef _Outcome = ({
   CatalogModel? catalog,
 });
 
-/// The model, price and seller of an ad typed by hand.
-typedef _TypedAd = ({String motorcycleId, double price, SellerType seller});
+/// The model, price, seller and pasted text of an ad typed by hand.
+typedef _TypedAd = ({
+  String motorcycleId,
+  double price,
+  SellerType seller,
+  String? description,
+});
 
 /// The dropdown's entry that opens the make and model form.
 const _otherModel = '';
@@ -106,6 +116,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
   final _mileage = TextEditingController();
   final _link = TextEditingController();
   final _price = TextEditingController();
+  final _adText = TextEditingController();
   String? _motorcycleId;
 
   /// "O anúncio é de outro site": the ad is typed, not linked (N.105).
@@ -115,6 +126,10 @@ class _BikeValuePageState extends State<BikeValuePage> {
   /// The typed ad's listing, kept while the outcome and condition stay, so
   /// its cards keep what they loaded.
   (_Outcome, BikeCondition, Listing)? _typedListing;
+
+  /// The typed ad's Deal Score and Risk Score (N.107), asked again only
+  /// when the outcome or the condition changes.
+  (_Outcome, BikeCondition, Future<TypedAdScore?>)? _typedScore;
 
   /// What the owner says of the bike; it adjusts the value shown, at once,
   /// and is not part of the request.
@@ -238,6 +253,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
     _mileage.dispose();
     _link.dispose();
     _price.dispose();
+    _adText.dispose();
     super.dispose();
   }
 
@@ -320,10 +336,12 @@ class _BikeValuePageState extends State<BikeValuePage> {
     bool signIn = false,
     _TypedAd? typed,
   }) async {
-    if (waiting || signIn) {
+    // A typed ad is valued and scored at once, from the ads stored so far.
+    if ((waiting && typed == null) || signIn) {
       return (
         ad: ad,
         signIn: signIn,
+        waiting: waiting,
         typed: typed,
         name: name,
         year: year,
@@ -352,6 +370,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
     return (
       ad: false,
       signIn: false,
+      waiting: waiting,
       typed: typed,
       name: name,
       year: year,
@@ -441,7 +460,12 @@ class _BikeValuePageState extends State<BikeValuePage> {
     final year = int.parse(_year.text.trim());
     final mileage = _mileage.text.trim().isEmpty ? null : _mileageValue();
     if (widget.checkingAd && _otherSite) {
-      final typed = (motorcycleId: id, price: _priceValue()!, seller: _seller);
+      final typed = (
+        motorcycleId: id,
+        price: _priceValue()!,
+        seller: _seller,
+        description: _adText.text.trim().isEmpty ? null : _adText.text.trim(),
+      );
       setState(() {
         _added.putIfAbsent(id, () => choices[id]!);
         _outcome = _ask(
@@ -685,6 +709,19 @@ class _BikeValuePageState extends State<BikeValuePage> {
               onSelectionChanged: (picked) =>
                   setState(() => _seller = picked.single),
             ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _adText,
+              keyboardType: TextInputType.multiline,
+              minLines: 2,
+              maxLines: 6,
+              decoration: InputDecoration(
+                labelText: strings.checkAdTextLabel,
+                helperText: strings.checkAdTextHelper,
+                helperMaxLines: 3,
+                border: const OutlineInputBorder(),
+              ),
+            ),
           ],
           const SizedBox(height: 20),
           BikeConditionFields(
@@ -774,47 +811,109 @@ class _BikeValuePageState extends State<BikeValuePage> {
     );
   }
 
-  /// The typed ad (N.105): what to offer and the message to the seller,
-  /// as on a stored ad's Negociar, then the value it comes from.
+  /// The typed ad (N.105): its Deal Score and Risk Score and why (N.107),
+  /// what to offer and the message to the seller, as on a stored ad, then
+  /// the value it comes from.
   Widget _typedResult(_Outcome outcome, _TypedAd typed, BikeValue value) {
-    final kept = _typedListing;
-    final Listing listing;
-    if (kept != null && kept.$1 == outcome && kept.$2 == _condition) {
-      listing = kept.$3;
+    final asked = _typedScore;
+    final Future<TypedAdScore?> score;
+    if (asked != null && asked.$1 == outcome && asked.$2 == _condition) {
+      score = asked.$3;
     } else {
-      listing = typedAdListing(
-        motorcycleId: typed.motorcycleId,
-        name: outcome.name,
-        year: outcome.year,
-        mileage: outcome.mileage,
-        price: typed.price,
-        sellerType: typed.seller,
-        value: value,
-        condition: _condition,
-        catalog: outcome.catalog,
-      );
-      _typedListing = (outcome, _condition, listing);
+      // Without its score the ad still gets the offer, from the value.
+      score = _repository
+          .scoreTypedAd(
+            typed.motorcycleId,
+            year: outcome.year,
+            mileage: outcome.mileage,
+            price: typed.price,
+            privateSeller: typed.seller == SellerType.private,
+            condition: _condition,
+            description: typed.description,
+          )
+          .then<TypedAdScore?>((s) => s, onError: (Object _) => null);
+      _typedScore = (outcome, _condition, score);
     }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        OfferCard(key: ObjectKey(listing), listing: listing),
-        const SizedBox(height: 16),
-        SellerMessageCard(key: ObjectKey(listing), listing: listing),
-        const SizedBox(height: 16),
-        if (newPriceLines(listing, language: context.language).isNotEmpty) ...[
-          NewPriceCard(listing: listing),
-          const SizedBox(height: 16),
-        ],
-        BikeValueCard(
-          name: outcome.name,
-          year: outcome.year,
-          value: value,
-          market: outcome.market,
-          condition: _condition,
-          exit: outcome.exit,
-        ),
-      ],
+    return FutureBuilder<TypedAdScore?>(
+      future: score,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final listing = _typedAdListing(outcome, typed, value, snapshot.data);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (outcome.waiting) ...[
+              Text(
+                context.strings.checkAdTypedWaiting,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 4),
+            ],
+            if (listing.dealScore != null) ...[
+              ListingScoreTiles(listing: listing),
+              const SizedBox(height: 16),
+              ScoreExplanationCard(listing: listing),
+              const SizedBox(height: 16),
+            ],
+            OfferCard(key: ObjectKey(listing), listing: listing),
+            const SizedBox(height: 16),
+            SellerMessageCard(key: ObjectKey(listing), listing: listing),
+            const SizedBox(height: 16),
+            if (newPriceLines(
+              listing,
+              language: context.language,
+            ).isNotEmpty) ...[
+              NewPriceCard(listing: listing),
+              const SizedBox(height: 16),
+            ],
+            BikeValueCard(
+              name: outcome.name,
+              year: outcome.year,
+              value: value,
+              market: outcome.market,
+              condition: _condition,
+              exit: outcome.exit,
+            ),
+          ],
+        );
+      },
     );
+  }
+
+  /// The typed ad as a listing, kept while the outcome, the condition and
+  /// the score stay, so its cards keep what they loaded.
+  Listing _typedAdListing(
+    _Outcome outcome,
+    _TypedAd typed,
+    BikeValue value,
+    TypedAdScore? score,
+  ) {
+    final kept = _typedListing;
+    if (kept != null &&
+        kept.$1 == outcome &&
+        kept.$2 == _condition &&
+        kept.$3.dealScore == score?.dealScore &&
+        kept.$3.riskScore == score?.riskScore) {
+      return kept.$3;
+    }
+    final listing = typedAdListing(
+      motorcycleId: typed.motorcycleId,
+      name: outcome.name,
+      year: outcome.year,
+      mileage: outcome.mileage,
+      price: typed.price,
+      sellerType: typed.seller,
+      value: value,
+      condition: _condition,
+      catalog: outcome.catalog,
+      score: score,
+      description: typed.description,
+    );
+    _typedListing = (outcome, _condition, listing);
+    return listing;
   }
 }

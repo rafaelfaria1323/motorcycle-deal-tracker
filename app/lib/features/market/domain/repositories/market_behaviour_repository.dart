@@ -1,3 +1,4 @@
+import '../../../valuation/domain/entities/bike_condition.dart';
 import '../../../valuation/domain/entities/bike_value.dart';
 import '../../../valuation/domain/entities/bike_value_request.dart';
 import '../entities/exit_price.dart';
@@ -5,6 +6,15 @@ import '../entities/gone_deal.dart';
 import '../entities/market_behaviour.dart';
 import '../entities/model_market.dart';
 import '../entities/price_drop_outlook.dart';
+
+/// The scores of an ad typed by hand (N.107): what a stored ad with the
+/// same facts would get, and the breakdown they come from (the stored
+/// ads' `score_breakdown`).
+typedef TypedAdScore = ({
+  int? dealScore,
+  int? riskScore,
+  Map<String, dynamic> breakdown,
+});
 
 abstract interface class MarketBehaviourRepository {
   /// Null when the model has no listings.
@@ -84,6 +94,19 @@ abstract interface class MarketBehaviourRepository {
 
   /// The stored listing of the ad at [url], or null.
   Future<String?> listingForAd(String url);
+
+  /// The Deal Score and Risk Score of an ad typed by hand (N.107,
+  /// `typed_ad_score`): [condition] is what the ad says, [description] its
+  /// text if pasted. Null for a price under 300 € or an unknown model.
+  Future<TypedAdScore?> scoreTypedAd(
+    String motorcycleId, {
+    required int year,
+    required int? mileage,
+    required double price,
+    required bool privateSeller,
+    BikeCondition condition = const BikeCondition(),
+    String? description,
+  });
 
   /// The account's requests, newest first.
   Future<List<BikeValueRequest>> getBikeValueRequests();

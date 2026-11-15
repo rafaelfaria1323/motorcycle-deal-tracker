@@ -1167,7 +1167,11 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   `SellerMessageCard` on a listing built in the app (`typedAdListing`,
   `typed_ad.dart`, source `typed`, `Listing.isTyped`: no favourite, a
   comparison of the stored ads only; the model's new-bike price from
-  `CatalogRepository.getModels` for `NewPriceCard`), never stored. The
+  `CatalogRepository.getModels` for `NewPriceCard`), never stored; its
+  Deal Score and Risk Score (N.107, `typed_ad_score`: the stored ads'
+  rules on the typed facts and the optional pasted text, no seller
+  slice; `scoreTypedAd`, `ListingScoreTiles`, `ScoreExplanationCard`),
+  valued and scored at once even while its year is still collected. The
   message to a private seller also asks about a reservation of ownership.
   No ad page is ever read. Mais › "Comprar no estrangeiro"
   (`/import`, the same page with `importing`): the same value, then the
