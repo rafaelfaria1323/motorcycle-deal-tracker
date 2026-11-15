@@ -8006,6 +8006,14 @@
   "@checkAdPriceInvalid": {
     "description": "Interface text for checking an ad typed by hand (N.105)."
   },
+  "checkAdTitleLabel": "Título do anúncio (opcional)",
+  "@checkAdTitleLabel": {
+    "description": "Interface text for scoring an ad typed by hand (B.1)."
+  },
+  "checkAdTitleHelper": "Como o site o mostra: o que diz (“35 kW A2”, “Akrapovic”) conta para a pontuação.",
+  "@checkAdTitleHelper": {
+    "description": "Interface text for scoring an ad typed by hand (B.1)."
+  },
   "checkAdTextLabel": "Texto do anúncio (opcional)",
   "@checkAdTextLabel": {
     "description": "Interface text for scoring an ad typed by hand (N.107)."

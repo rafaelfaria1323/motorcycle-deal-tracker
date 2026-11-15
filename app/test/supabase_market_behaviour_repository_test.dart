@@ -382,6 +382,7 @@ void main() {
         serviceBook: BikeServiceBook.no,
         warranty: true,
       ),
+      title: 'MT-07 35 kW A2',
       description: '  Vendo a minha MT-07  ',
     );
     expect(requests.single.url.path, endsWith('/rpc/typed_ad_score'));
@@ -396,6 +397,7 @@ void main() {
       'p_warranty': true,
       'p_damage': 'dropped',
       'p_description': 'Vendo a minha MT-07',
+      'p_variant': 'MT-07 35 kW A2',
     });
     expect(score!.dealScore, 74);
     expect(score.riskScore, 15);
@@ -465,6 +467,26 @@ void main() {
     );
     expect(ranged['p_from_year'], 2019);
     expect(ranged['p_to_year'], 2022);
+
+    // B.1: the title goes as the variant, trimmed; a blank one not at all.
+    final titled = typedAdScoreParams(
+      'mt07',
+      year: 2021,
+      mileage: 1,
+      price: 7000,
+      privateSeller: true,
+      title: '  MT-07 35 kW A2 ',
+    );
+    expect(titled['p_variant'], 'MT-07 35 kW A2');
+    final blank = typedAdScoreParams(
+      'mt07',
+      year: 2021,
+      mileage: 1,
+      price: 7000,
+      privateSeller: true,
+      title: '  ',
+    );
+    expect(blank.containsKey('p_variant'), isFalse);
   });
 
   test('typedAdScoreFrom reads a row without scores', () {

@@ -30,7 +30,7 @@ What was checked and found right (no finding):
 
 ## 1. Typed ads and their scores (N.105, N.107)
 
-1. **P2 [data] The ad's title is never read for risk signals or
+1. ✅ (B.1) **P2 [data] The ad's title is never read for risk signals or
    equipment.** `typed_ad_score` calls `description_signals(null,
    p_description)` and `listing_extras(null, p_description)`
    (`20261115150000_year_ranges.sql:225`, `:268`). A stored ad passes
@@ -128,7 +128,7 @@ What was checked and found right (no finding):
 
 ## Order
 
-1. B.1: typed ad's title read for signals and equipment (1.1).
+1. ✅ B.1: typed ad's title read for signals and equipment (1.1).
 2. B.2: shared ad addresses without tracking (4.1).
 3. B.3: time on sale in the sites' words (1.3).
 4. B.4: similar groups for models added later (3.1).

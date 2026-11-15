@@ -7076,10 +7076,10 @@ CREATE FUNCTION public.tracked_by_me(m public.motorcycles) RETURNS boolean
 $$;
 
 --
--- Name: typed_ad_score(uuid, integer, integer, numeric, boolean, integer, boolean, boolean, text, text, integer, integer); Type: FUNCTION; Schema: public; Owner: -
+-- Name: typed_ad_score(uuid, integer, integer, numeric, boolean, integer, boolean, boolean, text, text, integer, integer, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer DEFAULT NULL::integer, p_service_book boolean DEFAULT NULL::boolean, p_warranty boolean DEFAULT false, p_damage text DEFAULT NULL::text, p_description text DEFAULT NULL::text, p_from_year integer DEFAULT NULL::integer, p_to_year integer DEFAULT NULL::integer) RETURNS TABLE(deal_score smallint, risk_score smallint, breakdown jsonb)
+CREATE FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer DEFAULT NULL::integer, p_service_book boolean DEFAULT NULL::boolean, p_warranty boolean DEFAULT false, p_damage text DEFAULT NULL::text, p_description text DEFAULT NULL::text, p_from_year integer DEFAULT NULL::integer, p_to_year integer DEFAULT NULL::integer, p_variant text DEFAULT NULL::text) RETURNS TABLE(deal_score smallint, risk_score smallint, breakdown jsonb)
     LANGUAGE sql STABLE SECURITY DEFINER
     SET search_path TO ''
     SET jit TO 'off'
@@ -7098,7 +7098,7 @@ CREATE FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mi
       v.fair_price,
       (select coalesce(array_agg(distinct s), '{}'::text[])
        from unnest(
-         public.description_signals(null, p_description)
+         public.description_signals(nullif(btrim(coalesce(p_variant, '')), ''), p_description)
          || case p_damage
               when 'accident' then array['possible_accident']
               when 'dropped' then array['cosmetic_damage']
@@ -7141,7 +7141,7 @@ CREATE FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mi
       coalesce(public.mileage_use_score(p_mileage, p_year),
                case when p_year is not null then 50 end) as m_score,
       public.age_score(p_year) as y_score,
-      public.listing_extras(null, p_description) as extras
+      public.listing_extras(nullif(btrim(coalesce(p_variant, '')), ''), p_description) as extras
     from risk r
   ),
   priced as (
@@ -11528,13 +11528,13 @@ GRANT ALL ON FUNCTION public.tracked_by_me(m public.motorcycles) TO authenticate
 GRANT ALL ON FUNCTION public.tracked_by_me(m public.motorcycles) TO service_role;
 
 --
--- Name: FUNCTION typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer); Type: ACL; Schema: public; Owner: -
+-- Name: FUNCTION typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer, p_variant text); Type: ACL; Schema: public; Owner: -
 --
 
-REVOKE ALL ON FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer) FROM PUBLIC;
-GRANT ALL ON FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer) TO service_role;
-GRANT ALL ON FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer) TO anon;
-GRANT ALL ON FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer) TO authenticated;
+REVOKE ALL ON FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer, p_variant text) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer, p_variant text) TO service_role;
+GRANT ALL ON FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer, p_variant text) TO anon;
+GRANT ALL ON FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer, p_variant text) TO authenticated;
 
 --
 -- Name: FUNCTION unmatched_title_sample(p_since timestamp with time zone, p_limit integer); Type: ACL; Schema: public; Owner: -

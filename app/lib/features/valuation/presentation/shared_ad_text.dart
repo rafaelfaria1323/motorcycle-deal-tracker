@@ -23,6 +23,9 @@ typedef SharedAdFacts = ({
   int? year,
   int? mileage,
   int? daysListed,
+
+  /// The ad's title, read for risks and equipment as a stored ad's (B.1).
+  String? title,
   String? description,
 
   /// What the text says of the bike; unknown where it says nothing.
@@ -380,6 +383,10 @@ SharedAdFacts sharedAdFacts(SharedAd ad, {required DateTime now}) {
     year: sharedAdYear(ad, now: now),
     mileage: sharedAdMileage(ad),
     daysListed: sharedAdDaysListed(ad),
+    title: switch (ad.title?.trim()) {
+      final title? when title.isNotEmpty => title,
+      _ => null,
+    },
     description: description,
     condition: sharedAdCondition([?description, ..._shortLines(ad)].join('\n')),
     words: sharedAdWords(ad.title),
