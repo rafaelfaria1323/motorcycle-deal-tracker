@@ -8316,7 +8316,7 @@
   "@adShortcutInstallStep2": {
     "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
   },
-  "adShortcutInstallStep3": "Toque em «Instalar o atalho»: abre a app Atalhos. Toque em «Configurar atalho», cole a chave e toque em «Adicionar atalho».",
+  "adShortcutInstallStep3": "Toque em «Instalar o atalho» para abrir a app Atalhos. Toque em «Configurar atalho», cole a chave e toque em «Adicionar atalho».",
   "@adShortcutInstallStep3": {
     "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
   },
