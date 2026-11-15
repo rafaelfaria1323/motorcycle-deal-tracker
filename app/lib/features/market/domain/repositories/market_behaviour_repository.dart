@@ -99,8 +99,9 @@ abstract interface class MarketBehaviourRepository {
   Future<String?> listingForAd(String url);
 
   /// The Deal Score and Risk Score of an ad typed by hand (N.107,
-  /// `typed_ad_score`): [condition] is what the ad says, [description] its
-  /// text if pasted; [fromYear] / [toYear] (N.108) the comparables'
+  /// `typed_ad_score`): [condition] is what the ad says, [title] its title
+  /// and [description] its text if given (B.1: both read for risks and
+  /// equipment); [fromYear] / [toYear] (N.108) the comparables'
   /// years. Null for a price under 300 € or an unknown model.
   Future<TypedAdScore?> scoreTypedAd(
     String motorcycleId, {
@@ -109,6 +110,7 @@ abstract interface class MarketBehaviourRepository {
     required double price,
     required bool privateSeller,
     BikeCondition condition = const BikeCondition(),
+    String? title,
     String? description,
     int? fromYear,
     int? toYear,

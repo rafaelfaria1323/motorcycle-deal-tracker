@@ -1181,7 +1181,8 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   comparison of the stored ads only; the model's new-bike price from
   `CatalogRepository.getModels` for `NewPriceCard`), never stored; its
   Deal Score and Risk Score (N.107, `typed_ad_score`: the stored ads'
-  rules on the typed facts and the optional pasted text, no seller
+  rules on the typed facts, the optional pasted text and title
+  (`p_variant`, B.1), no seller
   slice; `scoreTypedAd`, `ListingScoreTiles`, `ScoreExplanationCard`),
   valued and scored at once even while its year is still collected; its
   optional time on sale ("5 semanas") and price before a drop (N.109,
@@ -1205,7 +1206,8 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   also the description, `old_price` as the price before a drop and the
   condition answers, `sharedAdCondition`, from script 3's `page_text`,
   the page's text after "Ver mais" up to the seller, N.110c; script 4
-  sends the opened description whole, line breaks kept)
+  sends the opened description whole, line breaks kept; the title
+  fills "Título do anúncio")
   and `dismiss_shared_ad`s it (its content wiped at once; the job
   `prune-shared-ads` deletes the rows). Android: a shared non-OLX/Standvirtual
   link switches to the typed form.

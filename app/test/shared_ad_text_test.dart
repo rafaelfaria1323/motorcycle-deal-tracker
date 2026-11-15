@@ -45,7 +45,17 @@ void main() {
     expect(facts.mileage, 25000);
     expect(facts.daysListed, 35);
     expect(facts.description, 'Como nova, revisões na marca.');
+    expect(facts.title, 'Yamaha MT-07 2019');
     expect(facts.words, ['yamaha', 'mt', '07', '2019']);
+  });
+
+  test('the title, for the score (B.1): trimmed, a blank one unknown', () {
+    expect(
+      sharedAdFacts(_ad(title: '  MT-07 35 kW A2 '), now: _now).title,
+      'MT-07 35 kW A2',
+    );
+    expect(sharedAdFacts(_ad(title: '  '), now: _now).title, isNull);
+    expect(sharedAdFacts(_ad(), now: _now).title, isNull);
   });
 
   test('the English page', () {

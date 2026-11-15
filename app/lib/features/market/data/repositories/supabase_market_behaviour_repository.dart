@@ -285,6 +285,7 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
     required double price,
     required bool privateSeller,
     BikeCondition condition = const BikeCondition(),
+    String? title,
     String? description,
     int? fromYear,
     int? toYear,
@@ -298,6 +299,7 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
         price: price,
         privateSeller: privateSeller,
         condition: condition,
+        title: title,
         description: description,
         fromYear: fromYear,
         toYear: toYear,
@@ -518,6 +520,7 @@ Map<String, dynamic> typedAdScoreParams(
   required double price,
   required bool privateSeller,
   BikeCondition condition = const BikeCondition(),
+  String? title,
   String? description,
   int? fromYear,
   int? toYear,
@@ -550,6 +553,10 @@ Map<String, dynamic> typedAdScoreParams(
   },
   'p_from_year': ?fromYear,
   'p_to_year': ?toYear,
+  'p_variant': ?switch (title?.trim()) {
+    final text? when text.isNotEmpty => text,
+    _ => null,
+  },
 };
 
 /// A row of `typed_ad_score`.

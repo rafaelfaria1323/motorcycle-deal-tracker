@@ -77,13 +77,25 @@ begin
     format('no comparables: %s %s', r.deal_score, r.breakdown);
 
   -- A placeholder price, or an unknown model: no score.
+  -- B.1: the title is read as a stored ad's version: an A2 version and
+  -- equipment it names count though the text says nothing of them.
+  select * into r from public.typed_ad_score(mt, 2021, 20000, 7000, true, null, null,
+    false, null, 'Mota em bom estado.', p_variant => 'MT-07 35 kW A2 com quickshifter');
+  assert r.breakdown->'risk_reasons' ? 'a2_limited'
+     and r.breakdown->'valued_extras' ? 'quickshifter',
+    format('the title read: %s', r.breakdown);
+  select * into r from public.typed_ad_score(mt, 2021, 20000, 7000, true, null, null,
+    false, null, 'Mota em bom estado.', p_variant => '  ');
+  assert not r.breakdown->'risk_reasons' ? 'a2_limited',
+    format('a blank title reads nothing: %s', r.breakdown);
+
   assert not exists (select from public.typed_ad_score(mt, 2021, 20000, 1, true)),
     'a placeholder price';
   assert not exists (select from public.typed_ad_score(gen_random_uuid(), 2021, 20000, 7000, true)),
     'an unknown model';
 
   assert has_function_privilege('anon',
-           'public.typed_ad_score(uuid, integer, integer, numeric, boolean, integer, boolean, boolean, text, text, integer, integer)',
+           'public.typed_ad_score(uuid, integer, integer, numeric, boolean, integer, boolean, boolean, text, text, integer, integer, text)',
            'execute'),
     'visitors can score a typed ad';
 end;

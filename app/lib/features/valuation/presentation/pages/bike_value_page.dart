@@ -112,6 +112,7 @@ typedef _TypedAd = ({
   String motorcycleId,
   double price,
   SellerType seller,
+  String? title,
   String? description,
   int? daysListed,
   double? initialPrice,
@@ -130,6 +131,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
   final _mileage = TextEditingController();
   final _link = TextEditingController();
   final _price = TextEditingController();
+  final _adTitle = TextEditingController();
   final _adText = TextEditingController();
   final _daysListed = TextEditingController();
   final _initialPrice = TextEditingController();
@@ -295,6 +297,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
     _initialPrice.text = facts.initialPrice == null
         ? ''
         : '${facts.initialPrice!.round()}';
+    _adTitle.text = facts.title ?? '';
     _adText.text = facts.description ?? '';
     setState(() {
       _condition = facts.condition;
@@ -364,6 +367,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
     _mileage.dispose();
     _link.dispose();
     _price.dispose();
+    _adTitle.dispose();
     _adText.dispose();
     _daysListed.dispose();
     _initialPrice.dispose();
@@ -614,6 +618,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
         motorcycleId: id,
         price: _priceValue()!,
         seller: _seller,
+        title: _adTitle.text.trim().isEmpty ? null : _adTitle.text.trim(),
         description: _adText.text.trim().isEmpty ? null : _adText.text.trim(),
         daysListed: _history()!.daysListed,
         initialPrice: _history()!.initialPrice,
@@ -927,6 +932,16 @@ class _BikeValuePageState extends State<BikeValuePage> {
             ),
             const SizedBox(height: 12),
             TextFormField(
+              controller: _adTitle,
+              decoration: InputDecoration(
+                labelText: strings.checkAdTitleLabel,
+                helperText: strings.checkAdTitleHelper,
+                helperMaxLines: 3,
+                border: const OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
               controller: _adText,
               keyboardType: TextInputType.multiline,
               minLines: 2,
@@ -1097,6 +1112,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
             price: typed.price,
             privateSeller: typed.seller == SellerType.private,
             condition: _condition,
+            title: typed.title,
             description: typed.description,
             fromYear: outcome.years.from,
             toYear: outcome.years.to,

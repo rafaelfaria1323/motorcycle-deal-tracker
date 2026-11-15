@@ -1389,6 +1389,8 @@
   "checkAdOtherSite": "The ad is on another site",
   "checkAdOtherSiteHint": "Facebook Marketplace, CustoJusto…: type its price and seller. We compare it with the ads we have and suggest the offer and the message.",
   "checkAdPriceInvalid": "Type the asking price (300 € or more).",
+  "checkAdTitleLabel": "The ad's title (optional)",
+  "checkAdTitleHelper": "As the site shows it: what it says (“35 kW A2”, “Akrapovic”) counts towards the score.",
   "checkAdTextLabel": "The ad's text (optional)",
   "checkAdTextHelper": "Paste the description: the risks and equipment it mentions count towards the score.",
   "checkAdDaysListed": "How long it has been on sale (optional)",
