@@ -25,6 +25,12 @@ const typedAdId = '00000000-0000-0000-0000-000000000000';
 /// Score and their breakdown, and the offer is worked out from that
 /// breakdown as on a stored ad (against the damaged value for an
 /// accident); without it, from the value adjusted for the condition.
+///
+/// [daysListed] (how long the site says it has been on sale) dates its
+/// publication that many days before [today], and [initialPrice] (its
+/// price before a drop, when the site shows one above the price) is its
+/// first price: the seller's urgency, the offer and the arguments read
+/// them as a stored ad's dates and drops.
 Listing typedAdListing({
   required String motorcycleId,
   required String name,
@@ -37,6 +43,9 @@ Listing typedAdListing({
   CatalogModel? catalog,
   TypedAdScore? score,
   String? description,
+  int? daysListed,
+  double? initialPrice,
+  DateTime? today,
 }) {
   final fromAds = catalog?.newPriceFromAds;
   final estimate = conditionEstimate(value, condition);
@@ -60,6 +69,12 @@ Listing typedAdListing({
     year: year,
     mileage: mileage,
     price: price,
+    initialPrice: initialPrice != null && initialPrice > price
+        ? initialPrice
+        : null,
+    publishedAt: daysListed == null
+        ? null
+        : (today ?? DateTime.now()).subtract(Duration(days: daysListed)),
     description: switch (description?.trim()) {
       final text? when text.isNotEmpty => text,
       _ => null,

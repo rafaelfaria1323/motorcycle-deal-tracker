@@ -1178,7 +1178,10 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   Deal Score and Risk Score (N.107, `typed_ad_score`: the stored ads'
   rules on the typed facts and the optional pasted text, no seller
   slice; `scoreTypedAd`, `ListingScoreTiles`, `ScoreExplanationCard`),
-  valued and scored at once even while its year is still collected. The
+  valued and scored at once even while its year is still collected; its
+  optional time on sale ("5 semanas") and price before a drop (N.109,
+  `typed_ad_history.dart`) date it and give its first price, for the
+  seller's urgency and the offer. The
   message to a private seller also asks about a reservation of ownership.
   No ad page is ever read. Mais › "Comprar no estrangeiro"
   (`/import`, the same page with `importing`): the same value, then the

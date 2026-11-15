@@ -30,6 +30,8 @@ Listing _typed({
   CatalogModel? catalog,
   TypedAdScore? score,
   String? description,
+  int? daysListed,
+  double? initialPrice,
 }) => typedAdListing(
   motorcycleId: 'mt07',
   name: name,
@@ -42,7 +44,12 @@ Listing _typed({
   catalog: catalog,
   score: score,
   description: description,
+  daysListed: daysListed,
+  initialPrice: initialPrice,
+  today: _today,
 );
+
+final _today = DateTime(2026, 11, 15, 10);
 
 CatalogModel _catalog({
   double? listPrice,
@@ -65,6 +72,33 @@ void main() {
   const language = AppLanguage.portuguese;
 
   group('typedAdListing', () {
+    test('the time on sale and an earlier drop count as a stored ad\'s '
+        '(N.109)', () {
+      final unknown = _typed();
+      expect(unknown.publishedAt, isNull);
+      expect(unknown.initialPrice, isNull);
+      expect(daysOnSale(unknown, now: _today), isNull);
+      expect(sellerUrgency(unknown, language: language).level, Urgency.low);
+
+      final old = _typed(daysListed: 100, initialPrice: 7900);
+      expect(daysOnSale(old, now: _today), 100);
+      expect(old.initialPrice, 7900);
+      final urgency = sellerUrgency(
+        old,
+        daysListed: daysOnSale(old, now: _today),
+        today: _today,
+        language: language,
+      );
+      // Past twice the 45 days taken without market figures (2), and
+      // already reduced (1).
+      expect(urgency.level, Urgency.high);
+      expect(urgency.reasons, hasLength(2));
+
+      // An "earlier" price not above the asking price is no drop.
+      expect(_typed(initialPrice: 7400).initialPrice, isNull);
+      expect(_typed(initialPrice: 7000).initialPrice, isNull);
+    });
+
     test('the typed facts, with the value as its estimate', () {
       final listing = _typed();
       expect(listing.id, typedAdId);

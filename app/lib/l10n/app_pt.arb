@@ -8014,6 +8014,30 @@
   "@checkAdTextHelper": {
     "description": "Interface text for scoring an ad typed by hand (N.107)."
   },
+  "checkAdDaysListed": "Há quanto tempo está à venda (opcional)",
+  "@checkAdDaysListed": {
+    "description": "Field of a typed ad: how long the site says it has been on sale."
+  },
+  "checkAdDaysListedHelper": "Em dias, ou como o site diz: «5 semanas», «2 meses». Conta para a pressa do vendedor e para a oferta.",
+  "@checkAdDaysListedHelper": {
+    "description": "Helper of the time-on-sale field of a typed ad."
+  },
+  "checkAdDaysListedInvalid": "Escreva os dias (por exemplo 35), ou semanas ou meses («5 semanas»), até 10 anos.",
+  "@checkAdDaysListedInvalid": {
+    "description": "Error when the time on sale of a typed ad can't be read."
+  },
+  "checkAdInitialPrice": "Preço antes de baixar (opcional)",
+  "@checkAdInitialPrice": {
+    "description": "Field of a typed ad: its price before a drop."
+  },
+  "checkAdInitialPriceHelper": "Se o site mostra que o preço já baixou, escreva o preço anterior.",
+  "@checkAdInitialPriceHelper": {
+    "description": "Helper of the earlier price field of a typed ad."
+  },
+  "checkAdInitialPriceInvalid": "Escreva um preço acima do preço pedido.",
+  "@checkAdInitialPriceInvalid": {
+    "description": "Error when the earlier price of a typed ad is not above the asking price."
+  },
   "checkAdTypedWaiting": "Este modelo ainda está a ser recolhido para este ano: o valor e a pontuação vêm dos anúncios guardados até agora e ficam mais certos depois da próxima recolha.",
   "@checkAdTypedWaiting": {
     "description": "Interface text for scoring an ad typed by hand (N.107)."
