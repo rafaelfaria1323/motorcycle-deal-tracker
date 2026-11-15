@@ -156,15 +156,20 @@ String _day(DateTime t) =>
 String _bikeAndYear(SummaryListing l) =>
     [l.bike, if (l.year != null) '${l.year}'].join(' ');
 
+/// The years an account follows a model in: from its first year, up to
+/// its last one when it chose one (N.108).
+typedef FollowedYears = ({int from, int? to});
+
 /// The listings of the models an account follows ([models]: catalog id
-/// -> first year), as the app's `in_my_models` picks them.
+/// -> its years), as the app's `in_my_models` picks them.
 List<SummaryListing> listingsFollowed(
   List<SummaryListing> listings,
-  Map<String, int> models,
+  Map<String, FollowedYears> models,
 ) => [
   for (final l in listings)
-    if (models[l.motorcycleId] case final from?
-        when l.year == null || l.year! >= from)
+    if (models[l.motorcycleId] case (:final from, :final to)
+        when l.year == null ||
+            (l.year! >= from && (to == null || l.year! <= to)))
       l,
 ];
 

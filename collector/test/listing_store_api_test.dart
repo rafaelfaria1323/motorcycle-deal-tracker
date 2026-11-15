@@ -491,6 +491,26 @@ void main() {
     expect(calls.last.query.containsKey('user_id'), isFalse);
   });
 
+  test('followed models carry their first and last years', () async {
+    replies['table:user_models'] = [
+      {
+        'user_id': 'u1',
+        'motorcycle_id': 'mt07',
+        'min_year': 2018,
+        'max_year': 2020,
+      },
+      {
+        'user_id': 'u1',
+        'motorcycle_id': 'r7',
+        'min_year': 2022,
+        'max_year': null,
+      },
+    ];
+    expect(await summaries.followedModels(), {
+      'u1': {'mt07': (from: 2018, to: 2020), 'r7': (from: 2022, to: null)},
+    });
+  });
+
   test('price history is read only for the listings asked about', () async {
     expect(
       await summaries.priceHistoryChangedSince(const {}, DateTime.utc(2026)),
@@ -547,6 +567,10 @@ void main() {
 
     final byTable = {for (final c in calls) c.name: c};
     expect(byTable['user_models']!.query['tracked'], 'eq.true');
+    expect(
+      byTable['user_models']!.query['select'],
+      'user_id,motorcycle_id,min_year,max_year',
+    );
     expect(byTable['app_admins']!.query['select'], 'user_id');
     expect(byTable['account_languages']!.query['user_id'], 'in.("u1","u2")');
     expect(byTable['listings']!.query['duplicate_of'], 'is.null');

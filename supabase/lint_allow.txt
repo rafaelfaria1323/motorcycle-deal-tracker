@@ -41,6 +41,7 @@ authenticated_security_definer_function_executable_public_bike_value_model_p_bra
 authenticated_security_definer_function_executable_public_request_bike_value_p_motorcycle_id uuid, p_year integer, p_mileage integer
 authenticated_security_definer_function_executable_public_request_ad_check_p_url text, p_motorcycle_id uuid, p_year integer, p_mileage integer
 authenticated_security_definer_function_executable_public_set_model_min_year_p_motorcycle_id uuid, p_min_year integer
+authenticated_security_definer_function_executable_public_set_model_years_p_motorcycle_id uuid, p_min_year integer, p_max_year integer
 authenticated_security_definer_function_executable_public_set_model_colours_p_motorcycle_id uuid, p_colours text[]
 authenticated_security_definer_function_executable_public_set_model_new_price_p_motorcycle_id uuid, p_price numeric, p_checked_at date
 authenticated_security_definer_function_executable_public_set_model_tracked_p_motorcycle_id uuid, p_tracked boolean
@@ -141,5 +142,5 @@ authenticated_security_definer_function_executable_public_shared_favourites_p_ow
 # they can already read (the listings and the catalog); definer only
 # because the scoring helpers it shares with recalculate_deal_scores()
 # are closed to the API.
-anon_security_definer_function_executable_public_typed_ad_score_p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text
-authenticated_security_definer_function_executable_public_typed_ad_score_p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text
+anon_security_definer_function_executable_public_typed_ad_score_p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer
+authenticated_security_definer_function_executable_public_typed_ad_score_p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer

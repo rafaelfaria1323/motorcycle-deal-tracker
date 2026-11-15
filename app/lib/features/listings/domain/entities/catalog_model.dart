@@ -9,6 +9,9 @@ class const CatalogModel({
   /// The account's own first year (the catalog's when it never chose one).
   required final int minYear,
 
+  /// The account's own last year (N.108); null: every year from [minYear].
+  final int? maxYear,
+
   /// Followed by this account: its listings are in Ofertas, the alerts and
   /// the market figures.
   required final bool isTracked,
@@ -38,12 +41,14 @@ class const CatalogModel({
   CatalogModel copyWith({
     bool? isTracked,
     int? minYear,
+    (int?,)? maxYear,
     List<String>? colours,
   }) => CatalogModel(
     id: id,
     brand: brand,
     model: model,
     minYear: minYear ?? this.minYear,
+    maxYear: maxYear == null ? this.maxYear : maxYear.$1,
     isTracked: isTracked ?? this.isTracked,
     isCollected: isCollected,
     colours: colours ?? this.colours,
@@ -61,6 +66,7 @@ class const CatalogModel({
     brand: brand,
     model: model,
     minYear: minYear,
+    maxYear: maxYear,
     isTracked: isTracked,
     isCollected: isCollected,
     colours: colours,
@@ -78,6 +84,7 @@ class const CatalogModel({
     brand,
     model,
     minYear,
+    maxYear,
     isTracked,
     isCollected,
     colours,

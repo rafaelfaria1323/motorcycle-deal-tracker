@@ -37,11 +37,14 @@ abstract interface class MarketBehaviourRepository {
   Future<List<ModelMarket>> getTrackedModels();
 
   /// What a bike of [motorcycleId] from [year] with [mileage] km (unknown:
-  /// any) is worth, from the model's live asking prices.
+  /// any) is worth, from the model's live asking prices; with [fromYear]
+  /// or [toYear] (N.108), only from the ads of those years.
   Future<BikeValue> getBikeValue(
     String motorcycleId, {
     required int year,
     int? mileage,
+    int? fromYear,
+    int? toYear,
   });
 
   /// What [motorcycleId]'s ads gone in the last 90 days left the market
@@ -97,7 +100,8 @@ abstract interface class MarketBehaviourRepository {
 
   /// The Deal Score and Risk Score of an ad typed by hand (N.107,
   /// `typed_ad_score`): [condition] is what the ad says, [description] its
-  /// text if pasted. Null for a price under 300 € or an unknown model.
+  /// text if pasted; [fromYear] / [toYear] (N.108) the comparables'
+  /// years. Null for a price under 300 € or an unknown model.
   Future<TypedAdScore?> scoreTypedAd(
     String motorcycleId, {
     required int year,
@@ -106,6 +110,8 @@ abstract interface class MarketBehaviourRepository {
     required bool privateSeller,
     BikeCondition condition = const BikeCondition(),
     String? description,
+    int? fromYear,
+    int? toYear,
   });
 
   /// The account's requests, newest first.

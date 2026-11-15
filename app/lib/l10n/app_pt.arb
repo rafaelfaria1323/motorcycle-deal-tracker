@@ -8033,5 +8033,75 @@
   "adCheckNotFound": "Anúncio não encontrado",
   "@adCheckNotFound": {
     "description": "Interface text for checking an ad (N.102)."
+  },
+  "onlyUpToAYear": "Só até um ano",
+  "@onlyUpToAYear": {
+    "description": "Year ranges for followed models and comparables (N.108)."
+  },
+  "upToYear": "Último ano",
+  "@upToYear": {
+    "description": "Year ranges for followed models and comparables (N.108)."
+  },
+  "lastYearHelp": "Anúncios mais recentes ficam fora das Ofertas, dos alertas e do resumo da semana. A recolha e os números do mercado contam todos os anos.",
+  "@lastYearHelp": {
+    "description": "Year ranges for followed models and comparables (N.108)."
+  },
+  "comparableYearsTitle": "Comparar com anúncios de",
+  "@comparableYearsTitle": {
+    "description": "Year ranges for followed models and comparables (N.108)."
+  },
+  "comparableYearsHelp": "Em branco: os anúncios mais próximos (a mesma geração, até 3 anos de diferença).",
+  "@comparableYearsHelp": {
+    "description": "Year ranges for followed models and comparables (N.108)."
+  },
+  "comparableFromYear": "Desde o ano",
+  "@comparableFromYear": {
+    "description": "Year ranges for followed models and comparables (N.108)."
+  },
+  "comparableToYear": "Até ao ano",
+  "@comparableToYear": {
+    "description": "Year ranges for followed models and comparables (N.108)."
+  },
+  "comparableYearsInvalid": "Indique anos entre {first} e {last}, o primeiro antes do último",
+  "@comparableYearsInvalid": {
+    "description": "Year ranges for followed models and comparables (N.108).",
+    "placeholders": {
+      "first": {
+        "type": "int"
+      },
+      "last": {
+        "type": "int"
+      }
+    }
+  },
+  "comparedYearsBetween": "Comparado só com anúncios de {from} a {to}",
+  "@comparedYearsBetween": {
+    "description": "Year ranges for followed models and comparables (N.108).",
+    "placeholders": {
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      }
+    }
+  },
+  "comparedYearsFrom": "Comparado só com anúncios de {from} ou mais recentes",
+  "@comparedYearsFrom": {
+    "description": "Year ranges for followed models and comparables (N.108).",
+    "placeholders": {
+      "from": {
+        "type": "int"
+      }
+    }
+  },
+  "comparedYearsUntil": "Comparado só com anúncios de {to} ou mais antigos",
+  "@comparedYearsUntil": {
+    "description": "Year ranges for followed models and comparables (N.108).",
+    "placeholders": {
+      "to": {
+        "type": "int"
+      }
+    }
   }
 }

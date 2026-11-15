@@ -71,24 +71,26 @@ class SummaryStore(final SupabaseClient _client) {
     return points;
   }
 
-  /// The models each account follows: account -> catalog id -> first year.
-  /// With [account], only that account's.
-  Future<Map<String, Map<String, int>>> followedModels({
+  /// The models each account follows: account -> catalog id -> its first
+  /// and last years. With [account], only that account's.
+  Future<Map<String, Map<String, FollowedYears>>> followedModels({
     String? account,
   }) async {
     final rows = await readAllPages((start, end) {
       var query = _client
           .from('user_models')
-          .select('user_id, motorcycle_id, min_year')
+          .select('user_id, motorcycle_id, min_year, max_year')
           .eq('tracked', true);
       if (account != null) query = query.eq('user_id', account);
       return query.order('user_id').order('motorcycle_id').range(start, end);
     });
-    final byUser = <String, Map<String, int>>{};
+    final byUser = <String, Map<String, FollowedYears>>{};
     for (final r in rows) {
       byUser.putIfAbsent(r['user_id'] as String, () => {})[r['motorcycle_id']
-          as String] = (r['min_year'] as num)
-          .toInt();
+          as String] = (
+        from: (r['min_year'] as num).toInt(),
+        to: (r['max_year'] as num?)?.toInt(),
+      );
     }
     return byUser;
   }

@@ -83,7 +83,7 @@ begin
     'an unknown model';
 
   assert has_function_privilege('anon',
-           'public.typed_ad_score(uuid, integer, integer, numeric, boolean, integer, boolean, boolean, text, text)',
+           'public.typed_ad_score(uuid, integer, integer, numeric, boolean, integer, boolean, boolean, text, text, integer, integer)',
            'execute'),
     'visitors can score a typed ad';
 end;

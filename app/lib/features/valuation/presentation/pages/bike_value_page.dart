@@ -24,6 +24,7 @@ import '../../../market/domain/repositories/market_behaviour_repository.dart';
 import '../ad_link.dart';
 import '../ad_link_model.dart';
 import '../bike_value_text.dart';
+import '../comparable_years.dart';
 import '../typed_ad.dart';
 import '../../../listings/presentation/widgets/add_model_sheet.dart';
 import '../../../listings/presentation/new_price_text.dart';
@@ -89,6 +90,7 @@ typedef _Outcome = ({
   String name,
   int year,
   int? mileage,
+  ComparableYears years,
   BikeValue? value,
   MarketBehaviour? market,
   ExitPrice? exit,
@@ -117,6 +119,8 @@ class _BikeValuePageState extends State<BikeValuePage> {
   final _link = TextEditingController();
   final _price = TextEditingController();
   final _adText = TextEditingController();
+  final _fromYear = TextEditingController();
+  final _toYear = TextEditingController();
   String? _motorcycleId;
 
   /// "O anúncio é de outro site": the ad is typed, not linked (N.105).
@@ -254,6 +258,8 @@ class _BikeValuePageState extends State<BikeValuePage> {
     _link.dispose();
     _price.dispose();
     _adText.dispose();
+    _fromYear.dispose();
+    _toYear.dispose();
     super.dispose();
   }
 
@@ -264,6 +270,17 @@ class _BikeValuePageState extends State<BikeValuePage> {
     final digits = _mileage.text.replaceAll(RegExp(r'[\s.]'), '');
     return RegExp(r'^\d+$').hasMatch(digits) ? int.parse(digits) : null;
   }
+
+  /// "Comparar com anúncios de" (N.108): not for a linked ad.
+  bool get _comparableYearsShown => !widget.checkingAd || _otherSite;
+
+  /// The years typed there; null when they are not valid.
+  ComparableYears? _comparableYears() => parseComparableYears(
+    _fromYear.text,
+    _toYear.text,
+    first: BikeValuePage.firstYear,
+    last: _lastYear,
+  );
 
   /// The typed ad's price, at least [minRealPrice].
   double? _priceValue() {
@@ -335,6 +352,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
     bool ad = false,
     bool signIn = false,
     _TypedAd? typed,
+    ComparableYears years = (from: null, to: null),
   }) async {
     // A typed ad is valued and scored at once, from the ads stored so far.
     if ((waiting && typed == null) || signIn) {
@@ -346,6 +364,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
         name: name,
         year: year,
         mileage: mileage,
+        years: years,
         value: null,
         market: null,
         exit: null,
@@ -353,7 +372,13 @@ class _BikeValuePageState extends State<BikeValuePage> {
       );
     }
     final (value, market, exit, catalog) = await (
-      _repository.getBikeValue(motorcycleId, year: year, mileage: mileage),
+      _repository.getBikeValue(
+        motorcycleId,
+        year: year,
+        mileage: mileage,
+        fromYear: years.from,
+        toYear: years.to,
+      ),
       _repository.getForModel(motorcycleId),
       // Extra: without it the value still shows.
       _repository
@@ -375,6 +400,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
       name: name,
       year: year,
       mileage: mileage,
+      years: years,
       value: value,
       market: market,
       exit: exit,
@@ -388,6 +414,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
     required int year,
     required int? mileage,
     _TypedAd? typed,
+    ComparableYears years = (from: null, to: null),
   }) async {
     if (!_signedIn) {
       return await _valueOf(
@@ -396,6 +423,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
         year: year,
         mileage: mileage,
         typed: typed,
+        years: years,
       );
     }
     final asked = await _repository.requestBikeValue(
@@ -411,6 +439,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
       mileage: mileage,
       waiting: !asked.ready,
       typed: typed,
+      years: years,
     );
   }
 
@@ -459,6 +488,10 @@ class _BikeValuePageState extends State<BikeValuePage> {
     final id = _motorcycleId!;
     final year = int.parse(_year.text.trim());
     final mileage = _mileage.text.trim().isEmpty ? null : _mileageValue();
+    // Hidden for a linked ad, whose ad is scored as it is stored.
+    final years = _comparableYearsShown
+        ? _comparableYears()!
+        : (from: null, to: null);
     if (widget.checkingAd && _otherSite) {
       final typed = (
         motorcycleId: id,
@@ -474,6 +507,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
           year: year,
           mileage: mileage,
           typed: typed,
+          years: years,
         );
       });
       return;
@@ -494,7 +528,13 @@ class _BikeValuePageState extends State<BikeValuePage> {
     }
     setState(() {
       _added.putIfAbsent(id, () => choices[id]!);
-      _outcome = _ask(id, choices[id]!, year: year, mileage: mileage);
+      _outcome = _ask(
+        id,
+        choices[id]!,
+        year: year,
+        mileage: mileage,
+        years: years,
+      );
     });
   }
 
@@ -723,6 +763,54 @@ class _BikeValuePageState extends State<BikeValuePage> {
               ),
             ),
           ],
+          if (_comparableYearsShown) ...[
+            const SizedBox(height: 16),
+            Text(
+              strings.comparableYearsTitle,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _fromYear,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: strings.comparableFromYear,
+                      errorMaxLines: 3,
+                      border: const OutlineInputBorder(),
+                    ),
+                    validator: (_) => _comparableYears() == null
+                        ? strings.comparableYearsInvalid(
+                            first: BikeValuePage.firstYear,
+                            last: _lastYear,
+                          )
+                        : null,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextFormField(
+                    controller: _toYear,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: strings.comparableToYear,
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              strings.comparableYearsHelp,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
           const SizedBox(height: 20),
           BikeConditionFields(
             condition: _condition,
@@ -786,13 +874,17 @@ class _BikeValuePageState extends State<BikeValuePage> {
         if (outcome.typed case final typed? when value != null) {
           return _typedResult(outcome, typed, value);
         }
-        final card = BikeValueCard(
-          name: outcome.name,
-          year: outcome.year,
-          value: value,
-          market: outcome.market,
-          condition: _condition,
-          exit: outcome.exit,
+        final card = _withYears(
+          context,
+          outcome,
+          BikeValueCard(
+            name: outcome.name,
+            year: outcome.year,
+            value: value,
+            market: outcome.market,
+            condition: _condition,
+            exit: outcome.exit,
+          ),
         );
         if (value == null || !widget.importing) return card;
         return Column(
@@ -830,6 +922,8 @@ class _BikeValuePageState extends State<BikeValuePage> {
             privateSeller: typed.seller == SellerType.private,
             condition: _condition,
             description: typed.description,
+            fromYear: outcome.years.from,
+            toYear: outcome.years.to,
           )
           .then<TypedAdScore?>((s) => s, onError: (Object _) => null);
       _typedScore = (outcome, _condition, score);
@@ -870,17 +964,41 @@ class _BikeValuePageState extends State<BikeValuePage> {
               NewPriceCard(listing: listing),
               const SizedBox(height: 16),
             ],
-            BikeValueCard(
-              name: outcome.name,
-              year: outcome.year,
-              value: value,
-              market: outcome.market,
-              condition: _condition,
-              exit: outcome.exit,
+            _withYears(
+              context,
+              outcome,
+              BikeValueCard(
+                name: outcome.name,
+                year: outcome.year,
+                value: value,
+                market: outcome.market,
+                condition: _condition,
+                exit: outcome.exit,
+              ),
             ),
           ],
         );
       },
+    );
+  }
+
+  /// [card] under "Comparado só com anúncios de …" when years were chosen.
+  Widget _withYears(BuildContext context, _Outcome outcome, Widget card) {
+    final line = comparableYearsText(outcome.years, language: context.language);
+    if (line == null) return card;
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          line,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 4),
+        card,
+      ],
     );
   }
 

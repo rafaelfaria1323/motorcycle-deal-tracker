@@ -37,7 +37,7 @@ alert opens its originating saved search), left to confirm deletion.
 The options menus remain available without gestures. Dismissing an alert
 hides it without erasing the history that prevents repeated notifications.
 
-Add a bike by brand, model and first year, with an optional engine size.
+Add a bike by brand, model and first year (and, optionally, a last year), with an optional engine size.
 Every model is searched on **both OLX and Standvirtual**: known site filters
 are kept, and missing ones get a name-based search. No search URLs to copy.
 

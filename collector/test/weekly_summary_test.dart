@@ -257,17 +257,35 @@ void main() {
     ];
 
     test('each account sees its own models from its first year', () {
-      expect(listingsFollowed(listings, {'mt07': 2020}).map((l) => l.id), [
-        'mt07-2021',
-        'mt07-no-year',
-      ]);
+      expect(
+        listingsFollowed(listings, {
+          'mt07': (from: 2020, to: null),
+        }).map((l) => l.id),
+        ['mt07-2021', 'mt07-no-year'],
+      );
       expect(listingsFollowed(listings, {}), isEmpty);
+    });
+
+    test('up to its last year when it chose one (N.108)', () {
+      expect(
+        listingsFollowed(listings, {
+          'mt07': (from: 2015, to: 2020),
+        }).map((l) => l.id),
+        ['mt07-2019', 'mt07-no-year'],
+      );
+      // The last year itself counts.
+      expect(
+        listingsFollowed(listings, {
+          'mt07': (from: 2021, to: 2021),
+        }).map((l) => l.id),
+        ['mt07-2021', 'mt07-no-year'],
+      );
     });
 
     test('every account, or only the one that asked', () {
       final follows = {
-        'u1': {'mt07': 2015},
-        'u2': {'r7': 2021},
+        'u1': {'mt07': (from: 2015, to: null)},
+        'u2': {'r7': (from: 2021, to: null)},
       };
       Map<String, WeeklySummary> summaries([String? account]) =>
           summariesByAccount(

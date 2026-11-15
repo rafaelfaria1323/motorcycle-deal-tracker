@@ -21,7 +21,10 @@ models and first years in the app ("Modelos acompanhados", table
 (`motorcycles.is_active` = someone follows it or asked its value in the
 last 30 days, `min_year` = the earliest
 year asked, kept by `refresh_collected_model()`), so one collection fills
-the database for every account. Collected at the switch: Yamaha MT-07,
+the database for every account. An account may also set a last year
+(`user_models.max_year`, `set_model_years`, `my_max_year`; N.108): newer
+ads leave its lists, alerts and summary (`user_tracks`), never the
+collection or the market figures. Collected at the switch: Yamaha MT-07,
 Yamaha R7, Honda CB650R, Honda CBR650R. Available: Tracer 7, R1, R3, R9,
 CB125R, CB300R, CBR500R, CB750 Hornet, CBR600RR. Any account can add more
 from the app (it then follows them):
@@ -1161,6 +1164,10 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   saw the ad (`answer_bike_value_requests`' `is_ad`, `listing_id`,
   `deal_score`, `risk_score`; push opens `/deals/<id>`) or a day on as not
   found (the value, `/worth?request=<id>`); computed field `ad_listing`.
+  "Comparar com anúncios de" (N.108, `comparable_years.dart`): optional
+  first and last years of the comparables, `bike_value_in_years` (what
+  `bike_value` calls with none; a range skips the generation tiers) and
+  `typed_ad_score`'s `p_from_year` / `p_to_year`; not for a linked ad.
   An ad on another site (N.105, the switch "O anúncio é de outro site":
   Facebook Marketplace, CustoJusto) is typed instead: its price, seller
   and condition answers, then the value and Negociar's `OfferCard` and

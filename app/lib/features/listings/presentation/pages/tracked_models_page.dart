@@ -111,7 +111,8 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
       builder: (_) => _ModelDialog(model: model, canSetPrice: admin),
     );
     if (edited == null) return;
-    final yearChanged = edited.year != model.minYear;
+    final yearChanged =
+        edited.year != model.minYear || edited.lastYear != model.maxYear;
     final priceChanged = edited.price != model.newPrice;
     final coloursChanged = !_sameColours(edited.colours, model.colours);
     if (!yearChanged && !priceChanged && !coloursChanged) return;
@@ -119,7 +120,11 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
     await _save(
       model,
       model
-          .copyWith(minYear: edited.year, colours: edited.colours)
+          .copyWith(
+            minYear: edited.year,
+            maxYear: (edited.lastYear,),
+            colours: edited.colours,
+          )
           .withNewPrice(
             edited.price,
             priceChanged
@@ -127,7 +132,13 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
                 : (model.newPriceCheckedAt ?? DateTime.now()),
           ),
       () async {
-        if (yearChanged) await _repository.setMinYear(model.id, edited.year);
+        if (yearChanged) {
+          await _repository.setYears(
+            model.id,
+            minYear: edited.year,
+            maxYear: edited.lastYear,
+          );
+        }
         if (priceChanged) {
           await _repository.setNewPrice(model.id, edited.price);
         }
@@ -263,9 +274,14 @@ class _TrackedModelsPageState extends State<TrackedModelsPage> {
   }
 }
 
-typedef _ModelEdit = ({int year, double? price, List<String> colours});
+typedef _ModelEdit = ({
+  int year,
+  int? lastYear,
+  double? price,
+  List<String> colours,
+});
 
-/// Edits a model's first year, favourite colours and, for admins
+/// Edits a model's first and last years, favourite colours and, for admins
 /// ([canSetPrice]), new-bike price; returns null if cancelled.
 class const _ModelDialog({
   required final CatalogModel model,
@@ -277,6 +293,9 @@ class const _ModelDialog({
 
 class _ModelDialogState extends State<_ModelDialog> {
   late int _year = widget.model.minYear;
+
+  /// The last year (N.108); null: every year from [_year].
+  late int? _lastYear = widget.model.maxYear;
   late final Set<String> _colours = {...widget.model.colours};
   late final _price = TextEditingController(
     text: widget.model.newPrice?.toStringAsFixed(0) ?? '',
@@ -300,6 +319,7 @@ class _ModelDialogState extends State<_ModelDialog> {
     }
     Navigator.of(context).pop((
       year: _year,
+      lastYear: _lastYear,
       price: parsed.price,
       // In the offered order, so equal choices compare equal.
       colours: [
@@ -332,13 +352,54 @@ class _ModelDialogState extends State<_ModelDialog> {
                 Text('$_year', style: theme.textTheme.headlineSmall),
                 IconButton(
                   onPressed: _year < _maxYear
-                      ? () => setState(() => _year++)
+                      ? () => setState(() {
+                          _year++;
+                          // The last year moves with the first.
+                          if (_lastYear case final last? when last < _year) {
+                            _lastYear = _year;
+                          }
+                        })
                       : null,
                   icon: const Icon(Icons.add),
                 ),
               ],
             ),
             Text(context.strings.firstYearHelp),
+            const SizedBox(height: 8),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(context.strings.onlyUpToAYear),
+              value: _lastYear != null,
+              onChanged: (on) => setState(
+                () => _lastYear = on
+                    ? (DateTime.now().year < _year
+                          ? _year
+                          : DateTime.now().year)
+                    : null,
+              ),
+            ),
+            if (_lastYear case final last?) ...[
+              Text(context.strings.upToYear, style: theme.textTheme.titleSmall),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: last > _year
+                        ? () => setState(() => _lastYear = last - 1)
+                        : null,
+                    icon: const Icon(Icons.remove),
+                  ),
+                  Text('$last', style: theme.textTheme.headlineSmall),
+                  IconButton(
+                    onPressed: last < _maxYear
+                        ? () => setState(() => _lastYear = last + 1)
+                        : null,
+                    icon: const Icon(Icons.add),
+                  ),
+                ],
+              ),
+              Text(context.strings.lastYearHelp),
+            ],
             const SizedBox(height: 16),
             CollapsibleSection(
               title: context.strings.preferredColours,
