@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:motorcycle_deal_tracker/features/valuation/domain/entities/bike_condition.dart';
 import 'package:motorcycle_deal_tracker/features/valuation/domain/entities/shared_ad.dart';
 import 'package:motorcycle_deal_tracker/features/valuation/presentation/shared_ad_text.dart';
 
@@ -9,6 +10,8 @@ SharedAd _ad({
   String? title,
   String? description,
   String? price,
+  String? oldPrice,
+  String? pageText,
   List<String> lines = const [],
 }) => SharedAd(
   id: 'a',
@@ -17,6 +20,8 @@ SharedAd _ad({
   title: title,
   description: description,
   price: price,
+  oldPrice: oldPrice,
+  pageText: pageText,
   lines: lines,
 );
 
@@ -151,5 +156,119 @@ void main() {
       sharedAdSite(_ad(url: 'https://m.custojusto.pt/lisboa/motos/x')),
       'custojusto.pt',
     );
+  });
+
+  group('the page text (script 3, N.110c)', () {
+    final page = _ad(
+      title: '2019 Yamaha MT-07',
+      description: 'Mota sempre em garagem, único dono...',
+      oldPrice: '7 400 €',
+      lines: ['2019 Yamaha MT-07', '6 900 € 7 400 €', 'Anunciado há 3 semanas'],
+      pageText: [
+        '2019 Yamaha MT-07',
+        '6 900 € 7 400 €',
+        'Anunciado há 3 semanas',
+        'Matrícula: 03/2019',
+        'Condução: 18 000 km',
+        'Mota sempre em garagem, único dono, livro de revisões na marca, '
+            'pneus novos com 2000 km. Nunca caiu.',
+        'Ver mais',
+      ].join('\n'),
+    );
+
+    test('fills the price before the drop and the km', () {
+      final facts = sharedAdFacts(page, now: _now);
+      expect(facts.price, 6900);
+      expect(facts.initialPrice, 7400);
+      expect(facts.mileage, 18000);
+      expect(facts.daysListed, 21);
+    });
+
+    test('takes the page\'s whole description over the cut one', () {
+      expect(
+        sharedAdDescription(page),
+        startsWith('Mota sempre em garagem, único dono, livro'),
+      );
+      expect(sharedAdDescription(page), endsWith('Nunca caiu.'));
+    });
+
+    test('reads the condition, denials left out', () {
+      final condition = sharedAdFacts(page, now: _now).condition;
+      expect(condition.owners, BikeOwners.one);
+      expect(condition.serviceBook, BikeServiceBook.yes);
+      expect(condition.damage, BikeDamage.none);
+      expect(condition.warranty, isFalse);
+    });
+
+    test('a line with two prices gives the first price', () {
+      final ad = _ad(lines: ['5 500 € 6 000 €']);
+      expect(sharedAdPrice(ad), 5500);
+      expect(sharedAdInitialPrice(ad, 5500), 6000);
+      expect(sharedAdInitialPrice(_ad(oldPrice: '5 000 €'), 5500), isNull);
+      expect(sharedAdInitialPrice(_ad(oldPrice: '6 000 €'), null), isNull);
+    });
+
+    test('the year from a labelled line of the page', () {
+      final ad = _ad(title: 'Honda CB650R', pageText: 'Ano: 2021\nOutro');
+      expect(sharedAdYear(ad, now: _now), 2021);
+    });
+
+    test('without the share data, the page\'s long lines', () {
+      final ad = _ad(
+        pageText:
+            'Curta\n${'Uma descrição longa da mota, com tudo o que tem e o que precisa, para ler com calma.'}'
+            ' Mais.\nOutra',
+      );
+      expect(sharedAdDescription(ad), startsWith('Uma descrição longa'));
+      expect(sharedAdDescription(_ad()), isNull);
+    });
+  });
+
+  group('sharedAdCondition', () {
+    test('accidents and falls', () {
+      expect(
+        sharedAdCondition('Teve um acidente ligeiro.').damage,
+        BikeDamage.accident,
+      );
+      expect(
+        sharedAdCondition('Caiu parada, riscos no escape.').damage,
+        BikeDamage.dropped,
+      );
+      expect(
+        sharedAdCondition('Nunca teve acidentes nem quedas.').damage,
+        BikeDamage.none,
+      );
+      expect(sharedAdCondition('Sem quedas.').damage, BikeDamage.none);
+      expect(
+        sharedAdCondition('No accidents, never dropped.').damage,
+        BikeDamage.none,
+      );
+      // Portuguese "no" is "in the".
+      expect(
+        sharedAdCondition('Riscos no depósito, caiu.').damage,
+        BikeDamage.dropped,
+      );
+    });
+
+    test('owners', () {
+      expect(sharedAdCondition('1ª mão').owners, BikeOwners.one);
+      expect(sharedAdCondition('Primeiro dono').owners, BikeOwners.one);
+      expect(sharedAdCondition('2 donos').owners, BikeOwners.two);
+      expect(sharedAdCondition('Teve 3 donos').owners, BikeOwners.threeOrMore);
+      expect(sharedAdCondition('Impecável').owners, BikeOwners.unknown);
+    });
+
+    test('service book and warranty', () {
+      expect(
+        sharedAdCondition('Revisões na marca').serviceBook,
+        BikeServiceBook.yes,
+      );
+      expect(
+        sharedAdCondition('Sem livro de revisões').serviceBook,
+        BikeServiceBook.no,
+      );
+      expect(sharedAdCondition('Ainda em garantia').warranty, isTrue);
+      expect(sharedAdCondition('Sem garantia de fábrica').warranty, isFalse);
+    });
   });
 }

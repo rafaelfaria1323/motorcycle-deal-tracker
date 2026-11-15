@@ -74,7 +74,7 @@ begin
   end;
 
   v_result := public.receive_shared_ad(v_key, jsonb_build_object(
-    'version', 2,
+    'version', 3,
     'url', 'https://www.facebook.com/marketplace/item/123/',
     'title', 'Yamaha MT-07 2019',
     'description', 'Como nova. Ligue 912 345 678.',
@@ -97,14 +97,14 @@ begin
   perform set_config('request.headers',
     jsonb_build_object('x-deal-tracker-key', (select key from keys where owner = 'a2'))::text, true);
   v_result := public.receive_shared_ad(null,
-    '{"version": 2, "url": "https://www.custojusto.pt/lisboa/motos/x-2"}');
+    '{"version": 3, "url": "https://www.custojusto.pt/lisboa/motos/x-2"}');
   assert v_result ->> 'message' = 'Sent to Deal Tracker: ad (0 photos).',
     'the header''s key, current script: ' || (v_result ->> 'message');
   -- A key in the body wins over the header.
   perform set_config('request.headers',
     '{"x-deal-tracker-key": "' || repeat('0', 64) || '"}', true);
   v_result := public.receive_shared_ad((select key from keys where owner = 'a2'),
-    '{"version": 2, "url": "https://x.pt/body"}');
+    '{"version": 3, "url": "https://x.pt/body"}');
   assert v_result ->> 'message' like 'Sent%', 'the body''s key: ' || (v_result ->> 'message');
   begin
     perform public.receive_shared_ad(null, '{"url": "https://x.pt/"}');
@@ -130,7 +130,7 @@ begin
     'the lines, empty ones left out: ' || r.lines::text;
   assert r.photos = array['https://scontent.xx.fbcdn.net/a.jpg', 'https://scontent.xx.fbcdn.net/c.jpg'],
     'https photos, once each, in order: ' || r.photos::text;
-  assert r.script_version = 2, 'the version';
+  assert r.script_version = 3, 'the version';
 
   -- Another account can't take it away.
   set local test.uid = '00000000-0000-0000-0000-0000000005a2';

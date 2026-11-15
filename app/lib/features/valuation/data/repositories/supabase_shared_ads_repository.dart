@@ -49,6 +49,8 @@ SharedAd? sharedAdOf(Map<String, dynamic> row) {
     title: row['title'] as String?,
     description: row['description'] as String?,
     price: row['price'] as String?,
+    oldPrice: row['old_price'] as String?,
+    pageText: row['page_text'] as String?,
     lines: texts(row['lines']),
     photos: texts(row['photos']),
     scriptVersion: (row['script_version'] as num?)?.toInt() ?? 0,

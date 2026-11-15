@@ -292,9 +292,12 @@ class _BikeValuePageState extends State<BikeValuePage> {
     _year.text = facts.year == null ? '' : '${facts.year}';
     _mileage.text = facts.mileage == null ? '' : '${facts.mileage}';
     _daysListed.text = facts.daysListed == null ? '' : '${facts.daysListed}';
-    _initialPrice.clear();
+    _initialPrice.text = facts.initialPrice == null
+        ? ''
+        : '${facts.initialPrice!.round()}';
     _adText.text = facts.description ?? '';
     setState(() {
+      _condition = facts.condition;
       _usedAd = ad;
       _otherSite = true;
       _sharedAds = [
