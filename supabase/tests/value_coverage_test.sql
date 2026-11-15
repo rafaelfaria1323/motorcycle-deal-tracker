@@ -22,7 +22,7 @@ begin
          = '{2014,2018,2021,2025}', 'the MT-07''s generations are seeded';
   assert has_function_privilege('anon', 'public.model_generation(smallint[], integer)', 'execute'),
     'the invoker view can call it for visitors';
-  assert not has_function_privilege('anon', 'public.near_comparable_count(uuid, integer)', 'execute')
+  assert not has_function_privilege('anon', 'public.near_comparable_count(uuid, integer, integer)', 'execute')
      and not has_function_privilege('authenticated', 'public.name_key(text)', 'execute'),
     'the helpers are internal';
 end $$;

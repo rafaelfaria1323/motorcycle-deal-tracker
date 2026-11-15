@@ -475,7 +475,7 @@ begin
       and m.is_active
       and m.collected_since <= p_started_at
       and (m.min_year <= greatest(r.year - 3, 1990)
-           or public.near_comparable_count(m.id, r.year) >= 5)
+           or public.near_comparable_count(m.id, r.year, r.mileage) >= 5)
       and (r.requested_at < now() - interval '1 day'
            or (r.ad_url is null
                and exists (select 1 from public.listings l
@@ -913,10 +913,10 @@ end;
 $$;
 
 --
--- Name: bike_value_ready(uuid, integer); Type: FUNCTION; Schema: public; Owner: -
+-- Name: bike_value_ready(uuid, integer, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.bike_value_ready(p_motorcycle_id uuid, p_year integer) RETURNS boolean
+CREATE FUNCTION public.bike_value_ready(p_motorcycle_id uuid, p_year integer, p_mileage integer DEFAULT NULL::integer) RETURNS boolean
     LANGUAGE sql STABLE SECURITY DEFINER
     SET search_path TO ''
     AS $$
@@ -926,7 +926,7 @@ CREATE FUNCTION public.bike_value_ready(p_motorcycle_id uuid, p_year integer) RE
     where m.id = p_motorcycle_id
       and m.is_active
       and (m.min_year <= greatest(p_year - 3, 1990)
-           or public.near_comparable_count(m.id, p_year) >= 5)
+           or public.near_comparable_count(m.id, p_year, p_mileage) >= 5)
       and exists (select 1 from public.collector_runs r
                   where r.started_at >= m.collected_since
                     and r.status in ('ok', 'partial'))
@@ -3851,10 +3851,10 @@ CREATE FUNCTION public.name_key(p_name text) RETURNS text
 $$;
 
 --
--- Name: near_comparable_count(uuid, integer); Type: FUNCTION; Schema: public; Owner: -
+-- Name: near_comparable_count(uuid, integer, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.near_comparable_count(p_motorcycle_id uuid, p_year integer) RETURNS integer
+CREATE FUNCTION public.near_comparable_count(p_motorcycle_id uuid, p_year integer, p_mileage integer DEFAULT NULL::integer) RETURNS integer
     LANGUAGE sql STABLE
     SET search_path TO ''
     AS $$
@@ -3865,6 +3865,7 @@ CREATE FUNCTION public.near_comparable_count(p_motorcycle_id uuid, p_year intege
     and c.duplicate_of is null
     and c.price >= 300
     and abs(p_year - c.year) <= 3
+    and (p_mileage is null or c.mileage is not null)
 $$;
 
 --
@@ -5645,7 +5646,7 @@ begin
     raise exception 'Mileage % is invalid', p_mileage using errcode = '22023';
   end if;
 
-  v_ready := public.bike_value_ready(p_motorcycle_id, p_year);
+  v_ready := public.bike_value_ready(p_motorcycle_id, p_year, p_mileage);
 
   if not v_ready then
     select r.id into v_id
@@ -8884,6 +8885,12 @@ CREATE INDEX listing_price_history_listing_observed_idx ON public.listing_price_
 CREATE INDEX listings_active_model_price_idx ON public.listings USING btree (motorcycle_id, price) WHERE (status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status]));
 
 --
+-- Name: listings_ad_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX listings_ad_code ON public.listings USING btree (source, "substring"(url, '-(ID[0-9A-Za-z]+)\.html'::text));
+
+--
 -- Name: listings_deal_score_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -10084,11 +10091,11 @@ GRANT ALL ON FUNCTION public.bike_value_model(p_brand text, p_model text, p_olx_
 GRANT ALL ON FUNCTION public.bike_value_model(p_brand text, p_model text, p_olx_search text, p_standvirtual_search text, p_engine_cc_min integer, p_engine_cc_max integer) TO authenticated;
 
 --
--- Name: FUNCTION bike_value_ready(p_motorcycle_id uuid, p_year integer); Type: ACL; Schema: public; Owner: -
+-- Name: FUNCTION bike_value_ready(p_motorcycle_id uuid, p_year integer, p_mileage integer); Type: ACL; Schema: public; Owner: -
 --
 
-REVOKE ALL ON FUNCTION public.bike_value_ready(p_motorcycle_id uuid, p_year integer) FROM PUBLIC;
-GRANT ALL ON FUNCTION public.bike_value_ready(p_motorcycle_id uuid, p_year integer) TO service_role;
+REVOKE ALL ON FUNCTION public.bike_value_ready(p_motorcycle_id uuid, p_year integer, p_mileage integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.bike_value_ready(p_motorcycle_id uuid, p_year integer, p_mileage integer) TO service_role;
 
 --
 -- Name: FUNCTION bike_value_request_days(); Type: ACL; Schema: public; Owner: -
@@ -10894,11 +10901,11 @@ REVOKE ALL ON FUNCTION public.name_key(p_name text) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.name_key(p_name text) TO service_role;
 
 --
--- Name: FUNCTION near_comparable_count(p_motorcycle_id uuid, p_year integer); Type: ACL; Schema: public; Owner: -
+-- Name: FUNCTION near_comparable_count(p_motorcycle_id uuid, p_year integer, p_mileage integer); Type: ACL; Schema: public; Owner: -
 --
 
-REVOKE ALL ON FUNCTION public.near_comparable_count(p_motorcycle_id uuid, p_year integer) FROM PUBLIC;
-GRANT ALL ON FUNCTION public.near_comparable_count(p_motorcycle_id uuid, p_year integer) TO service_role;
+REVOKE ALL ON FUNCTION public.near_comparable_count(p_motorcycle_id uuid, p_year integer, p_mileage integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.near_comparable_count(p_motorcycle_id uuid, p_year integer, p_mileage integer) TO service_role;
 
 --
 -- Name: FUNCTION needs_repair(p_description text); Type: ACL; Schema: public; Owner: -
