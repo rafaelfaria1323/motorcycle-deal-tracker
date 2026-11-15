@@ -1202,7 +1202,8 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   "Usar" fills the typed form (`sharedAdFacts`, `shared_ad_text.dart`:
   also the description, `old_price` as the price before a drop and the
   condition answers, `sharedAdCondition`, from script 3's `page_text`,
-  the page's text after "Ver mais" up to the seller, N.110c)
+  the page's text after "Ver mais" up to the seller, N.110c; script 4
+  sends the opened description whole, line breaks kept)
   and `dismiss_shared_ad`s it (its content wiped at once; the job
   `prune-shared-ads` deletes the rows). Android: a shared non-OLX/Standvirtual
   link switches to the typed form.

@@ -6381,7 +6381,7 @@ $$;
 CREATE FUNCTION public.shared_ad_script_version() RETURNS integer
     LANGUAGE sql IMMUTABLE
     SET search_path TO ''
-    AS $$ select 3 $$;
+    AS $$ select 4 $$;
 
 --
 -- Name: listing_favourites; Type: TABLE; Schema: public; Owner: -

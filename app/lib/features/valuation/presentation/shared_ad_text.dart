@@ -100,15 +100,24 @@ double? _priceIn(String text, {bool bare = false}) {
   return value >= minRealPrice && value <= _maxPrice ? value.toDouble() : null;
 }
 
+/// "Ver mais" / "Ver menos" and the like: the page's buttons.
+final _moreOrLess = RegExp(
+  r'^(ver|mostrar|ler|see|show) (mais|menos|more|less)$',
+  caseSensitive: false,
+);
+
+/// "Ver menos" / "See less": where an opened description ends, on a line
+/// of its own or after its last words.
+final _less = RegExp(
+  r'(^|\s)(ver|mostrar|ler|see|show) (menos|less)$',
+  caseSensitive: false,
+);
+
 /// The page's own lines (script 3), empty ones and "Ver mais" left out.
 List<String> _pageLines(SharedAd ad) => [
   for (final line in (ad.pageText ?? '').split('\n'))
     if (line.trim() case final text
-        when text.isNotEmpty &&
-            !RegExp(
-              r'^(ver|mostrar|ler|see|show) (mais|more)$',
-              caseSensitive: false,
-            ).hasMatch(text))
+        when text.isNotEmpty && !_moreOrLess.hasMatch(text))
       text,
 ];
 
@@ -229,24 +238,58 @@ int? sharedAdDaysListed(SharedAd ad) {
   return null;
 }
 
-/// The description: the page's longer copy of the share data's (which
-/// sites cut short), else the share data's, else the page's long lines.
+/// The description: the longest of the share data's (which sites cut
+/// short; script 4 sends the opened description whole there), the page's
+/// copy of it and the page's prose.
+///
+/// A description the seller wrote in lines reaches the page's text as
+/// many short lines. Opened with "Ver mais", it ends at the page's "Ver
+/// menos": so the page's copy is the lines from the one the share data
+/// starts with up to "Ver menos" (else that one line), and its prose,
+/// without share data, the lines up to "Ver menos" back to the first
+/// sentence (a line over 40 characters, not the ad's age), else every
+/// such sentence.
 String? sharedAdDescription(SharedAd ad) {
   final shared = ad.description?.trim() ?? '';
-  final long = [
-    for (final line in _pageLines(ad))
-      if (line.length > 80) line,
+  final all = [
+    for (final line in (ad.pageText ?? '').split('\n'))
+      if (line.trim() case final text when text.isNotEmpty) text,
   ];
+  final end = all.indexWhere(_less.hasMatch);
+  final lines = [
+    for (final line in end < 0 ? all : all.sublist(0, end + 1))
+      if (line.replaceFirst(_less, '').trim() case final text
+          when text.isNotEmpty && !_moreOrLess.hasMatch(text))
+        text,
+  ];
+  String? longest(Iterable<String?> texts) {
+    String? best;
+    for (final text in texts) {
+      if (text != null && text.length > (best?.length ?? 0)) best = text;
+    }
+    return best;
+  }
+
   if (shared.isNotEmpty) {
     final start = shared
         .substring(0, shared.length < 40 ? shared.length : 40)
         .replaceFirst(RegExp(r'(\.{3}|…)$'), '');
-    for (final line in long) {
-      if (line.length > shared.length && line.startsWith(start)) return line;
-    }
-    return shared;
+    final from = lines.indexWhere((line) => line.startsWith(start));
+    if (from < 0) return shared;
+    return longest([
+      shared,
+      end < 0 ? lines[from] : lines.sublist(from).join('\n'),
+    ]);
   }
-  return long.isEmpty ? null : long.join('\n');
+  bool sentence(String line) =>
+      line.length > 40 &&
+      !_agoPortuguese.hasMatch(line) &&
+      !_agoEnglish.hasMatch(line);
+  final from = lines.indexWhere(sentence);
+  if (from < 0) return null;
+  if (end >= 0) return lines.sublist(from).join('\n');
+  final prose = lines.where(sentence).join('\n');
+  return prose.isEmpty ? null : prose;
 }
 
 /// A denial just before a match: a word up to 20 characters back in the
