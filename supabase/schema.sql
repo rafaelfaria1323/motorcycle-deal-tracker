@@ -4796,6 +4796,7 @@ CREATE FUNCTION public.receive_shared_ad(p_key text, p_ad jsonb) RETURNS jsonb
     SET search_path TO ''
     AS $_$
 declare
+  v_key text;
   v_user uuid;
   v_en boolean;
   v_url text;
@@ -4806,8 +4807,14 @@ declare
   v_id uuid;
   v_message text;
 begin
+  -- The key from the body (a script with the key in it), else from the
+  -- header x-deal-tracker-key (the shared shortcut: its script is the
+  -- same for everyone, and the key is asked when it is installed).
+  v_key := coalesce(
+    nullif(btrim(p_key), ''),
+    nullif(btrim(nullif(current_setting('request.headers', true), '')::jsonb ->> 'x-deal-tracker-key'), ''));
   select k.user_id into v_user from public.ad_import_keys k
-  where k.key_hash = sha256(convert_to(coalesce(p_key, ''), 'UTF8'));
+  where k.key_hash = sha256(convert_to(coalesce(v_key, ''), 'UTF8'));
   if v_user is null then
     raise exception 'Chave desconhecida: crie uma nova no Deal Tracker (Mais › Atalho do iPhone). / Unknown key: make a new one in Deal Tracker (More › iPhone shortcut).'
       using errcode = '28000';
@@ -4894,8 +4901,8 @@ begin
                 coalesce(v_title, 'anúncio'), cardinality(v_photos)) end;
   if v_version < public.shared_ad_script_version() then
     v_message := v_message || case when v_en
-      then ' The shortcut has a new script: copy it again in More › iPhone shortcut.'
-      else ' O atalho tem um script novo: copie-o de novo em Mais › Atalho do iPhone.' end;
+      then ' The shortcut has a new version: install it again from More › iPhone shortcut.'
+      else ' O atalho tem uma versão nova: instale-o de novo em Mais › Atalho do iPhone.' end;
   end if;
   return jsonb_build_object(
     'message', v_message,
@@ -6345,7 +6352,7 @@ $$;
 CREATE FUNCTION public.shared_ad_script_version() RETURNS integer
     LANGUAGE sql IMMUTABLE
     SET search_path TO ''
-    AS $$ select 1 $$;
+    AS $$ select 2 $$;
 
 --
 -- Name: listing_favourites; Type: TABLE; Schema: public; Owner: -

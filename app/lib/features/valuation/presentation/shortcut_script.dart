@@ -14,7 +14,7 @@ import '../../../core/config/supabase_config.dart';
 /// The script's version; keep it equal to the database's
 /// `shared_ad_script_version()`, which tells an older script's shortcut
 /// to copy the new one.
-const sharedAdScriptVersion = 1;
+const sharedAdScriptVersion = 2;
 
 /// The address the shortcut posts to.
 String get sharedAdReceiveUrl => '$supabaseUrl/rest/v1/rpc/receive_shared_ad';
@@ -23,9 +23,19 @@ String get sharedAdReceiveUrl => '$supabaseUrl/rest/v1/rpc/receive_shared_ad';
 /// web app also sends with every request.
 String get sharedAdApiKey => supabasePublishableKey;
 
+/// The header the shared shortcut sends the account's key in (its script
+/// carries none); a key in the script's body wins over it.
+const sharedAdKeyHeader = 'x-deal-tracker-key';
+
+/// The iCloud link of the shared shortcut (N.110b): its script is
+/// [sharedAdScript] without a key, and it asks for the key when it is
+/// installed. Empty until it is made: the page then shows only the steps
+/// to make the shortcut by hand.
+const sharedAdShortcutLink = '';
+
 const _template = r'''
 // Deal Tracker: Avaliar no Deal Tracker (script __VERSION__)
-var KEY = '__KEY__';
+var KEY = __KEY__;
 function meta(name) {
   var e = document.querySelector('meta[property="' + name + '"], meta[name="' + name + '"]');
   return e ? (e.getAttribute('content') || '').trim() : '';
@@ -65,13 +75,14 @@ completion(JSON.stringify({
 ''';
 
 /// The script with the account's [key] in it (64 hex digits, as
-/// `create_ad_import_key` makes it).
-String sharedAdScript(String key) {
-  if (!RegExp(r'^[0-9a-f]{64}$').hasMatch(key)) {
+/// `create_ad_import_key` makes it), or, without one, the shared
+/// shortcut's: the key then comes in [sharedAdKeyHeader].
+String sharedAdScript([String? key]) {
+  if (key != null && !RegExp(r'^[0-9a-f]{64}$').hasMatch(key)) {
     throw ArgumentError.value(key, 'key', 'not a shortcut key');
   }
   return _template
-      .replaceAll('__KEY__', key)
+      .replaceAll('__KEY__', key == null ? 'null' : "'$key'")
       .replaceAll('__VERSION__', '$sharedAdScriptVersion')
       .trim();
 }

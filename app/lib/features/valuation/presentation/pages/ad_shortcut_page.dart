@@ -6,8 +6,10 @@ import 'package:material_ui/material_ui.dart';
 import '../../../../app/di/injection.dart';
 import '../../../../app/theme/app_theme.dart';
 import '../../../../core/formatting/formatters.dart';
+import '../../../../core/platform/open_ad.dart';
 import '../../../../core/localization/localizations.dart';
 import '../../../../core/widgets/page_back_button.dart';
+import '../../../../core/widgets/collapsible_section.dart';
 import '../../../../core/widgets/page_intro.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../../../../core/widgets/show_message.dart';
@@ -17,8 +19,9 @@ import '../shortcut_script.dart';
 
 /// Mais › "Atalho do iPhone" (N.110): the account's key for the shortcut
 /// "Avaliar no Deal Tracker", the three values the shortcut needs, and how
-/// to make it. The key is shown once, inside the script, when it is made:
-/// only its fingerprint is kept.
+/// to make it. The key is shown once, when it is made: only its
+/// fingerprint is kept. With [sharedAdShortcutLink] set, the shortcut is
+/// installed from it (N.110b) and the steps by hand fold away.
 class const AdShortcutPage({super.key}) extends StatefulWidget {
   @override
   State<AdShortcutPage> createState() => _AdShortcutPageState();
@@ -85,9 +88,39 @@ class _AdShortcutPageState extends State<AdShortcutPage> {
     }
   }
 
+  Future<void> _install() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = context.strings.adShortcutCouldNotOpen;
+    var opened = false;
+    try {
+      opened = await openAd(Uri.parse(sharedAdShortcutLink));
+    } catch (_) {
+      opened = false;
+    }
+    if (!opened) showMessage(messenger, failed);
+  }
+
   @override
   Widget build(BuildContext context) {
     final strings = context.strings;
+    final shared = sharedAdShortcutLink.isNotEmpty;
+    final byHand = [
+      for (final (index, step) in [
+        strings.adShortcutStep1,
+        strings.adShortcutStep2,
+        strings.adShortcutStep3,
+        strings.adShortcutStep4,
+        strings.adShortcutStep5,
+        strings.adShortcutStep6,
+        strings.adShortcutStep7,
+        strings.adShortcutStep8,
+        strings.adShortcutStep9,
+        strings.adShortcutStep10,
+        strings.adShortcutStep11,
+        strings.adShortcutStep12,
+      ].indexed)
+        _Step(number: index + 1, text: step),
+    ];
     return Scaffold(
       appBar: AppBar(leading: const PageBackButton()),
       body: ListView(
@@ -119,24 +152,35 @@ class _AdShortcutPageState extends State<AdShortcutPage> {
           ),
           const SizedBox(height: 16),
           SectionCard(
-            title: strings.adShortcutStepsTitle,
+            title: shared
+                ? strings.adShortcutInstallTitle
+                : strings.adShortcutStepsTitle,
             footnote: strings.adShortcutLimits,
             children: [
-              for (final (index, step) in [
-                strings.adShortcutStep1,
-                strings.adShortcutStep2,
-                strings.adShortcutStep3,
-                strings.adShortcutStep4,
-                strings.adShortcutStep5,
-                strings.adShortcutStep6,
-                strings.adShortcutStep7,
-                strings.adShortcutStep8,
-                strings.adShortcutStep9,
-                strings.adShortcutStep10,
-                strings.adShortcutStep11,
-                strings.adShortcutStep12,
-              ].indexed)
-                _Step(number: index + 1, text: step),
+              if (shared) ...[
+                for (final (index, step) in [
+                  strings.adShortcutStep1,
+                  strings.adShortcutInstallStep2,
+                  strings.adShortcutInstallStep3,
+                  strings.adShortcutStep12,
+                ].indexed)
+                  _Step(number: index + 1, text: step),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: FilledButton.icon(
+                    onPressed: () => unawaited(_install()),
+                    icon: const Icon(Icons.download),
+                    label: Text(strings.adShortcutInstall),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                CollapsibleSection(
+                  title: strings.adShortcutByHand,
+                  summary: strings.adShortcutByHandSummary,
+                  children: byHand,
+                ),
+              ] else
+                ...byHand,
               const SizedBox(height: 8),
               _Note(text: strings.adShortcutFacebookApp),
             ],
@@ -153,7 +197,12 @@ class _AdShortcutPageState extends State<AdShortcutPage> {
       title: strings.adShortcutKeyTitle,
       children: [
         if (key != null) ...[
-          Text(strings.adShortcutKeyShown),
+          if (sharedAdShortcutLink.isNotEmpty) ...[
+            Text(strings.adShortcutKeyShownShared),
+            const SizedBox(height: 12),
+            _CopyField(label: strings.adShortcutKeyValue, value: key),
+          ] else
+            Text(strings.adShortcutKeyShown),
           const SizedBox(height: 12),
           _CopyField(
             label: strings.adShortcutScript,

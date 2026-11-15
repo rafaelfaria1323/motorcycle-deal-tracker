@@ -1187,7 +1187,9 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   `AdShortcutPage`, signed-in accounts): a personal key
   (`create_ad_import_key`, `ad_import_keys`: its sha256 only; shown once,
   inside `sharedAdScript`, `shortcut_script.dart`, with the address and
-  publishable key from `core/config/supabase_config.dart`); Safari's
+  publishable key from `core/config/supabase_config.dart`; or, N.110b,
+  pasted into the shared shortcut installed from `sharedAdShortcutLink`,
+  whose script has no key: the header `x-deal-tracker-key`); Safari's
   share sheet runs the script on the page it shows and posts to
   `receive_shared_ad(p_key, p_ad)` (anon; `shared_ads`, RLS, no API
   access: https only, phone numbers stripped, 20 an hour / 100 a day /
