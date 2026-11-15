@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart';
 import 'package:http/testing.dart';
 import 'package:motorcycle_deal_tracker/features/market/data/repositories/supabase_market_behaviour_repository.dart';
+import 'package:motorcycle_deal_tracker/features/valuation/domain/entities/bike_condition.dart';
 import 'package:motorcycle_deal_tracker/features/valuation/domain/entities/bike_value_request.dart';
 import 'package:motorcycle_deal_tracker/features/market/domain/entities/exit_price.dart';
 import 'package:motorcycle_deal_tracker/features/market/domain/entities/gone_deal.dart';
@@ -344,6 +345,101 @@ void main() {
 
     reply = 'null';
     expect(await repository.listingForAd('https://x'), isNull);
+  });
+
+  test('scoreTypedAd sends what the ad says and reads the scores', () async {
+    reply =
+        '[{"deal_score":74,"risk_score":15,'
+        '"breakdown":{"market_price":8000,"risk_reasons":["first_owner"]}}]';
+    final score = await repository.scoreTypedAd(
+      'mt07',
+      year: 2021,
+      mileage: 20000,
+      price: 7000,
+      privateSeller: true,
+      condition: const BikeCondition(
+        damage: BikeDamage.dropped,
+        owners: BikeOwners.threeOrMore,
+        serviceBook: BikeServiceBook.no,
+        warranty: true,
+      ),
+      description: '  Vendo a minha MT-07  ',
+    );
+    expect(requests.single.url.path, endsWith('/rpc/typed_ad_score'));
+    expect(jsonDecode(requests.single.body), {
+      'p_motorcycle_id': 'mt07',
+      'p_year': 2021,
+      'p_mileage': 20000,
+      'p_price': 7000.0,
+      'p_private_seller': true,
+      'p_registrations': 3,
+      'p_service_book': false,
+      'p_warranty': true,
+      'p_damage': 'dropped',
+      'p_description': 'Vendo a minha MT-07',
+    });
+    expect(score!.dealScore, 74);
+    expect(score.riskScore, 15);
+    expect(score.breakdown['market_price'], 8000);
+
+    reply = '[]';
+    expect(
+      await repository.scoreTypedAd(
+        'mt07',
+        year: 2021,
+        mileage: null,
+        price: 7000,
+        privateSeller: false,
+      ),
+      isNull,
+    );
+  });
+
+  test('typedAdScoreParams leaves out what the ad does not say', () {
+    expect(
+      typedAdScoreParams(
+        'mt07',
+        year: 2021,
+        mileage: null,
+        price: 7000,
+        privateSeller: false,
+        condition: const BikeCondition(
+          damage: BikeDamage.accident,
+          owners: BikeOwners.one,
+          serviceBook: BikeServiceBook.yes,
+        ),
+        description: '   ',
+      ),
+      {
+        'p_motorcycle_id': 'mt07',
+        'p_year': 2021,
+        'p_mileage': null,
+        'p_price': 7000,
+        'p_private_seller': false,
+        'p_registrations': 1,
+        'p_service_book': true,
+        'p_warranty': false,
+        'p_damage': 'accident',
+        'p_description': null,
+      },
+    );
+    final empty = typedAdScoreParams(
+      'mt07',
+      year: 2021,
+      mileage: 1,
+      price: 7000,
+      privateSeller: true,
+    );
+    expect(empty['p_registrations'], isNull);
+    expect(empty['p_service_book'], isNull);
+    expect(empty['p_damage'], isNull);
+  });
+
+  test('typedAdScoreFrom reads a row without scores', () {
+    final score = typedAdScoreFrom({'deal_score': null, 'risk_score': 3});
+    expect(score.dealScore, isNull);
+    expect(score.riskScore, 3);
+    expect(score.breakdown, isEmpty);
   });
 
   test('bikeValueModel sends the make, model and searches', () async {

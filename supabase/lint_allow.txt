@@ -135,3 +135,11 @@ authenticated_security_definer_function_executable_public_accept_favourite_share
 authenticated_security_definer_function_executable_public_favourites_shared_with_me_
 authenticated_security_definer_function_executable_public_leave_shared_favourites_p_owner uuid
 authenticated_security_definer_function_executable_public_shared_favourites_p_owner uuid
+
+# A typed ad's Deal Score (N.107): visitors too can check an ad from
+# another site. It writes nothing and works out figures only from what
+# they can already read (the listings and the catalog); definer only
+# because the scoring helpers it shares with recalculate_deal_scores()
+# are closed to the API.
+anon_security_definer_function_executable_public_typed_ad_score_p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text
+authenticated_security_definer_function_executable_public_typed_ad_score_p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text

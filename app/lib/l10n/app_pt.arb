@@ -8006,6 +8006,18 @@
   "@checkAdPriceInvalid": {
     "description": "Interface text for checking an ad typed by hand (N.105)."
   },
+  "checkAdTextLabel": "Texto do anúncio (opcional)",
+  "@checkAdTextLabel": {
+    "description": "Interface text for scoring an ad typed by hand (N.107)."
+  },
+  "checkAdTextHelper": "Cole a descrição: os riscos e o equipamento que ela refere contam para a pontuação.",
+  "@checkAdTextHelper": {
+    "description": "Interface text for scoring an ad typed by hand (N.107)."
+  },
+  "checkAdTypedWaiting": "Este modelo ainda está a ser recolhido para este ano: o valor e a pontuação vêm dos anúncios guardados até agora e ficam mais certos depois da próxima recolha.",
+  "@checkAdTypedWaiting": {
+    "description": "Interface text for scoring an ad typed by hand (N.107)."
+  },
   "checkAdDealer": "Stand",
   "@checkAdDealer": {
     "description": "Interface text for checking an ad typed by hand (N.105)."

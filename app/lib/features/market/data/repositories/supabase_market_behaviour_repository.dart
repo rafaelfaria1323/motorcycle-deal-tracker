@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../valuation/domain/entities/bike_condition.dart';
 import '../../../valuation/domain/entities/bike_value.dart';
 import '../../../valuation/domain/entities/bike_value_request.dart';
 import '../../../listings/data/models/listing_model.dart';
@@ -272,6 +273,33 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
       _client.rpc<String?>('listing_for_ad', params: {'p_url': url});
 
   @override
+  Future<TypedAdScore?> scoreTypedAd(
+    String motorcycleId, {
+    required int year,
+    required int? mileage,
+    required double price,
+    required bool privateSeller,
+    BikeCondition condition = const BikeCondition(),
+    String? description,
+  }) async {
+    final rows = await _client.rpc<List<dynamic>>(
+      'typed_ad_score',
+      params: typedAdScoreParams(
+        motorcycleId,
+        year: year,
+        mileage: mileage,
+        price: price,
+        privateSeller: privateSeller,
+        condition: condition,
+        description: description,
+      ),
+    );
+    return rows.isEmpty
+        ? null
+        : typedAdScoreFrom(rows.first as Map<String, dynamic>);
+  }
+
+  @override
   Future<List<BikeValueRequest>> getBikeValueRequests() async {
     final rows = await _client
         .from('bike_value_requests')
@@ -472,3 +500,48 @@ BikeValueRequest bikeValueRequestFrom(Map<String, dynamic> row) {
     adListingId: row['ad_listing'] as String?,
   );
 }
+
+/// The parameters of `typed_ad_score` (N.107) for an ad typed by hand.
+Map<String, dynamic> typedAdScoreParams(
+  String motorcycleId, {
+  required int year,
+  required int? mileage,
+  required double price,
+  required bool privateSeller,
+  BikeCondition condition = const BikeCondition(),
+  String? description,
+}) => {
+  'p_motorcycle_id': motorcycleId,
+  'p_year': year,
+  'p_mileage': mileage,
+  'p_price': price,
+  'p_private_seller': privateSeller,
+  'p_registrations': switch (condition.owners) {
+    .unknown => null,
+    .one => 1,
+    .two => 2,
+    .threeOrMore => 3,
+  },
+  'p_service_book': switch (condition.serviceBook) {
+    .unknown => null,
+    .yes => true,
+    .no => false,
+  },
+  'p_warranty': condition.warranty,
+  'p_damage': switch (condition.damage) {
+    .none => null,
+    .dropped => 'dropped',
+    .accident => 'accident',
+  },
+  'p_description': switch (description?.trim()) {
+    final text? when text.isNotEmpty => text,
+    _ => null,
+  },
+};
+
+/// A row of `typed_ad_score`.
+TypedAdScore typedAdScoreFrom(Map<String, dynamic> row) => (
+  dealScore: (row['deal_score'] as num?)?.toInt(),
+  riskScore: (row['risk_score'] as num?)?.toInt(),
+  breakdown: (row['breakdown'] as Map?)?.cast<String, dynamic>() ?? const {},
+);

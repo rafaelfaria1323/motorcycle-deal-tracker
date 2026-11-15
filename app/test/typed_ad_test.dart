@@ -5,7 +5,9 @@ import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listin
 import 'package:motorcycle_deal_tracker/features/listings/presentation/negotiation_text.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/new_price_text.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/offer_text.dart';
+import 'package:motorcycle_deal_tracker/features/listings/presentation/score_explanation.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/seller_message_text.dart';
+import 'package:motorcycle_deal_tracker/features/market/domain/repositories/market_behaviour_repository.dart';
 import 'package:motorcycle_deal_tracker/features/valuation/domain/entities/bike_condition.dart';
 import 'package:motorcycle_deal_tracker/features/valuation/domain/entities/bike_value.dart';
 import 'package:motorcycle_deal_tracker/features/valuation/presentation/bike_value_text.dart';
@@ -26,6 +28,8 @@ Listing _typed({
   BikeValue value = _value,
   BikeCondition condition = const BikeCondition(),
   CatalogModel? catalog,
+  TypedAdScore? score,
+  String? description,
 }) => typedAdListing(
   motorcycleId: 'mt07',
   name: name,
@@ -36,6 +40,8 @@ Listing _typed({
   value: value,
   condition: condition,
   catalog: catalog,
+  score: score,
+  description: description,
 );
 
 CatalogModel _catalog({
@@ -157,6 +163,84 @@ void main() {
       expect(listing.scoreBreakdown, {'market_listing_count': 2});
       expect(listing.marketPosition, isNull);
       expect(suggestOffer(listing), isNull);
+    });
+  });
+
+  group('the scored typed ad (N.107)', () {
+    const scored = (
+      dealScore: 81,
+      riskScore: 12,
+      breakdown: <String, dynamic>{
+        'market_price': 8000,
+        'market_listing_count': 7,
+        'pct_below_market': 12.5,
+        'risk_reasons': ['first_owner', 'cosmetic_damage'],
+        'extras': ['quickshifter'],
+      },
+    );
+
+    test('carries the scores and the breakdown of a stored ad', () {
+      final listing = _typed(
+        price: 7000,
+        score: scored,
+        description: '  Vendo a minha MT-07  ',
+      );
+      expect(listing.dealScore, 81);
+      expect(listing.riskScore, 12);
+      expect(listing.scoreBreakdown, scored.breakdown);
+      expect(listing.riskReasons, ['first_owner', 'cosmetic_damage']);
+      expect(listing.hasFirstOwnerSignal, isTrue);
+      expect(listing.marketPosition, 12.5);
+      expect(listing.description, 'Vendo a minha MT-07');
+      expect(ScoreExplainer.explain(listing), isNotNull);
+      // The offer comes from the market of the breakdown.
+      expect(suggestOffer(listing), isNotNull);
+    });
+
+    test('without a score it keeps the value as its estimate', () {
+      final listing = _typed(description: '   ');
+      expect(listing.dealScore, isNull);
+      expect(listing.riskReasons, isEmpty);
+      expect(listing.description, isNull);
+      expect(listing.scoreBreakdown!['market_price'], 7000);
+    });
+
+    test('the market position follows the damaged or legalised value', () {
+      expect(
+        typedMarketPosition({
+          'market_listing_count': 5,
+          'pct_below_market': 10,
+          'damage_allowance': 0.15,
+          'pct_below_damaged_value': -5.04,
+        }),
+        -5.0,
+      );
+      expect(
+        typedMarketPosition({
+          'market_listing_count': 5,
+          'pct_below_market': 10,
+          'pct_below_damaged_value': -5,
+          'legalisation_cost': 400,
+          'pct_below_legalised_value': -12.36,
+        }),
+        -12.4,
+      );
+      // A damaged value without its allowance is not used.
+      expect(
+        typedMarketPosition({
+          'market_listing_count': 3,
+          'pct_below_market': 2.5,
+          'pct_below_damaged_value': -5,
+        }),
+        2.5,
+      );
+      expect(
+        typedMarketPosition({
+          'market_listing_count': 2,
+          'pct_below_market': 10,
+        }),
+        isNull,
+      );
     });
   });
 
