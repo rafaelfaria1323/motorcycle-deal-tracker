@@ -224,6 +224,82 @@ void main() {
     });
   });
 
+  group('a description written in lines', () {
+    const lines = [
+      '2019 Yamaha MT-07',
+      '6 900 €',
+      'Anunciado há 3 semanas em Lisboa, Portugal, com entrega',
+      'Conduzido 18 000 km',
+      'Vendo a minha MT-07 por troca de mota, sempre em garagem.',
+      'Pneus novos',
+      'Revisões na marca',
+      'Ver menos',
+      'Localização aproximada',
+    ];
+
+    test('without share data: from the first sentence to "Ver menos"', () {
+      expect(
+        sharedAdDescription(_ad(pageText: lines.join('\n'))),
+        'Vendo a minha MT-07 por troca de mota, sempre em garagem.\n'
+        'Pneus novos\nRevisões na marca',
+      );
+    });
+
+    test('with share data: from its first line to "Ver menos"', () {
+      expect(
+        sharedAdDescription(
+          _ad(
+            description: 'Vendo a minha MT-07 por troca...',
+            pageText: lines.join('\n'),
+          ),
+        ),
+        endsWith('Pneus novos\nRevisões na marca'),
+      );
+    });
+
+    test('the share data when it is the longest (script 4)', () {
+      const whole =
+          'Vendo a minha MT-07 por troca de mota, sempre em garagem.\n'
+          'Pneus novos\nRevisões na marca\nLivro de revisões e duas chaves.';
+      expect(
+        sharedAdDescription(
+          _ad(description: whole, pageText: lines.join('\n')),
+        ),
+        whole,
+      );
+    });
+
+    test('"Ver menos" after the last words', () {
+      expect(
+        sharedAdDescription(
+          _ad(
+            pageText: [
+              ...lines.take(6),
+              'Revisões na marca. Ver menos',
+              'Localização aproximada',
+            ].join('\n'),
+          ),
+        ),
+        endsWith('Pneus novos\nRevisões na marca.'),
+      );
+    });
+
+    test('never opened: every sentence', () {
+      expect(
+        sharedAdDescription(
+          _ad(
+            pageText: [
+              ...lines.take(6),
+              'Duas chaves e livro de revisões completo.',
+            ].join('\n'),
+          ),
+        ),
+        'Vendo a minha MT-07 por troca de mota, sempre em garagem.\n'
+        'Duas chaves e livro de revisões completo.',
+      );
+    });
+  });
+
   group('sharedAdCondition', () {
     test('accidents and falls', () {
       expect(

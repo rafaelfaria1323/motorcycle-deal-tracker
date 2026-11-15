@@ -3,8 +3,11 @@
 /// and where the next step sends what it returns.
 ///
 /// The script reads only that page, as Safari already shows it (after
-/// opening the description's "Ver mais"): the link, the title and
-/// description of its share data, the page's lines up to the seller's
+/// opening the description's "Ver mais"): the link, the title of its
+/// share data, the description (script 4: the longest of the share
+/// data's, the opened "Ver mais" block's and the text under a
+/// "Descrição" heading up to "Ver menos", line breaks kept, at most 5000
+/// characters), the page's lines up to the seller's
 /// part (never a line about the seller: "Membro desde 2015", "Joined in
 /// 2015", or one that looks like a name: "João Silva"; at most 8000
 /// characters), the lines among them that hold a price, a year, km or
@@ -18,7 +21,7 @@ import '../../../core/config/supabase_config.dart';
 /// The script's version; keep it equal to the database's
 /// `shared_ad_script_version()`, which tells an older script's shortcut
 /// to copy the new one.
-const sharedAdScriptVersion = 3;
+const sharedAdScriptVersion = 4;
 
 /// The address the shortcut posts to.
 String get sharedAdReceiveUrl => '$supabaseUrl/rest/v1/rpc/receive_shared_ad';
@@ -72,6 +75,26 @@ function read() {
     if (/\d/.test(t) && /€|eur/i.test(t) && t.length <= 40) oldPrice = t;
     return oldPrice !== '';
   });
+  var whole = '';
+  function keep(t) {
+    t = String(t || '').split('\n').map(function (l) { return l.replace(tail, '').trim(); }).filter(function (l) {
+      return l && !buttons.test(l) && !heading.test(l);
+    }).join('\n');
+    if (t.length > whole.length && t.length <= 5000) whole = t;
+  }
+  opened.forEach(function (e) { if (e.isConnected) keep(e.innerText); });
+  Array.prototype.forEach.call(document.querySelectorAll('h2, h3, span, div'), function (e) {
+    if ((e.textContent || '').length > 40 || !heading.test((e.innerText || '').trim())) return;
+    var n = e.parentElement;
+    while (n && n !== document.body && (n.innerText || '').length < (e.innerText || '').length + 80) n = n.parentElement;
+    if (!n || n === document.body) return;
+    var t = String(n.innerText || '');
+    var at = t.indexOf((e.innerText || '').trim());
+    t = t.slice(at < 0 ? 0 : at);
+    var stop = t.search(/(\n|\s)(ver menos|see less|mostrar menos|show less)\s*(\n|$)/i);
+    if (stop >= 0) keep(t.slice(0, stop));
+  });
+  var shared = meta('og:description') || meta('description');
   var photos = [];
   function photo(src) {
     if (src && src.indexOf('https://') === 0 && photos.indexOf(src) < 0 && photos.length < 12) photos.push(src);
@@ -86,7 +109,7 @@ function read() {
       version: __VERSION__,
       url: location.href,
       title: meta('og:title') || document.title,
-      description: meta('og:description') || meta('description'),
+      description: whole.length > shared.length ? whole : shared,
       price: meta('product:price:amount') || meta('og:price:amount'),
       old_price: oldPrice,
       lines: lines,
@@ -95,10 +118,17 @@ function read() {
     }
   }));
 }
+var buttons = /^(ver|mostrar|ler|see|show) (mais|menos|more|less)$/i;
+var tail = /\s+(ver|mostrar|ler|see|show) (mais|menos|more|less)$/i;
+var heading = /^(descri[cç][aã]o( do vendedor| do an[uú]ncio)?|(seller'?s )?description)$/i;
+var opened = [];
 var more = 0;
 Array.prototype.forEach.call(document.querySelectorAll('[role="button"], button, span'), function (e) {
   var t = (e.innerText || '').trim();
   if (more < 3 && !e.closest('a[href]') && /^(ver mais|mostrar mais|see more|show more|ler mais)$/i.test(t)) {
+    var n = e.parentElement;
+    while (n && n !== document.body && (n.innerText || '').length < t.length + 80) n = n.parentElement;
+    if (n && n !== document.body) opened.push(n);
     e.click();
     more++;
   }

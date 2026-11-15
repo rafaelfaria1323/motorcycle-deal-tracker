@@ -20,7 +20,7 @@ declare
   v_result jsonb;
 begin
   v_result := public.receive_shared_ad((select key from keys), jsonb_build_object(
-    'version', 3,
+    'version', 4,
     'url', 'https://www.facebook.com/marketplace/item/9/',
     'title', 'Honda CB650R',
     'price', '6 900 €',
