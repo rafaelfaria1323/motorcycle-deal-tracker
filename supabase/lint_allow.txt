@@ -144,3 +144,23 @@ authenticated_security_definer_function_executable_public_shared_favourites_p_ow
 # are closed to the API.
 anon_security_definer_function_executable_public_typed_ad_score_p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer
 authenticated_security_definer_function_executable_public_typed_ad_score_p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer
+
+# The iPhone shortcut's keys and inbox (N.110): no API access, only their
+# security definer functions read and write them.
+rls_enabled_no_policy_public_ad_import_keys
+rls_enabled_no_policy_public_shared_ads
+
+# What the iPhone shortcut calls with the publishable key (N.110): it only
+# drops an ad into the inbox of the account whose key (244 random bits,
+# kept as its SHA-256) comes with it, within that account's limits, and
+# returns only the message to show.
+anon_security_definer_function_executable_public_receive_shared_ad_p_key text, p_ad jsonb
+authenticated_security_definer_function_executable_public_receive_shared_ad_p_key text, p_ad jsonb
+
+# The shortcut's key and inbox of the caller only (N.110); making or
+# turning off a key starts with require_account().
+authenticated_security_definer_function_executable_public_ad_import_key_created_at_
+authenticated_security_definer_function_executable_public_create_ad_import_key_
+authenticated_security_definer_function_executable_public_remove_ad_import_key_
+authenticated_security_definer_function_executable_public_my_shared_ads_
+authenticated_security_definer_function_executable_public_dismiss_shared_ad_p_id uuid

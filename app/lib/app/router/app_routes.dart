@@ -8,6 +8,7 @@ abstract final class AppRoutes {
   static const bikeValue = '/worth';
   static const importBike = '/import';
   static const checkAd = '/check-ad';
+  static const adShortcut = '/ad-shortcut';
   static const comparePath = '/compare';
   static const favourites = '/favourites';
   static const accounts = '/accounts';

@@ -180,6 +180,14 @@ class _MoreBodyState extends State<_MoreBody> {
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => context.push(AppRoutes.checkAd),
                     ),
+                    if (signedIn)
+                      ListTile(
+                        leading: const SettingsIcon(Icons.ios_share),
+                        title: Text(context.strings.adShortcutTitle),
+                        subtitle: Text(context.strings.adShortcutSubtitle),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => context.push(AppRoutes.adShortcut),
+                      ),
                     ListTile(
                       leading: const SettingsIcon(
                         Icons.local_shipping_outlined,

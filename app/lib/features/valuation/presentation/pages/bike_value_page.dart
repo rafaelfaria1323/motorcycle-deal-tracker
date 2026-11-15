@@ -10,10 +10,13 @@ import '../../../../core/formatting/formatters.dart';
 import '../../../../core/localization/localizations.dart';
 import '../../../../core/widgets/page_back_button.dart';
 import '../../../../core/widgets/page_intro.dart';
+import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
 import '../../domain/entities/bike_condition.dart';
 import '../../domain/entities/bike_value.dart';
 import '../../domain/entities/bike_value_request.dart';
+import '../../domain/entities/shared_ad.dart';
+import '../../domain/repositories/shared_ads_repository.dart';
 import '../../../market/domain/entities/exit_price.dart';
 import '../../../market/domain/entities/market_behaviour.dart';
 import '../../../market/domain/entities/model_market.dart';
@@ -25,6 +28,7 @@ import '../ad_link.dart';
 import '../ad_link_model.dart';
 import '../bike_value_text.dart';
 import '../comparable_years.dart';
+import '../shared_ad_text.dart';
 import '../typed_ad.dart';
 import '../typed_ad_history.dart';
 import '../../../listings/presentation/widgets/add_model_sheet.dart';
@@ -39,6 +43,7 @@ import '../widgets/bike_condition_fields.dart';
 import '../widgets/bike_value_card.dart';
 import '../widgets/bike_value_requests.dart';
 import '../widgets/import_cost_card.dart';
+import '../widgets/shared_ads_inbox.dart';
 import '../../../listings/presentation/widgets/tracked_models_builder.dart';
 
 /// "Quanto vale a minha mota": the market value of a bike, the price to
@@ -55,6 +60,8 @@ import '../../../listings/presentation/widgets/tracked_models_builder.dart';
 /// An ad on another site (Facebook Marketplace, CustoJusto…; N.105) is
 /// typed instead: its price and seller with the rest give its value, the
 /// cheaper ads we have, the offer plan and the message to the seller.
+/// Ads the iPhone shortcut sent (N.110) wait above the form, and "Usar"
+/// fills the typed ad with one.
 class const BikeValuePage({
   /// The request to show (`/worth?request=<id>`, from the notification).
   final String? requestId,
@@ -66,7 +73,8 @@ class const BikeValuePage({
   final bool checkingAd = false,
 
   /// The link the form opens with (`/check-ad?link=…`: an ad shared to
-  /// the Android app from the OLX or Standvirtual app, N.103).
+  /// the Android app from the OLX or Standvirtual app, N.103); a link to
+  /// another site opens the typed ad (N.110).
   final String? initialLink,
   super.key,
 }) extends StatefulWidget {
@@ -159,6 +167,13 @@ class _BikeValuePageState extends State<BikeValuePage> {
   /// themselves is never replaced.
   String? _guessedModel;
 
+  /// The ads the iPhone shortcut sent, waiting (N.110).
+  List<SharedAd> _sharedAds = const [];
+
+  /// The shared ad the typed form was filled with: its photos are shown
+  /// and its title chose the model.
+  SharedAd? _usedAd;
+
   /// What was asked and its value, once "Calcular" was pressed (null when
   /// it opened the ad).
   Future<_Outcome?>? _outcome;
@@ -172,25 +187,49 @@ class _BikeValuePageState extends State<BikeValuePage> {
   @override
   void initState() {
     super.initState();
-    _link.text = widget.initialLink ?? '';
+    _takeLink(widget.initialLink);
     unawaited(_loadRequests());
+    unawaited(_loadSharedAds());
     unawaited(_guessModel());
   }
 
-  /// Chooses the model the ad's link names: a collected one, else (an
-  /// account) one of the sites' lists, found or added as "Outra marca ou
-  /// modelo…" does. Nothing fits, or it fails: the choice stays open.
+  /// The link the page opened with; one that is not an OLX or Standvirtual
+  /// ad (shared from Facebook's app, say) is typed (N.110).
+  void _takeLink(String? text) {
+    if (text == null) return;
+    _link.text = text;
+    if (widget.checkingAd &&
+        adLinkOf(text) == null &&
+        RegExp(r'https?://\S', caseSensitive: false).hasMatch(text)) {
+      _otherSite = true;
+    }
+  }
+
+  /// Chooses the model the ad's link names (N.104).
   Future<void> _guessModel() async {
     if (!widget.checkingAd) return;
     final link = adLinkOf(_link.text);
     if (link == null || link == _guessedLink) return;
     _guessedLink = link;
+    await _chooseModelFrom(
+      adLinkWords(link),
+      stillWanted: () => _guessedLink == link,
+    );
+  }
+
+  /// Chooses the model [words] name: a collected one, else (an account)
+  /// one of the sites' lists, found or added as "Outra marca ou modelo…"
+  /// does. Nothing fits, it fails, [stillWanted] turns false or the person
+  /// chose a model meanwhile: the choice stays as it is.
+  Future<void> _chooseModelFrom(
+    List<String> words, {
+    required bool Function() stillWanted,
+  }) async {
     bool mayChoose() =>
         mounted &&
-        _guessedLink == link &&
+        stillWanted() &&
         (_motorcycleId == null || _motorcycleId == _guessedModel);
     if (!mayChoose()) return;
-    final words = adLinkWords(link);
     try {
       final tracked = modelInWords(
         words,
@@ -233,6 +272,65 @@ class _BikeValuePageState extends State<BikeValuePage> {
     }
   }
 
+  /// The ads the shortcut sent; a failed read shows none (the form still
+  /// works by hand).
+  Future<void> _loadSharedAds() async {
+    if (!widget.checkingAd || !_signedIn) return;
+    try {
+      final ads = await getIt<SharedAdsRepository>().waiting();
+      if (mounted) setState(() => _sharedAds = ads);
+    } catch (_) {
+      // None shown.
+    }
+  }
+
+  /// "Usar": the typed ad's form filled with what [ad] says; the person
+  /// checks it and presses "Avaliar". The ad leaves the inbox.
+  void _useSharedAd(SharedAd ad) {
+    final facts = sharedAdFacts(ad, now: DateTime.now());
+    _price.text = facts.price == null ? '' : '${facts.price!.round()}';
+    _year.text = facts.year == null ? '' : '${facts.year}';
+    _mileage.text = facts.mileage == null ? '' : '${facts.mileage}';
+    _daysListed.text = facts.daysListed == null ? '' : '${facts.daysListed}';
+    _initialPrice.clear();
+    _adText.text = facts.description ?? '';
+    setState(() {
+      _usedAd = ad;
+      _otherSite = true;
+      _sharedAds = [
+        for (final waiting in _sharedAds)
+          if (waiting.id != ad.id) waiting,
+      ];
+      // Another bike: its model is chosen again.
+      _motorcycleId = null;
+      _guessedModel = null;
+      _outcome = null;
+    });
+    showMessage(ScaffoldMessenger.of(context), context.strings.sharedAdUsed);
+    unawaited(_dismissSharedAd(ad, shown: false));
+    unawaited(
+      _chooseModelFrom(facts.words, stillWanted: () => _usedAd?.id == ad.id),
+    );
+  }
+
+  /// Takes [ad] out of the inbox; when that fails it comes back with the
+  /// next read.
+  Future<void> _dismissSharedAd(SharedAd ad, {bool shown = true}) async {
+    if (shown) {
+      setState(
+        () => _sharedAds = [
+          for (final waiting in _sharedAds)
+            if (waiting.id != ad.id) waiting,
+        ],
+      );
+    }
+    try {
+      await getIt<SharedAdsRepository>().dismiss(ad.id);
+    } catch (_) {
+      if (shown) await _loadSharedAds();
+    }
+  }
+
   /// The account's requests; a failed read leaves the list as it was (it
   /// is only a shortcut to earlier answers).
   Future<void> _loadRequests() async {
@@ -252,7 +350,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
     super.didUpdateWidget(old);
     if (widget.requestId != old.requestId) unawaited(_loadRequests());
     if (widget.initialLink case final link? when link != old.initialLink) {
-      _link.text = link;
+      setState(() => _takeLink(link));
       unawaited(_guessModel());
     }
   }
@@ -620,6 +718,14 @@ class _BikeValuePageState extends State<BikeValuePage> {
                 },
               ),
               const SizedBox(height: 20),
+              if (_sharedAds.isNotEmpty) ...[
+                SharedAdsInbox(
+                  ads: _sharedAds,
+                  onUse: _useSharedAd,
+                  onDismiss: (ad) => unawaited(_dismissSharedAd(ad)),
+                ),
+                const SizedBox(height: 16),
+              ],
               Card(
                 margin: EdgeInsets.zero,
                 child: Padding(
@@ -653,6 +759,19 @@ class _BikeValuePageState extends State<BikeValuePage> {
               value: _otherSite,
               onChanged: (value) => setState(() => _otherSite = value),
             ),
+            if (_otherSite && _signedIn)
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: TextButton.icon(
+                  onPressed: () => context.push(AppRoutes.adShortcut),
+                  icon: const Icon(Icons.ios_share),
+                  label: Text(strings.checkAdShortcutLink),
+                ),
+              ),
+            if (_otherSite && (_usedAd?.photos ?? const []).isNotEmpty) ...[
+              const SizedBox(height: 8),
+              SharedAdPhotos(photos: _usedAd!.photos),
+            ],
             const SizedBox(height: 8),
           ],
           if (widget.checkingAd && !_otherSite) ...[
@@ -680,7 +799,9 @@ class _BikeValuePageState extends State<BikeValuePage> {
               labelText: strings.model,
               helperText:
                   _motorcycleId != null && _motorcycleId == _guessedModel
-                  ? strings.checkAdModelFromLink
+                  ? (_otherSite && _usedAd != null
+                        ? strings.checkAdModelFromTitle
+                        : strings.checkAdModelFromLink)
                   : null,
               helperMaxLines: 2,
               border: const OutlineInputBorder(),

@@ -1574,6 +1574,9 @@ void main() {
         location: AppRoutes.more,
       );
       await _reveal(tester, find.text('RECOLHA DE DADOS'));
+      // The iPhone shortcut's setup, for signed-in accounts (N.110).
+      await _reveal(tester, find.text('Atalho do iPhone'));
+      expect(find.text('Atalho do iPhone'), findsOneWidget);
       // To the end of the list, past the last section.
       await tester.drag(find.byType(Scrollable).first, const Offset(0, -5000));
       await tester.pumpAndSettle();

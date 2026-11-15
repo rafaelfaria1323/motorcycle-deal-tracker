@@ -8127,5 +8127,165 @@
         "type": "int"
       }
     }
+  },
+  "sharedAdsTitle": "Enviados do iPhone",
+  "@sharedAdsTitle": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "sharedAdsIntro": "Anúncios enviados pelo atalho do iPhone. «Usar» preenche o formulário com eles.",
+  "@sharedAdsIntro": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "sharedAdLine": "{site} · {date} · {photos, plural, =0{sem fotos} =1{1 foto} other{{photos} fotos}}",
+  "@sharedAdLine": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110).",
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      },
+      "photos": {
+        "type": "int"
+      }
+    }
+  },
+  "sharedAdUse": "Usar",
+  "@sharedAdUse": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "sharedAdDismiss": "Retirar da lista",
+  "@sharedAdDismiss": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "sharedAdUsed": "Formulário preenchido com o anúncio. Verifique os valores e o modelo.",
+  "@sharedAdUsed": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "sharedAdPhotos": "Fotos do anúncio",
+  "@sharedAdPhotos": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "checkAdModelFromTitle": "Escolhido pelo título do anúncio. Confirme que é este.",
+  "@checkAdModelFromTitle": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "checkAdShortcutLink": "Enviar anúncios do iPhone com um atalho",
+  "@checkAdShortcutLink": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutTitle": "Atalho do iPhone",
+  "@adShortcutTitle": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutSubtitle": "Envie um anúncio do Safari para «Avaliar um anúncio»",
+  "@adShortcutSubtitle": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutIntro": "Num anúncio do Facebook Marketplace, do CustoJusto ou de outro site aberto no Safari, toque em Partilhar › Avaliar no Deal Tracker. O atalho lê só o que o Safari já mostra (o endereço, o título, a descrição, as linhas com preço, ano, km ou há quanto tempo está publicado, e as fotos; nunca o nome do vendedor) e envia-o com a sua chave pessoal. O anúncio fica à espera em «Avaliar um anúncio» durante 7 dias.",
+  "@adShortcutIntro": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutKeyTitle": "A sua chave",
+  "@adShortcutKeyTitle": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutNoKey": "Ainda não tem uma chave. Crie uma para preparar o atalho.",
+  "@adShortcutNoKey": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutCreateKey": "Criar chave",
+  "@adShortcutCreateKey": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutKeySince": "Chave criada a {date}. Por segurança só é mostrada uma vez: para ver o script de novo, crie uma chave nova (a antiga deixa de funcionar e o atalho precisa do script novo).",
+  "@adShortcutKeySince": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110).",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "adShortcutNewKey": "Criar uma chave nova",
+  "@adShortcutNewKey": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutRemoveKey": "Desligar a chave",
+  "@adShortcutRemoveKey": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutRemoveConfirm": "Desligar a chave? O atalho deixa de enviar anúncios até criar uma chave nova.",
+  "@adShortcutRemoveConfirm": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutKeyShown": "Copie já estes três valores para o atalho: a chave está dentro do script e não volta a ser mostrada.",
+  "@adShortcutKeyShown": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutScript": "Script (Executar JavaScript na página web)",
+  "@adShortcutScript": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutAddress": "Endereço (Obter conteúdo do URL)",
+  "@adShortcutAddress": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutApiKey": "Cabeçalho apikey",
+  "@adShortcutApiKey": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutCopy": "Copiar",
+  "@adShortcutCopy": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutCopied": "Copiado",
+  "@adShortcutCopied": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutStepsTitle": "Como criar o atalho",
+  "@adShortcutStepsTitle": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutStep1": "No iPhone, abra Definições › Apps › Atalhos › Avançado e ligue «Permitir execução de scripts».",
+  "@adShortcutStep1": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutStep2": "Na app Atalhos, crie um atalho chamado «Avaliar no Deal Tracker». Nos detalhes, ligue «Mostrar na Folha de partilha» e deixe só «Páginas web do Safari».",
+  "@adShortcutStep2": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutStep3": "Adicione «Executar JavaScript na página web» e cole o script no lugar do texto de exemplo.",
+  "@adShortcutStep3": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutStep4": "Adicione «Obter conteúdo do URL» com o endereço. Em «Mostrar mais»: método POST; cabeçalhos apikey (o valor acima) e Content-Type = application/json; corpo do pedido «Ficheiro», com o «Resultado do JavaScript».",
+  "@adShortcutStep4": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutStep5": "Adicione «Obter valor do dicionário» com a chave message e depois «Mostrar notificação» com esse valor: diz o que foi enviado, ou porque não foi.",
+  "@adShortcutStep5": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutStep6": "Para usar: abra o anúncio no Safari, toque em Partilhar › Avaliar no Deal Tracker e abra «Avaliar um anúncio» aqui.",
+  "@adShortcutStep6": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutFacebookApp": "A app do Facebook só partilha o link: abra o anúncio no Safari primeiro (no menu de três pontos do anúncio, «Abrir no navegador», ou cole o link no Safari).",
+  "@adShortcutFacebookApp": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutLimits": "Até 20 anúncios por hora e 10 à espera. No Android, partilhe o anúncio para a app Deal Tracker.",
+  "@adShortcutLimits": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutCouldNotLoad": "Não foi possível ler a sua chave.",
+  "@adShortcutCouldNotLoad": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutCouldNotChange": "Não foi possível mudar a chave. Tente de novo.",
+  "@adShortcutCouldNotChange": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
   }
 }
