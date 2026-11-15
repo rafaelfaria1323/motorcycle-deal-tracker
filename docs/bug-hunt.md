@@ -61,7 +61,7 @@ What was checked and found right (no finding):
 
 ## 2. Ad check and value coverage (N.102, N.106)
 
-1. **P3 [perf] `listing_for_ad` reads every listing of the site.**
+1. ✅ (B.5) **P3 [perf] `listing_for_ad` reads every listing of the site.**
    `substring(l.url from '-(ID…)\.html') = ad_link_code(p_url)`
    (`20261115100000_ad_checks.sql:54`) has no index, so each call
    applies a regular expression to every OLX or Standvirtual row.
@@ -76,7 +76,7 @@ What was checked and found right (no finding):
    `on listings (source, substring(url from '-(ID[0-9A-Za-z]+)\.html'))`
    (the expression must match the query's exactly), with a test that
    `explain` uses it.
-2. **P3 [data] "5 ads within 3 years" can mean fewer comparables.**
+2. ✅ (B.5) **P3 [data] "5 ads within 3 years" can mean fewer comparables.**
    `near_comparable_count` (`20261115120000_value_coverage.sql:20`)
    counts ads with or without a mileage. `bike_value_in_years` leaves
    out ads without one when the bike has one. A request can then be
@@ -132,7 +132,7 @@ What was checked and found right (no finding):
 2. ✅ B.2: shared ad addresses without tracking (4.1).
 3. ✅ B.3: time on sale in the sites' words (1.3).
 4. ✅ B.4: similar groups for models added later (3.1).
-5. B.5: the index for `listing_for_ad` (2.1) and the same count for
+5. ✅ B.5: the index for `listing_for_ad` (2.1) and the same count for
    value coverage (2.2), in one migration.
 6. B.6, when convenient: origin for typed ads (1.2), share limits and
    photo hosts (4.2, 4.3).

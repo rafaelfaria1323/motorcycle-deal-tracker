@@ -1151,7 +1151,8 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   searches), `request_bike_value` (table `bike_value_requests`, owner
   reads only; at most 3 waiting a day) answers at once when the model is
   already collected for that year (its years reach the year minus 3, or 5+
-  live ads within 3 years are stored: `near_comparable_count`, N.106),
+  live ads within 3 years are stored, with a mileage when the bike has
+  one: `near_comparable_count`, N.106, B.5),
   else collects it from the year minus 3
   (`collected_since`) and waits for the next scheduled collection (no
   extra dispatch); `finishRun` answers it and pushes the value
@@ -1163,7 +1164,8 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   `ad_link_code`) with model, year and km (the model chosen from the
   link's title words when they name one, `ad_link_model.dart`, N.104:
   the collected models, else the sites' lists through `bike_value_model`); a stored, scored ad opens at
-  once (`listing_for_ad`: site + ad code, also for anonymous sessions),
+  once (`listing_for_ad`: site + ad code, index `listings_ad_code`, also
+  for anonymous sessions),
   else `request_ad_check` makes a bike value request with `ad_url` (same
   cap; the same ad again is the same request), answered by the run that
   saw the ad (`answer_bike_value_requests`' `is_ad`, `listing_id`,
