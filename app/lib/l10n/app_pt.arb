@@ -8296,6 +8296,42 @@
   "@adShortcutStep12": {
     "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
   },
+  "adShortcutKeyValue": "Chave (pedida ao instalar o atalho)",
+  "@adShortcutKeyValue": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutKeyShownShared": "Copie a chave agora: não volta a ser mostrada. Os três valores a seguir só servem para fazer o atalho à mão.",
+  "@adShortcutKeyShownShared": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutInstallTitle": "Instalar o atalho",
+  "@adShortcutInstallTitle": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutInstall": "Instalar o atalho",
+  "@adShortcutInstall": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutInstallStep2": "Crie a sua chave acima e toque em Copiar ao lado de «Chave».",
+  "@adShortcutInstallStep2": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutInstallStep3": "Toque em «Instalar o atalho» para abrir a app Atalhos. Toque em «Configurar atalho», cole a chave e toque em «Adicionar atalho».",
+  "@adShortcutInstallStep3": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutCouldNotOpen": "Não foi possível abrir o atalho. Abra esta página no Safari e tente de novo.",
+  "@adShortcutCouldNotOpen": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutByHand": "Fazer o atalho à mão",
+  "@adShortcutByHand": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutByHandSummary": "Os passos, se não puder instalar o atalho",
+  "@adShortcutByHandSummary": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
   "adShortcutFacebookApp": "A app do Facebook só partilha o link: abra o anúncio no Safari primeiro (no menu de três pontos do anúncio, «Abrir no navegador», ou cole o link no Safari).",
   "@adShortcutFacebookApp": {
     "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."

@@ -14,6 +14,18 @@ void main() {
     expect(script, isNot(contains('__')));
   });
 
+  test("the shared shortcut's script carries no key", () {
+    final script = sharedAdScript();
+    expect(script, contains('var KEY = null;'));
+    expect(script, contains('p_key: KEY,'));
+    expect(script, isNot(contains('__')));
+  });
+
+  test('the shared header is the one the database reads', () {
+    final schema = File('../supabase/schema.sql').readAsStringSync();
+    expect(schema, contains("->> '$sharedAdKeyHeader'"));
+  });
+
   test('only a key the database made goes in', () {
     expect(() => sharedAdScript("x'; alert(1); '"), throwsArgumentError);
     expect(() => sharedAdScript(key.toUpperCase()), throwsArgumentError);
