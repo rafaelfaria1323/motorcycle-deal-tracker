@@ -39,7 +39,7 @@ const sharedAdKeyHeader = 'x-deal-tracker-key';
 /// installed. Left empty, the page shows only the steps to make the
 /// shortcut by hand.
 const sharedAdShortcutLink =
-    'https://www.icloud.com/shortcuts/0a0622b129314a35b03dd127cab5837b';
+    'https://www.icloud.com/shortcuts/466d7f6a160c42fc86be10a45ae92a8a';
 
 const _template = r'''
 // Deal Tracker: Avaliar no Deal Tracker (script __VERSION__)
