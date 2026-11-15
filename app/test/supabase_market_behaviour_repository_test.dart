@@ -37,7 +37,8 @@ void main() {
             ? reply!
             : status != 200
             ? '{"code":"42501","message":"Permission denied"}'
-            : request.url.path.endsWith('bike_value')
+            : request.url.path.endsWith('bike_value') ||
+                  request.url.path.endsWith('bike_value_in_years')
             ? '[{"comparable_count":3,"fair_price":6000,'
                   '"low_price":5800,"high_price":6200}]'
             : request.url.path.endsWith('model_market_behaviour')
@@ -230,6 +231,24 @@ void main() {
       expect(value.estimate, 6000);
     },
   );
+
+  test('getBikeValue asks bike_value_in_years for a range of years', () async {
+    final value = await repository.getBikeValue(
+      'm1',
+      year: 2020,
+      mileage: 9000,
+      fromYear: 2018,
+    );
+    expect(requests.single.url.path, endsWith('/rpc/bike_value_in_years'));
+    expect(jsonDecode(requests.single.body), {
+      'p_motorcycle_id': 'm1',
+      'p_year': 2020,
+      'p_mileage': 9000,
+      'p_from_year': 2018,
+      'p_to_year': null,
+    });
+    expect(value.comparableCount, 3);
+  });
 
   test('getExitPrice asks exit_price for the model, year, km and ad', () async {
     reply = '[{"gone_count":7,"median_price":6100.5}]';
@@ -433,6 +452,19 @@ void main() {
     expect(empty['p_registrations'], isNull);
     expect(empty['p_service_book'], isNull);
     expect(empty['p_damage'], isNull);
+    expect(empty.containsKey('p_from_year'), isFalse);
+    expect(empty.containsKey('p_to_year'), isFalse);
+    final ranged = typedAdScoreParams(
+      'mt07',
+      year: 2021,
+      mileage: 1,
+      price: 7000,
+      privateSeller: true,
+      fromYear: 2019,
+      toYear: 2022,
+    );
+    expect(ranged['p_from_year'], 2019);
+    expect(ranged['p_to_year'], 2022);
   });
 
   test('typedAdScoreFrom reads a row without scores', () {

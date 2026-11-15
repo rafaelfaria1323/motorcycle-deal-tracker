@@ -776,6 +776,17 @@ CREATE FUNCTION public.bike_value(p_motorcycle_id uuid, p_year integer, p_mileag
     LANGUAGE sql STABLE
     SET search_path TO ''
     AS $$
+  select * from public.bike_value_in_years(p_motorcycle_id, p_year, p_mileage, null, null);
+$$;
+
+--
+-- Name: bike_value_in_years(uuid, integer, integer, integer, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.bike_value_in_years(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_from_year integer, p_to_year integer) RETURNS TABLE(comparable_count integer, fair_price numeric, low_price numeric, high_price numeric)
+    LANGUAGE sql STABLE
+    SET search_path TO ''
+    AS $$
   with generations as (
     select m.generation_years as years
     from public.motorcycles m where m.id = p_motorcycle_id
@@ -794,11 +805,14 @@ CREATE FUNCTION public.bike_value(p_motorcycle_id uuid, p_year integer, p_mileag
       and c.price >= 300
       and (p_year is null or c.year is not null)
       and (p_mileage is null or c.mileage is not null)
+      and (p_from_year is null or c.year >= p_from_year)
+      and (p_to_year is null or c.year <= p_to_year)
   ),
   chosen as (
     select c.*
     from comparables c
     where case
+      when p_from_year is not null or p_to_year is not null then true
       when (select count(*) from comparables n where n.same_generation) >= 5
         then c.same_generation
       when (select count(*) from comparables n where n.near) >= 5 then c.near
@@ -3706,6 +3720,18 @@ CREATE FUNCTION public.my_favourite_share() RETURNS TABLE(viewer_email text, cod
 $$;
 
 --
+-- Name: my_max_year(public.motorcycles); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.my_max_year(m public.motorcycles) RETURNS integer
+    LANGUAGE sql STABLE
+    SET search_path TO ''
+    AS $$
+  select u.max_year from public.user_models u
+  where u.user_id = auth.uid() and u.motorcycle_id = m.id
+$$;
+
+--
 -- Name: my_min_year(public.motorcycles); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -5953,22 +5979,11 @@ CREATE FUNCTION public.set_model_min_year(p_motorcycle_id uuid, p_min_year integ
     SET search_path TO ''
     AS $$
 begin
-  perform public.require_account();
-
-  if p_min_year < 1990 or p_min_year > extract(year from now())::integer + 1 then
-    raise exception 'Year % is out of range', p_min_year using errcode = '22023';
-  end if;
-  if not exists (select 1 from public.motorcycles m where m.id = p_motorcycle_id) then
-    raise exception 'Unknown model %', p_motorcycle_id using errcode = 'P0002';
-  end if;
-
-  -- A year for a model not followed is kept for when it is.
-  insert into public.user_models (user_id, motorcycle_id, tracked, min_year)
-  values (auth.uid(), p_motorcycle_id, false, p_min_year)
-  on conflict (user_id, motorcycle_id)
-  do update set min_year = excluded.min_year, updated_at = now();
-
-  perform public.refresh_collected_model(p_motorcycle_id);
+  perform public.set_model_years(
+    p_motorcycle_id, p_min_year,
+    (select case when u.max_year >= p_min_year then u.max_year end
+     from public.user_models u
+     where u.user_id = auth.uid() and u.motorcycle_id = p_motorcycle_id));
 end;
 $$;
 
@@ -6020,6 +6035,41 @@ begin
   from public.motorcycles m where m.id = p_motorcycle_id
   on conflict (user_id, motorcycle_id)
   do update set tracked = excluded.tracked, updated_at = now();
+
+  perform public.refresh_collected_model(p_motorcycle_id);
+end;
+$$;
+
+--
+-- Name: set_model_years(uuid, integer, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.set_model_years(p_motorcycle_id uuid, p_min_year integer, p_max_year integer) RETURNS void
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+declare
+  v_last integer := extract(year from now())::integer + 1;
+begin
+  perform public.require_account();
+
+  if p_min_year is null or p_min_year < 1990 or p_min_year > v_last then
+    raise exception 'Year % is out of range', p_min_year using errcode = '22023';
+  end if;
+  if p_max_year is not null and (p_max_year < p_min_year or p_max_year > v_last) then
+    raise exception 'Year % is out of range', p_max_year using errcode = '22023';
+  end if;
+  if not exists (select 1 from public.motorcycles m where m.id = p_motorcycle_id) then
+    raise exception 'Unknown model %', p_motorcycle_id using errcode = 'P0002';
+  end if;
+
+  -- Years for a model not followed are kept for when it is.
+  insert into public.user_models (user_id, motorcycle_id, tracked, min_year, max_year)
+  values (auth.uid(), p_motorcycle_id, false, p_min_year, p_max_year)
+  on conflict (user_id, motorcycle_id)
+  do update set min_year = excluded.min_year,
+                max_year = excluded.max_year,
+                updated_at = now();
 
   perform public.refresh_collected_model(p_motorcycle_id);
 end;
@@ -6786,10 +6836,10 @@ CREATE FUNCTION public.tracked_by_me(m public.motorcycles) RETURNS boolean
 $$;
 
 --
--- Name: typed_ad_score(uuid, integer, integer, numeric, boolean, integer, boolean, boolean, text, text); Type: FUNCTION; Schema: public; Owner: -
+-- Name: typed_ad_score(uuid, integer, integer, numeric, boolean, integer, boolean, boolean, text, text, integer, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer DEFAULT NULL::integer, p_service_book boolean DEFAULT NULL::boolean, p_warranty boolean DEFAULT false, p_damage text DEFAULT NULL::text, p_description text DEFAULT NULL::text) RETURNS TABLE(deal_score smallint, risk_score smallint, breakdown jsonb)
+CREATE FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer DEFAULT NULL::integer, p_service_book boolean DEFAULT NULL::boolean, p_warranty boolean DEFAULT false, p_damage text DEFAULT NULL::text, p_description text DEFAULT NULL::text, p_from_year integer DEFAULT NULL::integer, p_to_year integer DEFAULT NULL::integer) RETURNS TABLE(deal_score smallint, risk_score smallint, breakdown jsonb)
     LANGUAGE sql STABLE SECURITY DEFINER
     SET search_path TO ''
     SET jit TO 'off'
@@ -6815,7 +6865,7 @@ CREATE FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mi
               else '{}'::text[]
             end) s) as signals
     from model md
-    cross join lateral public.bike_value(md.id, p_year, p_mileage) v
+    cross join lateral public.bike_value_in_years(md.id, p_year, p_mileage, p_from_year, p_to_year) v
   ),
   risk as (
     select i.*, r.risk_score, r.reasons
@@ -6962,7 +7012,8 @@ CREATE FUNCTION public.user_tracks(p_user uuid, p_motorcycle_id uuid, p_year int
                  where u.user_id = p_user
                    and u.motorcycle_id = p_motorcycle_id
                    and u.tracked
-                   and (p_year is null or p_year >= u.min_year))
+                   and (p_year is null or p_year >= u.min_year)
+                   and (p_year is null or u.max_year is null or p_year <= u.max_year))
 $$;
 
 --
@@ -7981,7 +8032,9 @@ CREATE TABLE public.user_models (
     min_year integer NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     colours text[] DEFAULT '{}'::text[] NOT NULL,
+    max_year integer,
     CONSTRAINT user_models_colours_check CHECK ((colours <@ ARRAY['black'::text, 'white'::text, 'grey'::text, 'silver'::text, 'blue'::text, 'red'::text, 'green'::text, 'yellow'::text, 'orange'::text, 'brown'::text, 'beige'::text, 'gold'::text, 'purple'::text, 'pink'::text])),
+    CONSTRAINT user_models_max_year_check CHECK (((max_year IS NULL) OR (((max_year >= 1990) AND (max_year <= 2100)) AND (max_year >= min_year)))),
     CONSTRAINT user_models_min_year_check CHECK (((min_year >= 1990) AND (min_year <= 2100)))
 );
 
@@ -9594,6 +9647,14 @@ GRANT ALL ON FUNCTION public.bike_value(p_motorcycle_id uuid, p_year integer, p_
 GRANT ALL ON FUNCTION public.bike_value(p_motorcycle_id uuid, p_year integer, p_mileage integer) TO service_role;
 
 --
+-- Name: FUNCTION bike_value_in_years(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_from_year integer, p_to_year integer); Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON FUNCTION public.bike_value_in_years(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_from_year integer, p_to_year integer) TO anon;
+GRANT ALL ON FUNCTION public.bike_value_in_years(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_from_year integer, p_to_year integer) TO authenticated;
+GRANT ALL ON FUNCTION public.bike_value_in_years(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_from_year integer, p_to_year integer) TO service_role;
+
+--
 -- Name: FUNCTION bike_value_model(p_brand text, p_model text, p_olx_search text, p_standvirtual_search text, p_engine_cc_min integer, p_engine_cc_max integer); Type: ACL; Schema: public; Owner: -
 --
 
@@ -10350,6 +10411,14 @@ GRANT ALL ON FUNCTION public.my_favourite_share() TO authenticated;
 GRANT ALL ON FUNCTION public.my_favourite_share() TO service_role;
 
 --
+-- Name: FUNCTION my_max_year(m public.motorcycles); Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON FUNCTION public.my_max_year(m public.motorcycles) TO anon;
+GRANT ALL ON FUNCTION public.my_max_year(m public.motorcycles) TO authenticated;
+GRANT ALL ON FUNCTION public.my_max_year(m public.motorcycles) TO service_role;
+
+--
 -- Name: FUNCTION my_min_year(m public.motorcycles); Type: ACL; Schema: public; Owner: -
 --
 
@@ -10879,6 +10948,14 @@ GRANT ALL ON FUNCTION public.set_model_tracked(p_motorcycle_id uuid, p_tracked b
 GRANT ALL ON FUNCTION public.set_model_tracked(p_motorcycle_id uuid, p_tracked boolean) TO service_role;
 
 --
+-- Name: FUNCTION set_model_years(p_motorcycle_id uuid, p_min_year integer, p_max_year integer); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.set_model_years(p_motorcycle_id uuid, p_min_year integer, p_max_year integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.set_model_years(p_motorcycle_id uuid, p_min_year integer, p_max_year integer) TO service_role;
+GRANT ALL ON FUNCTION public.set_model_years(p_motorcycle_id uuid, p_min_year integer, p_max_year integer) TO authenticated;
+
+--
 -- Name: FUNCTION set_photo_mark(p_listing uuid, p_photo integer, p_problem boolean); Type: ACL; Schema: public; Owner: -
 --
 
@@ -11065,13 +11142,13 @@ GRANT ALL ON FUNCTION public.tracked_by_me(m public.motorcycles) TO authenticate
 GRANT ALL ON FUNCTION public.tracked_by_me(m public.motorcycles) TO service_role;
 
 --
--- Name: FUNCTION typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text); Type: ACL; Schema: public; Owner: -
+-- Name: FUNCTION typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer); Type: ACL; Schema: public; Owner: -
 --
 
-REVOKE ALL ON FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text) FROM PUBLIC;
-GRANT ALL ON FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text) TO service_role;
-GRANT ALL ON FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text) TO anon;
-GRANT ALL ON FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text) TO authenticated;
+REVOKE ALL ON FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer) TO service_role;
+GRANT ALL ON FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer) TO anon;
+GRANT ALL ON FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mileage integer, p_price numeric, p_private_seller boolean, p_registrations integer, p_service_book boolean, p_warranty boolean, p_damage text, p_description text, p_from_year integer, p_to_year integer) TO authenticated;
 
 --
 -- Name: FUNCTION unmatched_title_sample(p_since timestamp with time zone, p_limit integer); Type: ACL; Schema: public; Owner: -

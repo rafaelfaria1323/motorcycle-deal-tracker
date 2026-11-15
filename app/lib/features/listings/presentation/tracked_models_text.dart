@@ -7,14 +7,21 @@ const olxSearchPrefix =
     'https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/';
 const standvirtualSearchPrefix = 'https://www.standvirtual.com/motos/';
 
-/// "Desde 2023 · OLX e Standvirtual · Azul, Preto".
+/// "Desde 2023 · OLX e Standvirtual · Azul, Preto", or with a last year
+/// "De 2018 a 2020 · ...".
 String modelSubtitle(CatalogModel m, {AppLanguage language = .portuguese}) {
   final sites = [
     if (m.olxSearch != null) 'OLX',
     if (m.standvirtualSearch != null) 'Standvirtual',
   ];
   return [
-    language.messages.fromMinYear(minYear: m.minYear.toString()),
+    switch (m.maxYear) {
+      final to? => language.messages.fromTo(
+        from: m.minYear.toString(),
+        to: to.toString(),
+      ),
+      null => language.messages.fromMinYear(minYear: m.minYear.toString()),
+    },
     sites.isEmpty
         ? language.messages.noSearch
         : sites.join(language.messages.andSeparator),

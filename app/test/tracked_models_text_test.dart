@@ -40,6 +40,11 @@ void main() {
       modelSubtitle(model('R7').copyWith(colours: ['blue', 'black'])),
       'Desde 2023 · sem pesquisa · Preto, Azul',
     );
+    // A last year (N.108); copyWith((null,)) clears it again.
+    final capped = model('R7').copyWith(maxYear: (2025,));
+    expect(modelSubtitle(capped), 'De 2023 a 2025 · sem pesquisa');
+    expect(capped.copyWith(minYear: 2024).maxYear, 2025);
+    expect(capped.copyWith(maxYear: (null,)).maxYear, isNull);
   });
 
   test('tracked models that share a search count once', () {

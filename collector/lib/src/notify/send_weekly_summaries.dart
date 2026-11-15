@@ -5,10 +5,10 @@ import 'web_push.dart';
 import 'weekly_summary.dart';
 
 /// Each account's summary of the week before [until], over its own models
-/// ([follows]: account -> catalog id -> first year). With [account], only
+/// ([follows]: account -> catalog id -> its years). With [account], only
 /// that account's (an account that follows nothing gets an empty week).
 Map<String, WeeklySummary> summariesByAccount({
-  required Map<String, Map<String, int>> follows,
+  required Map<String, Map<String, FollowedYears>> follows,
   required List<SummaryListing> listings,
   required List<PricePoint> history,
   required DateTime until,
@@ -16,7 +16,7 @@ Map<String, WeeklySummary> summariesByAccount({
 }) {
   final accounts = account == null
       ? follows
-      : {account: follows[account] ?? const <String, int>{}};
+      : {account: follows[account] ?? const <String, FollowedYears>{}};
   return {
     for (final MapEntry(key: user, value: models) in accounts.entries)
       user: buildWeeklySummary(

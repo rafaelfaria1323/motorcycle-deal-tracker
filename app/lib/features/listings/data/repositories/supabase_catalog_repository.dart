@@ -11,7 +11,7 @@ class SupabaseCatalogRepository(final SupabaseClient _client)
     final rows = await _client
         .from('motorcycles')
         .select(
-          'id, brand, model, my_min_year, tracked_by_me, is_active, '
+          'id, brand, model, my_min_year, my_max_year, tracked_by_me, is_active, '
           'my_colours, olx_search, standvirtual_search, new_price_reference, '
           'new_price_checked_at, new_price_from_ads, new_price_ad_count',
         );
@@ -22,6 +22,7 @@ class SupabaseCatalogRepository(final SupabaseClient _client)
           brand: row['brand'] as String,
           model: row['model'] as String,
           minYear: row['my_min_year'] as int,
+          maxYear: row['my_max_year'] as int?,
           isTracked: row['tracked_by_me'] as bool,
           isCollected: row['is_active'] as bool,
           colours: List<String>.from(row['my_colours'] as List? ?? const []),
@@ -46,10 +47,18 @@ class SupabaseCatalogRepository(final SupabaseClient _client)
   }
 
   @override
-  Future<void> setMinYear(String motorcycleId, int minYear) async {
+  Future<void> setYears(
+    String motorcycleId, {
+    required int minYear,
+    int? maxYear,
+  }) async {
     await _client.rpc<Object?>(
-      'set_model_min_year',
-      params: {'p_motorcycle_id': motorcycleId, 'p_min_year': minYear},
+      'set_model_years',
+      params: {
+        'p_motorcycle_id': motorcycleId,
+        'p_min_year': minYear,
+        'p_max_year': maxYear,
+      },
     );
   }
 

@@ -1395,5 +1395,16 @@
   "checkAdDealer": "Dealer",
   "adCheckWaiting": "Looking for the ad",
   "adCheckFound": "Ad checked",
-  "adCheckNotFound": "Ad not found"
+  "adCheckNotFound": "Ad not found",
+  "onlyUpToAYear": "Only up to a year",
+  "upToYear": "Last year",
+  "lastYearHelp": "Newer listings are left out of Ofertas, the alerts and the weekly summary. Collection and the market figures still count every year.",
+  "comparableYearsTitle": "Compare with ads from",
+  "comparableYearsHelp": "Blank: the nearest ads (the same generation, up to 3 years apart).",
+  "comparableFromYear": "From year",
+  "comparableToYear": "To year",
+  "comparableYearsInvalid": "Enter years between {first} and {last}, the first before the last",
+  "comparedYearsBetween": "Compared only with ads from {from} to {to}",
+  "comparedYearsFrom": "Compared only with ads from {from} or newer",
+  "comparedYearsUntil": "Compared only with ads from {to} or older"
 }

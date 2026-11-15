@@ -148,13 +148,18 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
     String motorcycleId, {
     required int year,
     int? mileage,
+    int? fromYear,
+    int? toYear,
   }) async {
+    final ranged = fromYear != null || toYear != null;
     final rows = await _client.rpc<List<dynamic>>(
-      'bike_value',
+      // The comparables of the years chosen (N.108), else the nearest.
+      ranged ? 'bike_value_in_years' : 'bike_value',
       params: {
         'p_motorcycle_id': motorcycleId,
         'p_year': year,
         'p_mileage': mileage,
+        if (ranged) ...{'p_from_year': fromYear, 'p_to_year': toYear},
       },
     );
     return rows.isEmpty
@@ -281,6 +286,8 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
     required bool privateSeller,
     BikeCondition condition = const BikeCondition(),
     String? description,
+    int? fromYear,
+    int? toYear,
   }) async {
     final rows = await _client.rpc<List<dynamic>>(
       'typed_ad_score',
@@ -292,6 +299,8 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
         privateSeller: privateSeller,
         condition: condition,
         description: description,
+        fromYear: fromYear,
+        toYear: toYear,
       ),
     );
     return rows.isEmpty
@@ -510,6 +519,8 @@ Map<String, dynamic> typedAdScoreParams(
   required bool privateSeller,
   BikeCondition condition = const BikeCondition(),
   String? description,
+  int? fromYear,
+  int? toYear,
 }) => {
   'p_motorcycle_id': motorcycleId,
   'p_year': year,
@@ -537,6 +548,8 @@ Map<String, dynamic> typedAdScoreParams(
     final text? when text.isNotEmpty => text,
     _ => null,
   },
+  'p_from_year': ?fromYear,
+  'p_to_year': ?toYear,
 };
 
 /// A row of `typed_ad_score`.

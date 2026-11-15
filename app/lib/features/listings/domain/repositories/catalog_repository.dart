@@ -8,7 +8,13 @@ abstract interface class CatalogRepository {
 
   Future<void> setTracked(String motorcycleId, {required bool tracked});
 
-  Future<void> setMinYear(String motorcycleId, int minYear);
+  /// The account's first year for the model and its last one (null:
+  /// none, N.108): only those years are in its Ofertas, alerts and summary.
+  Future<void> setYears(
+    String motorcycleId, {
+    required int minYear,
+    int? maxYear,
+  });
 
   /// The account's favourite colours for the model (codes).
   Future<void> setColours(String motorcycleId, List<String> colours);
