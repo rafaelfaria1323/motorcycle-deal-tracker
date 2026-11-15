@@ -142,7 +142,9 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
             paid-plans.md (paid plans and other income: a plan, not
             started; roadmap Sprint 16), feature-review.md (the review
             of every feature, 2026-10-31: findings and their order,
-            steps F.1-F.11; tick them there as they are done)
+            steps F.1-F.11; tick them there as they are done),
+            bug-hunt.md (the second bug hunt, 2026-11-15:
+            steps B.1-B.6, ticked there too)
 .github/workflows/collect.yml     Collection at 00:00 and every 2 h
                                   from 08:00 to 22:00 (Lisbon time),
                                   started by Supabase pg_cron (see below);

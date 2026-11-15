@@ -156,6 +156,7 @@ treated as complete searches for removal.
 - [`docs/code-quality.md`](docs/code-quality.md): code improvements to do and done (worked through automatically).
 - [`docs/test-hardening.md`](docs/test-hardening.md): bugs, missing and redundant tests found by the automatic mutation-style pass, to do and done.
 - [`docs/feature-review.md`](docs/feature-review.md): the review of every feature (2026-10-31): what to improve in each, what doesn't make sense, code and UI/UX changes, and their order (steps F.1-F.11).
+- [`docs/bug-hunt.md`](docs/bug-hunt.md): the second bug hunt (2026-11-15): bugs and improvements in the newest features, with file and line, and their order (steps B.1-B.6).
 - [`CLAUDE.md`](CLAUDE.md): conventions and the detailed pipeline, scoring and alert rules.
 
 ## Credits
