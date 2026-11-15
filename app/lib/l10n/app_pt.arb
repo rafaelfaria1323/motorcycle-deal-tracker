@@ -8252,24 +8252,48 @@
   "@adShortcutStep1": {
     "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
   },
-  "adShortcutStep2": "Na app Atalhos, crie um atalho chamado «Avaliar no Deal Tracker». Nos detalhes, ligue «Mostrar na Folha de partilha» e deixe só «Páginas web do Safari».",
+  "adShortcutStep2": "Abra a app Atalhos, toque em + e dê ao atalho o nome «Avaliar no Deal Tracker».",
   "@adShortcutStep2": {
     "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
   },
-  "adShortcutStep3": "Adicione «Executar JavaScript na página web» e cole o script no lugar do texto de exemplo.",
+  "adShortcutStep3": "Toque no (i) em baixo, ligue «Mostrar na Folha de partilha» e, em «Tipos de partilha», deixe só «Páginas web do Safari».",
   "@adShortcutStep3": {
     "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
   },
-  "adShortcutStep4": "Adicione «Obter conteúdo do URL» com o endereço. Em «Mostrar mais»: método POST; cabeçalhos apikey (o valor acima) e Content-Type = application/json; corpo do pedido «Ficheiro», com o «Resultado do JavaScript».",
+  "adShortcutStep4": "Adicione a ação «Executar JavaScript na página web». Apague o texto de exemplo e cole o Script (botão Copiar acima).",
   "@adShortcutStep4": {
     "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
   },
-  "adShortcutStep5": "Adicione «Obter valor do dicionário» com a chave message e depois «Mostrar notificação» com esse valor: diz o que foi enviado, ou porque não foi.",
+  "adShortcutStep5": "Adicione a ação «Obter conteúdo do URL». Toque em «URL» e cole o Endereço.",
   "@adShortcutStep5": {
     "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
   },
-  "adShortcutStep6": "Para usar: abra o anúncio no Safari, toque em Partilhar › Avaliar no Deal Tracker e abra «Avaliar um anúncio» aqui.",
+  "adShortcutStep6": "Abra os detalhes dessa ação (a seta) e escolha o método POST.",
   "@adShortcutStep6": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutStep7": "Em «Cabeçalhos», toque em «Adicionar novo cabeçalho». Chave: apikey (assim mesmo, sem hífen). Valor: cole o valor do cabeçalho apikey copiado acima.",
+  "@adShortcutStep7": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutStep8": "Toque outra vez em «Adicionar novo cabeçalho». Chave: Content-Type. Valor: application/json.",
+  "@adShortcutStep8": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutStep9": "Em «Corpo do pedido», escolha «Ficheiro» e, em «Ficheiro», escolha «Resultado do JavaScript».",
+  "@adShortcutStep9": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutStep10": "Adicione a ação «Obter valor do dicionário». Toque em «Chave» e escreva message (o resto já vem certo: «Valor» e «Conteúdo do URL»).",
+  "@adShortcutStep10": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutStep11": "Adicione a ação «Mostrar notificação» e ponha nela o «Valor do dicionário». A notificação diz o que foi enviado, ou porque não foi.",
+  "@adShortcutStep11": {
+    "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "adShortcutStep12": "Para usar: abra o anúncio no Safari, toque em Partilhar › Avaliar no Deal Tracker e abra «Avaliar um anúncio» aqui.",
+  "@adShortcutStep12": {
     "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
   },
   "adShortcutFacebookApp": "A app do Facebook só partilha o link: abra o anúncio no Safari primeiro (no menu de três pontos do anúncio, «Abrir no navegador», ou cole o link no Safari).",

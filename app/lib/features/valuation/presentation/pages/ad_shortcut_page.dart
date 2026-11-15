@@ -129,6 +129,12 @@ class _AdShortcutPageState extends State<AdShortcutPage> {
                 strings.adShortcutStep4,
                 strings.adShortcutStep5,
                 strings.adShortcutStep6,
+                strings.adShortcutStep7,
+                strings.adShortcutStep8,
+                strings.adShortcutStep9,
+                strings.adShortcutStep10,
+                strings.adShortcutStep11,
+                strings.adShortcutStep12,
               ].indexed)
                 _Step(number: index + 1, text: step),
               const SizedBox(height: 8),
