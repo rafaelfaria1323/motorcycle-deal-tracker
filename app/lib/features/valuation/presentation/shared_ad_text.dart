@@ -148,7 +148,7 @@ double? sharedAdInitialPrice(SharedAd ad, double? price) {
   for (final line in _shortLines(ad)) {
     final prices = [
       for (final match in _priceAfter.allMatches(line))
-        if (_priceIn(match.group(0)!) case final value?) value,
+        ?_priceIn(match.group(0)!),
     ];
     if (prices.length >= 2 && prices.first == price) {
       return above(prices[1]);
