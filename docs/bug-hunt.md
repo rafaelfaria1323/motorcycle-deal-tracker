@@ -86,7 +86,7 @@ What was checked and found right (no finding):
 
 ## 3. Similar models (N.106b)
 
-1. **P3 [code] Models added later never join a platform group.** The
+1. ✅ (B.4) **P3 [code] Models added later never join a platform group.** The
    migration says models added from the app under those names "join
    too" (`20261115130000_similar_models.sql:20`). But the `update` runs
    only once, when the migration is applied. Neither `bike_value_model`
@@ -131,7 +131,7 @@ What was checked and found right (no finding):
 1. ✅ B.1: typed ad's title read for signals and equipment (1.1).
 2. ✅ B.2: shared ad addresses without tracking (4.1).
 3. ✅ B.3: time on sale in the sites' words (1.3).
-4. B.4: similar groups for models added later (3.1).
+4. ✅ B.4: similar groups for models added later (3.1).
 5. B.5: the index for `listing_for_ad` (2.1) and the same count for
    value coverage (2.2), in one migration.
 6. B.6, when convenient: origin for typed ads (1.2), share limits and
