@@ -1584,6 +1584,8 @@ void main() {
       );
       // The data quality is in "Estado da recolha" now (F.5).
       expect(find.text('Qualidade dos dados'), findsNothing);
+      // The iPhone shortcut's setup, for signed-in accounts (N.110).
+      expect(find.text('Atalho do iPhone'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   }

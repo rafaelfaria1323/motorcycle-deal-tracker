@@ -54,6 +54,12 @@ what it lets a crawler read would be one page per search: not enough to
 follow ads or see them go. Not built; nothing was stored. Only with the
 site's written permission would this be looked at again.
 
+The iPhone shortcut (N.110, 2026-11-15) changes none of this: it runs in
+the person's own Safari, on the one ad they are looking at and share,
+and sends what that page already shows (the link, title, description,
+the lines with price, year, km and age, photo addresses). Deal Tracker
+never requests a Facebook or CustoJusto page.
+
 ### 2026-11-13: motorcycle recalls from the EU's Safety Gate (N.86)
 
 **Why.** A used bike may have been called in by its maker (a chain, a

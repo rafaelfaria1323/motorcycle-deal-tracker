@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/auth/session_bootstrap.dart';
+import '../core/config/supabase_config.dart';
 import '../core/localization/localizations.dart';
 import '../core/platform/document_language.dart';
 import '../core/platform/first_page.dart';
@@ -21,11 +22,6 @@ import 'di/injection.dart';
 import 'router/notification_taps.dart';
 import 'router/shared_text_open.dart';
 import 'theme/app_theme.dart';
-
-const _supabaseUrl = String.fromEnvironment('SUPABASE_URL');
-const _supabasePublishableKey = String.fromEnvironment(
-  'SUPABASE_PUBLISHABLE_KEY',
-);
 
 /// How long the first start may wait for the network before saying so.
 const _startTimeout = Duration(seconds: 20);
@@ -56,7 +52,7 @@ class _StartupState extends State<Startup> {
       _startupLanguage.locale.toLanguageTag(),
       _startupLanguage.messages.appOpening,
     );
-    if (_supabaseUrl.isEmpty || _supabasePublishableKey.isEmpty) {
+    if (supabaseUrl.isEmpty || supabasePublishableKey.isEmpty) {
       throw StateError(
         'Missing Supabase config: build with '
         '--dart-define-from-file=env/dev.json',
@@ -105,10 +101,10 @@ class _StartupState extends State<Startup> {
   static Future<void> _initializeSupabase() async {
     try {
       await Supabase.initialize(
-        url: _supabaseUrl,
-        publishableKey: _supabasePublishableKey,
+        url: supabaseUrl,
+        publishableKey: supabasePublishableKey,
         authOptions: FlutterAuthClientOptions(
-          localStorage: sessionStorage(_supabaseUrl),
+          localStorage: sessionStorage(supabaseUrl),
         ),
       );
     } on Object {

@@ -10,6 +10,7 @@ import '../../features/listings/presentation/cubit/listings_cubit.dart';
 import '../../features/saved_searches/presentation/cubit/saved_searches_cubit.dart';
 import '../../features/compare/presentation/compare_text.dart';
 import '../../features/alerts/presentation/pages/alerts_page.dart';
+import '../../features/valuation/presentation/pages/ad_shortcut_page.dart';
 import '../../features/valuation/presentation/pages/bike_value_page.dart';
 import '../../features/valuation/presentation/pages/my_bikes_page.dart';
 import '../../features/compare/presentation/pages/compare_page.dart';
@@ -180,6 +181,11 @@ final appRouter = GoRouter(
         checkingAd: true,
         initialLink: state.uri.queryParameters['link'],
       ),
+    ),
+    // The iPhone shortcut's key and setup (N.110).
+    GoRoute(
+      path: AppRoutes.adShortcut,
+      builder: (context, state) => const AdShortcutPage(),
     ),
     GoRoute(
       path: AppRoutes.accounts,

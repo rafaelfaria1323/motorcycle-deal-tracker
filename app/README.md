@@ -264,7 +264,9 @@ Screen names below use the Portuguese labels; English provides the same screens.
   site: "O anúncio é de outro site", then its price, seller, condition
   and optionally its text give its Deal Score and Risk Score with why,
   the value, the offer plan with the cheaper stored ads and the
-  message to the seller), "Comprar no
+  message to the seller; on the iPhone, the shortcut made in Mais ›
+  "Atalho do iPhone" sends the ad Safari shows, which waits in
+  "Enviados do iPhone" and fills the form with "Usar"), "Comprar no
   estrangeiro" (the same form for a bike seen in Spain, France or
   Germany: its price there plus vehicle tax (ISV), legalisation and
   transport, against its value here), "A minha mota" (the bikes you

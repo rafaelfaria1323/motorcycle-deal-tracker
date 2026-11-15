@@ -264,6 +264,17 @@ CREATE FUNCTION public.account_quiet_at(p_user uuid, p_at timestamp with time zo
 $$;
 
 --
+-- Name: ad_import_key_created_at(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.ad_import_key_created_at() RETURNS timestamp with time zone
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+  select k.created_at from public.ad_import_keys k where k.user_id = auth.uid()
+$$;
+
+--
 -- Name: ad_link_code(text); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -1317,6 +1328,27 @@ CREATE FUNCTION public.cosmetic_damage(p_description text) RETURNS boolean
 $$;
 
 --
+-- Name: create_ad_import_key(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.create_ad_import_key() RETURNS text
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+declare
+  v_key text := replace(gen_random_uuid()::text, '-', '')
+                || replace(gen_random_uuid()::text, '-', '');
+begin
+  perform public.require_account();
+  insert into public.ad_import_keys (user_id, key_hash, created_at)
+  values (auth.uid(), sha256(convert_to(v_key, 'UTF8')), now())
+  on conflict (user_id) do update
+    set key_hash = excluded.key_hash, created_at = excluded.created_at;
+  return v_key;
+end;
+$$;
+
+--
 -- Name: create_invite(text); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -1493,6 +1525,21 @@ begin
     and a.dismissed_at is null;
   get diagnostics v_count = row_count;
   return v_count;
+end;
+$$;
+
+--
+-- Name: dismiss_shared_ad(uuid); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.dismiss_shared_ad(p_id uuid) RETURNS void
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+begin
+  update public.shared_ads
+  set dismissed_at = now()
+  where id = p_id and user_id = auth.uid() and dismissed_at is null;
 end;
 $$;
 
@@ -3760,6 +3807,23 @@ CREATE FUNCTION public.my_photo_marks(p_listing uuid) RETURNS TABLE(photo intege
 $$;
 
 --
+-- Name: my_shared_ads(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.my_shared_ads() RETURNS TABLE(id uuid, received_at timestamp with time zone, url text, title text, description text, price text, lines text[], photos text[], script_version integer)
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+  select s.id, s.received_at, s.url, s.title, s.description, s.price, s.lines,
+         s.photos, s.script_version
+  from public.shared_ads s
+  where s.user_id = auth.uid()
+    and s.dismissed_at is null
+    and s.received_at >= now() - interval '7 days'
+  order by s.received_at desc, s.id
+$$;
+
+--
 -- Name: name_key(text); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -4724,6 +4788,123 @@ CREATE FUNCTION public.recalls(b public.owned_bikes) RETURNS jsonb
     AS $$ select public.model_recalls(b.motorcycle_id, b.year) $$;
 
 --
+-- Name: receive_shared_ad(text, jsonb); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.receive_shared_ad(p_key text, p_ad jsonb) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $_$
+declare
+  v_user uuid;
+  v_en boolean;
+  v_url text;
+  v_title text;
+  v_version integer;
+  v_lines text[];
+  v_photos text[];
+  v_id uuid;
+  v_message text;
+begin
+  select k.user_id into v_user from public.ad_import_keys k
+  where k.key_hash = sha256(convert_to(coalesce(p_key, ''), 'UTF8'));
+  if v_user is null then
+    raise exception 'Chave desconhecida: crie uma nova no Deal Tracker (Mais › Atalho do iPhone). / Unknown key: make a new one in Deal Tracker (More › iPhone shortcut).'
+      using errcode = '28000';
+  end if;
+  v_en := exists (select 1 from public.account_languages l
+                  where l.user_id = v_user and l.language = 'en');
+
+  v_url := btrim(case when jsonb_typeof(p_ad) = 'object'
+                      and jsonb_typeof(p_ad -> 'url') = 'string'
+                      then p_ad ->> 'url' end);
+  if v_url is null or v_url !~ '^https://[^\s]+$' or length(v_url) > 2000 then
+    raise exception '%', case when v_en
+      then 'This page has no link to send. Share the ad from Safari.'
+      else 'Esta página não tem um endereço para enviar. Partilhe o anúncio a partir do Safari.' end
+      using errcode = '22023';
+  end if;
+
+  -- Older than 7 days: gone, read or not (the day's count only needs one).
+  delete from public.shared_ads s
+  where s.user_id = v_user and s.received_at < now() - interval '7 days';
+
+  if (select count(*) from public.shared_ads s
+      where s.user_id = v_user and s.received_at > now() - interval '1 hour') >= 20
+     or (select count(*) from public.shared_ads s
+         where s.user_id = v_user and s.received_at > now() - interval '1 day') >= 100 then
+    raise exception '%', case when v_en
+      then 'Too many ads sent: wait a little and try again.'
+      else 'Enviou anúncios demais: espere um pouco e tente de novo.' end
+      using errcode = '54000';
+  end if;
+  -- The same ad sent again replaces the one waiting.
+  delete from public.shared_ads s
+  where s.user_id = v_user and s.url = v_url and s.dismissed_at is null;
+  if (select count(*) from public.shared_ads s
+      where s.user_id = v_user and s.dismissed_at is null) >= 10 then
+    raise exception '%', case when v_en
+      then '10 ads are already waiting: open "Check an ad" in Deal Tracker first.'
+      else 'Já há 10 anúncios à espera: abra «Avaliar um anúncio» no Deal Tracker primeiro.' end
+      using errcode = '54000';
+  end if;
+
+  v_title := nullif(left(btrim(public.without_phone_numbers(
+    case when jsonb_typeof(p_ad -> 'title') = 'string' then p_ad ->> 'title' end)), 300), '');
+  v_version := case when jsonb_typeof(p_ad -> 'version') = 'number'
+                    then least(greatest((p_ad ->> 'version')::numeric, 0), 1000)::integer
+                    else 0 end;
+  select coalesce(array_agg(t.line order by t.n), '{}') into v_lines
+  from (select left(btrim(public.without_phone_numbers(e.value)), 300) as line, e.n
+        from jsonb_array_elements_text(
+               case when jsonb_typeof(p_ad -> 'lines') = 'array' then p_ad -> 'lines'
+                    else '[]' end) with ordinality as e (value, n)
+        where e.n <= 60) t
+  where t.line <> '';
+  -- Each address once, in the page's order, the first 12.
+  v_photos := array(
+    select d.photo from (
+      select distinct on (x.photo) x.photo, x.n
+      from (select btrim(e.value #>> '{}') as photo, e.n
+            from jsonb_array_elements(
+                   case when jsonb_typeof(p_ad -> 'photos') = 'array' then p_ad -> 'photos'
+                        else '[]' end) with ordinality as e (value, n)
+            where jsonb_typeof(e.value) = 'string') x
+      where x.photo ~ '^https://[^\s]+$' and length(x.photo) <= 2000
+      order by x.photo, x.n) d
+    order by d.n
+    limit 12);
+
+  insert into public.shared_ads
+    (user_id, url, title, description, price, lines, photos, script_version)
+  values (
+    v_user, v_url, v_title,
+    nullif(left(btrim(public.without_phone_numbers(
+      case when jsonb_typeof(p_ad -> 'description') = 'string'
+           then p_ad ->> 'description' end)), 5000), ''),
+    nullif(left(btrim(case when jsonb_typeof(p_ad -> 'price') in ('string', 'number')
+                           then p_ad ->> 'price' end), 40), ''),
+    v_lines, v_photos, v_version)
+  returning id into v_id;
+
+  v_message := case when v_en
+    then format('Sent to Deal Tracker: %s (%s photos).',
+                coalesce(v_title, 'ad'), cardinality(v_photos))
+    else format('Enviado para o Deal Tracker: %s (%s fotos).',
+                coalesce(v_title, 'anúncio'), cardinality(v_photos)) end;
+  if v_version < public.shared_ad_script_version() then
+    v_message := v_message || case when v_en
+      then ' The shortcut has a new script: copy it again in More › iPhone shortcut.'
+      else ' O atalho tem um script novo: copie-o de novo em Mais › Atalho do iPhone.' end;
+  end if;
+  return jsonb_build_object(
+    'message', v_message,
+    'outdated', v_version < public.shared_ad_script_version(),
+    'id', v_id);
+end;
+$_$;
+
+--
 -- Name: record_api_usage(text, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -5301,6 +5482,20 @@ begin
   foreach v_model in array v_models loop
     perform public.refresh_collected_model(v_model);
   end loop;
+end;
+$$;
+
+--
+-- Name: remove_ad_import_key(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.remove_ad_import_key() RETURNS void
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+begin
+  perform public.require_account();
+  delete from public.ad_import_keys where user_id = auth.uid();
 end;
 $$;
 
@@ -6142,6 +6337,15 @@ begin
   return v_code;
 end;
 $$;
+
+--
+-- Name: shared_ad_script_version(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.shared_ad_script_version() RETURNS integer
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$ select 1 $$;
 
 --
 -- Name: listing_favourites; Type: TABLE; Schema: public; Owner: -
@@ -7099,6 +7303,16 @@ CREATE TABLE public.account_languages (
 );
 
 --
+-- Name: ad_import_keys; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ad_import_keys (
+    user_id uuid NOT NULL,
+    key_hash bytea NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+--
 -- Name: alerts; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -7946,6 +8160,24 @@ CREATE VIEW public.saved_search_match_counts WITH (security_invoker='true') AS
   GROUP BY saved_search_id;
 
 --
+-- Name: shared_ads; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.shared_ads (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    received_at timestamp with time zone DEFAULT now() NOT NULL,
+    url text NOT NULL,
+    title text,
+    description text,
+    price text,
+    lines text[] DEFAULT '{}'::text[] NOT NULL,
+    photos text[] DEFAULT '{}'::text[] NOT NULL,
+    script_version integer NOT NULL,
+    dismissed_at timestamp with time zone
+);
+
+--
 -- Name: site_models; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -8080,6 +8312,20 @@ ALTER TABLE public.workflow_starts ALTER COLUMN id ADD GENERATED ALWAYS AS IDENT
 
 ALTER TABLE ONLY public.account_languages
     ADD CONSTRAINT account_languages_pkey PRIMARY KEY (user_id);
+
+--
+-- Name: ad_import_keys ad_import_keys_key_hash_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ad_import_keys
+    ADD CONSTRAINT ad_import_keys_key_hash_key UNIQUE (key_hash);
+
+--
+-- Name: ad_import_keys ad_import_keys_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ad_import_keys
+    ADD CONSTRAINT ad_import_keys_pkey PRIMARY KEY (user_id);
 
 --
 -- Name: alerts alerts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
@@ -8339,6 +8585,13 @@ ALTER TABLE ONLY public.safety_gate_state
 
 ALTER TABLE ONLY public.saved_searches
     ADD CONSTRAINT saved_searches_pkey PRIMARY KEY (id);
+
+--
+-- Name: shared_ads shared_ads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.shared_ads
+    ADD CONSTRAINT shared_ads_pkey PRIMARY KEY (id);
 
 --
 -- Name: site_models site_models_pkey; Type: CONSTRAINT; Schema: public; Owner: -
@@ -8617,6 +8870,12 @@ CREATE INDEX saved_searches_motorcycle_idx ON public.saved_searches USING btree 
 CREATE INDEX saved_searches_user_idx ON public.saved_searches USING btree (user_id);
 
 --
+-- Name: shared_ads_user; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX shared_ads_user ON public.shared_ads USING btree (user_id, received_at);
+
+--
 -- Name: user_home_place_key_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -8742,6 +9001,13 @@ CREATE TRIGGER saved_searches_single_model BEFORE INSERT OR UPDATE OF motorcycle
 
 ALTER TABLE ONLY public.account_languages
     ADD CONSTRAINT account_languages_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+--
+-- Name: ad_import_keys ad_import_keys_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ad_import_keys
+    ADD CONSTRAINT ad_import_keys_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 --
 -- Name: alerts alerts_listing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
@@ -9003,6 +9269,13 @@ ALTER TABLE ONLY public.saved_searches
     ADD CONSTRAINT saved_searches_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 --
+-- Name: shared_ads shared_ads_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.shared_ads
+    ADD CONSTRAINT shared_ads_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+--
 -- Name: user_home user_home_place_key_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -9215,6 +9488,12 @@ CREATE POLICY "account users read runs" ON public.collector_runs FOR SELECT TO a
 ALTER TABLE public.account_languages ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: ad_import_keys; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.ad_import_keys ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: alerts; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -9413,6 +9692,12 @@ ALTER TABLE public.safety_gate_state ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.saved_searches ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: shared_ads; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.shared_ads ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: site_models; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -9500,6 +9785,14 @@ GRANT ALL ON FUNCTION public.accept_favourite_share(p_code text) TO service_role
 
 REVOKE ALL ON FUNCTION public.account_quiet_at(p_user uuid, p_at timestamp with time zone) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.account_quiet_at(p_user uuid, p_at timestamp with time zone) TO service_role;
+
+--
+-- Name: FUNCTION ad_import_key_created_at(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.ad_import_key_created_at() FROM PUBLIC;
+GRANT ALL ON FUNCTION public.ad_import_key_created_at() TO service_role;
+GRANT ALL ON FUNCTION public.ad_import_key_created_at() TO authenticated;
 
 --
 -- Name: FUNCTION ad_link_code(p_url text); Type: ACL; Schema: public; Owner: -
@@ -9757,6 +10050,14 @@ REVOKE ALL ON FUNCTION public.cosmetic_damage(p_description text) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.cosmetic_damage(p_description text) TO service_role;
 
 --
+-- Name: FUNCTION create_ad_import_key(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.create_ad_import_key() FROM PUBLIC;
+GRANT ALL ON FUNCTION public.create_ad_import_key() TO service_role;
+GRANT ALL ON FUNCTION public.create_ad_import_key() TO authenticated;
+
+--
 -- Name: FUNCTION create_invite(p_note text); Type: ACL; Schema: public; Owner: -
 --
 
@@ -9824,6 +10125,14 @@ GRANT ALL ON FUNCTION public.dismiss_alert(p_alert uuid) TO authenticated;
 REVOKE ALL ON FUNCTION public.dismiss_read_alerts() FROM PUBLIC;
 GRANT ALL ON FUNCTION public.dismiss_read_alerts() TO service_role;
 GRANT ALL ON FUNCTION public.dismiss_read_alerts() TO authenticated;
+
+--
+-- Name: FUNCTION dismiss_shared_ad(p_id uuid); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.dismiss_shared_ad(p_id uuid) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.dismiss_shared_ad(p_id uuid) TO service_role;
+GRANT ALL ON FUNCTION public.dismiss_shared_ad(p_id uuid) TO authenticated;
 
 --
 -- Name: FUNCTION dispatch_collection(p_now timestamp with time zone); Type: ACL; Schema: public; Owner: -
@@ -10435,6 +10744,14 @@ GRANT ALL ON FUNCTION public.my_photo_marks(p_listing uuid) TO authenticated;
 GRANT ALL ON FUNCTION public.my_photo_marks(p_listing uuid) TO service_role;
 
 --
+-- Name: FUNCTION my_shared_ads(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.my_shared_ads() FROM PUBLIC;
+GRANT ALL ON FUNCTION public.my_shared_ads() TO service_role;
+GRANT ALL ON FUNCTION public.my_shared_ads() TO authenticated;
+
+--
 -- Name: FUNCTION name_key(p_name text); Type: ACL; Schema: public; Owner: -
 --
 
@@ -10708,6 +11025,15 @@ GRANT ALL ON FUNCTION public.recalls(b public.owned_bikes) TO authenticated;
 GRANT ALL ON FUNCTION public.recalls(b public.owned_bikes) TO service_role;
 
 --
+-- Name: FUNCTION receive_shared_ad(p_key text, p_ad jsonb); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.receive_shared_ad(p_key text, p_ad jsonb) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.receive_shared_ad(p_key text, p_ad jsonb) TO service_role;
+GRANT ALL ON FUNCTION public.receive_shared_ad(p_key text, p_ad jsonb) TO anon;
+GRANT ALL ON FUNCTION public.receive_shared_ad(p_key text, p_ad jsonb) TO authenticated;
+
+--
 -- Name: FUNCTION record_api_usage(p_service text, p_requests integer); Type: ACL; Schema: public; Owner: -
 --
 
@@ -10794,6 +11120,14 @@ GRANT ALL ON FUNCTION public.rematch_listings(p_source text, p_matches jsonb) TO
 REVOKE ALL ON FUNCTION public.remove_account(p_user uuid) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.remove_account(p_user uuid) TO authenticated;
 GRANT ALL ON FUNCTION public.remove_account(p_user uuid) TO service_role;
+
+--
+-- Name: FUNCTION remove_ad_import_key(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.remove_ad_import_key() FROM PUBLIC;
+GRANT ALL ON FUNCTION public.remove_ad_import_key() TO service_role;
+GRANT ALL ON FUNCTION public.remove_ad_import_key() TO authenticated;
 
 --
 -- Name: FUNCTION request_ad_check(p_url text, p_motorcycle_id uuid, p_year integer, p_mileage integer); Type: ACL; Schema: public; Owner: -
@@ -10977,6 +11311,13 @@ GRANT ALL ON FUNCTION public.set_search_keys(p_source text, p_keys jsonb) TO ser
 REVOKE ALL ON FUNCTION public.share_favourites() FROM PUBLIC;
 GRANT ALL ON FUNCTION public.share_favourites() TO authenticated;
 GRANT ALL ON FUNCTION public.share_favourites() TO service_role;
+
+--
+-- Name: FUNCTION shared_ad_script_version(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.shared_ad_script_version() FROM PUBLIC;
+GRANT ALL ON FUNCTION public.shared_ad_script_version() TO service_role;
 
 --
 -- Name: TABLE listing_favourites; Type: ACL; Schema: public; Owner: -
@@ -11200,6 +11541,14 @@ GRANT ALL ON FUNCTION public.year_score(p_year integer, p_reference_year integer
 
 GRANT ALL ON TABLE public.account_languages TO service_role;
 GRANT SELECT,INSERT,UPDATE ON TABLE public.account_languages TO authenticated;
+
+--
+-- Name: TABLE ad_import_keys; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT SELECT ON TABLE public.ad_import_keys TO anon;
+GRANT SELECT ON TABLE public.ad_import_keys TO authenticated;
+GRANT ALL ON TABLE public.ad_import_keys TO service_role;
 
 --
 -- Name: TABLE alerts; Type: ACL; Schema: public; Owner: -
@@ -11489,6 +11838,14 @@ GRANT ALL ON TABLE public.saved_search_matches TO service_role;
 
 GRANT SELECT ON TABLE public.saved_search_match_counts TO authenticated;
 GRANT ALL ON TABLE public.saved_search_match_counts TO service_role;
+
+--
+-- Name: TABLE shared_ads; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT SELECT ON TABLE public.shared_ads TO anon;
+GRANT SELECT ON TABLE public.shared_ads TO authenticated;
+GRANT ALL ON TABLE public.shared_ads TO service_role;
 
 --
 -- Name: TABLE site_models; Type: ACL; Schema: public; Owner: -

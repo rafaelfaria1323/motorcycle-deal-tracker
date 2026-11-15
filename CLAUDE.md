@@ -464,7 +464,7 @@ invites; written by the collector on each run).
   title and Limpar/Aplicar fixed while the choices scroll.
   Switching tabs uses `context.go`; full pages outside the shell
   (`/models`, `/market`, `/worth`, `/import`, `/check-ad` (`?link=`), `/compare?ids=a,b,c`,
-  `/summary`, `/my-bike`, `/dealer?name=…`, `/shared-favourites?owner=…`)
+  `/summary`, `/my-bike`, `/ad-shortcut`, `/dealer?name=…`, `/shared-favourites?owner=…`)
   and an ad (`/deals/<id>`, from anywhere) are pushed, so back returns
   where the person was; pushed pages show their own address
   (`GoRouter.optionURLReflectsImperativeAPIs`, set in `main.dart`). The
@@ -1183,6 +1183,20 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   `typed_ad_history.dart`) date it and give its first price, for the
   seller's urgency and the offer. The
   message to a private seller also asks about a reservation of ownership.
+  The iPhone shortcut (N.110, Mais › "Atalho do iPhone", `/ad-shortcut`,
+  `AdShortcutPage`, signed-in accounts): a personal key
+  (`create_ad_import_key`, `ad_import_keys`: its sha256 only; shown once,
+  inside `sharedAdScript`, `shortcut_script.dart`, with the address and
+  publishable key from `core/config/supabase_config.dart`); Safari's
+  share sheet runs the script on the page it shows and posts to
+  `receive_shared_ad(p_key, p_ad)` (anon; `shared_ads`, RLS, no API
+  access: https only, phone numbers stripped, 20 an hour / 100 a day /
+  10 waiting, 7 days; the reply's `message` is the notification, and
+  says when `shared_ad_script_version()`, = `sharedAdScriptVersion`, is
+  newer); "Avaliar um anúncio" lists `my_shared_ads` (`SharedAdsInbox`),
+  "Usar" fills the typed form (`sharedAdFacts`, `shared_ad_text.dart`)
+  and `dismiss_shared_ad`s it. Android: a shared non-OLX/Standvirtual
+  link switches to the typed form.
   No ad page is ever read. Mais › "Comprar no estrangeiro"
   (`/import`, the same page with `importing`): the same value, then the
   import calculator above it; also on every listing with a price, in
