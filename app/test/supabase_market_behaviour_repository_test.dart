@@ -487,6 +487,17 @@ void main() {
       title: '  ',
     );
     expect(blank.containsKey('p_variant'), isFalse);
+    expect(blank.containsKey('p_origin'), isFalse);
+    // B.6: an imported bike goes as the origin.
+    final imported = typedAdScoreParams(
+      'mt07',
+      year: 2021,
+      mileage: 1,
+      price: 7000,
+      privateSeller: true,
+      condition: const BikeCondition(imported: true),
+    );
+    expect(imported['p_origin'], 'imported');
   });
 
   test('typedAdScoreFrom reads a row without scores', () {

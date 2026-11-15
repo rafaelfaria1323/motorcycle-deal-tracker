@@ -1006,6 +1006,7 @@ class _BikeValuePageState extends State<BikeValuePage> {
           BikeConditionFields(
             condition: _condition,
             onChanged: (condition) => setState(() => _condition = condition),
+            askImported: widget.checkingAd && _otherSite,
           ),
           const SizedBox(height: 12),
           FilledButton.icon(

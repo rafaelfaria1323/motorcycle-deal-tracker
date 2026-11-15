@@ -120,6 +120,13 @@ void main() {
       expect(listing.marketPosition, closeTo(-5.714, 0.001));
       expect(listing.registrations, isNull);
       expect(listing.serviceBook, isNull);
+      expect(listing.origin, isNull);
+    });
+
+    test('an imported bike says so, without changing the estimate', () {
+      final listing = _typed(condition: const BikeCondition(imported: true));
+      expect(listing.origin, 'imported');
+      expect(listing.scoreBreakdown!['market_price'], 7000);
     });
 
     test('a one-word name keeps it whole', () {

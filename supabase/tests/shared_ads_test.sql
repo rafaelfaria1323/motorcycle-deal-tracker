@@ -106,12 +106,30 @@ begin
   v_result := public.receive_shared_ad((select key from keys where owner = 'a2'),
     '{"version": 4, "url": "https://x.pt/body"}');
   assert v_result ->> 'message' like 'Sent%', 'the body''s key: ' || (v_result ->> 'message');
+  -- B.6: only the photo hosts the sites use; the others are counted.
+  v_result := public.receive_shared_ad((select key from keys where owner = 'a2'),
+    jsonb_build_object('version', 4, 'url', 'https://x.pt/hosts',
+      'photos', jsonb_build_array('https://evil.example/x.jpg',
+                                  'https://img.custojusto.pt/y.jpg',
+                                  'https://fbcdn.net.evil.example/z.jpg',
+                                  'https://ireland.apollo.olxcdn.com/v1/files/w')));
+  assert v_result ->> 'message'
+         = 'Sent to Deal Tracker: ad (2 photos). Photos from other sites left out: 2.',
+    'other hosts left out: ' || (v_result ->> 'message');
   begin
     perform public.receive_shared_ad(null, '{"url": "https://x.pt/"}');
     assert false, 'an unknown header key is refused';
   exception when sqlstate '28000' then null;
   end;
   perform set_config('request.headers', '', true);
+end $$;
+
+reset role;
+do $$
+begin
+  assert (select s.photos from public.shared_ads s where s.url = 'https://x.pt/hosts')
+         = array['https://img.custojusto.pt/y.jpg', 'https://ireland.apollo.olxcdn.com/v1/files/w'],
+    'the allowed photos kept';
 end $$;
 
 -- Each account sees its own ads, phone numbers gone.

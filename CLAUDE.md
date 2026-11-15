@@ -1184,7 +1184,7 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   `CatalogRepository.getModels` for `NewPriceCard`), never stored; its
   Deal Score and Risk Score (N.107, `typed_ad_score`: the stored ads'
   rules on the typed facts, the optional pasted text and title
-  (`p_variant`, B.1), no seller
+  (`p_variant`, B.1), "Mota importada" as `p_origin` (B.6), no seller
   slice; `scoreTypedAd`, `ListingScoreTiles`, `ScoreExplanationCard`),
   valued and scored at once even while its year is still collected; its
   optional time on sale ("5 semanas", "há 2 meses", "1 year ago"; B.3) and price before a drop (N.109,
@@ -1201,7 +1201,10 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   share sheet runs the script on the page it shows and posts to
   `receive_shared_ad(p_key, p_ad)` (anon; `shared_ads`, RLS, no API
   access: https only, phone numbers stripped, 20 an hour / 100 a day /
-  10 waiting, 7 days; the address stored and compared without tracking,
+  10 waiting, 7 days, counted under an advisory lock on the account;
+  photos only from Facebook's, CustoJusto's and OLX's hosts,
+  `shared_photo_host_allowed`, the others counted in the reply, B.6;
+  the address stored and compared without tracking,
   `shared_ad_url`, B.2; the reply's `message` is the notification, and
   says when `shared_ad_script_version()`, = `sharedAdScriptVersion`, is
   newer); "Avaliar um anúncio" lists `my_shared_ads` (`SharedAdsInbox`),

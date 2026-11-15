@@ -5763,6 +5763,14 @@
   "@bikeValueWarranty": {
     "description": "Interface text in bike_value_text / bike_value_page."
   },
+  "bikeValueImported": "Mota importada",
+  "@bikeValueImported": {
+    "description": "Switch in Avaliar um anúncio for an ad from another site (B.6)."
+  },
+  "bikeValueImportedHint": "Conta como importada no Risk Score; o valor não muda.",
+  "@bikeValueImportedHint": {
+    "description": "Under the imported switch (B.6)."
+  },
   "bikeValueConditionLine": "Ajustado ao estado: {reasons} (total {total})",
   "@bikeValueConditionLine": {
     "description": "Interface text in bike_value_text / bike_value_page.",
@@ -8140,7 +8148,7 @@
   "@sharedAdsTitle": {
     "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
   },
-  "sharedAdsIntro": "Anúncios enviados pelo atalho do iPhone. «Usar» preenche o formulário com eles.",
+  "sharedAdsIntro": "Anúncios enviados pelo atalho do iPhone. «Usar» preenche o formulário com eles. Só ficam as fotos do Facebook, do CustoJusto e do OLX.",
   "@sharedAdsIntro": {
     "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
   },

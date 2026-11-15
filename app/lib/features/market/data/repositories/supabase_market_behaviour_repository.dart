@@ -557,6 +557,7 @@ Map<String, dynamic> typedAdScoreParams(
     final text? when text.isNotEmpty => text,
     _ => null,
   },
+  if (condition.imported) 'p_origin': 'imported',
 };
 
 /// A row of `typed_ad_score`.
