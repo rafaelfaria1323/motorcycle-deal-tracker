@@ -4852,6 +4852,8 @@ begin
       else 'Esta página não tem um endereço para enviar. Partilhe o anúncio a partir do Safari.' end
       using errcode = '22023';
   end if;
+  -- Without tracking (B.2), so the same ad sent again is the same address.
+  v_url := public.shared_ad_url(v_url);
 
   -- Older than 7 days: gone, read or not (the day's count only needs one).
   delete from public.shared_ads s
@@ -6382,6 +6384,34 @@ CREATE FUNCTION public.shared_ad_script_version() RETURNS integer
     LANGUAGE sql IMMUTABLE
     SET search_path TO ''
     AS $$ select 4 $$;
+
+--
+-- Name: shared_ad_url(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.shared_ad_url(p_url text) RETURNS text
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $_$
+  with parts as (
+    select m[1] as origin, coalesce(m[2], '') as path, m[3] as query
+    from regexp_match(btrim(p_url), '^(https://[^/?#]+)([^?#]*)(?:\?([^#]*))?', 'i') m
+  ),
+  kept as (
+    select p.origin, p.path,
+           case when lower(p.origin) ~ '^https://([a-z0-9-]+\.)*(facebook\.com|custojusto\.pt)(:\d+)?$'
+                then null
+                else (select string_agg(q.param, '&' order by q.n)
+                      from unnest(string_to_array(p.query, '&')) with ordinality q (param, n)
+                      where q.param <> ''
+                        and lower(split_part(q.param, '=', 1))
+                            !~ '^(utm_.*|fbclid|gclid|dclid|msclkid|igshid|mibextid|rdid|si|share_url|ref|ref_src|ref_url|referral.*|tracking.*|__.*)$')
+           end as query
+    from parts p
+  )
+  select lower(k.origin) || k.path || coalesce('?' || nullif(k.query, ''), '')
+  from kept k
+$_$;
 
 --
 -- Name: listing_favourites; Type: TABLE; Schema: public; Owner: -
@@ -11363,6 +11393,13 @@ GRANT ALL ON FUNCTION public.share_favourites() TO service_role;
 
 REVOKE ALL ON FUNCTION public.shared_ad_script_version() FROM PUBLIC;
 GRANT ALL ON FUNCTION public.shared_ad_script_version() TO service_role;
+
+--
+-- Name: FUNCTION shared_ad_url(p_url text); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.shared_ad_url(p_url text) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.shared_ad_url(p_url text) TO service_role;
 
 --
 -- Name: TABLE listing_favourites; Type: ACL; Schema: public; Owner: -

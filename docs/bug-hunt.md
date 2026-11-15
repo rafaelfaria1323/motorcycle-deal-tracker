@@ -100,7 +100,7 @@ What was checked and found right (no finding):
 
 ## 4. iPhone shortcut and shared ads (N.110)
 
-1. **P3 [ux] The same ad shared twice with different tracking waits
+1. ✅ (B.2) **P3 [ux] The same ad shared twice with different tracking waits
    twice.** `receive_shared_ad` compares the exact address for "already
    waiting" (`20261115180000_shared_ad_page_text.sql:87`). Facebook and
    CustoJusto add `?ref=…`, `?tracking=…` or a fragment, so the second
@@ -129,7 +129,7 @@ What was checked and found right (no finding):
 ## Order
 
 1. ✅ B.1: typed ad's title read for signals and equipment (1.1).
-2. B.2: shared ad addresses without tracking (4.1).
+2. ✅ B.2: shared ad addresses without tracking (4.1).
 3. B.3: time on sale in the sites' words (1.3).
 4. B.4: similar groups for models added later (3.1).
 5. B.5: the index for `listing_for_ad` (2.1) and the same count for
