@@ -246,7 +246,7 @@ class const _MarketBox({required final Listing listing})
 /// The Deal Score and the Risk Score as two tiles, each with its figure
 /// and its band on the band's colour; one above the other where two
 /// don't fit.
-class const ListingScoreTiles({required final Listing listing})
+class const ListingScoreTiles({super.key, required final Listing listing})
     extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
