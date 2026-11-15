@@ -23,14 +23,36 @@ void main() {
       expect(typedAdDaysValue('4d'), (4,));
     });
 
+    test('the sites\' own words (B.3)', () {
+      expect(typedAdDaysValue('há 5 semanas'), (35,));
+      expect(typedAdDaysValue('Há 2 meses'), (60,));
+      expect(typedAdDaysValue('5 weeks ago'), (35,));
+      expect(typedAdDaysValue('2 dias atrás'), (2,));
+      expect(typedAdDaysValue('Publicado há 3 dias'), (3,));
+      expect(typedAdDaysValue('Listed 2 weeks ago'), (14,));
+      expect(typedAdDaysValue('há uma semana'), (7,));
+      expect(typedAdDaysValue('a week ago'), (7,));
+      expect(typedAdDaysValue('um mês'), (30,));
+      expect(typedAdDaysValue('1 ano'), (365,));
+      expect(typedAdDaysValue('2 anos'), (730,));
+      expect(typedAdDaysValue('a year ago'), (365,));
+      expect(typedAdDaysValue('há 3 horas'), (0,));
+      expect(typedAdDaysValue('an hour ago'), (0,));
+      expect(typedAdDaysValue('há 20 minutos'), (0,));
+      expect(typedAdDaysValue('10 min'), (0,));
+    });
+
     test('anything else, or over ten years, is refused', () {
       expect(typedAdDaysValue('há muito'), isNull);
       expect(typedAdDaysValue('-3'), isNull);
-      expect(typedAdDaysValue('2 anos'), isNull);
       expect(typedAdDaysValue('3,5'), isNull);
       expect(typedAdDaysValue('3650'), (3650,));
       expect(typedAdDaysValue('3651'), isNull);
       expect(typedAdDaysValue('122 meses'), isNull);
+      expect(typedAdDaysValue('11 anos'), isNull);
+      expect(typedAdDaysValue('a'), isNull);
+      expect(typedAdDaysValue('há'), isNull);
+      expect(typedAdDaysValue('5 semanas depois'), isNull);
     });
   });
 

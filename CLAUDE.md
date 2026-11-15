@@ -1185,7 +1185,7 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   (`p_variant`, B.1), no seller
   slice; `scoreTypedAd`, `ListingScoreTiles`, `ScoreExplanationCard`),
   valued and scored at once even while its year is still collected; its
-  optional time on sale ("5 semanas") and price before a drop (N.109,
+  optional time on sale ("5 semanas", "há 2 meses", "1 year ago"; B.3) and price before a drop (N.109,
   `typed_ad_history.dart`) date it and give its first price, for the
   seller's urgency and the offer. The
   message to a private seller also asks about a reservation of ownership.
