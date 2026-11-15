@@ -23,10 +23,7 @@ class SupabaseSharedAdsRepository implements SharedAdsRepository {
   @override
   Future<List<SharedAd>> waiting() async {
     final rows = await _client.rpc<List<dynamic>>('my_shared_ads');
-    return [
-      for (final row in rows)
-        if (sharedAdOf(row as Map<String, dynamic>) case final ad?) ad,
-    ];
+    return [for (final row in rows) ?sharedAdOf(row as Map<String, dynamic>)];
   }
 
   @override
