@@ -266,7 +266,7 @@ Screen names below use the Portuguese labels; English provides the same screens.
   the value, the offer plan with the cheaper stored ads and the
   message to the seller; on the iPhone, the shortcut made in Mais ›
   "Atalho do iPhone" sends the ad Safari shows, which waits in
-  "Enviados do iPhone" and fills the form with "Usar"), "Comprar no
+  "Enviados do iPhone" and fills the form with "Usar", page text, earlier price and condition included; gone within 7 days), "Comprar no
   estrangeiro" (the same form for a bike seen in Spain, France or
   Germany: its price there plus vehicle tax (ISV), legalisation and
   transport, against its value here), "A minha mota" (the bikes you

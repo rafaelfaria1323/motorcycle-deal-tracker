@@ -1,21 +1,32 @@
 /// "Avaliar um anúncio" (N.110): what an ad the iPhone shortcut sent says,
 /// read from the lines the script kept (price, year, km, how long it has
-/// been up), its title and its description, to fill the typed ad's form.
+/// been up), the page's own text (script 3, N.110c), its title and its
+/// description, to fill the typed ad's form: price and the price before
+/// a drop, year, km, days on sale, the description and what it says of
+/// owners, service book, warranty, falls and accidents.
 /// The rules live here, not in the database, so they can change with the
 /// app; nothing read here is ever fetched from the site.
 library;
 
 import '../../listings/domain/entities/listing.dart' show minRealPrice;
+import '../domain/entities/bike_condition.dart';
 import '../domain/entities/shared_ad.dart';
 import 'typed_ad_history.dart' show maxTypedAdDays;
 
 /// What the form takes from a shared ad; each fact may be unknown.
 typedef SharedAdFacts = ({
   double? price,
+
+  /// The price before a drop: struck through on the page, or a second,
+  /// higher price on the price's line.
+  double? initialPrice,
   int? year,
   int? mileage,
   int? daysListed,
   String? description,
+
+  /// What the text says of the bike; unknown where it says nothing.
+  BikeCondition condition,
 
   /// The title's words (lower case), for the model's guess.
   List<String> words,
@@ -42,12 +53,12 @@ final _yearWord = RegExp(
   caseSensitive: false,
 );
 final _yearLabel = RegExp(
-  r'\b(ano|year|registo|matr[ií]cula|modelo)\b',
+  r'\b(ano|year|registo|registration|matr[ií]cula|modelo|fabrico)\b',
   caseSensitive: false,
 );
 
 final _mileageLabelled = RegExp(
-  '(?:conduzid[oa]|driven|quil[oó]metros|quilometragem|mileage|kms?)'
+  '(?:conduzid[oa]|condu[cç][aã]o|driven|quil[oó]metros|quilometragem|mileage|kms?)'
   '\\D{0,5}?($_number)(?!\\s*km/h)',
   caseSensitive: false,
 );
@@ -89,6 +100,26 @@ double? _priceIn(String text, {bool bare = false}) {
   return value >= minRealPrice && value <= _maxPrice ? value.toDouble() : null;
 }
 
+/// The page's own lines (script 3), empty ones and "Ver mais" left out.
+List<String> _pageLines(SharedAd ad) => [
+  for (final line in (ad.pageText ?? '').split('\n'))
+    if (line.trim() case final text
+        when text.isNotEmpty &&
+            !RegExp(
+              r'^(ver|mostrar|ler|see|show) (mais|more)$',
+              caseSensitive: false,
+            ).hasMatch(text))
+      text,
+];
+
+/// The script's lines, then the page's short ones not among them (a
+/// long one is the description, read apart).
+List<String> _shortLines(SharedAd ad) => [
+  ...ad.lines,
+  for (final line in _pageLines(ad))
+    if (line.length <= 80 && !ad.lines.contains(line)) line,
+];
+
 /// The price the page gave in its data, else the first line with one.
 double? sharedAdPrice(SharedAd ad) {
   if (ad.price case final price?) {
@@ -100,8 +131,28 @@ double? sharedAdPrice(SharedAd ad) {
         );
     if (value != null) return value;
   }
-  for (final line in ad.lines) {
+  for (final line in _shortLines(ad)) {
     if (_priceIn(line) case final value?) return value;
+  }
+  return null;
+}
+
+/// The price before a drop: the struck-through one, else a second price
+/// on the price's line ("6 900 € 7 400 €"); only above [price].
+double? sharedAdInitialPrice(SharedAd ad, double? price) {
+  if (price == null) return null;
+  double? above(double? value) => value != null && value > price ? value : null;
+  if (ad.oldPrice case final old?) {
+    if (above(_priceIn(old)) case final value?) return value;
+  }
+  for (final line in _shortLines(ad)) {
+    final prices = [
+      for (final match in _priceAfter.allMatches(line))
+        ?_priceIn(match.group(0)!),
+    ];
+    if (prices.length >= 2 && prices.first == price) {
+      return above(prices[1]);
+    }
   }
   return null;
 }
@@ -120,7 +171,7 @@ int? sharedAdYear(SharedAd ad, {required DateTime now}) {
   if (ad.title case final title?) {
     if (yearIn(title) case final year?) return year;
   }
-  for (final line in ad.lines) {
+  for (final line in _shortLines(ad)) {
     if (!_yearLabel.hasMatch(line)) continue;
     if (yearIn(line) case final year?) return year;
   }
@@ -131,17 +182,18 @@ int? sharedAdYear(SharedAd ad, {required DateTime now}) {
 /// else a line that is only that ("25 000 km"), else the first km in a
 /// line or the title. A distance from the person ("a 5 km") is no mileage.
 int? sharedAdMileage(SharedAd ad) {
-  for (final line in ad.lines) {
+  final lines = _shortLines(ad);
+  for (final line in lines) {
     if (_mileageLabelled.firstMatch(line) case final match?) {
       return _digits(match.group(1)!);
     }
   }
-  for (final line in ad.lines) {
+  for (final line in lines) {
     if (_mileageAlone.firstMatch(line) case final match?) {
       return _digits(match.group(1)!);
     }
   }
-  for (final text in [...ad.lines, ?ad.title]) {
+  for (final text in [...lines, ?ad.title]) {
     for (final match in _mileageAnywhere.allMatches(text)) {
       if (_distanceBefore.hasMatch(text.substring(0, match.start))) continue;
       return _digits(match.group(1)!);
@@ -164,7 +216,7 @@ int _unitDays(String unit) => switch (unit.toLowerCase()) {
 /// semanas", "Listed 3 weeks ago", "ontem"; a month is 30 days); null
 /// when none does or it is over [maxTypedAdDays].
 int? sharedAdDaysListed(SharedAd ad) {
-  for (final line in ad.lines) {
+  for (final line in _shortLines(ad)) {
     final match =
         _agoPortuguese.firstMatch(line) ?? _agoEnglish.firstMatch(line);
     if (match != null) {
@@ -177,6 +229,98 @@ int? sharedAdDaysListed(SharedAd ad) {
   return null;
 }
 
+/// The description: the page's longer copy of the share data's (which
+/// sites cut short), else the share data's, else the page's long lines.
+String? sharedAdDescription(SharedAd ad) {
+  final shared = ad.description?.trim() ?? '';
+  final long = [
+    for (final line in _pageLines(ad))
+      if (line.length > 80) line,
+  ];
+  if (shared.isNotEmpty) {
+    final start = shared
+        .substring(0, shared.length < 40 ? shared.length : 40)
+        .replaceFirst(RegExp(r'(\.{3}|…)$'), '');
+    for (final line in long) {
+      if (line.length > shared.length && line.startsWith(start)) return line;
+    }
+    return shared;
+  }
+  return long.isEmpty ? null : long.join('\n');
+}
+
+/// A denial just before a match: a word up to 20 characters back in the
+/// same sentence ("nunca teve acidentes"), or English "no" right before
+/// it (Portuguese "no" is "in the").
+final _denial = RegExp(
+  r'((?<!\w)(sem|nunca|nenhum|nenhuma|não|nao|jamais|livre de|zero|never|without|not)(?!\w)[^.!?\n]{0,20}|(?<!\w)no\s+)$',
+  caseSensitive: false,
+);
+
+/// Whether [pattern] is in [text] without a denial just before it ("nunca
+/// caiu", "sem acidentes").
+bool _says(RegExp pattern, String text) => pattern
+    .allMatches(text)
+    .any((match) => !_denial.hasMatch(text.substring(0, match.start)));
+
+// `\b` knows only ASCII letters ("único", "mão"): the patterns use
+// look-arounds for word edges instead.
+final _accident = RegExp(
+  r'(?<!\w)(acidentes?|sinistrad[oa]|sinistros?|accident|crash(ed)?)(?!\w)',
+  caseSensitive: false,
+);
+final _dropped = RegExp(
+  r'(?<!\w)(caiu|queda|quedas|tombo|tombou|deitada ao ch[aã]o|dropped|fell)(?!\w)',
+  caseSensitive: false,
+);
+final _oneOwner = RegExp(
+  r'(?<!\w)((único|unico|primeiro|1\.?º|1\.?ª|um só) (dono|propriet[aá]rio)|1 dono|(1|um|uma) s[oó] dono|1ª m[aã]o|primeira m[aã]o|(first|one|single) owner)(?!\w)',
+  caseSensitive: false,
+);
+final _twoOwners = RegExp(
+  r'(?<!\w)((2|dois) donos|segundo dono|2ª m[aã]o|segunda m[aã]o|(two|2) owners|second owner)(?!\w)',
+  caseSensitive: false,
+);
+final _manyOwners = RegExp(
+  r'(?<!\w)(([3-9]|tr[eê]s|quatro|cinco) donos|terceiro dono|(three|[3-9]) owners)(?!\w)',
+  caseSensitive: false,
+);
+final _noServiceBook = RegExp(
+  r'(?<!\w)(sem (o )?livro|no service (book|history))(?!\w)',
+  caseSensitive: false,
+);
+final _serviceBook = RegExp(
+  r'(?<!\w)(livro de revis[oõ]es|revis[oõ]es (todas |sempre |feitas )?(na marca|em dia|no concession[aá]rio|carimbad)|service (book|history))',
+  caseSensitive: false,
+);
+final _warranty = RegExp(
+  r'(?<!\w)(garantia (de f[aá]brica|da marca|oficial)|em garantia|ainda (tem|com) garantia|factory warranty|under warranty)(?!\w)',
+  caseSensitive: false,
+);
+
+/// What [text] says of the bike: owners, service book, factory warranty,
+/// an accident or a fall (none of them denied).
+BikeCondition sharedAdCondition(String text) => BikeCondition(
+  damage: _says(_accident, text)
+      ? BikeDamage.accident
+      : _says(_dropped, text)
+      ? BikeDamage.dropped
+      : BikeDamage.none,
+  owners: _says(_manyOwners, text)
+      ? BikeOwners.threeOrMore
+      : _says(_twoOwners, text)
+      ? BikeOwners.two
+      : _says(_oneOwner, text)
+      ? BikeOwners.one
+      : BikeOwners.unknown,
+  serviceBook: _noServiceBook.hasMatch(text)
+      ? BikeServiceBook.no
+      : _says(_serviceBook, text)
+      ? BikeServiceBook.yes
+      : BikeServiceBook.unknown,
+  warranty: _says(_warranty, text),
+);
+
 /// The words of [title] (lower case, letters and digits), as a link's.
 List<String> sharedAdWords(String? title) => [
   for (final word in (title ?? '').toLowerCase().split(RegExp('[^a-z0-9]+')))
@@ -184,17 +328,20 @@ List<String> sharedAdWords(String? title) => [
 ];
 
 /// Everything the form takes from [ad].
-SharedAdFacts sharedAdFacts(SharedAd ad, {required DateTime now}) => (
-  price: sharedAdPrice(ad),
-  year: sharedAdYear(ad, now: now),
-  mileage: sharedAdMileage(ad),
-  daysListed: sharedAdDaysListed(ad),
-  description: switch (ad.description?.trim()) {
-    final text? when text.isNotEmpty => text,
-    _ => null,
-  },
-  words: sharedAdWords(ad.title),
-);
+SharedAdFacts sharedAdFacts(SharedAd ad, {required DateTime now}) {
+  final price = sharedAdPrice(ad);
+  final description = sharedAdDescription(ad);
+  return (
+    price: price,
+    initialPrice: sharedAdInitialPrice(ad, price),
+    year: sharedAdYear(ad, now: now),
+    mileage: sharedAdMileage(ad),
+    daysListed: sharedAdDaysListed(ad),
+    description: description,
+    condition: sharedAdCondition([?description, ..._shortLines(ad)].join('\n')),
+    words: sharedAdWords(ad.title),
+  );
+}
 
 /// The site the ad is on ("facebook.com"), for the inbox's line.
 String sharedAdSite(SharedAd ad) =>

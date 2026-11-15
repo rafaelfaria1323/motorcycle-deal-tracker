@@ -862,6 +862,9 @@ invites; written by the collector on each run).
   ago with no session used in 30 days (`auth.sessions`; they own nothing,
   foreign keys cascade). Accounts are never touched; a pruned visitor
   just signs in anonymously again.
+- Shared ads (N.110c): pg_cron job `prune-shared-ads` (`51 3 * * *`) runs
+  `prune_shared_ads()`: deletes the iPhone shortcut's ads dismissed a day
+  ago and every one 7+ days old (dismissing already wiped the content).
 - The app's next-run time (`collection_text.dart`, `collectionHours` and
   the EU summer-time rule) mirrors `collection_due`: change both together.
 - Watch out: `greatest`/`least` ignore nulls.
@@ -1196,8 +1199,12 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   10 waiting, 7 days; the reply's `message` is the notification, and
   says when `shared_ad_script_version()`, = `sharedAdScriptVersion`, is
   newer); "Avaliar um anúncio" lists `my_shared_ads` (`SharedAdsInbox`),
-  "Usar" fills the typed form (`sharedAdFacts`, `shared_ad_text.dart`)
-  and `dismiss_shared_ad`s it. Android: a shared non-OLX/Standvirtual
+  "Usar" fills the typed form (`sharedAdFacts`, `shared_ad_text.dart`:
+  also the description, `old_price` as the price before a drop and the
+  condition answers, `sharedAdCondition`, from script 3's `page_text`,
+  the page's text after "Ver mais" up to the seller, N.110c)
+  and `dismiss_shared_ad`s it (its content wiped at once; the job
+  `prune-shared-ads` deletes the rows). Android: a shared non-OLX/Standvirtual
   link switches to the typed form.
   No ad page is ever read. Mais › "Comprar no estrangeiro"
   (`/import`, the same page with `importing`): the same value, then the

@@ -2,11 +2,15 @@
 /// "Executar JavaScript na página web" step runs on the ad Safari shows,
 /// and where the next step sends what it returns.
 ///
-/// The script reads only that page, as Safari already shows it: the link,
-/// the title and description of its share data, the lines that hold a
-/// price, a year, km or how long the ad has been up (never a line about
-/// the seller: "Membro desde 2015", "Joined in 2015"), and the addresses of
-/// up to 12 large photos. It asks the site for nothing.
+/// The script reads only that page, as Safari already shows it (after
+/// opening the description's "Ver mais"): the link, the title and
+/// description of its share data, the page's lines up to the seller's
+/// part (never a line about the seller: "Membro desde 2015", "Joined in
+/// 2015", or one that looks like a name: "João Silva"; at most 8000
+/// characters), the lines among them that hold a price, a year, km or
+/// how long the ad has been up, a struck-through price (the price before
+/// a drop), and the addresses of up to 12 large photos. It asks the site
+/// for nothing.
 library;
 
 import '../../../core/config/supabase_config.dart';
@@ -14,7 +18,7 @@ import '../../../core/config/supabase_config.dart';
 /// The script's version; keep it equal to the database's
 /// `shared_ad_script_version()`, which tells an older script's shortcut
 /// to copy the new one.
-const sharedAdScriptVersion = 2;
+const sharedAdScriptVersion = 3;
 
 /// The address the shortcut posts to.
 String get sharedAdReceiveUrl => '$supabaseUrl/rest/v1/rpc/receive_shared_ad';
@@ -42,37 +46,64 @@ function meta(name) {
   return e ? (e.getAttribute('content') || '').trim() : '';
 }
 var wanted = /€|\beur\b|\bkms?\b|quil[oó]metr|(^|\D)(19[89]\d|20\d\d)(\D|$)|\bh[aá]\s+(\d+|um|uma)\s|\bago\b|\bontem\b|\byesterday\b/i;
-var seller = /membro|member|joined|aderiu|desde|since|vendedor|seller|perfil|profile|avalia|rating/i;
-var seen = {};
-var lines = [];
-String(document.body ? document.body.innerText : '').split('\n').forEach(function (line) {
-  line = line.trim();
-  if (!line || line.length > 200 || seen[line] || lines.length >= 60) return;
-  if (wanted.test(line) && !seller.test(line)) {
+var seller = /membro|member|joined|aderiu|desde|since|vendedor|seller|perfil|profile|avalia|rating|responde|responds|mensagem|message/i;
+var sellerPart = /^(informa[cç][oõ]es (sobre )?o vendedor|seller information|seller details|sobre o vendedor|about the seller|anunciante|detalhes do vendedor)$/i;
+var nameLike = /^(\p{Lu}[\p{L}'.-]*)(\s+\p{Lu}[\p{L}'.-]*){0,3}$/u;
+function read() {
+  var seen = {};
+  var lines = [];
+  var text = [];
+  var size = 0;
+  var all = String(document.body ? document.body.innerText : '').split('\n');
+  for (var i = 0; i < all.length; i++) {
+    var line = all[i].trim();
+    if (sellerPart.test(line)) break;
+    if (!line || seen[line] || seller.test(line) || nameLike.test(line)) continue;
     seen[line] = true;
-    lines.push(line);
+    if (line.length <= 200 && lines.length < 60 && wanted.test(line)) lines.push(line);
+    if (size < 8000 && line.length <= 3000) {
+      text.push(line);
+      size += line.length + 1;
+    }
   }
-});
-var photos = [];
-function photo(src) {
-  if (src && src.indexOf('https://') === 0 && photos.indexOf(src) < 0 && photos.length < 12) photos.push(src);
+  var oldPrice = '';
+  Array.prototype.some.call(document.querySelectorAll('s, del, strike, [style*="line-through"]'), function (e) {
+    var t = (e.innerText || '').trim();
+    if (/\d/.test(t) && /€|eur/i.test(t) && t.length <= 40) oldPrice = t;
+    return oldPrice !== '';
+  });
+  var photos = [];
+  function photo(src) {
+    if (src && src.indexOf('https://') === 0 && photos.indexOf(src) < 0 && photos.length < 12) photos.push(src);
+  }
+  photo(meta('og:image'));
+  Array.prototype.forEach.call(document.images, function (img) {
+    if (img.naturalWidth >= 300 && img.naturalHeight >= 200) photo(img.currentSrc || img.src);
+  });
+  completion(JSON.stringify({
+    p_key: KEY,
+    p_ad: {
+      version: __VERSION__,
+      url: location.href,
+      title: meta('og:title') || document.title,
+      description: meta('og:description') || meta('description'),
+      price: meta('product:price:amount') || meta('og:price:amount'),
+      old_price: oldPrice,
+      lines: lines,
+      text: text.join('\n'),
+      photos: photos
+    }
+  }));
 }
-photo(meta('og:image'));
-Array.prototype.forEach.call(document.images, function (img) {
-  if (img.naturalWidth >= 300 && img.naturalHeight >= 200) photo(img.currentSrc || img.src);
-});
-completion(JSON.stringify({
-  p_key: KEY,
-  p_ad: {
-    version: __VERSION__,
-    url: location.href,
-    title: meta('og:title') || document.title,
-    description: meta('og:description') || meta('description'),
-    price: meta('product:price:amount') || meta('og:price:amount'),
-    lines: lines,
-    photos: photos
+var more = 0;
+Array.prototype.forEach.call(document.querySelectorAll('[role="button"], button, span'), function (e) {
+  var t = (e.innerText || '').trim();
+  if (more < 3 && !e.closest('a[href]') && /^(ver mais|mostrar mais|see more|show more|ler mais)$/i.test(t)) {
+    e.click();
+    more++;
   }
-}));
+});
+setTimeout(read, more ? 800 : 0);
 ''';
 
 /// The script with the account's [key] in it (64 hex digits, as

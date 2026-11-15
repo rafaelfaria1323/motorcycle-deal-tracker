@@ -1538,7 +1538,8 @@ CREATE FUNCTION public.dismiss_shared_ad(p_id uuid) RETURNS void
     AS $$
 begin
   update public.shared_ads
-  set dismissed_at = now()
+  set dismissed_at = now(), title = null, description = null, price = null,
+      old_price = null, page_text = null, lines = '{}', photos = '{}'
   where id = p_id and user_id = auth.uid() and dismissed_at is null;
 end;
 $$;
@@ -3810,12 +3811,12 @@ $$;
 -- Name: my_shared_ads(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.my_shared_ads() RETURNS TABLE(id uuid, received_at timestamp with time zone, url text, title text, description text, price text, lines text[], photos text[], script_version integer)
+CREATE FUNCTION public.my_shared_ads() RETURNS TABLE(id uuid, received_at timestamp with time zone, url text, title text, description text, price text, old_price text, page_text text, lines text[], photos text[], script_version integer)
     LANGUAGE sql STABLE SECURITY DEFINER
     SET search_path TO ''
     AS $$
-  select s.id, s.received_at, s.url, s.title, s.description, s.price, s.lines,
-         s.photos, s.script_version
+  select s.id, s.received_at, s.url, s.title, s.description, s.price, s.old_price,
+         s.page_text, s.lines, s.photos, s.script_version
   from public.shared_ads s
   where s.user_id = auth.uid()
     and s.dismissed_at is null
@@ -4399,6 +4400,25 @@ end;
 $$;
 
 --
+-- Name: prune_shared_ads(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.prune_shared_ads() RETURNS integer
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+declare
+  v_count integer;
+begin
+  delete from public.shared_ads s
+  where s.received_at < now() - interval '7 days'
+     or (s.dismissed_at is not null and s.received_at < now() - interval '1 day');
+  get diagnostics v_count = row_count;
+  return v_count;
+end;
+$$;
+
+--
 -- Name: prune_unfollowed_listings(bigint, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -4804,6 +4824,7 @@ declare
   v_version integer;
   v_lines text[];
   v_photos text[];
+  v_text text;
   v_id uuid;
   v_message text;
 begin
@@ -4882,8 +4903,14 @@ begin
     order by d.n
     limit 12);
 
+  -- The page's own text (script 3): its lines up to the seller's part,
+  -- without the lines about the seller, read by the app's rules.
+  v_text := nullif(left(btrim(public.without_phone_numbers(
+    case when jsonb_typeof(p_ad -> 'text') = 'string' then p_ad ->> 'text' end)), 8000), '');
+
   insert into public.shared_ads
-    (user_id, url, title, description, price, lines, photos, script_version)
+    (user_id, url, title, description, price, old_price, page_text, lines, photos,
+     script_version)
   values (
     v_user, v_url, v_title,
     nullif(left(btrim(public.without_phone_numbers(
@@ -4891,7 +4918,9 @@ begin
            then p_ad ->> 'description' end)), 5000), ''),
     nullif(left(btrim(case when jsonb_typeof(p_ad -> 'price') in ('string', 'number')
                            then p_ad ->> 'price' end), 40), ''),
-    v_lines, v_photos, v_version)
+    nullif(left(btrim(case when jsonb_typeof(p_ad -> 'old_price') in ('string', 'number')
+                           then p_ad ->> 'old_price' end), 40), ''),
+    v_text, v_lines, v_photos, v_version)
   returning id into v_id;
 
   v_message := case when v_en
@@ -6352,7 +6381,7 @@ $$;
 CREATE FUNCTION public.shared_ad_script_version() RETURNS integer
     LANGUAGE sql IMMUTABLE
     SET search_path TO ''
-    AS $$ select 2 $$;
+    AS $$ select 3 $$;
 
 --
 -- Name: listing_favourites; Type: TABLE; Schema: public; Owner: -
@@ -8181,7 +8210,9 @@ CREATE TABLE public.shared_ads (
     lines text[] DEFAULT '{}'::text[] NOT NULL,
     photos text[] DEFAULT '{}'::text[] NOT NULL,
     script_version integer NOT NULL,
-    dismissed_at timestamp with time zone
+    dismissed_at timestamp with time zone,
+    old_price text,
+    page_text text
 );
 
 --
@@ -10921,6 +10952,13 @@ GRANT ALL ON FUNCTION public.price_score(p_price numeric, p_market_price numeric
 
 REVOKE ALL ON FUNCTION public.prune_anonymous_users(p_idle_days integer) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.prune_anonymous_users(p_idle_days integer) TO service_role;
+
+--
+-- Name: FUNCTION prune_shared_ads(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.prune_shared_ads() FROM PUBLIC;
+GRANT ALL ON FUNCTION public.prune_shared_ads() TO service_role;
 
 --
 -- Name: FUNCTION prune_unfollowed_listings(p_limit_bytes bigint, p_min_days integer); Type: ACL; Schema: public; Owner: -

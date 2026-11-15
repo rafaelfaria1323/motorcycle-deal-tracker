@@ -10,6 +10,13 @@ class const SharedAd({
   final String? title,
   final String? description,
   final String? price,
+
+  /// A struck-through price on the page: the price before a drop.
+  final String? oldPrice,
+
+  /// The page's own lines up to the seller's part (script 3), joined by
+  /// line breaks.
+  final String? pageText,
   final List<String> lines = const [],
   final List<String> photos = const [],
   final int scriptVersion = 0,
@@ -22,6 +29,8 @@ class const SharedAd({
     title,
     description,
     price,
+    oldPrice,
+    pageText,
     lines,
     photos,
     scriptVersion,
