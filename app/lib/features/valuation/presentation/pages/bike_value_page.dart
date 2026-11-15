@@ -26,6 +26,7 @@ import '../ad_link_model.dart';
 import '../bike_value_text.dart';
 import '../comparable_years.dart';
 import '../typed_ad.dart';
+import '../typed_ad_history.dart';
 import '../../../listings/presentation/widgets/add_model_sheet.dart';
 import '../../../listings/presentation/new_price_text.dart';
 import '../../../listings/presentation/widgets/new_price_card.dart';
@@ -97,12 +98,15 @@ typedef _Outcome = ({
   CatalogModel? catalog,
 });
 
-/// The model, price, seller and pasted text of an ad typed by hand.
+/// The model, price, seller and pasted text of an ad typed by hand, and
+/// how long it has been on sale and its price before a drop (N.109).
 typedef _TypedAd = ({
   String motorcycleId,
   double price,
   SellerType seller,
   String? description,
+  int? daysListed,
+  double? initialPrice,
 });
 
 /// The dropdown's entry that opens the make and model form.
@@ -119,6 +123,8 @@ class _BikeValuePageState extends State<BikeValuePage> {
   final _link = TextEditingController();
   final _price = TextEditingController();
   final _adText = TextEditingController();
+  final _daysListed = TextEditingController();
+  final _initialPrice = TextEditingController();
   final _fromYear = TextEditingController();
   final _toYear = TextEditingController();
   String? _motorcycleId;
@@ -258,6 +264,8 @@ class _BikeValuePageState extends State<BikeValuePage> {
     _link.dispose();
     _price.dispose();
     _adText.dispose();
+    _daysListed.dispose();
+    _initialPrice.dispose();
     _fromYear.dispose();
     _toYear.dispose();
     super.dispose();
@@ -290,6 +298,14 @@ class _BikeValuePageState extends State<BikeValuePage> {
     );
     return price != null && price >= minRealPrice ? price : null;
   }
+
+  /// The typed ad's time on sale and earlier price; null when invalid.
+  TypedAdHistory? _history() => parseTypedAdHistory(
+    _daysListed.text,
+    _initialPrice.text,
+    price: _priceValue(),
+    language: context.language,
+  );
 
   /// The models to choose from: the collected ones, those of the account's
   /// requests and those added now, by id.
@@ -498,6 +514,8 @@ class _BikeValuePageState extends State<BikeValuePage> {
         price: _priceValue()!,
         seller: _seller,
         description: _adText.text.trim().isEmpty ? null : _adText.text.trim(),
+        daysListed: _history()!.daysListed,
+        initialPrice: _history()!.initialPrice,
       );
       setState(() {
         _added.putIfAbsent(id, () => choices[id]!);
@@ -748,6 +766,40 @@ class _BikeValuePageState extends State<BikeValuePage> {
               selected: {_seller},
               onSelectionChanged: (picked) =>
                   setState(() => _seller = picked.single),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _daysListed,
+              // "5 semanas" as well as days.
+              keyboardType: TextInputType.text,
+              decoration: InputDecoration(
+                labelText: strings.checkAdDaysListed,
+                helperText: strings.checkAdDaysListedHelper,
+                helperMaxLines: 3,
+                errorMaxLines: 3,
+                border: const OutlineInputBorder(),
+              ),
+              validator: (_) => typedAdDaysValue(_daysListed.text) == null
+                  ? strings.checkAdDaysListedInvalid
+                  : null,
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _initialPrice,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: strings.checkAdInitialPrice,
+                helperText: strings.checkAdInitialPriceHelper,
+                helperMaxLines: 3,
+                errorMaxLines: 3,
+                suffixText: '€',
+                border: const OutlineInputBorder(),
+              ),
+              validator: (_) =>
+                  _history() == null &&
+                      typedAdDaysValue(_daysListed.text) != null
+                  ? strings.checkAdInitialPriceInvalid
+                  : null,
             ),
             const SizedBox(height: 12),
             TextFormField(
@@ -1030,6 +1082,8 @@ class _BikeValuePageState extends State<BikeValuePage> {
       catalog: outcome.catalog,
       score: score,
       description: typed.description,
+      daysListed: typed.daysListed,
+      initialPrice: typed.initialPrice,
     );
     _typedListing = (outcome, _condition, listing);
     return listing;
