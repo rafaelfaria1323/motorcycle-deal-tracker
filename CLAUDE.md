@@ -1199,7 +1199,8 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   share sheet runs the script on the page it shows and posts to
   `receive_shared_ad(p_key, p_ad)` (anon; `shared_ads`, RLS, no API
   access: https only, phone numbers stripped, 20 an hour / 100 a day /
-  10 waiting, 7 days; the reply's `message` is the notification, and
+  10 waiting, 7 days; the address stored and compared without tracking,
+  `shared_ad_url`, B.2; the reply's `message` is the notification, and
   says when `shared_ad_script_version()`, = `sharedAdScriptVersion`, is
   newer); "Avaliar um anúncio" lists `my_shared_ads` (`SharedAdsInbox`),
   "Usar" fills the typed form (`sharedAdFacts`, `shared_ad_text.dart`:
