@@ -29,9 +29,10 @@ const sharedAdKeyHeader = 'x-deal-tracker-key';
 
 /// The iCloud link of the shared shortcut (N.110b): its script is
 /// [sharedAdScript] without a key, and it asks for the key when it is
-/// installed. Empty until it is made: the page then shows only the steps
-/// to make the shortcut by hand.
-const sharedAdShortcutLink = '';
+/// installed. Left empty, the page shows only the steps to make the
+/// shortcut by hand.
+const sharedAdShortcutLink =
+    'https://www.icloud.com/shortcuts/f1b6b2d0c3f94ca7a07344c2b946d87e';
 
 const _template = r'''
 // Deal Tracker: Avaliar no Deal Tracker (script __VERSION__)
