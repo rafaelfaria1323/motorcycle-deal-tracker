@@ -238,10 +238,14 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   collector's jobs use the shared
                                   .github/actions/collector, collector-db
                                   checks that the collector starts; each test
-                                  runs once; the job `check` passes only when
-                                  all did, then takes each suite's coverage
-                                  floor over its shards' lcov merged
-                                  (`app-coverage-floor`,
+                                  runs once; only the jobs the PR's files
+                                  need run (`plan`, tool/changed_areas.py,
+                                  N.115: docs alone none, the collector or
+                                  database alone no Flutter); the job
+                                  `check` passes only when all ran or were
+                                  skipped as not needed, then takes each
+                                  suite that ran's coverage floor over its
+                                  shards' lcov merged (`app-coverage-floor`,
                                   `collector-coverage-floor`)
 .github/workflows/preview-web.yml Every PR touching app/: the app built and
                                   published to pr-<number>.<project>.pages.dev,

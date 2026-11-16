@@ -14,7 +14,11 @@ name: Check
 # waits for them, takes each suite's coverage floor over its shards'
 # lcov files merged, keeps this run's times for the next plan (artifact
 # `test-times`), and is the one result the PR shows as "check".
-# "Run workflow" runs it again on a branch by hand.
+# A PR runs only the jobs its files need (`plan`, tool/changed_areas.py):
+# documentation alone runs none of them, the collector or the database
+# alone skips Flutter, the app alone skips the collector's tests; a
+# skipped job counts as passed, and so does a skipped coverage floor.
+# "Run workflow" runs everything on a branch by hand.
 on:
   pull_request:
     branches: [main]
@@ -41,11 +45,30 @@ jobs:
     permissions:
       contents: read
       actions: read
+      pull-requests: read
     outputs:
       app: ${{ steps.plan.outputs.app }}
       collector: ${{ steps.plan.outputs.collector }}
+      run_app: ${{ steps.areas.outputs.app }}
+      run_collector: ${{ steps.areas.outputs.collector }}
+      run_db: ${{ steps.areas.outputs.db }}
     steps:
       - uses: actions/checkout@v7
+
+      # Which jobs this PR needs, from its files (renames count both
+      # names). By hand ("Run workflow"): all of them.
+      - id: areas
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          if [ -n "$PR" ]; then
+            gh api "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --paginate \
+              --jq '.[] | .filename, (.previous_filename // empty)' > "$RUNNER_TEMP/files.txt"
+            python3 tool/changed_areas.py < "$RUNNER_TEMP/files.txt" | tee -a "$GITHUB_OUTPUT"
+          else
+            printf 'app=true\ncollector=true\ndb=true\n' | tee -a "$GITHUB_OUTPUT"
+          fi
 
       # Best effort: no artifact (the first run, or expired) or a failed
       # download leaves no file, and the plan uses the files' sizes.
@@ -72,6 +95,8 @@ jobs:
 
   # The app: analyze and unused code (its tests: app-test).
   app:
+    needs: plan
+    if: needs.plan.outputs.run_app == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -101,6 +126,7 @@ jobs:
   app-test:
     name: app-test (${{ matrix.shard }})
     needs: plan
+    if: needs.plan.outputs.run_app == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
@@ -136,6 +162,8 @@ jobs:
 
   # The offline Chrome flow (ChromeDriver is on the runner image).
   smoke:
+    needs: plan
+    if: needs.plan.outputs.run_app == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -156,6 +184,7 @@ jobs:
   collector-test:
     name: collector-test (${{ matrix.shard }})
     needs: plan
+    if: needs.plan.outputs.run_collector == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
@@ -187,6 +216,8 @@ jobs:
   # scripts, the collector's format and analysis, tool/, copy-paste and
   # the database.
   collector-db:
+    needs: plan
+    if: needs.plan.outputs.run_db == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     # Plain Postgres for `make db-test`: every migration applied to an
@@ -280,44 +311,58 @@ jobs:
           make sql-lint
 
   # The single result named "check", as before the split: green only when
-  # every job passed (also when one was cancelled or skipped) and each
-  # suite's coverage, over all its shards, is above its floor.
+  # `plan` passed, every other job passed or was skipped as not needed
+  # (not cancelled), and each suite that ran has its coverage, over all
+  # its shards, above its floor.
   check:
     needs: [plan, app, app-test, smoke, collector-test, collector-db]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      RUN_APP: ${{ needs.plan.outputs.run_app }}
+      RUN_COLLECTOR: ${{ needs.plan.outputs.run_collector }}
     steps:
       - name: All checks passed
         env:
+          PLAN: ${{ needs.plan.result }}
           RESULTS: ${{ join(needs.*.result, ' ') }}
         run: |
-          echo "Results: $RESULTS"
+          echo "Plan: $PLAN; results: $RESULTS"
+          [ "$PLAN" = success ] || exit 1
           for result in $RESULTS; do
-            [ "$result" = success ] || exit 1
+            case "$result" in success|skipped) ;; *) exit 1 ;; esac
           done
 
       # The floors need the Makefile and tool/lcov_summary.py.
       - uses: actions/checkout@v7
+        if: env.RUN_APP == 'true' || env.RUN_COLLECTOR == 'true'
 
       # One folder per shard: coverage/coverage-app-0/lcov.info, ...
       - uses: actions/download-artifact@v8
+        if: env.RUN_APP == 'true' || env.RUN_COLLECTOR == 'true'
         with:
           pattern: coverage-*
           path: coverage
 
-      - name: Coverage floors (every shard's lcov, merged)
-        run: |
-          make app-coverage-floor APP_LCOV="coverage/coverage-app-*/lcov.info"
-          make collector-coverage-floor COLLECTOR_LCOV="coverage/coverage-collector-*/lcov.info"
+      - name: App coverage floor (every shard's lcov, merged)
+        if: env.RUN_APP == 'true'
+        run: make app-coverage-floor APP_LCOV="coverage/coverage-app-*/lcov.info"
 
-      # Each file's time in this run, for the next run's plan.
+      - name: Collector coverage floor (every shard's lcov, merged)
+        if: env.RUN_COLLECTOR == 'true'
+        run: make collector-coverage-floor COLLECTOR_LCOV="coverage/coverage-collector-*/lcov.info"
+
+      # Each file's time in this run, for the next run's plan: only from a
+      # run of both suites, so the newest times always cover both.
       - name: This run's test times
+        if: env.RUN_APP == 'true' && env.RUN_COLLECTOR == 'true'
         run: |
           python3 tool/test_shard.py times coverage > test-times.json
           cat test-times.json
 
       - uses: actions/upload-artifact@v7
+        if: env.RUN_APP == 'true' && env.RUN_COLLECTOR == 'true'
         with:
           name: test-times
           path: test-times.json
