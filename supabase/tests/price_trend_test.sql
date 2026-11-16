@@ -11,13 +11,14 @@ declare
 begin
   select id into mt from public.motorcycles where slug = 'yamaha-mt-07';
 
-  -- Five bikes of the same year and mileage, on sale since two weeks ago.
+  -- Five bikes of the same year and mileage, on sale since the start of the
+  -- week two weeks ago (not "15 days ago": on a Monday that is the week before).
   insert into public.listings (source, source_listing_id, url, motorcycle_id,
                                brand, model, year, mileage, price,
                                first_seen_at, last_seen_at)
   select 'olx', 'trend' || g, 'https://x/trend' || g, mt, 'Yamaha', 'MT-07',
          2020, 20000, 6000 + g * 100,
-         now() - interval '15 days', now()
+         date_trunc('week', now()) - interval '14 days' + interval '1 hour', now()
   from generate_series(1, 5) g;
 
   -- One of them dropped from 6 100 to 5 000 this week: last week it still
@@ -32,12 +33,12 @@ begin
                                brand, model, year, mileage, price,
                                first_seen_at, last_seen_at, duplicate_of)
   values ('standvirtual', 'trend-dup', 'https://x/trend-dup', mt, 'Yamaha',
-          'MT-07', 2020, 20000, 99000, now() - interval '15 days', now(), a);
+          'MT-07', 2020, 20000, 99000, date_trunc('week', now()) - interval '14 days' + interval '1 hour', now(), a);
   insert into public.listings (source, source_listing_id, url, motorcycle_id,
                                brand, model, year, mileage, price,
                                first_seen_at, last_seen_at)
   values ('olx', 'trend-1eur', 'https://x/trend-1eur', mt, 'Yamaha', 'MT-07',
-          2020, 20000, 1, now() - interval '15 days', now());
+          2020, 20000, 1, date_trunc('week', now()) - interval '14 days' + interval '1 hour', now());
 
   select * into r from public.model_price_trend
   where motorcycle_id = mt and week_start = last_week;
