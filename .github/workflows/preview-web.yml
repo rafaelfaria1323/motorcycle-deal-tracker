@@ -134,11 +134,14 @@ jobs:
             gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" -f body="$body" >/dev/null
           fi
 
-  # Closed or merged: the preview goes, and the comment says so.
+  # Closed or merged: the preview goes, and the comment says so. Not for
+  # Dependabot's PRs: they never had a preview, and their close event (also
+  # when dependabot-merge.yml merges them) gets no repository secrets.
   remove:
     if: >-
       github.event.action == 'closed' &&
-      github.event.pull_request.head.repo.full_name == github.repository
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
