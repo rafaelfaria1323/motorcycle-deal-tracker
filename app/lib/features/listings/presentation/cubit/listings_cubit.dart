@@ -67,7 +67,7 @@ class ListingsCubit extends AccountScopedCubit<ListingsState> {
           : await (
               models || state.motorcycles.isEmpty
                   ? _repository.getMotorcycleOptions()
-                  : Future.value(state.motorcycles),
+                  : Future.syncValue(state.motorcycles),
               _repository.getListings(
                 filters: filters,
                 sort: sort,

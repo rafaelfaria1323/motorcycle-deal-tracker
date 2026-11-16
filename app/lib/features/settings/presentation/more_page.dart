@@ -50,7 +50,7 @@ class const _MoreBody({required final SessionState session, super.key})
 class _MoreBodyState extends State<_MoreBody> {
   late final Future<bool> _admin = widget.session.signedIn
       ? getIt<AccountsRepository>().isAdmin().catchError((Object _) => false)
-      : Future.value(false);
+      : Future.syncValue(false);
 
   @override
   Widget build(BuildContext context) {
