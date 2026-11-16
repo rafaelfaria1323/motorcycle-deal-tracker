@@ -43,17 +43,16 @@ begin
   assert public.prune_unfollowed_listings() = 0, 'below the limit: nothing';
   assert (select count(*) from public.listings) = 10, 'all still there';
 
-  insert into vault.secrets values ('telegram_bot_token', 'tok'), ('telegram_chat_id', '42');
   assert public.prune_unfollowed_listings(0) = 2, 'at the limit: the two eligible ones';
   assert not exists (select from public.listings where source_listing_id in ('gone', 'sold')),
     'gone listings of models nobody follows are deleted';
   assert (select count(*) from public.listings) = 8, 'the rest stays';
-  assert (select count(*) from net.calls
-          where body ->> 'text' like '🧹 %foram apagados 2 anúncios antigos%') = 1,
-    'told on Telegram';
+  assert (select count(*) from public.admin_notices
+          where kind = 'listings_pruned' and details ->> 'deleted' = '2') = 1,
+    'the admins are told';
 
   assert public.prune_unfollowed_listings(0) = 0, 'nothing left to delete';
-  assert (select count(*) from net.calls) = 1, 'and nothing more to tell';
+  assert (select count(*) from public.admin_notices) = 1, 'and nothing more to tell';
 
   assert exists (select from cron.job where jobname = 'prune-unfollowed-listings'
                  and schedule = '37 3 * * *'), 'scheduled daily';

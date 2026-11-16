@@ -1,12 +1,10 @@
 -- The GitHub token that starts the runs: checked against GitHub, its
--- expiry read from GitHub's header, Telegram told once a day when it is
--- refused or about to expire. (The http stub answers from http_replies.)
+-- expiry read from GitHub's header, the admins told once a day when it is
+-- refused or about to expire (admin_notices, N.114). (The http stub answers from http_replies.)
 insert into auth.users (id, email, is_anonymous) values
   ('00000000-0000-0000-0000-0000000000a1', 'owner@example.com', false),
   ('00000000-0000-0000-0000-0000000000b1', 'friend@example.com', false);
 insert into public.app_admins (user_id) values ('00000000-0000-0000-0000-0000000000a1');
-insert into vault.secrets (name, secret) values
-  ('telegram_bot_token', 'bot'), ('telegram_chat_id', '1');
 
 create temp table workflow_url as
 select 'https://api.github.com/repos/rafaelfaria1323/motorcycle-deal-tracker'
@@ -36,7 +34,7 @@ begin
     v_row.expires_at::text;
   assert (select ('Authorization', 'Bearer ghp_test')::extensions.http_header = any (headers)
           from extensions.http_calls);
-  assert (select count(*) from net.calls) = 0, 'warned about a token far from expiring';
+  assert not exists (select from public.admin_notices), 'warned about a token far from expiring';
 
   -- Five days left: one warning a day.
   update extensions.http_replies
@@ -45,16 +43,18 @@ begin
                       ::extensions.http_header];
   v_row := public.check_github_token();
   assert v_row.warned_on = current_date;
-  assert (select body ->> 'text' from net.calls) like '%expira a%', (select body::text from net.calls);
+  assert (select kind = 'github_token_expiring' and details ->> 'expires_on' ~ '^\d\d/\d\d/\d{4}$'
+          from public.admin_notices), (select details::text from public.admin_notices);
   perform public.check_github_token();
-  assert (select count(*) from net.calls) = 1, 'warned twice in a day';
+  assert (select count(*) from public.admin_notices) = 1, 'warned twice in a day';
 
   -- Refused: said the next day.
   update public.github_token_check set warned_on = current_date - 1;
   update extensions.http_replies set status = 401, headers = null;
   v_row := public.check_github_token();
   assert v_row.state = 'refused' and v_row.http_status = 401 and v_row.expires_at is null;
-  assert (select count(*) from net.calls where body ->> 'text' like '%recusou%(HTTP 401)%') = 1;
+  assert (select count(*) from public.admin_notices
+          where kind = 'github_token_refused' and details ->> 'http_status' = '401') = 1;
 end $$;
 
 -- Admins only, from the app.

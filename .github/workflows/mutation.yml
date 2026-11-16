@@ -4,24 +4,14 @@ name: Mutation testing
 # tool/mutation.py): small changes are made to the files listed in
 # collector/mutation_targets.txt and app/mutation_targets.txt, one at a
 # time, and the tests run after each; a change no test notices is a gap in
-# the tests. It runs after the merge, so it never blocks one. The summary
-# (score per file and every surviving mutant) is on the run's page; the
-# full HTML reports are the run's artifacts.
-# - After a merge: only the target files (or, in the app, their tests) the
-#   merge changed. Report only.
-# - "Run workflow": every target, in parallel jobs; the run fails when the
-#   score over all of them is below MUTATION_FLOOR (N.4).
+# the tests. The summary (score per file and every surviving mutant) is on
+# the run's page; the full HTML reports are the run's artifacts.
+# Only by hand ("Run workflow", N.114: nothing reads the results between
+# merges since the Claude backlog passes were removed): every target, in
+# parallel jobs; the run fails when the score over all of them is below
+# MUTATION_FLOOR (N.4).
 on:
   workflow_dispatch:
-  pull_request:
-    types: [closed]
-    branches: [main]
-    paths:
-      - 'app/lib/**'
-      - 'app/test/**'
-      - 'collector/lib/**'
-      - 'collector/test/**'
-      - '**/mutation_targets.txt'
 
 env:
   # Minimum score of a full run, in %: a few points under the score when
@@ -35,7 +25,6 @@ concurrency:
 
 jobs:
   plan:
-    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -45,19 +34,10 @@ jobs:
       any: ${{ steps.plan.outputs.any }}
     steps:
       - uses: actions/checkout@v7
-        with:
-          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
-          fetch-depth: 2
 
       - id: plan
-        env:
-          MERGED: ${{ github.event_name == 'pull_request' }}
         run: |
-          if [ "$MERGED" = true ]; then
-            matrix=$(python3 -I tool/mutation.py plan --changed-from HEAD^1)
-          else
-            matrix=$(python3 -I tool/mutation.py plan --shards 4)
-          fi
+          matrix=$(python3 -I tool/mutation.py plan --shards 4)
           echo "$matrix"
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
           if [ "$(echo "$matrix" | jq '.include | length')" -gt 0 ]; then
@@ -81,8 +61,6 @@ jobs:
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v7
-        with:
-          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
 
       - uses: subosito/flutter-action@v2
         with:
@@ -120,8 +98,6 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v7
-        with:
-          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
 
       - uses: actions/download-artifact@v8
         with:
@@ -129,14 +105,10 @@ jobs:
           path: reports
 
       - name: Summary
-        env:
-          FULL: ${{ github.event_name == 'workflow_dispatch' }}
-        # A full run is held to the floor; the summary is written either way.
+        # Held to the floor; the summary is written either way.
         run: |
-          floor=()
-          if [ "$FULL" = true ]; then floor=(--floor "$MUTATION_FLOOR"); fi
           status=0
-          python3 -I tool/mutation.py summary "${floor[@]}" reports \
+          python3 -I tool/mutation.py summary --floor "$MUTATION_FLOOR" reports \
             > mutation-summary.md || status=$?
           # Also in the log: the score stays readable without the summary page.
           tee -a "$GITHUB_STEP_SUMMARY" < mutation-summary.md

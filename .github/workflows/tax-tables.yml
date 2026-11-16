@@ -1,0 +1,54 @@
+name: Tax tables
+
+# N.114: the year's ISV (Tabela C) and IUC (category E) from the Tax
+# Authority's yearly PDF (SFP-Taxas-<year>.pdf, public, no key, no AI)
+# against the app's isvBands / iucBands and the database's motorcycle_isv
+# (tool/tax_tables.py). A difference is kept as an admin notice
+# (tax_tables), pushed to the admins' devices, again at most every 30 days
+# while it stays the same; the details are in this run's summary. A year
+# whose PDF isn't out yet is no difference.
+#
+# Called by weekly-summary.yml after the Monday summary for everyone;
+# "Run workflow" here runs it now.
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tax-tables
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install pdftotext
+        run: sudo apt-get install -y --no-install-recommends poppler-utils
+
+      - name: Compare the tables
+        id: compare
+        run: |
+          python3 -I tool/tax_tables.py --json-out "$RUNNER_TEMP/tax.json"
+          if [ "$(jq '.differences | length' "$RUNNER_TEMP/tax.json")" -gt 0 ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: ./.github/actions/collector
+        if: steps.compare.outputs.changed == 'true'
+
+      - name: Tell the admins
+        if: steps.compare.outputs.changed == 'true'
+        run: |
+          cd collector
+          dart run bin/admin_notices.dart --add tax_tables \
+            --details "$(cat "$RUNNER_TEMP/tax.json")" --quiet-days 30

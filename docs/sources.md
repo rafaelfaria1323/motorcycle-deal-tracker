@@ -5,6 +5,31 @@ here. Robots.txt is not permission; the source's terms of use decide.
 
 ## Decision log
 
+### 2026-11-16: the yearly tax tables from the Tax Authority's PDF (N.114)
+
+**Why.** The import calculator, the cost of ownership and the legalisation
+cost use ISV Tabela C and IUC category E (`isvBands`, `iucBands`,
+`motorcycle_isv`). The State Budget can change them every January, and a
+yearly reminder to check by hand was easy to miss.
+
+**Source.** The Tax Authority (AT) publishes every year's rates in one
+PDF, "Sistema Fiscal Português - Taxas aplicáveis":
+`https://info.portaldasfinancas.gov.pt/pt/apoio_contribuinte/Folhetos_informativos/Documents/SFP-Taxas-<year>.pdf`,
+public, no key, no personal data. The site has no robots.txt (404).
+Considered and not used: Gemini (the free tier could read it, but a fixed
+parser does the same job and doesn't guess), API Ninjas (no Portuguese
+vehicle taxes).
+
+**Decision.** `tax-tables.yml` (with Monday's summary) downloads the
+current year's PDF once a week (one request; a 404 means not published
+yet), reads the two tables with `pdftotext -layout` and fixed patterns
+(`tool/tax_tables.py`, no AI) and compares them with the app's and the
+database's copies and their years. A difference, or a table it can no
+longer read, becomes an admin notice (`tax_tables`) on the admins' devices,
+at most every 30 days while it stays the same; the tables themselves are
+still changed by hand (app and migration together), since a new band or
+rule needs a person. The 2026 PDF matches today's tables.
+
 ### 2026-11-14: candidate sources' robots.txt read (15.9)
 
 For 15.9 (one European site for imports, or more Portuguese ones), the

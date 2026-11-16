@@ -124,6 +124,9 @@ authenticated_security_definer_function_executable_public_request_photo_exam_p_l
 # recall_notices (N.87): RLS without policies on purpose; no API access,
 # only the collector's pending_recall_notices / mark_recall_noticed.
 rls_enabled_no_policy_public_recall_notices
+# admin_notices (N.114): RLS without policies on purpose; no API access,
+# only add_admin_notice / take_admin_notices / mark_admin_notice_sent.
+rls_enabled_no_policy_public_admin_notices
 
 # favourite_shares (16.11): RLS without policies on purpose; no API
 # access, only these functions, each limited to the caller's own share or

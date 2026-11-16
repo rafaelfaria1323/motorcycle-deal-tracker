@@ -14,8 +14,9 @@ enum ImportCountry {
 /// ISV, Tabela C (motociclos, triciclos e quadriciclos), euros by engine
 /// size (Código do ISV, art. 7; the 2024 amounts, kept in 2025 and 2026);
 /// under 120 cc the table charges nothing. The State Budget can change
-/// them every January: check and update [isvTableYear] with them, as
-/// `iucBands`, and the database's copy (`motorcycle_isv`, N.52).
+/// them every January: tax-tables.yml compares them weekly with the Tax
+/// Authority's PDF and tells the admins (N.114); update [isvTableYear] with
+/// them, as `iucBands`, and the database's copy (`motorcycle_isv`, N.52).
 const isvTableYear = 2026;
 const isvBands = <({int? maxCc, double euros})>[
   (maxCc: 119, euros: 0),

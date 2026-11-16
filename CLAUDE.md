@@ -4,8 +4,9 @@ Personal web app/PWA (single owner: Rafael) that watches the Portuguese used
 and semi-new motorcycle market, tracks price and status history, and ranks
 listings with an explainable **Deal Score** plus a separate **Risk Score**.
 Alerts go to the app and to each account's devices as notifications (Web
-Push; Firebase Cloud Messaging in the Android app), and so does each account's weekly summary; Telegram keeps the
-database's own warnings (watchdog, GitHub token). Others join through
+Push; Firebase Cloud Messaging in the Android app), and so does each account's weekly summary; the
+database's own warnings (watchdog, GitHub token, space, tax tables) reach
+the admins' devices the same way (`admin_notices`, N.114). Others join through
 invite links made in the app.
 
 Progress lives in `docs/roadmap.status.md` (step by step) and
@@ -59,8 +60,9 @@ never asks for search URLs; aliases sit under "Outros nomes do modelo".
   `make duplication` (jscpd), `make coverage` (floors in the Makefile),
   `make lint-scripts` (actionlint, shellcheck), `make dead-code`
   (dart_code_linter, app only), `make sql-lint`
-  (plpgsql_check, splinter, squawk, safeupdate), mutation testing, Dependabot; the
-  Claude backlog passes only look for what needs judgment.
+  (plpgsql_check, splinter, squawk, safeupdate), mutation testing (by
+  hand), Dependabot (minor and patch updates merge themselves), the
+  weekly tax-table check (N.114); no Claude workflow since N.114.
 - Work in small verifiable steps: implement → test → commit. Each step ends
   with a definition of done.
 - Answers to Rafael in English; **all UI text has Portuguese (pt-PT) and
@@ -69,7 +71,7 @@ never asks for search URLs; aliases sit under "Outros nomes do modelo".
   `app/test/voice_test.dart`, including the Portuguese ARB). Code, comments
   and commit messages are in English.
 - Commit style: `feat(scope): what (step id)`, e.g.
-  `feat(alerts): push new alerts to Telegram after each run (11.1)`.
+  `feat(alerts): push new alerts to the devices after each run (11.1)`.
 - Flow: push to the `claude/...` branch, open a PR, Rafael merges. Once a PR
   is merged, start the next work from a fresh `origin/main`.
 - **Migrations** are applied on merge: `deploy-web.yml`'s `migrate` job
@@ -138,7 +140,7 @@ supabase/   Migrations (Postgres: scoring, alerts, views, RLS); tests/ SQL tests
 docs/       sources.md (data-source decisions, keep updated), hosting.md
             (also how to replace each secret),
             roadmap.status.md, concept.status.md, code-quality.md and
-            test-hardening.md (backlogs of the automatic passes),
+            test-hardening.md (backlogs worked by hand since N.114),
             paid-plans.md (paid plans and other income: a plan, not
             started; roadmap Sprint 16), feature-review.md (the review
             of every feature, 2026-10-31: findings and their order,
@@ -170,8 +172,8 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   without one, also keeps the month's value
                                   of each owned bike and pushes it (N.80,
                                   `record_owned_bike_values`), and calls text-audit.yml,
-                                  score-check.yml, model-specs.yml and
-                                  backup.yml
+                                  score-check.yml, model-specs.yml,
+                                  tax-tables.yml and backup.yml
 .github/workflows/text-audit.yml  The description check (N.55,
                                   bin/text_audit.dart): up to 60 of the
                                   week's ads (`text_audit_sample`) and 40
@@ -277,38 +279,33 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   the APK built (not signed or published),
                                   so a broken Android build shows before
                                   the merge
-.github/workflows/code-quality.yml  Claude pass on docs/code-quality.md: how
-                                  the code is written (duplication, dead
-                                  code, structure, theme, names); one PR
-                                  labelled code-quality; merges since the
-                                  tag code-quality-reviewed are counted
-.github/workflows/test-hardening.yml  The same on docs/test-hardening.md:
-                                  bugs, surviving mutants, redundant tests
-                                  (label test-hardening); never overlaps
-                                  with code quality. Both passes PAUSED since
-                                  2026-10-20 (Rafael): no runs after merges
-                                  until he says so; only "Run workflow"
-                                  starts one (mutation testing still runs)
 .github/workflows/mutation.yml    Mutation testing without AI (mutation_test,
                                   tool/mutation.py) on the files in
-                                  */mutation_targets.txt: after merges only
-                                  the changed ones, "Run workflow" all (4+4
-                                  parallel jobs). Report only (run summary,
-                                  HTML artifacts), except that a full run
-                                  fails below `MUTATION_FLOOR` (N.4, in
-                                  the workflow); test hardening's find
-                                  runs start from the last full run's
-                                  surviving mutants
-.github/workflows/backlog-pass.yml  Shared by both: "To do" empty -> after 10
-                                  merges, only find up to 10 items, no code
-                                  change; otherwise every 5 merges do up to
-                                  3 items, find nothing.
-                                  One pass at a time, none while one of
-                                  the same backlog is open. Its PR merges
-                                  itself when its check passes (not when it
-                                  touches supabase/, .github/, tool/ or the
-                                  Makefile; variable AUTO_MERGE_BACKLOG=false
-                                  turns it off) and starts the app deploy
+                                  */mutation_targets.txt: by hand only
+                                  ("Run workflow", N.114), every target
+                                  (4+4 parallel jobs). Report (run summary,
+                                  HTML artifacts); fails below
+                                  `MUTATION_FLOOR` (N.4, in the workflow)
+.github/workflows/notices.yml     The database's warnings to the admins
+                                  (N.114, bin/admin_notices.dart,
+                                  notify/admin_notice_push.dart): started
+                                  by add_admin_notice (dispatch_workflow);
+                                  report_run.dart also sends any waiting
+.github/workflows/tax-tables.yml  With Monday's summary (N.114): the year's
+                                  ISV Tabela C and IUC category E from the
+                                  Tax Authority's PDF (tool/tax_tables.py,
+                                  pdftotext, no AI) against isvBands,
+                                  iucBands, motorcycle_isv and the table
+                                  years; a difference: admin notice
+                                  `tax_tables` (again after 30 days)
+.github/workflows/dependabot-merge.yml  Dependabot's grouped minor and
+                                  patch PRs (app-minor, collector-minor,
+                                  actions-minor) squash-merged once every
+                                  check on their head commit passed
+                                  (`--match-head-commit`); an app update
+                                  then starts deploy-web.yml (a merge by
+                                  the workflow's token starts no push
+                                  workflow); majors wait for Rafael
 .github/dependabot.yml            Weekly dependency PRs (app, collector, Actions)
                                   (not shared_preferences_android 2.4.28 or
                                   path_provider_android 2.2.23: their JNI
@@ -365,8 +362,7 @@ parsing uses pure-Dart `html`; the fetcher's time comes from `clock`, with
 `fake_async` for deterministic timing tests and no fetching-policy changes.
 
 Local secrets live in `collector/.env` (gitignored, loaded by the Makefile):
-`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (the collector no longer
-sends to Telegram; only the database does, from the Vault). GitHub
+`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`. GitHub
 Actions uses repository secrets with the same names, plus `SUPABASE_PUBLISHABLE_KEY`, `CLOUDFLARE_API_TOKEN` and
 `CLOUDFLARE_ACCOUNT_ID` for the web deploy, `ANDROID_KEYSTORE_BASE64` and
 `ANDROID_KEYSTORE_PASSWORD` for the Android app (PKCS12, alias `upload`;
@@ -378,10 +374,8 @@ pooler connection string, `[YOUR-PASSWORD]` left in) and
 sender) for the Android app's notifications, `GEMINI_API_KEY` for the
 weekly description check (N.55), `API_NINJAS_KEY` for the catalog's
 figures (N.76), `BACKUP_PASSPHRASE` for the weekly encrypted
-database backup (N.79), and `CLAUDE_CODE_OAUTH_TOKEN`
-for the code-quality review. Supabase's Vault holds `github_dispatch_token`
-(starts the scheduled workflows), `telegram_bot_token` /
-`telegram_chat_id` (the watchdog's messages), `vapid_private_key` (Web
+database backup (N.79). Supabase's Vault holds `github_dispatch_token`
+(starts the scheduled workflows and notices.yml), `vapid_private_key` (Web
 Push) and `service_url` / `service_role_key` (Auth's admin API, for
 invites; written by the collector on each run).
 
@@ -827,7 +821,7 @@ invites; written by the collector on each run).
   `check_github_token()` (GET collect.yml with the Vault token through
   `http`; state in `github_token_check`, one row, no API access; the
   expiry from GitHub's `github-authentication-token-expiration` header);
-  refused or ending within 14 days tells Telegram once a day. Admins see
+  refused or ending within 14 days keeps an admin notice once a day. Admins see
   it in "Estado da recolha" (`github_token_status`, checks again).
 - Fuel prices (N.74): pg_cron job `refresh-fuel-prices` (`41 9 * * *`)
   runs `refresh_fuel_prices()`: one GET through `http` to DGEG's public
@@ -858,16 +852,29 @@ invites; written by the collector on each run).
   `mark_recall_noticed`, `recall_notices`, RLS, no API access; marked when
   a device took it or there is none). Push-test kind `recall`.
 - Watchdog: pg_cron job `collection-watchdog` (`20 * * * *`) runs
-  `check_collection_runs()`: no run recorded for 9 h sends a Telegram
-  message (`send_telegram()`, pg_net, Vault secrets `telegram_bot_token`
-  and `telegram_chat_id`), repeated once a day; the next run sends the
-  recovery. State in `collection_watchdog` (one row, no API access).
+  `check_collection_runs()`: no run recorded for 9 h keeps an admin
+  notice (`collection_stopped`), repeated once a day; the next run keeps
+  the recovery (`collection_resumed`). State in `collection_watchdog`
+  (one row, no API access).
+- Admin notices (N.114, in place of Telegram): `add_admin_notice(kind,
+  details, quiet_for)` (service role; kinds `collection_stopped`,
+  `collection_resumed`, `github_token_refused`, `github_token_expiring`,
+  `listings_pruned`, `tax_tables`; nothing when the same was kept within
+  `quiet_for`) stores it in `admin_notices` (RLS, no API access) and
+  starts `notices.yml` (`dispatch_workflow`); `bin/admin_notices.dart`
+  and `report_run.dart` take the waiting ones (`take_admin_notices`, a
+  10-minute lease) and push them to the admins' devices in each one's
+  language (`adminNoticePush`, a tap opens "Estado da recolha";
+  `mark_admin_notice_sent` when a device took it, none exists, or 24 h
+  on). pg_cron `prune-admin-notices` (`47 3 * * *`) deletes those sent 90
+  days ago. A dead GitHub token can't start notices.yml: its warning
+  comes 14 days before, and the app's Recolha line tints after 12 h.
 - Space: pg_cron job `prune-unfollowed-listings` (`37 3 * * *`) runs
   `prune_unfollowed_listings()`: only once the database reaches 400 MB
   (80 % of the free 500 MB), it deletes listings of models nobody follows
   that are gone (removed/sold) for 30+ days, from the sites, and not a
   favourite, alerted, or the earlier ad of a relist or duplicate; a
-  deletion is told on Telegram. The file doesn't shrink (the space is
+  deletion keeps an admin notice. The file doesn't shrink (the space is
   reused), so it keeps pruning daily while above.
 - Anonymous users: pg_cron job `prune-anonymous-users` (`43 3 * * *`)
   runs `prune_anonymous_users()`: deletes anonymous users made 30+ days
@@ -1233,8 +1240,8 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   Mercado, against its asking price, the engine size filled in
   (`ImportComparison.listing`) (16.10, `import_cost.dart`, `import_cost_text.dart`, `ImportCostCard`;
   app only, the foreign price typed by the person): price + ISV (Tabela
-  C by engine size, `isvBands`, without the used-vehicle reduction; **check
-  every January** with `iucBands`) + legalisation (inspection 95 €,
+  C by engine size, `isvBands`, without the used-vehicle reduction; checked
+  weekly with `iucBands` by tax-tables.yml) + legalisation (inspection 95 €,
   registration 100 €, plates 30 €) + transport (Spain 350, France 550,
   Germany 700 €, or a quote), against `conditionEstimate`; a bike of this
   year or the last with 6 000 km or less warns of VAT paid here.
@@ -1247,7 +1254,7 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   Not yet legalised (N.52, the risk codes above): the price slice compares
   the price with the estimate (less any repair allowance) less
   `legalisation_cost` (ISV by the model's engine size, `motorcycle_isv` =
-  the app's `isvBands`, **check every January**; inspection 95, registration
+  the app's `isvBands`, checked weekly by tax-tables.yml; inspection 95, registration
   100, plates 30 €; from outside the EU + 30 % of the price for duty and
   VAT; from the EU, this year's or last year's with 6 000 km or less + 23 %
   VAT), the score is at most 79 (`legalisation_cap`, `capped_for_legalisation`),
@@ -1481,7 +1488,7 @@ the bike and how many kinds of hint were found (a tap opens the ad).
 - Cost of ownership (`ownership_cost.dart`, app only): per year =
   average depreciation over the years kept (model's curve at the owner's
   km/year) + IUC (category E table by the model's engine size, nothing
-  under 10 €; **check `iucBands` every January**) + the owner's insurance
+  under 10 €; `iucBands` checked weekly by tax-tables.yml) + the owner's insurance
   (until entered, `insuranceEstimate`: third-party by engine size,
   `insuranceBands`, +30 % for a sports bike, `isSportBike` by brand and
   model name) + tyres, services, valve checks and chain kit
@@ -1612,7 +1619,7 @@ push services: `push_endpoint_allowed` = the collector's
 `pushServiceHosts`, N.57; saved from Mais ›
 "Notificações neste aparelho", saved again on each visit, removed on
 sign-out; on the iPhone only in the home-screen app;
-no longer to Telegram since 2026-10-21). The collector sends them itself
+no longer to Telegram since 2026-10-21, nor anything since N.114). The collector sends them itself
 (`notify/web_push.dart`: RFC 8291 encryption and RFC 8292 VAPID with
 pointycastle, no third party; every push is Declarative Web Push,
 `declarativePush`: `{web_push: 8030, notification: {title, body, navigate,

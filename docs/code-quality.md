@@ -1,15 +1,12 @@
 # Code-quality backlog
 
-Worked through by `.github/workflows/code-quality.yml` (or "Run workflow").
-Each run does one of two things: while "To do" has items, every 5 merged
-PRs, it does up to 3 of them (all if fewer are left) and does not look for
-new ones; when "To do" is empty, after 10 merged PRs, it only reviews the
-code and adds up to 10 new items (most valuable first), changing no code.
-It looks at how the code is written (duplication, dead code, structure,
-theme, efficiency, names); unused code and files in the app are already
-failed by `make dead-code`, copy-paste by `make duplication`; bugs and tests belong to
-[`test-hardening.md`](test-hardening.md). Rafael can
-add, remove or reorder items by hand at any time.
+A backlog worked through by hand, in a session (N.114: the Claude pass,
+`code-quality.yml`, was removed on 2026-11-16; it had been paused since
+2026-10-20). It covers how the code is written (duplication, dead code,
+structure, theme, efficiency, names); unused code and files in the app are
+already failed by `make dead-code`, copy-paste by `make duplication`; bugs
+and tests belong to [`test-hardening.md`](test-hardening.md). Rafael can
+add, remove or reorder items at any time.
 
 Items change how the code is written, never what the app or the collector
 does. Anything touching the fetching rules, the scoring or alert rules,

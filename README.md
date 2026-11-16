@@ -53,9 +53,8 @@ Tracked models (chosen in the app)
   → app (Flutter Web on Cloudflare Pages): Ofertas · Favoritos · Pesquisas · Alertas · Mais
   → phones (Web Push; FCM in the Android app): each account's new alerts after each run (a tap opens the listing), its
     summary of the week every Monday (a tap opens "Resumo da semana"), and the admins' when the
-    collection breaks or recovers
-  → Telegram: a message when no collection starts or the GitHub token is ending (sent by the database,
-    so it works when GitHub doesn't)
+    collection breaks or recovers, no collection starts, the GitHub token is ending or the year's
+    tax tables changed (the database keeps these and starts `notices.yml`, N.114)
 ```
 
 | Folder | What it is |
@@ -64,7 +63,7 @@ Tracked models (chosen in the app)
 | [`collector/`](collector/README.md) | Dart command line: fetches, parses and stores listings, then scores and alerts |
 | `supabase/` | Database migrations: tables, scoring, alerts, views, access rules; `tests/`: SQL tests (`make db-test`); `schema.sql`: the schema they produce, to read (`make schema`) |
 | `docs/` | Progress and decisions (see below) |
-| `.github/workflows/` | `collect.yml` (00:00 and every 2 hours from 08:00 to 22:00, Lisbon time, started by Supabase pg_cron), `check.yml` (parallel jobs: the app's analyze and unused code; the app's tests and the collector's, each in as many shards as its tests need (about 40 s each, sized and split from the last run's times), with coverage, the floors taken over all of them; `make app-smoke`; the collector and database, using the collection's shared Dart setup and startup smoke before its checks, `tool/` and database tests), `deploy-web.yml` (on merge: new migrations, the app's tests and the builds side by side, then the web app and the Android APK published, the APK on the release `android`, which the Android app installs as its update), `android-check.yml` (the APK built on pull requests that touch the Android side), `weekly-summary.yml` (Mondays, each account's week in the app and on its devices; or one account's when asked in the app), `text-audit.yml` (with Monday's summary: the description rules checked against Gemini's free tier on the week's ads, a report on the run's page, N.55), `score-check.yml` (with Monday's summary too: the estimates and the Deal Score against the ads that likely sold, a report on the run's page, N.61), `photos.yml` (the photo fingerprints and damage hints: after each collection, and at once when someone asks for every photo of an ad; shared setup in `.github/actions/collector`), `push-test.yml` (a test notification to the devices of whoever asked in the app), `mutation.yml` (mutation testing without AI: after merges the changed files, by hand all of them, held to a minimum score; report on the run's page), `code-quality.yml` and `test-hardening.yml` (Claude works through the backlogs, fixing every 5 merged PRs and finding new items after 10 in `docs/code-quality.md` and `docs/test-hardening.md`; shared steps in `backlog-pass.yml`) |
+| `.github/workflows/` | `collect.yml` (00:00 and every 2 hours from 08:00 to 22:00, Lisbon time, started by Supabase pg_cron), `check.yml` (parallel jobs: the app's analyze and unused code; the app's tests and the collector's, each in as many shards as its tests need (about 40 s each, sized and split from the last run's times), with coverage, the floors taken over all of them; `make app-smoke`; the collector and database, using the collection's shared Dart setup and startup smoke before its checks, `tool/` and database tests), `deploy-web.yml` (on merge: new migrations, the app's tests and the builds side by side, then the web app and the Android APK published, the APK on the release `android`, which the Android app installs as its update), `android-check.yml` (the APK built on pull requests that touch the Android side), `weekly-summary.yml` (Mondays, each account's week in the app and on its devices; or one account's when asked in the app), `text-audit.yml` (with Monday's summary: the description rules checked against Gemini's free tier on the week's ads, a report on the run's page, N.55), `score-check.yml` (with Monday's summary too: the estimates and the Deal Score against the ads that likely sold, a report on the run's page, N.61), `photos.yml` (the photo fingerprints and damage hints: after each collection, and at once when someone asks for every photo of an ad; shared setup in `.github/actions/collector`), `push-test.yml` (a test notification to the devices of whoever asked in the app), `notices.yml` (the database's warnings pushed to the admins' devices), `tax-tables.yml` (with Monday's summary: the year's ISV and IUC tables from the Tax Authority's PDF against the app's and the database's, no AI, N.114), `mutation.yml` (mutation testing without AI, by hand: every target, held to a minimum score; report on the run's page), `dependabot-merge.yml` (Dependabot's minor and patch updates merge themselves once every check passed) |
 
 ## Getting started
 
@@ -109,8 +108,7 @@ and `ANDROID_KEYSTORE_PASSWORD` for the Android app's signing key,
 `FIREBASE_ANDROID_CONFIG` and `FIREBASE_SERVICE_ACCOUNT` for the Android
 app's notifications, `GEMINI_API_KEY` for the weekly description check
 (N.55), `API_NINJAS_KEY` for the catalog's figures (N.76), `BACKUP_PASSPHRASE`
-for the weekly encrypted database backup (N.79), and `CLAUDE_CODE_OAUTH_TOKEN`
-for the code-quality review. Supabase's Vault holds `github_dispatch_token`,
+for the weekly encrypted database backup (N.79). Supabase's Vault holds `github_dispatch_token`,
 which the scheduled jobs use to start the workflows (`docs/hosting.md`).
 Database changes: `make db-new
 NAME=...`, a test in `supabase/tests/` (`make db-test` runs them on a local
@@ -153,8 +151,8 @@ treated as complete searches for removal.
 - [`docs/sources.md`](docs/sources.md): data-source decisions.
 - [`docs/hosting.md`](docs/hosting.md): Cloudflare Pages, installing on the iPhone, and the Android app.
 - [`docs/paid-plans.md`](docs/paid-plans.md): the plan for paid subscriptions and other income: what to decide first, free and paid features, prices to test. Not started (roadmap Sprint 16).
-- [`docs/code-quality.md`](docs/code-quality.md): code improvements to do and done (worked through automatically).
-- [`docs/test-hardening.md`](docs/test-hardening.md): bugs, missing and redundant tests found by the automatic mutation-style pass, to do and done.
+- [`docs/code-quality.md`](docs/code-quality.md): code improvements to do and done (the automatic passes ended with N.114; kept as a backlog).
+- [`docs/test-hardening.md`](docs/test-hardening.md): bugs, missing and redundant tests to do and done (the same).
 - [`docs/feature-review.md`](docs/feature-review.md): the review of every feature (2026-10-31): what to improve in each, what doesn't make sense, code and UI/UX changes, and their order (steps F.1-F.11).
 - [`docs/bug-hunt.md`](docs/bug-hunt.md): the second bug hunt (2026-11-15): bugs and improvements in the newest features, with file and line, and their order (steps B.1-B.6).
 - [`CLAUDE.md`](CLAUDE.md): conventions and the detailed pipeline, scoring and alert rules.

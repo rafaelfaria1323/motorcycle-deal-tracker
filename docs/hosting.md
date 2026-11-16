@@ -79,8 +79,8 @@ When the token expires, make a new one and replace it:
 The app's "Mais" shows a warning when no run happened recently.
 Admins' "Recolher agora" in Mais uses the same token (an expired one
 shows "O GitHub recusou o pedido"). Mais › "Estado da recolha" shows the
-token's expiry date, and from 14 days before it Telegram reminds you once
-a day (pg_cron `github-token-check`).
+token's expiry date, and from 14 days before it the admins' devices are
+reminded once a day (pg_cron `github-token-check`, an admin notice).
 
 ### Changing the schedule
 
@@ -159,29 +159,30 @@ The free plan allows 500 MB. Every night (03:37 UTC) the pg_cron job
 `prune-unfollowed-listings` checks the database's size; only from 400 MB
 does it delete listings of models no account follows that left the sites
 30+ days ago (never favourites, alerted ones or the earlier ad of a
-relist), and says so on Telegram. Postgres reuses the freed space without
+relist), and tells the admins' devices (an admin notice). Postgres reuses the freed space without
 shrinking the file, so the size shown in "Estado da recolha" stops growing
 rather than falling.
 
-### Warning on Telegram when no run starts
+### Warnings to the admins (N.114)
 
-Every hour (minute 20) the pg_cron job `collection-watchdog` checks the
-last recorded run. When none started in 9 hours (an expired token, for
-example) it sends a Telegram message, again once a day while it lasts,
-and "As recolhas de anúncios voltaram a começar" after the next run. It
-needs the bot's token and chat id in the Vault (the only place they are
-used: the collector no longer sends to Telegram, so the repository secrets
-`TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` can be deleted), saved once
-in the SQL Editor:
+The database's own warnings reach the admins' devices as notifications
+(Web Push, FCM), as the collection's do; Telegram was dropped on
+2026-11-16. Every hour (minute 20) the pg_cron job `collection-watchdog`
+checks the last recorded run: when none started in 9 hours it keeps a
+notice, again once a day while it lasts, and "As recolhas de anúncios
+voltaram a começar" after the next run. The GitHub token's check (above), the space
+pruning and the weekly tax-table check (`tax-tables.yml`: the Tax
+Authority's yearly PDF against the app's ISV and IUC tables) keep theirs
+the same way. The database can't sign a push, so each notice goes into
+`admin_notices` and starts `notices.yml` (`dispatch_workflow`), whose
+collector step sends it; one GitHub couldn't start goes with the next
+collection's report. Tap it for "Estado da recolha".
 
-```sql
-select vault.create_secret('<bot token>', 'telegram_bot_token');
-select vault.create_secret('<chat id>', 'telegram_chat_id');
-```
-
-Check it with `select public.send_telegram('Teste');` (the message arrives
-on the phone). If pg_cron itself stops, this check stops too; the app's
-warning is then the only sign.
+With the GitHub token already dead nothing can be started, so that
+notice waits: the token's own warning comes 14 days earlier, and the app's
+Recolha line turns red 12 hours after the last run. The Vault secrets
+`telegram_bot_token` and `telegram_chat_id` and the bot are no longer
+used and can be deleted.
 
 ### The model specifications (API Ninjas, N.76)
 
@@ -363,9 +364,9 @@ cross-origin isolation (COOP `same-origin`, COEP `credentialless`, N.85).
 ## Replacing secrets
 
 Replace a secret at once if it may have leaked (pasted somewhere, a lost
-laptop, a log that showed it), and otherwise once a year, in January,
-together with the IUC and ISV check (`iucBands`, `isvBands`). The GitHub dispatch token has its own
-expiry; Telegram and "Estado da recolha" warn 14 days before it.
+laptop, a log that showed it), and otherwise once a year, in January.
+The GitHub dispatch token has its own
+expiry; the admins' devices and "Estado da recolha" warn 14 days before it.
 
 Rules for every one: make the new value first, put it everywhere it is
 used, check that it works, and only then revoke the old one. Repository
@@ -380,13 +381,11 @@ update `collector/.env` if you run the collector there.
 | GitHub dispatch token | Vault `github_dispatch_token` | See "Scheduled runs" above: new fine-grained token, `vault.update_secret`, check with `select public.dispatch_workflow('collect.yml');` (or "Recolher agora" in Mais), then delete the old token in GitHub. |
 | Supabase secret key | Repository secret `SUPABASE_SERVICE_ROLE_KEY`; the collector copies it into Vault `service_role_key` on each run (invites use it) | Supabase › Project Settings › API Keys › Secret keys: create a new one, put it in the repository secret, run "Collect listings" (Actions › Run workflow), check the run is green and an invite can be made, then delete the old key. A project still on the legacy `service_role` JWT can't replace it alone (a new JWT secret also changes the publishable key and signs everyone out): move to the new API keys first (the same page). |
 | Database password | Repository secret `SUPABASE_DB_PASSWORD` (migrations) | Supabase › Project Settings › Database › Reset database password, then the repository secret. Check with "Deploy web app" › Run workflow (the `migrate` job connects even when nothing is missing). |
-| Telegram bot token | Vault `telegram_bot_token` | In Telegram, @BotFather › `/revoke` › the bot: the old token stops at once, so put the new one in the Vault straight away (`vault.update_secret`). Check with `select public.send_telegram('Teste');`. The chat id never changes. |
 | Cloudflare API token | Repository secret `CLOUDFLARE_API_TOKEN` | Cloudflare › My Profile › API Tokens › the token › "Roll", then the repository secret; check with "Deploy web app" › Run workflow. |
 | Firebase service account | Repository secret `FIREBASE_SERVICE_ACCOUNT` | Firebase › Project settings › Service accounts › "Generate new private key", paste it as the secret, delete the file; check with "Enviar notificação de teste" in the Android app; then delete the old key in Google Cloud › IAM › Service accounts › the account › Keys. `FIREBASE_ANDROID_CONFIG` is not a secret worth replacing (it is inside every APK). |
 | Gemini API key | Repository secret `GEMINI_API_KEY` (the description check) | Google AI Studio › API keys › create a new key, put it in the secret, delete the old one there; check with "Description check" › Run workflow. |
 | API Ninjas key | Repository secret `API_NINJAS_KEY` (the model specifications) | api-ninjas.com › My Account › reset the API key, put the new one in the secret; check with "Model specifications" › Run workflow. |
 | Backup passphrase | Repository secret `BACKUP_PASSPHRASE` (the weekly backup) | Never needed: a new one only applies to the next backups. Keep the old one as long as a backup made with it is kept (90 days), or those can no longer be read. |
-| Claude token | Repository secret `CLAUDE_CODE_OAUTH_TOKEN` (backlog passes) | `claude setup-token` on the Mac, paste it as the secret (these tokens last a year, so this one also has its own date). |
 
 Not replaced:
 

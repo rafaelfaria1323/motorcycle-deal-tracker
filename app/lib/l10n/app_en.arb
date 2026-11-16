@@ -33,7 +33,7 @@
   "collectionStatus": "Collection status",
   "couldNotLoadCollectionRuns": "Could not load collection runs",
   "automaticStart": "Automatic start",
-  "githubTokenExplanation": "Supabase uses this token to start collections and weekly summaries. It also sends a Telegram warning 14 days before it expires.",
+  "githubTokenExplanation": "Supabase uses this token to start collections and weekly summaries. It also warns the admins' devices 14 days before it expires.",
   "database": "Database",
   "freeSupabasePlanAllows500MBAboveThat": "The free Supabase plan allows 500 MB; above that, the project becomes read-only.",
   "sites": "Sites",

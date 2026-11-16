@@ -1,21 +1,11 @@
 # Test-hardening backlog
 
-Worked through by `.github/workflows/test-hardening.yml` (Claude, with the
-surviving mutants of `mutation.yml`, a mutation-testing tool like Stryker).
-Each run does one of two things (by hand with "Run workflow" at any time):
-
-- **"To do" is empty → find run** (after 10 merged PRs): it only looks, and changes no code. It
-  hunts for bugs with hostile inputs (proven by a failing throwaway test),
-  takes the surviving mutants of the latest `mutation.yml` run (the
-  `mutation_test` tool, no AI: changes to the code no test noticed),
-  drops the equivalent ones, tries its own changes on files that run
-  doesn't cover, and spots redundant tests. It
-  writes up to 10 items, most valuable first.
-- **"To do" has items → fix run** (every 5 merged PRs): it does up to 3 of them (all if fewer
-  are left): a bug gets its failing test first, then the fix; a surviving
-  mutant gets the test that catches it; a redundant test is dropped once
-  the other one is checked to cover the same. It does not look for new
-  items.
+A backlog worked through by hand, in a session (N.114: the Claude pass,
+`test-hardening.yml`, was removed on 2026-11-16; it had been paused since
+2026-10-20). Items: bugs (proven by a failing test first, then the fix),
+surviving mutants of `mutation.yml` (mutation testing without AI, now run
+by hand: "Run workflow"; a surviving mutant gets the test that catches
+it, equivalent ones are dropped) and redundant tests.
 
 Fixes may only make the code do what CLAUDE.md, the comments or the
 function's name say; anything changing the fetching, scoring or alert

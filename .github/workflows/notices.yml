@@ -1,0 +1,33 @@
+name: Admin notices
+
+# The database's warnings to the admins (N.114: the collection watchdog,
+# the GitHub token, the space pruning, the yearly tax tables), pushed to
+# their devices (Web Push, FCM) by bin/admin_notices.dart. Started by the
+# database when it keeps one (add_admin_notice -> dispatch_workflow); a
+# notice it couldn't start this for goes with the next collection's report.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: notices
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      # Android app devices (FCM); without it they are not reached.
+      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/collector
+
+      - name: Send the notices
+        run: cd collector && dart run bin/admin_notices.dart

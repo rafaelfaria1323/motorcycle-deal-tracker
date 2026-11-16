@@ -1,0 +1,75 @@
+name: Merge Dependabot updates
+
+# Dependabot's minor and patch updates merge themselves (N.114), without
+# AI: once every check on the PR's head commit has finished and passed
+# (check.yml, and android-check.yml when the app's packages changed, as
+# for app-minor; the preview too). Only the grouped PRs
+# (.github/dependabot.yml: app-minor, collector-minor, actions-minor are
+# minor and patch only); a major version comes alone and waits for
+# Rafael. A merge by this workflow's token starts no push workflow
+# (GitHub's rule), so an app update starts deploy-web.yml itself.
+on:
+  workflow_run:
+    workflows: [Check, Android build, Preview web app]
+    types: [completed]
+
+concurrency:
+  group: dependabot-merge-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    if: >-
+      github.event.workflow_run.event == 'pull_request'
+      && github.event.workflow_run.conclusion == 'success'
+      && github.event.workflow_run.actor.login == 'dependabot[bot]'
+      && (contains(github.event.workflow_run.head_branch, '/app-minor-')
+        || contains(github.event.workflow_run.head_branch, '/collector-minor-')
+        || contains(github.event.workflow_run.head_branch, '/actions-minor-'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+      checks: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      BRANCH: ${{ github.event.workflow_run.head_branch }}
+      SHA: ${{ github.event.workflow_run.head_sha }}
+    steps:
+      - name: Merge when every check passed
+        run: |
+          pr=$(gh pr list --head "$BRANCH" --state open --json number,author,headRefOid \
+            --jq '.[] | select(.author.login | test("dependabot")) | "\(.number) \(.headRefOid)"')
+          if [ -z "$pr" ]; then
+            echo "No open Dependabot PR for $BRANCH."
+            exit 0
+          fi
+          read -r number head <<< "$pr"
+          if [ "$head" != "$SHA" ]; then
+            echo "PR #$number moved on to $head; its own checks decide."
+            exit 0
+          fi
+          runs=$(gh api --paginate "repos/$GH_REPO/commits/$SHA/check-runs?per_page=100" \
+            --jq '.check_runs[] | "\(.name)|\(.status)|\(.conclusion)"')
+          echo "$runs"
+          if ! grep -q '^check|completed|success$' <<< "$runs"; then
+            echo "The check hasn't passed yet."
+            exit 0
+          fi
+          if grep -v '|completed|' <<< "$runs" | grep -q .; then
+            echo "Checks still running; the last one to finish merges."
+            exit 0
+          fi
+          if grep -vE '\|(success|skipped|neutral)$' <<< "$runs" | grep -q .; then
+            echo "A check failed: left for Rafael."
+            exit 0
+          fi
+          files=$(gh pr view "$number" --json files --jq '.files[].path')
+          # --match-head-commit: never merge a commit the checks didn't see.
+          gh pr merge "$number" --squash --match-head-commit "$SHA"
+          if grep -q '^app/' <<< "$files"; then
+            gh workflow run deploy-web.yml --ref main
+          fi
