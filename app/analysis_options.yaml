@@ -38,7 +38,7 @@ linter:
     - prefer_const_declarations
     - prefer_const_constructors
     - prefer_const_literals_to_create_immutables
-    # Dart 3.11-3.13 (N.40)
+    # Dart 3.11-3.14 (N.40, N.112)
     - use_declaring_parameters
     - prefer_initializing_formals
     - simplify_variable_pattern
@@ -47,3 +47,4 @@ linter:
     - no_raw_types
     - simple_directive_paths
     - unnecessary_primary_constructor_body
+    - future_sync_value

@@ -238,9 +238,9 @@ void main() {
             final model = r.url.pathSegments.last.split(':').first;
             asked.add(model);
             return switch (model) {
-              'a' => Future.value(http.Response('busy', 503)),
+              'a' => Future.syncValue(http.Response('busy', 503)),
               'b' => Completer<http.Response>().future,
-              _ => Future.value(http.Response(_answer([1]), 200)),
+              _ => Future.syncValue(http.Response(_answer([1]), 200)),
             };
           }),
           wait: (d) async => waits.add(d),

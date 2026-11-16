@@ -281,7 +281,7 @@ void main() {
       final repository = _PagedListings(200);
       final cubit = _cubit(repository);
 
-      await cubit.load(early: Future.value(early));
+      await cubit.load(early: Future.syncValue(early));
 
       expect(cubit.state.status, ListingsStatus.success);
       expect(cubit.state.listings, early.listings);
@@ -310,7 +310,7 @@ void main() {
       final cubit = _cubit(repository);
       await cubit.applyFilters(const ListingFilters(maxPrice: 7000));
 
-      await cubit.load(early: Future.value(early));
+      await cubit.load(early: Future.syncValue(early));
 
       expect(cubit.state.listings, hasLength(5));
       expect(repository.offsets, [0, 0]);

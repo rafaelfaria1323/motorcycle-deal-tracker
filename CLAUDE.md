@@ -55,7 +55,7 @@ never asks for search URLs; aliases sit under "Outros nomes do modelo".
   are a report for fixing them with tests, never a score; beside it the
   weekly score check, N.61, without AI, and the model specifications,
   N.76: API Ninjas' data, no AI). Checks: analyzer rules (`*/analysis_options.yaml`, with Dart
-  3.11-3.13's lints, N.40),
+  3.11-3.14's lints, N.40, N.112),
   `make duplication` (jscpd), `make coverage` (floors in the Makefile),
   `make lint-scripts` (actionlint, shellcheck), `make dead-code`
   (dart_code_linter, app only), `make sql-lint`
