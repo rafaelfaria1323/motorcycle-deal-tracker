@@ -157,7 +157,7 @@
   "@automaticStart": {
     "description": "Interface text in collection_status_page, build."
   },
-  "githubTokenExplanation": "O Supabase usa este token para iniciar as recolhas e o resumo semanal. Avisa também no Telegram 14 dias antes de terminar.",
+  "githubTokenExplanation": "O Supabase usa este token para iniciar as recolhas e o resumo semanal. Avisa também os aparelhos dos administradores 14 dias antes de terminar.",
   "@githubTokenExplanation": {
     "description": "Interface text in collection_status_page, build."
   },

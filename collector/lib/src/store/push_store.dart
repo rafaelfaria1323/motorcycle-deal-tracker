@@ -238,6 +238,37 @@ class PushStore(final SupabaseClient _client) {
   }
 
   /// The admins' accounts.
+  /// The admins' notices waiting (`take_admin_notices`, N.114), taken for
+  /// 10 minutes so another sender leaves them.
+  Future<List<AdminNotice>> takeAdminNotices() async {
+    final rows = await _client.rpc<List<dynamic>>('take_admin_notices');
+    return [
+      for (final row in rows) AdminNotice.fromRow(row as Map<String, dynamic>),
+    ];
+  }
+
+  Future<void> markAdminNoticeSent(int id) async {
+    await _client.rpc<Object?>('mark_admin_notice_sent', params: {'p_id': id});
+  }
+
+  /// Keeps a notice for the admins (and starts notices.yml); with
+  /// [quietFor], not when the same one was kept within it.
+  Future<int?> addAdminNotice(
+    String kind,
+    Map<String, Object?> details, {
+    Duration? quietFor,
+  }) async {
+    final id = await _client.rpc<Object?>(
+      'add_admin_notice',
+      params: {
+        'p_kind': kind,
+        'p_details': details,
+        if (quietFor != null) 'p_quiet_for': '${quietFor.inSeconds} seconds',
+      },
+    );
+    return (id as num?)?.toInt();
+  }
+
   Future<List<String>> adminIds() async {
     final rows = await _client.from('app_admins').select('user_id');
     return [for (final r in rows) r['user_id'] as String];

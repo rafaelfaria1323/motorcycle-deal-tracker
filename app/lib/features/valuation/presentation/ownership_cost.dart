@@ -9,8 +9,9 @@ import '../../../core/localization/localizations.dart';
 
 /// IUC, category E (motorcycles), registered after 1996, euros per year by
 /// engine size (Código do IUC; the 2024 values, kept in 2025 and 2026).
-/// The State Budget can change them every January: check and update
-/// [iucTableYear] with them.
+/// The State Budget can change them every January: tax-tables.yml compares
+/// them weekly with the Tax Authority's PDF and tells the admins (N.114);
+/// update [iucTableYear] with them.
 const iucTableYear = 2026;
 const iucBands = <({int? maxCc, double euros})>[
   (maxCc: 119, euros: 0),

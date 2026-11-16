@@ -6,7 +6,7 @@ import '../domain/github_token.dart';
 import '../../../core/localization/localizations.dart';
 
 /// Warn this many days before the GitHub token expires (the database's
-/// daily check tells Telegram from the same day).
+/// daily check tells the admins' devices from the same day, N.114).
 const tokenWarningDays = 14;
 
 /// What "Estado da recolha" says about the GitHub token, and whether it

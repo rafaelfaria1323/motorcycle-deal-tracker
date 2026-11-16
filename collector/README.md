@@ -221,8 +221,8 @@ are loaded, so the app can render existing summaries in either language.
 Push URLs, tags, ownership and delivery/retry rules are unchanged. Language
 metadata reaches Web Push/FCM and the Android channel's display name, while
 its channel ID remains `alerts`. Seller/model names and raw collection
-diagnostics stay unchanged; the database's Telegram watchdog/token warnings
-remain operational messages. There is no translation service or AI.
+diagnostics stay unchanged; the database's warnings to the admins
+(`admin_notices`, N.114) are localized the same way. There is no translation service or AI.
 
 ## Commands
 
@@ -248,7 +248,7 @@ Secrets go in `collector/.env` (gitignored): `SUPABASE_URL`,
 ## Code layout
 
 ```text
-bin/        entry points (refresh, fetch, collector, enrich, photos, searches, report_run, push_test, weekly_summary, text_audit, score_check, model_specs;
+bin/        entry points (refresh, fetch, collector, enrich, photos, searches, report_run, push_test, admin_notices, weekly_summary, text_audit, score_check, model_specs;
             `--help` lists each one's options, package args)
 lib/        fetcher, site adapters and mappers, model matching, store, run steps
 test/       unit tests

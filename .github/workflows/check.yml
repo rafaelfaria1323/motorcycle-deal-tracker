@@ -14,10 +14,7 @@ name: Check
 # waits for them, takes each suite's coverage floor over its shards'
 # lcov files merged, keeps this run's times for the next plan (artifact
 # `test-times`), and is the one result the PR shows as "check".
-# PRs opened by a workflow (code quality, test hardening) don't trigger
-# pull_request runs (GitHub's rule for GITHUB_TOKEN), so backlog-pass.yml
-# starts this by workflow_dispatch on the PR's branch; the result is
-# attached to the same commit, so it shows on the PR.
+# "Run workflow" runs it again on a branch by hand.
 on:
   pull_request:
     branches: [main]

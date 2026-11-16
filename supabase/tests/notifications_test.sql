@@ -1,4 +1,4 @@
--- Telegram notifications: pending alerts of real accounts only, oldest first,
+-- Alert notifications (Web Push, FCM): pending alerts of real accounts only, oldest first,
 -- and each marked sent once.
 insert into auth.users (id, is_anonymous)
 values ('00000000-0000-0000-0000-0000000000a1', false),

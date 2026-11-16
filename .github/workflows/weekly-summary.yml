@@ -13,7 +13,8 @@ name: Weekly summary
 # workflow" here without an account makes everyone's, and then runs the
 # description check (text-audit.yml, N.55), the score check
 # (score-check.yml, N.61), the model specifications (model-specs.yml,
-# N.76) and the database backup (backup.yml, N.79) beside it.
+# N.76), the tax tables (tax-tables.yml, N.114) and the database backup
+# (backup.yml, N.79) beside it.
 on:
   workflow_dispatch:
     inputs:
@@ -60,6 +61,12 @@ jobs:
     # Weekly with everyone's summary: the catalog's missing figures.
     if: inputs.account == ''
     uses: ./.github/workflows/model-specs.yml
+    secrets: inherit
+
+  tax-tables:
+    # Weekly with everyone's summary: the year's ISV and IUC tables.
+    if: inputs.account == ''
+    uses: ./.github/workflows/tax-tables.yml
     secrets: inherit
 
   backup:

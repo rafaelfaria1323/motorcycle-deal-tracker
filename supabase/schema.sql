@@ -334,6 +334,33 @@ CREATE FUNCTION public.ad_listing(r public.bike_value_requests) RETURNS uuid
 $$;
 
 --
+-- Name: add_admin_notice(text, jsonb, interval); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.add_admin_notice(p_kind text, p_details jsonb DEFAULT '{}'::jsonb, p_quiet_for interval DEFAULT NULL::interval) RETURNS bigint
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+declare
+  v_id bigint;
+begin
+  if p_quiet_for is not null and exists (
+    select 1 from public.admin_notices n
+    where n.kind = p_kind
+      and n.details = coalesce(p_details, '{}')
+      and n.created_at > now() - p_quiet_for) then
+    return null;
+  end if;
+
+  insert into public.admin_notices (kind, details)
+  values (p_kind, coalesce(p_details, '{}'))
+  returning id into v_id;
+  perform public.dispatch_workflow('notices.yml');
+  return v_id;
+end;
+$$;
+
+--
 -- Name: add_catalog_model(text, text, integer, text, text, text[], integer, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -1034,7 +1061,6 @@ CREATE FUNCTION public.check_collection_runs(p_now timestamp with time zone DEFA
 declare
   last_run timestamptz;
   warned   timestamptz;
-  message  text;
 begin
   select max(r.started_at) into last_run from public.collector_runs r;
   -- No run ever recorded: a new project, nothing has broken yet.
@@ -1048,27 +1074,17 @@ begin
     if warned is not null and warned > p_now - interval '24 hours' then
       return null;
     end if;
-    message :=
-      '⚠️ Nenhuma recolha de anúncios começou nas últimas '
-      || floor(extract(epoch from p_now - last_run) / 3600)::int
-      || ' h (a última foi a '
-      || to_char(last_run at time zone 'Europe/Lisbon', 'DD/MM "às" HH24:MI')
-      || '). O token do GitHub no Supabase pode ter expirado ou o '
-      || 'agendamento parou: veja "Scheduled runs" em docs/hosting.md.';
+    perform public.add_admin_notice('collection_stopped', jsonb_build_object(
+      'hours', floor(extract(epoch from p_now - last_run) / 3600)::int,
+      'last_run', to_char(last_run at time zone 'Europe/Lisbon', 'DD/MM HH24:MI')));
+    update public.collection_watchdog set warned_at = p_now where id;
+    return 'collection_stopped';
   elsif warned is not null then
-    message := '✅ As recolhas de anúncios voltaram a começar.';
-  else
-    return null;
+    perform public.add_admin_notice('collection_resumed');
+    update public.collection_watchdog set warned_at = null where id;
+    return 'collection_resumed';
   end if;
-
-  if public.send_telegram(message) is null then
-    return null;
-  end if;
-
-  update public.collection_watchdog
-  set warned_at = case when message like '✅%' then null else p_now end
-  where id;
-  return message;
+  return null;
 end;
 $$;
 
@@ -1101,7 +1117,6 @@ declare
   v_header   extensions.http_header;
   v_expires  timestamptz;
   v_row      public.github_token_check;
-  v_message  text;
 begin
   select s.decrypted_secret into v_token
   from vault.decrypted_secrets s where s.name = 'github_dispatch_token';
@@ -1147,20 +1162,16 @@ begin
 
   if v_row.warned_on is distinct from current_date then
     if v_row.state = 'refused' then
-      v_message := format(
-        '🔑 O GitHub recusou o token que inicia as recolhas (HTTP %s). Sem ele '
-        'as recolhas não começam: crie um novo e substitua-o no Vault do '
-        'Supabase (docs/hosting.md).', v_row.http_status);
+      perform public.add_admin_notice('github_token_refused',
+        jsonb_build_object('http_status', v_row.http_status));
     elsif v_expires < now() + interval '14 days' then
-      v_message := format(
-        '🔑 O token do GitHub que inicia as recolhas expira a %s. Crie um novo '
-        'e substitua-o no Vault do Supabase (docs/hosting.md).',
-        to_char(v_expires at time zone 'Europe/Lisbon', 'DD/MM/YYYY'));
+      perform public.add_admin_notice('github_token_expiring', jsonb_build_object(
+        'expires_on', to_char(v_expires at time zone 'Europe/Lisbon', 'DD/MM/YYYY')));
+    else
+      return v_row;
     end if;
-    if v_message is not null and public.send_telegram(v_message) is not null then
-      update public.github_token_check set warned_on = current_date where id
-      returning * into v_row;
-    end if;
+    update public.github_token_check set warned_on = current_date where id
+    returning * into v_row;
   end if;
   return v_row;
 end;
@@ -1587,7 +1598,7 @@ CREATE FUNCTION public.dispatch_workflow(p_workflow text) RETURNS bigint
 declare
   token text;
 begin
-  if p_workflow not in ('collect.yml', 'weekly-summary.yml', 'photos.yml') then
+  if p_workflow not in ('collect.yml', 'weekly-summary.yml', 'photos.yml', 'notices.yml') then
     raise exception 'unknown workflow %', p_workflow;
   end if;
 
@@ -3017,6 +3028,18 @@ CREATE FUNCTION public.listings_missing_photo_hashes(p_limit integer DEFAULT 200
          or l.details_failed_at is not null)
   order by l.duplicate_of is null desc, l.first_seen_at desc, l.id
   limit p_limit
+$$;
+
+--
+-- Name: mark_admin_notice_sent(bigint); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.mark_admin_notice_sent(p_id bigint) RETURNS void
+    LANGUAGE sql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+  update public.admin_notices n set sent_at = now()
+  where n.id = p_id and n.sent_at is null
 $$;
 
 --
@@ -4548,9 +4571,8 @@ begin
   get diagnostics v_deleted = row_count;
 
   if v_deleted > 0 then
-    perform public.send_telegram(pg_catalog.format(
-      '🧹 A base de dados chegou a %s MB (limite gratuito: 500 MB): foram apagados %s anúncios antigos de modelos que ninguém acompanha.',
-      v_bytes / (1024 * 1024), v_deleted));
+    perform public.add_admin_notice('listings_pruned', jsonb_build_object(
+      'database_mb', v_bytes / (1024 * 1024), 'deleted', v_deleted));
   end if;
   return v_deleted;
 end;
@@ -6244,37 +6266,6 @@ CREATE FUNCTION public.score_check_models(p_days integer DEFAULT 28) RETURNS TAB
 $$;
 
 --
--- Name: send_telegram(text); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.send_telegram(p_text text) RETURNS bigint
-    LANGUAGE plpgsql SECURITY DEFINER
-    SET search_path TO ''
-    AS $$
-declare
-  token text;
-  chat  text;
-begin
-  select s.decrypted_secret into token
-  from vault.decrypted_secrets s where s.name = 'telegram_bot_token';
-  select s.decrypted_secret into chat
-  from vault.decrypted_secrets s where s.name = 'telegram_chat_id';
-
-  if token is null or chat is null then
-    raise warning 'telegram_bot_token or telegram_chat_id is not in the Vault; message not sent';
-    return null;
-  end if;
-
-  return net.http_post(
-    url := 'https://api.telegram.org/bot' || token || '/sendMessage',
-    body := jsonb_build_object('chat_id', chat, 'text', p_text),
-    headers := jsonb_build_object('Content-Type', 'application/json'),
-    timeout_milliseconds := 10000
-  );
-end;
-$$;
-
---
 -- Name: set_admin(uuid, boolean); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -7156,6 +7147,35 @@ end;
 $$;
 
 --
+-- Name: admin_notices; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.admin_notices (
+    id bigint NOT NULL,
+    kind text NOT NULL,
+    details jsonb DEFAULT '{}'::jsonb NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    taken_at timestamp with time zone,
+    sent_at timestamp with time zone,
+    CONSTRAINT admin_notices_kind_check CHECK ((kind = ANY (ARRAY['collection_stopped'::text, 'collection_resumed'::text, 'github_token_refused'::text, 'github_token_expiring'::text, 'listings_pruned'::text, 'tax_tables'::text])))
+);
+
+--
+-- Name: take_admin_notices(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.take_admin_notices() RETURNS SETOF public.admin_notices
+    LANGUAGE sql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+  update public.admin_notices n
+  set taken_at = now()
+  where n.sent_at is null
+    and (n.taken_at is null or n.taken_at < now() - interval '10 minutes')
+  returning n.*
+$$;
+
+--
 -- Name: text_audit_sample(timestamp with time zone, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -7560,6 +7580,19 @@ CREATE TABLE public.ad_import_keys (
     user_id uuid NOT NULL,
     key_hash bytea NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+--
+-- Name: admin_notices_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.admin_notices ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.admin_notices_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
 );
 
 --
@@ -8558,6 +8591,13 @@ ALTER TABLE ONLY public.ad_import_keys
     ADD CONSTRAINT ad_import_keys_pkey PRIMARY KEY (user_id);
 
 --
+-- Name: admin_notices admin_notices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.admin_notices
+    ADD CONSTRAINT admin_notices_pkey PRIMARY KEY (id);
+
+--
 -- Name: alerts alerts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8864,6 +8904,12 @@ ALTER TABLE ONLY public.weekly_summaries
 
 ALTER TABLE ONLY public.workflow_starts
     ADD CONSTRAINT workflow_starts_pkey PRIMARY KEY (id);
+
+--
+-- Name: admin_notices_waiting; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX admin_notices_waiting ON public.admin_notices USING btree (id) WHERE (sent_at IS NULL);
 
 --
 -- Name: alerts_listing_idx; Type: INDEX; Schema: public; Owner: -
@@ -9736,6 +9782,12 @@ ALTER TABLE public.account_languages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ad_import_keys ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: admin_notices; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.admin_notices ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: alerts; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -10068,6 +10120,13 @@ REVOKE ALL ON FUNCTION public.ad_listing(r public.bike_value_requests) FROM PUBL
 GRANT ALL ON FUNCTION public.ad_listing(r public.bike_value_requests) TO anon;
 GRANT ALL ON FUNCTION public.ad_listing(r public.bike_value_requests) TO authenticated;
 GRANT ALL ON FUNCTION public.ad_listing(r public.bike_value_requests) TO service_role;
+
+--
+-- Name: FUNCTION add_admin_notice(p_kind text, p_details jsonb, p_quiet_for interval); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.add_admin_notice(p_kind text, p_details jsonb, p_quiet_for interval) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.add_admin_notice(p_kind text, p_details jsonb, p_quiet_for interval) TO service_role;
 
 --
 -- Name: FUNCTION add_catalog_model(p_brand text, p_model text, p_min_year integer, p_olx_search text, p_standvirtual_search text, p_aliases text[], p_engine_cc_min integer, p_engine_cc_max integer); Type: ACL; Schema: public; Owner: -
@@ -10796,6 +10855,13 @@ REVOKE ALL ON FUNCTION public.listings_missing_photo_hashes(p_limit integer, p_p
 GRANT ALL ON FUNCTION public.listings_missing_photo_hashes(p_limit integer, p_photos integer) TO service_role;
 
 --
+-- Name: FUNCTION mark_admin_notice_sent(p_id bigint); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.mark_admin_notice_sent(p_id bigint) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.mark_admin_notice_sent(p_id bigint) TO service_role;
+
+--
 -- Name: FUNCTION mark_alerts_notified(p_ids uuid[]); Type: ACL; Schema: public; Owner: -
 --
 
@@ -11490,13 +11556,6 @@ REVOKE ALL ON FUNCTION public.score_check_models(p_days integer) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.score_check_models(p_days integer) TO service_role;
 
 --
--- Name: FUNCTION send_telegram(p_text text); Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON FUNCTION public.send_telegram(p_text text) FROM PUBLIC;
-GRANT ALL ON FUNCTION public.send_telegram(p_text text) TO service_role;
-
---
 -- Name: FUNCTION set_admin(p_user uuid, p_admin boolean); Type: ACL; Schema: public; Owner: -
 --
 
@@ -11729,6 +11788,19 @@ REVOKE ALL ON FUNCTION public.strip_phone_numbers() FROM PUBLIC;
 GRANT ALL ON FUNCTION public.strip_phone_numbers() TO service_role;
 
 --
+-- Name: TABLE admin_notices; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON TABLE public.admin_notices TO service_role;
+
+--
+-- Name: FUNCTION take_admin_notices(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.take_admin_notices() FROM PUBLIC;
+GRANT ALL ON FUNCTION public.take_admin_notices() TO service_role;
+
+--
 -- Name: FUNCTION text_audit_sample(p_since timestamp with time zone, p_limit integer); Type: ACL; Schema: public; Owner: -
 --
 
@@ -11833,6 +11905,14 @@ GRANT SELECT,INSERT,UPDATE ON TABLE public.account_languages TO authenticated;
 GRANT SELECT ON TABLE public.ad_import_keys TO anon;
 GRANT SELECT ON TABLE public.ad_import_keys TO authenticated;
 GRANT ALL ON TABLE public.ad_import_keys TO service_role;
+
+--
+-- Name: SEQUENCE admin_notices_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT ALL ON SEQUENCE public.admin_notices_id_seq TO anon;
+GRANT ALL ON SEQUENCE public.admin_notices_id_seq TO authenticated;
+GRANT ALL ON SEQUENCE public.admin_notices_id_seq TO service_role;
 
 --
 -- Name: TABLE alerts; Type: ACL; Schema: public; Owner: -

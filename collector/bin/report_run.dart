@@ -7,7 +7,8 @@ import 'package:collector/collector.dart';
 /// the scoring took and the GitHub run's address), drops rows older than
 /// 90 days and tells the admins' devices (Web Push) when the collection
 /// breaks or recovers (runHealthMessage: a change from the previous runs
-/// only; a partial run only when its site failed in the run before too).
+/// only; a partial run only when its site failed in the run before too),
+/// along with the database's notices still waiting (N.114).
 /// In GitHub Actions the status goes to the step's outputs (`status`), so
 /// a partial run doesn't fail the job.
 /// What the run did comes from the report refresh.dart wrote
@@ -97,6 +98,20 @@ Future<void> main(List<String> args) async {
           ],
         ),
     ];
+    // The database's warnings still waiting (N.114: notices.yml wasn't
+    // started, e.g. the GitHub token was refused); never fails the job.
+    try {
+      final store = PushStore(client);
+      final notices = await sendAdminNotices(
+        store,
+        WebPushSender(await store.pushKeys(), fcm: FcmSender.fromEnvironment()),
+      );
+      if (notices.notices > 0) {
+        stdout.writeln('${notices.notices} admin notice(s) sent.');
+      }
+    } on Object catch (e) {
+      stderr.writeln('Admin notices not sent: $e');
+    }
     if (runHealthMessage(runs) == null) return;
     // The run is recorded; a missed message must not fail the job.
     try {

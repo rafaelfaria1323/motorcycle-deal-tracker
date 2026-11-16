@@ -94,6 +94,78 @@ extension NotificationText on NotificationLanguage {
     'Prices in the app may be out of date until collection is working again.',
   );
 
+  (String, String) collectionStopped(String hours, String lastRun) => (
+    _text(
+      '⚠️ Nenhuma recolha de anúncios começou nas últimas $hours h',
+      '⚠️ No listing collection has started in the last $hours h',
+    ),
+    _text(
+      'A última foi a $lastRun. O token do GitHub no Supabase pode ter '
+          'expirado ou o agendamento parou: veja "Scheduled runs" em '
+          'docs/hosting.md.',
+      'The last one was on $lastRun. The GitHub token in Supabase may have '
+          'expired or the schedule stopped: see "Scheduled runs" in '
+          'docs/hosting.md.',
+    ),
+  );
+  (String, String) get collectionResumed => (
+    _text(
+      '✅ As recolhas de anúncios voltaram a começar.',
+      '✅ Listing collections are starting again.',
+    ),
+    _text(
+      'O agendamento voltou a iniciá-las.',
+      'The schedule is starting them again.',
+    ),
+  );
+  (String, String) githubTokenRefused(String status) => (
+    _text(
+      '🔑 O GitHub recusou o token que inicia as recolhas (HTTP $status)',
+      '🔑 GitHub refused the token that starts the collections (HTTP $status)',
+    ),
+    _text(
+      'Sem ele as recolhas não começam: crie um novo e substitua-o no Vault '
+          'do Supabase (docs/hosting.md).',
+      'Without it no collection starts: create a new one and replace it in '
+          "Supabase's Vault (docs/hosting.md).",
+    ),
+  );
+  (String, String) githubTokenExpiring(String date) => (
+    _text(
+      '🔑 O token do GitHub que inicia as recolhas expira a $date',
+      '🔑 The GitHub token that starts the collections expires on $date',
+    ),
+    _text(
+      'Crie um novo e substitua-o no Vault do Supabase (docs/hosting.md).',
+      "Create a new one and replace it in Supabase's Vault (docs/hosting.md).",
+    ),
+  );
+  (String, String) listingsPruned(String deleted, String megabytes) => (
+    _text(
+      '🧹 Foram apagados $deleted anúncios antigos',
+      '🧹 $deleted old listings were deleted',
+    ),
+    _text(
+      'A base de dados chegou a $megabytes MB (limite gratuito: 500 MB): '
+          'eram de modelos que ninguém acompanha.',
+      'The database reached $megabytes MB (free limit: 500 MB): they were of '
+          'models nobody follows.',
+    ),
+  );
+  (String, String) taxTablesChanged(String year, List<String> differences) => (
+    _text(
+      '🧾 As tabelas do ISV e do IUC de $year não batem com a app',
+      "🧾 The $year ISV and IUC tables don't match the app",
+    ),
+    [
+      ...differences,
+      _text(
+        'Atualize isvBands, iucBands e motorcycle_isv (tool/tax_tables.py).',
+        'Update isvBands, iucBands and motorcycle_isv (tool/tax_tables.py).',
+      ),
+    ].join('\n'),
+  );
+
   String _count(int count, String one, String many) =>
       '$count ${count == 1 ? one : many}';
   String newListings(int count) => _text(
