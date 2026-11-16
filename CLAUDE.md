@@ -144,7 +144,8 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
             of every feature, 2026-10-31: findings and their order,
             steps F.1-F.11; tick them there as they are done),
             bug-hunt.md (the second bug hunt, 2026-11-15:
-            steps B.1-B.6, ticked there too)
+            steps B.1-B.6, ticked there too), performance-hunt.md
+            (2026-11-16: measured costs, steps PF.1-PF.7)
 .github/workflows/collect.yml     Collection at 00:00 and every 2 h
                                   from 08:00 to 22:00 (Lisbon time),
                                   started by Supabase pg_cron (see below);
@@ -748,7 +749,16 @@ invites; written by the collector on each run).
   public.listings set text_signals = null where ...` (the trigger fills
   them again; null is worked out on the fly meanwhile).
   `recalculate_deal_scores()` runs with `jit = off` (compiling cost more
-  than it saved). The collector's role (`service_role`) has a 60 s
+  than it saved), reads `listing_fair_prices` once (each model's live ads
+  packed into arrays, N.113) and shares the risk rules with
+  `listing_risk_scores` through `listing_risk(listing, fair_price)`; it
+  writes only listings whose score, risk or breakdown changed, so
+  `scored_at` is when the score last changed. `mark_duplicates` skips the
+  description's trigrams for pairs whose other facts can't reach the
+  threshold. Computed fields the lists read per row (`in_my_models`,
+  `distance_km`, `my_colour`) are written out in one function each: a
+  chain of SQL functions with `set search_path` is never inlined, and
+  each call costs per row. The collector's role (`service_role`) has a 60 s
   statement timeout (Supabase's default is about 8 s). Each run stores how
   long the scores took (`collector_runs.scoring_ms`, from finishRun's
   "Scored N listing(s) in X ms." line, `scoringMs`); "Estado da recolha"

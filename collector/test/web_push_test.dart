@@ -117,11 +117,14 @@ void main() {
     var status = 201;
     HttpHeaders? headers;
     var bodyLength = 0;
+    final clientPorts = <int>{};
 
     setUp(() async {
+      clientPorts.clear();
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
       server.listen((request) async {
         headers = request.headers;
+        clientPorts.add(request.connectionInfo!.remotePort);
         bodyLength = (await request.toList()).fold(0, (n, c) => n + c.length);
         request.response.statusCode = status;
         await request.response.close();
@@ -146,6 +149,14 @@ void main() {
       expect(headers!.value('authorization'), startsWith('vapid t='));
       // Salt, record size, key length and key (86) + text + tag (16).
       expect(bodyLength, greaterThan(86 + 16));
+    });
+
+    test('a burst of pushes shares one connection', () async {
+      status = 201;
+      for (final path in ['p1', 'p2', 'p3']) {
+        expect(await sender.send(target(path), {}), PushResult.sent);
+      }
+      expect(clientPorts, hasLength(1));
     });
 
     test('404 and 410 mean the device is gone; others fail', () async {

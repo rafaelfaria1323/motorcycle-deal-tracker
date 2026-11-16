@@ -195,6 +195,14 @@ class WebPushSender(
 }) {
   bool _toldNoFcm = false;
 
+  /// One connection pool for every push of the run: a burst to the same
+  /// push service reuses its connection instead of a TLS handshake each.
+  /// Idle connections close after a few seconds, so a command that ends
+  /// without `exit` is not held open.
+  late final HttpClient _client = HttpClient()
+    ..connectionTimeout = const Duration(seconds: 15)
+    ..idleTimeout = const Duration(seconds: 5);
+
   Future<PushResult> send(
     PushTarget target,
     Map<String, Object?> message,
@@ -206,6 +214,7 @@ class WebPushSender(
         keys,
         subject: subject,
         allowed: allowed,
+        client: _client,
       );
     }
     if (fcm case final fcm?) return await fcm.send(target, message);
@@ -244,12 +253,14 @@ bool isPushService(Uri endpoint) {
 /// [target]. An address that is no push service's is never called: the
 /// device is [PushResult.gone].
 /// Never throws: a network problem is [PushResult.failed].
+/// Uses [client] when given (left open), else one of its own for this push.
 Future<PushResult> sendWebPush(
   PushTarget target,
   Map<String, Object?> message,
   VapidKeys keys, {
   required String subject,
   bool Function(Uri endpoint) allowed = isPushService,
+  HttpClient? client,
 }) async {
   final endpoint = Uri.tryParse(target.endpoint);
   if (endpoint == null || !allowed(endpoint)) {
@@ -271,9 +282,10 @@ Future<PushResult> sendWebPush(
     return .gone;
   }
 
-  final client = HttpClient()..connectionTimeout = const Duration(seconds: 15);
+  final http =
+      client ?? (HttpClient()..connectionTimeout = const Duration(seconds: 15));
   try {
-    final request = await client
+    final request = await http
         .postUrl(endpoint)
         .timeout(const Duration(seconds: 15));
     request.headers
@@ -301,7 +313,7 @@ Future<PushResult> sendWebPush(
     stderr.writeln('Push to ${endpoint.host} not sent: ${e.runtimeType}');
     return .failed;
   } finally {
-    client.close(force: true);
+    if (client == null) http.close(force: true);
   }
 }
 

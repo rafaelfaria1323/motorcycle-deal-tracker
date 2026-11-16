@@ -1654,7 +1654,11 @@ CREATE FUNCTION public.distance_km(l public.listings) RETURNS integer
     LANGUAGE sql STABLE
     SET search_path TO ''
     AS $$
-  select public.distance_from_home(auth.uid(), l.location)
+  select public.distance_between(hp.lat, hp.lon, p.lat, p.lon)
+  from public.user_home h
+  join public.places hp on hp.key = h.place_key
+  join public.places p on p.key = public.place_key(l.location)
+  where h.user_id = auth.uid()
 $$;
 
 --
@@ -1715,9 +1719,13 @@ CREATE FUNCTION public.duplicate_similarity(p_mileage_a integer, p_mileage_b int
     + case
       when char_length(coalesce(p_description_a, '')) < 40
            or char_length(coalesce(p_description_b, '')) < 40 then 0
-      when extensions.similarity(lower(p_description_a), lower(p_description_b)) >= 0.8 then 30
-      when extensions.similarity(lower(p_description_a), lower(p_description_b)) >= 0.6 then 15
-      else 0
+      else (select case when t.similarity >= 0.8 then 30
+                        when t.similarity >= 0.6 then 15
+                        else 0
+                   end
+            from (select extensions.similarity(lower(p_description_a),
+                                               lower(p_description_b))
+                           as similarity) t)
     end
     -- dealer name
     + case
@@ -2418,7 +2426,20 @@ CREATE FUNCTION public.in_my_models(l public.listings) RETURNS boolean
     LANGUAGE sql STABLE
     SET search_path TO ''
     AS $$
-  select public.caller_tracks(l.motorcycle_id, l.year)
+  select case
+    when coalesce((auth.jwt() ->> 'is_anonymous')::boolean, true)
+    then exists (select 1 from public.motorcycles m
+                 where m.id = l.motorcycle_id
+                   and m.is_active
+                   and (l.year is null or l.year >= m.min_year))
+    else exists (select 1 from public.user_models u
+                 where u.user_id = auth.uid()
+                   and u.motorcycle_id = l.motorcycle_id
+                   and u.tracked
+                   and (l.year is null or l.year >= u.min_year)
+                   and (l.year is null or u.max_year is null
+                        or l.year <= u.max_year))
+  end
 $$;
 
 --
@@ -2749,6 +2770,60 @@ CREATE FUNCTION public.listing_matches_search(l_motorcycle_id uuid, l_year integ
 $$;
 
 --
+-- Name: listing_risk(public.listings, numeric); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.listing_risk(p_listing public.listings, p_fair_price numeric) RETURNS TABLE(risk_score smallint, reasons text[])
+    LANGUAGE sql STABLE
+    SET search_path TO ''
+    AS $$
+  select r.risk_score, r.reasons
+  from public.risk_from_signals(
+    p_listing.price,
+    p_fair_price,
+    p_listing.year,
+    p_listing.mileage,
+    p_listing.description,
+    p_listing.location,
+    p_listing.details_checked_at is not null or p_listing.source = 'olx',
+    coalesce(p_listing.seller_type::text = 'private', false),
+    p_listing.registrations,
+    p_listing.service_book,
+    p_listing.origin,
+    p_listing.warranty_until,
+    (p_listing.relisted_from is not null)::integer
+      + coalesce((select (prev.relisted_from is not null)::integer
+                  from public.listings prev
+                  where prev.id = p_listing.relisted_from), 0),
+    p_listing.relisted_since,
+    coalesce(p_listing.text_signals,
+             public.description_signals(p_listing.variant, p_listing.description))
+    || case
+         when exists (
+           select 1
+           from public.listing_photo_matches m
+           join public.listings o on o.id = m.other_id
+           where m.listing_id = p_listing.id
+             and o.first_seen_at < p_listing.first_seen_at
+             and (o.motorcycle_id <> p_listing.motorcycle_id
+                  or (p_listing.seller_type = 'private' and o.seller_type = 'dealer'))
+         )
+         then array['photos_reused']
+         else '{}'::text[]
+       end
+    || case
+         when p_listing.stock_photos
+              and not (p_listing.seller_type = 'dealer' and p_listing.mileage <= 100)
+         then array['stock_photos']
+         else '{}'::text[]
+       end
+    || public.fact_edit_signals(p_listing.mileage, p_listing.mileage_from_text,
+                                p_listing.mileage_max_seen,
+                                p_listing.year, p_listing.year_first_seen)
+  ) r
+$$;
+
+--
 -- Name: listing_time_to_sale(uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -3011,6 +3086,8 @@ begin
          and exists (select 1 from public.listing_photo_matches m
                      where m.listing_id = a.id and m.other_id = b.id)
           then 100
+        -- the text adds at most 30: below the threshold whatever it says
+        when facts.score + 30 < p_threshold then facts.score
         else public.duplicate_similarity(
           a.mileage, b.mileage, a.price, b.price, a.location, b.location,
           a.description, b.description, a.seller_name, b.seller_name
@@ -3021,6 +3098,11 @@ begin
       on a.motorcycle_id = b.motorcycle_id
      and a.year = b.year
      and (a.first_seen_at, a.id) < (b.first_seen_at, b.id)
+    cross join lateral (
+      select public.duplicate_similarity(
+        a.mileage, b.mileage, a.price, b.price, a.location, b.location,
+        null, null, a.seller_name, b.seller_name) as score
+    ) facts
     -- a dealer's identical new bikes are separate stock, not duplicates
     where not (a.source = b.source
                and coalesce(a.mileage, 0) < 500
@@ -3584,7 +3666,10 @@ CREATE FUNCTION public.my_colour(l public.listings) RETURNS boolean
     LANGUAGE sql STABLE
     SET search_path TO ''
     AS $$
-  select public.likes_colour((select auth.uid()), l.motorcycle_id, l.colour)
+  select exists (select 1 from public.user_models u
+                 where u.user_id = auth.uid()
+                   and u.motorcycle_id = l.motorcycle_id
+                   and l.colour = any (u.colours))
 $$;
 
 --
@@ -4518,19 +4603,23 @@ begin
                                d.missing_mileage, d.repeated) as score
     from public.dealer_reliability d
   ),
+  fair as materialized (
+    select f.listing_id, f.comparable_count, f.fair_price
+    from public.listing_fair_prices f
+  ),
   scored as materialized (
     select
       l.id,
       l.price,
-      ps.market_price,
+      f.fair_price as market_price,
       public.damage_allowance(rs.reasons) as allowance,
       -- Not yet legalised in Portugal (N.52): what that costs comes off.
       public.legalisation_cost(
         rs.reasons, coalesce(m.engine_cc_max, m.engine_cc_min),
-        case when l.price >= 300 then l.price else ps.market_price end,
+        case when l.price >= 300 then l.price else f.fair_price end,
         l.year, l.mileage) as legalisation,
-      ps.pct_below_market,
-      ps.listing_count,
+      round((f.fair_price - l.price) / f.fair_price * 100, 1) as pct_below_market,
+      f.comparable_count as listing_count,
       -- Nearly new (2 years or less from mid-year, at most half the normal
       -- mileage): also compared with the price of a new one (N.51).
       case when l.year is not null
@@ -4550,8 +4639,9 @@ begin
       dl.bikes as dealer_bikes
     from public.listings l
     join public.motorcycles m on m.id = l.motorcycle_id
-    left join public.listing_price_scores ps on ps.listing_id = l.id
-    left join public.listing_risk_scores  rs on rs.listing_id = l.id
+    left join fair f on f.listing_id = l.id
+    left join lateral public.listing_risk(
+      l, case when f.comparable_count >= 3 then f.fair_price end) rs on true
     left join dealers dl
       on l.seller_type = 'dealer'
      and dl.dealer_key = lower(btrim(l.seller_name))
@@ -4643,15 +4733,20 @@ begin
       cardinality(public.valued_extras(s.extras)), s.seller_score
     ) c
   )
-  update public.listings l
-  set deal_score      = c.deal_score,
-      risk_score      = c.risk_score,
-      score_breakdown = c.breakdown,
-      scored_at       = now()
-  from combined c
-  where l.id = c.id;
-
-  get diagnostics n = row_count;
+  ,
+  changed as (
+    update public.listings l
+    set deal_score      = c.deal_score,
+        risk_score      = c.risk_score,
+        score_breakdown = c.breakdown,
+        scored_at       = now()
+    from combined c
+    where l.id = c.id
+      and (l.deal_score, l.risk_score, l.score_breakdown, l.scored_at is null)
+          is distinct from (c.deal_score, c.risk_score, c.breakdown, false)
+    returning 1
+  )
+  select count(*) into n from combined;
 
   update public.listings
   set deal_score = null, risk_score = null,
@@ -7768,55 +7863,45 @@ CREATE VIEW public.model_depreciation WITH (security_invoker='true') AS
 
 CREATE VIEW public.listing_fair_prices WITH (security_invoker='true') AS
  WITH live AS (
-         SELECT l.id,
-            l.motorcycle_id,
-            l.year,
-            l.mileage,
-            l.price,
-            public.model_generation(m.generation_years, (l.year)::integer) AS generation
-           FROM (public.listings l
-             JOIN public.motorcycles m ON ((m.id = l.motorcycle_id)))
-          WHERE ((l.status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status])) AND (l.duplicate_of IS NULL) AND (l.price >= (300)::numeric))
-        ), pairs AS (
-         SELECT l.id,
-            l.year AS l_year,
-            l.mileage AS l_mileage,
-            l.motorcycle_id,
-            c.id AS c_id,
-            c.year AS c_year,
-            c.mileage AS c_mileage,
-            c.price AS c_price,
-            (abs((l.year - c.year)) <= 3) AS near,
-            ((abs((l.year - c.year)) <= 3) AND (l.generation = c.generation)) AS same_generation
-           FROM (live l
-             JOIN live c ON (((c.motorcycle_id = l.motorcycle_id) AND (c.id <> l.id) AND ((l.year IS NULL) OR (c.year IS NOT NULL)) AND ((l.mileage IS NULL) OR (c.mileage IS NOT NULL)))))
-        ), chosen AS (
-         SELECT p.id,
-            p.l_year,
-            p.l_mileage,
-            p.motorcycle_id,
-            p.c_id,
-            p.c_year,
-            p.c_mileage,
-            p.c_price,
-            p.near,
-            p.same_generation,
-            (count(*) FILTER (WHERE p.same_generation) OVER (PARTITION BY p.id) >= 5) AS use_generation,
-            (count(*) FILTER (WHERE p.near) OVER (PARTITION BY p.id) >= 5) AS use_near
-           FROM pairs p
+         SELECT l_1.id,
+            l_1.motorcycle_id,
+            l_1.year,
+            l_1.mileage,
+            l_1.price,
+            public.model_generation(m.generation_years, (l_1.year)::integer) AS generation
+           FROM (public.listings l_1
+             JOIN public.motorcycles m ON ((m.id = l_1.motorcycle_id)))
+          WHERE ((l_1.status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status])) AND (l_1.duplicate_of IS NULL) AND (l_1.price >= (300)::numeric))
+        ), models AS (
+         SELECT c.motorcycle_id,
+            array_agg(c.id ORDER BY c.id) AS ids,
+            array_agg(c.year ORDER BY c.id) AS years,
+            array_agg(c.mileage ORDER BY c.id) AS kms,
+            array_agg(c.price ORDER BY c.id) AS prices,
+            array_agg(c.generation ORDER BY c.id) AS generations
+           FROM live c
+          GROUP BY c.motorcycle_id
         )
- SELECT ch.id AS listing_id,
-    count(ch.c_id) AS comparable_count,
-    round((percentile_cont((0.5)::double precision) WITHIN GROUP (ORDER BY (((ch.c_price * public.age_mileage_factor(((ch.l_year - ch.c_year))::integer, (ch.l_mileage - ch.c_mileage), d.per_year, d.per_1000km)))::double precision)))::numeric, 2) AS fair_price
-   FROM (chosen ch
-     JOIN public.model_depreciation d ON ((d.motorcycle_id = ch.motorcycle_id)))
-  WHERE
-        CASE
-            WHEN ch.use_generation THEN ch.same_generation
-            WHEN ch.use_near THEN ch.near
-            ELSE true
-        END
-  GROUP BY ch.id;
+ SELECT l.id AS listing_id,
+    f.comparable_count,
+    f.fair_price
+   FROM ((((live l
+     JOIN models a ON ((a.motorcycle_id = l.motorcycle_id)))
+     JOIN public.model_depreciation d ON ((d.motorcycle_id = l.motorcycle_id)))
+     CROSS JOIN LATERAL ( SELECT (count(*) FILTER (WHERE ((abs((l.year - c.year)) <= 3) AND (l.generation = c.generation))) >= 5) AS use_generation,
+            (count(*) FILTER (WHERE (abs((l.year - c.year)) <= 3)) >= 5) AS use_near
+           FROM UNNEST(a.ids, a.years, a.kms, a.generations) c(id, year, mileage, generation)
+          WHERE ((c.id <> l.id) AND ((l.year IS NULL) OR (c.year IS NOT NULL)) AND ((l.mileage IS NULL) OR (c.mileage IS NOT NULL)))) ch)
+     CROSS JOIN LATERAL ( SELECT count(*) AS comparable_count,
+            round((percentile_cont((0.5)::double precision) WITHIN GROUP (ORDER BY ((c.price)::double precision * GREATEST((0.35)::double precision, LEAST((2.5)::double precision, exp((((d.per_year * (COALESCE(((l.year - c.year))::integer, 0))::numeric) - ((d.per_1000km * (COALESCE((l.mileage - c.mileage), 0))::numeric) / 1000.0)))::double precision))))))::numeric, 2) AS fair_price
+           FROM UNNEST(a.ids, a.years, a.kms, a.prices, a.generations) c(id, year, mileage, price, generation)
+          WHERE ((c.id <> l.id) AND ((l.year IS NULL) OR (c.year IS NOT NULL)) AND ((l.mileage IS NULL) OR (c.mileage IS NOT NULL)) AND
+                CASE
+                    WHEN ch.use_generation THEN ((abs((l.year - c.year)) <= 3) AND (l.generation = c.generation))
+                    WHEN ch.use_near THEN (abs((l.year - c.year)) <= 3)
+                    ELSE true
+                END)) f)
+  WHERE (f.comparable_count > 0);
 
 --
 -- Name: listing_new_price_comparison; Type: VIEW; Schema: public; Owner: -
@@ -7912,25 +7997,13 @@ CREATE VIEW public.listing_risk_scores WITH (security_invoker='true') AS
  SELECT l.id AS listing_id,
     r.risk_score,
     r.reasons
-   FROM (((public.listings l
+   FROM ((public.listings l
      LEFT JOIN public.listing_fair_prices f ON ((f.listing_id = l.id)))
-     LEFT JOIN public.listings prev ON ((prev.id = l.relisted_from)))
-     CROSS JOIN LATERAL public.risk_from_signals(l.price,
+     CROSS JOIN LATERAL public.listing_risk(l.*,
         CASE
             WHEN (f.comparable_count >= 3) THEN f.fair_price
             ELSE NULL::numeric
-        END, (l.year)::integer, l.mileage, l.description, l.location, ((l.details_checked_at IS NOT NULL) OR (l.source = 'olx'::text)), COALESCE(((l.seller_type)::text = 'private'::text), false), (l.registrations)::integer, l.service_book, l.origin, l.warranty_until, (((l.relisted_from IS NOT NULL))::integer + ((prev.relisted_from IS NOT NULL))::integer), l.relisted_since, (((COALESCE(l.text_signals, public.description_signals(l.variant, l.description)) ||
-        CASE
-            WHEN (EXISTS ( SELECT 1
-               FROM (public.listing_photo_matches m
-                 JOIN public.listings o ON ((o.id = m.other_id)))
-              WHERE ((m.listing_id = l.id) AND (o.first_seen_at < l.first_seen_at) AND ((o.motorcycle_id <> l.motorcycle_id) OR ((l.seller_type = 'private'::public.seller_type) AND (o.seller_type = 'dealer'::public.seller_type)))))) THEN ARRAY['photos_reused'::text]
-            ELSE '{}'::text[]
-        END) ||
-        CASE
-            WHEN (l.stock_photos AND (NOT ((l.seller_type = 'dealer'::public.seller_type) AND (l.mileage <= 100)))) THEN ARRAY['stock_photos'::text]
-            ELSE '{}'::text[]
-        END) || public.fact_edit_signals(l.mileage, l.mileage_from_text, l.mileage_max_seen, (l.year)::integer, (l.year_first_seen)::integer))) r(risk_score, reasons))
+        END) r(risk_score, reasons))
   WHERE (l.status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status]));
 
 --
@@ -10677,6 +10750,13 @@ GRANT ALL ON FUNCTION public.listing_for_ad(p_url text) TO service_role;
 GRANT ALL ON FUNCTION public.listing_matches_search(l_motorcycle_id uuid, l_year integer, l_price numeric, l_mileage integer, l_location text, l_seller_type public.seller_type, s_motorcycle_id uuid, s_min_year integer, s_max_price numeric, s_max_mileage integer, s_location text, s_seller_type public.seller_type) TO anon;
 GRANT ALL ON FUNCTION public.listing_matches_search(l_motorcycle_id uuid, l_year integer, l_price numeric, l_mileage integer, l_location text, l_seller_type public.seller_type, s_motorcycle_id uuid, s_min_year integer, s_max_price numeric, s_max_mileage integer, s_location text, s_seller_type public.seller_type) TO authenticated;
 GRANT ALL ON FUNCTION public.listing_matches_search(l_motorcycle_id uuid, l_year integer, l_price numeric, l_mileage integer, l_location text, l_seller_type public.seller_type, s_motorcycle_id uuid, s_min_year integer, s_max_price numeric, s_max_mileage integer, s_location text, s_seller_type public.seller_type) TO service_role;
+
+--
+-- Name: FUNCTION listing_risk(p_listing public.listings, p_fair_price numeric); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.listing_risk(p_listing public.listings, p_fair_price numeric) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.listing_risk(p_listing public.listings, p_fair_price numeric) TO service_role;
 
 --
 -- Name: FUNCTION listing_time_to_sale(p_listing_id uuid); Type: ACL; Schema: public; Owner: -
