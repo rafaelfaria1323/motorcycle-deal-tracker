@@ -19,7 +19,7 @@ pipeline, rules).
 Catalog (table `motorcycles`): 13 models. Each account chooses its own
 models and first years in the app ("Modelos acompanhados", table
 `user_models`); the collector searches every model any account follows
-(`motorcycles.is_active` = someone follows it, owns one (N.120) or asked
+(`motorcycles.is_active` = someone follows it or asked
 its value in the last 30 days, `min_year` = the earliest
 year asked, kept by `refresh_collected_model()`), so one collection fills
 the database for every account. An account may also set a last year
@@ -430,8 +430,8 @@ invites; written by the collector on each run).
   listings comparison's `CompareRowView`), `valuation` (a bike's value, the import
   calculator, the cost of ownership, "A minha mota": `owned_bikes`,
   `OwnedBikesCubit`, "Comprei esta" on the ad's Negociar, N.67; any
-  model through "Outra marca ou modelo…", N.120, and owning it keeps the
-  model collected, `owned_bikes_collect_model`; its value
+  model through "Outra marca ou modelo…", N.120, without collecting it
+  (N.121: only following or asking its value does); its value
   month by month, `owned_bike_values`, kept and pushed by the Monday
   summary, N.80),
   `collector_status`, `settings`

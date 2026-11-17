@@ -4094,26 +4094,6 @@ CREATE FUNCTION public.owned_bike_value_min_comparables() RETURNS integer
     AS $$ select 3 $$;
 
 --
--- Name: owned_bikes_collect_model(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.owned_bikes_collect_model() RETURNS trigger
-    LANGUAGE plpgsql SECURITY DEFINER
-    SET search_path TO ''
-    AS $$
-begin
-  if tg_op in ('UPDATE', 'DELETE') then
-    perform public.refresh_collected_model(old.motorcycle_id);
-  end if;
-  if tg_op = 'INSERT'
-     or (tg_op = 'UPDATE' and new.motorcycle_id <> old.motorcycle_id) then
-    perform public.refresh_collected_model(new.motorcycle_id);
-  end if;
-  return null;
-end;
-$$;
-
---
 -- Name: owner_tracks(uuid, uuid, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -5275,7 +5255,6 @@ declare
   v_followed boolean;
   v_follow_min integer;
   v_request_min integer;
-  v_owned_min integer;
 begin
   select m.is_active into v_was
   from public.motorcycles m where m.id = p_motorcycle_id
@@ -5292,14 +5271,9 @@ begin
     and r.requested_at > now()
         - pg_catalog.make_interval(days => public.bike_value_request_days());
 
-  -- Bikes someone owns: their value is kept every month.
-  select min(greatest(b.year - 3, 1990)) into v_owned_min
-  from public.owned_bikes b
-  where b.motorcycle_id = p_motorcycle_id;
-
-  v_now := v_followed or v_request_min is not null or v_owned_min is not null;
-  -- least() ignores nulls: whichever is known.
-  v_min := least(v_follow_min, v_request_min, v_owned_min);
+  v_now := v_followed or v_request_min is not null;
+  -- least() ignores nulls: whichever of the two is known.
+  v_min := least(v_follow_min, v_request_min);
 
   update public.motorcycles
   set is_active = v_now,
@@ -9306,12 +9280,6 @@ CREATE TRIGGER motorcycles_ensure_searches BEFORE INSERT OR UPDATE OF brand, mod
 CREATE TRIGGER motorcycles_similar_group BEFORE INSERT ON public.motorcycles FOR EACH ROW EXECUTE FUNCTION public.fill_similar_group();
 
 --
--- Name: owned_bikes owned_bikes_collect_model; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER owned_bikes_collect_model AFTER INSERT OR DELETE OR UPDATE OF motorcycle_id, year ON public.owned_bikes FOR EACH ROW EXECUTE FUNCTION public.owned_bikes_collect_model();
-
---
 -- Name: saved_searches saved_searches_single_model; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -11155,13 +11123,6 @@ GRANT ALL ON FUNCTION public.owned_bike_mileage(p_mileage_at_purchase integer, p
 
 REVOKE ALL ON FUNCTION public.owned_bike_value_min_comparables() FROM PUBLIC;
 GRANT ALL ON FUNCTION public.owned_bike_value_min_comparables() TO service_role;
-
---
--- Name: FUNCTION owned_bikes_collect_model(); Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON FUNCTION public.owned_bikes_collect_model() FROM PUBLIC;
-GRANT ALL ON FUNCTION public.owned_bikes_collect_model() TO service_role;
 
 --
 -- Name: FUNCTION owner_tracks(p_user uuid, p_motorcycle_id uuid, p_year integer); Type: ACL; Schema: public; Owner: -
