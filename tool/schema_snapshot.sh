@@ -13,7 +13,9 @@
 # lines) are left out; its "-- Name:" lines stay, to find an object.
 # So are the column options "pg_attver" that the postgres:16 image's
 # 16.16 build dumps for listings' columns (not a Postgres option, set by
-# no migration; not seen on 16.15).
+# no migration; not seen on 16.15). A pg_dump of 17 or later lists the
+# privileges of a 16 server's GRANT ALL one by one (ALL there includes
+# MAINTAIN, which 16 lacks): written back as ALL, whichever client runs.
 # Uses the usual libpq variables, like db_test.sh.
 set -euo pipefail
 
@@ -40,6 +42,7 @@ HEADER
         -e '/^SET /d' \
         -e '/^ALTER TABLE ONLY [^ ]+ ALTER COLUMN [^ ]+ SET \(pg_attver=[0-9]+\);$/d' \
         -e "/^SELECT pg_catalog.set_config\('search_path'/d" \
+        -e 's/(GRANT|REVOKE) SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON /\1 ALL ON /' \
         -e "s/FOR ROLE $me IN SCHEMA/FOR ROLE postgres IN SCHEMA/" \
     | sed -n '/^-- Name:/,$p' | sed '1i --' | cat -s \
     | awk '{ line[NR] = $0 }  # without the empty "--" lines pg_dump ends with
