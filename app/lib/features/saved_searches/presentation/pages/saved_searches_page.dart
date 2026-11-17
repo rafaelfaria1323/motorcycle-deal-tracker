@@ -92,12 +92,25 @@ class const SavedSearchesPage({super.key}) extends StatelessWidget {
             // With no searches yet the empty screen has its own button.
             builder: (context, state) =>
                 state.status == .success && state.searches.isNotEmpty
+                // Kept inside the bar's height with enlarged text: a
+                // full-size button overflowed it and the screen's edge.
                 ? Padding(
-                    padding: const EdgeInsetsDirectional.only(end: 12),
-                    child: FilledButton.icon(
-                      onPressed: () => _create(context, state.motorcycles),
-                      icon: const Icon(Icons.add, size: 18),
-                      label: Text(context.strings.newSearch),
+                    padding: const EdgeInsetsDirectional.only(end: 16),
+                    child: Center(
+                      child: MediaQuery.withClampedTextScaling(
+                        maxScaleFactor: 1.2,
+                        child: FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size(0, 40),
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: VisualDensity.compact,
+                          ),
+                          onPressed: () => _create(context, state.motorcycles),
+                          icon: const Icon(Icons.add, size: 18),
+                          label: Text(context.strings.newSearch),
+                        ),
+                      ),
                     ),
                   )
                 : const SizedBox.shrink(),
