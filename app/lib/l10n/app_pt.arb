@@ -6884,10 +6884,6 @@
   "@myBikeSaved": {
     "description": "Message after keeping a bike."
   },
-  "myBikeNoModels": "Não foi possível ler os modelos. Tente novamente.",
-  "@myBikeNoModels": {
-    "description": "Error when the model list could not be read."
-  },
   "myBikeCouldNotLoad": "Não foi possível carregar as suas motas",
   "@myBikeCouldNotLoad": {
     "description": "Error loading My bike."

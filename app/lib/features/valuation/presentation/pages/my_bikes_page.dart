@@ -14,7 +14,9 @@ import '../../../../core/widgets/page_intro.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../../../../core/widgets/show_message.dart';
 import '../../../../core/widgets/state_message.dart';
+import '../../../listings/domain/repositories/catalog_repository.dart';
 import '../../../listings/presentation/recall_text.dart';
+import '../../../listings/presentation/widgets/add_model_sheet.dart';
 import '../../../listings/presentation/widgets/recalls_card.dart';
 import '../../../market/domain/repositories/market_behaviour_repository.dart';
 import '../../domain/entities/bike_value.dart';
@@ -54,22 +56,52 @@ class _MyBikesPageState extends State<MyBikesPage> {
   Future<void> _add() async {
     final strings = context.strings;
     final messenger = ScaffoldMessenger.of(context);
+    // The followed models first; any other through "Outra marca ou
+    // modelo…" (N.120), so a list that can't be read still leaves that.
     final models = await getIt<MarketBehaviourRepository>()
         .getTrackedModels()
         .catchError((Object _) => const <Never>[]);
     if (!mounted) return;
-    if (models.isEmpty) {
-      showMessage(messenger, strings.myBikeNoModels);
-      return;
-    }
     final bike = await showOwnedBikeForm(
       context,
       initial: null,
-      models: [for (final m in models) (id: m.motorcycleId, name: m.name)],
+      models: [
+        for (final m in [...models]..sort((a, b) => a.name.compareTo(b.name)))
+          (id: m.motorcycleId, name: m.name),
+      ],
+      pickOther: _pickOtherModel,
     );
     if (bike == null) return;
     if (!await _cubit.add(bike)) {
       showMessage(messenger, strings.couldNotSaveTryAgain);
+    }
+  }
+
+  /// "Outra marca ou modelo…": the sites' brands and models, then the
+  /// catalog's model for it, added when new (followed by nobody; owning
+  /// the bike keeps it collected).
+  Future<OwnedBikeModel?> _pickOtherModel() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = context.strings.bikeValueCouldNotUseModel;
+    final picked = await showAddModelSheet(
+      context,
+      getIt<CatalogRepository>(),
+      forValue: true,
+    );
+    if (picked == null) return null;
+    try {
+      final id = await getIt<MarketBehaviourRepository>().bikeValueModel(
+        brand: picked.brand,
+        model: picked.model,
+        olxSearch: picked.olxSearch,
+        standvirtualSearch: picked.standvirtualSearch,
+        engineCcMin: picked.engineCcMin,
+        engineCcMax: picked.engineCcMax,
+      );
+      return (id: id, name: '${picked.brand} ${picked.model}');
+    } on Object {
+      showMessage(messenger, failed);
+      return null;
     }
   }
 
