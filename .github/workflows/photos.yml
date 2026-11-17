@@ -38,7 +38,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # bin/photos.dart compiled and cached (N.117).
       - uses: ./.github/actions/collector
+        with:
+          compiled: 'true'
 
       # The photo CDN's requests today, block pause and robots.txt. Its own
       # cache, not collect.yml's: this job may run beside a collection,
@@ -95,7 +98,7 @@ jobs:
           if [ "$PHOTO_MODEL_OK" = success ]; then
             export PHOTO_MODEL_DIR="$HOME/.cache/photo-model" PHOTO_PYTHON=python
           fi
-          make photos
+          make photos BIN=build/bin
 
       - name: Save the photo fetch state
         if: always() && hashFiles('collector/.fetch_state.photos.json') != ''

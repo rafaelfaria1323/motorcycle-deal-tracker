@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 .PHONY: help app-get app-run app-analyze app-check app-smoke app-build app-serve \
-        collector-get collector-lint collector-check collect-dry collect \
+        collector-get collector-lint collector-check collector-exe collect-dry collect \
         db-push db-new db-test sql-lint schema check tool-check lint-scripts format clean mutation \
         coverage app-coverage collector-coverage duplication dead-code \
         app-test-coverage app-coverage-floor collector-test-coverage collector-coverage-floor \
@@ -14,6 +14,14 @@ SOURCE ?= manual
 SITE ?= standvirtual
 # The Python of make tool-check.
 PYTHON ?= python3
+# A folder of the collector's compiled programs (make collector-exe), from
+# collector/: refresh and photos run those instead of `dart run`, which
+# compiles each start (about 7 s). Only collect.yml and photos.yml set it
+# (BIN=build/bin), so a local build never runs a stale program.
+BIN ?=
+# The programs make collector-exe compiles: those of a collection.
+PROGRAMS ?= refresh report_run photos
+collector_run = $(if $(BIN),$(BIN)/$(1),dart run bin/$(1).dart)
 # Local secrets for the collector (not committed). GitHub Actions has no such
 # file and uses its repository secrets instead.
 -include collector/.env
@@ -65,6 +73,15 @@ collector-lint: ## Format check and analyze the collector
 collector-check: collector-lint ## Format check, analyze and test the collector
 	cd collector && dart test
 
+# In parallel (about 12 s each on one core): collect.yml and photos.yml
+# keep them cached until the collector's code changes (N.117).
+collector-exe: ## Compile the collection's programs to collector/build/bin: make collector-exe [PROGRAMS="refresh photos"]
+	cd collector && mkdir -p build/bin && pids="" && \
+	for p in $(PROGRAMS); do \
+	  dart compile exe bin/$$p.dart -o build/bin/$$p --verbosity=error & pids="$$pids $$!"; \
+	done && \
+	for pid in $$pids; do wait $$pid || exit 1; done
+
 collect-dry: require-collector-env ## Preview, writes nothing: make collect-dry [SOURCE=standvirtual] [FILE=...]
 	cd collector && dart run bin/collector.dart $(SOURCE) $(or $(FILE),$(DEFAULT_INPUT)) --dry-run $(ARGS)
 
@@ -105,7 +122,7 @@ photos-dry: require-collector-env ## List the listings whose photos wait for fin
 	cd collector && dart run bin/photos.dart --dry-run
 
 photos: require-collector-env ## Fingerprint up to 3 photos of new listings (photo CDN, 5 min): make photos [ARGS=--max=50]
-	cd collector && dart run bin/photos.dart $(ARGS)
+	cd collector && $(call collector_run,photos) $(ARGS)
 
 # One process for the whole collection (bin/refresh.dart): each site's
 # searches are fetched and imported, Standvirtual's new listings get their
@@ -113,13 +130,13 @@ photos: require-collector-env ## Fingerprint up to 3 photos of new listings (pho
 # notifications run once. A site that fails does not stop the other, but the
 # refresh still fails.
 refresh: require-collector-env ## Fetch and import both sites: make refresh [ARGS=--full]
-	cd collector && dart run bin/refresh.dart $(ARGS)
+	cd collector && $(call collector_run,refresh) $(ARGS)
 
 refresh-standvirtual: require-collector-env ## Standvirtual only: search pages, import, new listings' details
-	cd collector && dart run bin/refresh.dart --site=standvirtual $(ARGS)
+	cd collector && $(call collector_run,refresh) --site=standvirtual $(ARGS)
 
 refresh-olx: require-collector-env ## OLX only: every page of each search, import
-	cd collector && dart run bin/refresh.dart --site=olx $(ARGS)
+	cd collector && $(call collector_run,refresh) --site=olx $(ARGS)
 
 # ---- Database --------------------------------------------------------------
 

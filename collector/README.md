@@ -230,6 +230,7 @@ diagnostics stay unchanged; the database's warnings to the admins
 |---|---|
 | `make refresh [ARGS=--full]` | The whole run for both sites (`ARGS="--full --light"`: a light run) |
 | `make refresh-olx` / `refresh-standvirtual` | The same for one site |
+| `make collector-exe` | Compile `refresh`, `report_run` and `photos` to `build/bin` (12 s); `make refresh BIN=build/bin` (or `photos`) then runs them without `dart run`'s 7 s start. `collect.yml` and `photos.yml` keep them cached until the code changes (N.117) |
 | `make searches SITE=olx\|standvirtual` | Write the planned searches |
 | `make fetch-dry` / `fetch SITE=...` | Check, or download, the search pages |
 | `make collect-dry` / `collect SOURCE=... FILE=...` | Import saved pages or a JSON file |
