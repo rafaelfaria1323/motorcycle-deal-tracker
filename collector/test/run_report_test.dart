@@ -185,7 +185,9 @@ void main() {
             ..count('new', 2)
             ..count('new', 3)
             ..count('alerts', 1)
-            ..scoringMs = 1200;
+            ..scoringMs = 1200
+            ..addStep('olx', 'fetch', const Duration(seconds: 74))
+            ..addStep('all', 'scores', const Duration(milliseconds: 2100));
       final path = '${dir.path}/report.json';
       await run.writeTo(path);
       final read = (await readRunReport(path))!;
@@ -194,7 +196,37 @@ void main() {
       expect(read.sites['olx']!.issues.last.kind, IssueKind.notResultsPage);
       expect(read.sites['olx']!.requests, 4);
       expect(read.scoringMs, 1200);
+      expect(read.steps, {
+        'olx': {'fetch': 74000},
+        'all': {'scores': 2100},
+      });
       expect(read.finished, isTrue);
+    });
+
+    test('step times add up and make one log line (N.118)', () async {
+      final run = RunReport();
+      expect(run.stepsLine(), isNull);
+      run
+        ..addStep('olx', 'save', const Duration(milliseconds: 1500))
+        ..addStep('olx', 'save', const Duration(milliseconds: 2100))
+        ..addStep('all', 'scores', const Duration(milliseconds: 2080));
+      expect(run.steps['olx'], {'save': 3600});
+      expect(run.stepsLine(), 'Step times: olx save 3.6 s · all scores 2.1 s');
+
+      // Timed also when it throws; without a report it only runs.
+      await expectLater(
+        timeStep(run, 'olx', 'removal', () async => throw StateError('x')),
+        throwsStateError,
+      );
+      expect(run.steps['olx']!.keys, ['save', 'removal']);
+      expect(await timeStep(null, 'olx', 'x', () async => 7), 7);
+
+      // A report from before the step times reads with none.
+      final path = '${dir.path}/old.json';
+      File(path).writeAsStringSync(
+        '{"sites": {}, "counts": {}, "scoring_ms": null, "finished": false}',
+      );
+      expect((await readRunReport(path))!.steps, isEmpty);
     });
 
     test('none, missing or damaged: null, so the log is read', () async {

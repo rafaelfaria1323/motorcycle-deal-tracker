@@ -21,6 +21,7 @@ are done in this PR; PF.6-PF.7 are noted, not worth their code today.
 | PF.5 | `collector/lib/src/notify/web_push.dart:274` | A new `HttpClient` (new connection, new TLS handshake) for every push; a burst of alerts to the same push service paid it each time. | one connection per push service per run |
 | PF.6 | `description_signals` (`20261106120000_not_legalised.sql:136`) | About 60 regular expressions per description; Postgres caches 32 compiled ones per session, so each listing recompiles some (about 6 ms a listing). Paid only when a description changes (the stored `text_signals`), so a few seconds a run. | not changed |
 | PF.8 | `collect.yml`, `photos.yml` (2026-11-17, N.117) | Each collection installed Dart and the dependencies twice (about 10 s each) and started three programs with `dart run`, which compiles from source every time (about 8-10 s each on the runner). | start 7.1 s → 14 ms locally; about 35-45 s a collection |
+| PF.9 | the collection (2026-11-17, N.118) | Which step a real run spends its time on was only guessed from the log's timestamps (about 20 s of SQL in a 230 s run; the 6-10 s waits between requests take the rest). | each step's time kept per run (`collector_runs.steps_ms`), "Onde vai o tempo" in "Estado da recolha" |
 | PF.7 | `place_key` (in `distance_km`, `district`) | Three regular expressions per row to find the ad's place; the rest of the distance sort's 1.0 s. A stored place key per listing would remove it; the sort is opt-in and 1 s on 8x today's ads. | not changed |
 
 ## What was done
@@ -64,6 +65,9 @@ No leak found:
 - **PF.8** (N.117): `make collector-exe` compiles refresh, report_run and
   photos ahead of time; the shared action caches them until the collector's
   code changes and then skips installing Dart.
+- **PF.9** (N.118): each run keeps how long each step took (`timeStep`,
+  `RunReport.steps`), so the next slow step shows in "Estado da recolha"
+  with real runs' figures instead of a guess.
 - **App**: every cubit's stream subscriptions are cancelled in `close`
   (`AccountScopedCubit`, `ListingCardPreferencesCubit`, the shell's
   lifecycle observer); DI closes the singletons; controllers and focus

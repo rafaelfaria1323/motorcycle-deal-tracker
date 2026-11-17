@@ -31,7 +31,7 @@ import '../../../core/localization/localizations.dart';
 /// days, this month's runs and GitHub minutes, the last 30 days' failures
 /// by site and cause, each site's data quality, and the last runs with
 /// what went wrong, how long the scores took and a link to each one on
-/// GitHub.
+/// GitHub, and where a run's time goes: each step's median (N.118).
 class const CollectionStatusPage({super.key}) extends StatefulWidget {
   @override
   State<CollectionStatusPage> createState() => _CollectionStatusPageState();
@@ -115,6 +115,7 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
           final latestWithSearches = runs
               .where((r) => r.searches.isNotEmpty)
               .firstOrNull;
+          final stepTimes = stepTimesText(runs, language: context.language);
 
           return RefreshIndicator(
             onRefresh: _reload,
@@ -196,6 +197,17 @@ class _CollectionStatusPageState extends State<CollectionStatusPage> {
                 SectionCard(
                   title: context.strings.dataQuality,
                   children: [DataQualityDetails(quality: _quality)],
+                ),
+                const SizedBox(height: 12),
+                SectionCard(
+                  title: context.strings.whereTheTimeGoes,
+                  footnote: context.strings.whereTheTimeGoesNote,
+                  children: [
+                    if (stepTimes.isEmpty)
+                      BulletLine(context.strings.noDataYetItWillAppearAfterNext)
+                    else
+                      for (final line in stepTimes) BulletLine(line),
+                  ],
                 ),
                 const SizedBox(height: 12),
                 SectionCard(

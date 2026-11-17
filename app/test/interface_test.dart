@@ -998,6 +998,29 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  for (final scale in [1.0, 1.5, 2.0]) {
+    testWidgets('"Nova pesquisa" fits inside the bar at ${scale}x text', (
+      tester,
+    ) async {
+      final fixture = InterfaceFixture();
+      await _open(
+        tester,
+        fixture,
+        textScale: scale,
+        location: AppRoutes.searches,
+      );
+      final newSearch = find.widgetWithText(FilledButton, 'Nova pesquisa');
+      final bar = tester.getRect(
+        find.ancestor(of: newSearch, matching: find.byType(AppBar)),
+      );
+      final button = tester.getRect(newSearch);
+      expect(button.top, greaterThanOrEqualTo(bar.top));
+      expect(button.bottom, lessThanOrEqualTo(bar.bottom));
+      expect(button.right, lessThanOrEqualTo(bar.right - 16));
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   testWidgets('saved search title opens its results', (tester) async {
     final fixture = InterfaceFixture();
     final router = await _open(tester, fixture, location: AppRoutes.searches);

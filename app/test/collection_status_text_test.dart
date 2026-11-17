@@ -447,4 +447,49 @@ void main() {
       );
     });
   });
+  group('step times (N.118)', () {
+    CollectorRun run(Map<String, Map<String, int>> steps) => CollectorRun(
+      status: 'ok',
+      startedAt: now,
+      finishedAt: now,
+      steps: steps,
+    );
+
+    test('median of each step, slowest first, with the latest time', () {
+      final runs = [
+        run({
+          'olx': {'fetch': 80000, 'save': 3000},
+          'all': {'scores': 2100},
+        }),
+        run({
+          'olx': {'fetch': 70000, 'save': 4000},
+        }),
+        run({
+          'olx': {'fetch': 74000, 'save': 3600},
+          'all': {'scores': 1900},
+        }),
+        run(const {}),
+      ];
+      expect(stepTimesText(runs), [
+        'OLX · páginas de pesquisa: 1 min 14 s (na última: 1 min 20 s)',
+        'OLX · anúncios novos: 3,6 s (na última: 3,0 s)',
+        'Todos os sites · pontuações: 2,0 s (na última: 2,1 s)',
+      ]);
+      expect(stepTimesText(runs, language: AppLanguage.english, max: 1), [
+        'OLX · search pages: 1 min 14 s (latest: 1 min 20 s)',
+      ]);
+    });
+
+    test('an unknown step keeps its code; no steps, no lines', () {
+      expect(
+        stepTimesText([
+          run({
+            'custom': {'new_step': 500},
+          }),
+        ]),
+        ['custom · new_step: 0,5 s (na última: 0,5 s)'],
+      );
+      expect(stepTimesText([run(const {})]), isEmpty);
+    });
+  });
 }

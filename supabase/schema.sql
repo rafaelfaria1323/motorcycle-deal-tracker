@@ -7668,8 +7668,10 @@ CREATE TABLE public.collector_runs (
     run_url text,
     searches jsonb DEFAULT '[]'::jsonb NOT NULL,
     scoring_ms integer,
+    steps_ms jsonb,
     CONSTRAINT collector_runs_scoring_ms_check CHECK ((scoring_ms >= 0)),
-    CONSTRAINT collector_runs_status_check CHECK ((status = ANY (ARRAY['ok'::text, 'partial'::text, 'blocked'::text, 'failed'::text])))
+    CONSTRAINT collector_runs_status_check CHECK ((status = ANY (ARRAY['ok'::text, 'partial'::text, 'blocked'::text, 'failed'::text]))),
+    CONSTRAINT collector_runs_steps_ms_check CHECK (((steps_ms IS NULL) OR (jsonb_typeof(steps_ms) = 'object'::text)))
 );
 
 --

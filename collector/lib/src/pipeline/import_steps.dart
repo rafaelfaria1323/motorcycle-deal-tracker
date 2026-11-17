@@ -53,11 +53,14 @@ Future<bool> importBatch(
   StringSink? out,
 }) async {
   final log = out ?? stdout;
+  // Each database step's time, in the report (N.118).
+  Future<T> step<T>(String name, Future<T> Function() work) =>
+      timeStep(report, batch.source, name, work);
   // OLX copies of Standvirtual ads whose original was never found there
   // are taken as OLX ads, or the bike would be missed (N.70).
   final copies = standvirtualCopies(batch);
   if (store != null && copies.isNotEmpty) {
-    final skip = await store.olxCopiesToSkip(copies);
+    final skip = await step('copies', () => store.olxCopiesToSkip(copies));
     batch = keepCopies(batch, skip);
     log.writeln(
       'Copies of Standvirtual ads: ${copies.length}, '
@@ -114,7 +117,7 @@ Future<bool> importBatch(
   }
 
   // 1. Insert new listings (the database adds their first price-history row).
-  final stored = await store.save(listings, catalog);
+  final stored = await step('save', () => store.save(listings, catalog));
   log.writeln(
     'Stored ${stored.inserted} new, ${stored.alreadyStored} already stored, '
     '${stored.duplicatesInInput} duplicate(s) in the input.',
@@ -125,25 +128,34 @@ Future<bool> importBatch(
   //    that had been marked removed comes back to life here.
   final unique = uniqueBySourceId(listings);
   final seenIds = [for (final l in unique) l.sourceListingId];
-  final seen = await store.markSeen(batch.source, seenIds);
+  final seen = await step('seen', () => store.markSeen(batch.source, seenIds));
   log.writeln('Seen $seen listing(s).');
 
   // 2a. Known listings get the model the current rules give them.
-  final rematched = await store.rematch(batch.source, unique, catalog);
+  final rematched = await step(
+    'rematch',
+    () => store.rematch(batch.source, unique, catalog),
+  );
   if (rematched > 0) log.writeln('Model corrected: $rematched listing(s)');
 
   // 2b. What the seller edited since the ad was stored: year, mileage,
   //     title, description, place, and on OLX (whose results hold every
   //     photo; Standvirtual's only a thumbnail) the photos.
-  final edited = await store.applyListingFacts(
-    batch.source,
-    unique,
-    photos: batch.source == OlxSearchAdapter.sourceId,
+  final edited = await step(
+    'facts',
+    () => store.applyListingFacts(
+      batch.source,
+      unique,
+      photos: batch.source == OlxSearchAdapter.sourceId,
+    ),
   );
   if (edited > 0) log.writeln('Details corrected: $edited listing(s)');
 
   // 3. Known listings whose price moved get the new price and a history row.
-  final changed = await store.applyPriceChanges(batch.source, unique);
+  final changed = await step(
+    'prices',
+    () => store.applyPriceChanges(batch.source, unique),
+  );
   log.writeln('Price changes: $changed');
   report?.count('price_changes', changed);
 
@@ -154,21 +166,33 @@ Future<bool> importBatch(
       if (r.outcome case Mapped(:final listing))
         listing.sourceListingId: ?r.search,
   };
-  final keyed = await store.setSearchKeys(batch.source, keys);
+  final keyed = await step(
+    'search_keys',
+    () => store.setSearchKeys(batch.source, keys),
+  );
   if (keys.isNotEmpty) log.writeln('Search keys updated: $keyed');
 
   // 3b. Cuts the site reports, which may predate our tracking. Kept apart
   //     from our own price history, so they never create alerts.
-  final drops = await store.applyPricesBeforeDrop(batch.source, unique);
+  final drops = await step(
+    'price_cuts',
+    () => store.applyPricesBeforeDrop(batch.source, unique),
+  );
   log.writeln('Site-reported price cuts updated: $drops');
 
   // 3c. Publication and renewal dates the source shows.
-  final dated = await store.applyListingDates(batch.source, unique);
+  final dated = await step(
+    'dates',
+    () => store.applyListingDates(batch.source, unique),
+  );
   if (dated > 0) log.writeln('Listing dates updated: $dated');
 
   // 3d. The site's brand and model lists, for the app's model picker.
   if (batch.siteModels.isNotEmpty) {
-    await store.saveSiteModels(batch.source, batch.siteModels);
+    await step(
+      'site_models',
+      () => store.saveSiteModels(batch.source, batch.siteModels),
+    );
   }
 
   // 4. Only for a complete import: what is missing has been removed.
@@ -189,12 +213,15 @@ Future<bool> importBatch(
           '${plan.includeUnkeyed ? '' : ' (listings not yet tied to a search are left alone)'}.',
         );
       }
-      final removed = await store.markRemoved(
-        batch.source,
-        reason == null ? plan.seenIds : (liveIds(batch) ?? seenIds),
-        force: force,
-        searches: reason == null ? searches : null,
-        includeUnkeyed: plan.includeUnkeyed,
+      final removed = await step(
+        'removal',
+        () => store.markRemoved(
+          batch.source,
+          reason == null ? plan.seenIds : (liveIds(batch) ?? seenIds),
+          force: force,
+          searches: reason == null ? searches : null,
+          includeUnkeyed: plan.includeUnkeyed,
+        ),
       );
       log.writeln('Removed: $removed');
       report?.count('removed', removed);
@@ -214,15 +241,18 @@ Future<void> finishRun(
   StringSink? out,
 }) async {
   final log = out ?? stdout;
+  // Each step's time, in the report (N.118).
+  Future<T> step<T>(String name, Future<T> Function() work) =>
+      timeStep(report, RunReport.allSites, name, work);
   // 5. Recompute. Duplicates first, so the market prices and scores that
   //    follow leave them out. Done on every run because a listing can come
   //    back or disappear without anything being inserted.
-  final duplicates = await store.markDuplicates();
+  final duplicates = await step('duplicates', store.markDuplicates);
   log.writeln('Duplicates flagged: $duplicates');
   // Timed: the scoring is the run's longest statement, under the
   // collector role's 60 s statement timeout (read back by scoringMs).
   final scoring = Stopwatch()..start();
-  final scored = await store.recalculateScores();
+  final scored = await step('scores', store.recalculateScores);
   log.writeln(
     'Scored $scored listing(s) in ${scoring.elapsedMilliseconds} ms.',
   );
@@ -230,7 +260,7 @@ Future<void> finishRun(
 
   // 6. Last, once statuses, duplicates and prices are final: who needs to
   //    be told about what.
-  final alerts = await store.generateAlerts();
+  final alerts = await step('alerts', store.generateAlerts);
   log.writeln('Alerts created: $alerts');
   report?.count('alerts', alerts);
 
@@ -244,7 +274,10 @@ Future<void> finishRun(
   } on Object catch (e) {
     log.writeln('Web Push not available, alerts kept for the next run: $e');
   }
-  final notified = await notifyPending(pushes, push: push);
+  final notified = await step(
+    'notifications',
+    () => notifyPending(pushes, push: push),
+  );
   log.writeln(
     'Notifications sent: ${notified.alerts} '
     '(${notified.pushes} to devices)',
@@ -253,7 +286,10 @@ Future<void> finishRun(
 
   // 8. "Quanto vale a minha mota" requests that waited for this run.
   if (startedAt != null) {
-    final valued = await answerBikeValues(pushes, push, startedAt);
+    final valued = await step(
+      'bike_values',
+      () => answerBikeValues(pushes, push, startedAt),
+    );
     if (valued.answered > 0) {
       log.writeln(
         'Bike values answered: ${valued.answered} (${valued.sent} to devices)',
@@ -262,7 +298,10 @@ Future<void> finishRun(
   }
 
   // 9. Favourites' visits due within a day (N.65): the reminder.
-  final visits = await remindVisits(pushes, push, DateTime.now());
+  final visits = await step(
+    'visits',
+    () => remindVisits(pushes, push, DateTime.now()),
+  );
   if (visits.reminded > 0) {
     log.writeln(
       'Visits reminded: ${visits.reminded} (${visits.sent} to devices)',
@@ -270,7 +309,10 @@ Future<void> finishRun(
   }
 
   // 10. EU recalls of the accounts' own bikes and favourites (N.87).
-  final recalls = await noticeRecalls(pushes, push, DateTime.now());
+  final recalls = await step(
+    'recalls',
+    () => noticeRecalls(pushes, push, DateTime.now()),
+  );
   if (recalls.noticed > 0) {
     log.writeln(
       'Recalls noticed: ${recalls.noticed} (${recalls.sent} to devices)',

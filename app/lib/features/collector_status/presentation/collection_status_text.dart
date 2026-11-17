@@ -1,5 +1,6 @@
 import '../../../core/formatting/formatters.dart';
 import '../domain/collector_run.dart';
+import 'collection_text.dart';
 import '../domain/api_usage.dart';
 import '../domain/database_usage.dart';
 import '../domain/github_token.dart';
@@ -294,3 +295,53 @@ String failureShareText(
       ? language.messages.failureShareNone(count: runs.length)
       : language.messages.failureShare(failed: failed, total: runs.length);
 }
+
+/// "Onde vai o tempo" (N.118): one line per step of a run, "OLX · páginas
+/// de pesquisa: 1 min 14 s (na última: 1 min 20 s)", the median over the
+/// [runs] that timed it, slowest first, at most [max]; the latest time is
+/// that of the newest run that timed it. Empty when no run timed a step.
+List<String> stepTimesText(
+  List<CollectorRun> runs, {
+  AppLanguage language = .portuguese,
+  int max = 12,
+}) {
+  // (part, step) -> times, newest run first (runs come newest first).
+  final times = <(String, String), List<int>>{};
+  for (final run in runs) {
+    for (final MapEntry(key: part, value: steps) in run.steps.entries) {
+      for (final MapEntry(key: step, value: ms) in steps.entries) {
+        times.putIfAbsent((part, step), () => []).add(ms);
+      }
+    }
+  }
+  int median(List<int> values) {
+    final sorted = [...values]..sort();
+    final mid = sorted.length ~/ 2;
+    return sorted.length.isOdd
+        ? sorted[mid]
+        : ((sorted[mid - 1] + sorted[mid]) / 2).round();
+  }
+
+  final lines = [
+    for (final MapEntry(key: (part, step), value: ms) in times.entries)
+      (part: part, step: step, median: median(ms), last: ms.first),
+  ]..sort((a, b) => b.median.compareTo(a.median));
+  final messages = language.messages;
+  return [
+    for (final l in lines.take(max))
+      messages.stepTimeLine(
+        part: l.part == 'all'
+            ? messages.allSitesPart
+            : siteNames[l.part] ?? l.part,
+        step: messages.runStepName(step: l.step),
+        median: stepTime(l.median, language: language),
+        last: stepTime(l.last, language: language),
+      ),
+  ];
+}
+
+/// "3,6 s" under a minute, else "2 min 31 s".
+String stepTime(int milliseconds, {AppLanguage language = .portuguese}) =>
+    milliseconds < 60000
+    ? '${Formatters.decimal(milliseconds / 1000, language: language)} s'
+    : durationText(Duration(milliseconds: milliseconds));

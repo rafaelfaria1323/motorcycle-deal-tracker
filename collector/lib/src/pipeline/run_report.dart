@@ -80,6 +80,11 @@ class RunReport {
     })
     ..counts.addAll((json['counts'] as Map<String, dynamic>).cast())
     ..scoringMs = json['scoring_ms'] as int?
+    ..steps.addAll({
+      for (final MapEntry(:key, :value)
+          in (json['steps_ms'] as Map<String, dynamic>? ?? const {}).entries)
+        key: (value as Map<String, dynamic>).cast<String, int>(),
+    })
     ..finished = json['finished'] as bool;
 
   final sites = <String, SiteReport>{};
@@ -91,10 +96,43 @@ class RunReport {
   /// How long the scoring took; null when the run didn't get there.
   int? scoringMs;
 
+  /// How long each step took, in milliseconds (N.118): per part of the
+  /// run, each site in the order read and [allSites] for what runs once
+  /// (`{'olx': {'fetch': 74000, 'save': 3600}, 'all': {'scores': 2100}}`).
+  /// A step that runs twice adds up.
+  final steps = <String, Map<String, int>>{};
+
+  /// The part of [steps] for what runs once for every site.
+  static const allSites = 'all';
+
   /// True once scores, alerts and notifications were done.
   bool finished = false;
 
   void count(String key, int n) => counts[key] = (counts[key] ?? 0) + n;
+
+  /// Adds [took] to [step] of [part] in [steps].
+  void addStep(String part, String step, Duration took) {
+    final times = steps.putIfAbsent(part, () => <String, int>{});
+    times[step] = (times[step] ?? 0) + took.inMilliseconds;
+  }
+
+  /// "Step times: olx fetch 74.0 s, save 3.6 s · all scores 2.1 s", for the
+  /// log; null when nothing was timed.
+  String? stepsLine() {
+    if (steps.isEmpty) return null;
+    String part(String name, Map<String, int> times) {
+      final each = [
+        for (final MapEntry(:key, :value) in times.entries)
+          '$key ${(value / 1000).toStringAsFixed(1)} s',
+      ];
+      return '$name ${each.join(', ')}';
+    }
+
+    final parts = [
+      for (final MapEntry(:key, :value) in steps.entries) part(key, value),
+    ];
+    return 'Step times: ${parts.join(' · ')}';
+  }
 
   Map<String, Object?> toJson() => {
     'sites': {
@@ -102,6 +140,7 @@ class RunReport {
     },
     'counts': counts,
     'scoring_ms': scoringMs,
+    'steps_ms': steps,
     'finished': finished,
   };
 
@@ -132,6 +171,24 @@ class RunReport {
         'in_full': r.inFull,
       });
     }
+  }
+}
+
+/// Runs [work] and adds how long it took to [step] of [part] in
+/// [report]'s step times, also when it throws; without a report it only
+/// runs it.
+Future<T> timeStep<T>(
+  RunReport? report,
+  String part,
+  String step,
+  Future<T> Function() work,
+) async {
+  if (report == null) return await work();
+  final watch = Stopwatch()..start();
+  try {
+    return await work();
+  } finally {
+    report.addStep(part, step, watch.elapsed);
   }
 }
 

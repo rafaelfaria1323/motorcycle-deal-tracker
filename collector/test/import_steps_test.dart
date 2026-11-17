@@ -352,6 +352,23 @@ void main() {
       expect(report.counts['alerts'], 4);
       expect(report.scoringMs, isNotNull);
       expect(report.finished, isTrue);
+      // Each database step's time (N.118), per site and for the end.
+      expect(
+        report.steps['olx']!.keys,
+        containsAll(['save', 'seen', 'removal']),
+      );
+      expect(report.steps['all']!.keys, [
+        'duplicates',
+        'scores',
+        'alerts',
+        'notifications',
+        'visits',
+        'recalls',
+      ]);
+      expect(
+        report.steps['all']!.values,
+        everyElement(greaterThanOrEqualTo(0)),
+      );
 
       // A dry run still reports what it read, and counts nothing.
       final dry = RunReport();
