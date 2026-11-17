@@ -497,6 +497,55 @@ void main() {
       expect(result.manifest!.fetched, {url});
     });
 
+    test('pages saved without their results are not unread pages', () async {
+      // OLX served pages 3 and 4 of a search without its results (run of
+      // 2026-11-17): the search is incomplete for the same passing reason.
+      const url = 'https://www.olx.pt/carros-motos-e-barcos/x/';
+      for (final n in [1, 2]) {
+        File('${dir.path}/p$n.html')
+            .writeAsStringSync(searchPage([ad(id: n)], page: n, totalPages: 4));
+      }
+      for (final n in [3, 4]) {
+        File('${dir.path}/p$n.html').writeAsStringSync(
+          '<script>window.__PRERENDERED_STATE__= '
+          '"{\\"listing\\":{\\"isError\\":true}}";</script>',
+        );
+      }
+      await const SearchManifest(
+        planned: [url],
+        files: {'p1.html': url, 'p2.html': url, 'p3.html': url},
+      ).writeTo(dir.path);
+
+      // p4.html is not in the manifest: one page is still unread.
+      final missing = await OlxSearchAdapter(dir.path).read();
+      expect(
+        missing.issues.where((i) => i.kind == IssueKind.pagesUnread),
+        hasLength(1),
+      );
+
+      await const SearchManifest(
+        planned: [url],
+        files: {'p1.html': url, 'p2.html': url, 'p3.html': url, 'p4.html': url},
+      ).writeTo(dir.path);
+      final served = await OlxSearchAdapter(dir.path).read();
+      expect(
+        served.issues.map((i) => i.kind),
+        everyElement(IssueKind.notResultsPage),
+      );
+      expect(served.issues, hasLength(3));
+      expect(
+        served.issues.first.message,
+        'p3.html: not a search results page (it holds: isError)',
+      );
+      expect(
+        served.issues.last.message,
+        contains(
+          '2 of 4 page(s) with results, the others not a search '
+          'results page',
+        ),
+      );
+    });
+
     test('pages are grouped by the search asked for', () async {
       // OLX describes page 2 with another address than page 1.
       const url = 'https://www.olx.pt/carros-motos-e-barcos/x/';

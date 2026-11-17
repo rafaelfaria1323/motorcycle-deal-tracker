@@ -71,17 +71,29 @@ class OlxSearchAdapter(
         firstFile.putIfAbsent(key, () => i);
         manifestSearch.putIfAbsent(key, () => search);
       },
-      finish: (newestOnly) => [
+      finish: (newestOnly, withoutResults) => [
         for (final MapEntry(key: search, value: pages) in pagesBySearch.entries)
           if (pages.length < totalPages[search]! &&
               !newestOnly.contains(manifestSearch[search]))
-            ParseIssue(
-              firstFile[search]!,
-              '$search: ${pages.length} of ${totalPages[search]} page(s) '
-              'saved (the others were not read)',
-              search: manifestSearch[search],
-              kind: .pagesUnread,
-            ),
+            if (pages.length + (withoutResults[manifestSearch[search]] ?? 0) >=
+                totalPages[search]!)
+              // Every page was saved, the missing ones without their
+              // results: the same passing problem as those pages.
+              ParseIssue(
+                firstFile[search]!,
+                '$search: ${pages.length} of ${totalPages[search]} page(s) '
+                'with results, the others $notResultsPageMessage',
+                search: manifestSearch[search],
+                kind: .notResultsPage,
+              )
+            else
+              ParseIssue(
+                firstFile[search]!,
+                '$search: ${pages.length} of ${totalPages[search]} page(s) '
+                'saved (the others were not read)',
+                search: manifestSearch[search],
+                kind: .pagesUnread,
+              ),
       ],
     );
   }
@@ -117,7 +129,13 @@ class OlxSearchAdapter(
     final listing = asMap(asMap(asMap(state)?['listing'])?['listing']);
     final ads = listing?['ads'];
     if (listing == null || ads is! List) {
-      throw const FormatException(notResultsPageMessage);
+      // What the page held instead, to tell a changed page from an empty one.
+      final keys = (asMap(asMap(state)?['listing']) ?? asMap(state))?.keys;
+      throw FormatException(
+        keys == null
+            ? notResultsPageMessage
+            : '$notResultsPageMessage (it holds: ${keys.take(8).join(', ')})',
+      );
     }
 
     final request = asMap(listing['requestParams']);

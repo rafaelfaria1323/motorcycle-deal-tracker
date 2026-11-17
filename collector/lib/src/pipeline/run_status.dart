@@ -36,7 +36,7 @@ String runStatus(int exitCode, String log) {
     if (issue == null) return RegExp(r'^\w+: Failed: ').hasMatch(problem);
     final (site, text) = (issue.group(1), issue.group(2)!);
     if (text.endsWith('were not read)')) return failedSites.contains(site);
-    return text.endsWith(': not a search results page') &&
+    return text.contains(': not a search results page') &&
         readInFull.contains(site);
   }
 

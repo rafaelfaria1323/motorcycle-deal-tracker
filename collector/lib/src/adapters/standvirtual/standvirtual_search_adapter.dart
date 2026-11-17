@@ -93,7 +93,7 @@ class StandvirtualSearchAdapter
         pageCount[key] = page.totalPages;
         firstFile.putIfAbsent(key, () => (i, name, search));
       },
-      finish: (newestOnly) => [
+      finish: (newestOnly, _) => [
         for (final MapEntry(:key, value: (i, name, search))
             in firstFile.entries)
           if (repeated.contains(key))

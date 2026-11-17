@@ -786,7 +786,8 @@ invites; written by the collector on each run).
   the error lines of each site, or "voltou a funcionar"), never twice for
   the same problem. Status `partial` (`runStatus`): the only problems were
   `Failed:` lines (a timeout or server error after the retry), the pages
-  they left unread, or a page the site served without its results while
+  they left unread, or a page the site served without its results (and
+  the search whose missing pages are those, N.116) while
   another search of that site was read in full, and the run still
   finished; it counts as ok unless the run before also failed on the
   same site ("falhou duas vezes seguidas"), its GitHub job stays green with
