@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 
 import '../../../../app/theme/app_theme.dart';
@@ -7,17 +9,19 @@ import '../../domain/entities/owned_bike.dart';
 import '../owned_bike_text.dart';
 
 /// A model the purchase form can name: an ad's, a kept bike's, or one to
-/// choose from the collected models.
+/// choose from the followed models or any other.
 typedef OwnedBikeModel = ({String id, String name});
 
 /// The purchase form (N.67): the price paid, the km and the date, and the
-/// year; the model is fixed ([model]) or chosen ([models]). Gives the bike
-/// as typed, or null when cancelled.
+/// year; the model is fixed ([model]) or chosen ([models], and with
+/// [pickOther] "Outra marca ou modelo…": any brand and model, N.120).
+/// Gives the bike as typed, or null when cancelled.
 Future<OwnedBikeDraft?> showOwnedBikeForm(
   BuildContext context, {
   required OwnedBikeDraft? initial,
   OwnedBikeModel? model,
   List<OwnedBikeModel> models = const [],
+  Future<OwnedBikeModel?> Function()? pickOther,
   String? listingId,
 }) => showDialog<OwnedBikeDraft>(
   context: context,
@@ -25,14 +29,19 @@ Future<OwnedBikeDraft?> showOwnedBikeForm(
     initial: initial,
     model: model,
     models: models,
+    pickOther: pickOther,
     listingId: listingId,
   ),
 );
+
+/// The dropdown's "Outra marca ou modelo…" item.
+const _otherModel = '';
 
 class const _OwnedBikeForm({
   required final OwnedBikeDraft? initial,
   required final OwnedBikeModel? model,
   required final List<OwnedBikeModel> models,
+  required final Future<OwnedBikeModel?> Function()? pickOther,
   required final String? listingId,
 }) extends StatefulWidget {
   @override
@@ -52,6 +61,13 @@ class _OwnedBikeFormState extends State<_OwnedBikeForm> {
   );
   late DateTime _boughtOn = widget.initial?.boughtOn ?? _today;
   bool _invalid = false;
+
+  /// Models picked with "Outra marca ou modelo…", added to the dropdown.
+  final _added = <OwnedBikeModel>[];
+
+  /// Rebuilds the dropdown when a pick is cancelled (back to the choice
+  /// before) or made outside it.
+  int _resets = 0;
 
   static DateTime get _today {
     final now = DateTime.now();
@@ -75,6 +91,21 @@ class _OwnedBikeFormState extends State<_OwnedBikeForm> {
       helpText: context.strings.myBikeBoughtOnLabel,
     );
     if (day != null && mounted) setState(() => _boughtOn = day);
+  }
+
+  Future<void> _pickOther() async {
+    final picked = await widget.pickOther!();
+    if (!mounted) return;
+    setState(() {
+      if (picked != null) {
+        if (!widget.models.any((m) => m.id == picked.id) &&
+            !_added.any((m) => m.id == picked.id)) {
+          _added.add(picked);
+        }
+        _motorcycleId = picked.id;
+      }
+      _resets++;
+    });
   }
 
   void _save() {
@@ -126,10 +157,12 @@ class _OwnedBikeFormState extends State<_OwnedBikeForm> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (fixed == null && widget.models.isNotEmpty)
+              if (fixed == null &&
+                  (widget.models.isNotEmpty || widget.pickOther != null))
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: DropdownButtonFormField<String>(
+                    key: ValueKey(_resets),
                     initialValue: _motorcycleId,
                     isExpanded: true,
                     decoration: InputDecoration(
@@ -137,10 +170,21 @@ class _OwnedBikeFormState extends State<_OwnedBikeForm> {
                       border: const OutlineInputBorder(),
                     ),
                     items: [
-                      for (final m in widget.models)
+                      for (final m in [...widget.models, ..._added])
                         DropdownMenuItem(value: m.id, child: Text(m.name)),
+                      if (widget.pickOther != null)
+                        DropdownMenuItem(
+                          value: _otherModel,
+                          child: Text(strings.bikeValueOtherModel),
+                        ),
                     ],
-                    onChanged: (id) => setState(() => _motorcycleId = id),
+                    onChanged: (id) {
+                      if (id == _otherModel) {
+                        unawaited(_pickOther());
+                      } else {
+                        setState(() => _motorcycleId = id);
+                      }
+                    },
                   ),
                 ),
               _number(_year, strings.myBikeYearLabel),

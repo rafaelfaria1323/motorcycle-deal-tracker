@@ -270,7 +270,8 @@ Screen names below use the Portuguese labels; English provides the same screens.
   estrangeiro" (the same form for a bike seen in Spain, France or
   Germany: its price there plus vehicle tax (ISV), legalisation and
   transport, against its value here), "A minha mota" (the bikes you
-  bought: "Comprei esta" on an ad's Negociar, or added by hand; what each
+  bought: "Comprei esta" on an ad's Negociar, or added by hand, of any
+  model ("Outra marca ou modelo…"); what each
   is worth today at its estimated km against what you paid, its value
   month by month (also pushed once a month with the change), and the next
   service and valve check with their cost, and the EU recalls that may

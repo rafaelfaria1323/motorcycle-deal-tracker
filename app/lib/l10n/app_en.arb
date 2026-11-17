@@ -1204,7 +1204,6 @@
   "myBikeBoughtOnLabel": "Date of purchase",
   "myBikeFormInvalid": "Check the year, the price and the km.",
   "myBikeSaved": "Kept in \"My bike\".",
-  "myBikeNoModels": "Could not read the models. Try again.",
   "myBikeCouldNotLoad": "Could not load your bikes",
   "myBikeNone": "No bike yet",
   "myBikeNoneHint": "Tap \"I bought it\" on the ad of the bike you bought, or add it here.",
