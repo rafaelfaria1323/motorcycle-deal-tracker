@@ -5342,6 +5342,45 @@
       }
     }
   },
+  "whereTheTimeGoes": "Onde vai o tempo",
+  "@whereTheTimeGoes": {
+    "description": "Interface text in collection_status_page: title of the section with each step's time."
+  },
+  "whereTheTimeGoesNote": "Mediana de cada passo nas últimas recolhas que o mediram, do mais lento ao mais rápido, e o tempo na última. Os pedidos aos sites esperam 6 a 10 s entre si, por isso as páginas levam quase todo o tempo.",
+  "@whereTheTimeGoesNote": {
+    "description": "Interface text in collection_status_page: footnote of the step times section."
+  },
+  "allSitesPart": "Todos os sites",
+  "@allSitesPart": {
+    "description": "Interface text in collection_status_text, stepTimesText: the part of the run that runs once for every site."
+  },
+  "runStepName": "{step, select, catalog{o catálogo} fetch{páginas de pesquisa} read{leitura das páginas} copies{cópias do Standvirtual} save{anúncios novos} seen{anúncios vistos} rematch{modelos revistos} facts{dados editados} prices{preços} search_keys{pesquisa de cada anúncio} price_cuts{descidas do site} dates{datas} site_models{marcas e modelos} removal{remoção} duplicates{duplicados} details_queue{anúncios por abrir} details{páginas dos anúncios} scores{pontuações} alerts{alertas} notifications{notificações} bike_values{valores pedidos} visits{lembretes de visita} recalls{recolhas na UE} other{{step}}}",
+  "@runStepName": {
+    "description": "Interface text in collection_status_text, stepTimesText: the name of one step of a run.",
+    "placeholders": {
+      "step": {
+        "type": "String"
+      }
+    }
+  },
+  "stepTimeLine": "{part} · {step}: {median} (na última: {last})",
+  "@stepTimeLine": {
+    "description": "Interface text in collection_status_text, stepTimesText: one step's median time and its time in the latest run.",
+    "placeholders": {
+      "part": {
+        "type": "String"
+      },
+      "step": {
+        "type": "String"
+      },
+      "median": {
+        "type": "String"
+      },
+      "last": {
+        "type": "String"
+      }
+    }
+  },
   "failureSiteRefused": "O site recusou os pedidos",
   "@failureSiteRefused": {
     "description": "Interface text in collection_status_text, failureCause."

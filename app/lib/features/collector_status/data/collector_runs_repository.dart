@@ -34,7 +34,7 @@ class SupabaseCollectorRunsRepository(final SupabaseClient _client)
   Future<List<CollectorRun>> getRecent(int limit) async {
     final rows = await _client
         .from('collector_runs')
-        .select('$_columns, problems, sites, searches, run_url')
+        .select('$_columns, problems, sites, searches, run_url, steps_ms')
         .order('started_at', ascending: false)
         .limit(limit);
     return rows.map(_run).toList();
@@ -72,6 +72,11 @@ class SupabaseCollectorRunsRepository(final SupabaseClient _client)
     scoringTime: switch (row['scoring_ms']) {
       final num ms => Duration(milliseconds: ms.toInt()),
       _ => null,
+    },
+    steps: {
+      for (final MapEntry(:key, :value)
+          in (row['steps_ms'] as Map<String, dynamic>? ?? const {}).entries)
+        if (value is Map<String, dynamic>) key: _ints(value),
     },
   );
 

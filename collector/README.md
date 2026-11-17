@@ -121,7 +121,9 @@ it left none
 (with the error lines of a run that was not ok, each search's pages and
 ads, each site's requests today
 and pause from its fetch state file, how long the scores took
-(`scoring_ms`) and the GitHub run's address; shown
+(`scoring_ms`), each step's time per site and for the end of the run
+(`steps_ms`, N.118; also the log's "Step times:" line) and the GitHub
+run's address; shown
 in the app's "Estado da recolha") and, when its status differs from the previous run's (ok, partial, blocked, failed),
 sends one notification to the admins' devices (Web Push; a tap opens
 "Estado da recolha"): what went wrong on which site

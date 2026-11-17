@@ -786,7 +786,9 @@ invites; written by the collector on each run).
   (`reportStatus`, `reportProblems`). Only a run that left no report, or
   one without a site, is read from its log as before (`runStatus`,
   `runProblems`, `runCounts`...: keep those log lines' wording for that
-  case). `requests` holds
+  case). `steps_ms` each step's
+  milliseconds per site and `all` (N.118, `RunReport.steps`, `timeStep`;
+  "Onde vai o tempo", `stepTimesText`). `requests` holds
   the requests each site used, `counts` what the run did over both sites
   (`new`, `price_changes`, `removed`, `alerts`). report_run.dart also sends a notification to the
   admins' devices (Web Push, `pushToUsers`; a tap opens "Estado da

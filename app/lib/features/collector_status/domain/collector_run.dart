@@ -30,6 +30,11 @@ class const CollectorRun({
   /// How long the scores took to work out; null for older runs or one that
   /// stopped before them.
   final Duration? scoringTime,
+
+  /// How long each step took, in milliseconds (N.118): per site, and
+  /// 'all' for what runs once ({'olx': {'fetch': 74000}, 'all':
+  /// {'scores': 2100}}); empty for older runs.
+  final Map<String, Map<String, int>> steps = const {},
 }) extends Equatable {
   Duration get duration => finishedAt.difference(startedAt);
 
@@ -45,6 +50,7 @@ class const CollectorRun({
     searches,
     runUrl,
     scoringTime,
+    steps,
   ];
 }
 

@@ -68,7 +68,12 @@ Future<void> main(List<String> args) async {
     await withServiceClient((client) async {
       final store = ListingStore(client);
       final pushes = PushStore(client);
-      final catalog = await loadCatalog(client);
+      final catalog = await timeStep(
+        report,
+        RunReport.allSites,
+        'catalog',
+        () => loadCatalog(client),
+      );
       final config = SupabaseConfig.fromEnvironment();
       try {
         await pushes.storeServiceAccess(config.url, config.serviceKey);
@@ -106,6 +111,7 @@ Future<void> main(List<String> args) async {
     });
   } finally {
     if (reportPath != null) await report.writeTo(reportPath);
+    if (report.stepsLine() case final line?) stdout.writeln(line);
     stdout.writeln(
       'Refresh finished in ${watch.elapsed.inSeconds} s'
       '${failed > 0 ? ', $failed site(s) failed' : ''}.',
@@ -152,21 +158,29 @@ Future<int> _refreshSite(
   final directory = 'samples/$name/search';
   await _clear(directory);
 
+  // Each step's time, in the report (N.118).
+  Future<T> step<T>(String part, Future<T> Function() work) =>
+      timeStep(report, name, part, work);
   final fetcher = PoliteFetcher(site: site);
   try {
-    await fetcher.prepare();
-    stdout.writeln(
-      'robots.txt as read at ${fetcher.robotsReadAt?.toIso8601String()} '
-      '(read again after 24 h)',
-    );
-    final outcome = await fetchSearches(
-      fetcher,
-      [for (final s in plan.searches) s.url],
-      directory,
-      light: light,
-    );
+    final outcome = await step('fetch', () async {
+      await fetcher.prepare();
+      stdout.writeln(
+        'robots.txt as read at ${fetcher.robotsReadAt?.toIso8601String()} '
+        '(read again after 24 h)',
+      );
+      return await fetchSearches(
+        fetcher,
+        [for (final s in plan.searches) s.url],
+        directory,
+        light: light,
+      );
+    });
 
-    final batch = await loadBatch('$name-search', directory, catalog);
+    final batch = await step(
+      'read',
+      () => loadBatch('$name-search', directory, catalog),
+    );
     final cleanInput = await importBatch(
       batch,
       catalog,
@@ -181,10 +195,15 @@ Future<int> _refreshSite(
 
     if (site == .standvirtual && enrichMax != 0) {
       // New listings may be duplicates; those are never read.
-      await store.markDuplicates();
-      final pending = await store.listingsMissingDetails(name, enrichMax);
+      await step('duplicates', store.markDuplicates);
+      final pending = await step(
+        'details_queue',
+        () => store.listingsMissingDetails(name, enrichMax),
+      );
       stdout.writeln('${pending.length} listing(s) need details.');
-      if (pending.isNotEmpty) await enrichDetails(store, fetcher, pending);
+      if (pending.isNotEmpty) {
+        await step('details', () => enrichDetails(store, fetcher, pending));
+      }
     }
     return cleanInput ? 0 : 65;
   } on FetchLimitReached catch (e) {

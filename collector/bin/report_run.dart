@@ -4,7 +4,7 @@ import 'package:collector/collector.dart';
 
 /// Records one scheduled run in `collector_runs` (with its problems, each
 /// search's pages and ads, each site's requests today and pause, how long
-/// the scoring took and the GitHub run's address), drops rows older than
+/// the scoring and each step took and the GitHub run's address), drops rows older than
 /// 90 days and tells the admins' devices (Web Push) when the collection
 /// breaks or recovers (runHealthMessage: a change from the previous runs
 /// only; a partial run only when its site failed in the run before too),
@@ -67,6 +67,10 @@ Future<void> main(List<String> args) async {
             ],
       'problems': problems,
       'scoring_ms': report == null ? scoringMs(log) : report.scoringMs,
+      // Each step's time (N.118); none without a report.
+      'steps_ms': (report == null || report.steps.isEmpty)
+          ? null
+          : report.steps,
       'sites': {
         for (final MapEntry(key: name, value: site) in FetchSite.byName.entries)
           // No state yet: nothing used, no pause.
