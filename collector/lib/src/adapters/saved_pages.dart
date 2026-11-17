@@ -54,14 +54,20 @@ class const SearchPageParts<R>({
 ///
 /// [onPage] sees every page read (for the site's bookkeeping) and [finish]
 /// runs once after the last file, returning the site's own issues (such as
-/// pages missing from a search).
+/// pages missing from a search); it is given how many saved pages of each
+/// search (the manifest's) came without their results, so a search whose
+/// missing pages are those pages says so instead of "not read".
 Future<ParseResult<R>> readSavedSearchPages<R, P>(
   String directory,
   Duration maxAge, {
   required P Function(String html) parse,
   required SearchPageParts<R> Function(P page) parts,
   required void Function(P page, int index, String name, String? search) onPage,
-  required Iterable<ParseIssue> Function(Set<String> newestOnly) finish,
+  required Iterable<ParseIssue> Function(
+    Set<String> newestOnly,
+    Map<String, int> withoutResults,
+  )
+  finish,
 }) async {
   final files = await listHtmlFiles(directory);
   final manifest = await SearchManifest.readFrom(directory);
@@ -69,6 +75,7 @@ Future<ParseResult<R>> readSavedSearchPages<R, P>(
   final records = <R>[];
   final issues = <ParseIssue>[];
   final models = <SiteModel>[];
+  final withoutResults = <String, int>{};
 
   for (var i = 0; i < files.length; i++) {
     final name = files[i].uri.pathSegments.last;
@@ -89,17 +96,21 @@ Future<ParseResult<R>> readSavedSearchPages<R, P>(
       final stale = staleIssue(i, name, age, maxAge, search: search);
       if (stale != null) issues.add(stale);
     } on FormatException catch (e) {
+      final noResults = e.message.startsWith(notResultsPageMessage);
+      if (noResults && search != null) {
+        withoutResults[search] = (withoutResults[search] ?? 0) + 1;
+      }
       issues.add(
         ParseIssue(
           i,
           '$name: ${e.message}',
           search: search,
-          kind: e.message == notResultsPageMessage ? .notResultsPage : .other,
+          kind: noResults ? .notResultsPage : .other,
         ),
       );
     }
   }
-  issues.addAll(finish(manifest?.newestOnly ?? const {}));
+  issues.addAll(finish(manifest?.newestOnly ?? const {}, withoutResults));
   return ParseResult(
     records,
     issues,
