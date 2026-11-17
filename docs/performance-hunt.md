@@ -20,6 +20,7 @@ are done in this PR; PF.6-PF.7 are noted, not worth their code today.
 | PF.4 | `in_my_models` (`20261023140000_models_per_account.sql:133`), `distance_km` (`20261022150000_listing_distance.sql:91`), `my_colour` (`20261025010000_bike_colours.sql:166`) | Ofertas filters every page and count on `in_my_models`: a chain of three SQL functions (`caller_tracks` → `collected`/`user_tracks`), each with its own search_path, so none is inlined and every row pays three calls. The same for the distance (two) and the colour (two). | filter 1.8 s → 0.26 s; distance 2.4 s → 1.0 s |
 | PF.5 | `collector/lib/src/notify/web_push.dart:274` | A new `HttpClient` (new connection, new TLS handshake) for every push; a burst of alerts to the same push service paid it each time. | one connection per push service per run |
 | PF.6 | `description_signals` (`20261106120000_not_legalised.sql:136`) | About 60 regular expressions per description; Postgres caches 32 compiled ones per session, so each listing recompiles some (about 6 ms a listing). Paid only when a description changes (the stored `text_signals`), so a few seconds a run. | not changed |
+| PF.8 | `collect.yml`, `photos.yml` (2026-11-17, N.117) | Each collection installed Dart and the dependencies twice (about 10 s each) and started three programs with `dart run`, which compiles from source every time (about 8-10 s each on the runner). | start 7.1 s → 14 ms locally; about 35-45 s a collection |
 | PF.7 | `place_key` (in `distance_km`, `district`) | Three regular expressions per row to find the ad's place; the rest of the distance sort's 1.0 s. A stored place key per listing would remove it; the sort is opt-in and 1 s on 8x today's ads. | not changed |
 
 ## What was done
@@ -60,6 +61,9 @@ No leak found:
   every response, also on timeouts; the photo step keeps 3 photos of one
   listing at a time and the CLIP helper is one process per run, closed in
   `finally`. The FCM client (`notify/fcm.dart`) was already one per run.
+- **PF.8** (N.117): `make collector-exe` compiles refresh, report_run and
+  photos ahead of time; the shared action caches them until the collector's
+  code changes and then skips installing Dart.
 - **App**: every cubit's stream subscriptions are cancelled in `close`
   (`AccountScopedCubit`, `ListingCardPreferencesCubit`, the shell's
   lifecycle observer); DI closes the singletons; controllers and focus

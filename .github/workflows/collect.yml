@@ -48,7 +48,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # refresh and report_run compiled (N.117): cached until the
+      # collector's code changes, then no Dart set-up and no compiling.
       - uses: ./.github/actions/collector
+        with:
+          compiled: 'true'
 
       # The fetcher's requests today, block pause and robots.txt (kept up to
       # 24 h) live in these files (one per site); each run saves a new copy
@@ -83,7 +87,7 @@ jobs:
           echo "Reading: $read"
           set +e
           # What the run did, for the step below (run from collector/).
-          make refresh ARGS="$args --report=../run_report.json" 2>&1 | tee run.log
+          make refresh BIN=build/bin ARGS="$args --report=../run_report.json" 2>&1 | tee run.log
           echo "code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
           exit 0
 
@@ -93,7 +97,7 @@ jobs:
         if: always()
         run: >
           cd collector &&
-          dart run bin/report_run.dart
+          build/bin/report_run
           "${{ steps.refresh.outputs.code || '1' }}"
           "${{ steps.refresh.outputs.started }}"
           ../run.log

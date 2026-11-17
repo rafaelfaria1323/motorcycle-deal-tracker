@@ -164,7 +164,13 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   `photos`); its own photo state cache
 .github/actions/collector         Shared steps: Dart and the collector's
                                   dependencies (collect, photos,
-                                  push-test, weekly-summary)
+                                  push-test, weekly-summary); input
+                                  `compiled: 'true'` (collect, photos,
+                                  N.117): the programs of
+                                  `make collector-exe` from the cache
+                                  (key: image + the collector's code;
+                                  on a hit no Dart at all), run with
+                                  `BIN=build/bin`
 .github/workflows/weekly-summary.yml  Mondays 08:52 Lisbon time (pg_cron): each account's
                                   summary of the week, kept for the app and
                                   pushed to its devices (bin/weekly_summary.dart);
@@ -237,7 +243,7 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   `db-test` on a Postgres service); the
                                   collector's jobs use the shared
                                   .github/actions/collector, collector-db
-                                  checks that the collector starts; each test
+                                  checks that the collector compiles (N.117) and starts; each test
                                   runs once; only the jobs the PR's files
                                   need run (`plan`, tool/changed_areas.py,
                                   N.115: docs alone none, the collector or
@@ -348,6 +354,8 @@ make refresh ARGS=--full       one process for both sites (bin/refresh.dart): se
                                -> import (with removal) -> enrich, then scores/alerts once
                                (ARGS="--full --light": light run, R.2)
 make refresh-olx|refresh-standvirtual   the same for one site
+make collector-exe             compile refresh, report_run, photos to collector/build/bin (N.117);
+                               make refresh|photos BIN=build/bin runs them (collect.yml, photos.yml)
 make push-test                 send a test notification to the admins' devices (Web Push)
 make weekly-summary [ARGS=--dry-run]   make and send (or print) each account's weekly summary
 make text-audit [ARGS=--ads=20]        the description check against Gemini (GEMINI_API_KEY)

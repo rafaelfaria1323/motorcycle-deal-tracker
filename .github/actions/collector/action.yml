@@ -1,7 +1,16 @@
 name: Collector
 description: >
   The Dart SDK and the collector's dependencies, the start of every
-  workflow that runs the collector (after actions/checkout).
+  workflow that runs the collector (after actions/checkout). With
+  `compiled: true`, the collection's programs compiled instead
+  (collector/build/bin, make collector-exe; run with BIN=build/bin),
+  restored from the cache while the collector's code is unchanged, and
+  then without the SDK at all (N.117).
+
+inputs:
+  compiled:
+    description: "'true': the collection's programs, compiled and cached"
+    default: 'false'
 
 runs:
   using: composite
@@ -11,7 +20,21 @@ runs:
       shell: bash
       run: echo "version=$(cat .dart-version)" >> "$GITHUB_OUTPUT"
 
+    # The key changes with anything the programs are built from; the
+    # runner's image too (a compiled program links its system libraries).
+    - name: Restore the compiled programs
+      id: exe
+      if: inputs.compiled == 'true'
+      uses: actions/cache/restore@v6
+      with:
+        path: collector/build/bin
+        key: >-
+          collector-exe-${{ runner.os }}-${{ runner.arch }}-${{ env.ImageOS }}-${{
+          hashFiles('.dart-version', 'Makefile', 'collector/pubspec.lock',
+          'collector/lib/**', 'collector/bin/**') }}
+
     - uses: dart-lang/setup-dart@v1
+      if: inputs.compiled != 'true' || steps.exe.outputs.cache-hit != 'true'
       with:
         sdk: ${{ steps.dart.outputs.version }}
         # Its matcher file is looked up in this action's folder when
@@ -20,5 +43,18 @@ runs:
         problem-matcher: false
 
     - name: Install collector dependencies
+      if: inputs.compiled != 'true' || steps.exe.outputs.cache-hit != 'true'
       shell: bash
       run: cd collector && dart pub get --enforce-lockfile
+
+    - name: Compile the collection's programs
+      if: inputs.compiled == 'true' && steps.exe.outputs.cache-hit != 'true'
+      shell: bash
+      run: make collector-exe
+
+    - name: Keep the compiled programs
+      if: inputs.compiled == 'true' && steps.exe.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v6
+      with:
+        path: collector/build/bin
+        key: ${{ steps.exe.outputs.cache-primary-key }}

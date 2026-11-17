@@ -72,13 +72,34 @@ class SdkVersionsTest(unittest.TestCase):
         text = (ROOT / ".github/workflows/check.yml").read_text()
         job = text.split("  collector-db:\n", 1)[1].split("\n  check:", 1)[0]
         self.assertIn("uses: ./.github/actions/collector", job)
-        self.assertIn("dart run bin/report_run.dart", job)
+        # The programs as the collection runs them, compiled (N.117).
+        self.assertIn("make collector-exe", job)
+        self.assertIn("build/bin/report_run", job)
         self.assertNotIn("subosito/flutter-action", job)
         self.assertNotIn("  collector-setup:\n", text)
         tests = text.split("  collector-test:\n", 1)[1].split("\n  collector-db:", 1)[0]
         self.assertIn("uses: ./.github/actions/collector", tests)
         self.assertNotIn("subosito/flutter-action", tests)
         self.assertIn("needs: [plan, app, app-test, smoke, collector-test, collector-db]", text)
+
+    def test_collection_runs_the_cached_compiled_programs(self):
+        action = (ROOT / ".github/actions/collector/action.yml").read_text()
+        self.assertIn("path: collector/build/bin", action)
+        self.assertIn("run: make collector-exe", action)
+        # The cache follows everything the programs are built from.
+        for source in (".dart-version", "Makefile", "collector/pubspec.lock",
+                       "collector/lib/**", "collector/bin/**"):
+            self.assertIn(f"'{source}'", action)
+        collect = (ROOT / ".github/workflows/collect.yml").read_text()
+        self.assertIn("compiled: 'true'", collect)
+        self.assertIn("make refresh BIN=build/bin", collect)
+        self.assertIn("build/bin/report_run", collect)
+        self.assertNotIn("dart run", collect)
+        photos = (ROOT / ".github/workflows/photos.yml").read_text()
+        self.assertIn("compiled: 'true'", photos)
+        self.assertIn("make photos BIN=build/bin", photos)
+        makefile = (ROOT / "Makefile").read_text()
+        self.assertIn("PROGRAMS ?= refresh report_run photos", makefile)
 
 
 if __name__ == "__main__":

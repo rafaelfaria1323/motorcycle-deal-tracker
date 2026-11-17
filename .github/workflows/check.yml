@@ -255,11 +255,15 @@ jobs:
       # downloading Flutter for a job that only runs Dart.
       - uses: ./.github/actions/collector
 
-      - name: The collector starts
+      # Compiled as collect.yml and photos.yml run them (N.117), so a
+      # program that no longer compiles shows here, not at the next
+      # collection after the merge.
+      - name: The collector compiles and starts
         run: |
+          make collector-exe
           cd collector
           set +e
-          dart run bin/report_run.dart
+          build/bin/report_run
           code=$?
           set -e
           [ "$code" = 64 ] || { echo "Expected exit 64, got $code"; exit 1; }
