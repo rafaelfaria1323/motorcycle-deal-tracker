@@ -47,7 +47,7 @@ dependencies:
   intl: ^0.20.2
   # Material, out of the SDK since Flutter 3.50 deprecated
   # package:flutter/material.dart (N.90).
-  material_ui: ^1.2.0
+  material_ui: ^1.11.1
   url_launcher: ^6.3.3
   # The Android app's own updater (Android only, no Dart code).
   apk_installer:
