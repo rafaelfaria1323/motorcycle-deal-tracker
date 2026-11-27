@@ -47,7 +47,16 @@ HEADER
     | sed -n '/^-- Name:/,$p' | sed '1i --' | cat -s \
     | awk '{ line[NR] = $0 }  # without the empty "--" lines pg_dump ends with
            END { n = NR; while (n > 0 && line[n] ~ /^(--)?$/) n--
-                 for (i = 1; i <= n; i++) print line[i] }'
+                 # One empty line before each object header ("--" then
+                 # "-- Name:"), whatever the pg_dump: one of 17 or later
+                 # left one out before an FK constraint (N.124).
+                 for (i = 1; i <= n; i++) {
+                   header = line[i] == "--" && line[i + 1] ~ /^-- Name:/
+                   if (line[i] == "" && line[i + 1] == "--" &&
+                       line[i + 2] ~ /^-- Name:/) continue
+                   if (header && i > 1) print ""
+                   print line[i]
+                 } }'
 }
 
 case "${1:-}" in
