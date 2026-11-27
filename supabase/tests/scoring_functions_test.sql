@@ -279,6 +279,14 @@ begin
       'Ideal para limitar a 35 kw.'])[i])
       is null, format('case %s is a full-power bike', i);
   end loop;
+  -- N.122: only whole words ("ilimitada" is not "limitada").
+  for i in 1..3 loop
+    assert public.power_version(null, (array[
+      'Garantia de quilometragem ilimitada.', 'Espaço delimitado na garagem.',
+      'Vendo Yamaha MT-07 de 2025, excelente estado. -Quilómetros: 4600km '
+      '-Protetor de radiador -Manetes pretas -Cogumelos de proteção'])[i])
+      is null, format('case %s names no A2 version', i);
+  end loop;
   assert public.power_version('35kW', 'Mota impecável.') = 'a2_limited', 'read from the variant';
   assert public.power_version(null, null) is null, 'nothing to read';
 
