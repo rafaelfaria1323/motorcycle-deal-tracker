@@ -45,13 +45,9 @@ class const _FactRow(final String label, final String value)
             ),
           ),
           const SizedBox(width: 16),
-          Flexible(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: textTheme.bodyMedium,
-            ),
-          ),
+          // Expanded, not Flexible: every value starts at the same line,
+          // also one that wraps onto a second line.
+          Expanded(child: Text(value, style: textTheme.bodyMedium)),
         ],
       ),
     );
