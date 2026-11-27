@@ -898,6 +898,13 @@ invites; written by the collector on each run).
   ago with no session used in 30 days (`auth.sessions`; they own nothing,
   foreign keys cascade). Accounts are never touched; a pruned visitor
   just signs in anonymously again.
+- Gone favourites (N.124): pg_cron job `prune-gone-favourites`
+  (`29 * * * *`) runs `prune_gone_favourites()`: deletes the favourites
+  whose ad is removed or sold and was last seen a day ago or more (a run
+  that missed an ad brings it back on the next full read; the note,
+  checklist and visit go with it). The removal alert comes first, in the
+  run that removes the ad; a relist then alerts only through alerts still
+  shown (`back_on_market`).
 - Shared ads (N.110c): pg_cron job `prune-shared-ads` (`51 3 * * *`) runs
   `prune_shared_ads()`: deletes the iPhone shortcut's ads dismissed a day
   ago and every one 7+ days old (dismissing already wiped the content).
@@ -1676,7 +1683,8 @@ RLS) alert their owner without a saved search (`saved_search_id` null):
 `listing_removed` after the listing became a favourite; a unique index
 keeps one alert per price change, and a removal already alerted to the
 person since the listing was last seen isn't alerted again, when a saved
-search also covers it. A gone favourite offers "Avisar-me de uma parecida"
+search also covers it. A gone favourite leaves the list a day after the
+ad was last seen (N.124, `prune_gone_favourites`); until then it offers "Avisar-me de uma parecida"
 (N.84, `similarSearchFilters`, `favourites/presentation/similar_search.dart`):
 a saved search for the same model, a year either side, up to 10 % dearer
 and 30 % (at least 3 000) more km, through Ofertas' save flow

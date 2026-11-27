@@ -161,6 +161,8 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 
 ➕ ✅ The viewing checklist without a connection (N.66): marks made without signal stay on the device and are sent once there is a connection; Favoritos shows the last copy kept on the device when it can't load, and each favourite opens its checklist from there.
 
+➕ ✅ Gone favourites leave the list (N.124): a favourite whose ad was removed goes by itself a day after the ad was last seen, after its removal alert; the day keeps a bike a run missed.
+
 ➕ ✅ What changed since a favourite was last opened (N.97): under each favourite and on its page, a drop or rise, gone or back on the market, the mileage edited and a renewal on the site, until the ad is opened again.
 
 ➕ ✅ After the purchase (N.67): "Comprei esta" on the ad keeps the bike in "A minha mota", with its value today against what was paid and the next service and valve check by its estimated km; once a month its value is kept and pushed with the change since the month before (N.80), and the card lists the last 6 months. Any brand and model, followed or not (N.120: "Outra marca ou modelo…"; owning it collects nothing, N.121: its value only from ads already stored or when asked).

@@ -4524,6 +4524,27 @@ end;
 $$;
 
 --
+-- Name: prune_gone_favourites(timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.prune_gone_favourites(p_at timestamp with time zone DEFAULT now()) RETURNS integer
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+declare
+  v_count integer;
+begin
+  delete from public.listing_favourites f
+  using public.listings l
+  where l.id = f.listing_id
+    and l.status in ('removed', 'sold')
+    and l.last_seen_at < p_at - interval '1 day';
+  get diagnostics v_count = row_count;
+  return v_count;
+end;
+$$;
+
+--
 -- Name: prune_shared_ads(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -11238,6 +11259,13 @@ GRANT ALL ON FUNCTION public.price_score(p_price numeric, p_market_price numeric
 
 REVOKE ALL ON FUNCTION public.prune_anonymous_users(p_idle_days integer) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.prune_anonymous_users(p_idle_days integer) TO service_role;
+
+--
+-- Name: FUNCTION prune_gone_favourites(p_at timestamp with time zone); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.prune_gone_favourites(p_at timestamp with time zone) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.prune_gone_favourites(p_at timestamp with time zone) TO service_role;
 
 --
 -- Name: FUNCTION prune_shared_ads(); Type: ACL; Schema: public; Owner: -
