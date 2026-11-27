@@ -6,6 +6,7 @@ import '../../../../app/di/injection.dart';
 import '../../../../app/router/app_routes.dart';
 import '../../../../core/auth/session_cubit.dart';
 import '../../../../core/localization/localizations.dart';
+import '../../../../core/widgets/section_card.dart';
 import '../../../../core/widgets/show_message.dart';
 import '../../../listings/domain/entities/listing.dart';
 import '../../domain/entities/owned_bike.dart';
@@ -56,29 +57,32 @@ class const BoughtThisCard({required final Listing listing, super.key})
       bloc: cubit,
       builder: (context, state) {
         final kept = state.boughtFrom(listing.id);
-        return Card(
-          child: ListTile(
-            leading: Icon(kept == null ? Icons.key_outlined : Icons.key),
-            title: Text(
-              kept == null
-                  ? context.strings.boughtThis
-                  : context.strings.boughtThisKept,
-            ),
-            subtitle: Text(
+        // Laid out as the cards above it (title, text, button under it):
+        // a list tile squeezed the text between the icon and the button.
+        return SectionCard(
+          title: kept == null
+              ? context.strings.boughtThis
+              : context.strings.boughtThisKept,
+          children: [
+            Text(
               kept == null
                   ? context.strings.boughtThisHint
                   : context.strings.boughtThisKeptHint,
             ),
-            onTap: kept == null
-                ? () => _buy(context)
-                : () => context.push(AppRoutes.myBike),
-            trailing: kept == null
-                ? TextButton(
-                    onPressed: () => _buy(context),
-                    child: Text(context.strings.boughtThisAction),
-                  )
-                : const Icon(Icons.chevron_right),
-          ),
+            const SizedBox(height: 12),
+            if (kept == null)
+              FilledButton.tonalIcon(
+                onPressed: () => _buy(context),
+                icon: const Icon(Icons.key_outlined),
+                label: Text(context.strings.boughtThisAction),
+              )
+            else
+              FilledButton.tonalIcon(
+                onPressed: () => context.push(AppRoutes.myBike),
+                icon: const Icon(Icons.key),
+                label: Text(context.strings.myBike),
+              ),
+          ],
         );
       },
     );
