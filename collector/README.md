@@ -110,7 +110,9 @@ Every catalog model has searches for both OLX and Standvirtual, including
 models added before automatic source coverage. The database keeps existing
 addresses and fills missing ones from known site filters or a word search
 for the model (and brand when its filter is unknown). The planner applies
-the same year and OLX engine-band filters to these searches. This does not
+the same year and OLX engine-band filters to these searches; a banded
+OLX family search is also followed by each model's word search within the
+brand (`olxWordSearch`, N.123), which finds ads filed in the wrong band. This does not
 change the fetching rules, model matching, or per-search removal safeguards.
 
 After each scheduled run `bin/report_run.dart` records it in `collector_runs`,

@@ -60,6 +60,24 @@ Uri? standvirtualEngineSearch(Uri base, List<CatalogEntry> entries) {
   );
 }
 
+/// The word search beside an OLX family search narrowed to an engine-size
+/// band (N.123): the band leaves out an ad whose seller chose the wrong
+/// one (2026-11-27: an R7 limited to 35 kW for the A2 licence filed as
+/// "126 - 500 cc"), so each model is also read by its name in the title or
+/// text, within the brand (`<make>/q-r7/`), without the band or the model
+/// filter (the seller may have chosen "Outro"). Null when [base] is no such
+/// family search (already a word search, or without the brand in its path).
+Uri? olxWordSearch(Uri base, CatalogEntry entry) {
+  final segments = base.pathSegments.where((s) => s.isNotEmpty).toList();
+  if (segments.length != 3 || segments.last.startsWith('q-')) return null;
+  final words = entry.model
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+      .replaceAll(RegExp(r'^-+|-+$'), '');
+  if (words.isEmpty) return null;
+  return Uri.https(base.host, '/${[...segments, 'q-$words'].join('/')}/');
+}
+
 /// The band that holds every one of [entries], or null when one has no
 /// engine size or they don't fit one band.
 String? olxEngineBand(Iterable<CatalogEntry> entries) {
@@ -123,16 +141,26 @@ String? olxEngineBand(Iterable<CatalogEntry> entries) {
 
   for (final (base, entries) in groups.values) {
     final yearFrom = '${entries.map((e) => e.minYear).reduce(_min)}';
+    final band = site == .olx ? olxEngineBand(entries) : null;
     add(
       base.replace(
         queryParameters: {
           ...base.queryParameters,
           site == .olx ? olxYearFrom : standvirtualYearFrom: yearFrom,
-          if (site == .olx) olxEngineSize: ?olxEngineBand(entries),
+          olxEngineSize: ?band,
         },
       ),
       entries,
     );
+    if (band != null) {
+      for (final entry in entries) {
+        final words = olxWordSearch(base, entry);
+        if (words == null) continue;
+        add(words.replace(queryParameters: {olxYearFrom: '${entry.minYear}'}), [
+          entry,
+        ]);
+      }
+    }
     if (site == .standvirtual) {
       final engine = standvirtualEngineSearch(base, entries);
       if (engine != null) {

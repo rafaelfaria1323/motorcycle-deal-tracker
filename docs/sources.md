@@ -402,7 +402,12 @@ size, or models in different bands, keep the search as it was. Standvirtual
 searches name the engine size in words (`q-650`, `q-7`; since N.71 also
 read at the models' engine sizes). An ad whose seller
 left the engine size empty, or chose the wrong band, is no longer found on
-OLX (Standvirtual still lists dealer ads).
+OLX by that search (Standvirtual still lists dealer ads). Since N.123
+(2026-11-27: an R7 limited to 35 kW for the A2 licence, filed as "126 -
+500 cc", never appeared) each model of a banded search is also read by
+its name within the brand (`yamaha/q-r7/`, the year filter only, no band
+or model filter): about one more request per followed model a run, the
+same pace and rules.
 
 **Cleanup.** The unmatched ads already stored were set to removed once
 (migration `20261023160000`, not those with an alert or a favourite); the
