@@ -6,6 +6,7 @@ enum AlertFilter {
   all(<AlertType>{}),
   newListings({AlertType.newListing, AlertType.backOnMarket}),
   priceDrops({AlertType.priceReduction, AlertType.targetPriceReached}),
+  priceRises({AlertType.priceIncrease}),
   excellent({AlertType.excellentOpportunity}),
   removed({AlertType.listingRemoved});
 

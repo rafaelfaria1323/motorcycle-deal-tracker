@@ -23,6 +23,7 @@ void main() {
       'test',
       'new_listing',
       'price_reduction',
+      'price_increase',
       'excellent_opportunity',
       'target_price_reached',
       'listing_removed',
@@ -37,6 +38,7 @@ void main() {
     final names = PushTestKind.values.map(pushTestKindText).toSet();
     expect(names, hasLength(PushTestKind.values.length));
     expect(pushTestKindText(PushTestKind.priceReduction), 'Baixa de preço');
+    expect(pushTestKindText(PushTestKind.priceIncrease), 'Subida de preço');
   });
 
   test('refusals are explained by their code', () {

@@ -24,6 +24,7 @@ class ListingAlertModel {
   static const _codes = {
     AlertType.newListing: 'new_listing',
     AlertType.priceReduction: 'price_reduction',
+    AlertType.priceIncrease: 'price_increase',
     AlertType.excellentOpportunity: 'excellent_opportunity',
     AlertType.listingRemoved: 'listing_removed',
     AlertType.backOnMarket: 'back_on_market',

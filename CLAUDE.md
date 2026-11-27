@@ -1603,7 +1603,12 @@ Excelentes, Removidos). The unread count is the server's
 (`countUnread`, every kind), so the tab's badge stays right with a kind
 chosen or pages not loaded; "Marcar todos como lidos" also covers them.
 
-Types: `target_price_reached` (a favourite's `target_price`, set from
+Types: `price_increase` (N.125: a rise of 1 % or more of a followed bike,
+one per person and price-history row: a favourite, risen after it became
+one, or an ad an active saved search alerted about, alert still shown;
+from a real price, 300 € or more; rises of the last day only;
+`generate_price_increase_alerts`, the 📈 push, Alertas' chip "Subidas"),
+`target_price_reached` (a favourite's `target_price`, set from
 "Quanto oferecer": the listing is live at that price or less, at a price
 seen after `target_set_at` (stamped by a trigger); old_price = the target,
 one alert per target), `new_listing`, `price_reduction` (>= 1% drop, one per price-history

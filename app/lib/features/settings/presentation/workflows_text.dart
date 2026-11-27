@@ -31,6 +31,7 @@ String pushTestKindText(
   PushTestKind.test => language.messages.simpleTestNotification,
   PushTestKind.newListing => language.messages.pushKindNewListing,
   PushTestKind.priceReduction => language.messages.priceDrop,
+  PushTestKind.priceIncrease => language.messages.alertKindRise,
   PushTestKind.excellentOpportunity => language.messages.pushKindExcellent,
   PushTestKind.targetPriceReached => language.messages.pushKindTargetPrice,
   PushTestKind.listingRemoved => language.messages.listingRemoved,

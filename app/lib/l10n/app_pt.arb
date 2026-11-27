@@ -6488,6 +6488,23 @@
   "@alertKindDrop": {
     "description": "Interface text in alerts_text, alertKindLabel: the coloured tag on an alert's card, shown in capitals (a price drop whose size is unknown)."
   },
+  "alertKindRise": "Subida de preço",
+  "@alertKindRise": {
+    "description": "Interface text in alerts_text, alertKindLabel: the tag on an alert's card when a followed bike's price went up (N.125); also the test notification's kind."
+  },
+  "alertKindRiseBy": "Subida de preço ({amount})",
+  "@alertKindRiseBy": {
+    "description": "Interface text in alerts_text, alertKindLabel: the tag on an alert's card, a price rise; amount is how much it went up, e.g. +1 000 € (N.125).",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "alertFilterRises": "Subidas",
+  "@alertFilterRises": {
+    "description": "Alertas: chip showing the price rises of followed bikes (N.125)."
+  },
   "alertKindDropBy": "Baixa de preço ({amount})",
   "@alertKindDropBy": {
     "description": "Interface text in alerts_text, alertKindLabel: the coloured tag on an alert's card, shown in capitals (a price drop; amount is how much it fell, e.g. -600 €).",

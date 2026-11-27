@@ -25,7 +25,8 @@ CREATE TYPE public.alert_type AS ENUM (
     'excellent_opportunity',
     'listing_removed',
     'back_on_market',
-    'target_price_reached'
+    'target_price_reached',
+    'price_increase'
 );
 
 --
@@ -2096,6 +2097,7 @@ CREATE FUNCTION public.generate_alerts() RETURNS integer
 begin
   return public.generate_new_listing_alerts()
        + public.generate_price_reduction_alerts()
+       + public.generate_price_increase_alerts()
        + public.generate_excellent_opportunity_alerts()
        + public.generate_listing_removed_alerts()
        + public.generate_favourite_alerts()
@@ -2297,6 +2299,64 @@ begin
     and s.notify_new_listing
     and l.first_seen_at > greatest(s.created_at, now() - interval '1 day')
   order by s.user_id, l.id, s.created_at
+  on conflict do nothing;
+
+  get diagnostics n = row_count;
+  return n;
+end;
+$$;
+
+--
+-- Name: generate_price_increase_alerts(numeric); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.generate_price_increase_alerts(p_min_rise_pct numeric DEFAULT 1) RETURNS integer
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+declare
+  n integer;
+begin
+  insert into public.alerts (
+    user_id, saved_search_id, listing_id, type,
+    old_price, new_price, price_history_id
+  )
+  select distinct on (w.user_id, c.history_id)
+         w.user_id, w.saved_search_id, c.listing_id,
+         'price_increase'::public.alert_type,
+         c.old_price, c.new_price, c.history_id
+  from (
+    select h.id as history_id,
+           h.listing_id,
+           h.observed_at,
+           h.price as new_price,
+           lag(h.price) over (
+             partition by h.listing_id order by h.observed_at, h.id
+           ) as old_price
+    from public.listing_price_history h
+    where h.listing_id in (
+      select r.listing_id from public.listing_price_history r
+      where r.observed_at > now() - interval '1 day')
+  ) c
+  join (
+    select f.user_id, f.listing_id, null::uuid as saved_search_id,
+           f.created_at as since
+    from public.listing_favourites f
+    union all
+    select a.user_id, a.listing_id, a.saved_search_id, a.created_at
+    from public.alerts a
+    join public.saved_searches s on s.id = a.saved_search_id
+    where a.dismissed_at is null
+      and a.type <> 'listing_removed'
+      and s.is_active
+  ) w on w.listing_id = c.listing_id
+  where c.old_price >= 300
+    and c.new_price > c.old_price
+    and (c.new_price - c.old_price) / c.old_price * 100 >= p_min_rise_pct
+    and c.observed_at > w.since
+    and c.observed_at > now() - interval '1 day'
+  -- A favourite first: its alert has no search to edit.
+  order by w.user_id, c.history_id, w.saved_search_id nulls first
   on conflict do nothing;
 
   get diagnostics n = row_count;
@@ -6803,6 +6863,7 @@ begin
   if p_kind is not null and (p_workflow <> 'push-test.yml' or p_kind not in (
        'test', 'new_listing', 'price_reduction', 'excellent_opportunity',
        'listing_removed', 'back_on_market', 'target_price_reached',
+       'price_increase',
        'run_failed', 'run_blocked', 'run_recovered', 'visit_reminder',
        'bike_value_month', 'recall')) then
     raise exception 'unknown kind %', p_kind using errcode = '22023';
@@ -8953,6 +9014,12 @@ CREATE UNIQUE INDEX alerts_one_back_on_market_per_user ON public.alerts USING bt
 CREATE UNIQUE INDEX alerts_one_excellent_per_user ON public.alerts USING btree (user_id, listing_id) WHERE (type = 'excellent_opportunity'::public.alert_type);
 
 --
+-- Name: alerts_one_increase_per_user_and_change; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX alerts_one_increase_per_user_and_change ON public.alerts USING btree (user_id, price_history_id) WHERE (type = 'price_increase'::public.alert_type);
+
+--
 -- Name: alerts_one_new_listing_per_user; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -10685,6 +10752,13 @@ GRANT ALL ON FUNCTION public.generate_listing_removed_alerts() TO service_role;
 
 REVOKE ALL ON FUNCTION public.generate_new_listing_alerts() FROM PUBLIC;
 GRANT ALL ON FUNCTION public.generate_new_listing_alerts() TO service_role;
+
+--
+-- Name: FUNCTION generate_price_increase_alerts(p_min_rise_pct numeric); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.generate_price_increase_alerts(p_min_rise_pct numeric) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.generate_price_increase_alerts(p_min_rise_pct numeric) TO service_role;
 
 --
 -- Name: FUNCTION generate_price_reduction_alerts(p_min_drop_pct numeric); Type: ACL; Schema: public; Owner: -

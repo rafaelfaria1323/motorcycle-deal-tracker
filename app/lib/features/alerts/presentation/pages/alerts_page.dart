@@ -29,6 +29,7 @@ class const AlertsPage({super.key}) extends StatelessWidget {
   static IconData _icon(AlertType type) => switch (type) {
     AlertType.newListing => Icons.fiber_new_outlined,
     AlertType.priceReduction => Icons.trending_down,
+    AlertType.priceIncrease => Icons.trending_up,
     AlertType.excellentOpportunity => Icons.local_fire_department_outlined,
     AlertType.listingRemoved => Icons.block,
     AlertType.backOnMarket => Icons.replay,
@@ -288,6 +289,7 @@ class const _FilterChips({
         .all => context.strings.all,
         .newListings => context.strings.alertFilterNew,
         .priceDrops => context.strings.priceDrops,
+        .priceRises => context.strings.alertFilterRises,
         .excellent => context.strings.alertFilterExcellent,
         .removed => context.strings.alertFilterRemoved,
       };
@@ -397,6 +399,11 @@ class const _AlertTile({
       AlertType.targetPriceReached => (
         colors.positive.withValues(alpha: 0.14),
         colors.positive,
+      ),
+      // A rise (N.125): bad news, in the negative colour.
+      AlertType.priceIncrease => (
+        colors.negative.withValues(alpha: 0.14),
+        colors.negative,
       ),
       AlertType.listingRemoved || AlertType.unknown => (
         scheme.surfaceContainerHighest,

@@ -24,6 +24,7 @@ on:
           - test
           - new_listing
           - price_reduction
+          - price_increase
           - excellent_opportunity
           - listing_removed
           - back_on_market
