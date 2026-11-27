@@ -256,11 +256,11 @@ void main() {
     )!;
 
     expect(breakdown.rows.first.label, 'Price against the market');
-    expect(breakdown.rows.first.share, 'weight 47 %');
+    expect(breakdown.rows.first.share, 'weight 47%');
     expect(breakdown.rows.first.points, '32.7 points');
     expect(
       breakdown.rows.first.details.first,
-      'Price 8.0 % below the estimated value '
+      'Price 8.0% below the estimated value '
       '(${Formatters.price(9000, language: AppLanguage.english)})',
     );
     expect(breakdown.totals.first.label, 'Weighted average');
