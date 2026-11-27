@@ -2702,6 +2702,14 @@
   "@description": {
     "description": "Interface text in listing_detail_page, build."
   },
+  "adTitleOnSite": "Título do anúncio",
+  "@adTitleOnSite": {
+    "description": "Label of the ad's own title (OLX) above its description on the listing page (N.122)."
+  },
+  "adVersionOnSite": "Versão",
+  "@adVersionOnSite": {
+    "description": "Label of the version the seller gave (Standvirtual) above the description on the listing page (N.122)."
+  },
   "showLess": "Mostrar menos",
   "@showLess": {
     "description": "Interface text in listing_detail_page, build."

@@ -420,6 +420,8 @@
   "viewEarlierListing": "View earlier listing",
   "dealScore0To100": "Deal Score · 0 to 100",
   "description": "Description",
+  "adTitleOnSite": "Ad title",
+  "adVersionOnSite": "Version",
   "showLess": "Show less",
   "showAll": "Show all",
   "removedFromComparison": "Removed from comparison",

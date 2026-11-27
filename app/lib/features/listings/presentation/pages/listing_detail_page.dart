@@ -313,8 +313,15 @@ class _ContentState extends State<_Content> {
           key: ValueKey(listing.id),
           seatHeightMm: listing.specs?.seatHeightMm,
         ),
-        if (description != null && description.isNotEmpty)
-          DescriptionCard(description: description),
+        if ((description?.isNotEmpty ?? false) ||
+            (listing.variant?.isNotEmpty ?? false))
+          DescriptionCard(
+            description: description,
+            title: listing.variant,
+            titleLabel: listing.source == 'standvirtual'
+                ? context.strings.adVersionOnSite
+                : context.strings.adTitleOnSite,
+          ),
         FactsCard(
           title: context.strings.theListing,
           facts: adFacts(listing, language: context.language),

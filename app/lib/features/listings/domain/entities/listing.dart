@@ -53,6 +53,10 @@ class const Listing({
   final String? sellerName,
   final String? location,
   final String? description,
+
+  /// The ad's own title (OLX) or version (Standvirtual), as the site gave
+  /// it: the A2 and extras rules read it with the description (N.122).
+  final String? variant,
   final DateTime? firstSeenAt,
   final DateTime? lastSeenAt,
   final int? registrations,

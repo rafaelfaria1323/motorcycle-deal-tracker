@@ -1341,7 +1341,7 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   what it showed before), the text contradicting the ad's fields
   (`text_contradictions`: year 2+ apart (not a year still to come or after
   "até"), more km, imported, no service
-  book; 10 each), an A2 (35 kW) version (`power_version` on variant and
+  book; 10 each), an A2 (35 kW) version (`power_version`, whole words, N.122, on variant and
   description: `a2_limited` 15, still held back; `a2_unlocked` 10; "pode
   ser limitada", "kit A2 incluído" count nothing), not yet legalised in
   Portugal (`legalisation_status`: "por legalizar", "proceder à

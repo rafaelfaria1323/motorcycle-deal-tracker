@@ -4341,7 +4341,7 @@ CREATE FUNCTION public.power_version(p_variant text, p_description text) RETURNS
                '|kit\s+(de\s+)?(limita[çc][ãa]o|a2)\s+(inclu[íi]d[ao]|oferta|em\s+oferta|dispon[íi]vel|opcional)',
                ' ', 'g'),
              -- "não está limitada": said of a full-power bike.
-             'n[ãa]o\s+(est[áa]\s+|[ée]\s+|vem\s+)?limitad[ao]',
+             'n[ãa]o\s+(est[áa]\s+|[ée]\s+|vem\s+)?limitad[ao]\M',
              ' ', 'g') as d
   )
   select case
@@ -4351,7 +4351,7 @@ CREATE FUNCTION public.power_version(p_variant text, p_description text) RETURNS
       then 'a2_unlocked'
     when d ~ '(vers[ãa]o\s+full|full\s+power|pot[êe]ncia\s+(total|m[áa]xima|completa))'
       then null
-    when d ~ 'limitad[ao]'
+    when d ~ '\mlimitad[ao]\M'
       or d ~ '\m35\s*kw'
       or d ~ 'vers[ãa]o\s+(a2|35)'
       or d ~ '\ma2\s+(limitad|kit|montad)'
