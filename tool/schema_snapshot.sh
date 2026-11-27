@@ -56,7 +56,7 @@ case "${1:-}" in
       echo "ok   supabase/schema.sql"
     else
       echo "FAIL supabase/schema.sql differs from the migrations (run make schema and commit it):"
-      diff -u "$out" <(snapshot) | head -40 | sed 's/^/     /' || true
+      diff -u "$out" <(snapshot) | head -150 | sed 's/^/     /' || true
       exit 1
     fi
     ;;
