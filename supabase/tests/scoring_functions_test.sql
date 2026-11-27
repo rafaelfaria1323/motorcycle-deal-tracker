@@ -57,6 +57,11 @@ begin
   assert (r.breakdown ->> 'slices_total')::int = 4, 'four slices exist';
   assert not (r.breakdown -> 'scores') ? 'seller', 'no dealer score, no seller slice';
   assert (r.breakdown ->> 'equipment_bonus')::int = 0, 'no extras, no bonus';
+  -- N.126: the year/mileage slice's parts, for the page's calculation.
+  assert (r.breakdown ->> 'mileage_score')::int = 50
+         and (r.breakdown ->> 'year_score')::int = 100
+         and (r.breakdown ->> 'mileage_share')::numeric = 0.7,
+    'the mileage and year parts and the mileage share are kept';
 
   -- Valued extras add 1 point each, at most 3, after the average.
   select * into r from public.combine_deal_score(80, 50, 100, 20, 2);
@@ -106,6 +111,9 @@ begin
   select * into r from public.combine_deal_score(null, 40, null, null);
   assert r.deal_score = 40, 'mileage alone is the year/mileage slice';
   assert (r.breakdown ->> 'slices_used')::int = 1, 'one slice used';
+  assert (r.breakdown ->> 'mileage_score')::int = 40
+         and not r.breakdown ? 'year_score' and not r.breakdown ? 'mileage_share',
+    'without a year only the mileage part, and no share';
 
   select * into r from public.combine_deal_score(null, null, null, null);
   assert r.deal_score is null, 'nothing known, no score';

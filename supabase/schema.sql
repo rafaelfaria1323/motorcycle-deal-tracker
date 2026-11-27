@@ -1317,6 +1317,14 @@ CREATE FUNCTION public.combine_deal_score(p_price_score integer, p_mileage_score
         b.n > 0 and not coalesce(b.has_price, false)
         and b.score + x.points > p_without_price
     )
+    -- The year/mileage slice's parts (null ones left out).
+    || jsonb_strip_nulls(jsonb_build_object(
+      'mileage_score', p_mileage_score,
+      'year_score',    p_year_score,
+      'mileage_share',
+        case when p_mileage_score is not null and p_year_score is not null
+             then p_mileage_share end
+    ))
   from base b, bonus x
 $$;
 

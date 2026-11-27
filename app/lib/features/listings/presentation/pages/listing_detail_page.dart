@@ -41,6 +41,7 @@ import '../widgets/photo_gallery.dart';
 import '../widgets/photo_hints_card.dart';
 import '../widgets/recalls_card.dart';
 import '../widgets/price_history_section.dart';
+import '../widgets/score_breakdown_card.dart';
 import '../widgets/score_explanation_card.dart';
 import '../widgets/seat_fit_card.dart';
 import '../widgets/listing_report_card.dart';
@@ -262,6 +263,7 @@ class _ContentState extends State<_Content> {
           )
         else
           ScoreExplanationCard(listing: listing),
+        ScoreBreakdownCard(listing: listing),
         RecallsCard(recalls: listing.recalls, applying: true),
         PhotoHintsCard(listing: listing),
         AlsoListedSection(listing: listing),
