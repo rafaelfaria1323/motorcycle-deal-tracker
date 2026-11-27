@@ -990,7 +990,10 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   filter is a family ("R", "CB"), a search also asks for the engine-size
   band that holds all its models (`olxEngineBand`, the values of OLX's own
   filter list: up to 50, 51-125, 126-500, 501-1000, over 1000 cc), so other
-  models' ads aren't read; word searches ("q-honda-forza-350") too. On
+  models' ads aren't read; word searches ("q-honda-forza-350") too. A
+  banded family search is followed by each model's word search within the
+  brand (`olxWordSearch`, `<make>/q-r7/`, the year only, N.123): the band
+  misses an ad filed in the wrong one (an A2 R7 as "126 - 500 cc"). On
   Standvirtual a word search inside a model filter ("/motos/honda/cbr/q-650")
   is followed by the same filter at its models' engine sizes
   (`standvirtualEngineSearch`, `search[filter_float_engine_capacity:from/to]`,

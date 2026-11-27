@@ -143,3 +143,13 @@ begin
   end;
 end $$;
 reset role;
+
+-- N.123: Yamaha's R models also answer to their YZF-R name, once each.
+do $$
+begin
+  assert (select count(*) from public.motorcycles
+          where slug in ('yamaha-r1', 'yamaha-r3', 'yamaha-r7', 'yamaha-r9')
+            and ('YZF-' || model) = any (aliases)
+            and cardinality(array_positions(aliases, 'YZF-' || model)) = 1) = 4,
+    'each R model has its YZF-R alias once';
+end $$;

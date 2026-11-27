@@ -1,6 +1,8 @@
 import 'package:collector/collector.dart';
 import 'package:test/test.dart';
 
+const olxEncodedYearFrom = 'search%5Bfilter_float_year%3Afrom%5D';
+
 const olxYamaha =
     'https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/yamaha/';
 
@@ -199,18 +201,72 @@ void main() {
         FetchSite.olx,
       );
 
-      expect(plan.searches.single.url.queryParameters, {
+      expect(plan.searches.first.url.queryParameters, {
         'search[filter_enum_modelo][0]': 'r',
         olxYearFrom: '2021',
         olxEngineSize: '501-1000-cc',
       });
     });
 
+    test('a banded family search is followed by each model\'s word search '
+        '(N.123)', () {
+      // 2026-11-27: an R7 limited to 35 kW filed as "126 - 500 cc" was left
+      // out by the band; its name in the title finds it.
+      final plan = planSearches(
+        Catalog([
+          model('R7', 2024, olx: rSearch, cc: 690),
+          model('R1', 2021, olx: rSearch, cc: 980),
+        ]),
+        FetchSite.olx,
+      );
+
+      expect(plan.searches, hasLength(3));
+      final (r7, r1) = (plan.searches[1], plan.searches[2]);
+      expect(r7.url.toString(), '${olxYamaha}q-r7/?$olxEncodedYearFrom=2024');
+      expect(r7.url.queryParameters, {olxYearFrom: '2024'});
+      expect(r7.models, ['Yamaha R7']);
+      expect(
+        r1.url.path,
+        '/carros-motos-e-barcos/motociclos-scooters/yamaha/q-r1/',
+      );
+      expect(r1.models, ['Yamaha R1']);
+      for (final s in plan.searches) {
+        expect(urlProblem(s.url, site: FetchSite.olx), isNull);
+      }
+    });
+
+    test('no word search without a band, for a word search, or with '
+        'no brand in the path', () {
+      List<Uri> urls(List<CatalogEntry> models) => [
+        for (final s in planSearches(Catalog(models), FetchSite.olx).searches)
+          s.url,
+      ];
+
+      expect(urls([model('R7', 2024, olx: rSearch)]), hasLength(1));
+      expect(
+        urls([model('X', 2024, olx: '${olxYamaha}q-xmax-300/', cc: 300)]),
+        hasLength(1),
+      );
+      expect(
+        olxWordSearch(
+          Uri.parse(
+            'https://www.olx.pt/carros-motos-e-barcos/motociclos-scooters/',
+          ),
+          model('R7', 2024),
+        ),
+        isNull,
+      );
+      expect(
+        olxWordSearch(Uri.parse(rSearch), model('CB650R E-Clutch', 2024))?.path,
+        '/carros-motos-e-barcos/motociclos-scooters/yamaha/q-cb650r-e-clutch/',
+      );
+    });
+
     test('every band of OLX\'s filter is used, keyword searches too', () {
       String? bandOf(int cc, {String olx = rSearch}) => planSearches(
         Catalog([model('X', 2024, olx: olx, cc: cc)]),
         FetchSite.olx,
-      ).searches.single.url.queryParameters[olxEngineSize];
+      ).searches.first.url.queryParameters[olxEngineSize];
 
       expect(bandOf(30), 'ate-50-cc');
       expect(bandOf(100), '51-125-cc');
@@ -274,9 +330,10 @@ void main() {
         FetchSite.olx,
       );
 
-      expect(plan.searches, hasLength(1));
+      // The band search, then the models' word searches.
+      expect(plan.searches, hasLength(3));
       expect(
-        plan.searches.single.url.queryParameters[olxEngineSize],
+        plan.searches.first.url.queryParameters[olxEngineSize],
         '501-1000-cc',
       );
     });
