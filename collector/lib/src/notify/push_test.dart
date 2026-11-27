@@ -30,6 +30,7 @@ const pushTestKinds = {
   'test',
   'new_listing',
   'price_reduction',
+  'price_increase',
   'excellent_opportunity',
   'listing_removed',
   'back_on_market',
@@ -175,6 +176,7 @@ Map<String, Object?> samplePushMessage(
   double near(double factor) => (price * factor / 50).round() * 50;
   final (double? oldPrice, double? newPrice) = switch (kind) {
     'price_reduction' => (near(1.06), price),
+    'price_increase' => (near(0.9), price),
     'back_on_market' => (near(1.08), price),
     'target_price_reached' => (near(1.02), price),
     _ => (null, null),

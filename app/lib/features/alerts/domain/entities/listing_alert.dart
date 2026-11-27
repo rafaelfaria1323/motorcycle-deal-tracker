@@ -14,6 +14,10 @@ enum AlertType {
 
   /// A favourite is on sale at the user's target price or less.
   targetPriceReached,
+
+  /// The price of a followed bike went up (N.125): a favourite, or an ad a
+  /// saved search alerted about.
+  priceIncrease,
   unknown,
 }
 

@@ -28,6 +28,7 @@ extension NotificationText on NotificationLanguage {
     ),
     'new_listing' => _text('🆕 Novo anúncio', '🆕 New listing'),
     'price_reduction' => _text('📉 Baixa de preço', '📉 Price drop'),
+    'price_increase' => _text('📈 Subida de preço', '📈 Price rise'),
     'excellent_opportunity' => _text(
       '🔥 Excelente oportunidade',
       '🔥 Excellent opportunity',
@@ -191,6 +192,10 @@ extension NotificationText on NotificationLanguage {
   String alertCount(String type, int count) => switch (type) {
     'new_listing' => newListings(count),
     'price_reduction' => priceDrops(count),
+    'price_increase' => _text(
+      _count(count, 'subida de preço', 'subidas de preço'),
+      _count(count, 'price rise', 'price rises'),
+    ),
     'excellent_opportunity' => _text(
       _count(count, 'excelente oportunidade', 'excelentes oportunidades'),
       _count(count, 'excellent opportunity', 'excellent opportunities'),

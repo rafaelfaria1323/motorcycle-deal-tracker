@@ -38,6 +38,7 @@ void main() {
     for (final (type, heading) in [
       ('new_listing', '🆕 New listing'),
       ('price_reduction', '📉 Price drop'),
+      ('price_increase', '📈 Price rise'),
       ('excellent_opportunity', '🔥 Excellent opportunity'),
       ('listing_removed', '🚫 Listing removed'),
       ('back_on_market', '🔁 Back on the market'),
@@ -70,6 +71,9 @@ void main() {
         expect(message['body'], startsWith('€7,000 (previously €7,400)'));
       } else if (type == 'target_price_reached') {
         expect(message['body'], startsWith('€7,000 (your target: €7,400)'));
+      } else if (type == 'price_increase') {
+        // N.125: the price it moved from, as a drop shows it.
+        expect(message['body'], startsWith('€7,400 → €7,000'));
       } else if (type == 'listing_removed') {
         expect(message['body'], isNot(contains('Score')));
       }

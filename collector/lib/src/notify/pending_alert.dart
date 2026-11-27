@@ -58,6 +58,7 @@ const alertTypeOrder = [
   'excellent_opportunity',
   'back_on_market',
   'price_reduction',
+  'price_increase',
   'new_listing',
   'listing_removed',
 ];
@@ -86,7 +87,10 @@ String euros(num value, {NotificationLanguage language = .portuguese}) =>
 
   final old = a.oldPrice;
   final current = a.newPrice ?? a.price;
-  final dropFrom = a.type == 'price_reduction' ? old : droppedFrom;
+  // A drop or a rise (N.125): the price it moved from.
+  final dropFrom = a.type == 'price_reduction' || a.type == 'price_increase'
+      ? old
+      : droppedFrom;
   final priceLine = dropFrom != null && current != null
       ? '${money(dropFrom)} → ${money(current)}'
       // Back on the market: the new price, and what the earlier ad asked.

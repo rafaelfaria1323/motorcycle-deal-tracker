@@ -161,6 +161,8 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 
 ➕ ✅ The viewing checklist without a connection (N.66): marks made without signal stay on the device and are sent once there is a connection; Favoritos shows the last copy kept on the device when it can't load, and each favourite opens its checklist from there.
 
+➕ ✅ Price rises alert (N.125): a favourite, or an ad a saved search already alerted about, whose price goes up 1 % or more sends a notification with the old and new price, and shows in Alertas under "Subidas".
+
 ➕ ✅ Gone favourites leave the list (N.124): a favourite whose ad was removed goes by itself a day after the ad was last seen, after its removal alert; the day keeps a bike a run missed.
 
 ➕ ✅ What changed since a favourite was last opened (N.97): under each favourite and on its page, a drop or rise, gone or back on the market, the mileage edited and a renewal on the site, until the ad is opened again.

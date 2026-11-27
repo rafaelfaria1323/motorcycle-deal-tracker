@@ -198,6 +198,7 @@ void main() {
         ('listing_removed', '🚫 Anúncio removido'),
         ('back_on_market', '🔁 Voltou ao mercado'),
         ('target_price_reached', '🎯 Chegou ao seu preço'),
+        ('price_increase', '📈 Subida de preço'),
       ]) {
         final m = samplePushMessage(kind, listing);
         expect(m['title'], startsWith(heading), reason: kind);
@@ -208,6 +209,13 @@ void main() {
             .split('\n')
             .first,
         '7 000 € (o seu preço: 7 150 €)',
+      );
+      // A rise: from about 10 % less to the asking price (N.125).
+      expect(
+        (samplePushMessage('price_increase', listing)['body']! as String)
+            .split('\n')
+            .first,
+        '6 300 € → 7 000 €',
       );
     });
 

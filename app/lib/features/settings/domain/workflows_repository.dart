@@ -18,6 +18,7 @@ enum PushTestKind {
   test('test'),
   newListing('new_listing'),
   priceReduction('price_reduction'),
+  priceIncrease('price_increase'),
   excellentOpportunity('excellent_opportunity'),
   targetPriceReached('target_price_reached'),
   listingRemoved('listing_removed'),

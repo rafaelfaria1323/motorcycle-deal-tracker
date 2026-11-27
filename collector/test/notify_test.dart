@@ -511,15 +511,16 @@ void main() {
       'excellent_opportunity',
       'target_price_reached',
       'price_reduction',
+      'price_increase',
       'new_listing',
       'other',
     ], language: .english);
-    expect(message['title'], '🔔 8 more alerts');
+    expect(message['title'], '🔔 9 more alerts');
     expect(
       message['body'],
       '1 at your target price · 1 excellent opportunity · '
-      '1 back on the market · 1 price drop · 2 new listings · '
-      '1 listing removed · 1 alert',
+      '1 back on the market · 1 price drop · 1 price rise · '
+      '2 new listings · 1 listing removed · 1 alert',
     );
     expect(message['language'], 'en');
     expect(

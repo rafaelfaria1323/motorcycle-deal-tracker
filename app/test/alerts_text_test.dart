@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/core/formatting/formatters.dart';
 import 'package:motorcycle_deal_tracker/core/localization/app_language.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
+import 'package:motorcycle_deal_tracker/features/alerts/domain/entities/alert_filter.dart';
 import 'package:motorcycle_deal_tracker/features/alerts/domain/entities/listing_alert.dart';
 import 'package:motorcycle_deal_tracker/features/alerts/presentation/alerts_text.dart';
 
@@ -180,6 +181,27 @@ void main() {
       expect(
         alertPrices(of(AlertType.backOnMarket, newPrice: 6500)).now,
         Formatters.price(6500),
+      );
+    });
+
+    test('a rise (N.125): its tag says by how much, the old price struck', () {
+      final rise = of(AlertType.priceIncrease, oldPrice: 6500, newPrice: 7500);
+      expect(
+        alertKindLabel(rise),
+        'Subida de preço (+${Formatters.price(1000)})',
+      );
+      expect(
+        alertKindLabel(rise, language: AppLanguage.english),
+        'Price rise (+${Formatters.price(1000, language: AppLanguage.english)})',
+      );
+      expect(alertKindLabel(of(AlertType.priceIncrease)), 'Subida de preço');
+      final prices = alertPrices(rise);
+      expect(prices.before, Formatters.price(6500));
+      expect(prices.now, Formatters.price(7500));
+      expect(
+        AlertFilter.priceRises.types,
+        {AlertType.priceIncrease},
+        reason: 'its own chip in Alertas',
       );
     });
 

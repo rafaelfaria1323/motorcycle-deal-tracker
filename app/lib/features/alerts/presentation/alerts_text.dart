@@ -74,6 +74,13 @@ String alertKindLabel(
         ),
       _ => messages.alertKindDrop,
     },
+    AlertType.priceIncrease => switch ((alert.oldPrice, alert.newPrice)) {
+      (final old?, final current?) when current > old =>
+        messages.alertKindRiseBy(
+          amount: '+${Formatters.price(current - old, language: language)}',
+        ),
+      _ => messages.alertKindRise,
+    },
     AlertType.excellentOpportunity => messages.alertKindExcellent,
     AlertType.listingRemoved => messages.alertKindRemoved,
     AlertType.backOnMarket => messages.alertKindBack,
@@ -100,10 +107,12 @@ String alertFactsLine(Listing listing, {AppLanguage language = .portuguese}) =>
 }) {
   String price(double value) => Formatters.price(value, language: language);
   return switch ((alert.type, alert.oldPrice, alert.newPrice)) {
-    (AlertType.priceReduction, final old?, final current?) => (
-      before: price(old),
-      now: price(current),
-    ),
+    (
+      AlertType.priceReduction || AlertType.priceIncrease,
+      final old?,
+      final current?,
+    ) =>
+      (before: price(old), now: price(current)),
     // Back on the market: the new price, and what the earlier ad asked.
     (AlertType.backOnMarket, final old?, final current?) => (
       before: null,
