@@ -1,0 +1,36 @@
+name: Spelling check
+
+# N.137: words in the last 30 days' ads one or two letters off a word the
+# description rules depend on ("e cluch" for "e clutch"), where the rules
+# read a stretch of text around it differently once corrected. The report
+# goes to this run's summary, for adding the spelling to a rule (with a
+# test). It changes nothing in the database and uses no AI.
+#
+# Called by weekly-summary.yml after the Monday summary for everyone (not
+# when one account asks for its own); "Run workflow" here runs it now.
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: spelling-check
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/collector
+
+      - name: Look for misspelt rule words
+        run: cd collector && dart run bin/spelling_check.dart

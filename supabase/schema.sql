@@ -6866,6 +6866,24 @@ CREATE FUNCTION public.sold_in_text(p_variant text, p_description text) RETURNS 
 $_$;
 
 --
+-- Name: spelling_check_texts(integer, uuid, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.spelling_check_texts(p_days integer, p_after uuid DEFAULT NULL::uuid, p_limit integer DEFAULT 500) RETURNS TABLE(id uuid, url text, variant text, description text)
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+  select l.id, l.url, l.variant, left(l.description, 4000)
+  from public.listings l
+  where l.motorcycle_id is not null
+    and l.duplicate_of is null
+    and l.last_checked_at >= now() - make_interval(days => greatest(p_days, 1))
+    and (p_after is null or l.id > p_after)
+  order by l.id
+  limit least(greatest(p_limit, 0), 1000)
+$$;
+
+--
 -- Name: stamp_favourite_seen(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -7448,6 +7466,29 @@ CREATE FUNCTION public.text_contradictions(p_description text, p_year integer, p
     select 'text_service_book_mismatch'
     where p_service_book and d ~ '\msem\s+livro'
   ) codes
+$$;
+
+--
+-- Name: text_rule_codes(text[]); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.text_rule_codes(p_texts text[]) RETURNS TABLE(i integer, codes text[])
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+  select t.i::integer,
+         array(
+           select distinct c
+           from unnest(
+             public.description_signals(null, t.text)
+             || public.listing_extras(null, t.text)
+             || case when public.mileage_in_text(t.text) is not null
+                  then array['mileage_in_text'] else '{}'::text[] end
+           ) c
+           order by c
+         )
+  from unnest(p_texts[1:1000]) with ordinality t(text, i)
+  order by t.i
 $$;
 
 --
@@ -12026,6 +12067,13 @@ REVOKE ALL ON FUNCTION public.sold_in_text(p_variant text, p_description text) F
 GRANT ALL ON FUNCTION public.sold_in_text(p_variant text, p_description text) TO service_role;
 
 --
+-- Name: FUNCTION spelling_check_texts(p_days integer, p_after uuid, p_limit integer); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.spelling_check_texts(p_days integer, p_after uuid, p_limit integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.spelling_check_texts(p_days integer, p_after uuid, p_limit integer) TO service_role;
+
+--
 -- Name: FUNCTION stamp_favourite_seen(); Type: ACL; Schema: public; Owner: -
 --
 
@@ -12145,6 +12193,13 @@ GRANT ALL ON FUNCTION public.text_audit_sample(p_since timestamp with time zone,
 GRANT ALL ON FUNCTION public.text_contradictions(p_description text, p_year integer, p_mileage integer, p_origin text, p_service_book boolean) TO anon;
 GRANT ALL ON FUNCTION public.text_contradictions(p_description text, p_year integer, p_mileage integer, p_origin text, p_service_book boolean) TO authenticated;
 GRANT ALL ON FUNCTION public.text_contradictions(p_description text, p_year integer, p_mileage integer, p_origin text, p_service_book boolean) TO service_role;
+
+--
+-- Name: FUNCTION text_rule_codes(p_texts text[]); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.text_rule_codes(p_texts text[]) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.text_rule_codes(p_texts text[]) TO service_role;
 
 --
 -- Name: FUNCTION track_listing_facts(); Type: ACL; Schema: public; Owner: -
