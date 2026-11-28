@@ -8423,5 +8423,253 @@
   "adShortcutCouldNotChange": "Não foi possível mudar a chave. Tente de novo.",
   "@adShortcutCouldNotChange": {
     "description": "Interface text for the iPhone shortcut that sends an ad (N.110)."
+  },
+  "scoreBreakdownTitle": "Cálculo da pontuação",
+  "@scoreBreakdownTitle": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126)."
+  },
+  "scoreBreakdownFootnote": "Só contam as partes com dados; os pesos repartem-se entre elas. Os pontos de cada parte somam a média ponderada.",
+  "@scoreBreakdownFootnote": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126)."
+  },
+  "scoreSlicePrice": "Preço face ao mercado",
+  "@scoreSlicePrice": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126)."
+  },
+  "scoreSliceYearMileage": "Ano e quilómetros",
+  "@scoreSliceYearMileage": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126)."
+  },
+  "scoreSliceRisk": "Risco",
+  "@scoreSliceRisk": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126)."
+  },
+  "scoreSliceSeller": "Vendedor",
+  "@scoreSliceSeller": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126)."
+  },
+  "scoreOutOf100": "{score}/100",
+  "@scoreOutOf100": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126).",
+    "placeholders": {
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "scoreWeight": "peso {share}",
+  "@scoreWeight": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126).",
+    "placeholders": {
+      "share": {
+        "type": "String"
+      }
+    }
+  },
+  "scorePoints": "{points} pontos",
+  "@scorePoints": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126).",
+    "placeholders": {
+      "points": {
+        "type": "String"
+      }
+    }
+  },
+  "scoreReferenceEstimate": "valor estimado",
+  "@scoreReferenceEstimate": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126)."
+  },
+  "scoreReferenceDamaged": "valor estimado com o dano",
+  "@scoreReferenceDamaged": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126)."
+  },
+  "scoreReferenceLegalised": "valor estimado depois de legalizar",
+  "@scoreReferenceLegalised": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126)."
+  },
+  "scoreReferenceNew": "preço de uma mota nova",
+  "@scoreReferenceNew": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126)."
+  },
+  "scorePriceAt": "Preço igual ao {reference} ({price})",
+  "@scorePriceAt": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126).",
+    "placeholders": {
+      "reference": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "scorePriceBelow": "Preço {pct} abaixo do {reference} ({price})",
+  "@scorePriceBelow": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126).",
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      },
+      "reference": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "scorePriceAbove": "Preço {pct} acima do {reference} ({price})",
+  "@scorePriceAbove": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126).",
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      },
+      "reference": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "scorePriceRule": "50 pontos no valor de referência, mais 2,5 por cada 1 % abaixo e menos 2,5 por cada 1 % acima (100 a 20 % abaixo, 0 a 20 % acima)",
+  "@scorePriceRule": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126)."
+  },
+  "scorePartMileage": "Quilómetros ({mileage}): {score}{share}",
+  "@scorePartMileage": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126).",
+    "placeholders": {
+      "mileage": {
+        "type": "String"
+      },
+      "score": {
+        "type": "String"
+      },
+      "share": {
+        "type": "String"
+      }
+    }
+  },
+  "scorePartMileageHidden": "Quilómetros (não indicados): {score}{share}",
+  "@scorePartMileageHidden": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126).",
+    "placeholders": {
+      "score": {
+        "type": "String"
+      },
+      "share": {
+        "type": "String"
+      }
+    }
+  },
+  "scorePartYear": "Ano ({year}): {score}{share}",
+  "@scorePartYear": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126).",
+    "placeholders": {
+      "year": {
+        "type": "String"
+      },
+      "score": {
+        "type": "String"
+      },
+      "share": {
+        "type": "String"
+      }
+    }
+  },
+  "scorePartShare": ", {share} desta parte",
+  "@scorePartShare": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126).",
+    "placeholders": {
+      "share": {
+        "type": "String"
+      }
+    }
+  },
+  "scoreMileageRule": "Quilómetros face à idade (normal: 5 000 km por ano): 100 até metade do normal, 75 no normal, 50 a 1,5 vezes, 0 a partir de 2,5 vezes",
+  "@scoreMileageRule": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126)."
+  },
+  "scoreYearRule": "Ano: 10 pontos a menos por cada ano de idade",
+  "@scoreYearRule": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126)."
+  },
+  "scoreRiskRule": "100 menos o Risk Score ({risk})",
+  "@scoreRiskRule": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126).",
+    "placeholders": {
+      "risk": {
+        "type": "String"
+      }
+    }
+  },
+  "scoreSellerFrom": "Pelas {bikes} motas do stand: republicadas, mudanças bruscas de preço, repetidas e sem quilómetros contam contra",
+  "@scoreSellerFrom": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126).",
+    "placeholders": {
+      "bikes": {
+        "type": "String"
+      }
+    }
+  },
+  "scoreNotCountedNoPrice": "Não conta: o anúncio não tem preço",
+  "@scoreNotCountedNoPrice": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126)."
+  },
+  "scoreNotCountedFewComparables": "Não conta: há {count} anúncios para comparar e são precisos 3",
+  "@scoreNotCountedFewComparables": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126).",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "scoreNotCountedNoYearMileage": "Não conta: o anúncio não diz o ano nem os quilómetros",
+  "@scoreNotCountedNoYearMileage": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126)."
+  },
+  "scoreNotCountedNoRisk": "Não conta: sem Risk Score",
+  "@scoreNotCountedNoRisk": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126)."
+  },
+  "scoreNotCountedPrivate": "Não conta: só os stands com 5 ou mais motas têm esta parte",
+  "@scoreNotCountedPrivate": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126)."
+  },
+  "scoreNotCountedSmallDealer": "Não conta: o stand tem menos de 5 motas guardadas",
+  "@scoreNotCountedSmallDealer": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126)."
+  },
+  "scoreWeightedAverage": "Média ponderada",
+  "@scoreWeightedAverage": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126)."
+  },
+  "scoreEquipmentBonus": "Equipamento que vale dinheiro",
+  "@scoreEquipmentBonus": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126)."
+  },
+  "scoreEquipmentBonusFor": "Equipamento que vale dinheiro ({extras})",
+  "@scoreEquipmentBonusFor": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126).",
+    "placeholders": {
+      "extras": {
+        "type": "String"
+      }
+    }
+  },
+  "scoreCapWithoutPrice": "Máximo sem comparação de preço",
+  "@scoreCapWithoutPrice": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126)."
+  },
+  "scoreCapDamage": "Máximo com danos ou reparações",
+  "@scoreCapDamage": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126)."
+  },
+  "scoreCapLegalisation": "Máximo por legalizar",
+  "@scoreCapLegalisation": {
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126)."
   }
 }

@@ -37,6 +37,7 @@ import '../../../listings/presentation/widgets/new_price_card.dart';
 import '../../../listings/presentation/widgets/listing_header.dart'
     show ListingScoreTiles;
 import '../../../listings/presentation/widgets/offer_card.dart';
+import '../../../listings/presentation/widgets/score_breakdown_card.dart';
 import '../../../listings/presentation/widgets/score_explanation_card.dart';
 import '../../../listings/presentation/widgets/seller_message_card.dart';
 import '../widgets/bike_condition_fields.dart';
@@ -1144,6 +1145,8 @@ class _BikeValuePageState extends State<BikeValuePage> {
               ListingScoreTiles(listing: listing),
               const SizedBox(height: 16),
               ScoreExplanationCard(listing: listing),
+              const SizedBox(height: 16),
+              ScoreBreakdownCard(listing: listing),
               const SizedBox(height: 16),
             ],
             OfferCard(key: ObjectKey(listing), listing: listing),

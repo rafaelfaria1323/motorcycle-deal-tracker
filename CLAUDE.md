@@ -1323,7 +1323,13 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   the breakdown's `damaged_value`, `pct_below_damaged_value`, while
   `market_price` stays the undamaged estimate), and the score is at most
   79 (`damage_cap`, `capped_for_damage`: never an excellent opportunity,
-  the damage is unseen). Missing slices are skipped.
+  the damage is unseen). Missing slices are skipped. The breakdown keeps
+  `scores` and `weights` per slice used, `equipment_bonus`, the caps and,
+  since N.126, the year/mileage parts (`mileage_score`, `year_score`,
+  `mileage_share`); Avaliação's "Cálculo da pontuação" shows it all
+  (`ScoreBreakdownCard`, `scoreBreakdownOf` in `score_breakdown_text.dart`,
+  whose rule lines repeat the price, mileage and year rules: keep them in
+  step).
 - Risk signals: price far below market (against the damaged value for
   a damaged bike), possible accident (text,
   `mentions_accident`: also falls and knocks, "caiu", "foi ao chão", "teve

@@ -144,7 +144,9 @@ Screen names below use the Portuguese labels; English provides the same screens.
   Ofertas, Favoritos, the comparison or another ad opens on the part
   last read; from a notification, an alert or a shared link, on
   Avaliação):
-  - **Avaliação:** why this score (the reasons and the risk), the EU
+  - **Avaliação:** why this score (the reasons and the risk), how it
+    was worked out ("Cálculo da pontuação": each part's score, weight
+    and points, the weighted average, the equipment bonus, any cap), the EU
     recalls of the model that may cover this bike's year ("Recolhas na
     UE", from the European Commission's Safety Gate: the danger, the
     maker's code, a tap opens the alert; each also asks "Recolha X
