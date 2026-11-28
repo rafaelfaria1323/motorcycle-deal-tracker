@@ -62,8 +62,6 @@ class _PriceHistorySectionState extends State<PriceHistorySection> {
                   ? widget.listing.priceBeforeDrop
                   : null,
             );
-            final labelStyle = AppTheme.figureLabel(context);
-            final colors = AppColors.of(context);
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -76,30 +74,7 @@ class _PriceHistorySectionState extends State<PriceHistorySection> {
                   _SummaryStrip(summary: summary),
                 if (chart != null) ...[
                   const SizedBox(height: 16),
-                  SizedBox(
-                    height: 160,
-                    width: double.infinity,
-                    child: CustomPaint(
-                      painter: _PriceChartPainter(
-                        language: context.language,
-                        chart: chart,
-                        lineColor: theme.colorScheme.primary,
-                        dropColor: colors.positive,
-                        riseColor: colors.negative,
-                        surfaceColor: theme.colorScheme.surface,
-                        gridColor: theme.colorScheme.outlineVariant,
-                        labelStyle: labelStyle,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Text(Formatters.date(chart.start), style: labelStyle),
-                      const Spacer(),
-                      Text(context.strings.todayHeading, style: labelStyle),
-                    ],
-                  ),
+                  _PriceChartView(chart: chart),
                 ],
                 if (rows.length > 1) ...[
                   const SizedBox(height: 12),
@@ -281,149 +256,460 @@ class const _ChangeRow({
   }
 }
 
-/// Draws a [PriceChart]: the step line over real time with a light fill
-/// under it, a dot per recorded price (drops and rises in their colours),
-/// hairlines with the highest and lowest prices, and the site's earlier
-/// price as a dashed line.
+/// The chart with what it means: a tap, a drag or the mouse picks a
+/// recorded price and shows its date, price and move (N.129).
+class const _PriceChartView({required final PriceChart chart})
+    extends StatefulWidget {
+  @override
+  State<_PriceChartView> createState() => _PriceChartViewState();
+}
+
+class _PriceChartViewState extends State<_PriceChartView> {
+  static const _height = 200.0;
+
+  int? _selected;
+
+  void _pick(_PriceChartPainter painter, Size size, Offset at) {
+    final i = nearestChange(widget.chart, painter.chartX(size, at.dx));
+    if (i != _selected) setState(() => _selected = i);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final colors = AppColors.of(context);
+    final chart = widget.chart;
+    final selected = _selected;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final size = Size(constraints.maxWidth, _height);
+            final painter = _PriceChartPainter(
+              language: context.language,
+              chart: chart,
+              selected: selected != null && selected < chart.changes.length
+                  ? selected
+                  : null,
+              colours: (
+                neutral: scheme.onSurfaceVariant,
+                drop: colors.positive,
+                rise: colors.negative,
+                surface: scheme.surface,
+                grid: scheme.outlineVariant,
+                guide: scheme.outline,
+                tip: scheme.inverseSurface,
+                onTip: scheme.onInverseSurface,
+              ),
+              labelStyle: AppTheme.figureLabel(context),
+            );
+            return MouseRegion(
+              onHover: (event) => _pick(painter, size, event.localPosition),
+              onExit: (_) => setState(() => _selected = null),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTapDown: (details) =>
+                    _pick(painter, size, details.localPosition),
+                onHorizontalDragUpdate: (details) =>
+                    _pick(painter, size, details.localPosition),
+                child: CustomPaint(size: size, painter: painter),
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 10),
+        _ChartLegend(moves: chart.moves),
+      ],
+    );
+  }
+}
+
+/// What the line's colours mean, only those it uses, and how to read a
+/// price off it.
+class const _ChartLegend({required final List<PriceMove> moves})
+    extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final strings = context.strings;
+    return Wrap(
+      spacing: 16,
+      runSpacing: 4,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        if (moves.contains(PriceMove.drop))
+          _LegendKey(colour: colors.positive, label: strings.priceChartDrop),
+        if (moves.contains(PriceMove.rise))
+          _LegendKey(colour: colors.negative, label: strings.priceChartRise),
+        Text(strings.priceChartHint, style: AppTheme.figureLabel(context)),
+      ],
+    );
+  }
+}
+
+class const _LegendKey({
+  required final Color colour,
+  required final String label,
+}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Container(
+        width: 14,
+        height: 3,
+        decoration: BoxDecoration(
+          color: colour,
+          borderRadius: BorderRadius.circular(2),
+        ),
+      ),
+      const SizedBox(width: 6),
+      Text(label, style: AppTheme.figureLabel(context)),
+    ],
+  );
+}
+
+typedef _ChartColours = ({
+  Color neutral,
+  Color drop,
+  Color rise,
+  Color surface,
+  Color grid,
+  Color guide,
+  Color tip,
+  Color onTip,
+});
+
+/// Draws a [PriceChart] (N.129): round prices on the left with light
+/// gridlines, the dates along the bottom, and the step line over real
+/// time, each stretch in its move's colour (drops green, rises red, the
+/// first price grey) with a light fill of the same colour under it; a dot
+/// per recorded price, today's price labelled at the right, the picked
+/// price's date, price and move in a label, and the site's earlier price
+/// as a dashed line.
 class _PriceChartPainter({
   required final AppLanguage language,
   required final PriceChart chart,
-  required final Color lineColor,
-  required final Color dropColor,
-  required final Color riseColor,
-  required final Color surfaceColor,
-  required final Color gridColor,
+  required final int? selected,
+  required final _ChartColours colours,
   required final TextStyle labelStyle,
 }) extends CustomPainter {
-  /// Space above the top label and below the bottom line.
-  static const _pad = 6.0;
+  /// Room for the biggest dot at either edge.
+  static const _dot = 7.0;
+
+  /// Space above the plot, between the prices and the plot, and between
+  /// the plot and the dates.
+  static const _top = 8.0;
+  static const _gap = 8.0;
+
+  TextPainter _layout(String text, TextStyle style) => TextPainter(
+    text: TextSpan(text: text, style: style),
+    textDirection: TextDirection.ltr,
+  )..layout();
+
+  String _price(double price) => Formatters.price(price, language: language);
+
+  /// The width of the price labels on the left.
+  double get _axisWidth {
+    var widest = 0.0;
+    for (final tick in chart.ticks) {
+      final text = _layout(_price(tick.price), labelStyle);
+      widest = max(widest, text.width);
+      text.dispose();
+    }
+    return widest;
+  }
+
+  double get _dateHeight {
+    final text = _layout(Formatters.date(chart.start), labelStyle);
+    final height = text.height;
+    text.dispose();
+    return height;
+  }
+
+  /// Where the line is drawn within [size].
+  Rect _plot(Size size) => Rect.fromLTRB(
+    _axisWidth + _gap + _dot,
+    _top,
+    size.width - _dot,
+    size.height - _dateHeight - _gap,
+  );
+
+  /// A point of the widget, as the chart's x (0 to 1).
+  double chartX(Size size, double dx) {
+    final plot = _plot(size);
+    return ((dx - plot.left) / plot.width).clamp(0, 1).toDouble();
+  }
+
+  Color _colourOf(PriceMove move) => switch (move) {
+    .drop => colours.drop,
+    .rise => colours.rise,
+    _ => colours.neutral,
+  };
 
   @override
   void paint(Canvas canvas, Size size) {
-    final height = size.height - 2 * _pad;
+    final plot = _plot(size);
+    final axis = _axisWidth;
     Offset at(ChartPoint p) =>
-        Offset(p.x * size.width, _pad + height * (1 - p.y));
-    double yOf(double y) => _pad + height * (1 - y);
+        Offset(plot.left + p.x * plot.width, plot.bottom - p.y * plot.height);
+    double yOf(double y) => plot.bottom - y * plot.height;
+    final lineLeft = axis + _gap;
 
+    // Round prices, right-aligned on the left, with their gridlines.
     final grid = Paint()
-      ..color = gridColor
+      ..color = colours.grid
       ..strokeWidth = 1;
-    // The highest price's label sits above its line, the lowest's below
-    // (so close prices never overlap), the site's earlier price on the left.
-    void hairline(
-      double y,
-      String label, {
-      bool below = false,
-      bool left = false,
-      bool dashed = false,
-    }) {
-      final dy = yOf(y);
-      if (dashed) {
-        for (var x = 0.0; x < size.width; x += 8) {
-          canvas.drawLine(
-            Offset(x, dy),
-            Offset(min(x + 4, size.width), dy),
-            grid,
-          );
-        }
-      } else {
-        canvas.drawLine(Offset(0, dy), Offset(size.width, dy), grid);
-      }
-      final text = TextPainter(
-        text: TextSpan(text: label, style: labelStyle),
-        textDirection: TextDirection.ltr,
-      )..layout(maxWidth: size.width);
-      final above = dy - text.height - 6;
-      final under = dy + 4;
-      final top = below
-          ? (under + text.height > size.height ? above : under)
-          : (above < 0 ? under : above);
+    for (final tick in chart.ticks) {
+      final dy = yOf(tick.y);
+      canvas.drawLine(Offset(lineLeft, dy), Offset(size.width, dy), grid);
+      final text = _layout(_price(tick.price), labelStyle);
       text
-        ..paint(canvas, Offset(left ? 0 : size.width - text.width, top))
+        ..paint(canvas, Offset(axis - text.width, dy - text.height / 2))
+        ..dispose();
+    }
+    canvas.drawLine(
+      Offset(lineLeft, plot.bottom + _dot / 2),
+      Offset(size.width, plot.bottom + _dot / 2),
+      grid,
+    );
+
+    // The site's earlier price: a dashed line, its label above it.
+    if ((chart.reference, chart.referenceY) case (
+      final reference?,
+      final referenceY?,
+    )) {
+      final dy = yOf(referenceY);
+      for (var x = lineLeft; x < size.width; x += 8) {
+        canvas.drawLine(
+          Offset(x, dy),
+          Offset(min(x + 4, size.width), dy),
+          grid,
+        );
+      }
+      final text = _layout(
+        language.messages.previouslyAt(price: _price(reference)),
+        labelStyle,
+      );
+      final above = dy - text.height - 2;
+      text
+        ..paint(canvas, Offset(plot.left, above < 0 ? dy + 2 : above))
         ..dispose();
     }
 
-    hairline(
-      chart.highestY,
-      Formatters.price(chart.highest, language: language),
-    );
-    if (chart.lowest != chart.highest) {
-      hairline(
-        chart.lowestY,
-        Formatters.price(chart.lowest, language: language),
-        below: true,
+    // Each price's stretch: from its change to the next one, the last to
+    // now, in its move's colour, with a fill fading to the bottom.
+    final n = chart.changes.length;
+    final points = [for (final p in chart.changes) at(p)];
+    double endOf(int i) => i + 1 < n ? points[i + 1].dx : plot.right;
+    for (var i = 0; i < n; i++) {
+      final colour = _colourOf(chart.moves[i]);
+      canvas.drawRect(
+        Rect.fromLTRB(points[i].dx, points[i].dy, endOf(i), plot.bottom),
+        Paint()
+          ..shader = LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              colour.withValues(alpha: 0.18),
+              colour.withValues(alpha: 0.02),
+            ],
+          ).createShader(plot),
       );
     }
-    if (chart.reference case final reference?) {
-      hairline(
-        chart.referenceY!,
-        language.messages.previouslyAt(
-          price: Formatters.price(reference, language: language),
-        ),
-        left: true,
-        dashed: true,
+    for (var i = 0; i < n; i++) {
+      final path = Path();
+      if (i == 0) {
+        path.moveTo(points[i].dx, points[i].dy);
+      } else {
+        path
+          ..moveTo(points[i].dx, points[i - 1].dy)
+          ..lineTo(points[i].dx, points[i].dy);
+      }
+      path.lineTo(endOf(i), points[i].dy);
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = _colourOf(chart.moves[i])
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.5
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round,
       );
     }
 
-    final path = Path()
-      ..moveTo(at(chart.line.first).dx, at(chart.line.first).dy);
-    for (final p in chart.line.skip(1)) {
-      final o = at(p);
-      path.lineTo(o.dx, o.dy);
+    // The picked price's guide, under the dots.
+    final picked = selected;
+    if (picked != null) {
+      final guide = Paint()
+        ..color = colours.guide
+        ..strokeWidth = 1;
+      final dx = points[picked].dx;
+      for (var y = plot.top; y < plot.bottom; y += 6) {
+        canvas.drawLine(
+          Offset(dx, y),
+          Offset(dx, min(y + 3, plot.bottom)),
+          guide,
+        );
+      }
     }
-    // The area under the line, fading towards the bottom.
-    final bottom = size.height - _pad;
-    final area = Path.from(path)
-      ..lineTo(at(chart.line.last).dx, bottom)
-      ..lineTo(at(chart.line.first).dx, bottom)
-      ..close();
-    canvas.drawPath(
-      area,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            lineColor.withValues(alpha: 0.16),
-            lineColor.withValues(alpha: 0.02),
-          ],
-        ).createShader(Rect.fromLTRB(0, _pad, size.width, bottom)),
-    );
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = lineColor
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.5
-        ..strokeJoin = StrokeJoin.round,
-    );
 
-    // Each dot ringed in the card's colour, so it stands out of the line.
-    final ring = Paint()..color = surfaceColor;
-    for (final (i, p) in chart.changes.indexed) {
-      final colour = switch (chart.moves[i]) {
-        .drop => dropColor,
-        .rise => riseColor,
-        _ => lineColor,
-      };
+    // Each dot ringed in the card's colour, so it stands out of the line;
+    // the picked one bigger.
+    final ring = Paint()..color = colours.surface;
+    for (var i = 0; i < n; i++) {
+      final big = i == picked;
       canvas
-        ..drawCircle(at(p), 5.5, ring)
-        ..drawCircle(at(p), 4, Paint()..color = colour);
+        ..drawCircle(points[i], big ? 7 : 5.5, ring)
+        ..drawCircle(
+          points[i],
+          big ? 5.5 : 4,
+          Paint()..color = _colourOf(chart.moves[i]),
+        );
     }
     // Today's price, at the right edge.
+    final now = Offset(plot.right, points.last.dy);
+    final nowColour = _colourOf(chart.moves.last);
     canvas
-      ..drawCircle(at(chart.line.last), 6.5, ring)
-      ..drawCircle(at(chart.line.last), 5, Paint()..color = lineColor);
+      ..drawCircle(now, 6.5, ring)
+      ..drawCircle(now, 5, Paint()..color = nowColour);
+
+    _paintDates(canvas, size, plot);
+
+    if (picked != null) {
+      _paintTip(canvas, size, points[picked], picked);
+    } else {
+      _paintNow(canvas, size, now, nowColour);
+    }
+  }
+
+  /// The first date under the first price, "Agora" at the right, and the
+  /// date halfway when there is room for it.
+  void _paintDates(Canvas canvas, Size size, Rect plot) {
+    final y = plot.bottom + _gap;
+    final first = _layout(Formatters.date(chart.start), labelStyle);
+    final firstLeft = max(0.0, plot.left - first.width / 2);
+    first.paint(canvas, Offset(firstLeft, y));
+    final now = _layout(language.messages.priceHistoryNow, labelStyle);
+    final nowLeft = size.width - now.width;
+    now.paint(canvas, Offset(nowLeft, y));
+
+    final span = chart.end.difference(chart.start);
+    if (span >= const Duration(days: 2)) {
+      final middle = _layout(
+        Formatters.date(chart.start.add(span ~/ 2)),
+        labelStyle,
+      );
+      final left = plot.center.dx - middle.width / 2;
+      if (left > firstLeft + first.width + 12 &&
+          left + middle.width + 12 < nowLeft) {
+        middle.paint(canvas, Offset(left, y));
+      }
+      middle.dispose();
+    }
+    first.dispose();
+    now.dispose();
+  }
+
+  /// A rounded label with its text, above [anchor] or, without room
+  /// there, below it; kept within the chart.
+  void _paintBubble(
+    Canvas canvas,
+    Size size,
+    Offset anchor,
+    List<TextPainter> lines, {
+    required Color fill,
+    Color? border,
+    bool alignRight = false,
+  }) {
+    const padH = 8.0;
+    const padV = 5.0;
+    final width = lines.map((l) => l.width).reduce(max) + 2 * padH;
+    final height = lines.fold(0.0, (sum, l) => sum + l.height) + 2 * padV;
+    final above = anchor.dy - 12 - height;
+    final top = above >= 0 ? above : anchor.dy + 12;
+    final left = alignRight
+        ? size.width - width
+        : (anchor.dx - width / 2)
+              .clamp(0.0, max(0.0, size.width - width))
+              .toDouble();
+    final box = RRect.fromRectAndRadius(
+      Rect.fromLTWH(left, top, width, height),
+      const Radius.circular(8),
+    );
+    canvas.drawRRect(box, Paint()..color = fill);
+    if (border != null) {
+      canvas.drawRRect(
+        box,
+        Paint()
+          ..color = border
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.2,
+      );
+    }
+    var y = top + padV;
+    for (final line in lines) {
+      line
+        ..paint(canvas, Offset(left + padH, y))
+        ..dispose();
+      y += line.height;
+    }
+  }
+
+  /// Today's price beside its dot, in its move's colour.
+  void _paintNow(Canvas canvas, Size size, Offset now, Color colour) {
+    final price = chart.points.last.price;
+    _paintBubble(
+      canvas,
+      size,
+      now,
+      [
+        _layout(
+          _price(price),
+          labelStyle.copyWith(color: colour, fontWeight: FontWeight.w700),
+        ),
+      ],
+      fill: colours.surface,
+      border: colour,
+      alignRight: true,
+    );
+  }
+
+  /// The picked price: its price, then its date and how it moved.
+  void _paintTip(Canvas canvas, Size size, Offset anchor, int i) {
+    final point = chart.points[i];
+    final date = Formatters.date(point.observedAt);
+    final before = i > 0 ? chart.points[i - 1].price : point.price;
+    final change = point.price - before;
+    final detail = switch (chart.moves[i]) {
+      .first => '$date · ${language.messages.priceHistoryFirst}',
+      .drop || .rise =>
+        '$date · ${priceMoveText(change, change / before * 100, language: language)}',
+      _ => date,
+    };
+    _paintBubble(canvas, size, anchor, [
+      _layout(
+        _price(point.price),
+        labelStyle.copyWith(
+          color: colours.onTip,
+          fontWeight: FontWeight.w700,
+          fontSize: (labelStyle.fontSize ?? 11) + 2,
+        ),
+      ),
+      _layout(
+        detail,
+        labelStyle.copyWith(color: colours.onTip.withValues(alpha: 0.85)),
+      ),
+    ], fill: colours.tip);
   }
 
   @override
   bool shouldRepaint(_PriceChartPainter old) =>
       old.chart != chart ||
+      old.selected != selected ||
       old.language != language ||
-      old.lineColor != lineColor ||
-      old.dropColor != dropColor ||
-      old.riseColor != riseColor ||
-      old.surfaceColor != surfaceColor ||
-      old.gridColor != gridColor ||
+      old.colours != colours ||
       old.labelStyle != labelStyle;
 }
