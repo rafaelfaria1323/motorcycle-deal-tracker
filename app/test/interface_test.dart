@@ -2282,6 +2282,38 @@ void main() {
     expect(shown.right, lessThanOrEqualTo(strip.right));
   });
 
+  testWidgets('a few thumbnails sit centred under the photo (N.133)', (
+    tester,
+  ) async {
+    _screen(tester, const Size(390, 844));
+    final images = [for (var i = 1; i <= 4; i++) 'https://example.test/$i.jpg'];
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (_, _) => Scaffold(
+            body: PhotoGallery(listingId: 'l1', images: images),
+          ),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(interfaceApp(router));
+    await tester.pumpAndSettle();
+    Rect thumb(int i) => tester.getRect(
+      find.byWidgetPredicate(
+        (widget) => widget is Semantics && widget.properties.label == '$i / 4',
+      ),
+    );
+    final photo = tester.getRect(find.byType(PhotoGallery));
+    expect(
+      (thumb(1).left + thumb(4).right) / 2,
+      moreOrLessEquals(photo.center.dx, epsilon: 0.5),
+    );
+    expect(thumb(1).left, greaterThan(photo.left));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('empty states scroll instead of overflowing large text', (
     tester,
   ) async {
