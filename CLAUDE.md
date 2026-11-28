@@ -646,7 +646,8 @@ invites; written by the collector on each run).
   from the position; "Valor estimado" for a damaged or unlegalised bike)
   in a filled box without a border; then chips: the serious
   risk reasons (`cardWarnings`, at most two, from `Listing.riskReasons`)
-  red, the preferred colour and reassuring facts green, the rest grey;
+  red, E-Clutch (N.135), the preferred colour and reassuring facts green,
+  the rest grey;
   the footer's place and "Comparar" check box (the card opens the ad).
   The score bands are dark enough for small white text (4.5:1). The detail hero
   (UI.2, after Stitch's ad screen) splits into photo and summary at 800px
@@ -679,7 +680,7 @@ invites; written by the collector on each run).
   when the count is unknown. Dates stay distinct and absent facts are
   omitted. `ListingModel.summaryColumns` and the matching startup prefetch
   in `web/index.html` include these facts, `market_position` and only
-  `score_breakdown->risk_reasons`, never descriptions or the full score breakdown.
+  `score_breakdown->risk_reasons` and `->extras`, never descriptions or the full score breakdown.
   Photo, model, price, removal notices and actions stay visible. Cancel
   discards the draft; "Repor predefinições" still needs "Guardar".
   This is free for all accounts today; `docs/paid-plans.md` records it
@@ -1259,7 +1260,10 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   optional time on sale ("5 semanas", "há 2 meses", "1 year ago"; B.3) and price before a drop (N.109,
   `typed_ad_history.dart`) date it and give its first price, for the
   seller's urgency and the offer. The
-  message to a private seller also asks about a reservation of ownership.
+  message to a private seller also asks about a reservation of ownership;
+  every seller is asked for the frame number (VIN, N.135): no site or
+  free source gives it, and a brand's dealer finds the bike's service
+  history and recalls by it.
   The iPhone shortcut (N.110, Mais › "Atalho do iPhone", `/ad-shortcut`,
   `AdShortcutPage`, signed-in accounts): a personal key
   (`create_ad_import_key`, `ad_import_keys`: its sha256 only; shown once,
@@ -1330,7 +1334,8 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   bike, so a small dealer's record is shrunk towards the others'; private
   sellers and smaller dealers skip it; the app's `sellerLine`); then + 1 point per extra worth money
   (`valued_extras`: quickshifter, exhaust, luggage, heated grips, upgraded
-  suspension, cruise control, steering damper, new tyres), at most + 3, so
+  suspension, cruise control, steering damper, new tyres, Honda's
+  E-Clutch), at most + 3, so
   extras only break ties (never more than about a year newer), never above
   100 (all extras are still read, shown and filterable; `listing_extras`: keywords in variant/description for quickshifter,
   exhaust, luggage, heated grips, protection (also "cogumelos", engine
@@ -1339,7 +1344,9 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   holder's "Lightech"), bar-end
   mirrors, phone mount/USB, alarm/tracker, steering damper, centre stand,
   cruise control, upgraded suspension, LED indicators, passenger grab
-  handles, original parts included (so it can go back to stock); codes
+  handles, original parts included (so it can go back to stock), Honda's
+  E-Clutch (`e_clutch`, N.135: "E-Clutch", "eclutch", "embraiagem
+  eletrónica"; the card's green chip, `Listing.eClutch`); codes
   never change, the app's `extraLabels` and the saved-search check list the
   same). Extras are a bonus, not a slice: as a slice they lowered good
   scores. Without the price slice the score is at most 70

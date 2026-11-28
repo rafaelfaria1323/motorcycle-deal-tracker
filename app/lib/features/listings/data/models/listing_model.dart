@@ -35,6 +35,7 @@ class const ListingModel({
   super.registrations,
   super.hasFirstOwnerSignal,
   super.riskReasons,
+  super.eClutch,
   super.serviceBook,
   super.origin,
   super.warrantyUntil,
@@ -71,7 +72,8 @@ class const ListingModel({
       'last_seen_at, distance_km, colour, my_colour, registrations, '
       'service_book, origin, warranty_until, dealer_warranty_months, '
       'seller_name, published_at, site_refreshed_at, market_position, '
-      'card_risk_reasons:score_breakdown->risk_reasons';
+      'card_risk_reasons:score_breakdown->risk_reasons, '
+      'card_extras:score_breakdown->extras';
 
   factory ListingModel.fromJson(Map<String, dynamic> json) {
     // Present when the query embeds the matched model (detail page).
@@ -84,6 +86,8 @@ class const ListingModel({
           breakdown?['risk_reasons'] as List? ??
           const [],
     );
+    final extras =
+        json['card_extras'] as List? ?? breakdown?['extras'] as List?;
     return ListingModel(
       id: json['id'] as String,
       source: json['source'] as String,
@@ -115,6 +119,7 @@ class const ListingModel({
       registrations: json['registrations'] as int?,
       hasFirstOwnerSignal: riskReasons.contains('first_owner'),
       riskReasons: riskReasons,
+      eClutch: extras?.contains('e_clutch') ?? false,
       serviceBook: json['service_book'] as bool?,
       origin: json['origin'] as String?,
       warrantyUntil: dateOf(json['warranty_until']),

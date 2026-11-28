@@ -30,6 +30,7 @@ const auditExtras = {
   'led_indicators': 'LED indicators',
   'passenger_grips': 'passenger grab handles or rails',
   'original_parts': 'the original parts that were replaced come with it',
+  'e_clutch': "Honda's E-Clutch (automatic clutch, manual gears)",
 };
 
 /// The A2 (35 kW) answers.

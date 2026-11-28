@@ -26,6 +26,9 @@ class const ScoreExplanation({
   List<Object?> get props => [score, label, lines, slicesUsed, slicesTotal];
 }
 
+/// Honda's name for its automatic clutch, the same in every language.
+const eClutchLabel = 'E-Clutch';
+
 final _extraLabels = <AppLanguage, Map<String, String>>{};
 
 Map<String, String> extraLabels({AppLanguage language = .portuguese}) =>
@@ -51,6 +54,7 @@ Map<String, String> extraLabels({AppLanguage language = .portuguese}) =>
         'led_indicators': language.messages.ledIndicators,
         'passenger_grips': language.messages.passengerGrabHandles,
         'original_parts': language.messages.originalPartsIncluded,
+        'e_clutch': eClutchLabel,
       }),
     );
 

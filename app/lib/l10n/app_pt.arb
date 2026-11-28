@@ -3680,6 +3680,10 @@
   "@isThereReservationOfOwnership": {
     "description": "Interface text in seller_message_text, sellerMessage: asked of private sellers (N.105)."
   },
+  "canYouSendTheFrameNumber": "Pode enviar-me o número de quadro (VIN)? Gostaria de confirmar o histórico e as campanhas num concessionário da marca.",
+  "@canYouSendTheFrameNumber": {
+    "description": "Interface text in seller_message_text, sellerMessage: asked of every seller, the VIN opens the brand's service history and recalls (N.135)."
+  },
   "whenAndWhereCanISeeIt": "Quando e onde a posso ver?",
   "@whenAndWhereCanISeeIt": {
     "description": "Interface text in seller_message_text, sellerMessage."

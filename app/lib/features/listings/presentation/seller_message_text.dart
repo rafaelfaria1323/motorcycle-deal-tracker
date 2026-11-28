@@ -37,6 +37,8 @@ String sellerMessage(
       // A bike bought on credit can be the lender's until it is paid.
       language.messages.isThereReservationOfOwnership,
     ],
+    // The brand's dealers find its service history and recalls by it.
+    language.messages.canYouSendTheFrameNumber,
     language.messages.whenAndWhereCanISeeIt,
   ];
 
