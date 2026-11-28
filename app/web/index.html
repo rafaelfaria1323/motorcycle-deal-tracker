@@ -265,6 +265,61 @@
   })();
 </script>
 <script>
+  // The page's size, measured again (N.131). The home-screen app on the
+  // iPhone sometimes started with the tab bar's labels below the screen:
+  // Flutter sizes its page on iOS from documentElement's clientWidth and
+  // clientHeight but measures again only on visualViewport's resize
+  // event, and iOS can settle the page's height just after a launch or a
+  // return to the app without sending it. So, iPhone/iPad only, the size
+  // is compared every 250 ms for 10 s after the start, Flutter's first
+  // frame, a return to the app or a turn of the screen, and on every
+  // resize of the window; when it changed, the event is sent again
+  // (tool/test_web_resize.py).
+  (function () {
+    var viewport = window.visualViewport;
+    if (!('standalone' in navigator) || !viewport) return;
+    var root = document.documentElement;
+    var timer = null;
+    var ticks = 0;
+
+    function size() {
+      return root.clientWidth + 'x' + root.clientHeight + ' ' +
+        Math.round(viewport.width) + 'x' + Math.round(viewport.height);
+    }
+
+    var sent = size();
+
+    function check() {
+      var now = size();
+      if (now === sent) return;
+      sent = now;
+      viewport.dispatchEvent(new Event('resize'));
+    }
+
+    function watch() {
+      ticks = 0;
+      if (timer !== null) return;
+      timer = setInterval(function () {
+        check();
+        ticks += 1;
+        if (ticks >= 40) {
+          clearInterval(timer);
+          timer = null;
+        }
+      }, 250);
+    }
+
+    window.addEventListener('resize', check);
+    window.addEventListener('orientationchange', watch);
+    window.addEventListener('pageshow', watch);
+    window.addEventListener('flutter-first-frame', watch, { once: true });
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'visible') watch();
+    });
+    watch();
+  })();
+</script>
+<script>
   // Before the app loads: theme-color and the strips in the current
   // light/dark mode (AppTheme.lightBackground / darkBackground at the top,
   // the tab bar's surfaceContainerLowest at the bottom). Afterwards the top

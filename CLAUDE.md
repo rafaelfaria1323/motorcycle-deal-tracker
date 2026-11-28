@@ -620,7 +620,8 @@ invites; written by the collector on each run).
   prices on the left (`priceTicks`), dates along the bottom, each stretch
   in its move's colour (drop positive, rise negative, first grey) with a
   legend, today's price labelled, a tap or the mouse shows the nearest
-  price (`nearestChange`). Query order: postgrest's `order()` sorts
+  price (`nearestChange`; each label's size is read before its
+  `TextPainter` is disposed: reading it after threw mid-paint, N.132). Query order: postgrest's `order()` sorts
   **descending** unless told, so every `.order(` in the app and the
   collector says `ascending:` (`query_order_test.dart` in both).
 - Interface: shared wordmark (`core/widgets/app_brand.dart`) and editorial
@@ -741,6 +742,12 @@ invites; written by the collector on each run).
   (`iosBottomInset`, `core/platform/home_screen_app.dart`): 12px in Safari
   on iPhone/iPad (the strip's height, so it sits under the tab bar labels),
   24px in the home-screen app on iPhones with a home bar, 0 elsewhere.
+  On iOS Flutter measures the page again only on `visualViewport`'s
+  resize, which iOS may skip when it settles the height after a launch,
+  leaving the tab bar's labels below the screen: an `index.html` script
+  (iPhone/iPad only) compares the size for 10 s after each start or
+  return and on window resizes, and sends that event again when it
+  changed (N.131, `tool/test_web_resize.py`).
 
 ## Database conventions (Supabase / Postgres)
 
