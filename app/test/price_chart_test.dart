@@ -12,34 +12,32 @@ void main() {
     expect(priceChart(const [], now: DateTime.utc(2026, 10, 11)), isNull);
   });
 
-  test('time runs from the first price to now, each price holds', () {
+  test('time runs from the first price to now', () {
     final chart = priceChart(
       [at(6, 6500), at(1, 7000)], // any order
       now: DateTime.utc(2026, 10, 11),
     )!;
 
     expect(chart.start, DateTime.utc(2026, 10, 1));
-    expect([for (final p in chart.line) p.x], [0, 0.5, 0.5, 1]);
-    // 7000 holds until day 6, then 6500 until now.
-    expect(chart.line[0].y, chart.line[1].y);
-    expect(chart.line[2].y, chart.line[3].y);
-    expect(chart.line[0].y, greaterThan(chart.line[3].y));
+    expect(chart.end, DateTime.utc(2026, 10, 11));
     expect([for (final p in chart.changes) p.x], [0, 0.5]);
+    expect([for (final p in chart.points) p.price], [7000, 6500]);
+    expect(chart.changes[0].y, greaterThan(chart.changes[1].y));
   });
 
-  test('labels sit on the highest and lowest prices, inside the chart', () {
+  test('prices stay inside the chart, with round prices on the axis', () {
     final chart = priceChart([
       at(1, 7000),
       at(3, 6800),
       at(5, 6500),
     ], now: DateTime.utc(2026, 10, 9))!;
 
-    expect(chart.highest, 7000);
-    expect(chart.lowest, 6500);
-    expect(chart.highestY, chart.line.first.y);
-    expect(chart.lowestY, chart.line.last.y);
-    expect(chart.highestY, lessThan(1));
-    expect(chart.lowestY, greaterThan(0));
+    for (final p in chart.changes) {
+      expect(p.y, inExclusiveRange(0, 1));
+    }
+    expect([for (final t in chart.ticks) t.price], [6500, 6750, 7000]);
+    expect(chart.ticks.first.y, chart.changes.last.y);
+    expect(chart.ticks.last.y, chart.changes.first.y);
     expect(chart.reference, isNull);
   });
 
@@ -51,8 +49,7 @@ void main() {
     )!;
 
     expect(chart.reference, 7500);
-    expect(chart.highest, 7000);
-    expect(chart.referenceY, greaterThan(chart.highestY));
+    expect(chart.referenceY, greaterThan(chart.changes.first.y));
     expect(chart.referenceY, lessThan(1));
   });
 
@@ -74,7 +71,7 @@ void main() {
     ], now: start.add(const Duration(hours: 6)))!;
 
     expect(chart.changes.last.x, 0.25);
-    expect(chart.line.last.x, 1);
+    expect(chart.end, start.add(const Duration(days: 1)));
   });
 
   test('a flat history still has room above and below', () {
@@ -83,7 +80,8 @@ void main() {
       at(5, 7000),
     ], now: DateTime.utc(2026, 10, 9))!;
 
-    expect(chart.highestY, inExclusiveRange(0, 1));
+    expect(chart.changes.first.y, inExclusiveRange(0, 1));
+    expect([for (final t in chart.ticks) t.price], [6980, 7000, 7020]);
   });
 
   test('a placeholder price is left out of the chart', () {
@@ -95,7 +93,7 @@ void main() {
       at(24, 7700),
     ], now: DateTime.utc(2026, 10, 28))!;
 
-    expect(chart.lowest, 7700);
+    expect([for (final p in chart.points) p.price], [8500, 8000, 7700]);
     expect(chart.changes, hasLength(3));
     expect(chart.moves, [PriceMove.first, PriceMove.drop, PriceMove.drop]);
     // Only one real price besides placeholders: nothing to draw.
@@ -119,5 +117,35 @@ void main() {
       PriceMove.same,
       PriceMove.drop,
     ]);
+  });
+
+  group('priceTicks', () {
+    test('round steps of 1, 2, 2.5 or 5 times a power of ten', () {
+      expect(priceTicks(6425, 7075), [6500, 6750, 7000]);
+      expect(priceTicks(9000, 12000), [9000, 10000, 11000, 12000]);
+      expect(priceTicks(4100, 4700), [4200, 4400, 4600]);
+    });
+
+    test('never closer than 10 €', () {
+      expect(priceTicks(1994, 2006), [2000]);
+    });
+
+    test('nothing for an empty range', () {
+      expect(priceTicks(7000, 7000), isEmpty);
+    });
+  });
+
+  test('a tap picks the nearest price, the newer of two at once', () {
+    final chart = priceChart([
+      at(1, 7000),
+      at(5, 6800),
+      at(5, 6700),
+      at(9, 6500),
+    ], now: DateTime.utc(2026, 10, 11))!;
+
+    expect(nearestChange(chart, 0), 0);
+    expect(nearestChange(chart, 0.15), 0);
+    expect(nearestChange(chart, 0.45), 2);
+    expect(nearestChange(chart, 1), 3);
   });
 }

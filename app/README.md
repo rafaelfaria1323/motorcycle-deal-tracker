@@ -172,8 +172,9 @@ Screen names below use the Portuguese labels; English provides the same screens.
     that left the market in the last 90 days last asked against this
     one's price, and about how many days this ad has left on the market,
     from the model's ads at a similar price), the price history (first
-    price, lowest and change over the chart; placeholder prices only
-    as rows), the
+    price, lowest and change over the chart, whose stretches take their
+    move's colour, with prices and dates on its axes and a tap showing
+    any price; placeholder prices only as rows), the
     comparison with a new one, "E se a comprar no estrangeiro?" (one
     closed line until tapped: the
     same bike's price in Spain, France or Germany, the engine size

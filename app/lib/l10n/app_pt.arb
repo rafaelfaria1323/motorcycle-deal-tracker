@@ -4441,6 +4441,18 @@
   "@priceHistoryNow": {
     "description": "The newest row of the price history, beside its date: the price today."
   },
+  "priceChartDrop": "Descida",
+  "@priceChartDrop": {
+    "description": "Legend of the price chart: the line's colour after a price drop."
+  },
+  "priceChartRise": "Subida",
+  "@priceChartRise": {
+    "description": "Legend of the price chart: the line's colour after a price rise."
+  },
+  "priceChartHint": "Toque no gráfico para ver cada preço",
+  "@priceChartHint": {
+    "description": "Under the price chart: a tap shows a recorded price's date, price and change."
+  },
   "askingPricesUnadjusted": "Preços pedidos, sem ajustar ano e km",
   "@askingPricesUnadjusted": {
     "description": "Interface text in price_position_strip, build."

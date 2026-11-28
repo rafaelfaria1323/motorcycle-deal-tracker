@@ -616,7 +616,11 @@ invites; written by the collector on each run).
   placeholder prices are rows only ("Preço por consultar"), never chart
   points or a change; each row's change is against the previous real
   price; three tiles above the chart (first price, lowest, the change
-  with how many changes). Query order: postgrest's `order()` sorts
+  with how many changes). The chart (N.129, `price_chart.dart`): round
+  prices on the left (`priceTicks`), dates along the bottom, each stretch
+  in its move's colour (drop positive, rise negative, first grey) with a
+  legend, today's price labelled, a tap or the mouse shows the nearest
+  price (`nearestChange`). Query order: postgrest's `order()` sorts
   **descending** unless told, so every `.order(` in the app and the
   collector says `ascending:` (`query_order_test.dart` in both).
 - Interface: shared wordmark (`core/widgets/app_brand.dart`) and editorial
