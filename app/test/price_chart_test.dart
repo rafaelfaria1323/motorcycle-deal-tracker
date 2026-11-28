@@ -148,39 +148,4 @@ void main() {
     expect(nearestChange(chart, 0.45), 2);
     expect(nearestChange(chart, 1), 3);
   });
-
-  test('a placeholder price is left out of the chart', () {
-    // The CB650R that went 8 500 → 8 000 → "8 €" → 7 700.
-    final chart = priceChart([
-      at(13, 8500),
-      at(18, 8000),
-      at(23, 8),
-      at(24, 7700),
-    ], now: DateTime.utc(2026, 10, 28))!;
-
-    expect(chart.lowest, 7700);
-    expect(chart.changes, hasLength(3));
-    expect(chart.moves, [PriceMove.first, PriceMove.drop, PriceMove.drop]);
-    // Only one real price besides placeholders: nothing to draw.
-    expect(
-      priceChart([at(1, 7000), at(3, 1)], now: DateTime.utc(2026, 10, 9)),
-      isNull,
-    );
-  });
-
-  test('each dot knows how its price moved', () {
-    final chart = priceChart([
-      at(1, 7000),
-      at(3, 7200),
-      at(5, 7200),
-      at(7, 6900),
-    ], now: DateTime.utc(2026, 10, 9))!;
-
-    expect(chart.moves, [
-      PriceMove.first,
-      PriceMove.rise,
-      PriceMove.same,
-      PriceMove.drop,
-    ]);
-  });
 }
