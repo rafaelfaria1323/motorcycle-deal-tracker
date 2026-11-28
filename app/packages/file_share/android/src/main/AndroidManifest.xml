@@ -1,0 +1,15 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Lets the app hand a file it made (the ad's report, N.127) to the
+         app the person picks in the share sheet, for reading only. -->
+    <application>
+        <provider
+            android:name="io.github.rafaelfaria1323.file_share.FileShareProvider"
+            android:authorities="${applicationId}.file_share"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_share_paths"/>
+        </provider>
+    </application>
+</manifest>

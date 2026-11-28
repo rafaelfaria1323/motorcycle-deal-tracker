@@ -20,6 +20,13 @@ String _folded(String text) {
   return out.toString();
 }
 
+/// A name as part of a file name, folded, other characters as single
+/// hyphens: "Yamaha MT-07 · 2021" is "yamaha-mt-07-2021".
+String fileNamePart(String text) =>
+    _folded(text)
+        .replaceAll(RegExp('[^a-z0-9]+'), '-')
+        .replaceAll(RegExp(r'^-|-$'), '');
+
 /// Only letters and digits, folded: "MT-07", "mt 07" and "mt07" are one.
 String _searchKey(String text) =>
     _folded(text).replaceAll(RegExp('[^a-z0-9]'), '');

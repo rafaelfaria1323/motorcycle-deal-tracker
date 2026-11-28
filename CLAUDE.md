@@ -578,6 +578,10 @@ invites; written by the collector on each run).
   `core/platform/shared_text.dart` (no-op on the web) and `openSharedText`
   (`app/router/shared_text_open.dart`): `/check-ad?link=…` with the ad's
   link (`adLinkOf`), or the text as it came, `BikeValuePage.initialLink`.
+  A file to share (the ad's report PDF, N.127) goes to Android's share
+  sheet through the in-repo plugin `app/packages/file_share` (Java,
+  channel `deal_tracker/file_share`, `FileShareProvider` over
+  `cache/shared/`, no permission; `core/platform/share_file_stub.dart`).
   The seller's ad opens through `openAd`
   (`core/platform/open_ad.dart`): in the iPhone's home-screen app it goes
   to Safari (`x-safari-https:`, `_top`), since its in-app sheet stayed
@@ -1462,9 +1466,16 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   to copy; "O vendedor pediu" answers a counter-offer (accept up to the
   second offer, propose halfway up to the ceiling, above it offer the
   ceiling and walk away) with the message to send. The whole analysis of
-  one ad as text to share ("Relatório do anúncio", 16.8, after the
-  checklist: `listing_report_text.dart`, `ListingReportCard`, through
-  `shareOrCopy`; the market figures and cheaper ads come from
+  one ad to share ("Relatório do anúncio", 16.8, after the
+  checklist: `listing_report_text.dart`, `ListingReportCard`; N.127: an
+  A4 PDF laid out as the ad's page, `listing_report_pdf.dart`, package
+  `pdf`, deferred, the app's fonts and light colours, built from the
+  same parts as the text, `listingReportOf` / `ListingReport`, and made
+  before the tap (Safari shares only from a fresh tap); `shareFile`,
+  `core/platform/share_file.dart`: the browser's share sheet with the
+  file, else a download, Android's through `app/packages/file_share`,
+  else the text through `shareOrCopy`, also "Partilhar como texto"; the
+  market figures and cheaper ads come from
   `offerContextOf`, `offer_context.dart`, shared with `OfferCard`, so the
   tap shares at once; never the private note). Arguments to quote
   (`negotiation_text.dart`, strongest first): problems marked at the visit,
