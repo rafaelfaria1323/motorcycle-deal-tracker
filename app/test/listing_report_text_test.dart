@@ -9,7 +9,6 @@ import 'package:motorcycle_deal_tracker/core/localization/localizations.dart';
 import 'package:motorcycle_deal_tracker/features/favourites/domain/entities/favourite.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/vehicle_recall.dart';
-import 'package:motorcycle_deal_tracker/features/listings/presentation/listing_report.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/listing_report_pdf.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/listing_report_text.dart';
 

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
@@ -122,7 +121,7 @@ class _ListingReportCardState extends State<ListingReportCard> {
         rootBundle.load('assets/fonts/$file.ttf'),
     ]);
     final scheme = AppTheme.light.colorScheme;
-    return report_pdf.listingReportPdf(
+    return await report_pdf.listingReportPdf(
       _report(language),
       fonts: report_pdf.ReportFonts(
         regular: fonts[0],

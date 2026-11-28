@@ -42,7 +42,7 @@ ListingReport listingReportOf(
     today: today,
     language: language,
   );
-  final colours = AppColors.light;
+  const colours = AppColors.light;
   final ad = adAddress(listing);
   return ListingReport(
     title: m.reportTitle(bike: listing.nameAndYear),

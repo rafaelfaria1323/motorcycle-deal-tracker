@@ -74,7 +74,7 @@ class const ListingReport({
   /// That the figures come from asking prices.
   required final String note,
 
-  /// "Anúncio original: <url>", and the address alone.
+  /// "Anúncio original: `url`", and the address alone.
   required final String? adLine,
   required final String? adUrl,
 
