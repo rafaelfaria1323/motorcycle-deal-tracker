@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import '../domain/entities/price_point.dart';
+import 'price_history.dart';
 
 /// A point in the chart, both coordinates from 0 to 1: x from the first
 /// price to now, y from the bottom to the top.
@@ -12,8 +13,10 @@ class const PriceChart({
   /// The step line: each price holds until the next one, the last until now.
   required final List<ChartPoint> line,
 
-  /// One dot per recorded price.
+  /// One dot per recorded price, and how it moved (N.128: drops and
+  /// rises coloured).
   required final List<ChartPoint> changes,
+  required final List<PriceMove> moves,
 
   /// Our highest and lowest recorded prices, labelled on the chart.
   required final double highest,
@@ -29,15 +32,16 @@ class const PriceChart({
   final double? referenceY,
 });
 
-/// Null with fewer than two prices: there is no change to draw.
+/// Null with fewer than two real prices: there is no change to draw.
+/// Placeholders ("8 €", [isRealPrice]) are left out: one would flatten
+/// every real change against the bottom (N.128).
 PriceChart? priceChart(
   List<PricePoint> points, {
   required DateTime now,
   double? siteBefore,
 }) {
-  if (points.length < 2) return null;
-  final sorted = [...points]
-    ..sort((a, b) => a.observedAt.compareTo(b.observedAt));
+  final sorted = byTime(points).where(isRealPrice).toList();
+  if (sorted.length < 2) return null;
 
   final start = sorted.first.observedAt;
   var end = now.isAfter(sorted.last.observedAt) ? now : sorted.last.observedAt;
@@ -75,6 +79,15 @@ PriceChart? priceChart(
   return PriceChart(
     line: line,
     changes: [for (final p in sorted) (x: x(p.observedAt), y: y(p.price))],
+    moves: [
+      PriceMove.first,
+      for (var i = 1; i < sorted.length; i++)
+        sorted[i].price < sorted[i - 1].price
+            ? PriceMove.drop
+            : sorted[i].price > sorted[i - 1].price
+            ? PriceMove.rise
+            : PriceMove.same,
+    ],
     highest: highest,
     lowest: lowest,
     highestY: y(highest),

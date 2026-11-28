@@ -12,8 +12,8 @@ Future<Catalog> loadCatalog(SupabaseClient client) async {
         'engine_cc_min, engine_cc_max, olx_search, standvirtual_search',
       )
       .eq('is_active', true)
-      .order('created_at')
-      .order('slug');
+      .order('created_at', ascending: true)
+      .order('slug', ascending: true);
 
   return catalogFromRows(rows);
 }

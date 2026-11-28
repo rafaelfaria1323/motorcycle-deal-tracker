@@ -329,7 +329,7 @@ class SupabaseMarketBehaviourRepository implements MarketBehaviourRepository {
         .from('model_price_trend')
         .select()
         .inFilter('motorcycle_id', ids)
-        .order('week_start');
+        .order('week_start', ascending: true);
     final weeks = <String, List<PriceTrendWeek>>{};
     for (final r in rows) {
       (weeks[r['motorcycle_id'] as String] ??= []).add(priceTrendWeekFrom(r));

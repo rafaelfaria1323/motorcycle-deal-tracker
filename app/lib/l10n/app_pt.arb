@@ -4416,6 +4416,31 @@
       }
     }
   },
+  "priceHistoryFirst": "Primeiro preço",
+  "@priceHistoryFirst": {
+    "description": "A tile and the oldest row of the price history: the first real asking price seen."
+  },
+  "priceHistoryLowest": "Mais baixo",
+  "@priceHistoryLowest": {
+    "description": "A tile of the price history: the lowest real asking price seen."
+  },
+  "priceHistoryChange": "Variação",
+  "@priceHistoryChange": {
+    "description": "A tile of the price history: from the first real price to the latest."
+  },
+  "priceHistoryChanges": "{count, plural, =0{sem alterações} =1{1 alteração} other{{count} alterações}}",
+  "@priceHistoryChanges": {
+    "description": "Under the price history's change tile: how many times the real price moved.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "priceHistoryNow": "Agora",
+  "@priceHistoryNow": {
+    "description": "The newest row of the price history, beside its date: the price today."
+  },
   "askingPricesUnadjusted": "Preços pedidos, sem ajustar ano e km",
   "@askingPricesUnadjusted": {
     "description": "Interface text in price_position_strip, build."

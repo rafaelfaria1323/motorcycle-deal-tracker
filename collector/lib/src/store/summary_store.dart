@@ -27,7 +27,7 @@ class SummaryStore(final SupabaseClient _client) {
             'status.in.(active,price_changed),'
             'first_seen_at.gte."$from",last_checked_at.gte."$from"',
           )
-          .order('id')
+          .order('id', ascending: true)
           .range(start, end),
     );
     return [for (final r in rows) SummaryListing.fromRow(r, bikeNames)];
@@ -50,7 +50,7 @@ class SummaryStore(final SupabaseClient _client) {
             .select('listing_id')
             .inFilter('listing_id', chunk)
             .gte('observed_at', from)
-            .order('id')
+            .order('id', ascending: true)
             .range(start, end),
       );
       ids.addAll([for (final r in recent) r['listing_id'] as String]);
@@ -63,7 +63,7 @@ class SummaryStore(final SupabaseClient _client) {
             .from('listing_price_history')
             .select('listing_id, price, observed_at')
             .inFilter('listing_id', chunk)
-            .order('id')
+            .order('id', ascending: true)
             .range(start, end),
       );
       points.addAll([for (final r in rows) PricePoint.fromRow(r)]);
@@ -82,7 +82,10 @@ class SummaryStore(final SupabaseClient _client) {
           .select('user_id, motorcycle_id, min_year, max_year')
           .eq('tracked', true);
       if (account != null) query = query.eq('user_id', account);
-      return query.order('user_id').order('motorcycle_id').range(start, end);
+      return query
+          .order('user_id', ascending: true)
+          .order('motorcycle_id', ascending: true)
+          .range(start, end);
     });
     final byUser = <String, Map<String, FollowedYears>>{};
     for (final r in rows) {

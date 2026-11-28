@@ -26,7 +26,7 @@ class SupabaseHomeRepository(final SupabaseClient _client)
         .from('places')
         .select('key, name')
         .like('key', '$key%')
-        .order('key')
+        .order('key', ascending: true)
         .limit(30);
     return uniquePlaces(rows.map(_place).toList()).take(10).toList();
   }

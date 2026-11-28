@@ -12,6 +12,7 @@ import '../../domain/entities/listing.dart';
 import '../../domain/entities/price_point.dart';
 import '../../domain/repositories/listings_repository.dart';
 import '../price_chart.dart';
+import '../price_history.dart';
 import '../price_history_text.dart';
 
 class const PriceHistorySection({super.key, required final Listing listing})
@@ -52,12 +53,8 @@ class _PriceHistorySectionState extends State<PriceHistorySection> {
             if (points == null) {
               return const SizedBox(height: 24);
             }
-            if (points.length < 2) {
-              return Text(
-                context.strings.priceHasNotChangedSinceItWasFirst,
-                style: theme.textTheme.bodyMedium,
-              );
-            }
+            final rows = priceHistoryRows(points);
+            final summary = priceHistorySummary(points);
             final chart = priceChart(
               points,
               now: DateTime.now(),
@@ -66,10 +63,19 @@ class _PriceHistorySectionState extends State<PriceHistorySection> {
                   : null,
             );
             final labelStyle = AppTheme.figureLabel(context);
+            final colors = AppColors.of(context);
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (summary == null)
+                  Text(
+                    context.strings.priceHasNotChangedSinceItWasFirst,
+                    style: theme.textTheme.bodyMedium,
+                  )
+                else
+                  _SummaryStrip(summary: summary),
                 if (chart != null) ...[
+                  const SizedBox(height: 16),
                   SizedBox(
                     height: 160,
                     width: double.infinity,
@@ -78,6 +84,9 @@ class _PriceHistorySectionState extends State<PriceHistorySection> {
                         language: context.language,
                         chart: chart,
                         lineColor: theme.colorScheme.primary,
+                        dropColor: colors.positive,
+                        riseColor: colors.negative,
+                        surfaceColor: theme.colorScheme.surface,
                         gridColor: theme.colorScheme.outlineVariant,
                         labelStyle: labelStyle,
                       ),
@@ -92,12 +101,13 @@ class _PriceHistorySectionState extends State<PriceHistorySection> {
                     ],
                   ),
                 ],
-                const SizedBox(height: 12),
-                for (var i = points.length - 1; i >= 0; i--)
-                  _ChangeRow(
-                    point: points[i],
-                    previous: i == 0 ? null : points[i - 1],
-                  ),
+                if (rows.length > 1) ...[
+                  const SizedBox(height: 12),
+                  for (final (i, row) in rows.indexed) ...[
+                    if (i > 0) const Divider(height: 1),
+                    _ChangeRow(row: row, newest: i == 0),
+                  ],
+                ],
               ],
             );
           },
@@ -107,45 +117,181 @@ class _PriceHistorySectionState extends State<PriceHistorySection> {
   }
 }
 
-class const _ChangeRow({
-  required final PricePoint point,
-  required final PricePoint? previous,
+/// The history in three tiles: the first price, the lowest and how far
+/// it has moved since the first (N.128).
+class const _SummaryStrip({required final PriceHistorySummary summary})
+    extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final language = context.language;
+    final strings = context.strings;
+    final colors = AppColors.of(context);
+    final (euros, pct) = priceMoveParts(
+      summary.change,
+      summary.changePct,
+      language: language,
+    );
+    final changes = strings.priceHistoryChanges(count: summary.changes);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 8,
+      children: [
+        Expanded(
+          child: _SummaryTile(
+            title: strings.priceHistoryFirst,
+            figure: Formatters.price(summary.first, language: language),
+            caption: Formatters.date(summary.firstAt),
+          ),
+        ),
+        Expanded(
+          child: _SummaryTile(
+            title: strings.priceHistoryLowest,
+            figure: Formatters.price(summary.lowest, language: language),
+            caption: Formatters.date(summary.lowestAt),
+          ),
+        ),
+        Expanded(
+          child: _SummaryTile(
+            title: strings.priceHistoryChange,
+            figure: euros,
+            caption: pct == null ? changes : '$pct · $changes',
+            color: summary.change < 0
+                ? colors.positive
+                : summary.change > 0
+                ? colors.negative
+                : null,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class const _SummaryTile({
+  required final String title,
+  required final String figure,
+  required final String caption,
+  final Color? color,
 }) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final delta = previous == null ? null : point.price - previous!.price;
-    final colors = AppColors.of(context);
-    final color = delta == null
-        ? null
-        : (delta < 0 ? colors.positive : colors.negative);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: Text(Formatters.date(point.observedAt))),
-          if (delta != null && delta != 0)
-            Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: Text(
-                '${delta < 0 ? '↓' : '↑'} ${Formatters.price(delta.abs(), language: context.language)}',
-                style: TextStyle(color: color),
+          Text(title.toUpperCase(), style: AppTheme.groupLabel(context)),
+          const SizedBox(height: 4),
+          // A long price shrinks to the tile rather than wrapping.
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(
+              figure,
+              maxLines: 1,
+              style: TextStyle(
+                fontFamily: AppTheme.displayFont,
+                fontWeight: FontWeight.w700,
+                fontSize: 20,
+                fontFeatures: AppTheme.tabularFigures,
+                color: color ?? theme.colorScheme.onSurface,
               ),
             ),
-          Text(Formatters.price(point.price, language: context.language)),
+          ),
+          const SizedBox(height: 2),
+          Text(caption, style: AppTheme.figureLabel(context)),
         ],
       ),
     );
   }
 }
 
-/// Draws a [PriceChart]: the step line over real time, a dot per recorded
-/// price, hairlines with the highest and lowest prices, and the site's
-/// earlier price as a dashed line.
+/// A recorded price: its date (the newest also "Agora", the oldest real
+/// one "Primeiro preço"), its move from the real price before it, and
+/// the price, or "Preço por consultar" for a placeholder.
+class const _ChangeRow({
+  required final PriceHistoryRow row,
+  required final bool newest,
+}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final language = context.language;
+    final colors = AppColors.of(context);
+    final move = priceRowMoveText(row, language: language);
+    final placeholder = row.move == .placeholder;
+    final label = row.move == .first
+        ? context.strings.priceHistoryFirst
+        : newest
+        ? context.strings.priceHistoryNow
+        : null;
+    final muted = theme.colorScheme.onSurfaceVariant;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  Formatters.date(row.point.observedAt),
+                  style: theme.textTheme.bodyMedium,
+                ),
+                if (label != null)
+                  Text(label, style: AppTheme.figureLabel(context)),
+              ],
+            ),
+          ),
+          if (move != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: Text(
+                move,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: row.move == .drop ? colors.positive : colors.negative,
+                  fontWeight: FontWeight.w600,
+                  fontFeatures: AppTheme.tabularFigures,
+                ),
+              ),
+            ),
+          Text(
+            placeholder
+                ? context.strings.priceOnRequest
+                : Formatters.price(row.point.price, language: language),
+            style: placeholder
+                ? theme.textTheme.bodySmall?.copyWith(
+                    color: muted,
+                    fontStyle: FontStyle.italic,
+                  )
+                : theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontFeatures: AppTheme.tabularFigures,
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Draws a [PriceChart]: the step line over real time with a light fill
+/// under it, a dot per recorded price (drops and rises in their colours),
+/// hairlines with the highest and lowest prices, and the site's earlier
+/// price as a dashed line.
 class _PriceChartPainter({
   required final AppLanguage language,
   required final PriceChart chart,
   required final Color lineColor,
+  required final Color dropColor,
+  required final Color riseColor,
+  required final Color surfaceColor,
   required final Color gridColor,
   required final TextStyle labelStyle,
 }) extends CustomPainter {
@@ -225,6 +371,24 @@ class _PriceChartPainter({
       final o = at(p);
       path.lineTo(o.dx, o.dy);
     }
+    // The area under the line, fading towards the bottom.
+    final bottom = size.height - _pad;
+    final area = Path.from(path)
+      ..lineTo(at(chart.line.last).dx, bottom)
+      ..lineTo(at(chart.line.first).dx, bottom)
+      ..close();
+    canvas.drawPath(
+      area,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            lineColor.withValues(alpha: 0.16),
+            lineColor.withValues(alpha: 0.02),
+          ],
+        ).createShader(Rect.fromLTRB(0, _pad, size.width, bottom)),
+    );
     canvas.drawPath(
       path,
       Paint()
@@ -234,12 +398,22 @@ class _PriceChartPainter({
         ..strokeJoin = StrokeJoin.round,
     );
 
-    final dot = Paint()..color = lineColor;
-    for (final p in chart.changes) {
-      canvas.drawCircle(at(p), 3.5, dot);
+    // Each dot ringed in the card's colour, so it stands out of the line.
+    final ring = Paint()..color = surfaceColor;
+    for (final (i, p) in chart.changes.indexed) {
+      final colour = switch (chart.moves[i]) {
+        .drop => dropColor,
+        .rise => riseColor,
+        _ => lineColor,
+      };
+      canvas
+        ..drawCircle(at(p), 5.5, ring)
+        ..drawCircle(at(p), 4, Paint()..color = colour);
     }
     // Today's price, at the right edge.
-    canvas.drawCircle(at(chart.line.last), 5, dot);
+    canvas
+      ..drawCircle(at(chart.line.last), 6.5, ring)
+      ..drawCircle(at(chart.line.last), 5, Paint()..color = lineColor);
   }
 
   @override
@@ -247,6 +421,9 @@ class _PriceChartPainter({
       old.chart != chart ||
       old.language != language ||
       old.lineColor != lineColor ||
+      old.dropColor != dropColor ||
+      old.riseColor != riseColor ||
+      old.surfaceColor != surfaceColor ||
       old.gridColor != gridColor ||
       old.labelStyle != labelStyle;
 }

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/price_point.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/price_chart.dart';
+import 'package:motorcycle_deal_tracker/features/listings/presentation/price_history.dart';
 
 PricePoint at(int day, double price) =>
     PricePoint(price: price, observedAt: DateTime.utc(2026, 10, day));
@@ -83,5 +84,40 @@ void main() {
     ], now: DateTime.utc(2026, 10, 9))!;
 
     expect(chart.highestY, inExclusiveRange(0, 1));
+  });
+
+  test('a placeholder price is left out of the chart', () {
+    // The CB650R that went 8 500 → 8 000 → "8 €" → 7 700.
+    final chart = priceChart([
+      at(13, 8500),
+      at(18, 8000),
+      at(23, 8),
+      at(24, 7700),
+    ], now: DateTime.utc(2026, 10, 28))!;
+
+    expect(chart.lowest, 7700);
+    expect(chart.changes, hasLength(3));
+    expect(chart.moves, [PriceMove.first, PriceMove.drop, PriceMove.drop]);
+    // Only one real price besides placeholders: nothing to draw.
+    expect(
+      priceChart([at(1, 7000), at(3, 1)], now: DateTime.utc(2026, 10, 9)),
+      isNull,
+    );
+  });
+
+  test('each dot knows how its price moved', () {
+    final chart = priceChart([
+      at(1, 7000),
+      at(3, 7200),
+      at(5, 7200),
+      at(7, 6900),
+    ], now: DateTime.utc(2026, 10, 9))!;
+
+    expect(chart.moves, [
+      PriceMove.first,
+      PriceMove.rise,
+      PriceMove.same,
+      PriceMove.drop,
+    ]);
   });
 }

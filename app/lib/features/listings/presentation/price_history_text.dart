@@ -1,7 +1,8 @@
 import '../../../core/formatting/formatters.dart';
+import '../../../core/localization/localizations.dart';
 import '../domain/entities/listing.dart';
 import 'listing_labels.dart';
-import '../../../core/localization/localizations.dart';
+import 'price_history.dart';
 
 /// A line about an earlier price the site reported from before we started
 /// tracking; null when there is none or our own history already covers it.
@@ -41,3 +42,42 @@ String? seenLine(
     daysago: Formatters.daysAgo(last, now: now, language: language),
   );
 }
+
+/// How far a price moved, in two parts: the arrow with the euros
+/// ("↓ 500 €") and the signed share ("−5,9 %"; null when it ended where
+/// it began, "0 €") (N.128).
+(String euros, String? pct) priceMoveParts(
+  double change,
+  double changePct, {
+  AppLanguage language = .portuguese,
+}) {
+  final euros = Formatters.price(change.abs(), language: language);
+  if (change == 0) return (euros, null);
+  final pct = Formatters.percent(
+    changePct.abs(),
+    decimals: 1,
+    language: language,
+  );
+  return change < 0 ? ('↓ $euros', '−$pct') : ('↑ $euros', '+$pct');
+}
+
+/// The move in one line: "↓ 500 € · −5,9 %".
+String priceMoveText(
+  double change,
+  double changePct, {
+  AppLanguage language = .portuguese,
+}) => switch (priceMoveParts(change, changePct, language: language)) {
+  (final euros, final pct?) => '$euros · $pct',
+  (final euros, null) => euros,
+};
+
+/// A row's move against the real price before it; null for the first
+/// price, a placeholder and a return to the same price.
+String? priceRowMoveText(
+  PriceHistoryRow row, {
+  AppLanguage language = .portuguese,
+}) => switch (row) {
+  PriceHistoryRow(move: .drop || .rise, :final change?, :final changePct?) =>
+    priceMoveText(change, changePct, language: language),
+  _ => null,
+};
