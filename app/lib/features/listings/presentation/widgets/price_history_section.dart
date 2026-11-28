@@ -632,7 +632,9 @@ class _PriceChartPainter({
     final top = above >= 0 ? above : anchor.dy + 12;
     final left = alignRight
         ? size.width - width
-        : (anchor.dx - width / 2).clamp(0.0, max(0.0, size.width - width));
+        : (anchor.dx - width / 2)
+              .clamp(0.0, max(0.0, size.width - width))
+              .toDouble();
     final box = RRect.fromRectAndRadius(
       Rect.fromLTWH(left, top, width, height),
       const Radius.circular(8),
