@@ -651,7 +651,8 @@ invites; written by the collector on each run).
   The score bands are dark enough for small white text (4.5:1). The detail hero
   (UI.2, after Stitch's ad screen) splits into photo and summary at 800px
   of content width: the photo with the source and age as tags and the
-  thumbnails under it (2+ photos, `photoAtSize` 160); `ListingHeader` a
+  thumbnails under it (2+ photos, `photoAtSize` 160; centred when they
+  all fit, N.133); `ListingHeader` a
   white box with name and price ("Preço anunciado"), spec chips
   (`heroSpecs`: year, km, engine size), seller (`sellerText`) and place,
   the market box (`cardMarketPositionText` with the gap in euros,

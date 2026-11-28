@@ -130,10 +130,11 @@ class _PhotoGalleryState extends State<PhotoGallery> {
 }
 
 /// The row of small photos under the gallery, the one shown outlined in
-/// the primary colour. Built as it scrolls: an ad can have 30.
-/// The strip of thumbnails. It follows the photo shown: swiping the big
-/// photo or using its arrows scrolls the strip so that photo's thumbnail
-/// is in view, centred where it can be.
+/// the primary colour. Built as it scrolls: an ad can have 30. Centred
+/// under the photo when they all fit (N.133), else it scrolls from the
+/// left edge and follows the photo shown: swiping the big photo or using
+/// its arrows scrolls the strip so that photo's thumbnail is in view,
+/// centred where it can be.
 class const _Thumbnails({
   required final List<String> images,
   required final int selected,
@@ -181,36 +182,48 @@ class _ThumbnailsState extends State<_Thumbnails> {
     final selected = widget.selected;
     return SizedBox(
       height: _size,
-      child: ListView.separated(
-        controller: _scroll,
-        scrollDirection: Axis.horizontal,
-        itemCount: images.length,
-        separatorBuilder: (_, _) => const SizedBox(width: _gap),
-        itemBuilder: (context, index) => Semantics(
-          button: true,
-          selected: index == selected,
-          label: photoCounterText(index, images.length),
-          excludeSemantics: true,
-          child: GestureDetector(
-            onTap: () => widget.onShow(index),
-            child: Container(
-              width: _width,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: index == selected
-                      ? scheme.primary
-                      : scheme.outlineVariant,
-                  width: index == selected ? 2 : 1,
+      child: LayoutBuilder(
+        builder: (context, constraints) => ListView.separated(
+          controller: _scroll,
+          scrollDirection: Axis.horizontal,
+          padding: EdgeInsets.symmetric(
+            horizontal: _centringInset(images.length, constraints.maxWidth),
+          ),
+          itemCount: images.length,
+          separatorBuilder: (_, _) => const SizedBox(width: _gap),
+          itemBuilder: (context, index) => Semantics(
+            button: true,
+            selected: index == selected,
+            label: photoCounterText(index, images.length),
+            excludeSemantics: true,
+            child: GestureDetector(
+              onTap: () => widget.onShow(index),
+              child: Container(
+                width: _width,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: index == selected
+                        ? scheme.primary
+                        : scheme.outlineVariant,
+                    width: index == selected ? 2 : 1,
+                  ),
                 ),
+                clipBehavior: Clip.antiAlias,
+                child: ListingPhoto(url: photoAtSize(images[index], 160)),
               ),
-              clipBehavior: Clip.antiAlias,
-              child: ListingPhoto(url: photoAtSize(images[index], 160)),
             ),
           ),
         ),
       ),
     );
+  }
+
+  /// Each side's space that centres [count] thumbnails in [width]; none
+  /// when they don't fit, so the strip scrolls from the edge.
+  static double _centringInset(int count, double width) {
+    final strip = count * _width + (count - 1) * _gap;
+    return strip < width ? (width - strip) / 2 : 0;
   }
 }
 
