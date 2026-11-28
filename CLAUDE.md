@@ -741,6 +741,12 @@ invites; written by the collector on each run).
   (`iosBottomInset`, `core/platform/home_screen_app.dart`): 12px in Safari
   on iPhone/iPad (the strip's height, so it sits under the tab bar labels),
   24px in the home-screen app on iPhones with a home bar, 0 elsewhere.
+  On iOS Flutter measures the page again only on `visualViewport`'s
+  resize, which iOS may skip when it settles the height after a launch,
+  leaving the tab bar's labels below the screen: an `index.html` script
+  (iPhone/iPad only) compares the size for 10 s after each start or
+  return and on window resizes, and sends that event again when it
+  changed (N.131, `tool/test_web_resize.py`).
 
 ## Database conventions (Supabase / Postgres)
 

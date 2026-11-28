@@ -163,6 +163,7 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 
 ➕ ✅ A price chart that reads at a glance (N.129): round prices and dates on its axes, each stretch coloured by its move, today's price labelled, a tap shows any price with its date and change.
 ➕ ✅ The price history's three tiles of one height (N.130).
+➕ ✅ The tab bar's labels on screen at every launch of the iPhone's home-screen app: the page measured again when iOS settles its height (N.131).
 ➕ ✅ A clearer price history (N.128): the first, lowest and change at a glance, placeholder prices left out of the chart, each change against the previous real price, and every query's order stated.
 ➕ ✅ The ad's report as a PDF (N.127): laid out as the ad's page, with the app's fonts and colours, to the phone's share sheet (or downloaded), the text kept as a second choice.
 ➕ ✅ The whole Deal Score calculation on the ad (N.126): each part's score, weight and points, why a part doesn't count, the weighted average, the equipment bonus, any cap and the score.
