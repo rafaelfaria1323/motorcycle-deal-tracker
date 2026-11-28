@@ -55,7 +55,9 @@ class SupabaseListingsRepository(final SupabaseClient _client)
     };
 
     // The id breaks ties, so pages never repeat or skip a listing.
-    final rows = await ordered.order('id').range(offset, offset + limit - 1);
+    final rows = await ordered
+        .order('id', ascending: false)
+        .range(offset, offset + limit - 1);
     return rows.map(ListingModel.fromJson).toList();
   }
 
@@ -165,8 +167,8 @@ class SupabaseListingsRepository(final SupabaseClient _client)
         .from('motorcycles')
         .select('id, brand, model')
         .eq('tracked_by_me', true)
-        .order('brand')
-        .order('model');
+        .order('brand', ascending: true)
+        .order('model', ascending: true);
 
     return rows.map(motorcycleOptionFromJson).toList();
   }
@@ -179,7 +181,7 @@ class SupabaseListingsRepository(final SupabaseClient _client)
         .select(ListingModel.summaryColumns)
         .or('id.eq.$originalId,duplicate_of.eq.$originalId')
         .neq('id', listing.id)
-        .order('first_seen_at');
+        .order('first_seen_at', ascending: true);
     return rows.map<Listing>(ListingModel.fromJson).toList();
   }
 
@@ -204,7 +206,9 @@ class SupabaseListingsRepository(final SupabaseClient _client)
     if (listing.mileage case final km?) {
       query = query.lte('mileage', km);
     }
-    final rows = await query.order('price').limit(cheaperSimilarLimit);
+    final rows = await query
+        .order('price', ascending: true)
+        .limit(cheaperSimilarLimit);
     return rows.map<Listing>(ListingModel.fromJson).toList();
   }
 
@@ -214,7 +218,7 @@ class SupabaseListingsRepository(final SupabaseClient _client)
         .from('listing_price_history')
         .select('price, observed_at')
         .eq('listing_id', listingId)
-        .order('observed_at');
+        .order('observed_at', ascending: true);
     return [
       for (final r in rows)
         PricePoint(

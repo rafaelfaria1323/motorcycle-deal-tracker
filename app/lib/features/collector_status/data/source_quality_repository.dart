@@ -14,7 +14,7 @@ class SupabaseSourceQualityRepository(final SupabaseClient _client)
     final rows = await _client
         .from('source_data_quality')
         .select()
-        .order('source');
+        .order('source', ascending: true);
     return rows.map(SourceQuality.fromJson).toList();
   }
 }

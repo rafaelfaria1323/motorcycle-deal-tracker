@@ -330,7 +330,7 @@
       '&duplicate_of=is.null&status=in.(%22active%22,%22price_changed%22)' +
       '&order=deal_score.desc.nullslast,id.desc.nullslast&offset=0&limit=40';
     var MODELS = 'motorcycles?select=id,brand,model&tracked_by_me=eq.true' +
-      '&order=brand.desc.nullslast,model.desc.nullslast';
+      '&order=brand.asc.nullslast,model.asc.nullslast';
     var PHOTOS = 3;
     // The cards' photo size, as cardPhotoBox (lib/features/listings/
     // presentation/photo_url.dart; test/photo_url_test.dart): the card's
