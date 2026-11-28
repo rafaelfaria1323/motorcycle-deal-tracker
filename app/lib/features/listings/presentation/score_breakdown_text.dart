@@ -194,9 +194,34 @@ List<String> _priceDetails(
             language: language,
           ),
         ),
+    ..._versionDetails(data, language),
     messages.scorePriceRule,
   ];
 }
+
+/// The versions that moved the estimate (N.136): each one's price
+/// difference learnt from the model's ads, with how many taught it.
+List<String> _versionDetails(Map<String, dynamic> data, AppLanguage language) {
+  final messages = language.messages;
+  return [
+    for (final note in (data['version_premiums'] as List? ?? const []))
+      if (note case {
+        'version': final String code,
+        'pct': final num pct,
+        'ads': final num ads,
+      })
+        if (versionLabels[code] case final version?)
+          (pct >= 0 ? messages.scoreVersionAbove : messages.scoreVersionBelow)(
+            version: version,
+            pct: Formatters.percent(pct.abs(), decimals: 1, language: language),
+            ads: '${ads.toInt()}',
+          ),
+  ];
+}
+
+/// The versions whose price the database learns (model_version_premiums):
+/// names as the sites write them, never translated.
+const versionLabels = {'e_clutch': eClutchLabel, 'a2_limited': 'A2 (35 kW)'};
 
 /// The two parts of the year/mileage slice and their shares, once the
 /// breakdown carries them (scored since N.126).
