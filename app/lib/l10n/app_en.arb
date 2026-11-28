@@ -1513,7 +1513,7 @@
   "scoreMileageRule": "Mileage against the age (normal: 5,000 km a year): 100 up to half the normal, 75 at it, 50 at 1.5 times, 0 from 2.5 times",
   "scoreYearRule": "Year: 10 points less for each year of age",
   "scoreRiskRule": "100 minus the Risk Score ({risk})",
-  "scoreSellerFrom": "From the dealer's {bikes} bikes: relisted ones, sharp price changes, repeats and missing mileage count against it",
+  "scoreSellerFrom": "From the dealer's {bikes} bikes, weighed against the other dealers: sharp price changes and repeats count against it, relisted ones and missing mileage half as much",
   "scoreNotCountedNoPrice": "Not counted: the ad has no price",
   "scoreNotCountedFewComparables": "Not counted: there are {count} ads to compare with and 3 are needed",
   "scoreNotCountedNoYearMileage": "Not counted: the ad gives neither the year nor the mileage",

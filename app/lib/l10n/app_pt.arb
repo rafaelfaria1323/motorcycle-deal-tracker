@@ -8658,9 +8658,9 @@
       }
     }
   },
-  "scoreSellerFrom": "Pelas {bikes} motas do stand: republicadas, mudanças bruscas de preço, repetidas e sem quilómetros contam contra",
+  "scoreSellerFrom": "Pelas {bikes} motas do stand, ao lado dos outros stands: mudanças bruscas de preço e repetidas contam contra, republicadas e sem quilómetros contam metade",
   "@scoreSellerFrom": {
-    "description": "Interface text for the Deal Score's calculation on the ad (N.126).",
+    "description": "Interface text for the Deal Score's calculation on the ad (N.126, N.134).",
     "placeholders": {
       "bikes": {
         "type": "String"
