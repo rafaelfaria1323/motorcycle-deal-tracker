@@ -107,37 +107,41 @@ class const _SummaryStrip({required final PriceHistorySummary summary})
       language: language,
     );
     final changes = strings.priceHistoryChanges(count: summary.changes);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 8,
-      children: [
-        Expanded(
-          child: _SummaryTile(
-            title: strings.priceHistoryFirst,
-            figure: Formatters.price(summary.first, language: language),
-            caption: Formatters.date(summary.firstAt),
+    // The tiles share the tallest one's height, whichever wraps its title
+    // or caption.
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 8,
+        children: [
+          Expanded(
+            child: _SummaryTile(
+              title: strings.priceHistoryFirst,
+              figure: Formatters.price(summary.first, language: language),
+              caption: Formatters.date(summary.firstAt),
+            ),
           ),
-        ),
-        Expanded(
-          child: _SummaryTile(
-            title: strings.priceHistoryLowest,
-            figure: Formatters.price(summary.lowest, language: language),
-            caption: Formatters.date(summary.lowestAt),
+          Expanded(
+            child: _SummaryTile(
+              title: strings.priceHistoryLowest,
+              figure: Formatters.price(summary.lowest, language: language),
+              caption: Formatters.date(summary.lowestAt),
+            ),
           ),
-        ),
-        Expanded(
-          child: _SummaryTile(
-            title: strings.priceHistoryChange,
-            figure: euros,
-            caption: pct == null ? changes : '$pct · $changes',
-            color: summary.change < 0
-                ? colors.positive
-                : summary.change > 0
-                ? colors.negative
-                : null,
+          Expanded(
+            child: _SummaryTile(
+              title: strings.priceHistoryChange,
+              figure: euros,
+              caption: pct == null ? changes : '$pct · $changes',
+              color: summary.change < 0
+                  ? colors.positive
+                  : summary.change > 0
+                  ? colors.negative
+                  : null,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
