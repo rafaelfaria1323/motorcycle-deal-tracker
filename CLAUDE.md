@@ -612,6 +612,13 @@ invites; written by the collector on each run).
   `listings.asking_price` is the same: the price sorts order by it (nulls
   last) and a maximum price filters on it, as `listing_matches_search`
   does for saved searches (F.2).
+- Price history (Mercado, N.128; `price_history.dart`, `PriceHistorySection`):
+  placeholder prices are rows only ("Preço por consultar"), never chart
+  points or a change; each row's change is against the previous real
+  price; three tiles above the chart (first price, lowest, the change
+  with how many changes). Query order: postgrest's `order()` sorts
+  **descending** unless told, so every `.order(` in the app and the
+  collector says `ascending:` (`query_order_test.dart` in both).
 - Interface: shared wordmark (`core/widgets/app_brand.dart`) and editorial
   page heading (`page_intro.dart`; Ofertas shows it only on an empty list);
   labelled filter, sort, save and comparison actions. Ofertas' header is

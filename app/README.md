@@ -171,7 +171,9 @@ Screen names below use the Portuguese labels; English provides the same screens.
     price sits among the model's live listings, what the model's ads
     that left the market in the last 90 days last asked against this
     one's price, and about how many days this ad has left on the market,
-    from the model's ads at a similar price), the price history, the
+    from the model's ads at a similar price), the price history (first
+    price, lowest and change over the chart; placeholder prices only
+    as rows), the
     comparison with a new one, "E se a comprar no estrangeiro?" (one
     closed line until tapped: the
     same bike's price in Spain, France or Germany, the engine size
