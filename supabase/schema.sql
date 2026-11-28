@@ -2824,7 +2824,8 @@ CREATE FUNCTION public.listing_extras(p_variant text, p_description text) RETURN
         '|\m(vem|segue|seguem|vai|v[aã]o)\s+(\w+\s+){0,4}(original|originais|de\s+origem)\M)'),
       -- Honda's E-Clutch (CB650R and CBR650R from 2024): the clutch works
       -- by itself, the gears stay manual. "sem e-clutch" is stripped above.
-      ('e_clutch', '(\me\s*-?\s*clutch\M|embraiagem\s+(autom[aá]tica\s+)?elec?tr[oó]nica)')
+      -- Sellers misspell it: "e-cluch", "e-cluth", "e-clucth".
+      ('e_clutch', '(\me\s*-?\s*cl[uú](tc|ct|c|t)h\M|embraiagem\s+(autom[aá]tica\s+)?elec?tr[oó]nica)')
   )
   select coalesce(array_agg(r.code order by r.code), '{}'::text[])
   from rules r, t
