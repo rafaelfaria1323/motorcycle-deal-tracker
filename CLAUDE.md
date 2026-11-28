@@ -198,7 +198,11 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   and where the likely sales sat against
                                   the estimate (`score_check_models`); per
                                   Deal Score band, how many sold within
-                                  14 days (`score_check_bands`);
+                                  14 days (`score_check_bands`) and how
+                                  fast its ads went: found after, at
+                                  night, likely sales up for, within a
+                                  day, seen once, first alert
+                                  (`score_check_speed`, N.138);
                                   audit/score_check.dart flags what looks
                                   off; report in the run's summary;
                                   writes nothing

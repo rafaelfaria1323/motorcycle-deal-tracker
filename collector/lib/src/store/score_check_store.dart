@@ -25,4 +25,16 @@ class ScoreCheckStore(final SupabaseClient _client) {
     );
     return [for (final r in rows) BandCheck.fromRow(r as Map<String, dynamic>)];
   }
+
+  /// Per Deal Score band, how fast the ads first seen in the last [days]
+  /// days went (`score_check_speed`, N.138).
+  Future<List<SpeedCheck>> speed(int days) async {
+    final rows = await _client.rpc<List<dynamic>>(
+      'score_check_speed',
+      params: {'p_days': days},
+    );
+    return [
+      for (final r in rows) SpeedCheck.fromRow(r as Map<String, dynamic>),
+    ];
+  }
 }

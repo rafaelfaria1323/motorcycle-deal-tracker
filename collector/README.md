@@ -194,8 +194,15 @@ many of them dropped their price 1 % or more, by how much on the median
 scores began to be kept, sold within 14 days. `audit/score_check.dart`
 writes the report (stdout and the run's summary) and lists what looks off:
 a model whose likely sales sat more than 7 % from the estimate, or a
-higher band selling less often than a lower one (each from 5). It writes
-nothing.
+higher band selling less often than a lower one (each from 5).
+`score_check_speed` (N.138) gives, per band, how fast its ads of the same
+60 days went: how long after going up on the site the collection found
+them (median and slowest tenth, and for those put up from 00:00 to 08:00
+Lisbon time), how long the likely sales stayed up and how many left
+within a day, how many one run saw, and when the first alert came; a
+quarter of the 80-100 band's likely sales gone within a day, or a tenth
+of its ads seen once, is flagged (collecting more often is Rafael's
+decision). It writes nothing.
 
 Also beside it, `bin/spelling_check.dart` (workflow `spelling-check.yml`,
 N.137, no AI) looks for misspelt rule words in every matched ad of the

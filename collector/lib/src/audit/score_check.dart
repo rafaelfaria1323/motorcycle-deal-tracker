@@ -120,15 +120,100 @@ List<String> bandFlags(List<BandCheck> bands) {
   ];
 }
 
+/// From this share of a band's likely sales gone within a day of going
+/// up, the report says good deals go faster than the collection (N.138).
+const fastSaleShare = 0.25;
+
+/// From this share of a band's ads seen by one run only, the report says
+/// good deals go before the next run (N.138).
+const seenOnceShare = 0.1;
+
+/// How fast one Deal Score band's ads went (`score_check_speed`, N.138).
+/// Hours are medians, counted from when the ad went up on the site.
+class const SpeedCheck({
+  required final String band,
+  required final int ads,
+
+  /// How long after going up the collection found them, and the slowest
+  /// tenth.
+  final double? foundHours,
+  final double? foundP90Hours,
+
+  /// Those put up from 00:00 to 08:00 Lisbon time, the longest gap
+  /// between collections, and how long they waited.
+  required final int nightAds,
+  final double? nightFoundHours,
+
+  /// Likely sales, those gone within a day, and how long they were up.
+  required final int sales,
+  required final int salesWithinDay,
+  final double? saleHours,
+
+  /// Ads only one run saw.
+  required final int seenOnce,
+
+  /// Ads with an alert, and when the first came.
+  required final int alerted,
+  final double? alertHours,
+}) {
+  factory SpeedCheck.fromRow(Map<String, dynamic> row) => SpeedCheck(
+    band: row['band'] as String? ?? '?',
+    ads: _int(row['ads']),
+    foundHours: _double(row['found_hours']),
+    foundP90Hours: _double(row['found_p90_hours']),
+    nightAds: _int(row['night_ads']),
+    nightFoundHours: _double(row['night_found_hours']),
+    sales: _int(row['sales']),
+    salesWithinDay: _int(row['sales_within_day']),
+    saleHours: _double(row['sale_hours']),
+    seenOnce: _int(row['seen_once']),
+    alerted: _int(row['alerted']),
+    alertHours: _double(row['alert_hours']),
+  );
+
+  /// The band's lowest score ('80-100' -> 80).
+  int get floor => int.tryParse(band.split('-').first) ?? 0;
+}
+
+/// Whether the good deals (Deal Score 80+) go faster than the collection
+/// finds them: many likely sales gone within a day of going up, or many
+/// ads only one run saw, each from [minSalesToJudge].
+List<String> speedFlags(List<SpeedCheck> speed) {
+  final flags = <String>[];
+  for (final s in speed) {
+    if (s.floor < 80) continue;
+    if (s.sales >= minSalesToJudge &&
+        s.salesWithinDay >= fastSaleShare * s.sales) {
+      final night = s.nightFoundHours;
+      flags.add(
+        'Good deals go fast: ${s.salesWithinDay} of ${s.sales} likely sales '
+        'at Deal Score ${s.band} left within a day of going up; the '
+        'collection found them after ${_hours(s.foundHours)} on the median'
+        '${night == null ? '' : ' (${_hours(night)} when put up at night)'}. '
+        'Collecting more often would find them sooner; that loosens the '
+        "fetching rules, so it is Rafael's decision.",
+      );
+    }
+    if (s.ads >= minSalesToJudge && s.seenOnce >= seenOnceShare * s.ads) {
+      flags.add(
+        '${s.seenOnce} of ${s.ads} ads at Deal Score ${s.band} were seen by '
+        'one run only: they went before the next.',
+      );
+    }
+  }
+  return flags;
+}
+
 /// The Markdown report: per model how its ads left and where the likely
-/// sales sat against the estimate, then the Deal Score bands, then what
-/// looks off.
+/// sales sat against the estimate, then the Deal Score bands, how fast
+/// each band's ads went, then what looks off.
 String scoreCheckReport({
   required List<ModelCheck> models,
   required List<BandCheck> bands,
   required int days,
   required int bandDays,
   required int horizon,
+  List<SpeedCheck> speed = const [],
 }) {
   final out = StringBuffer()
     ..writeln('## Estimates against likely sales')
@@ -196,14 +281,56 @@ String scoreCheckReport({
     out.writeln();
   }
 
-  final flags = [for (final m in models) ?m.estimateFlag, ...bandFlags(bands)];
+  out
+    ..writeln('## How fast good deals go')
+    ..writeln()
+    ..writeln(
+      'Ads found in the last $bandDays days (and not before 12 Nov 2026), '
+      'a day ago or more, at most 2 days after they went up on the site, '
+      'by their last Deal Score. Hours from when the ad went up: when the '
+      'collection found it (median, and the slowest tenth), the same for '
+      'ads put up from 00:00 to 08:00 Lisbon time (the longest gap between '
+      'collections), how long the likely sales stayed up, how many of them '
+      'left within a day, how many ads one run saw, and when the first '
+      'alert came. If the best ads go within hours, the limit is how often '
+      'the collection runs, not the scoring.',
+    )
+    ..writeln();
+  if (speed.isEmpty) {
+    out
+      ..writeln('No scored ads found in the period.')
+      ..writeln();
+  } else {
+    out
+      ..writeln(
+        '| Deal Score | Ads | Found after | Put up at night | Likely sold | '
+        'Within a day | Up for | Seen once | Alerted | First alert |',
+      )
+      ..writeln('|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|');
+    for (final s in speed) {
+      out.writeln(
+        '| ${s.band} | ${s.ads} | ${_hours(s.foundHours)} '
+        '(${_hours(s.foundP90Hours)}) | ${_night(s)} | ${s.sales} | '
+        '${s.salesWithinDay} | ${_hours(s.saleHours)} | ${s.seenOnce} | '
+        '${s.alerted} | ${_hours(s.alertHours)} |',
+      );
+    }
+    out.writeln();
+  }
+
+  final flags = [
+    for (final m in models) ?m.estimateFlag,
+    ...bandFlags(bands),
+    ...speedFlags(speed),
+  ];
   out
     ..writeln('## To look at')
     ..writeln();
   if (flags.isEmpty) {
     out.writeln(
       'Nothing: no model with $minSalesToJudge+ likely sales is more '
-      'than ${_pct(estimateTolerance)} off, and the bands sell in order.',
+      'than ${_pct(estimateTolerance)} off, the bands sell in order, and '
+      'good deals do not go faster than the collection.',
     );
   } else {
     for (final f in flags) {
@@ -220,6 +347,17 @@ String _dropped(ModelCheck m) {
   return '${m.soldDropped} of ${m.sales}'
       '${drop == null ? '' : ', -${_pct(drop)}'}';
 }
+
+/// "6.0 h", or days from 48 h ("3.5 d").
+String _hours(double? hours) => switch (hours) {
+  null => '–',
+  final h when h >= 48 => '${(h / 24).toStringAsFixed(1)} d',
+  final h => '${h.toStringAsFixed(1)} h',
+};
+
+/// "3 (6.0 h)": the ads put up at night and how long they waited.
+String _night(SpeedCheck s) =>
+    s.nightAds == 0 ? '0' : '${s.nightAds} (${_hours(s.nightFoundHours)})';
 
 String _median(double? value, int count) =>
     value == null ? '–' : '${_signed(value)} (n=$count)';
