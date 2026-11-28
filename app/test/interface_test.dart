@@ -19,6 +19,7 @@ import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listin
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_card_preferences.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_filters.dart';
 import 'package:motorcycle_deal_tracker/features/listings/domain/entities/listing_sort.dart';
+import 'package:motorcycle_deal_tracker/features/listings/domain/entities/price_point.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/cubit/listing_card_preferences_cubit.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/listing_card_text.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/pages/listing_detail_page.dart';
@@ -28,6 +29,7 @@ import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/l
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/listing_header.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/photo_gallery.dart';
 import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/price_change_tag.dart';
+import 'package:motorcycle_deal_tracker/features/listings/presentation/widgets/price_history_section.dart';
 import 'package:motorcycle_deal_tracker/features/settings/presentation/listing_card_preferences_tile.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -2058,6 +2060,72 @@ void main() {
     expect(tester.takeException(), isNull);
     // The part last read outlives the page: leave Avaliação for the tests
     // that open ads from Ofertas.
+    await tester.scrollUntilVisible(
+      find.byType(TabBar),
+      -200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Avaliação'));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('a tap on the price chart paints its whole bubble (N.132)', (
+    tester,
+  ) async {
+    final fixture = InterfaceFixture();
+    final now = DateTime.now();
+    fixture.repository.priceHistory = [
+      PricePoint(
+        price: 8500,
+        observedAt: now.subtract(const Duration(days: 15)),
+      ),
+      PricePoint(
+        price: 8000,
+        observedAt: now.subtract(const Duration(days: 10)),
+      ),
+      PricePoint(price: 1, observedAt: now.subtract(const Duration(days: 5))),
+      PricePoint(
+        price: 7700,
+        observedAt: now.subtract(const Duration(days: 4)),
+      ),
+    ];
+    await _open(
+      tester,
+      fixture,
+      location: AppRoutes.listingDetail(interfaceListing(0).id),
+    );
+    await _reveal(tester, find.byType(TabBar));
+    await tester.tap(find.text('Mercado'));
+    await tester.pumpAndSettle();
+    await _reveal(tester, find.text('Toque no gráfico para ver cada preço'));
+    expect(tester.takeException(), isNull);
+    final chart = find.descendant(
+      of: find.byType(PriceHistorySection),
+      matching: find.byWidgetPredicate(
+        (widget) => widget is CustomPaint && widget.size.height == 200,
+      ),
+    );
+    expect(chart, findsOneWidget);
+    // Each point in turn: the bubble has two lines (the price, then the
+    // date and the move), and reading a freed line's height threw in the
+    // middle of the paint, which left the rest of the page blank.
+    await Scrollable.ensureVisible(tester.element(chart), alignment: 0.5);
+    await tester.pumpAndSettle();
+    final box = tester.getRect(chart);
+    for (final x in [0.05, 0.35, 0.65, 0.95]) {
+      final at = Offset(box.left + box.width * x, box.center.dy);
+      expect(
+        tester
+            .hitTestOnBinding(at)
+            .path
+            .any((entry) => entry.target == tester.renderObject(chart)),
+        isTrue,
+      );
+      await tester.tapAt(at);
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+    }
+    expect(find.text('Toque no gráfico para ver cada preço'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.byType(TabBar),
       -200,

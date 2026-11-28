@@ -655,10 +655,14 @@ class _PriceChartPainter({
     }
     var y = top + padV;
     for (final line in lines) {
+      // The height before dispose: a disposed painter has no layout, and
+      // reading it threw in the middle of the paint (N.132), leaving the
+      // bubble's second line and everything painted after the chart out.
+      final height = line.height;
       line
         ..paint(canvas, Offset(left + padH, y))
         ..dispose();
-      y += line.height;
+      y += height;
     }
   }
 

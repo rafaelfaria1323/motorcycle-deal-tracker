@@ -620,7 +620,8 @@ invites; written by the collector on each run).
   prices on the left (`priceTicks`), dates along the bottom, each stretch
   in its move's colour (drop positive, rise negative, first grey) with a
   legend, today's price labelled, a tap or the mouse shows the nearest
-  price (`nearestChange`). Query order: postgrest's `order()` sorts
+  price (`nearestChange`; each label's size is read before its
+  `TextPainter` is disposed: reading it after threw mid-paint, N.132). Query order: postgrest's `order()` sorts
   **descending** unless told, so every `.order(` in the app and the
   collector says `ascending:` (`query_order_test.dart` in both).
 - Interface: shared wordmark (`core/widgets/app_brand.dart`) and editorial

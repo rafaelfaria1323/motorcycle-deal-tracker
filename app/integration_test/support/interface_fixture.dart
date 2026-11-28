@@ -339,6 +339,9 @@ class InterfaceListings implements ListingsRepository {
   /// What [countNewSince] answers: ads found since the list loaded.
   int newSince = 0;
 
+  /// What [getPriceHistory] answers for every ad.
+  List<PricePoint> priceHistory = const [];
+
   @override
   Future<int> countNewSince(
     DateTime since, {
@@ -378,7 +381,8 @@ class InterfaceListings implements ListingsRepository {
   Future<List<Listing>> getCheaperSimilar(Listing listing) async => [];
 
   @override
-  Future<List<PricePoint>> getPriceHistory(String listingId) async => [];
+  Future<List<PricePoint>> getPriceHistory(String listingId) async =>
+      priceHistory;
 }
 
 class InterfaceSearches implements SavedSearchesRepository {
