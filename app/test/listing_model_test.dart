@@ -60,6 +60,7 @@ void main() {
           'published_at',
           'site_refreshed_at',
           'card_risk_reasons:score_breakdown->risk_reasons',
+          'card_extras:score_breakdown->extras',
         ]),
       );
       expect(columns, isNot(contains('description')));
@@ -117,6 +118,30 @@ void main() {
       ).hasFirstOwnerSignal,
       isFalse,
     );
+  });
+
+  test('E-Clutch from the card extras or the detail breakdown (N.135)', () {
+    for (final fields in [
+      {
+        'card_extras': ['quickshifter', 'e_clutch'],
+      },
+      {
+        'score_breakdown': {
+          'extras': ['e_clutch'],
+        },
+      },
+    ]) {
+      expect(ListingModel.fromJson(_row(fields)).eClutch, isTrue);
+    }
+    expect(
+      ListingModel.fromJson(
+        _row({
+          'card_extras': ['quickshifter'],
+        }),
+      ).eClutch,
+      isFalse,
+    );
+    expect(ListingModel.fromJson(_row({})).eClutch, isFalse);
   });
 
   test('reads the colour and whether it is a favourite', () {

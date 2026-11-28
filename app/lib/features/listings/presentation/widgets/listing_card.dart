@@ -7,6 +7,7 @@ import '../../domain/entities/listing_card_preferences.dart';
 import '../listing_card_text.dart';
 import '../listing_detail_text.dart';
 import '../listing_labels.dart';
+import '../score_explanation.dart';
 import '../photo_url.dart';
 import 'deal_score_badge.dart';
 import 'listing_photo.dart';
@@ -273,6 +274,14 @@ class const _CardDetails({
           warning,
           icon: Icons.warning_amber_rounded,
           tone: _Tone.warning,
+          maxLines: 1,
+        ),
+      // Honda's E-Clutch, an option worth finding (N.135).
+      if (listing.eClutch)
+        const _FactChip(
+          eClutchLabel,
+          icon: Icons.settings_suggest_outlined,
+          tone: _Tone.positive,
           maxLines: 1,
         ),
       if (preferredColour)

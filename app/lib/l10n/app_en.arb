@@ -588,6 +588,7 @@
   "hasItEverBeenDroppedOrInvolvedIn": "Has it ever been dropped or involved in an accident?",
   "isItRegisteredInYourName": "Is it registered in your name?",
   "isThereReservationOfOwnership": "Is there a reservation of ownership on it (a loan still being paid)?",
+  "canYouSendTheFrameNumber": "Could you send me the frame number (VIN)? I would like to check its history and recalls with a dealer of the brand.",
   "whenAndWhereCanISeeIt": "When and where can I see it?",
   "iSawYourListingForAndIAm": "I saw your listing for the {bike}{site} and I am interested. I have a few questions:",
   "ifEverythingIsAsDescribedWouldYouAccept": "If everything is as described, would you accept {price}?",

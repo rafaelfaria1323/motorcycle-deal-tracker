@@ -68,6 +68,10 @@ class const Listing({
   /// The Risk Score's reason codes (`score_breakdown->risk_reasons`, which
   /// lists load); the card warns of the serious ones.
   final List<String> riskReasons = const [],
+
+  /// Honda's E-Clutch named in the ad (the extra `e_clutch`, N.135): the
+  /// card shows it in green.
+  final bool eClutch = false,
   final bool? serviceBook,
   final String? origin,
   final DateTime? warrantyUntil,

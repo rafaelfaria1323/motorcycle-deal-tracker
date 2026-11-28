@@ -27,6 +27,7 @@ void main() {
       'led_indicators',
       'passenger_grips',
       'original_parts',
+      'e_clutch',
     ]);
   });
 

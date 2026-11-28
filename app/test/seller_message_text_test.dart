@@ -43,6 +43,8 @@ void main() {
       '- Já teve alguma queda ou acidente?\n'
       '- O registo está em seu nome?\n'
       '- Tem reserva de propriedade (crédito por pagar)?\n'
+      '- Pode enviar-me o número de quadro (VIN)? Gostaria de confirmar o '
+      'histórico e as campanhas num concessionário da marca.\n'
       '- Quando e onde a posso ver?\n'
       '\n'
       'Obrigado.',
@@ -66,6 +68,8 @@ void main() {
       expect(message.split('\n').where((l) => l.startsWith('- ')).toList(), [
         '- Ainda está disponível?',
         '- Já teve alguma queda ou acidente?',
+        '- Pode enviar-me o número de quadro (VIN)? Gostaria de confirmar o '
+            'histórico e as campanhas num concessionário da marca.',
         '- Quando e onde a posso ver?',
       ]);
     },

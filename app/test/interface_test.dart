@@ -601,6 +601,45 @@ void main() {
     },
   );
 
+  testWidgets('a card shows Honda\'s E-Clutch in green (N.135)', (
+    tester,
+  ) async {
+    Future<void> pump({required bool eClutch}) => tester.pumpWidget(
+      MaterialApp(
+        locale: AppLanguage.portuguese.locale,
+        localizationsDelegates: appLocalizationsDelegates,
+        supportedLocales: appLocales,
+        theme: AppTheme.light,
+        home: Scaffold(
+          body: ListingCard(
+            preferences: ListingCardPreferences(const []),
+            listing: Listing(
+              id: 'ec',
+              source: 'standvirtual',
+              url: 'https://example.pt/ec',
+              brand: 'Honda',
+              model: 'CB650R',
+              status: ListingStatus.active,
+              sellerType: SellerType.dealer,
+              images: const [],
+              price: 7900,
+              year: 2024,
+              eClutch: eClutch,
+            ),
+            favourite: false,
+            onLongPress: () {},
+          ),
+        ),
+      ),
+    );
+
+    await pump(eClutch: true);
+    expect(find.text('E-Clutch'), findsOneWidget);
+    expect(find.byIcon(Icons.settings_suggest_outlined), findsOneWidget);
+    await pump(eClutch: false);
+    expect(find.text('E-Clutch'), findsNothing);
+  });
+
   testWidgets(
     'card preference load and save errors are visible and retryable',
     (tester) async {
