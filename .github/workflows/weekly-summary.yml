@@ -12,7 +12,8 @@ name: Weekly summary
 # account as `account` (start_workflow), for that account only; "Run
 # workflow" here without an account makes everyone's, and then runs the
 # description check (text-audit.yml, N.55), the score check
-# (score-check.yml, N.61), the model specifications (model-specs.yml,
+# (score-check.yml, N.61), the spelling check (spelling-check.yml, N.137),
+# the model specifications (model-specs.yml,
 # N.76), the tax tables (tax-tables.yml, N.114) and the database backup
 # (backup.yml, N.79) beside it.
 on:
@@ -55,6 +56,12 @@ jobs:
     # Weekly with everyone's summary, as the description check.
     if: inputs.account == ''
     uses: ./.github/workflows/score-check.yml
+    secrets: inherit
+
+  spelling-check:
+    # Weekly with everyone's summary: misspelt rule words in the ads.
+    if: inputs.account == ''
+    uses: ./.github/workflows/spelling-check.yml
     secrets: inherit
 
   model-specs:

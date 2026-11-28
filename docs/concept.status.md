@@ -168,6 +168,7 @@ Labels (Excelente / Muito bom / Interessante / Normal / Fraco) ✅. Weights are 
 ➕ ✅ The ad's thumbnails centred under the photo when they all fit (N.133).
 ➕ ✅ Honda's E-Clutch read from the ad: a green chip on the card, a point like the quickshifter, and a choice in the equipment filter; the first message asks every seller for the VIN, to check the history at a dealer (N.135).
 ➕ ✅ Each bike priced against its own version: the fair value learns per model what the E-Clutch and the A2-limited version are worth (statistics over the model's ads, from 5 of each) and brings the comparables to the bike's version; "Cálculo da pontuação" says so (N.136).
+➕ ✅ Misspelt rule words found every week: every ad of the last 30 days read for words a letter or two off one the description rules depend on ("e cluch" for E-Clutch) which the rules read differently once corrected, in a report on the run's page, no AI (N.137).
 ➕ ✅ A fairer dealer score and cheaper reads (N.134): placeholder prices no longer count as sharp changes, relists count half, a small dealer is weighed against the others, a typo's mileage put right is no warning, and the dealer figures and the sites' model lists cost a fraction.
 ➕ ✅ A clearer price history (N.128): the first, lowest and change at a glance, placeholder prices left out of the chart, each change against the previous real price, and every query's order stated.
 ➕ ✅ The ad's report as a PDF (N.127): laid out as the ad's page, with the app's fonts and colours, to the phone's share sheet (or downloaded), the text kept as a second choice.

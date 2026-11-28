@@ -54,7 +54,7 @@ never asks for search URLs; aliases sit under "Outros nomes do modelo".
   statistics), except the weekly description check (N.55: Gemini's free
   tier reads a sample of the week's ads; the disagreements with the rules
   are a report for fixing them with tests, never a score; beside it the
-  weekly score check, N.61, without AI, and the model specifications,
+  weekly score check, N.61, and spelling check, N.137, without AI, and the model specifications,
   N.76: API Ninjas' data, no AI). Checks: analyzer rules (`*/analysis_options.yaml`, with Dart
   3.11-3.14's lints, N.40, N.112),
   `make duplication` (jscpd), `make coverage` (floors in the Makefile),
@@ -178,8 +178,9 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   without one, also keeps the month's value
                                   of each owned bike and pushes it (N.80,
                                   `record_owned_bike_values`), and calls text-audit.yml,
-                                  score-check.yml, model-specs.yml,
-                                  tax-tables.yml and backup.yml
+                                  score-check.yml, spelling-check.yml,
+                                  model-specs.yml, tax-tables.yml and
+                                  backup.yml
 .github/workflows/text-audit.yml  The description check (N.55,
                                   bin/text_audit.dart): up to 60 of the
                                   week's ads (`text_audit_sample`) and 40
@@ -201,6 +202,16 @@ docs/       sources.md (data-source decisions, keep updated), hosting.md
                                   audit/score_check.dart flags what looks
                                   off; report in the run's summary;
                                   writes nothing
+.github/workflows/spelling-check.yml  Misspelt rule words (N.137,
+                                  bin/spelling_check.dart, no AI): the
+                                  last 30 days' ads (`spelling_check_texts`),
+                                  words a letter or two off a word the
+                                  rules depend on, the text around them
+                                  read as written and corrected by the
+                                  database's rules (`text_rule_codes`);
+                                  audit/spelling_check.dart, report in
+                                  the run's summary (`notMisspellings`:
+                                  words that are fine); writes nothing
 .github/workflows/model-specs.yml The catalog's empty figures from API
                                   Ninjas (N.76, bin/model_specs.dart,
                                   `API_NINJAS_KEY`; no key: skipped):
@@ -360,6 +371,7 @@ make push-test                 send a test notification to the admins' devices (
 make weekly-summary [ARGS=--dry-run]   make and send (or print) each account's weekly summary
 make text-audit [ARGS=--ads=20]        the description check against Gemini (GEMINI_API_KEY)
 make score-check [ARGS=--days=14]      the estimates and Deal Score against likely sales (N.61)
+make spelling-check [ARGS=--days=14]   misspelt rule words in the recent ads (N.137, no AI)
 make model-specs                the catalog's missing figures from API Ninjas (N.76)
 make mutation PKG=collector|app FILES="lib/..."   mutation testing of those files
                                (needs `dart pub global activate mutation_test`)

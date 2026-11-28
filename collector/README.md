@@ -197,6 +197,20 @@ a model whose likely sales sat more than 7 % from the estimate, or a
 higher band selling less often than a lower one (each from 5). It writes
 nothing.
 
+Also beside it, `bin/spelling_check.dart` (workflow `spelling-check.yml`,
+N.137, no AI) looks for misspelt rule words in every matched ad of the
+last 30 days (`--days`; `spelling_check_texts`, paged by id).
+`audit/spelling_check.dart` finds the words written in a few ads one
+letter off a word in 3+ ads (two from 8 letters), keeps the near words the
+rules depend on (the text around them reads differently once they are
+blanked) and asks the database's rules (`text_rule_codes`: signals,
+extras and a mileage read from the text) what the text around each rare
+word reads as written and corrected. A difference is a finding: the
+report (stdout and the run's summary, at most `--top` 30) names the
+word, the rule word, the ads that write it, what the rules miss or wrongly
+read, and one ad's link. Words that are fine go in `notMisspellings`. It
+writes nothing.
+
 And `bin/model_specs.dart` (workflow `model-specs.yml`, N.76, no AI) fills
 the catalog's empty figures from API Ninjas' motorcycles API (env
 `API_NINJAS_KEY`; skipped without it): `model_specs_to_check` gives the
@@ -244,6 +258,7 @@ diagnostics stay unchanged; the database's warnings to the admins
 | `make weekly-summary [ARGS=--dry-run]` | Make and send (or print) each account's summary of the week |
 | `make text-audit [ARGS=--ads=20]` | The description check against Gemini (needs `GEMINI_API_KEY`) |
 | `make score-check [ARGS=--days=14]` | The estimates and Deal Score against likely sales (N.61) |
+| `make spelling-check [ARGS=--days=14]` | Misspelt rule words in the recent ads (N.137, no AI) |
 | `make model-specs` | The catalog's missing figures from API Ninjas (needs `API_NINJAS_KEY`, N.76) |
 | `make collector-check` | Format check, analyze and test |
 
@@ -253,7 +268,7 @@ Secrets go in `collector/.env` (gitignored): `SUPABASE_URL`,
 ## Code layout
 
 ```text
-bin/        entry points (refresh, fetch, collector, enrich, photos, searches, report_run, push_test, admin_notices, weekly_summary, text_audit, score_check, model_specs;
+bin/        entry points (refresh, fetch, collector, enrich, photos, searches, report_run, push_test, admin_notices, weekly_summary, text_audit, score_check, spelling_check, model_specs;
             `--help` lists each one's options, package args)
 lib/        fetcher, site adapters and mappers, model matching, store, run steps
 test/       unit tests

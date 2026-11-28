@@ -391,6 +391,28 @@ void main() {
     expect(calls.last.body, {'p_days': 28});
     expect((await check.bands(60, 14)).single.share, 20.0);
     expect(calls.last.body, {'p_days': 60, 'p_horizon': 14});
+
+    replies['spelling_check_texts'] = [
+      {'id': 'b', 'url': 'u', 'variant': 'CB650R', 'description': 'E-Clutch'},
+    ];
+    replies['text_rule_codes'] = [
+      {
+        'i': 2,
+        'codes': ['e_clutch'],
+      },
+    ];
+    final spelling = SpellingCheckStore(client);
+    final texts = await spelling.ads(30, pageSize: 2);
+    expect(texts.single.text, 'cb650r. e-clutch');
+    expect(calls.last.body, {'p_days': 30, 'p_after': null, 'p_limit': 2});
+    expect(await spelling.ruleCodes(['x', 'e clutch']), [
+      <String>{},
+      {'e_clutch'},
+    ]);
+    expect(calls.last.body, {
+      'p_texts': ['x', 'e clutch'],
+    });
+    expect(await spelling.ruleCodes(const []), isEmpty);
   });
 
   test('empty inputs send nothing', () async {

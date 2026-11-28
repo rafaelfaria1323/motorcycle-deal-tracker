@@ -112,6 +112,9 @@ model-specs: require-collector-env ## The catalog's missing figures from API Nin
 score-check: require-collector-env ## The estimates and Deal Score against likely sales (N.61): make score-check [ARGS=--days=14]
 	cd collector && dart run bin/score_check.dart $(ARGS)
 
+spelling-check: require-collector-env ## Words in recent ads a letter or two off a rule word (N.137, no AI): make spelling-check [ARGS=--days=14]
+	cd collector && dart run bin/spelling_check.dart $(ARGS)
+
 enrich-dry: require-collector-env ## List the listings that still need details, requests nothing
 	cd collector && dart run bin/enrich.dart --dry-run
 
