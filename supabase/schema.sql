@@ -1464,21 +1464,33 @@ CREATE FUNCTION public.dealer_listings(p_name text, p_limit integer DEFAULT 100)
 $$;
 
 --
--- Name: dealer_score(bigint, bigint, bigint, bigint, bigint, integer); Type: FUNCTION; Schema: public; Owner: -
+-- Name: dealer_problems(bigint, bigint, bigint, bigint); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.dealer_score(p_bikes bigint, p_relisted bigint, p_sharp_changes bigint, p_missing_mileage bigint, p_repeated bigint, p_min_bikes integer DEFAULT 5) RETURNS smallint
+CREATE FUNCTION public.dealer_problems(p_relisted bigint, p_sharp_changes bigint, p_missing_mileage bigint, p_repeated bigint) RETURNS numeric
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$
+  select coalesce(p_sharp_changes, 0)
+         + coalesce(p_repeated, 0)
+         + 0.5 * coalesce(p_relisted, 0)
+         + 0.5 * coalesce(p_missing_mileage, 0)
+$$;
+
+--
+-- Name: dealer_score(bigint, numeric, numeric, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.dealer_score(p_bikes bigint, p_problems numeric, p_prior_rate numeric DEFAULT NULL::numeric, p_min_bikes integer DEFAULT 5) RETURNS smallint
     LANGUAGE sql IMMUTABLE
     SET search_path TO ''
     AS $$
   select case
     when coalesce(p_bikes, 0) >= p_min_bikes then
-      greatest(0, least(100, round(100 - 100.0 * (
-        coalesce(p_relisted, 0)
-        + coalesce(p_sharp_changes, 0)
-        + coalesce(p_repeated, 0)
-        + 0.5 * coalesce(p_missing_mileage, 0)
-      ) / p_bikes)))::smallint
+      greatest(0, least(100, round(100 - 100.0
+        * (coalesce(p_problems, 0) + 5 * coalesce(p_prior_rate, 0))
+        / (p_bikes + case when p_prior_rate is null then 0 else 5 end)
+      )))::smallint
   end
 $$;
 
@@ -1948,12 +1960,16 @@ $$;
 --
 
 CREATE FUNCTION public.fact_edit_signals(p_mileage integer, p_mileage_from_text boolean, p_mileage_max_seen integer, p_year integer, p_year_first_seen integer) RETURNS text[]
-    LANGUAGE sql IMMUTABLE
+    LANGUAGE sql STABLE
     SET search_path TO ''
     AS $$
   select array_remove(array[
     case when p_mileage is not null and not coalesce(p_mileage_from_text, false)
               and p_mileage_max_seen - p_mileage >= 1000
+              and not coalesce(
+                p_mileage_max_seen::numeric
+                  / greatest(1, public.decimal_year() - (p_year + 0.5))
+                > 25000, false)
          then 'mileage_lowered' end,
     case when p_year > p_year_first_seen then 'year_raised' end
   ], null)
@@ -4708,11 +4724,21 @@ declare
 begin
   perform public.refresh_new_prices_from_ads();
 
-  with dealers as (
+  with dealer_counts as materialized (
     select d.dealer_key, d.bikes,
-           public.dealer_score(d.bikes, d.relisted, d.sharp_changes,
-                               d.missing_mileage, d.repeated) as score
+           public.dealer_problems(d.relisted, d.sharp_changes,
+                                  d.missing_mileage, d.repeated) as problems
     from public.dealer_reliability d
+  ),
+  dealers as (
+    select c.dealer_key, c.bikes,
+           public.dealer_score(c.bikes, c.problems, p.rate) as score
+    from dealer_counts c
+    cross join (
+      select sum(problems) / nullif(sum(bikes), 0) as rate
+      from dealer_counts
+      where bikes >= 5
+    ) p
   ),
   fair as materialized (
     select f.listing_id, f.comparable_count, f.fair_price
@@ -7221,6 +7247,41 @@ end;
 $$;
 
 --
+-- Name: store_site_models(text, jsonb); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.store_site_models(p_source text, p_models jsonb) RETURNS integer
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+declare
+  n integer;
+begin
+  insert into public.site_models as s
+    (source, make_id, make_name, model_id, model_name, ads, seen_at)
+  select distinct on (m.make_id, m.model_id)
+         p_source, m.make_id, m.make_name, m.model_id, m.model_name, m.ads,
+         now()
+  from jsonb_to_recordset(coalesce(p_models, '[]'::jsonb))
+         as m(make_id text, make_name text, model_id text, model_name text,
+              ads integer)
+  where m.make_id is not null and m.model_id is not null
+    and m.make_name is not null and m.model_name is not null
+  order by m.make_id, m.model_id
+  on conflict (source, make_id, model_id) do update
+  set make_name = excluded.make_name,
+      model_name = excluded.model_name,
+      ads = excluded.ads,
+      seen_at = excluded.seen_at
+  where (s.make_name, s.model_name) is distinct from
+          (excluded.make_name, excluded.model_name)
+     or s.seen_at < now() - interval '1 day';
+  get diagnostics n = row_count;
+  return n;
+end;
+$$;
+
+--
 -- Name: strip_phone_numbers(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -7797,68 +7858,34 @@ CREATE VIEW public.dealer_reliability WITH (security_invoker='true') AS
  WITH dealer_ads AS (
          SELECT l.id,
             l.source,
-            l.source_listing_id,
-            l.url,
-            l.motorcycle_id,
-            l.brand,
-            l.model,
-            l.variant,
-            l.year,
+            l.seller_name,
+            l.status,
+            l.duplicate_of,
+            l.relisted_from,
             l.mileage,
             l.price,
-            l.seller_type,
-            l.seller_name,
-            l.location,
-            l.description,
-            l.images,
-            l.status,
-            l.first_seen_at,
-            l.last_seen_at,
-            l.last_checked_at,
-            l.created_at,
-            l.updated_at,
-            l.deal_score,
-            l.risk_score,
-            l.score_breakdown,
-            l.scored_at,
-            l.duplicate_of,
-            l.duplicate_score,
             l.initial_price,
-            l.excellent_since,
-            l.registrations,
-            l.service_book,
-            l.origin,
-            l.warranty_until,
-            l.dealer_warranty_months,
-            l.published_at,
-            l.details_checked_at,
             l.price_before_drop,
-            l.search_key,
-            l.site_refreshed_at,
-            l.relisted_from,
-            l.relisted_since,
-            l.relisted_price,
-            lower(btrim(l.seller_name)) AS dealer_key
+            l.first_seen_at,
+            lower(btrim(l.seller_name)) AS dealer_key,
+            ((l.duplicate_of IS NULL) AND (EXISTS ( SELECT 1
+                   FROM ( SELECT h.price,
+                            lag(h.price) OVER (ORDER BY h.observed_at, h.id) AS previous_price
+                           FROM public.listing_price_history h
+                          WHERE ((h.listing_id = l.id) AND (h.price >= (300)::numeric))) s
+                  WHERE ((s.price >= (s.previous_price * 1.5)) OR (s.price <= (s.previous_price * 0.5)))))) AS sharp
            FROM public.listings l
           WHERE ((l.seller_type = 'dealer'::public.seller_type) AND (NULLIF(btrim(l.seller_name), ''::text) IS NOT NULL))
-        ), sharp AS (
-         SELECT DISTINCT s.listing_id
-           FROM ( SELECT h.listing_id,
-                    h.price,
-                    lag(h.price) OVER (PARTITION BY h.listing_id ORDER BY h.observed_at, h.id) AS previous_price
-                   FROM public.listing_price_history h) s
-          WHERE ((s.previous_price > (0)::numeric) AND ((s.price >= (s.previous_price * 1.5)) OR (s.price <= (s.previous_price * 0.5))))
         )
  SELECT d.dealer_key,
     mode() WITHIN GROUP (ORDER BY (btrim(d.seller_name))) AS seller_name,
     count(*) FILTER (WHERE (d.duplicate_of IS NULL)) AS bikes,
     count(*) FILTER (WHERE ((d.duplicate_of IS NULL) AND (d.status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status])))) AS live,
     count(*) FILTER (WHERE ((d.duplicate_of IS NULL) AND (d.relisted_from IS NOT NULL))) AS relisted,
-    count(*) FILTER (WHERE ((d.duplicate_of IS NULL) AND (d.id IN ( SELECT sharp.listing_id
-           FROM sharp)))) AS sharp_changes,
+    count(*) FILTER (WHERE d.sharp) AS sharp_changes,
     count(*) FILTER (WHERE ((d.duplicate_of IS NULL) AND (d.mileage IS NULL))) AS missing_mileage,
     count(*) FILTER (WHERE ((d.duplicate_of IS NOT NULL) AND (d.mileage >= 1000) AND (o.source = d.source))) AS repeated,
-    count(*) FILTER (WHERE ((d.duplicate_of IS NULL) AND (d.price < GREATEST(d.initial_price, d.price_before_drop)))) AS dropped,
+    count(*) FILTER (WHERE ((d.duplicate_of IS NULL) AND (d.price >= (300)::numeric) AND (d.price < GREATEST(d.initial_price, d.price_before_drop)))) AS dropped,
     min(d.first_seen_at) AS first_seen_at
    FROM (dealer_ads d
      LEFT JOIN public.listings o ON ((o.id = d.duplicate_of)))
@@ -8577,10 +8604,11 @@ CREATE VIEW public.source_data_quality WITH (security_invoker='true') AS
             h.price,
             lag(h.price) OVER (PARTITION BY h.listing_id ORDER BY h.observed_at, h.id) AS previous_price
            FROM public.listing_price_history h
+          WHERE (h.price >= (300)::numeric)
         ), sharp AS (
          SELECT DISTINCT s.listing_id
            FROM steps s
-          WHERE ((s.observed_at >= (now() - '30 days'::interval)) AND (s.previous_price > (0)::numeric) AND ((s.price >= (s.previous_price * 1.5)) OR (s.price <= (s.previous_price * 0.5))))
+          WHERE ((s.observed_at >= (now() - '30 days'::interval)) AND ((s.price >= (s.previous_price * 1.5)) OR (s.price <= (s.previous_price * 0.5))))
         )
  SELECT source,
     count(*) AS live_count,
@@ -10496,11 +10524,18 @@ GRANT ALL ON FUNCTION public.dealer_listings(p_name text, p_limit integer) TO an
 GRANT ALL ON FUNCTION public.dealer_listings(p_name text, p_limit integer) TO authenticated;
 
 --
--- Name: FUNCTION dealer_score(p_bikes bigint, p_relisted bigint, p_sharp_changes bigint, p_missing_mileage bigint, p_repeated bigint, p_min_bikes integer); Type: ACL; Schema: public; Owner: -
+-- Name: FUNCTION dealer_problems(p_relisted bigint, p_sharp_changes bigint, p_missing_mileage bigint, p_repeated bigint); Type: ACL; Schema: public; Owner: -
 --
 
-REVOKE ALL ON FUNCTION public.dealer_score(p_bikes bigint, p_relisted bigint, p_sharp_changes bigint, p_missing_mileage bigint, p_repeated bigint, p_min_bikes integer) FROM PUBLIC;
-GRANT ALL ON FUNCTION public.dealer_score(p_bikes bigint, p_relisted bigint, p_sharp_changes bigint, p_missing_mileage bigint, p_repeated bigint, p_min_bikes integer) TO service_role;
+REVOKE ALL ON FUNCTION public.dealer_problems(p_relisted bigint, p_sharp_changes bigint, p_missing_mileage bigint, p_repeated bigint) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.dealer_problems(p_relisted bigint, p_sharp_changes bigint, p_missing_mileage bigint, p_repeated bigint) TO service_role;
+
+--
+-- Name: FUNCTION dealer_score(p_bikes bigint, p_problems numeric, p_prior_rate numeric, p_min_bikes integer); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.dealer_score(p_bikes bigint, p_problems numeric, p_prior_rate numeric, p_min_bikes integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.dealer_score(p_bikes bigint, p_problems numeric, p_prior_rate numeric, p_min_bikes integer) TO service_role;
 
 --
 -- Name: FUNCTION description_signals(p_variant text, p_description text); Type: ACL; Schema: public; Owner: -
@@ -11891,6 +11926,13 @@ GRANT ALL ON FUNCTION public.store_push_keys(p_public_key text, p_private_key te
 
 REVOKE ALL ON FUNCTION public.store_service_access(p_url text, p_key text) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.store_service_access(p_url text, p_key text) TO service_role;
+
+--
+-- Name: FUNCTION store_site_models(p_source text, p_models jsonb); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.store_site_models(p_source text, p_models jsonb) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.store_site_models(p_source text, p_models jsonb) TO service_role;
 
 --
 -- Name: FUNCTION strip_phone_numbers(); Type: ACL; Schema: public; Owner: -

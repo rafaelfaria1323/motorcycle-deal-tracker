@@ -14,6 +14,12 @@ begin
   assert public.fact_edit_signals(13000, false, 13000, 2019, 2020) = '{}'::text[],
     'an older year is against the seller';
   assert public.fact_edit_signals(null, false, null, null, null) = '{}'::text[], 'nothing known';
+  -- A highest mileage of over 25 000 km a year was a typo put right, not a
+  -- lowered odometer (N.134).
+  assert public.fact_edit_signals(12500, false, 125000, 2024, 2024) = '{}'::text[],
+    'a zero too many, corrected';
+  assert public.fact_edit_signals(12500, false, 40000, 2020, 2020) = array['mileage_lowered'],
+    '40 000 km on a 2020 bike was plausible';
 end $$;
 
 insert into public.listings (source, source_listing_id, url, motorcycle_id, brand, model,

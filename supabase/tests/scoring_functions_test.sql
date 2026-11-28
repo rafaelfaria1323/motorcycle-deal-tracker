@@ -93,12 +93,20 @@ begin
   select * into r from public.combine_deal_score(80, 50, 100, 20, 0, 0);
   assert r.deal_score = 65, format('a dealer with warning signs, got %s', r.deal_score);
 
-  -- dealer_score: 100 minus the share of warning signs, half for no mileage.
-  assert public.dealer_score(10, 0, 0, 0, 0) = 100, 'clean';
-  assert public.dealer_score(10, 1, 1, 2, 1) = 60, 'relisted, sharp, repeated, no km';
-  assert public.dealer_score(5, 5, 5, 0, 5) = 0, 'clamped at 0';
-  assert public.dealer_score(4, 0, 0, 0, 0) is null, 'too few bikes';
-  assert public.dealer_score(null, 0, 0, 0, 0) is null, 'no dealer';
+  -- dealer_score: 100 minus the share of warning signs; relists and no
+  -- mileage count half (dealer_problems, N.134).
+  assert public.dealer_problems(1, 1, 2, 1) = 3.5, 'relisted, sharp, no km, repeated';
+  assert public.dealer_problems(null, null, null, null) = 0, 'nothing known';
+  assert public.dealer_score(10, 0) = 100, 'clean';
+  assert public.dealer_score(10, 3.5) = 65, 'relisted, sharp, repeated, no km';
+  assert public.dealer_score(5, 15) = 0, 'clamped at 0';
+  assert public.dealer_score(4, 0) is null, 'too few bikes';
+  assert public.dealer_score(null, 0) is null, 'no dealer';
+  -- Shrunk towards the dealers' rate with the weight of 5 bikes: a small
+  -- record moves more than a big one with the same share.
+  assert public.dealer_score(5, 1, 0.1) = 85, '100 - 100 * (1 + 0.5) / 10';
+  assert public.dealer_score(50, 10, 0.1) = 81, '100 - 100 * (10 + 0.5) / 55 = 80.9';
+  assert public.dealer_score(5, 0, 0) = 100, 'a clean market keeps a clean dealer at 100';
 
   -- Without the price slice, at most 70.
   select * into r from public.combine_deal_score(null, 100, 100, 0, 3);

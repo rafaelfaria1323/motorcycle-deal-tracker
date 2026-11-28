@@ -802,7 +802,8 @@ invites; written by the collector on each run).
 - `source_data_quality` (view, readable by everyone) feeds "Qualidade dos
   dados" in "Estado da recolha" (admins; F.5), including `last_seen_at` (stale after 24 h: "verifique a
   recolha") and `sharp_price_changes` (live listings whose price moved by
-  50 % or more in one step in the last 30 days).
+  50 % or more in one step in the last 30 days, between real prices
+  only: a placeholder under 300 € is skipped, N.134).
 - `collector_runs` is readable only by non-anonymous users. What a run
   did comes from the report refresh.dart writes (`--report`, `RunReport`,
   `pipeline/run_report.dart`, N.57: each site's outcome, error line,
@@ -942,7 +943,8 @@ starts once, the catalog is loaded once). For each site:
 `planSearches` (tracked models) → `fetchSearches` saves the pages plus
 `searches.json` (planned searches, search of each page) → `importBatch`:
 save → markSeen → rematch → applyListingFacts → applyPriceChanges → setSearchKeys → applyPricesBeforeDrop
-→ applyListingDates → saveSiteModels → (if `--full`) markRemoved; Standvirtual then reads the details of every
+→ applyListingDates → saveSiteModels (one call, `store_site_models`: only
+new, renamed or day-old rows are written, N.134) → (if `--full`) markRemoved; Standvirtual then reads the details of every
 listing waiting for them (`enrichDetails`) with the same fetcher. Then once for all sites
 (`finishRun`): markDuplicates → recalculateScores → generateAlerts →
 notifications (Web Push) → bike values answered (`answer_bike_value_requests`,
@@ -1322,9 +1324,11 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   `mileageForAge` says the same in words, keep both in step; the year part
   is `age_score`, 10 points a year of age counted the same way), risk 10
   (inverted), seller 10 (`dealer_score`: dealers with 5+ bikes only, 100
-  minus 100 x (relisted + sharp changes + repeated + half the ads without
-  mileage) / bikes; private sellers and smaller dealers skip it; the
-  app's `sellerLine`); then + 1 point per extra worth money
+  minus 100 x (problems + 5 x rate) / (bikes + 5), N.134: problems =
+  `dealer_problems`, sharp changes + repeated + half the relisted + half
+  the ads without mileage; rate = every scored dealer's problems per
+  bike, so a small dealer's record is shrunk towards the others'; private
+  sellers and smaller dealers skip it; the app's `sellerLine`); then + 1 point per extra worth money
   (`valued_extras`: quickshifter, exhaust, luggage, heated grips, upgraded
   suspension, cruise control, steering damper, new tyres), at most + 3, so
   extras only break ties (never more than about a year newer), never above
@@ -1374,7 +1378,8 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   the seller's edits in their own favour after the ad was
   found (N.62, `fact_edit_signals`: `mileage_lowered` 15, the ad's own
   mileage 1 000 km or more under the highest it showed,
-  `listings.mileage_max_seen`; `year_raised` 10, newer than the first
+  `listings.mileage_max_seen`, unless that highest was over 25 000 km a
+  year, a typo put right, N.134; `year_raised` 10, newer than the first
   year shown, `year_first_seen`; both kept by the trigger
   `listings_track_facts`, never from km read in the text; the page says
   what it showed before), the text contradicting the ad's fields
@@ -1541,8 +1546,9 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   `saved_searches.district`); an ad whose place is unknown matches none.
 - Dealer figures (`dealer_reliability` view, per dealer name trimmed and
   case-folded, both sites; shown as "O stand" on dealer listings): bikes,
-  live, relisted, sharp price changes, missing mileage, repeated used
-  bikes on the same site, price dropped. Scored as the Deal Score's seller
+  live, relisted, sharp price changes (between real prices, N.134),
+  missing mileage, repeated used bikes on the same site, price dropped
+  (to a real price). Scored as the Deal Score's seller
   slice (`dealer_score`, see Scoring model). Its button opens the
   dealer's page (N.72, `/dealer?name=…`, `DealerPage`, pushed): the
   figures, then every ad of it on both sites, live first, then the gone

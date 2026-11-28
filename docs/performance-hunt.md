@@ -9,6 +9,7 @@ for resources that are opened and never closed.
 
 Ranked by how often the cost is paid and how large it is. Steps PF.1-PF.5
 are done in this PR; PF.6-PF.7 are noted, not worth their code today.
+PF.8-PF.9 came with N.117-N.118, PF.10-PF.11 with N.134 (PF.12 noted).
 
 ## Findings
 
@@ -22,6 +23,9 @@ are done in this PR; PF.6-PF.7 are noted, not worth their code today.
 | PF.6 | `description_signals` (`20261106120000_not_legalised.sql:136`) | About 60 regular expressions per description; Postgres caches 32 compiled ones per session, so each listing recompiles some (about 6 ms a listing). Paid only when a description changes (the stored `text_signals`), so a few seconds a run. | not changed |
 | PF.8 | `collect.yml`, `photos.yml` (2026-11-17, N.117) | Each collection installed Dart and the dependencies twice (about 10 s each) and started three programs with `dart run`, which compiles from source every time (about 8-10 s each on the runner). | start 7.1 s → 14 ms locally; about 35-45 s a collection |
 | PF.9 | the collection (2026-11-17, N.118) | Which step a real run spends its time on was only guessed from the log's timestamps (about 20 s of SQL in a 230 s run; the 6-10 s waits between requests take the rest). | each step's time kept per run (`collector_runs.steps_ms`), "Onde vai o tempo" in "Estado da recolha" |
+| PF.10 | `dealer_reliability` (2026-11-28, N.134) | The view numbered and sorted the whole price history (a window over every row) for every query, also the dealer card's, which asks for one dealer. | every dealer 155 → 58 ms; one dealer about 3 ms |
+| PF.11 | `saveSiteModels` (2026-11-28, N.134) | The sites' brand and model lists were upserted whole every run: Standvirtual's took 5.1 s in run 46133048230, the slowest SQL step. | one call, `store_site_models`, writes only new, renamed or day-old rows: 3 000 rows about 30 ms, 0 written on a repeat |
+| PF.12 | `risk_from_signals` (2026-11-28) | About 0.5 ms a listing of executor overhead (not the regexes or plan caching), about 18 s of the 43 s scoring on 20 000 ads. The real run's scores take 2.0 s for 430 ads. | not changed |
 | PF.7 | `place_key` (in `distance_km`, `district`) | Three regular expressions per row to find the ad's place; the rest of the distance sort's 1.0 s. A stored place key per listing would remove it; the sort is opt-in and 1 s on 8x today's ads. | not changed |
 
 ## What was done
