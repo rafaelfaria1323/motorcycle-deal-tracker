@@ -1346,7 +1346,7 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   cruise control, upgraded suspension, LED indicators, passenger grab
   handles, original parts included (so it can go back to stock), Honda's
   E-Clutch (`e_clutch`, N.135: "E-Clutch", "eclutch", "embraiagem
-  eletrónica"; the card's green chip, `Listing.eClutch`); codes
+  eletrónica", misspelt "e cluch", "e-cluth"; the card's green chip, `Listing.eClutch`); codes
   never change, the app's `extraLabels` and the saved-search check list the
   same). Extras are a bonus, not a slice: as a slice they lowered good
   scores. Without the price slice the score is at most 70
