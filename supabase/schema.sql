@@ -830,12 +830,24 @@ CREATE FUNCTION public.bike_value_in_years(p_motorcycle_id uuid, p_year integer,
     select m.generation_years as years
     from public.motorcycles m where m.id = p_motorcycle_id
   ),
+  premiums as (
+    select coalesce(max(p.premium) filter (where p.version = 'e_clutch'), 0) as e_clutch,
+           coalesce(max(p.premium) filter (where p.version = 'a2_limited'), 0) as a2_limited
+    from public.model_version_premiums p
+    where p.motorcycle_id = p_motorcycle_id
+  ),
   comparables as (
     select c.year, c.mileage, c.price,
            p_year is not null and abs(p_year - c.year) <= 3 as near,
            p_year is not null and abs(p_year - c.year) <= 3
              and public.model_generation(g.years, c.year)
-                 = public.model_generation(g.years, p_year) as same_generation
+                 = public.model_generation(g.years, p_year) as same_generation,
+           public.listing_is_e_clutch(
+             coalesce(c.text_extras, public.listing_extras(c.variant, c.description)))
+             as e_clutch,
+           public.listing_is_a2_limited(
+             coalesce(c.text_signals, public.description_signals(c.variant, c.description)))
+             as a2_limited
     from public.listings c
     cross join generations g
     where c.motorcycle_id = p_motorcycle_id
@@ -864,8 +876,11 @@ CREATE FUNCTION public.bike_value_in_years(p_motorcycle_id uuid, p_year integer,
              p_mileage - ch.mileage,
              coalesce(d.per_year, 0.04),
              coalesce(d.per_1000km, 0.002)
-           ) as price
+           )
+           / exp(pr.e_clutch * ch.e_clutch::integer
+                 + pr.a2_limited * ch.a2_limited::integer) as price
     from chosen ch
+    cross join premiums pr
     left join public.model_depreciation d on d.motorcycle_id = p_motorcycle_id
   )
   select
@@ -2849,6 +2864,28 @@ CREATE FUNCTION public.listing_for_ad(p_url text) RETURNS uuid
 $$;
 
 --
+-- Name: listing_is_a2_limited(text[]); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.listing_is_a2_limited(p_signals text[]) RETURNS boolean
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$
+  select coalesce('a2_limited' = any(p_signals), false);
+$$;
+
+--
+-- Name: listing_is_e_clutch(text[]); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.listing_is_e_clutch(p_extras text[]) RETURNS boolean
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$
+  select coalesce('e_clutch' = any(p_extras), false);
+$$;
+
+--
 -- Name: listing_matches_search(uuid, integer, numeric, integer, text, public.seller_type, uuid, integer, numeric, integer, text, public.seller_type); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -4745,7 +4782,7 @@ begin
     ) p
   ),
   fair as materialized (
-    select f.listing_id, f.comparable_count, f.fair_price
+    select f.listing_id, f.comparable_count, f.fair_price, f.version_premiums
     from public.listing_fair_prices f
   ),
   scored as materialized (
@@ -4753,6 +4790,7 @@ begin
       l.id,
       l.price,
       f.fair_price as market_price,
+      f.version_premiums,
       public.damage_allowance(rs.reasons) as allowance,
       -- Not yet legalised in Portugal (N.52): what that costs comes off.
       public.legalisation_cost(
@@ -4804,6 +4842,7 @@ begin
         'market_price',         s.market_price,
         'pct_below_market',     s.pct_below_market,
         'market_listing_count', s.listing_count,
+        'version_premiums',     s.version_premiums,
         'risk_reasons',         to_jsonb(coalesce(s.reasons, '{}'::text[])),
         'extras',               to_jsonb(s.extras),
         'valued_extras',        to_jsonb(public.valued_extras(s.extras)),
@@ -7478,12 +7517,11 @@ CREATE FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mi
     from public.motorcycles m
     where m.id = p_motorcycle_id
   ),
-  input as (
+  typed as (
     select
       md.*,
       nullif(btrim(coalesce(p_description, '')), '') as description,
-      v.comparable_count,
-      v.fair_price,
+      public.listing_extras(nullif(btrim(coalesce(p_variant, '')), ''), p_description) as extras,
       (select coalesce(array_agg(distinct s), '{}'::text[])
        from unnest(
          public.description_signals(nullif(btrim(coalesce(p_variant, '')), ''), p_description)
@@ -7493,7 +7531,30 @@ CREATE FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mi
               else '{}'::text[]
             end) s) as signals
     from model md
-    cross join lateral public.bike_value_in_years(md.id, p_year, p_mileage, p_from_year, p_to_year) v
+  ),
+  premiums as (
+    select coalesce(max(p.premium) filter (where p.version = 'e_clutch'), 0) as e_clutch,
+           max(p.with_count) filter (where p.version = 'e_clutch') as e_clutch_ads,
+           coalesce(max(p.premium) filter (where p.version = 'a2_limited'), 0) as a2_limited,
+           max(p.with_count) filter (where p.version = 'a2_limited') as a2_limited_ads
+    from public.model_version_premiums p
+    where p.motorcycle_id = p_motorcycle_id
+  ),
+  input as (
+    select
+      t.*,
+      v.comparable_count,
+      round(v.fair_price * exp(
+        pr.e_clutch * public.listing_is_e_clutch(t.extras)::integer
+        + pr.a2_limited * public.listing_is_a2_limited(t.signals)::integer), 2)
+        as fair_price,
+      public.version_premium_notes(
+        public.listing_is_e_clutch(t.extras), pr.e_clutch, pr.e_clutch_ads,
+        public.listing_is_a2_limited(t.signals), pr.a2_limited, pr.a2_limited_ads)
+        as version_premiums
+    from typed t
+    cross join premiums pr
+    cross join lateral public.bike_value_in_years(t.id, p_year, p_mileage, p_from_year, p_to_year) v
   ),
   risk as (
     select i.*, r.risk_score, r.reasons
@@ -7529,8 +7590,7 @@ CREATE FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mi
       end as near_new_price,
       coalesce(public.mileage_use_score(p_mileage, p_year),
                case when p_year is not null then 50 end) as m_score,
-      public.age_score(p_year) as y_score,
-      public.listing_extras(nullif(btrim(coalesce(p_variant, '')), ''), p_description) as extras
+      public.age_score(p_year) as y_score
     from risk r
   ),
   priced as (
@@ -7569,6 +7629,7 @@ CREATE FUNCTION public.typed_ad_score(p_motorcycle_id uuid, p_year integer, p_mi
              then round((p.fair_price - p_price) / p.fair_price * 100, 1)
         end,
       'market_listing_count', p.comparable_count,
+      'version_premiums',     p.version_premiums,
       'risk_reasons',         to_jsonb(coalesce(p.reasons, '{}'::text[])),
       'extras',               to_jsonb(p.extras),
       'valued_extras',        to_jsonb(public.valued_extras(p.extras)),
@@ -7658,6 +7719,30 @@ CREATE FUNCTION public.valued_extras(p_extras text[]) RETURNS text[]
   where e = any (array['quickshifter', 'exhaust', 'luggage', 'heated_grips',
                        'suspension', 'cruise_control', 'steering_damper',
                        'new_tyres', 'e_clutch'])
+$$;
+
+--
+-- Name: version_premium_notes(boolean, numeric, integer, boolean, numeric, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.version_premium_notes(p_e_clutch boolean, p_e_clutch_premium numeric, p_e_clutch_ads integer, p_a2_limited boolean, p_a2_limited_premium numeric, p_a2_limited_ads integer) RETURNS jsonb
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO ''
+    AS $$
+  select nullif(to_jsonb(array_remove(array[
+    case when p_e_clutch and coalesce(p_e_clutch_premium, 0) <> 0
+         then jsonb_build_object(
+           'version', 'e_clutch',
+           'pct', round((exp(p_e_clutch_premium) - 1) * 100, 1),
+           'ads', p_e_clutch_ads)
+    end,
+    case when p_a2_limited and coalesce(p_a2_limited_premium, 0) <> 0
+         then jsonb_build_object(
+           'version', 'a2_limited',
+           'pct', round((exp(p_a2_limited_premium) - 1) * 100, 1),
+           'ads', p_a2_limited_ads)
+    end
+  ]::jsonb[], null)), '[]'::jsonb);
 $$;
 
 --
@@ -8014,6 +8099,59 @@ CREATE VIEW public.model_depreciation WITH (security_invoker='true') AS
    FROM km k;
 
 --
+-- Name: model_version_premiums; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.model_version_premiums WITH (security_invoker='true') AS
+ WITH sample AS (
+         SELECT l.motorcycle_id,
+            l.year,
+            ((ln((l.price)::double precision) - ((d.per_year)::double precision * (l.year)::double precision)) + (((d.per_1000km)::double precision * (l.mileage)::double precision) / (1000.0)::double precision)) AS r,
+            public.listing_is_e_clutch(COALESCE(l.text_extras, public.listing_extras(l.variant, l.description))) AS e_clutch,
+            public.listing_is_a2_limited(COALESCE(l.text_signals, public.description_signals(l.variant, l.description))) AS a2_limited
+           FROM (public.listings l
+             JOIN public.model_depreciation d ON ((d.motorcycle_id = l.motorcycle_id)))
+          WHERE ((l.status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status])) AND (l.duplicate_of IS NULL) AND (l.price >= (300)::numeric) AND (l.year IS NOT NULL) AND (l.mileage IS NOT NULL))
+        ), flagged AS (
+         SELECT s.motorcycle_id,
+            s.year,
+            s.r,
+            v.version,
+                CASE v.version
+                    WHEN 'e_clutch'::text THEN s.e_clutch
+                    ELSE s.a2_limited
+                END AS has
+           FROM (sample s
+             CROSS JOIN ( VALUES ('e_clutch'::text), ('a2_limited'::text)) v(version))
+        ), with_version AS (
+         SELECT f.motorcycle_id,
+            f.version,
+            min(f.year) AS from_year,
+            max(f.year) AS to_year,
+            count(*) AS with_count,
+            percentile_cont((0.5)::double precision) WITHIN GROUP (ORDER BY f.r) AS with_median
+           FROM flagged f
+          WHERE f.has
+          GROUP BY f.motorcycle_id, f.version
+        ), without_version AS (
+         SELECT w_1.motorcycle_id,
+            w_1.version,
+            count(*) AS without_count,
+            percentile_cont((0.5)::double precision) WITHIN GROUP (ORDER BY f.r) AS without_median
+           FROM (with_version w_1
+             JOIN flagged f ON (((f.motorcycle_id = w_1.motorcycle_id) AND (f.version = w_1.version) AND (NOT f.has) AND ((f.year >= w_1.from_year) AND (f.year <= w_1.to_year)))))
+          GROUP BY w_1.motorcycle_id, w_1.version
+        )
+ SELECT w.motorcycle_id,
+    w.version,
+    (w.with_count)::integer AS with_count,
+    (o.without_count)::integer AS without_count,
+    round((GREATEST(('-0.25'::numeric)::double precision, LEAST((0.25)::double precision, (((w.with_median - o.without_median) * (w.with_count)::double precision) / (((w.with_count)::numeric + 5.0))::double precision))))::numeric, 4) AS premium
+   FROM (with_version w
+     JOIN without_version o USING (motorcycle_id, version))
+  WHERE ((w.with_count >= 5) AND (o.without_count >= 5));
+
+--
 -- Name: listing_fair_prices; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -8024,7 +8162,9 @@ CREATE VIEW public.listing_fair_prices WITH (security_invoker='true') AS
             l_1.year,
             l_1.mileage,
             l_1.price,
-            public.model_generation(m.generation_years, (l_1.year)::integer) AS generation
+            public.model_generation(m.generation_years, (l_1.year)::integer) AS generation,
+            (public.listing_is_e_clutch(COALESCE(l_1.text_extras, public.listing_extras(l_1.variant, l_1.description))))::integer AS e_clutch,
+            (public.listing_is_a2_limited(COALESCE(l_1.text_signals, public.description_signals(l_1.variant, l_1.description))))::integer AS a2_limited
            FROM (public.listings l_1
              JOIN public.motorcycles m ON ((m.id = l_1.motorcycle_id)))
           WHERE ((l_1.status = ANY (ARRAY['active'::public.listing_status, 'price_changed'::public.listing_status])) AND (l_1.duplicate_of IS NULL) AND (l_1.price >= (300)::numeric))
@@ -8034,23 +8174,38 @@ CREATE VIEW public.listing_fair_prices WITH (security_invoker='true') AS
             array_agg(c.year ORDER BY c.id) AS years,
             array_agg(c.mileage ORDER BY c.id) AS kms,
             array_agg(c.price ORDER BY c.id) AS prices,
-            array_agg(c.generation ORDER BY c.id) AS generations
+            array_agg(c.generation ORDER BY c.id) AS generations,
+            array_agg(c.e_clutch ORDER BY c.id) AS e_clutches,
+            array_agg(c.a2_limited ORDER BY c.id) AS a2_limiteds
            FROM live c
           GROUP BY c.motorcycle_id
+        ), premiums AS (
+         SELECT p.motorcycle_id,
+            COALESCE(max(p.premium) FILTER (WHERE (p.version = 'e_clutch'::text)), (0)::numeric) AS e_clutch,
+            max(p.with_count) FILTER (WHERE (p.version = 'e_clutch'::text)) AS e_clutch_ads,
+            COALESCE(max(p.premium) FILTER (WHERE (p.version = 'a2_limited'::text)), (0)::numeric) AS a2_limited,
+            max(p.with_count) FILTER (WHERE (p.version = 'a2_limited'::text)) AS a2_limited_ads
+           FROM public.model_version_premiums p
+          GROUP BY p.motorcycle_id
         )
  SELECT l.id AS listing_id,
     f.comparable_count,
-    f.fair_price
-   FROM ((((live l
+    f.fair_price,
+        CASE
+            WHEN (((l.e_clutch + l.a2_limited) > 0) AND (pr.motorcycle_id IS NOT NULL)) THEN public.version_premium_notes((l.e_clutch = 1), pr.e_clutch, pr.e_clutch_ads, (l.a2_limited = 1), pr.a2_limited, pr.a2_limited_ads)
+            ELSE NULL::jsonb
+        END AS version_premiums
+   FROM (((((live l
      JOIN models a ON ((a.motorcycle_id = l.motorcycle_id)))
      JOIN public.model_depreciation d ON ((d.motorcycle_id = l.motorcycle_id)))
+     LEFT JOIN premiums pr ON ((pr.motorcycle_id = l.motorcycle_id)))
      CROSS JOIN LATERAL ( SELECT (count(*) FILTER (WHERE ((abs((l.year - c.year)) <= 3) AND (l.generation = c.generation))) >= 5) AS use_generation,
             (count(*) FILTER (WHERE (abs((l.year - c.year)) <= 3)) >= 5) AS use_near
            FROM UNNEST(a.ids, a.years, a.kms, a.generations) c(id, year, mileage, generation)
           WHERE ((c.id <> l.id) AND ((l.year IS NULL) OR (c.year IS NOT NULL)) AND ((l.mileage IS NULL) OR (c.mileage IS NOT NULL)))) ch)
      CROSS JOIN LATERAL ( SELECT count(*) AS comparable_count,
-            round((percentile_cont((0.5)::double precision) WITHIN GROUP (ORDER BY ((c.price)::double precision * GREATEST((0.35)::double precision, LEAST((2.5)::double precision, exp((((d.per_year * (COALESCE(((l.year - c.year))::integer, 0))::numeric) - ((d.per_1000km * (COALESCE((l.mileage - c.mileage), 0))::numeric) / 1000.0)))::double precision))))))::numeric, 2) AS fair_price
-           FROM UNNEST(a.ids, a.years, a.kms, a.prices, a.generations) c(id, year, mileage, price, generation)
+            round((percentile_cont((0.5)::double precision) WITHIN GROUP (ORDER BY (((c.price)::double precision * GREATEST((0.35)::double precision, LEAST((2.5)::double precision, exp((((d.per_year * (COALESCE(((l.year - c.year))::integer, 0))::numeric) - ((d.per_1000km * (COALESCE((l.mileage - c.mileage), 0))::numeric) / 1000.0)))::double precision)))) * exp((((COALESCE(pr.e_clutch, (0)::numeric) * ((l.e_clutch - c.e_clutch))::numeric) + (COALESCE(pr.a2_limited, (0)::numeric) * ((l.a2_limited - c.a2_limited))::numeric)))::double precision))))::numeric, 2) AS fair_price
+           FROM UNNEST(a.ids, a.years, a.kms, a.prices, a.generations, a.e_clutches, a.a2_limiteds) c(id, year, mileage, price, generation, e_clutch, a2_limited)
           WHERE ((c.id <> l.id) AND ((l.year IS NULL) OR (c.year IS NOT NULL)) AND ((l.mileage IS NULL) OR (c.mileage IS NOT NULL)) AND
                 CASE
                     WHEN ch.use_generation THEN ((abs((l.year - c.year)) <= 3) AND (l.generation = c.generation))
@@ -10947,6 +11102,24 @@ GRANT ALL ON FUNCTION public.listing_for_ad(p_url text) TO authenticated;
 GRANT ALL ON FUNCTION public.listing_for_ad(p_url text) TO service_role;
 
 --
+-- Name: FUNCTION listing_is_a2_limited(p_signals text[]); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.listing_is_a2_limited(p_signals text[]) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.listing_is_a2_limited(p_signals text[]) TO service_role;
+GRANT ALL ON FUNCTION public.listing_is_a2_limited(p_signals text[]) TO anon;
+GRANT ALL ON FUNCTION public.listing_is_a2_limited(p_signals text[]) TO authenticated;
+
+--
+-- Name: FUNCTION listing_is_e_clutch(p_extras text[]); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.listing_is_e_clutch(p_extras text[]) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.listing_is_e_clutch(p_extras text[]) TO service_role;
+GRANT ALL ON FUNCTION public.listing_is_e_clutch(p_extras text[]) TO anon;
+GRANT ALL ON FUNCTION public.listing_is_e_clutch(p_extras text[]) TO authenticated;
+
+--
 -- Name: FUNCTION listing_matches_search(l_motorcycle_id uuid, l_year integer, l_price numeric, l_mileage integer, l_location text, l_seller_type public.seller_type, s_motorcycle_id uuid, s_min_year integer, s_max_price numeric, s_max_mileage integer, s_location text, s_seller_type public.seller_type); Type: ACL; Schema: public; Owner: -
 --
 
@@ -12028,6 +12201,15 @@ REVOKE ALL ON FUNCTION public.valued_extras(p_extras text[]) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.valued_extras(p_extras text[]) TO service_role;
 
 --
+-- Name: FUNCTION version_premium_notes(p_e_clutch boolean, p_e_clutch_premium numeric, p_e_clutch_ads integer, p_a2_limited boolean, p_a2_limited_premium numeric, p_a2_limited_ads integer); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.version_premium_notes(p_e_clutch boolean, p_e_clutch_premium numeric, p_e_clutch_ads integer, p_a2_limited boolean, p_a2_limited_premium numeric, p_a2_limited_ads integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.version_premium_notes(p_e_clutch boolean, p_e_clutch_premium numeric, p_e_clutch_ads integer, p_a2_limited boolean, p_a2_limited_premium numeric, p_a2_limited_ads integer) TO service_role;
+GRANT ALL ON FUNCTION public.version_premium_notes(p_e_clutch boolean, p_e_clutch_premium numeric, p_e_clutch_ads integer, p_a2_limited boolean, p_a2_limited_premium numeric, p_a2_limited_ads integer) TO anon;
+GRANT ALL ON FUNCTION public.version_premium_notes(p_e_clutch boolean, p_e_clutch_premium numeric, p_e_clutch_ads integer, p_a2_limited boolean, p_a2_limited_premium numeric, p_a2_limited_ads integer) TO authenticated;
+
+--
 -- Name: FUNCTION weekly_summary_due(p_now timestamp with time zone); Type: ACL; Schema: public; Owner: -
 --
 
@@ -12174,6 +12356,14 @@ GRANT SELECT,INSERT,UPDATE ON TABLE public.listing_card_preferences TO authentic
 GRANT SELECT ON TABLE public.model_depreciation TO anon;
 GRANT SELECT ON TABLE public.model_depreciation TO authenticated;
 GRANT ALL ON TABLE public.model_depreciation TO service_role;
+
+--
+-- Name: TABLE model_version_premiums; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT SELECT ON TABLE public.model_version_premiums TO anon;
+GRANT SELECT ON TABLE public.model_version_premiums TO authenticated;
+GRANT ALL ON TABLE public.model_version_premiums TO service_role;
 
 --
 -- Name: TABLE listing_fair_prices; Type: ACL; Schema: public; Owner: -

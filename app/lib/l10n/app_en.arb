@@ -1506,6 +1506,8 @@
   "scorePriceAt": "Price at the {reference} ({price})",
   "scorePriceBelow": "Price {pct} below the {reference} ({price})",
   "scorePriceAbove": "Price {pct} above the {reference} ({price})",
+  "scoreVersionAbove": "{version} version: worth {pct} more than the model's other versions (learnt from {ads} ads)",
+  "scoreVersionBelow": "{version} version: worth {pct} less than the model's other versions (learnt from {ads} ads)",
   "scorePriceRule": "50 points at the reference value, 2.5 more for each 1% below and 2.5 less for each 1% above (100 at 20% below, 0 at 20% above)",
   "scorePartMileage": "Mileage ({mileage}): {score}{share}",
   "scorePartMileageHidden": "Mileage (not given): {score}{share}",

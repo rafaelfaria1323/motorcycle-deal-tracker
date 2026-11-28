@@ -111,6 +111,62 @@ void main() {
     expect(rows[3].details.single, startsWith('Pelas 14 motas do stand'));
   });
 
+  test('a learnt version price shows under the estimate', () {
+    final breakdown = scoreBreakdownOf(
+      _listing(
+        dealScore: 60,
+        riskScore: 10,
+        price: 8800,
+        mileage: 3000,
+        year: 2024,
+        breakdown: {
+          'scores': {'price': 40, 'risk': 90},
+          'weights': {'price': 35, 'risk': 10},
+          'market_price': 8484,
+          'pct_below_market': -3.7,
+          'market_listing_count': 15,
+          'version_premiums': [
+            {'version': 'e_clutch', 'pct': 6.0, 'ads': 8},
+            {'version': 'a2_limited', 'pct': -12.5, 'ads': 6},
+            {'version': 'unknown', 'pct': 1.0, 'ads': 5},
+          ],
+          'equipment_bonus': 0,
+        },
+      ),
+    )!;
+
+    expect(breakdown.rows[0].details, [
+      'Preço 3,7 % acima do valor estimado (${Formatters.price(8484)})',
+      'Versão E-Clutch: vale 6,0 % mais do que as outras versões do modelo '
+          '(aprendido de 8 anúncios)',
+      'Versão A2 (35 kW): vale 12,5 % menos do que as outras versões do '
+          'modelo (aprendido de 6 anúncios)',
+      startsWith('50 pontos no valor de referência'),
+    ]);
+
+    final english = scoreBreakdownOf(
+      _listing(
+        dealScore: 60,
+        price: 8800,
+        breakdown: {
+          'scores': {'price': 40},
+          'weights': {'price': 35},
+          'version_premiums': [
+            {'version': 'e_clutch', 'pct': 6.0, 'ads': 8},
+          ],
+        },
+      ),
+      language: AppLanguage.english,
+    )!;
+    expect(
+      english.rows[0].details,
+      contains(
+        "E-Clutch version: worth 6.0% more than the model's other versions "
+        '(learnt from 8 ads)',
+      ),
+    );
+  });
+
   test('the totals add the weighted average, the bonus and the score', () {
     final totals = scoreBreakdownOf(_fullListing())!.totals;
 

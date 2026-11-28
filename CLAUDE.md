@@ -1209,6 +1209,15 @@ the bike and how many kinds of hint were found (a tap opens the ad).
   age isn't counted twice. Comparables without year or mileage are left
   out when the listing has them. The app says the estimate comes from
   asking prices.
+  Versions (N.136): `model_version_premiums` learns per model the price
+  difference of the E-Clutch (`listing_is_e_clutch`) and the A2-limited
+  version (`listing_is_a2_limited`): log prices brought to one year and
+  mileage, median of the version's ads minus the others' within its years,
+  from 5 of each, shrunk by n / (n + 5), within ±25 %; each comparable is
+  brought to the listing's version (outside the 0.35-2.5 factor) and the
+  breakdown's `version_premiums` (`version_premium_notes`) names them
+  ("Cálculo da pontuação", `versionLabels`). `bike_value` is the plain
+  version's; `typed_ad_score` adds the versions its text names.
   `bike_value(model, year, km)` applies the same rules to a bike of one's
   own (Mais › "Quanto vale a minha mota", `/worth`, `bike_value_text.dart`:
   the asking price adds the model's typical drop, 3-8 %, else 5 %;

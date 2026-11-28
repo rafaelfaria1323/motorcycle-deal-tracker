@@ -8590,6 +8590,36 @@
       }
     }
   },
+  "scoreVersionAbove": "Versão {version}: vale {pct} mais do que as outras versões do modelo (aprendido de {ads} anúncios)",
+  "@scoreVersionAbove": {
+    "description": "Interface text for the Deal Score's calculation on the ad: a version's learnt price difference (N.136).",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "pct": {
+        "type": "String"
+      },
+      "ads": {
+        "type": "String"
+      }
+    }
+  },
+  "scoreVersionBelow": "Versão {version}: vale {pct} menos do que as outras versões do modelo (aprendido de {ads} anúncios)",
+  "@scoreVersionBelow": {
+    "description": "Interface text for the Deal Score's calculation on the ad: a version's learnt price difference (N.136).",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "pct": {
+        "type": "String"
+      },
+      "ads": {
+        "type": "String"
+      }
+    }
+  },
   "scorePriceRule": "50 pontos no valor de referência, mais 2,5 por cada 1 % abaixo e menos 2,5 por cada 1 % acima (100 a 20 % abaixo, 0 a 20 % acima)",
   "@scorePriceRule": {
     "description": "Interface text for the Deal Score's calculation on the ad (N.126)."
