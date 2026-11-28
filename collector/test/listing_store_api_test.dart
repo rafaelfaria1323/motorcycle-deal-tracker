@@ -144,6 +144,7 @@ void main() {
       'unmatched_title_sample',
       'score_check_models',
       'score_check_bands',
+      'score_check_speed',
     ]) {
       replies[name] = const [];
     }
@@ -391,6 +392,11 @@ void main() {
     expect(calls.last.body, {'p_days': 28});
     expect((await check.bands(60, 14)).single.share, 20.0);
     expect(calls.last.body, {'p_days': 60, 'p_horizon': 14});
+    replies['score_check_speed'] = [
+      {'band': '80-100', 'ads': 4, 'found_hours': '1.5', 'sales': 2},
+    ];
+    expect((await check.speed(60)).single.foundHours, 1.5);
+    expect(calls.last.body, {'p_days': 60});
 
     replies['spelling_check_texts'] = [
       {'id': 'b', 'url': 'u', 'variant': 'CB650R', 'description': 'E-Clutch'},

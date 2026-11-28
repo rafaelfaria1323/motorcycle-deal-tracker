@@ -6424,6 +6424,70 @@ CREATE FUNCTION public.score_check_models(p_days integer DEFAULT 28) RETURNS TAB
 $$;
 
 --
+-- Name: score_check_speed(integer, timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.score_check_speed(p_days integer DEFAULT 60, p_since timestamp with time zone DEFAULT '2026-11-12 13:10:00+00'::timestamp with time zone) RETURNS TABLE(band text, ads integer, found_hours numeric, found_p90_hours numeric, night_ads integer, night_found_hours numeric, sales integer, sales_within_day integer, sale_hours numeric, seen_once integer, alerted integer, alert_hours numeric)
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+  with ads as (
+    select case
+             when l.last_deal_score >= 80 then '80-100'
+             when l.last_deal_score >= 60 then '60-79'
+             else '0-59'
+           end as band,
+           greatest(extract(epoch from l.first_seen_at - l.published_at), 0) / 3600
+             as found_hours,
+           extract(hour from l.published_at at time zone 'Europe/Lisbon') < 8 as night,
+           public.exit_kind(l) as kind,
+           greatest(extract(epoch from l.last_seen_at - l.published_at), 0) / 3600
+             as up_hours,
+           (select min(a.created_at)
+            from public.alerts a
+            where a.listing_id = l.id
+              and a.type <> 'listing_removed') as first_alert,
+           l.published_at
+    from public.listings l
+    where l.first_seen_at >= greatest(p_since,
+                                      now() - make_interval(days => greatest(p_days, 2)))
+      and l.first_seen_at <= now() - interval '1 day'
+      and l.published_at is not null
+      and l.published_at >= l.first_seen_at - interval '2 days'
+      and l.duplicate_of is null
+      and l.motorcycle_id is not null
+      and l.price >= 300
+      and l.last_deal_score is not null
+  ),
+  timed as (
+    select a.*,
+           a.kind in ('sold_in_text', 'likely_sold') as sale,
+           -- greatest ignores nulls: no alert must stay null, not 0 h.
+           case when a.first_alert is not null
+                then greatest(extract(epoch from a.first_alert - a.published_at), 0) / 3600
+           end as alert_hours
+    from ads a
+  )
+  select t.band,
+         count(*)::integer,
+         round((percentile_cont(0.5) within group (order by t.found_hours))::numeric, 1),
+         round((percentile_cont(0.9) within group (order by t.found_hours))::numeric, 1),
+         count(*) filter (where t.night)::integer,
+         round((percentile_cont(0.5) within group (order by t.found_hours)
+                filter (where t.night))::numeric, 1),
+         count(*) filter (where t.sale)::integer,
+         count(*) filter (where t.sale and t.up_hours <= 24)::integer,
+         round((percentile_cont(0.5) within group (order by t.up_hours)
+                filter (where t.sale))::numeric, 1),
+         count(*) filter (where t.kind = 'seen_once')::integer,
+         count(t.first_alert)::integer,
+         round((percentile_cont(0.5) within group (order by t.alert_hours))::numeric, 1)
+  from timed t
+  group by t.band
+  order by t.band desc;
+$$;
+
+--
 -- Name: set_admin(uuid, boolean); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -11919,6 +11983,13 @@ GRANT ALL ON FUNCTION public.score_check_bands(p_days integer, p_horizon integer
 
 REVOKE ALL ON FUNCTION public.score_check_models(p_days integer) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.score_check_models(p_days integer) TO service_role;
+
+--
+-- Name: FUNCTION score_check_speed(p_days integer, p_since timestamp with time zone); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.score_check_speed(p_days integer, p_since timestamp with time zone) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.score_check_speed(p_days integer, p_since timestamp with time zone) TO service_role;
 
 --
 -- Name: FUNCTION set_admin(p_user uuid, p_admin boolean); Type: ACL; Schema: public; Owner: -

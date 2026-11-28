@@ -17,7 +17,9 @@ Future<void> main(List<String> args) async {
       ..addOption(
         'band-days',
         defaultsTo: '60',
-        help: 'Ads first seen this recently (Deal Score bands).',
+        help:
+            'Ads first seen this recently (Deal Score bands and how fast '
+            'they went).',
       )
       ..addOption(
         'horizon',
@@ -43,6 +45,7 @@ Future<void> main(List<String> args) async {
     final report = scoreCheckReport(
       models: await store.models(days),
       bands: await store.bands(bandDays, horizon),
+      speed: await store.speed(bandDays),
       days: days,
       bandDays: bandDays,
       horizon: horizon,

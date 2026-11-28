@@ -184,4 +184,154 @@ void main() {
     );
     expect(report, contains('| 40-59 | 0 | 0 | – |'));
   });
+
+  group('how fast good deals go (N.138)', () {
+    SpeedCheck top({
+      int ads = 20,
+      int sales = 8,
+      int withinDay = 2,
+      int seenOnce = 1,
+      double? night = 6,
+    }) => SpeedCheck(
+      band: '80-100',
+      ads: ads,
+      foundHours: 1.5,
+      foundP90Hours: 7,
+      nightAds: night == null ? 0 : 3,
+      nightFoundHours: night,
+      sales: sales,
+      salesWithinDay: withinDay,
+      saleHours: 130,
+      seenOnce: seenOnce,
+      alerted: 9,
+      alertHours: 1.6,
+    );
+
+    test('reads a row', () {
+      final s = SpeedCheck.fromRow({
+        'band': '80-100',
+        'ads': 4,
+        'found_hours': 1.5,
+        'found_p90_hours': '4.8',
+        'night_ads': 1,
+        'night_found_hours': 6,
+        'sales': 2,
+        'sales_within_day': 1,
+        'sale_hours': 64,
+        'seen_once': 1,
+        'alerted': 1,
+        'alert_hours': null,
+      });
+      expect(s.floor, 80);
+      expect(s.foundP90Hours, 4.8);
+      expect(s.nightFoundHours, 6.0);
+      expect(s.alertHours, isNull);
+      expect(SpeedCheck.fromRow(const {}).band, '?');
+    });
+
+    test('flags good deals gone within a day', () {
+      final flags = speedFlags([top()]);
+      expect(flags, hasLength(1));
+      expect(
+        flags.single,
+        startsWith(
+          'Good deals go fast: 2 of 8 likely sales at Deal Score 80-100 '
+          'left within a day of going up; the collection found them after '
+          '1.5 h on the median (6.0 h when put up at night).',
+        ),
+      );
+      expect(flags.single, contains("Rafael's decision"));
+      expect(speedFlags([top(night: null)]).single, isNot(contains('night')));
+    });
+
+    test('flags nothing below the thresholds', () {
+      expect(speedFlags([top(withinDay: 1)]), isEmpty, reason: 'under 25 %');
+      expect(
+        speedFlags([top(sales: 4, withinDay: 4)]),
+        isEmpty,
+        reason: 'too few sales',
+      );
+      expect(
+        speedFlags([
+          const SpeedCheck(
+            band: '60-79',
+            ads: 20,
+            nightAds: 0,
+            sales: 8,
+            salesWithinDay: 8,
+            seenOnce: 10,
+            alerted: 0,
+          ),
+        ]),
+        isEmpty,
+        reason: 'only the good deals',
+      );
+    });
+
+    test('flags ads one run saw', () {
+      final flags = speedFlags([top(withinDay: 0, seenOnce: 2)]);
+      expect(flags, [
+        '2 of 20 ads at Deal Score 80-100 were seen by one run only: they '
+            'went before the next.',
+      ]);
+      expect(
+        speedFlags([top(ads: 4, withinDay: 0, seenOnce: 4)]),
+        isEmpty,
+        reason: 'too few ads',
+      );
+    });
+
+    test('the report has a table and the flags', () {
+      final report = scoreCheckReport(
+        models: const [],
+        bands: const [],
+        speed: [
+          top(),
+          const SpeedCheck(
+            band: '60-79',
+            ads: 3,
+            foundHours: 4,
+            nightAds: 0,
+            sales: 0,
+            salesWithinDay: 0,
+            seenOnce: 0,
+            alerted: 0,
+          ),
+        ],
+        days: 28,
+        bandDays: 60,
+        horizon: 14,
+      );
+      expect(report, contains('## How fast good deals go'));
+      expect(report, contains('Ads found in the last 60 days'));
+      expect(
+        report,
+        contains(
+          '| 80-100 | 20 | 1.5 h (7.0 h) | 3 (6.0 h) | 8 | 2 | 5.4 d | '
+          '1 | 9 | 1.6 h |',
+        ),
+      );
+      expect(
+        report,
+        contains('| 60-79 | 3 | 4.0 h (–) | 0 | 0 | 0 | – | 0 | 0 | – |'),
+      );
+      expect(report, contains('- Good deals go fast: 2 of 8'));
+      expect(
+        report.indexOf('## How fast'),
+        lessThan(report.indexOf('## To look at')),
+      );
+    });
+
+    test('no ads says so', () {
+      final report = scoreCheckReport(
+        models: const [],
+        bands: const [],
+        days: 28,
+        bandDays: 60,
+        horizon: 14,
+      );
+      expect(report, contains('No scored ads found in the period.'));
+      expect(report, contains('good deals do not go faster'));
+    });
+  });
 }
