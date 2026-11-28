@@ -1,0 +1,21 @@
+name: file_share
+description: Shares a file the app made through Android's share sheet (Deal Tracker only).
+publish_to: 'none'
+version: 1.0.0
+
+environment:
+  sdk: ^3.9.2
+  flutter: ">=3.35.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+# Android only, no Dart code: the app calls the channel itself
+# (lib/core/platform/share_file_stub.dart).
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: io.github.rafaelfaria1323.file_share
+        pluginClass: FileSharePlugin

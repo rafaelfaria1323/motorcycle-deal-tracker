@@ -49,6 +49,8 @@ dependencies:
   # package:flutter/material.dart (N.90).
   material_ui: ^1.11.1
   url_launcher: ^6.3.3
+  # The ad's report as a PDF to share (pure Dart, N.127).
+  pdf: ^3.13.1
   # The Android app's own updater (Android only, no Dart code).
   apk_installer:
     path: packages/apk_installer
@@ -61,6 +63,9 @@ dependencies:
   # Ads shared to the Android app from other apps (no Dart code, N.103).
   share_receiver:
     path: packages/share_receiver
+  # The ad's report PDF to Android's share sheet (no Dart code, N.127).
+  file_share:
+    path: packages/file_share
 
 dev_dependencies:
   flutter_test:

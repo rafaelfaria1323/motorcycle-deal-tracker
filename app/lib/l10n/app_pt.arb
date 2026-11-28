@@ -7833,13 +7833,29 @@
   "@listingReport": {
     "description": "Interface text in listing_report_text / ListingReportCard: the report of one ad (16.8)."
   },
-  "listingReportBody": "Toda a análise deste anúncio num texto: as pontuações, o mercado, quanto oferecer, as suas notas da visita e as chamadas à oficina. Envie-o a um mecânico ou a quem for ver a mota consigo.",
+  "listingReportBody": "Toda a análise deste anúncio num PDF: as pontuações, o mercado, quanto oferecer, as suas notas da visita e as chamadas à oficina. Envie-o a um mecânico ou a quem for ver a mota consigo.",
   "@listingReportBody": {
     "description": "Interface text in listing_report_text / ListingReportCard: the report of one ad (16.8)."
   },
   "shareReport": "Partilhar relatório",
   "@shareReport": {
     "description": "Interface text in listing_report_text / ListingReportCard: the report of one ad (16.8)."
+  },
+  "reportPdfNotScored": "Ainda sem pontuação",
+  "@reportPdfNotScored": {
+    "description": "The PDF report's Deal Score tile when the ad has no score (N.127)."
+  },
+  "shareReportText": "Partilhar como texto",
+  "@shareReportText": {
+    "description": "ListingReportCard: the secondary button that shares the report as plain text instead of the PDF (N.127)."
+  },
+  "reportDownloaded": "Relatório descarregado (PDF).",
+  "@reportDownloaded": {
+    "description": "ListingReportCard: snack bar when the browser cannot share files and the PDF was downloaded instead (N.127)."
+  },
+  "reportFileName": "relatorio",
+  "@reportFileName": {
+    "description": "ListingReportCard: the first word of the PDF's file name, before the bike (\"relatorio-yamaha-mt-07-2021.pdf\"); lowercase, no accents or spaces (N.127)."
   },
   "favouritesSeenBy": "Vê a sua lista: {email}",
   "@favouritesSeenBy": {

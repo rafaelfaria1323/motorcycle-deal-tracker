@@ -25,4 +25,10 @@ void main() {
     expect(searchByName(['Énergica', 'Ducati'], name, 'ener'), ['Énergica']);
     expect(searchByName(models, name, 'ducati'), isEmpty);
   });
+
+  test('a file name part is lower-case letters and digits with hyphens', () {
+    expect(fileNamePart('Yamaha MT-07 · 2021'), 'yamaha-mt-07-2021');
+    expect(fileNamePart(' Énergica Ego+ '), 'energica-ego');
+    expect(fileNamePart('Relatório: Ç/ã'), 'relatorio-c-a');
+  });
 }
